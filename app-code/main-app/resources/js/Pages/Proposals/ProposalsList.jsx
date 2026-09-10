@@ -24,7 +24,8 @@ import {
  CheckSquare,
  Edit,
  Clock,
- ShoppingCart
+ ShoppingCart,
+ Wrench
 } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import SmartCombobox from '@/Components/SmartCombobox';
@@ -558,6 +559,17 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  <ShoppingCart size={14} /> Convert to Sale
  </button>
  )}
+ <Link
+  href={route('store.service-jobs.create', {
+    store_slug: store?.slug,
+    party_id: row.customer_id || row.party_id,
+    title: `Work Order for Quote #${row.proposal_number || row.id}`,
+    estimated_total: row.total || ''
+  })}
+  className="w-full text-left px-3 py-2 hover:bg-amber-50 rounded dark:hover:bg-amber-900/20 flex items-center gap-2 text-sm text-amber-600 font-medium"
+  >
+  <Wrench size={14} /> Book as Service Job
+  </Link>
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Copy size={14} /> Duplicate</button>
  <div className="h-px bg-sunken my-1"></div>
  <button onClick={() => handleDelete(row.id)} className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"><Trash2 size={14} /> Delete</button>

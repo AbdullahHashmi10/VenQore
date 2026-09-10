@@ -146,9 +146,9 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
             toolGroups={toolGroups}
             currentSlug="qr-menu-generator"
             cta={{
-                headline: 'Turn table scans into live POS orders & inventory sync.',
-                subtext: 'VenQore POS empowers restaurants with QR table ordering, kitchen display systems, inventory tracking, and double-entry accounting.',
-            }}
+                    headline: "Turn table scans into live orders and stock movement.",
+                    subtext: "Describe your restaurant and VenQore builds a system with QR table ordering, a kitchen screen, live stock and a real ledger behind it.",
+                }}
             related={[
                 { label: 'QR Code Generator', href: '/tools/qr-code-generator' },
                 { label: 'Recipe Costing Calculator', href: '/tools/food-cost-calculator' },

@@ -17,12 +17,13 @@ class NewPosController extends Controller
     public function index(Request $request)
     {
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-        $tenantId = $tenant?->id;
+        abort_unless($tenant, 400, 'No store context.');
+        $tenantId = $tenant->id;
 
         // Recalled sale if recall param is present
         $recalledSale = null;
         if ($request->has('recall')) {
-            $recalledSale = Sale::with([
+            $recalledSale = Sale::where('tenant_id', $tenantId)->with([
                 'items.product.category',
                 'items.product.stocks',
                 'items.productVariant',
@@ -40,46 +41,32 @@ class NewPosController extends Controller
         }
 
         // Bank accounts: filter out cash accounts
-        $bankAccountsQuery = BankAccount::where(function ($query) {
+        $bankAccounts = BankAccount::where('tenant_id', $tenantId)
+            ->where(function ($query) {
                 $query->whereNull('account_type')
                       ->orWhere('account_type', '!=', 'cash');
             })
             ->where(function ($query) {
                 $query->whereNull('type')
                       ->orWhere('type', '!=', 'cash');
-            });
-        
-        if ($tenantId) {
-            $bankAccountsQuery->where('tenant_id', $tenantId);
-        }
-        $bankAccounts = $bankAccountsQuery->get(['id', 'name', 'account_number as code', 'account_number']);
+            })
+            ->get(['id', 'name', 'account_number as code', 'account_number']);
 
         // Default walk-in customer party
-        $defaultCustomer = null;
-        if ($tenantId) {
-            $defaultCustomer = Party::where('tenant_id', $tenantId)
-                ->where(function ($q) {
-                    $q->where('name', 'LIKE', '%Walk-in%')
-                      ->orWhere('name', 'LIKE', '%Cash Customer%')
-                      ->orWhere('name', 'LIKE', '%Counter Customer%');
-                })
-                ->first();
-        }
+        $defaultCustomer = Party::where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->where('name', 'LIKE', '%Walk-in%')
+                  ->orWhere('name', 'LIKE', '%Cash Customer%')
+                  ->orWhere('name', 'LIKE', '%Counter Customer%');
+            })
+            ->first();
 
         // Warehouses
-        $warehousesQuery = Warehouse::query();
-        if ($tenantId) {
-            $warehousesQuery->where('tenant_id', $tenantId);
-        }
-        $warehouses = $warehousesQuery->get(['id', 'name', 'is_default']);
-        if ($warehouses->isEmpty()) {
-            $warehouses = Warehouse::all(['id', 'name', 'is_default']);
-        }
+        $warehouses = Warehouse::where('tenant_id', $tenantId)->get(['id', 'name', 'is_default']);
 
         // Ecommerce Channels
-        $ecommerceChannels = $tenantId
-            ? EcommerceChannel::where('tenant_id', $tenantId)->get(['id', 'name', 'platform', 'default_fulfillment_type'])
-            : collect();
+        $ecommerceChannels = EcommerceChannel::where('tenant_id', $tenantId)
+            ->get(['id', 'name', 'platform', 'default_fulfillment_type']);
 
         // Settings map
         $settings = Setting::all()->pluck('value', 'key');

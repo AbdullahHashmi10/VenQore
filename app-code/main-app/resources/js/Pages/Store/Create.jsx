@@ -230,7 +230,7 @@ export default function CreateStore({ available_license = null, selected_plan = 
                             'You can rename your store and change settings at any time.'
                         ) : (
                             <>
-                                <CreditCard size={11} className="shrink-0" /> No card charged today. You can
+                                <CreditCard size={11} className="shrink-0" /> $0.00 due today. You can
                                 cancel anytime before your trial ends.
                             </>
                         )}

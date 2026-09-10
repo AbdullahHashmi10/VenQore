@@ -75,7 +75,7 @@ class ProvisionTenantJob implements ShouldQueue
                     (string) config('pricing.ai_tiers.shop.variant_id'),
                     (string) config('pricing.ai_tiers.pro.variant_id'),
                     (string) config('pricing.ai_tiers.max.variant_id'),
-                    (string) config('pricing.add_ons.byok.variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id'),
+                    (string) config('pricing.add_ons.byok.variant_id'),
                     (string) config('services.lemon_squeezy.ai_topup_addon_id'),
                     (string) config('services.lemon_squeezy.ai_starter_addon_id'),
                     (string) config('services.lemon_squeezy.ai_lite_addon_id'),
@@ -203,11 +203,11 @@ class ProvisionTenantJob implements ShouldQueue
         }
 
         $aiTiers = config('pricing.ai_tiers', []);
-        $sparkVariant = $aiTiers['spark']['variant_id'] ?? config('services.lemon_squeezy.ai_spark_variant_id');
-        $shopVariant  = $aiTiers['shop']['variant_id']  ?? config('services.lemon_squeezy.ai_shop_variant_id');
-        $proVariant   = $aiTiers['pro']['variant_id']   ?? config('services.lemon_squeezy.ai_pro_variant_id');
-        $maxVariant   = $aiTiers['max']['variant_id']   ?? config('services.lemon_squeezy.ai_max_variant_id');
-        $byokVariant  = config('pricing.add_ons.byok.variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id');
+        $sparkVariant = $aiTiers['spark']['variant_id'] ?? null;
+        $shopVariant  = $aiTiers['shop']['variant_id'] ?? null;
+        $proVariant   = $aiTiers['pro']['variant_id'] ?? null;
+        $maxVariant   = $aiTiers['max']['variant_id'] ?? null;
+        $byokVariant  = config('pricing.add_ons.byok.variant_id');
 
         if ($sparkVariant && $sparkVariant !== 'REPLACE_ME' && $variantIdStr === (string)$sparkVariant) {
             $aiStatus = 'managed';
@@ -240,8 +240,8 @@ class ProvisionTenantJob implements ShouldQueue
             $isAddon = true;
         }
 
-        $staffSeatId    = config('pricing.add_ons.staff_seat.variant_id') ?? config('services.lemon_squeezy.staff_seat_addon_id');
-        $locationSeatId = config('pricing.add_ons.location_seat.variant_id') ?? config('services.lemon_squeezy.location_seat_addon_id');
+        $staffSeatId    = config('pricing.add_ons.extra_seat.variant_id');
+        $locationSeatId = config('pricing.add_ons.extra_location.variant_id');
 
         if ($staffSeatId && $staffSeatId !== 'REPLACE_ME' && $variantIdStr === (string)$staffSeatId) {
             $isAddon = true;

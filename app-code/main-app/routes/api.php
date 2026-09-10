@@ -45,7 +45,8 @@ Route::middleware(['auth:sanctum', 'plan.feature:work_orders'])->group(function 
 // Verified via HMAC-SHA256 signature (VerifyLemonSqueezySignature middleware)
 // Excluded from CSRF — this is a server-to-server POST from Lemon Squeezy
 Route::post('/webhooks/lemon-squeezy', [LemonSqueezyWebhookController::class, 'handle'])
-    ->middleware('lemon-squeezy.signature');
+    ->middleware('lemon-squeezy.signature')
+    ->name('webhooks.lemon-squeezy');
 
 Route::post('/webhooks/pusher', [\App\Http\Controllers\PusherWebhookController::class, 'handle']);
 
@@ -59,6 +60,7 @@ Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:pos'])->group(functi
     Route::get('/featured',         [PosSearchController::class, 'featured']);
     Route::get('/categories',       [PosSearchController::class, 'categories']);
     Route::get('/barcode/{code}',   [PosSearchController::class, 'findByBarcode']);
+    Route::get('/modifiers',        [PosSearchController::class, 'modifiers']);
 });
 
 // ── WooCommerce Sync — Public Endpoints ───────────────────────────────────
@@ -116,7 +118,6 @@ Route::middleware('plan.feature:ai_assistant')->group(function () {
     Route::get('/{store_slug}/vena/context', [VenaContextController::class, 'index']);
     Route::post('/{store_slug}/vena/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist']);
 });
-
 
 
 

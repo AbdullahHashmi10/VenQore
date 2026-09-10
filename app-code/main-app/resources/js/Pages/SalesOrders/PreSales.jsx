@@ -30,7 +30,8 @@ import {
  Clock,
  ShoppingBag,
  ShoppingCart,
- CheckCircle2
+ CheckCircle2,
+ Wrench
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import SellModuleTabs from '@/Components/SellModuleTabs';
@@ -587,6 +588,17 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  }
  }} className="w-full text-left px-3 py-2 hover:bg-emerald-50 rounded dark:hover:bg-emerald-900/20 flex items-center gap-2 text-sm text-emerald-600"><ShoppingCart size={14} /> Convert To Sale</button>
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Truck size={14} /> Delivery Challan</button>
+ <Link
+ href={route('store.service-jobs.create', {
+ store_slug: store?.slug,
+ party_id: row.customer_id || row.party_id || '',
+ title: `Work order for ${row.order_number}`,
+ estimated_total: row.total_amount
+ })}
+ className="w-full text-left px-3 py-2 hover:bg-blue-50 rounded dark:hover:bg-blue-900/20 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-semibold"
+ >
+ <Wrench size={14} /> Book as Service Job
+ </Link>
  <div className="h-px bg-sunken my-1"></div>
  <button onClick={() => {
  showConfirm?.({

@@ -39,17 +39,6 @@ class SaleController extends Controller
     }
     public function store(Request $request)
     {
-        /* The invoice screen calls this field `date`; the till sends nothing and
-           means today. Reading only `sale_date` meant a back-dated invoice was
-           counted against the wrong month's transaction allowance. */
-        $date = Carbon::parse($request->input('sale_date', $request->input('date', Carbon::now()->toDateString())));
-        $start = $date->copy()->startOfMonth();
-        $end = $date->copy()->endOfMonth();
-
-        $monthlyCount = \App\Models\Sale::where('status', 'posted')
-            ->whereBetween('created_at', [$start, $end])
-            ->count();
-        \App\Services\PlanGate::enforce('transactions_per_month', $monthlyCount);
 
         $request->validate([
             'customer_id'           => 'nullable|exists:parties,id',

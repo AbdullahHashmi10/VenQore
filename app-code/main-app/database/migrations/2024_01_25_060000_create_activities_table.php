@@ -15,7 +15,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2)->default(0);
             $table->char('reference_id', 36)->nullable(); // invoice_id, payment_id, etc.
             $table->string('reference_type')->nullable(); // 'invoice', 'payment', 'expense'
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->json('metadata')->nullable(); // Extra data as JSON
             $table->timestamps();
 

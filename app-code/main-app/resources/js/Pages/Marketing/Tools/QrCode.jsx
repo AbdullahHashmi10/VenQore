@@ -142,9 +142,9 @@ export default function QrCodeTool({ supportsRaster = true, supportsLogo = true,
             toolGroups={toolGroups}
             currentSlug="qr-code-generator"
             cta={{
-                headline: 'Give every product, table and receipt its own QR code.',
-                subtext: 'VenQore generates QR codes for products, invoices and menus automatically — and writes a balanced double-entry journal on every sale.',
-            }}
+                    headline: "Give every product, table and receipt its own QR code.",
+                    subtext: "Describe your business and VenQore builds a system that issues QR codes for products, invoices and menus as it creates them.",
+                }}
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Price Tag Generator', href: '/tools/price-tag-generator' }]}
         >
             <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">

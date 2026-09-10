@@ -1,61 +1,695 @@
-# VenQore robots.txt — updated 2026-07-03
-# Human search engines and AI assistants are both explicitly welcome.
-# Machine-readable product summary for LLMs: https://venqore.com/llms.txt
+# VenQore robots.txt — updated 2026-09-05
+#
+# Human search engines and AI assistants are both explicitly welcome on the
+# public marketing surface. Machine-readable product summary for LLMs:
+# https://venqore.com/llms.txt
+#
+# ⚠ A named User-agent group REPLACES the '*' group for that crawler — robots.txt
+#   has no inheritance. Every group below therefore repeats the full disallow
+#   list. Add a new private path to EVERY group, not just the first one.
 
 User-agent: *
 Disallow: /s/
 Disallow: /superadmin
 Disallow: /VenQore/
+Disallow: /VenQore-login
 Disallow: /api/
 Disallow: /installer
 Disallow: /hub
 Disallow: /login
+Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify-email
-Disallow: /VenQore-login
 Disallow: /staff-login
 Disallow: /redeem
 Disallow: /demo/login
 Disallow: /next-dashboard
 Disallow: /new-dashboard
 Disallow: /new-dashbaord
-Disallow: /build-workspace
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
 # Duplicate copies of the marketing pages. The canonical URLs are the clean
 # ones (/pricing, /features, ...) — these two trees serve the same HTML.
 Disallow: /v6/
 Disallow: /legacy/
+Disallow: /*.html$
 
-# AI / LLM crawlers — deliberately allowed (GEO/AEO decision, 2026-07-03)
+
+# GPTBot — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: GPTBot
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# OAI-SearchBot — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: OAI-SearchBot
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# ChatGPT-User — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: ChatGPT-User
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# ClaudeBot — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: ClaudeBot
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Claude-Web — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: Claude-Web
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# anthropic-ai — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: anthropic-ai
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# PerplexityBot — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: PerplexityBot
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Perplexity-User — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: Perplexity-User
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Google-Extended — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: Google-Extended
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Applebot-Extended — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: Applebot-Extended
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Bytespider — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: Bytespider
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Amazonbot — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: Amazonbot
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
 
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# cohere-ai — allowed on the public pages, excluded from tenant and auth paths.
 User-agent: cohere-ai
-Allow: /
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Meta-ExternalAgent — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: Meta-ExternalAgent
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# DuckAssistBot — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: DuckAssistBot
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# CCBot — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: CCBot
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Diffbot — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: Diffbot
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# YouBot — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: YouBot
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Timpibot — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: Timpibot
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# omgili — allowed on the public pages, excluded from tenant and auth paths.
+User-agent: omgili
+Disallow: /s/
+Disallow: /superadmin
+Disallow: /VenQore/
+Disallow: /VenQore-login
+Disallow: /api/
+Disallow: /installer
+Disallow: /hub
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /staff-login
+Disallow: /redeem
+Disallow: /demo/login
+Disallow: /next-dashboard
+Disallow: /new-dashboard
+Disallow: /new-dashbaord
+Disallow: /partner-support
+Disallow: /tools/lead/
+Disallow: /tools/download/
+Disallow: /tools/qr-menu-generator/view/
+
+# Duplicate copies of the marketing pages. The canonical URLs are the clean
+# ones (/pricing, /features, ...) — these two trees serve the same HTML.
+Disallow: /v6/
+Disallow: /legacy/
+Disallow: /*.html$
+
+
+# Bots with no legitimate use for this site.
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
 
 Sitemap: https://venqore.com/sitemap.xml

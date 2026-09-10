@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 /**
  * User Model — Definitive Plan
@@ -28,7 +29,7 @@ use Illuminate\Support\Facades\Hash;
  *   - last_store_id (remembers which store to auto-enter on login)
  *   - is_platform_admin (platform-level admin, not store-level)
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, SoftDeletes;
 
@@ -44,9 +45,6 @@ class User extends Authenticatable
         'email',
         'password',
         'last_store_id',
-        'is_platform_admin',
-        'platform_role',
-        'staff_role',
         'platform_pin',
         'google_id',
         'avatar',
@@ -175,22 +173,22 @@ class User extends Authenticatable
      */
     public function isPlatformAdmin(): bool
     {
-        return (bool) $this->is_platform_admin;
+        return (bool) ($this->attributes['is_platform_admin'] ?? false);
     }
 
     public function isPlatformOwner(): bool
     {
-        return $this->isPlatformAdmin() && $this->platform_role === 'platform_owner';
+        return $this->isPlatformAdmin() && (($this->attributes['platform_role'] ?? null) === 'platform_owner');
     }
 
     public function isPlatformSuperAdmin(): bool
     {
-        return $this->isPlatformAdmin() && in_array($this->platform_role, ['platform_owner', 'platform_manager', 'product_manager']);
+        return $this->isPlatformAdmin() && in_array($this->attributes['platform_role'] ?? null, ['platform_owner', 'platform_manager', 'product_manager']);
     }
 
     public function isPlatformSupport(): bool
     {
-        return $this->isPlatformAdmin() && in_array($this->platform_role, [
+        return $this->isPlatformAdmin() && in_array($this->attributes['platform_role'] ?? null, [
             'platform_owner', 'platform_manager', 'product_manager',
             'support_director', 'support_dept_manager', 'support_agent', 'support_qa', 'tech_escalation'
         ]);
@@ -198,9 +196,12 @@ class User extends Authenticatable
 
     public function isPlatformStaff(): bool
     {
-        return $this->isPlatformAdmin() || 
-            ($this->platform_role !== 'none' && !empty($this->platform_role)) || 
-            (!empty($this->staff_role) && in_array($this->staff_role, ['support', 'content', 'marketing', 'finance', 'sales']));
+        $platformRole = $this->attributes['platform_role'] ?? null;
+        $staffRole = $this->attributes['staff_role'] ?? null;
+
+        return $this->isPlatformAdmin() ||
+            ($platformRole !== 'none' && !empty($platformRole)) ||
+            (!empty($staffRole) && in_array($staffRole, ['support', 'content', 'marketing', 'finance', 'sales']));
     }
 
     /**
@@ -209,7 +210,7 @@ class User extends Authenticatable
      */
     public function hasRole(string $role): bool
     {
-        if ($this->is_platform_admin && ($role === 'platform_admin' || $role === 'admin')) return true;
+        if ($this->isPlatformAdmin() && ($role === 'platform_admin' || $role === 'admin')) return true;
         return $this->role === $role;
     }
 

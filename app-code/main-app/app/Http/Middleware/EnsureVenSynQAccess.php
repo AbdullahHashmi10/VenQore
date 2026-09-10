@@ -42,23 +42,8 @@ class EnsureVenSynQAccess
             abort(404);
         }
 
-        $route = $request->route();
-        $routeName = $route ? $route->getName() : null;
-
-        $syncActions = [
-            'store.vensynq.sync-orders',
-            'store.vensynq.preview',
-            'store.vensynq.process',
-            'store.vensynq.sync-tracking',
-            'store.vensynq.jit.approve',
-            'store.vensynq.channels.test',
-            'store.vensynq.channels.retry',
-        ];
-
-        if (in_array($routeName, $syncActions)) {
-            if (!PlanGate::check('vensync_command')) {
-                abort(403, 'VenSynQ multi-channel sync is not included in your current plan. Please upgrade to unlock marketplace integrations.');
-            }
+        if (!PlanGate::check('vensync_command')) {
+            abort(403, 'VenSynQ Command Hub requires an active multi-channel add-on or plan upgrade.');
         }
 
         return $next($request);

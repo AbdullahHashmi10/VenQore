@@ -102,7 +102,7 @@ class SystemResetController extends Controller
     {
         // Increase limits for large deletions
         set_time_limit(600); // 10 minutes
-        ini_set('memory_limit', '512M');
+        $this->ensureMinimumMemoryLimit('512M');
 
         $request->validate(['password' => 'required']);
 
@@ -232,7 +232,7 @@ class SystemResetController extends Controller
     public function deleteEntity(Request $request, $entity)
     {
         set_time_limit(600);
-        ini_set('memory_limit', '512M');
+        $this->ensureMinimumMemoryLimit('512M');
 
         $request->validate(['password' => 'required']);
 
@@ -367,6 +367,34 @@ class SystemResetController extends Controller
             DB::rollBack();
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             return response()->json(['message' => 'Operation Failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Raise memory limit only if the current limit is lower than the desired minimum.
+     * Prevents lowering CLI or test limits (e.g. -1 or 2G) down to 512M.
+     */
+    private function ensureMinimumMemoryLimit(string $minimum = '512M'): void
+    {
+        $current = ini_get('memory_limit');
+        if ($current === '-1') {
+            return;
+        }
+
+        $parseBytes = function (string $val): int {
+            $val = trim($val);
+            $unit = strtolower(substr($val, -1));
+            $num = (int) $val;
+            return match ($unit) {
+                'g' => $num * 1024 * 1024 * 1024,
+                'm' => $num * 1024 * 1024,
+                'k' => $num * 1024,
+                default => (int) $val,
+            };
+        };
+
+        if ($parseBytes($current) < $parseBytes($minimum)) {
+            ini_set('memory_limit', $minimum);
         }
     }
 }

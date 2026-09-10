@@ -202,7 +202,7 @@ class MarketingSeo
             'name'  => 'VenQore',
             'url'   => url('/'),
             'logo'  => url('/images/logo.png'),
-            'description' => 'VenQore builds the retail operating system where the books are always right: an offline-first POS and ERP with verified double-entry accounting built in.',
+            'description' => 'VenQore is the AI ERP builder: describe your business and it assembles the system that runs it, with verified double-entry accounting built in.',
             'contactPoint' => [
                 '@type' => 'ContactPoint',
                 'contactType' => 'customer support',
@@ -236,8 +236,8 @@ class MarketingSeo
         return [
 
             'welcome' => [
-                'title' => 'VenQore — The last software your business will need',
-                'description' => 'Point of sale, stock, purchases, invoices, customers and real accounting — one system instead of five subscriptions and a notebook. Enter it once; VenQore does the rest. Guarded by 1,500+ automated tests. Try the live demo, no signup.',
+                'title' => 'VenQore — The AI ERP Builder for POS, Stock & Accounting',
+                'description' => 'Point of sale, stock, purchases, invoices, customers and real accounting — one system instead of five subscriptions and a notebook. Enter it once; VenQore does the rest. Guarded by eight correctness laws that run on every release. Try the live demo, no signup.',
                 'keywords' => 'POS system, Online ERP, Online Business Software, offline point of sale, offline business software, offline ERP software, offline invoicing software, offline billing app, offline cash register, offline shop management, no internet POS, internet down POS backup, offline retail system, offline database billing, offline stock tracking, bookkeeper software, shop bookkeeping system, retail bookkeeping software, small business bookkeeping, automated bookkeeping app, ledger book app, digital ledger app, credit ledger software, accounts bookkeeping software, accounting and bookkeeping system, daily bookkeeping app, khata bookkeeping system, point of sale system, retail POS software, wholesale POS system, billing software, invoicing system, cash register software, retail billing app, multi store POS, cloud POS system, offline POS software, offline first point of sale, PWA point of sale, mobile POS system, tablet point of sale, store management software, shop billing software, supermarket POS, pharmacy billing software, grocery POS system, clothing store POS, electronics shop POS, retail management system, business operating system, inventory management software, stock control system, FIFO inventory tracking, barcode inventory software, batch tracking software, expiry date tracking inventory, serial number tracking POS, IMEI tracking software, variant inventory management, multi warehouse inventory, stock valuation report, purchase order management, supplier management software, composite products creator, manufacturing recipe ERP, raw materials tracking, stock transfer software, double entry accounting software, ledger bookkeeping app, automatic journal entries, general ledger system, profit and loss report, balance sheet generator, trial balance software, cash flow statement app, financial reporting software, auditor grade accounting, bank reconciliation system, accounts receivable aging, accounts payable tracker, debit credit manager, customer khata book, customer credit limits, digital ledger book, tax exclusive billing, tax inclusive invoicing, sales tax reporting software, WooCommerce POS sync, e-commerce inventory sync, online store POS integration, web store sync ERP, multi channel fulfillment software, WhatsApp debt reminders, customer loyalty program, loyalty points system POS, gift cards software, customer CRM for retail, sales analytics dashboard, business intelligence for retail, AI invoice capture, scan to invoice software, receipt OCR software, voice to invoice assistant, staff management POS, cashier role permissions, audit logs software, thermal printer software POS, WebUSB printing system, barcode generator software, lifetime deal POS, AppSumo LTD ERP, SaaS billing system, cloud ERP software, small business ERP, enterprise retail suite, B2B invoicing platform, wholesale inventory ERP, retail shop calculator, cloud ledger books, offline billing app, fast retail checkout, hold cart POS, split payment POS, discount manager POS, customer database app, mobile billing printer, shop ledger bookkeeping, online business software, best POS software 2026, business ERP dashboard, simple bookkeeping for shops',
                 'jsonld' => [
                     [
@@ -251,48 +251,48 @@ class MarketingSeo
                                 'applicationSubCategory' => 'Point of Sale (POS) and ERP',
                                 'operatingSystem' => 'Web browser (offline-capable PWA)',
                                 'url' => url('/'),
-                                'description' => 'The last software your business will need. Offline-first POS and ERP with built-in verified double-entry accounting, FIFO inventory, 40+ financial reports, multi-store support and WooCommerce sync.',
+                                'description' => 'Describe your business. See what it becomes.. Offline-first POS and ERP with built-in verified double-entry accounting, FIFO inventory, all 40 reports, multi-store support and WooCommerce sync.',
                                 'offers' => [
                                     '@type' => 'AggregateOffer',
                                     'priceCurrency' => 'USD',
-                                    'lowPrice' => '36',
+                                    'lowPrice' => '18',
                                     'highPrice' => '129',
                                     'offerCount' => '3',
                                     'url' => url('/pricing'),
                                 ],
-                                'featureList' => 'Offline-first POS checkout; Double-entry accounting engine; FIFO inventory with batch and serial tracking; 40+ verified financial reports; Multi-store management; Customer credit (khata) tracking; WooCommerce synchronization; Barcode scanning and thermal printing; Staff roles and permissions; Loyalty points and gift cards',
+                                'featureList' => 'Offline-first POS checkout; Double-entry accounting engine; FIFO inventory with batch and serial tracking; 40 verified reports; Multi-store management; Customer credit (khata) tracking; WooCommerce synchronization; Barcode scanning and thermal printing; Staff roles and permissions; Loyalty points and gift cards',
                             ],
                         ],
                     ],
                 ],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>The last software your business will need.</h1>'
-                    . '<p><strong>Point of sale, stock, purchases, invoices, customers and real accounting — one system instead of five subscriptions and a notebook.</strong> Enter it once; VenQore does the rest. The accounting engine is guarded by 1,500+ automated tests.</p>'
+                    . '<h1>Describe your business. See what it becomes..</h1>'
+                    . '<p><strong>Point of sale, stock, purchases, invoices, customers and real accounting — one system instead of five subscriptions and a notebook.</strong> Enter it once; VenQore does the rest. The accounting engine is guarded by eight correctness laws that run on every release.</p>'
                     . '<h2>Why VenQore Exists</h2>'
                     . '<p>Businesses don&#39;t fail because they lack software. They fail because they spend their best hours making five apps and a notebook agree with each other. A sale happens in seconds — then gets typed into the stock app, the accounts, the spreadsheet, and the online store. VenQore is one system where it happens once.</p>'
                     . '<h2>What you get</h2><ul>'
                     . '<li>Offline-first POS: barcode scanning, split payments, hold bills, thermal printing</li>'
                     . '<li>Real double-entry accounting: trial balance always zero, FIFO cost of goods, immutable posted ledger</li>'
-                    . '<li>40+ financial reports from one verified ledger: P&amp;L, balance sheet, cash flow, aging, stock valuation</li>'
+                    . '<li>all 40 reports from one verified ledger: P&amp;L, balance sheet, cash flow, aging, stock valuation</li>'
                     . '<li>Customer credit (khata), loyalty points, gift cards, purchase orders, manufacturing recipes</li>'
                     . '<li>Multi-store, staff roles, WooCommerce sync, AI-assisted workflows</li></ul>'
                     . '<h2>Why offline-first</h2><p>Internet drops. Power cuts. Your till should not care. VenQore keeps selling on the device, saves every cart before the server even confirms it, and syncs back automatically the moment connectivity returns — so a bad connection never becomes a lost sale or a corrupted count.</p>'
-                    . '<p><a href="/demo"><strong>Try the live demo — no signup</strong></a> · <a href="/pricing">See pricing (from $36/month, 14-day free trial)</a></p>'
+                    . '<p><a href="/demo"><strong>Try the live demo — no signup</strong></a> · <a href="/pricing">See pricing (starts at $690/year or free)</a></p>'
                     . $nav . '</main>',
             ],
 
             'marketing.features' => [
-                'title' => 'VenQore Features — 226+ POS & ERP Capabilities on One Verified Ledger',
-                'description' => 'Every VenQore feature, from offline POS checkout and FIFO inventory to double-entry accounting, 40+ reports, multi-store, staff roles, loyalty, and WooCommerce sync.',
+                'title' => 'VenQore Features — 144 Verified POS & ERP Capabilities on One Verified Ledger',
+                'description' => 'Every VenQore feature, from offline POS checkout and FIFO inventory to double-entry accounting, all 43 reports, multi-store, staff roles, loyalty, and WooCommerce sync.',
                 'keywords' => 'POS system features, online ERP capabilities, inventory tracking, FIFO batches, double-entry ledger, multi-store POS, retail accounting software, WooCommerce sync, barcode scanning POS, offline POS, credit khata tracking',
                 'jsonld' => [],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Features</h1>'
-                    . '<p><strong>226+ features across POS, inventory, accounting, reporting and growth — all writing to one verified double-entry ledger.</strong></p>'
+                    . '<p><strong>144 verified features across POS, inventory, accounting, reporting and growth — all writing to one verified double-entry ledger.</strong></p>'
                     . '<ul><li><strong>POS:</strong> offline-first checkout, barcode scanning, multi-tab carts, hold &amp; recall, split payments, WebUSB thermal printing</li>'
                     . '<li><strong>Inventory:</strong> FIFO batches with expiry, serial/IMEI tracking, variants, multi-unit, composite products &amp; recipes, purchase orders with partial receiving</li>'
                     . '<li><strong>Accounting:</strong> automatic balanced journal entries, derived account balances that cannot drift, immutable posted history, bank reconciliation</li>'
-                    . '<li><strong>Reports:</strong> 40+ statements — P&amp;L, balance sheet, cash flow, trial balance, aging, item and party profitability — all reconciled to the ledger</li>'
+                    . '<li><strong>Reports:</strong> 43 statements — P&amp;L, balance sheet, cash flow, trial balance, aging, item and party profitability — all reconciled to the ledger</li>'
                     . '<li><strong>Growth:</strong> customer khata &amp; credit limits, loyalty points, gift cards, campaigns, WhatsApp debt reminders</li>'
                     . '<li><strong>Platform:</strong> multi-store, 7 staff roles, audit logs, WooCommerce sync, AI capture &amp; assistant</li></ul>'
                     . '<p>Deep-dive pages: <a href="/features/point-of-sale">Point of Sale</a> · <a href="/features/accounting">Accounting</a> · <a href="/features/inventory-management">Inventory Management</a> · <a href="/features/offline-pos">Offline POS</a> · <a href="/features/growth-engine">Growth Intelligence Engine</a></p>'
@@ -308,7 +308,7 @@ class MarketingSeo
                 'jsonld' => [
                     self::faq([
                         ['Does VenQore POS work on any device?', 'Yes. VenQore runs in any modern browser on any device — iPad, Android tablet, Windows laptop, Mac, or desktop PC. It installs as a PWA (Progressive Web App) from the browser with no App Store required.'],
-                        ['Does VenQore have a per-transaction fee like Square?', 'No. VenQore charges a flat monthly subscription ($36 / $63 / $129). There is no percentage or per-transaction fee on any sale, regardless of payment method or volume.'],
+                        ['Does VenQore have a per-transaction fee like Square?', 'No. VenQore charges a flat subscription starting at $49/mo or $490/yr (with a free forever Solo tier). There is no percentage or per-transaction fee on any sale, regardless of payment method or volume.'],
                         ['Can VenQore handle split payments?', 'Yes. The payment modal lets you enter any combination of amounts across cash, card, bank transfer, customer credit (khata) and loyalty points. VenQore calculates change and posts every method to the correct account automatically.'],
                         ['Does VenQore work offline?', 'Yes. VenQore is offline-first. The POS runs completely without internet — barcode lookups hit a local cache, carts save to the device, and receipts print via WebUSB. Everything syncs when the connection returns.'],
                         ['Can I process returns at the POS?', 'Yes. Open the original sale from history, select the items and quantity to return, and VenQore reverses the sale, restores the inventory batch, and issues a refund to cash, khata, or a gift card.'],
@@ -329,37 +329,37 @@ class MarketingSeo
                     . '<li>Every sale posts automatic double-entry journal entries — P&amp;L is always right</li>'
                     . '</ul>'
                     . '<h2>VenQore vs Square POS: zero transaction fees</h2>'
-                    . '<p>Square charges 2.6% + 10¢ per swipe. VenQore charges $0 per transaction — flat monthly plans from $36. On $30,000/month in sales, that is $828/month saved on processing markups alone.</p>'
-                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/pricing">Pricing from $36/month</a> · <a href="/compare/venqore-vs-square">VenQore vs Square</a> · <a href="/features/offline-pos">Offline architecture</a> · <a href="/features/accounting">Built-in accounting</a></p>'
+                    . '<p>Square charges 2.6% + 10¢ per swipe. VenQore charges $0 per transaction — flat plans starting at $49/mo or free forever. On $30,000/month in sales, that is $828/month saved on processing markups alone.</p>'
+                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/pricing">Pricing from $49/month or free</a> · <a href="/compare/venqore-vs-square">VenQore vs Square</a> · <a href="/features/offline-pos">Offline architecture</a> · <a href="/features/accounting">Built-in accounting</a></p>'
                     . $nav . '</main>',
             ],
 
             'marketing.features.show:accounting' => [
                 'title' => 'Double-Entry Accounting Software — VenQore',
-                'description' => 'VenQore\'s built-in double-entry accounting posts every sale, purchase and expense automatically. P&L, Balance Sheet and 40+ reports — always reconciled.',
+                'description' => 'VenQore\'s built-in double-entry accounting posts every sale, purchase and expense automatically. P&L, Balance Sheet and all 43 reports — always reconciled.',
                 'keywords' => 'double entry accounting software, built-in POS accounting, automatic journal entries, profit and loss software, balance sheet generator, FIFO cost of goods sold, bank reconciliation software, trial balance software, bookkeeping app for retail',
                 'jsonld' => [
                     self::faq([
                         ['Is VenQore a proper double-entry accounting system?', 'Yes. Every transaction posts a balanced debit-credit journal entry. The trial balance is always zero. VenQore is not a single-entry or cash-book style system.'],
                         ['Do I need QuickBooks or Xero with VenQore?', 'No. VenQore\'s accounting engine is fully built-in. You get P&L, Balance Sheet, Cash Flow, Trial Balance, Aging reports and Bank Reconciliation without any third-party plugin.'],
                         ['How does VenQore calculate Cost of Goods Sold?', 'Using FIFO from real batch purchase costs. When you sell a product, VenQore automatically consumes the oldest batch first, at the price you actually paid, and posts that exact cost to the COGS account.'],
-                        ['What plans include the accounting features?', 'The core double-entry engine and Profit & Loss are included on every plan, including Starter ($36/month). Bank Reconciliation and the full 40-report suite unlock on Growth ($63/month) and Enterprise ($129/month).'],
+                        ['What plans include the accounting features?', 'The core double-entry engine and Profit & Loss are included on every plan, including Solo (Free) and Starter ($49/month). Multi-branch transfers, API access, and advanced features unlock on Core ($99/month) and Scale ($299/month).'],
                     ]),
                 ],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Double-Entry Accounting — Books That Close Themselves</h1>'
-                    . '<p><strong>Every sale, purchase, refund and expense writes a balanced journal entry automatically. VenQore\'s double-entry engine means your Profit &amp; Loss is always right — guarded by 1,500+ automated tests.</strong></p>'
+                    . '<p><strong>Every sale, purchase, refund and expense writes a balanced journal entry automatically. VenQore\'s double-entry engine means your Profit &amp; Loss is always right — guarded by eight correctness laws that run on every release.</strong></p>'
                     . '<h2>What is included</h2><ul>'
                     . '<li>Automatic double-entry journals on every sale, purchase, payment, refund and expense</li>'
                     . '<li>Immutable posted ledger — corrections flow through reversal entries, as auditors require</li>'
                     . '<li>FIFO Cost of Goods Sold — exact batch costs, not averages or guesses</li>'
-                    . '<li>40+ financial reports: P&amp;L, Balance Sheet, Cash Flow, Trial Balance, AR &amp; AP Aging, Stock Valuation</li>'
-                    . '<li>Bank Reconciliation (Growth &amp; Enterprise)</li>'
+                    . '<li>all 40 reports: P&amp;L, Balance Sheet, Cash Flow, Trial Balance, AR &amp; AP Aging, Stock Valuation</li>'
+                    . '<li>Bank Reconciliation (Growth &amp; Scale)</li>'
                     . '<li>Configurable Chart of Accounts with sub-accounts and cost centres</li>'
                     . '</ul>'
                     . '<h2>No QuickBooks. No Xero. No extra cost.</h2>'
                     . '<p>Most POS systems charge $30–$80/month for an accounting integration that still requires manual sync. VenQore includes a full double-entry engine at no extra cost. The trial balance is always zero — enforced by the engine.</p>'
-                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/pricing">Pricing from $36/month</a> · <a href="/features/inventory-management">FIFO Inventory</a> · <a href="/features/point-of-sale">Point of Sale</a></p>'
+                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/pricing">Pricing from $18/month</a> · <a href="/features/inventory-management">FIFO Inventory</a> · <a href="/features/point-of-sale">Point of Sale</a></p>'
                     . $nav . '</main>',
             ],
 
@@ -449,49 +449,33 @@ class MarketingSeo
                     . '<li>Acting on a warning and preventing the problem counts as a success, not a failed forecast</li>'
                     . '<li>No AI key, no per-message cost, identical results every run</li>'
                     . '</ul>'
-                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/features/accounting">Built-in accounting</a> · <a href="/features/inventory-management">FIFO inventory</a> · <a href="/pricing">Pricing from $36/month</a></p>'
+                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/features/accounting">Built-in accounting</a> · <a href="/features/inventory-management">FIFO inventory</a> · <a href="/pricing">Pricing from $18/month</a></p>'
                     . $nav . '</main>',
             ],
 
             'marketing.pricing' => [
-                'title' => 'VenQore Pricing — Plans from $36/month, 14-Day Free Trial',
-                'description' => 'Simple POS + ERP pricing: Starter $36/mo, Growth $63/mo, Enterprise $129/mo. Every plan includes the verified double-entry engine and Profit & Loss. 14-day free trial, no credit card.',
-                'keywords' => 'POS software price, ERP software cost, cheap retail POS, retail ERP pricing, point of sale subscription, Pakistan POS software price, online ERP pricing, small business software subscription',
+                'title' => 'VenQore Pricing — Free Forever (Solo) or from $49/month',
+                'description' => 'Traditional ERP costs $20,000+ a year. VenQore starts free. Solo ($0, free forever), Starter ($49/mo), Core ($99/mo), Scale ($299/mo). 14-day free trial on all paid plans.',
+                'keywords' => 'POS software price, ERP software cost, cheap retail POS, retail ERP pricing, point of sale subscription, online ERP pricing, small business software subscription',
                 'jsonld' => [
                     self::faq([
-                        ['Do I need a credit card to start my trial?', 'No. If you select a base plan without any AI add-on, sync integration, or onboarding service, your 14-day trial starts immediately with zero card details required. A card is only needed if you add an AI plan, connect a sync channel, or select an onboarding service.'],
-                        ['What is the $5 one-time BYOK fee for?', 'Bringing Your Own API Key (BYOK) means you connect your own OpenAI or Gemini key. We charge a one-time $5 platform activation fee to unlock the AI routing layer in your account. After that, you are billed directly by your AI provider — we charge you nothing ongoing. This fee does not expire and has no hidden conditions.'],
-                        ['How does managed AI billing work?', 'Managed AI plans (AI Core, AI Lite, AI Pro, AI Ultimate) are monthly add-ons. We handle the infrastructure, models, and usage. You pay us a flat monthly fee and we take care of the rest. There is no usage surprise billing — your monthly cap is shown clearly on your plan.'],
-                        ['When will my card actually be charged?', 'Your subscription is only charged after your 14-day free trial ends — not on the day you sign up. The only immediate charge possible is the $5 BYOK activation fee (if you select that option). Onboarding services are charged from inside your admin panel when you choose to initiate the service — not at checkout.'],
-                        ['How do onboarding services work with the trial?', 'You have two options. You can start your trial immediately and request the setup service later from your admin panel (we begin within 48 hours of your request). Or you can choose "Pause Trial" — your trial clock is held while our team completes your setup, and you get your full 14 days on a store that\'s already ready.'],
-                        ['Can I cancel during the trial?', 'Yes, at any time. No questions asked. If you cancel before day 14, you owe nothing for your subscription. If you selected a BYOK activation, that $5 one-time fee is non-refundable (it activated your AI routing). If you added an onboarding service and we have already begun work, the service fee applies per our terms.'],
-                        ['Can I change my plan later?', 'Yes. You can upgrade or downgrade your plan at any time from your admin dashboard. Upgrades take effect immediately. Downgrades take effect at the start of your next billing cycle.'],
+                        ['Is there a free trial?', '14 days at Core level, card required, cancel anytime. That includes multi-branch, API access, audit trail, Vena, Signals and all 43 reports — so you are trying the real thing, not a demo of it. We send a reminder on day 11 before the trial ends, not after.'],
+                        ['What happens after the trial?', 'If you don\'t select a paid plan, your system drops smoothly to Solo — free forever. Your data is preserved and nothing is deleted or reset.'],
+                        ['What is the one-time BYOK fee for?', 'Bringing Your Own API Key (BYOK) means you connect your own OpenAI or Gemini key. We charge a one-time $19 platform activation fee to unlock direct AI routing in your account. After that, you are billed directly by your AI provider — we charge you nothing ongoing.'],
+                        ['Can I change my plan later?', 'Yes. You can upgrade or downgrade your plan at any time from your admin dashboard. Upgrades take effect immediately. Downgrading never deletes anything: data above the new limit becomes read-only and hidden, and comes back the moment you upgrade.'],
                         ['Are there any hidden fees or setup costs?', 'No. There are zero hidden fees, transaction markups, or setup fees. The monthly or annual price you see is exactly what you pay. Standard payment processing fees from your merchant gateway still apply if you process credit cards.'],
-                        ['Do you offer discounts for annual billing?', 'Yes. Every plan has a discounted annual billing option. Choosing annual billing saves you 20% compared to monthly billing, which is the equivalent of getting two months completely free.'],
-                        ['What happens when the 14-day free trial ends?', 'Before your trial ends, we will notify you by email and dashboard alert. If you wish to continue using VenQore, you can select your plan and provide payment details. If you choose not to subscribe, your account will be paused, and you can export your data anytime. We never charge you automatically.'],
+                        ['Do you offer discounts for annual billing?', 'Yes. Every paid plan has a discounted annual billing option ($490/yr Starter, $990/yr Core, $2,990/yr Scale). Choosing annual billing gives you twelve months for the price of ten (2 months free).'],
                     ]),
                 ],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Pricing</h1>'
-                    . '<p><strong>Three plans. Every one keeps real double-entry books.</strong> 14-day free trial, no credit card.</p>'
-                    . '<ul><li><strong>Starter — $36/month</strong>: 1 location, 3 staff, 1,000 SKUs, offline POS, verified ledger, Profit &amp; Loss included</li>'
-                    . '<li><strong>Growth — $63/month</strong>: 3 locations, 10 staff, 10,000 SKUs, bank reconciliation, production &amp; recipes, campaigns, advanced reports</li>'
-                    . '<li><strong>Enterprise — $129/month</strong>: 10 locations, 50 staff, 50,000 SKUs, full 40-report suite, API access, loyalty &amp; gift cards, priority support</li></ul>'
-                    . '<h2>Trust &amp; Security</h2>'
-                    . '<p>✓ 14-Day Free Trial · ✓ No Credit Card Required · ✓ Cancel Anytime · ✓ SOC2-Compliant Security</p>'
-                    . '<h2>Compare Competitor Costs (Save up to $13,000/year)</h2>'
-                    . '<p>Shopify POS Pro + Apps: $5,028/yr<br>Square POS (Plus Device Add-ons): $3,360/yr<br><strong>VenQore Growth (Annual): $636/yr</strong></p>'
+                    . '<p><strong>Traditional ERP costs $20,000+ a year. VenQore starts free.</strong> 14-day trial at Core level. Card authorized at $0.00 — cancel anytime before day 14.</p>'
+                    . '<ul><li><strong>Solo — Free Forever</strong>: 1 full seat, 1 POS register, 500 SKUs, 30-day history visible, offline POS, full double-entry ledger, all 43 reports</li>'
+                    . '<li><strong>Starter — $49/month ($490/year)</strong>: 1 full seat, 2 registers, 5,000 SKUs, full history retention, Google Drive backup, email support</li>'
+                    . '<li><strong>Core — $99/month ($990/year)</strong>: 5 full seats, 6 registers, 25,000 SKUs, multi-branch transfers, REST API &amp; webhooks, audit trail, custom roles</li>'
+                    . '<li><strong>Scale — $299/month ($2,990/year)</strong>: 25 full seats, 20 registers, 250,000 SKUs, white-label &amp; custom domain, 2 channel syncs included, named support contact</li></ul>'
                     . '<h2>Frequently Asked Questions</h2>'
-                    . '<p><strong>Do I need a credit card to start my trial?</strong> No. If you select a base plan without any AI add-on, sync integration, or onboarding service, your 14-day trial starts immediately with zero card details required. A card is only needed if you add an AI plan, connect a sync channel, or select an onboarding service.</p>'
-                    . '<p><strong>What is the $5 one-time BYOK fee for?</strong> Bringing Your Own API Key (BYOK) means you connect your own OpenAI or Gemini key. We charge a one-time $5 platform activation fee to unlock the AI routing layer in your account. After that, you are billed directly by your AI provider — we charge you nothing ongoing. This fee does not expire and has no hidden conditions.</p>'
-                    . '<p><strong>How does managed AI billing work?</strong> Managed AI plans (AI Core, AI Lite, AI Pro, AI Ultimate) are monthly add-ons. We handle the infrastructure, models, and usage. You pay us a flat monthly fee and we take care of the rest. There is no usage surprise billing — your monthly cap is shown clearly on your plan.</p>'
-                    . '<p><strong>When will my card actually be charged?</strong> Your subscription is only charged after your 14-day free trial ends — not on the day you sign up. The only immediate charge possible is the $5 BYOK activation fee (if you select that option). Onboarding services are charged from inside your admin panel when you choose to initiate the service — not at checkout.</p>'
-                    . '<p><strong>How do onboarding services work with the trial?</strong> You have two options. You can start your trial immediately and request the setup service later from your admin panel (we begin within 48 hours of your request). Or you can choose "Pause Trial" — your trial clock is held while our team completes your setup, and you get your full 14 days on a store that\'s already ready.</p>'
-                    . '<p><strong>Can I cancel during the trial?</strong> Yes, at any time. No questions asked. If you cancel before day 14, you owe nothing for your subscription. If you selected a BYOK activation, that $5 one-time fee is non-refundable (it activated your AI routing). If you added an onboarding service and we have already begun work, the service fee applies per our terms.</p>'
-                    . '<p><strong>Can I change my plan later?</strong> Yes. You can upgrade or downgrade your plan at any time from your admin dashboard. Upgrades take effect immediately. Downgrades take effect at the start of your next billing cycle.</p>'
-                    . '<p><strong>Are there any hidden fees or setup costs?</strong> No. There are zero hidden fees, transaction markups, or setup fees. The monthly or annual price you see is exactly what you pay. Standard payment processing fees from your merchant gateway still apply if you process credit cards.</p>'
-                    . '<p><strong>Do you offer discounts for annual billing?</strong> Yes. Every plan has a discounted annual billing option. Choosing annual billing saves you 20% compared to monthly billing, which is the equivalent of getting two months completely free.</p>'
-                    . '<p><strong>What happens when the 14-day free trial ends?</strong> Before your trial ends, we will notify you by email and dashboard alert. If you wish to continue using VenQore, you can select your plan and provide payment details. If you choose not to subscribe, your account will be paused, and you can export your data anytime. We never charge you automatically.</p>'
+                    . '<p><strong>Is there a free trial?</strong> 14 days at Core level, card required, cancel anytime. Dropping to Solo upon expiry preserves your records intact.</p>'
                     . '<p><a href="/demo">Try the live demo first</a> · <a href="/register">Start your free trial</a></p>' . $nav . '</main>',
             ],
 
@@ -503,19 +487,19 @@ class MarketingSeo
                     . '<h1>VenQore Live Demo</h1>'
                     . '<p><strong>Explore a real, running VenQore store without creating an account.</strong> Ring up sales on the POS, open the Profit &amp; Loss, browse inventory and reports — everything is live and resets daily.</p>'
                     . '<p>No signup and no time limit on exploring &mdash; the demo store resets nightly so you always start fresh. Ring up a sale on the POS, watch the FIFO cost update in real time, then open the Profit &amp; Loss and reconcile it yourself.</p>'
-                    . '<p><a href="/pricing">Pricing from $36/month</a> · <a href="/register">Start a 14-day free trial</a></p>' . $nav . '</main>',
+                    . '<p><a href="/pricing">Pricing from $49/month or free (Solo plan)</a> · <a href="/register">Start a 14-day free trial</a></p>' . $nav . '</main>',
             ],
 
             'marketing.about' => [
                 'title' => 'About VenQore — One System for the Whole Business',
-                'description' => 'Most businesses run on five tools and a notebook. VenQore puts sales, inventory, purchasing, invoices, customers, and accounting in one place — guarded by 1,500+ automated tests.',
+                'description' => 'Most businesses run on five tools and a notebook. VenQore puts sales, inventory, purchasing, invoices, customers, and accounting in one place — guarded by eight correctness laws that run on every release.',
                 'jsonld' => [['@context' => 'https://schema.org'] + self::organizationLd()],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>About VenQore &mdash; Run your business, not your software.</h1>'
                     . '<p><strong>Most businesses don&#39;t run on one system. They run on five &mdash; a till, a stock app, an accounting tool, a spreadsheet, and a notebook &mdash; plus the hours spent making them all agree.</strong> VenQore ends that. Enter something once and it&#39;s everywhere: a sale updates inventory, writes the books, and syncs the store by itself.</p>'
                     . '<h2>The Destination</h2>'
                     . '<p>Information should enter a business once &mdash; from a customer, a supplier, a marketplace, or AI &mdash; and never be typed again. Owners should run the business. The software should run itself.</p>'
-                    . '<p>Guarded by 1,500+ automated tests. Works 100% offline.</p>'
+                    . '<p>Guarded by eight correctness laws that run on every release. Works 100% offline.</p>'
                     . '<p><a href="/demo"><strong>See it live</strong></a> &middot; <a href="/features">Explore the platform</a></p>'
                     . $nav . '</main>',
             ],
@@ -541,7 +525,7 @@ class MarketingSeo
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>Public Product Roadmap — Where VenQore is Headed</h1>'
                     . '<p>First we put everything in one place. Now we are teaching it to fill itself in. Eventually nobody types anything.</p>'
-                    . '<h2>1. Now (Shipped)</h2><p>Point of sale, inventory, purchasing, invoicing, customers, expenses, staff, and real accounting in one system. 40+ reports, offline PWA, WooCommerce sync live.</p>'
+                    . '<h2>1. Now (Shipped)</h2><p>Point of sale, inventory, purchasing, invoicing, customers, expenses, staff, and real accounting in one system. 40 reports, offline PWA, WooCommerce sync live.</p>'
                     . '<h2>2. Next (Rolling Out)</h2><p>SmartCapture (photos/voice to digital records), VenSynQ multi-channel expansion (Amazon, eBay, TikTok Shop), AI owner insights.</p>'
                     . '<h2>3. Later (Building Toward)</h2><p>Zero-typing business management, VenQore B2B Trade Network, hosted storefronts, autonomous AI advisor.</p>'
                     . '<p><a href="/register"><strong>Start Free Trial</strong></a> &middot; <a href="/demo">Explore Live Demo</a></p>'
@@ -766,7 +750,7 @@ class MarketingSeo
                             self::organizationLd(),
                             [
                                 '@type' => 'Article',
-                                'headline' => 'Enterprise POS & ERP for Multi-Store Retail Chains & Franchises',
+                                'headline' => 'Multi-Branch POS & ERP for Retail Chains Retail Chains & Franchises',
                                 'description' => 'Consolidate multiple warehouses, transfer stock securely, control staff roles, and centralize your ledger.',
                                 'author' => self::organizationLd(),
                                 'publisher' => self::organizationLd(),
@@ -774,13 +758,13 @@ class MarketingSeo
                         ],
                     ],
                     self::faq([
-                        ['How many branches or locations can I manage?', 'Our Growth plan supports up to 3 locations, while the Enterprise plan supports up to 10 locations. Contact our support team for custom franchise configurations past 10 outlets.'],
+                        ['How many branches or locations can I manage?', 'Our Growth plan supports up to 3 branches, while the Scale plan supports up to 10 locations. Contact our support team for custom franchise configurations past 10 outlets.'],
                         ['Can branch cashiers see product stock levels at other branches?', 'Yes. If permitted by manager role permissions, cashiers can search a product SKU to see stock levels across all other outlets and warehouses.'],
                         ['Is my data secure across cashier terminals?', 'Yes. Cashiers log in using unique numerical PIN passcodes. All cashier actions are logged with date and operator details in the audit trail.'],
                     ]),
                 ],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>Enterprise POS &amp; ERP for Multi-Store Retail Chains &amp; Franchises</h1>'
+                    . '<h1>Multi-Branch POS &amp; ERP for Retail Chains Retail Chains &amp; Franchises</h1>'
                     . '<p>Centralized multi-warehouse stock transfers, store-wise Profit &amp; Loss statements, consolidated trial balances, 7 cashier and manager role levels, and real-time operational oversight.</p>'
                     . '<h2>Core Capabilities</h2><ul>'
                     . '<li>Consolidated General Ledger &amp; HQ dashboard</li>'
@@ -919,17 +903,17 @@ class MarketingSeo
             ],
 
             'register' => [
-                'title' => 'Create Your Free VenQore Account — 14-Day Trial, No Credit Card',
-                'description' => 'Start your 14-day free trial of VenQore: offline-first POS with verified double-entry accounting, FIFO inventory and 40+ financial reports. No credit card required.',
+                'title' => 'Create Your Free VenQore Account — 14-Day Free Trial',
+                'description' => 'Start your 14-day free trial of VenQore: offline-first POS with verified double-entry accounting, FIFO inventory and all 40 reports. Cancel anytime.',
                 'jsonld' => [],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>Create Your VenQore Account</h1>'
-                    . '<p><strong>Start a 14-day free trial &mdash; full features, no credit card required.</strong> VenQore is the offline-first point of sale and ERP with verified double-entry accounting built in.</p>'
+                    . '<p><strong>Start a 14-day free trial &mdash; full features, cancel anytime.</strong> VenQore is the offline-first point of sale and ERP with verified double-entry accounting built in.</p>'
                     . '<ul><li>Auditor-grade accuracy: every transaction writes a correct, balanced journal entry</li>'
                     . '<li>Professional POS: fast checkout shortcuts and a crash-proof, offline-first architecture</li>'
                     . '<li>Dozens of verified financial reports: Profit &amp; Loss, Balance Sheet, Cash Flow and more</li>'
                     . '<li>Full inventory control: FIFO costing, batch tracking, multi-warehouse support</li></ul>'
-                    . '<p><a href="/pricing">See plans from $36/month</a> &middot; <a href="/demo">Try the live demo first, no signup</a></p>'
+                    . '<p><a href="/pricing">See plans from $18/month</a> &middot; <a href="/demo">Try the live demo first, no signup</a></p>'
                     . $nav . '</main>',
             ],
 
@@ -1011,7 +995,7 @@ class MarketingSeo
                         'publisher' => self::organizationLd(),
                     ],
                     self::faq([
-                        ['Why is VenQore significantly cheaper than Square POS for active stores?', 'Square POS generates revenue by taking 2.6% + 10¢ from every transaction. For a store processing $25,000/month, Square fees exceed $660/month. VenQore charges a flat $36/month subscription with $0 processing markup.'],
+                        ['Why is VenQore significantly cheaper than Square POS for active stores?', 'Square POS generates revenue by taking 2.6% + 10¢ from every transaction. For a store processing $25,000/month, Square fees exceed $660/month. VenQore charges a flat subscription starting at $49/month (or free forever) with $0 processing markup.'],
                         ['Does VenQore replace QuickBooks when migrating from Square?', 'Yes. VenQore includes an auditor-grade double-entry accounting engine where every sale automatically creates a balanced journal entry in your General Ledger.'],
                         ['Can VenQore operate when my internet goes down?', 'Yes. VenQore is an offline-first Progressive Web App (PWA) allowing complete checkout and inventory management offline.'],
                         ['Can I import my existing product catalog from Square into VenQore?', 'Yes. VenQore provides a 1-click CSV importer that reads exported Square inventory files in under 5 minutes.'],
@@ -1022,7 +1006,7 @@ class MarketingSeo
                     . '<h1>VenQore vs Square POS — Pricing Math &amp; Feature Comparison</h1>'
                     . '<p><strong>Square POS charges 2.6% + 10&cent; on every sale and lacks built-in accounting. VenQore gives you $0 transaction fees and automated double-entry bookkeeping.</strong></p>'
                     . '<h2>Pricing Math Breakdown</h2>'
-                    . '<p>At $25,000/month in card sales, Square POS costs $660/month in transaction fees plus $50/month for QuickBooks ($710/month total). VenQore costs a flat $36/month — saving over $8,000/year.</p>'
+                    . '<p>At $25,000/month in card sales, Square POS costs $660/month in transaction fees plus $50/month for QuickBooks ($710/month total). VenQore flat subscriptions start at $49/month or free forever — saving thousands per year.</p>'
                     . '<h2>Detailed Comparison</h2>'
                     . '<ul><li><strong>Accounting:</strong> VenQore has built-in double-entry accounting; Square requires external apps.</li>'
                     . '<li><strong>Offline Access:</strong> VenQore is a 100% offline-first PWA; Square limits offline card buffers to 24h.</li>'

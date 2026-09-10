@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Marketing;
 
+use App\Services\GeoPricingService;
 use Illuminate\Http\Response;
 
 /**
@@ -55,7 +56,13 @@ class V6PageController
         // charset tag (they share one template), so one anchor covers all of
         // them; a page without it simply ships without the meta and its forms
         // fall back to the "please try again" path rather than breaking.
-        $meta = '<meta name="csrf-token" content="' . e(csrf_token()) . '">';
+        $geoPricing = app(GeoPricingService::class);
+        $currency = $geoPricing->getCurrencyInfo(
+            $geoPricing->resolveCountry(request())
+        )['currency'];
+
+        $meta = '<meta name="csrf-token" content="' . e(csrf_token()) . '">' . "\n"
+            . '<meta name="vq-currency" content="' . e($currency) . '">';
         $html = str_replace(
             '<meta charset="UTF-8">',
             '<meta charset="UTF-8">' . "\n" . $meta,

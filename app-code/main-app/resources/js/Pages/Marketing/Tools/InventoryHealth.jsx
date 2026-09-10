@@ -137,9 +137,9 @@ export default function InventoryHealth({ toolGroups = [] }) {
             toolGroups={toolGroups}
             currentSlug="inventory-health"
             cta={{
-                headline: 'Reorder points and safety stock shouldn\'t live in a spreadsheet.',
-                subtext: 'VenQore tracks FIFO stock levels per warehouse and can alert you automatically when a product crosses its reorder point.',
-            }}
+                    headline: "Reorder points and safety stock should not live in a spreadsheet.",
+                    subtext: "Describe your business and VenQore builds a system that tracks FIFO stock per branch and tells you when a product crosses its reorder point.",
+                }}
             related={[{ label: 'Stock Count Sheet', href: '/tools/stock-count-sheet' }, { label: 'Margin Calculator', href: '/tools/margin-calculator' }]}
         >
             <div className="mb-6 max-w-[220px]">

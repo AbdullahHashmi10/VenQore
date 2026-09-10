@@ -19,14 +19,15 @@ export function useCart(activeSale, updateActiveSale, settings = {}, showAlert =
 
         const price = variant ? getProductPrice(variant, 1, settings) : getProductPrice(product, 1, settings);
         const name = variant ? `${product.name} (${variant.sku})` : product.name;
-        const stock = variant ? variant.stock_quantity : product.stock_quantity;
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const stock = isService ? 999999 : (variant ? variant.stock_quantity : product.stock_quantity);
 
         // Bypass manufacturing rule checks
         const canAutoManufacture = product.has_manufacturing_rule === true;
 
         if (existing) {
             const newQty = existing.qty + 1;
-            if (newQty > stock && !canAutoManufacture) {
+            if (!isService && newQty > stock && !canAutoManufacture) {
                 const allowNegative = !shouldStopNegativeStock(settings);
                 if (!allowNegative) {
                     showAlert(
@@ -38,12 +39,12 @@ export function useCart(activeSale, updateActiveSale, settings = {}, showAlert =
                 } else {
                     addToast(`Warning: ${name} stock will be negative!`, 'warning');
                 }
-            } else if (newQty > stock && canAutoManufacture) {
+            } else if (!isService && newQty > stock && canAutoManufacture) {
                 addToast(`🏭 ${name} will be auto-manufactured`, 'info');
             }
             newCart = currentCart.map(item => item.cartItemId === cartItemId ? { ...item, qty: newQty } : item);
         } else {
-            if (stock < 1 && !canAutoManufacture) {
+            if (!isService && stock < 1 && !canAutoManufacture) {
                 const allowNegative = !shouldStopNegativeStock(settings);
                 if (!allowNegative) {
                     showAlert(
@@ -55,7 +56,7 @@ export function useCart(activeSale, updateActiveSale, settings = {}, showAlert =
                 } else {
                     addToast(`Warning: ${name} stock is out (Qty: ${stock})!`, 'warning');
                 }
-            } else if (stock < 1 && canAutoManufacture) {
+            } else if (!isService && stock < 1 && canAutoManufacture) {
                 addToast(`🏭 ${name} will be auto-manufactured from ingredients`, 'info');
             }
             newCart = [...currentCart, {
@@ -63,6 +64,10 @@ export function useCart(activeSale, updateActiveSale, settings = {}, showAlert =
                 id: product.id,
                 variant_id: variant ? variant.id : null,
                 name,
+                type: product.type || 'standard',
+                is_service: isService,
+                service_pricing: product.service_pricing || null,
+                default_duration: product.default_duration || null,
                 price,
                 original_price: price,
                 discount: 0,
@@ -90,8 +95,9 @@ export function useCart(activeSale, updateActiveSale, settings = {}, showAlert =
             return;
         }
 
+        const isService = item.type === 'service' || item.is_service || item.item_type === 'service';
         const canAutoManufacture = item.has_manufacturing_rule === true;
-        if (newQty > item.stock && !canAutoManufacture) {
+        if (!isService && newQty > item.stock && !canAutoManufacture) {
             const allowNegative = !shouldStopNegativeStock(settings);
             if (!allowNegative) {
                 showAlert(

@@ -106,7 +106,7 @@ if ($pdo !== null) {
         // Tables the failing 2026-08-02 run was missing. If these are absent,
         // the whole suite will drown in SQLSTATE[42S02] and tell you nothing
         // about the product.
-        $required = ['migrations', 'tenants', 'plans', 'users', 'products', 'transactions', 'journal_entries'];
+        $required = ['migrations', 'tenants', 'plans', 'users', 'products', 'journal_entries'];
         $missing  = [];
 
         foreach ($required as $table) {

@@ -55,9 +55,9 @@ export default function Newsletter() {
                                     <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <CheckCircle2 size={32} />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-ink mb-2">You're on the list!</h3>
+                                    <h3 className="text-2xl font-bold text-ink mb-2">Check your inbox</h3>
                                     <p className="text-ink-muted text-sm leading-relaxed mb-6">
-                                        We've registered your subscription. Keep an eye on your inbox for our upcoming releases.
+                                        Click the confirmation link we sent before we add you to the newsletter.
                                     </p>
                                     <button
                                         onClick={() => setSubmitted(false)}
@@ -70,10 +70,11 @@ export default function Newsletter() {
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     {/* Name Input */}
                                     <div className="relative group">
-                                        <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-muted group-focus-within:text-brand-400 transition-colors">
+                                        <label htmlFor="newsletter-name" className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-muted group-focus-within:text-brand-400 transition-colors">
                                             Your Name
                                         </label>
                                         <input
+                                            id="newsletter-name"
                                             type="text"
                                             value={data.name}
                                             onChange={e => setData('name', e.target.value)}
@@ -87,10 +88,11 @@ export default function Newsletter() {
 
                                     {/* Email Input */}
                                     <div className="relative group">
-                                        <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-muted group-focus-within:text-brand-400 transition-colors">
+                                        <label htmlFor="newsletter-email" className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-muted group-focus-within:text-brand-400 transition-colors">
                                             Email Address <span className="text-brand-500">*</span>
                                         </label>
                                         <input
+                                            id="newsletter-email"
                                             type="email"
                                             required
                                             value={data.email}
@@ -105,9 +107,9 @@ export default function Newsletter() {
 
                                     {/* Preference Selector Cards */}
                                     <div className="space-y-3">
-                                        <label className="block text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted">
+                                        <div className="block text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted">
                                             Get updates for
-                                        </label>
+                                        </div>
                                         <div className="grid grid-cols-1 gap-3">
                                             {[
                                                 { id: 'cloud', label: 'Cloud Updates', desc: 'New updates on the Cloud Website' },

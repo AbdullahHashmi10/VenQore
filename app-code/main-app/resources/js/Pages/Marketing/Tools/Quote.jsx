@@ -210,7 +210,10 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
             toolGroups={toolGroups}
             currentSlug="quote-generator"
             faqs={FAQS}
-            cta={{ headline: 'Winning the quote is only step one.', subtext: 'VenQore turns an accepted quote straight into a sale, with inventory and double-entry accounting handled automatically.' }}
+            cta={{
+                    headline: "Winning the quote is only step one.",
+                    subtext: "Describe your business and VenQore builds a system where an accepted quote becomes a sale — stock and ledger included — in one step.",
+                }}
             related={[{ href: '/tools/invoice-generator', label: 'Invoice Generator' }, { href: '/tools/purchase-order-generator', label: 'Purchase Order Generator' }]}
             wide
         >

@@ -58,6 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // The automatic mode (all 464 registry-owned routes) comes from the
             // global append above; this alias is the escape hatch, not the gate.
             'module'                  => \App\Http\Middleware\EnsureModule::class,
+            'turnstile'               => \App\Http\Middleware\VerifyTurnstileToken::class,
         ]);
 
         // ── Phase 1.7: Tenant-aware Rate Limiting ──────────────────────────
@@ -254,6 +255,22 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // Catch Missing App Key - Critical Setup Error
             if ($e instanceof \Illuminate\Encryption\MissingAppKeyException) {
+                // NEVER self-heal in production: generating a new APP_KEY here
+                // overwrites the real one and orphans encrypted data and sessions.
+                if (app()->environment('production')) {
+                    \Illuminate\Support\Facades\Log::critical(
+                        'APP_KEY missing in production — refusing to auto-generate.'
+                    );
+
+                    return response(
+                        "<html><body style='font-family:sans-serif;padding:2rem;text-align:center;background:#0f172a;color:#f8fafc;'>" .
+                        "<h2 style='color:#ef4444;'>CONFIGURATION ERROR</h2>" .
+                        "<p>VenQore is temporarily unavailable. Our team has been notified.</p>" .
+                        "</body></html>",
+                        503
+                    );
+                }
+
                 $envPath = base_path('.env');
                 if (!file_exists($envPath) && file_exists(base_path('.env.example'))) {
                     copy(base_path('.env.example'), $envPath);

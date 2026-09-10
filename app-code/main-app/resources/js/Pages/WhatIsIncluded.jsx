@@ -93,19 +93,19 @@ export default function WhatIsIncluded() {
  <div className="p-4 sm:p-6 text-center border-l border-white/10">
  <p className="text-xs text-ink-muted uppercase tracking-widest mb-1">1 Code</p>
  <p className="font-bold text-white">Starter LTD</p>
- <p className="text-2xl font-bold text-white mt-1">$99</p>
+ <p className="text-2xl font-bold text-white mt-1">$199</p>
  <p className="text-xs text-ink-muted mt-1">one-time</p>
  </div>
  <div className="p-4 sm:p-6 text-center border-l border-brand-500/30 bg-brand-500/5">
  <p className="text-xs text-brand-400 uppercase tracking-widest mb-1">2 Codes Stacked</p>
  <p className="font-bold text-brand-300">Growth LTD</p>
- <p className="text-2xl font-bold text-white mt-1">$199</p>
+ <p className="text-2xl font-bold text-white mt-1">$399</p>
  <p className="text-xs text-ink-muted mt-1">one-time</p>
  </div>
  <div className="p-4 sm:p-6 text-center border-l border-amber-500/20 bg-amber-500/5">
  <p className="text-xs text-amber-400 uppercase tracking-widest mb-1">3 Codes Stacked</p>
  <p className="font-bold text-amber-300">Business LTD</p>
- <p className="text-2xl font-bold text-white mt-1">$349</p>
+ <p className="text-2xl font-bold text-white mt-1">$699</p>
  <p className="text-xs text-ink-muted mt-1">one-time</p>
  </div>
  </div>

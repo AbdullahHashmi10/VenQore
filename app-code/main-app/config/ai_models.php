@@ -102,16 +102,20 @@ return [
     ],
     'config_ai' => [
         'provider'       => 'gemini',
-        'model'          => 'gemini-2.5-flash-lite',
+        'model'          => env('GEMINI_DISCOVERY_MODEL', 'gemini-3.1-flash-lite'),
         'thinking'       => 0,
         'max_output'     => 1500,
         'context_budget' => 3000,
         'timeout'        => 25,
-        'est_cost_usd'   => 0.0020,
+        'est_cost_usd'   => 0.0010,
     ],
 
     // ── Phase 9 (T9-6): Deprecation timeline & successor fallbacks ──────────
     'deprecation_audit' => [
+        'gemini-3.1-flash-lite' => [
+            'deprecation_date'   => '2027-06-01',
+            'fallback_successor' => 'gemini-2.5-flash-lite',
+        ],
         'gemini-2.5-flash' => [
             'deprecation_date'   => '2026-10-16',
             'fallback_successor' => 'gemini-2.5-flash-lite',

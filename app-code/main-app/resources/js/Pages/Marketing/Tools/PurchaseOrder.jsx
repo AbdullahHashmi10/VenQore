@@ -166,7 +166,10 @@ export default function PurchaseOrderTool({ templates = {}, currencies = {}, max
             toolGroups={toolGroups}
             currentSlug="purchase-order-generator"
             faqs={FAQS}
-            cta={{ headline: 'Purchase orders are one piece of running a store.', subtext: 'VenQore turns every purchase into balanced double-entry accounting and inventory receipts automatically.' }}
+            cta={{
+                    headline: "Purchase orders are one piece of running a store.",
+                    subtext: "Describe your business and VenQore builds a system where a purchase order becomes a goods receipt and a balanced posting, without retyping it.",
+                }}
             related={[{ href: '/tools/invoice-generator', label: 'Invoice Generator' }]}
             wide
         >

@@ -86,14 +86,51 @@ class SitemapController extends Controller
         $categorized['pages'][] = ['loc' => route('marketing.about'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.5'];
         $categorized['pages'][] = ['loc' => route('marketing.contact'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.5'];
         $categorized['pages'][] = ['loc' => route('terms'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'];
-        $categorized['pages'][] = ['loc' => route('privacy'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'];
-        $categorized['pages'][] = ['loc' => route('demo.landing'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.9'];
+        $categorized['pages'][] = ['loc' => route('workspace.build'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.9'];
+        $categorized['pages'][] = ['loc' => route('demo.landing'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.4'];
         $categorized['pages'][] = ['loc' => route('refund-policy'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'];
         $categorized['pages'][] = ['loc' => route('marketing.newsletter'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.4'];
         $categorized['pages'][] = ['loc' => route('marketing.vensynq'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
         $categorized['pages'][] = ['loc' => route('marketing.smartcapture'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
         $categorized['pages'][] = ['loc' => route('marketing.roadmap'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
         $categorized['pages'][] = ['loc' => route('marketing.partners'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+
+        // ── V6 product pages ────────────────────────────────────────────────
+        // Added 2026-09-05. These seven shipped with the AI-builder
+        // repositioning and were never registered here, so nothing in the
+        // new product story was discoverable: Blueprint is the entry point of
+        // the whole positioning, and the Reckoner and Core Ledger pages carry
+        // the correctness argument the product is sold on.
+        $categorized['pages'][] = ['loc' => route('marketing.blueprint'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.9'];
+        $categorized['pages'][] = ['loc' => route('marketing.security'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.7'];
+        $categorized['pages'][] = ['loc' => route('marketing.onboarding'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.ledger'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.reckoner'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.documents'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.dashboard-preview'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+
+        // The POS terminal page
+        $categorized['pages'][] = ['loc' => route('marketing.pos'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+
+        // ── Help centre, tools hub and status ────────────────────────────────
+        $categorized['pages'][] = ['loc' => route('help.index'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.7'];
+        $categorized['pages'][] = ['loc' => route('known-issues.show'), 'lastmod' => $now, 'changefreq' => 'daily', 'priority' => '0.4'];
+        $categorized['pages'][] = ['loc' => route('marketing.digital-products'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.5'];
+
+        // Help articles — read from HelpCenterController's own array, so the
+        // sitemap cannot drift from what the pages actually render.
+        try {
+            foreach (\App\Http\Controllers\HelpCenterController::slugs() as $slug) {
+                $categorized['pages'][] = [
+                    'loc' => route('help.show', ['slug' => $slug]),
+                    'lastmod' => $now,
+                    'changefreq' => 'monthly',
+                    'priority' => '0.5',
+                ];
+            }
+        } catch (\Throwable $e) {
+            // Never let the sitemap 500 over the help centre.
+        }
 
         // Documentation (Dynamic /docs and /docs/{slug})
         $categorized['pages'][] = ['loc' => route('marketing.docs.index'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];

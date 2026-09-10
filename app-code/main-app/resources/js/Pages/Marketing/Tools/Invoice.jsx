@@ -176,7 +176,10 @@ export default function InvoiceTool({ templates = {}, currencies = {}, maxItems 
             toolGroups={toolGroups}
             currentSlug="invoice-generator"
             faqs={FAQS}
-            cta={{ headline: 'Invoicing is one piece of running a store.', subtext: 'VenQore turns every sale into a balanced double-entry journal automatically — invoices included.' }}
+            cta={{
+                    headline: "Invoicing is one piece of running a store.",
+                    subtext: "Describe your business and VenQore builds a system where issuing an invoice is one step of a posting that already balances.",
+                }}
             related={[{ href: '/tools/barcode-generator', label: 'Barcode Generator' }]}
             wide
         >

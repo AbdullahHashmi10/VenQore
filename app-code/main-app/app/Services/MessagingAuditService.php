@@ -23,10 +23,10 @@ class MessagingAuditService
             Log::warning("MessagingAuditService: {$mailWarning}");
         }
 
-        $smsGatewayKey = config('services.sms.api_key') ?? env('SMS_GATEWAY_API_KEY');
+        $smsGatewayKey = config('services.sms.api_key');
         $smsConfigured = !empty($smsGatewayKey);
 
-        $whatsappToken = config('services.whatsapp.token') ?? env('WHATSAPP_TOKEN');
+        $whatsappToken = config('services.whatsapp.token');
         $whatsappConfigured = !empty($whatsappToken);
 
         return [

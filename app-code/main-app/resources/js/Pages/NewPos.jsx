@@ -464,8 +464,9 @@ export default function NewPos({
         }
 
         // Check negative stock
-        const stock = Number(variant ? (variant.stock ?? variant.stock_quantity ?? product.stock_quantity ?? product.stock) : (product.stock_quantity ?? product.stock ?? 999));
-        if (stock <= 0 && settings?.prevent_negative_stock === '1') {
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const stock = isService ? 999999 : Number(variant ? (variant.stock ?? variant.stock_quantity ?? product.stock_quantity ?? product.stock) : (product.stock_quantity ?? product.stock ?? 999));
+        if (!isService && stock <= 0 && settings?.prevent_negative_stock === '1') {
             toast(`"${product.name}" is out of stock.`, { tone: 'bad' });
             return;
         }

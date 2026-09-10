@@ -93,11 +93,15 @@ class InventoryController extends Controller
         $tenantId = app('current.tenant')->id;
         // V3 Logic: Products and Stock from inventory_batches
         $query = Product::query()
-            ->with(['category', 'brand', 'images', 'variants', 'barcodes'])
+            ->with(['category', 'brand', 'images', 'variants', 'barcodes', 'modifierGroups.modifiers', 'requiredTools'])
             ->whereNull('deleted_at');
 
         if ($request->filled('category_id') && $request->category_id !== 'all') {
             $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->filled('type') && $request->type !== 'all') {
+            $query->where('products.type', $request->type);
         }
 
         if ($request->filled('search')) {
@@ -195,19 +199,50 @@ class InventoryController extends Controller
             }
             $reservedStock = $preSaleQty + $parkedQty;
 
+            $isService = ($product->type === 'service');
             $status = 'In Stock';
-            if ($totalStock == 0) $status = 'Out of Stock';
-            elseif ($totalStock <= $product->min_stock_alert) $status = 'Low Stock';
+            if ($isService) {
+                $status = 'Available';
+            } elseif ($totalStock == 0) {
+                $status = 'Out of Stock';
+            } elseif ($totalStock <= $product->min_stock_alert) {
+                $status = 'Low Stock';
+            }
 
             return [
                 'id' => $product->id,
                 'name' => $product->name,
                 'sku' => $product->sku,
+                'type' => $product->type ?? 'standard',
+                'service_pricing' => $product->service_pricing ?? 'fixed',
+                'default_duration' => $product->default_duration ?? 60,
+                'default_rate' => (float) ($product->default_rate ?? $product->price ?? 0),
+                'requires_visit' => (bool) $product->requires_visit,
+                'skill_tag' => $product->skill_tag,
+                'modifier_groups' => $product->modifierGroups->map(fn($mg) => [
+                    'id' => $mg->id,
+                    'name' => $mg->name,
+                    'min_select' => $mg->min_select,
+                    'max_select' => $mg->max_select,
+                    'required' => (bool) $mg->required,
+                    'modifiers' => $mg->modifiers->map(fn($m) => [
+                        'id' => $m->id,
+                        'name' => $m->name,
+                        'price_delta' => (float) $m->price_delta,
+                        'is_default' => (bool) $m->is_default,
+                    ]),
+                ]),
+                'required_tools' => $product->requiredTools->map(fn($t) => [
+                    'id' => $t->id,
+                    'name' => $t->name,
+                    'category' => $t->category,
+                    'quantity' => $t->pivot->quantity ?? 1,
+                ]),
                 'category' => $product->category ? $product->category->name : 'Uncategorized',
                 'category_id' => $product->category_id,
-                'stock' => $totalStock,
-                'reserved_stock' => $reservedStock,
-                'available_stock' => $totalStock - $reservedStock,
+                'stock' => $isService ? null : $totalStock,
+                'reserved_stock' => $isService ? 0 : $reservedStock,
+                'available_stock' => $isService ? null : ($totalStock - $reservedStock),
                 'price' => (float) $product->price,
                 'cost_price' => (float) $product->cost_price,
                 'image' => $product->image_path ? \Illuminate\Support\Facades\Storage::url($product->image_path) : null,
@@ -215,7 +250,7 @@ class InventoryController extends Controller
                 'description' => $product->description,
                 'short_description' => $product->short_description,
                 'min_stock_alert' => $product->min_stock_alert,
-                'unit' => $product->base_unit ?? $product->unit ?? 'pcs',
+                'unit' => $product->base_unit ?? $product->unit ?? ($isService ? 'service' : 'pcs'),
                 'history' => [], // Fetched via AJAX getHistory, or could be pre-loaded
                 'images' => $product->images->map(fn($img) => ['id' => $img->id, 'url' => Storage::url($img->file_path), 'type' => $img->file_type]),
                 'variants' => $product->variants->map(function ($v) use ($stockTotals, $preSaleTotals, $parkedProductQtys, $product) {
@@ -279,14 +314,20 @@ class InventoryController extends Controller
             'attributes' => \App\Models\ProductAttribute::where('is_active', true)
                 ->orderBy('sort_order')
                 ->get(),
+            'tools' => \App\Models\Tool::where('tenant_id', $tenantId)
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
     public function store(Request $request)
     {
         $tenantId = app('current.tenant')->id;
+        $isService = ($request->input('type') === 'service');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'nullable|string|in:standard,weighted,composite,service',
             'sku' => [
                 'nullable', 
                 'string', 
@@ -298,9 +339,9 @@ class InventoryController extends Controller
             'base_unit' => 'nullable|string',
             'secondary_unit' => 'nullable|string',
             'conversion_rate' => 'nullable|numeric',
-            'price' => 'required|numeric',
-            'cost_price' => 'required|numeric',
-            'stock' => 'required|numeric',
+            'price' => $isService ? 'nullable|numeric' : 'required|numeric',
+            'cost_price' => 'nullable|numeric',
+            'stock' => $isService ? 'nullable|numeric' : 'required|numeric',
             'min_stock_alert' => 'nullable|integer',
             'description' => 'nullable|string',
             'short_description' => 'nullable|string|max:255',
@@ -315,6 +356,14 @@ class InventoryController extends Controller
             'barcodes.*.description' => 'nullable|string',
             'batch_number' => 'nullable|string',
             'expiry_date' => 'nullable|date',
+            // Service specific fields
+            'service_pricing' => 'nullable|string|in:fixed,hourly,per_unit,quote',
+            'default_duration' => 'nullable|integer',
+            'default_rate' => 'nullable|numeric',
+            'requires_visit' => 'nullable|boolean',
+            'skill_tag' => 'nullable|string|max:64',
+            'modifier_groups' => 'nullable|array',
+            'required_tools' => 'nullable|array',
         ]);
 
         $categoryId = $request->category_id;
@@ -331,7 +380,6 @@ class InventoryController extends Controller
             $categoryId = null;
         }
 
-
         // Handle New Category Creation
         if ($request->filled('new_category_name')) {
             $category = Category::create([
@@ -346,16 +394,33 @@ class InventoryController extends Controller
             $categoryId = $category->id;
         }
 
+        $sku = $validated['sku'] ?? null;
+        if (empty($sku)) {
+            if ($isService) {
+                $sku = 'SRV-' . strtoupper(substr(uniqid(), -6));
+            } else {
+                $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $validated['name']), 0, 3));
+                if (strlen($prefix) < 3) $prefix = 'PRD';
+                $sku = $prefix . '-' . mt_rand(100000, 999999);
+            }
+        }
+
         $productData = [
             'name' => $validated['name'],
-            'sku' => $validated['sku'],
+            'sku' => $sku,
+            'type' => $validated['type'] ?? ($isService ? 'service' : 'standard'),
             'category_id' => $categoryId,
-            'price' => $validated['price'],
-            'cost_price' => $validated['cost_price'],
+            'price' => $validated['price'] ?? ($validated['default_rate'] ?? 0),
+            'cost_price' => $validated['cost_price'] ?? 0,
             'min_stock_alert' => $validated['min_stock_alert'] ?? 5,
-            'description' => $validated['description'],
-            'short_description' => $validated['short_description'],
-            'base_unit' => $validated['unit'] ?? 'pcs',
+            'description' => $validated['description'] ?? null,
+            'short_description' => $validated['short_description'] ?? null,
+            'base_unit' => $validated['unit'] ?? ($isService ? 'service' : 'pcs'),
+            'service_pricing' => $validated['service_pricing'] ?? 'fixed',
+            'default_duration' => $validated['default_duration'] ?? 60,
+            'default_rate' => $validated['default_rate'] ?? ($validated['price'] ?? 0),
+            'requires_visit' => !empty($validated['requires_visit']),
+            'skill_tag' => $validated['skill_tag'] ?? null,
         ];
 
         // Handle Main Image — Phase 3.3: routes through StorageService
@@ -382,7 +447,7 @@ class InventoryController extends Controller
             }
         }
 
-        if ($validated['stock'] > 0) {
+        if (!$isService && isset($validated['stock']) && $validated['stock'] > 0) {
             $warehouseId = $request->warehouse_id ?? (Warehouse::first()?->id ?? 1);
 
             $product->stocks()->create([
@@ -433,6 +498,16 @@ class InventoryController extends Controller
             }
         }
 
+        // Handle Modifier Groups (Add-ons)
+        if ($request->has('modifier_groups') && is_array($request->modifier_groups)) {
+            $this->syncModifierGroups($product, $request->modifier_groups, $tenantId);
+        }
+
+        // Handle Required Tools
+        if ($request->has('required_tools') && is_array($request->required_tools)) {
+            $this->syncRequiredTools($product, $request->required_tools);
+        }
+
         if (app()->bound('current.tenant')) {
             $tenant = app('current.tenant');
             if ($tenant->onboarding_step === 'inventory_tour') {
@@ -441,7 +516,8 @@ class InventoryController extends Controller
             }
         }
 
-        return redirect()->back()->with('success', 'Product created successfully.');
+        $message = $isService ? 'Service created successfully.' : 'Product created successfully.';
+        return redirect()->back()->with('success', $message);
     }
 
     public function update(Request $request, $store_slug = null, $id = null)
@@ -450,8 +526,11 @@ class InventoryController extends Controller
         $product = Product::findOrFail($id);
 
         $tenantId = app('current.tenant')->id;
+        $isService = ($request->input('type', $product->type) === 'service');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'nullable|string|in:standard,weighted,composite,service',
             'sku' => [
                 'nullable', 
                 'string', 
@@ -463,8 +542,8 @@ class InventoryController extends Controller
             'base_unit' => 'nullable|string',
             'secondary_unit' => 'nullable|string',
             'conversion_rate' => 'nullable|numeric',
-            'price' => 'required|numeric',
-            'cost_price' => 'required|numeric',
+            'price' => $isService ? 'nullable|numeric' : 'required|numeric',
+            'cost_price' => 'nullable|numeric',
             'stock' => 'nullable|numeric',
             'min_stock_alert' => 'nullable|integer',
             'description' => 'nullable|string',
@@ -482,6 +561,14 @@ class InventoryController extends Controller
             'barcodes.*.description' => 'nullable|string',
             'batch_number' => 'nullable|string',
             'expiry_date' => 'nullable|date',
+            // Service specific fields
+            'service_pricing' => 'nullable|string|in:fixed,hourly,per_unit,quote',
+            'default_duration' => 'nullable|integer',
+            'default_rate' => 'nullable|numeric',
+            'requires_visit' => 'nullable|boolean',
+            'skill_tag' => 'nullable|string|max:64',
+            'modifier_groups' => 'nullable|array',
+            'required_tools' => 'nullable|array',
         ]);
 
         $categoryId = $request->category_id;
@@ -500,16 +587,33 @@ class InventoryController extends Controller
             $categoryId = $category->id;
         }
 
+        $sku = $validated['sku'] ?? $product->sku;
+        if (empty($sku)) {
+            if ($isService) {
+                $sku = 'SRV-' . strtoupper(substr(uniqid(), -6));
+            } else {
+                $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $validated['name']), 0, 3));
+                if (strlen($prefix) < 3) $prefix = 'PRD';
+                $sku = $prefix . '-' . mt_rand(100000, 999999);
+            }
+        }
+
         $productData = [
             'name' => $validated['name'],
-            'sku' => $validated['sku'],
+            'sku' => $sku,
+            'type' => $validated['type'] ?? $product->type ?? ($isService ? 'service' : 'standard'),
             'category_id' => $categoryId,
-            'price' => $validated['price'],
-            'cost_price' => $validated['cost_price'],
+            'price' => $validated['price'] ?? ($validated['default_rate'] ?? $product->price ?? 0),
+            'cost_price' => $validated['cost_price'] ?? ($product->cost_price ?? 0),
             'min_stock_alert' => $validated['min_stock_alert'] ?? 5,
-            'description' => $validated['description'],
-            'short_description' => $validated['short_description'],
-            'base_unit' => $validated['unit'] ?? 'pcs',
+            'description' => $validated['description'] ?? null,
+            'short_description' => $validated['short_description'] ?? null,
+            'base_unit' => $validated['unit'] ?? ($isService ? 'service' : ($product->base_unit ?? 'pcs')),
+            'service_pricing' => $validated['service_pricing'] ?? ($product->service_pricing ?? 'fixed'),
+            'default_duration' => $validated['default_duration'] ?? ($product->default_duration ?? 60),
+            'default_rate' => $validated['default_rate'] ?? ($validated['price'] ?? $product->default_rate ?? 0),
+            'requires_visit' => isset($validated['requires_visit']) ? (bool)$validated['requires_visit'] : (bool)$product->requires_visit,
+            'skill_tag' => $validated['skill_tag'] ?? $product->skill_tag,
         ];
 
         // Handle Main Image (Thumbnail + Full)
@@ -607,8 +711,8 @@ class InventoryController extends Controller
             }
         }
 
-        // Update Stock (Only if explicitly provided as a number)
-        if ($request->has('stock') && $request->get('stock') !== null && $request->get('stock') !== '' && $product->type !== 'service') {
+        // Update Stock (Only if explicitly provided as a number and not a service)
+        if (!$isService && $request->has('stock') && $request->get('stock') !== null && $request->get('stock') !== '' && $product->type !== 'service') {
             $warehouseId = $request->warehouse_id ?? (Warehouse::first()?->id ?? 1);
             $newQuantity = (float)$request->get('stock');
             
@@ -685,7 +789,100 @@ class InventoryController extends Controller
             $product->barcodes()->whereNotIn('id', $updatedBarcodeIds)->delete();
         }
 
-        return redirect()->back()->with('success', 'Product updated successfully.');
+        // Handle Modifier Groups (Add-ons)
+        if ($request->has('modifier_groups') && is_array($request->modifier_groups)) {
+            $this->syncModifierGroups($product, $request->modifier_groups, $tenantId);
+        }
+
+        // Handle Required Tools
+        if ($request->has('required_tools') && is_array($request->required_tools)) {
+            $this->syncRequiredTools($product, $request->required_tools);
+        }
+
+        $message = $isService ? 'Service updated successfully.' : 'Product updated successfully.';
+        return redirect()->back()->with('success', $message);
+    }
+
+    private function syncModifierGroups(Product $product, array $modifierGroups, $tenantId)
+    {
+        $attachedGroupIds = [];
+        foreach ($modifierGroups as $groupIndex => $groupData) {
+            if (empty($groupData['name'])) continue;
+
+            $group = null;
+            if (!empty($groupData['id']) && is_numeric($groupData['id'])) {
+                $group = \App\Models\ModifierGroup::where('tenant_id', $tenantId)->find($groupData['id']);
+            }
+            if (!$group) {
+                $group = \App\Models\ModifierGroup::create([
+                    'tenant_id' => $tenantId,
+                    'name' => $groupData['name'],
+                    'min_select' => isset($groupData['min_select']) ? (int)$groupData['min_select'] : 0,
+                    'max_select' => isset($groupData['max_select']) ? (int)$groupData['max_select'] : 1,
+                    'required' => !empty($groupData['required']),
+                    'sort_order' => $groupIndex,
+                ]);
+            } else {
+                $group->update([
+                    'name' => $groupData['name'],
+                    'min_select' => isset($groupData['min_select']) ? (int)$groupData['min_select'] : 0,
+                    'max_select' => isset($groupData['max_select']) ? (int)$groupData['max_select'] : 1,
+                    'required' => !empty($groupData['required']),
+                    'sort_order' => $groupIndex,
+                ]);
+            }
+
+            $attachedGroupIds[$group->id] = ['sort_order' => $groupIndex];
+
+            // Process modifiers
+            if (isset($groupData['modifiers']) && is_array($groupData['modifiers'])) {
+                $modifierIdsToKeep = [];
+                foreach ($groupData['modifiers'] as $mIndex => $modData) {
+                    if (empty($modData['name'])) continue;
+                    $modifier = null;
+                    if (!empty($modData['id']) && is_numeric($modData['id'])) {
+                        $modifier = \App\Models\Modifier::where('modifier_group_id', $group->id)->find($modData['id']);
+                    }
+                    if ($modifier) {
+                        $modifier->update([
+                            'name' => $modData['name'],
+                            'price_delta' => $modData['price_delta'] ?? 0,
+                            'is_default' => !empty($modData['is_default']),
+                            'sort_order' => $mIndex,
+                        ]);
+                    } else {
+                        $modifier = \App\Models\Modifier::create([
+                            'tenant_id' => $tenantId,
+                            'modifier_group_id' => $group->id,
+                            'name' => $modData['name'],
+                            'price_delta' => $modData['price_delta'] ?? 0,
+                            'is_default' => !empty($modData['is_default']),
+                            'available' => true,
+                            'sort_order' => $mIndex,
+                        ]);
+                    }
+                    $modifierIdsToKeep[] = $modifier->id;
+                }
+                $group->modifiers()->whereNotIn('id', $modifierIdsToKeep)->delete();
+            }
+        }
+        $product->modifierGroups()->sync($attachedGroupIds);
+    }
+
+    private function syncRequiredTools(Product $product, array $requiredTools)
+    {
+        $tenantId = $product->tenant_id ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        $toolsSync = [];
+        foreach ($requiredTools as $toolItem) {
+            $tId = $toolItem['tool_id'] ?? $toolItem['id'] ?? null;
+            if ($tId) {
+                $toolsSync[$tId] = [
+                    'quantity' => max(1, (int)($toolItem['quantity'] ?? 1)),
+                    'tenant_id' => $tenantId,
+                ];
+            }
+        }
+        $product->requiredTools()->sync($toolsSync);
     }
 
     public function destroy($store_slug = null, $id = null)
@@ -997,16 +1194,25 @@ class InventoryController extends Controller
 
                     $availableStock = $totalStock - $reservedQty;
 
+                    $isService = $product->type === 'service';
+
                     return [
                         'id' => $product->id,
                         'name' => $product->name,
                         'sku' => $product->sku,
+                        'type' => $product->type ?? 'standard',
+                        'is_service' => $isService,
+                        'unit' => $product->unit,
+                        'service_pricing' => $product->service_pricing,
+                        'default_duration' => $product->default_duration,
+                        'requires_visit' => (bool)$product->requires_visit,
+                        'skill_tag' => $product->skill_tag,
                         'price' => (float) ($product->price ?: ($product->selling_price ?: 0)),
                         'wholesale_price' => $product->wholesale_price,
                         'wholesale_min_quantity' => $product->wholesale_min_quantity,
-                        'stock_quantity' => $totalStock,
-                        'reserved_quantity' => $reservedQty,
-                        'available_stock' => $availableStock,
+                        'stock_quantity' => $isService ? 999999 : $totalStock,
+                        'reserved_quantity' => $isService ? 0 : $reservedQty,
+                        'available_stock' => $isService ? 999999 : $availableStock,
                         'cost' => $product->cost_price,
                         /* The sale screens have to charge the same tax the server
                            will charge, and the server charges a product's own rate

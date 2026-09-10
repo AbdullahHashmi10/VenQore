@@ -162,6 +162,7 @@ export default function PosRoiCalculator({ toolGroups = [] }) {
 
     return (
         <ToolShell
+            metaDescription="Work out what a POS system actually returns: labour saved, shrink avoided, payback period and three-year ROI from your own numbers. Free, no signup."
             title="POS ROI & Payback Period Calculator"
             subtitle="Calculate how quickly a smart Point-of-Sale system pays for itself through labor efficiency and stock leakage reduction."
             slug="pos-roi-calculator"

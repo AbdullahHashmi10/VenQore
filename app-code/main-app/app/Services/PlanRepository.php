@@ -3,17 +3,15 @@
 namespace App\Services;
 
 use App\Models\Plan;
+use App\Models\Tenant;
 use App\Models\TenantPlanOverride;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class PlanRepository
 {
     /**
-     * Get all limits for a plan slug as an associative array.
-     * Returns: ['transactions_per_month' => '2000', 'sku_limit' => null, 'woocommerce' => '0', ...]
-     *
-     * Values are stored as strings in DB. null = unlimited.
-     * Callers must cast appropriately (PlanGate handles this via Tenant::getLimit()).
+     * Normalize plan slug variations.
      */
     public static function normalizePlanSlug(string $slug): string
     {
@@ -21,10 +19,19 @@ class PlanRepository
             'ltd_tier_1', 'ltd_1', 'ltd1' => 'ltd_1',
             'ltd_tier_2', 'ltd_2', 'ltd2' => 'ltd_2',
             'ltd_tier_3', 'ltd_3', 'ltd3' => 'ltd_3',
-            default => strtolower(trim($slug)),
+            'growth'                      => 'core',
+            'business'                    => 'scale',
+            'counter'                     => 'solo',
+            default                       => strtolower(trim($slug)),
         };
     }
 
+    /**
+     * Get all limits for a plan slug as an associative array.
+     * Returns: ['sku_limit' => '10000', 'multi_branch' => '0', ...]
+     *
+     * Values are stored as strings in DB. null = unlimited.
+     */
     public static function getLimits(string $planSlug): array
     {
         $planSlug = self::normalizePlanSlug($planSlug);
@@ -36,7 +43,12 @@ class PlanRepository
 
             if (!$plan || $plan->limits->isEmpty()) {
                 // Fallback to config if plan not in DB yet (safe during migration) or limits not seeded
-                return config("plans.{$planSlug}", []);
+                $configSlug = match ($planSlug) {
+                    'scale' => 'business',
+                    'core'  => 'growth',
+                    default => $planSlug,
+                };
+                return config("plans.{$planSlug}") ?? config("plans.{$configSlug}", []);
             }
 
             return $plan->limits->pluck('value', 'key')->toArray();
@@ -44,42 +56,27 @@ class PlanRepository
     }
 
     /**
-     * Build the tenant-level plan_limits JSON snapshot for an LTD tier
-     * (e.g. 'ltd_1', 'ltd_2', 'ltd_3').
-     *
-     * Session-3 fix (VNQ-011 follow-up): setPlanAttribute() and
-     * AppSumoController::redeem() used to snapshot getLimits($tier)
-     * verbatim. That table now holds the FULL ~150-key feature matrix
-     * (PlanFeatureMatrixSeeder) — richer than config/plans.php's ~23-key
-     * LTD sections, which is correct for `Tenant::getLimit()` reads that
-     * go through the plan_limits table directly. But two things the table
-     * was never meant to track live only in config: `ltd` (a license
-     * marker, not a plan feature) and `hosted_until` (a relative hosting
-     * offset). A verbatim table snapshot silently drops both.
-     *
-     * The fix: use config's key list as the snapshot's SHAPE (which keys
-     * matter enough to need a tenant-level snapshot at all), but prefer
-     * the seeded table's VALUE for every key the table actually tracks —
-     * falling back to config's own value only for the license-bookkeeping
-     * keys the table doesn't track. The table remains the value source of
-     * truth for every real plan-feature key; config keeps exactly one job
-     * left (per its own header comment): defining that key list.
+     * Build the tenant-level plan_limits JSON snapshot for an LTD tier.
      */
     public static function getLtdSnapshot(string $planSlug): array
     {
-        $shape  = config("plans.{$planSlug}", []);
-        $seeded = self::getLimits($planSlug);
+        $planSlug = self::normalizePlanSlug($planSlug);
+        $shape    = config("plans.{$planSlug}", []);
+        $seeded   = self::getLimits($planSlug);
 
-        $snapshot = [];
-        foreach ($shape as $key => $configValue) {
-            $value = array_key_exists($key, $seeded) ? $seeded[$key] : $configValue;
-            
-            if (is_bool($configValue)) {
-                $value = ($value !== '0' && $value !== 0 && $value !== false && $value !== 'false');
-            } elseif (is_int($configValue) && $value !== null) {
+        $snapshot = ['ltd_tier' => $planSlug];
+        $keys = array_unique(array_merge(array_keys($shape), array_keys($seeded)));
+
+        foreach ($keys as $key) {
+            $value = array_key_exists($key, $seeded) ? $seeded[$key] : ($shape[$key] ?? null);
+
+            $isBoolKey = (isset($shape[$key]) && is_bool($shape[$key])) || $key === 'ltd';
+            if ($isBoolKey) {
+                $value = ($value !== '0' && $value !== 0 && $value !== false && $value !== 'false' && $value !== null && $value !== '');
+            } elseif (is_numeric($value) && $value !== null) {
                 $value = (int) $value;
             }
-            
+
             $snapshot[$key] = $value;
         }
 
@@ -88,24 +85,25 @@ class PlanRepository
 
     /**
      * Get effective limit for a specific tenant and key.
-     * Priority: tenant override > plan default > null (unlimited fallback)
+     * Priority: tenant override > plan default > null (if explicitly unlimited) > false (fail-closed)
      *
-     * Returns the raw stored value (string, null, '0', '1', 'basic', etc.)
-     * Tenant::getLimit() handles the type casting.
+     * Returns the raw stored value (string, null, '0', '1', int, etc.)
      */
     public static function getEffectiveLimit(?int $tenantId, string $planSlug, string $key): mixed
     {
         if (!$tenantId) {
-            return null;
+            return false; // Fail closed if no tenant ID
         }
 
-        if ($planSlug === 'ltd') {
+        $normSlug = self::normalizePlanSlug($planSlug);
+
+        if ($normSlug === 'ltd') {
             $t = app()->bound('current.tenant') && app('current.tenant')->id === $tenantId
                 ? app('current.tenant')
-                : \App\Models\Tenant::withoutGlobalScopes()->find($tenantId);
+                : Tenant::withoutGlobalScopes()->find($tenantId);
 
             if ($t && method_exists($t, 'effectivePlan')) {
-                $planSlug = $t->effectivePlan();
+                $normSlug = self::normalizePlanSlug($t->effectivePlan());
             }
         }
 
@@ -122,8 +120,6 @@ class PlanRepository
                 })
                 ->first();
 
-            // Return a sentinel string if no override found, so Cache::remember
-            // distinguishes "override = null (unlimited)" from "no override found".
             if ($row === null) {
                 return '__NOT_FOUND__';
             }
@@ -135,154 +131,142 @@ class PlanRepository
             return $override; // null here = unlimited override
         }
 
-        // 2. Fall back to plan default from DB or config
-        $limits = self::getLimits($planSlug);
-        if (array_key_exists($key, $limits) && $limits[$key] !== null && $limits[$key] !== '') {
-            return $limits[$key];
-        }
+        // 2. Read from plan limits table or config fallback
+        $limits = self::getLimits($normSlug);
 
-        // 3. LTD fallback from config/pricing.php
-        $normSlug = self::normalizePlanSlug($planSlug);
-        if (str_starts_with($normSlug, 'ltd')) {
-            $ltdKey = match ($normSlug) {
-                'ltd_1' => 'ltd_tier_1',
-                'ltd_2' => 'ltd_tier_2',
-                'ltd_3' => 'ltd_tier_3',
-                default => $normSlug,
-            };
-            $ltdConfig = config("pricing.ltd_plans.{$ltdKey}") ?? config("pricing.ltd_plans.{$normSlug}");
-            if ($ltdConfig && array_key_exists($key, $ltdConfig) && $ltdConfig[$key] !== null) {
-                return (string) $ltdConfig[$key];
+        if (array_key_exists($key, $limits)) {
+            $val = $limits[$key];
+            if ($val === null || $val === '') {
+                return null; // explicitly unlimited
             }
+            return $val;
         }
 
-        return $limits[$key] ?? null;
+        // 3. Check legacy plan_limits JSON column on tenant (for snapshotted LTD accounts)
+        $t = app()->bound('current.tenant') && app('current.tenant')->id === $tenantId
+            ? app('current.tenant')
+            : Tenant::withoutGlobalScopes()->find($tenantId);
+
+        if ($t && is_array($t->plan_limits) && array_key_exists($key, $t->plan_limits)) {
+            return $t->plan_limits[$key];
+        }
+
+        // 4. Unknown / unseeded feature key: log warning and fail closed
+        Log::warning("Unknown or unseeded plan limit key queried: '{$key}' for plan '{$normSlug}'. Denying access (fail-closed).");
+        return false;
     }
 
     /**
      * Invalidate plan limits cache.
-     * Call whenever a plan or its limits are edited from SuperAdmin.
      */
     public static function invalidatePlanCache(string $planSlug): void
     {
-        Cache::forget("plan_limits:{$planSlug}");
+        $norm = self::normalizePlanSlug($planSlug);
+        Cache::forget("plan_limits:{$norm}");
+        Cache::forget("all_canonical_feature_keys");
     }
 
     /**
+     * Invalidate tenant overrides and feature map cache.
      */
-    public static function invalidateTenantCache(int $tenantId): void
+    public static function invalidateTenantCache(Tenant|int $tenantOrId): void
     {
-        $keys = TenantPlanOverride::withoutTenantScope()->where('tenant_id', $tenantId)->pluck('override_key');
-        foreach ($keys as $key) {
-            Cache::forget("tenant_override:{$tenantId}:{$key}");
+        $tenantId = $tenantOrId instanceof Tenant ? (int) $tenantOrId->id : (int) $tenantOrId;
+        if (!$tenantId) {
+            return;
         }
-        Cache::forget("tenant_features_map:{$tenantId}:*");
+
+        try {
+            $keys = TenantPlanOverride::withoutTenantScope()->where('tenant_id', $tenantId)->pluck('override_key');
+            foreach ($keys as $key) {
+                Cache::forget("tenant_override:{$tenantId}:{$key}");
+            }
+        } catch (\Throwable) {
+            // Ignore DB errors during cache clearance
+        }
+
+        Cache::forget("tenant_features_map:{$tenantId}");
+        Cache::forget("tenant_usage_skus:{$tenantId}");
+        Cache::forget("tenant_usage_staff:{$tenantId}");
+        Cache::forget("tenant_usage_locations:{$tenantId}");
     }
 
     /**
      * Determine if a tenant is authorized to use a specific plan feature key.
      */
-    public static function canUseFeature(\App\Models\Tenant $tenant, string $feature): bool
+    public static function canUseFeature(Tenant $tenant, string $feature): bool
     {
-        $plan = strtolower((string) ($tenant->plan ?? 'starter'));
-
-        // T8-3: Managed AI is hard-blocked on all LTD plans unless tenant provided their own API key (BYOK mode)
-        if (($feature === 'smart_capture' || $feature === 'managed_ai') && str_starts_with($plan, 'ltd')) {
-            $byokKey = null;
-            try {
-                $byokKey = \App\Models\Setting::withoutGlobalScopes()
+        $normSlug = self::normalizePlanSlug($tenant->plan ?? 'starter');
+        if (str_starts_with($normSlug, 'ltd')) {
+            if (in_array($feature, ['smart_capture', 'ai_assistant', 'ai_insights', 'ai_product_descriptions', 'growth_engine'], true)) {
+                $hasByok = \Illuminate\Support\Facades\DB::table('settings')
                     ->where('tenant_id', $tenant->id)
-                    ->whereIn('key', ['smartcapture_api_key', 'gemini_api_key', 'openai_api_key'])
+                    ->whereIn('key', ['smartcapture_api_key', 'gemini_api_key', 'openai_api_key', 'byok_api_key'])
                     ->whereNotNull('value')
                     ->where('value', '!=', '')
-                    ->value('value');
-            } catch (\Throwable $e) {
-                $byokKey = null;
-            }
+                    ->exists();
 
-            if (empty($byokKey)) {
-                return false; // Hard-blocked for platform managed AI on LTD tiers
-            }
-
-            return true; // BYOK AI key unblocks AI feature on LTD tiers
-        }
-        // Special T3-3 Cookbook on Counter rule for food-prep industries
-        if ($feature === 'compositions' || $feature === 'bill_of_materials') {
-            if ($tenant->plan === 'counter') {
-                $foodPrepIndustries = [
-                    'cafe', 'restaurant', 'bakery', 'juice_tea_shop',
-                    'food_truck', 'cloud_kitchen', 'sweets_mithai', 'ice_cream_parlour'
-                ];
-                $industry = strtolower(trim((string)($tenant->industry ?? $tenant->industry_type ?? $tenant->business_type ?? '')));
-                if (in_array($industry, $foodPrepIndustries, true)) {
-                    return true;
+                if (!$hasByok && \Illuminate\Support\Facades\Schema::hasTable('ai_settings')) {
+                    try {
+                        $hasByok = \Illuminate\Support\Facades\DB::table('ai_settings')
+                            ->where('tenant_id', $tenant->id)
+                            ->where(function ($q) {
+                                $q->where(function ($sub) {
+                                    $sub->whereNotNull('gemini_api_key')->where('gemini_api_key', '!=', '');
+                                })->orWhere(function ($sub) {
+                                    $sub->whereNotNull('openai_api_key')->where('openai_api_key', '!=', '');
+                                });
+                            })->exists();
+                    } catch (\Throwable $e) {}
                 }
+
+                if (!$hasByok) {
+                    return false;
+                }
+                return true;
             }
         }
 
-        $aliases = [
-            'compositions' => 'bill_of_materials',
-            'cash_flow_report' => 'report_cash_flow',
-            'cash_flow' => 'report_cash_flow',
-            'stock_valuation_report' => 'report_stock_valuation',
-            'stock_valuation' => 'report_stock_valuation',
-            'inventory_valuation' => 'report_stock_valuation',
-            'inventory_valuation_report' => 'report_stock_valuation',
-            'aged_receivables' => 'report_sales_aging',
-            'profit_loss' => 'report_profit_loss',
-            'trial_balance' => 'report_trial_balance',
-        ];
-        if (isset($aliases[$feature])) {
-            $feature = $aliases[$feature];
+        $limit = $tenant->getLimit($feature);
+
+        if ($limit === null || $limit === true || $limit === 'true' || (is_numeric($limit) && (int) $limit > 0)) {
+            return true;
         }
 
-        $val = self::getEffectiveLimit($tenant->id, $tenant->plan ?? 'starter', $feature);
-
-        if ($val === null) {
-            return false; // Default deny per T2-2
-        }
-
-        return ($val === '1' || $val === 1 || $val === true || $val === 'true' || $val === '-1' || $val === -1);
+        return false;
     }
 
     /**
      * Get a key-value boolean map of all feature entitlements for the tenant.
+     * Used by HandleInertiaRequests to share into the frontend.
      */
-    public static function featuresFor(\App\Models\Tenant $tenant): array
+    public static function featuresFor(Tenant $tenant): array
     {
-        $cacheKey = "tenant_features_map:{$tenant->id}:{$tenant->plan}";
+        $cacheKey = "tenant_features_map:{$tenant->id}";
         return Cache::remember($cacheKey, 300, function () use ($tenant) {
-            $rawLimits = self::getLimits($tenant->plan ?? 'starter');
+            $planSlug = $tenant->plan === 'ltd' && method_exists($tenant, 'effectivePlan')
+                ? $tenant->effectivePlan()
+                : ($tenant->plan ?? 'starter');
 
-            // Fail-closed: the map must contain EVERY known feature key across the database
-            // (all ~250 keys defined in plan_limits) as well as fallback configs. A key missing
-            // from tenant plan limits resolves to false — it must never be absent, because an
-            // absent key reads as "undefined" on the frontend and fatals on the backend.
+            $limits = self::getLimits($planSlug);
+
             $dbKeys = Cache::remember('all_canonical_feature_keys', 300, function () {
-                return \Illuminate\Support\Facades\DB::table('plan_limits')->distinct()->pluck('key')->toArray();
-            });
-
-            // Also include keys from the capabilities registry (Phase 1 additions such as
-            // optical_prescription, tailor_measurements, jewelry_metal_rates are only in
-            // capabilities, not in plan_limits).
-            $capabilityKeys = Cache::remember('all_capability_registry_keys', 300, function () {
                 try {
-                    return \Illuminate\Support\Facades\DB::table('capabilities')
-                        ->where('kind', 'capability')
-                        ->pluck('key')
-                        ->toArray();
+                    return \Illuminate\Support\Facades\DB::table('plan_limits')->distinct()->pluck('key')->toArray();
                 } catch (\Throwable) {
                     return [];
                 }
             });
 
-            $configKeys = array_keys(config('plans.counter', config('plans.starter', [])));
-            $keys = array_unique(array_merge($dbKeys, $capabilityKeys, $configKeys, array_keys($rawLimits)));
-
+            $configKeys = array_unique(array_merge(array_keys(config('plans.solo', [])), array_keys(config('plans.business', []))));
+            $allKeys = array_unique(array_merge($configKeys, $dbKeys, array_keys($limits)));
             $map = [];
-            foreach ($keys as $key) {
-                $map[$key] = self::canUseFeature($tenant, $key);
+
+            foreach ($allKeys as $key) {
+                $limit = $tenant->getLimit($key);
+                $map[$key] = ($limit === true || $limit === null || (is_numeric($limit) && (int)$limit > 0));
             }
+
             return $map;
         });
     }
@@ -290,25 +274,21 @@ class PlanRepository
     /**
      * Get tenant resource limits for frontend props.
      */
-    public static function limitsFor(?\App\Models\Tenant $tenant): array
+    public static function limitsFor(?Tenant $tenant): array
     {
         if (!$tenant || !$tenant->id) {
             return [];
         }
 
-        $limits = [];
-        foreach (['sku_limit', 'staff_limit', 'location_limit', 'locations', 'ai_pages_limit', 'ai_queries_limit'] as $key) {
-            $val = self::getEffectiveLimit($tenant->id, $tenant->plan ?? 'starter', $key);
-            if ($val !== null) {
-                $limits[$key] = (int) $val;
-                if ($key === 'locations') {
-                    $limits['location_limit'] = (int) $val;
-                }
-            } else {
-                $limits[$key] = 0;
-            }
-        }
-        return $limits;
+        return [
+            'sku_limit'              => $tenant->getLimit('sku_limit'),
+            'staff_limit'            => $tenant->getLimit('staff_limit'),
+            'location_limit'         => $tenant->getLimit('locations') ?? $tenant->getLimit('location_limit'),
+            'locations'              => $tenant->getLimit('locations'),
+            'ai_credits_monthly'     => $tenant->getLimit('ai_credits_monthly'),
+            'ai_pages_limit'         => $tenant->getLimit('ai_pages_limit'),
+            'ai_queries_limit'       => $tenant->getLimit('ai_queries_limit'),
+            'transactions_per_month' => $tenant->getLimit('transactions_per_month'),
+        ];
     }
 }
-

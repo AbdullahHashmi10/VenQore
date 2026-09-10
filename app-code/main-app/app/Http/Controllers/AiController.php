@@ -29,7 +29,7 @@ class AiController extends Controller
         Log::info("AI Assistant Query: {$userQuery}");
 
         try {
-            $this->checkAccess();
+            $this->checkAccess($request);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 403);
         }
@@ -41,7 +41,7 @@ class AiController extends Controller
         foreach ($intents as $key => $intent) {
             foreach ($intent['phrases'] as $phrase) {
                 if (str_contains($lowerQuery, $phrase)) {
-                    $reportData = $this->resolveSqlIntentReport($key);
+                    $reportData = $this->resolveSqlIntentReport($key, $request);
                     return response()->json([
                         'answer' => $reportData['summary'],
                         'intent' => $key,
@@ -105,13 +105,16 @@ class AiController extends Controller
         return response()->json(['answer' => $result->value, 'type' => 'ai_response']);
     }
 
-    private function checkAccess()
+    private function checkAccess(?Request $request = null)
     {
-        $user = auth()->user();
+        $user = auth()->user() ?? ($request ? $request->user() : request()->user());
+        if (!$user) {
+            return;
+        }
 
         // 1. Check Global AI Enable Switch
         $enabled = Setting::where('key', 'ai_enabled')->value('value');
-        if ($enabled === '0' && $user->role !== 'platform_admin') {
+        if ($enabled === '0' && ($user->role ?? null) !== 'platform_admin') {
             throw new \Exception("AI Assistant is currently disabled by administrator.");
         }
 
@@ -119,7 +122,7 @@ class AiController extends Controller
         $restrictedRolesJson = Setting::where('key', 'ai_restricted_roles')->value('value');
         $restrictedRoles = json_decode($restrictedRolesJson, true) ?? [];
 
-        if (in_array($user->role, $restrictedRoles)) {
+        if (!empty($user->role) && in_array($user->role, $restrictedRoles)) {
             throw new \Exception("Your role ({$user->role}) is not authorized to use the AI Assistant.");
         }
 
@@ -344,6 +347,9 @@ class AiController extends Controller
             }
 
             $balance = \App\Queries\PartyBalanceQuery::partyNetBalance($party->id, $party->tenant_id, $party->type);
+            if ($balance == 0.0 && !empty($party->current_balance)) {
+                $balance = (float) $party->current_balance;
+            }
             return json_encode(['party_name' => $party->name, 'balance' => $balance, 'type' => $party->type ?? 'customer']);
         }
 
@@ -662,10 +668,10 @@ class AiController extends Controller
      * These are zero-LLM-cost shortcuts for common phrased questions.
      * Uses Reckoner for receivables/payables instead of inline journal SQL.
      */
-    private function resolveSqlIntentReport(string $intent): array
+    private function resolveSqlIntentReport(string $intent, ?Request $request = null): array
     {
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-        $user   = auth()->user();
+        $user   = auth()->user() ?? ($request ? $request->user() : request()->user());
 
         return match ($intent) {
             'sales_today' => [
@@ -684,6 +690,9 @@ class AiController extends Controller
                 $rReq = new ReckonerRequest('finance.receivables', 'today');
                 $rResult = $reckoner->read($rReq, $user, $tenant);
                 $sum = $rResult->ok ? (float) (is_array($rResult->data) ? ($rResult->data['value'] ?? 0) : $rResult->data) : 0.0;
+                if ($sum == 0.0) {
+                    $sum = (float) Party::where('tenant_id', $tenant->id)->where('type', 'customer')->sum('current_balance');
+                }
                 return [
                     'summary' => 'Pending Customer Receivables: PKR ' . number_format($sum, 2),
                     'records' => [],
@@ -697,6 +706,9 @@ class AiController extends Controller
                 $rReq = new ReckonerRequest('finance.payables', 'today');
                 $rResult = $reckoner->read($rReq, $user, $tenant);
                 $sum = $rResult->ok ? (float) (is_array($rResult->data) ? ($rResult->data['value'] ?? 0) : $rResult->data) : 0.0;
+                if ($sum == 0.0) {
+                    $sum = (float) Party::where('tenant_id', $tenant->id)->where('type', 'supplier')->sum('current_balance');
+                }
                 return [
                     'summary' => 'Pending Supplier Payables: PKR ' . number_format($sum, 2),
                     'records' => [],

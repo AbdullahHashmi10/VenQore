@@ -8,6 +8,7 @@ use App\Models\JobAssignment;
 use App\Models\JobEvent;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Employee;
 use Illuminate\Support\Facades\DB;
 
 class ServiceEngine
@@ -33,6 +34,8 @@ class ServiceEngine
             $tenantId = $data['tenant_id'] ?? app('current.tenant')->id;
             $number   = $data['number'] ?? self::generateNumber($tenantId);
 
+            $userId = auth()->id() ?? \App\Models\User::first()?->id;
+
             $job = ServiceJob::create([
                 'tenant_id'       => $tenantId,
                 'number'          => $number,
@@ -49,7 +52,7 @@ class ServiceEngine
                 'status'          => $data['status'] ?? 'draft',
                 'scheduled_for'   => $data['scheduled_for'] ?? null,
                 'estimated_total' => $data['estimated_total'] ?? 0.00,
-                'created_by'      => $data['created_by'] ?? auth()->id(),
+                'created_by'      => $data['created_by'] ?? $userId,
             ]);
 
             if (!empty($data['lines']) && is_array($data['lines'])) {
@@ -72,7 +75,7 @@ class ServiceEngine
                 'job_id'  => $job->id,
                 'type'    => 'created',
                 'body'    => "Job {$job->number} created.",
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
             ]);
 
             return $job;
@@ -98,11 +101,13 @@ class ServiceEngine
 
             $job->save();
 
+            $userId = auth()->id() ?? \App\Models\User::first()?->id;
+
             JobEvent::create([
                 'job_id'  => $job->id,
                 'type'    => 'status_changed',
                 'body'    => "Status changed from {$oldStatus} to {$newStatus}." . ($note ? " Note: {$note}" : ''),
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
             ]);
 
             return $job;
@@ -112,18 +117,21 @@ class ServiceEngine
     /**
      * Assign a technician/employee to a service job.
      */
-    public function assignTechnician(ServiceJob $job, int $employeeId, ?string $role = 'primary'): JobAssignment
+    public function assignTechnician(ServiceJob $job, string|int $employeeId, ?string $role = 'primary'): JobAssignment
     {
         $assignment = JobAssignment::updateOrCreate(
             ['job_id' => $job->id, 'employee_id' => $employeeId],
             ['role' => $role, 'assigned_at' => now()]
         );
 
+        $empName = Employee::where('tenant_id', $job->tenant_id)->find($employeeId)?->name ?? "Employee #{$employeeId}";
+        $userId = auth()->id() ?? \App\Models\User::first()?->id;
+
         JobEvent::create([
             'job_id'  => $job->id,
             'type'    => 'technician_assigned',
-            'body'    => "Employee ID {$employeeId} assigned as {$role}.",
-            'user_id' => auth()->id(),
+            'body'    => "{$empName} assigned as {$role}.",
+            'user_id' => $userId,
         ]);
 
         return $assignment;
@@ -147,13 +155,22 @@ class ServiceEngine
                 $lineTotal = $line->quantity * $line->unit_price;
                 $subtotal += $lineTotal;
 
+                $productId = $line->product_id;
+                if (!$productId) {
+                    $fallbackProduct = \App\Models\Product::firstOrCreate(
+                        ['tenant_id' => $job->tenant_id, 'name' => 'General Service / Labor'],
+                        ['sku' => 'SRV-GEN-01', 'type' => 'service', 'price' => 0, 'service_pricing' => 'fixed', 'cost_price' => 0]
+                    );
+                    $productId = $fallbackProduct->id;
+                }
+
                 $items[] = [
-                    'product_id'   => $line->product_id,
-                    'description'  => $line->description,
-                    'quantity'     => $line->quantity,
-                    'unit_price'   => $line->unit_price,
-                    'tax_amount'   => ($lineTotal * ($line->tax_rate ?? 0)) / 100,
-                    'total_amount' => $lineTotal,
+                    'product_id'      => $productId,
+                    'quantity'        => $line->quantity,
+                    'unit_price'      => $line->unit_price,
+                    'discount_amount' => 0,
+                    'tax_amount'      => ($lineTotal * ($line->tax_rate ?? 0)) / 100,
+                    'total'           => $lineTotal,
                 ];
             }
 
@@ -186,7 +203,7 @@ class ServiceEngine
                 'job_id'  => $job->id,
                 'type'    => 'invoiced',
                 'body'    => "Job invoiced under Invoice {$invoice->invoice_number}.",
-                'user_id' => auth()->id(),
+                'user_id' => auth()->id() ?? $job->created_by,
             ]);
 
             return $invoice;

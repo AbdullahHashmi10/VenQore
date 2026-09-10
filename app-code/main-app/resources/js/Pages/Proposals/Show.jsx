@@ -1,8 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Printer, ArrowLeft, Mail, Phone, MapPin, ArrowLeftRight, ShoppingCart, FileText, Edit } from 'lucide-react';
+import { Printer, ArrowLeft, Mail, Phone, MapPin, ArrowLeftRight, ShoppingCart, FileText, Edit, Wrench } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import { useAlert } from '@/Contexts/AlertContext';
 
@@ -98,6 +98,17 @@ export default function ProposalShow({ proposal }) {
                                         >
                                             <FileText size={18} /> Convert to Pre-Sale
                                         </button>
+                                        <Link
+                                            href={route("store.service-jobs.create", {
+                                                store_slug: store.slug,
+                                                party_id: proposal.customer_id || proposal.party_id,
+                                                title: `Work Order for Proposal #${proposal.reference_number || proposal.id}`,
+                                                estimated_total: proposal.total || ''
+                                            })}
+                                            className="flex items-center gap-2 bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 px-4 py-2 rounded-xl transition-all active:scale-95 font-medium"
+                                        >
+                                            <Wrench size={18} /> Book as Service Job
+                                        </Link>
                                     </>
                                 )}
                                 <Link

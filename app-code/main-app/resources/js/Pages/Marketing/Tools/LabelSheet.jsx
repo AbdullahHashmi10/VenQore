@@ -200,9 +200,9 @@ export default function LabelSheetTool({
             toolGroups={toolGroups}
             currentSlug="label-sheet-generator"
             cta={{
-                headline: 'Managing labels product-by-product gets old fast.',
-                subtext: 'VenQore POS automatically manages your inventory, prints shelf tags and shipping labels in bulk, and writes balanced double-entry accounting records.',
-            }}
+                    headline: "Managing labels product-by-product gets old fast.",
+                    subtext: "Describe your shop and VenQore builds a system that prints shelf tags and shipping labels in bulk, straight from live inventory.",
+                }}
             related={[
                 { label: 'Price Tag Generator', href: '/tools/price-tag-generator' },
                 { label: 'Barcode Generator', href: '/tools/barcode-generator' },

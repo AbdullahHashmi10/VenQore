@@ -51,19 +51,30 @@ class HealthController extends Controller
             $allOk = false;
         }
 
-        // ── 2. Redis ──────────────────────────────────────────────────
-        try {
-            $pong = Redis::ping();
-            $checks['redis'] = ($pong === true || $pong === '+PONG' || $pong === 'PONG') ? 'ok' : 'fail';
-            if ($checks['redis'] === 'fail') {
+        // ── 2. Redis — only when the configured stack uses it ─────────
+        $usesRedis = in_array('redis', [
+            config('cache.default'),
+            config('session.driver'),
+            config('queue.default'),
+            config('broadcasting.default'),
+        ], true);
+
+        if (! $usesRedis) {
+            $checks['redis'] = 'not_configured';
+        } else {
+            try {
+                $pong = Redis::ping();
+                $checks['redis'] = ($pong === true || $pong === '+PONG' || $pong === 'PONG') ? 'ok' : 'fail';
+                if ($checks['redis'] === 'fail') {
+                    $allOk = false;
+                }
+            } catch (\Throwable) {
+                $checks['redis'] = 'fail';
                 $allOk = false;
             }
-        } catch (\Throwable) {
-            $checks['redis'] = 'fail';
-            $allOk = false;
         }
 
-        // ── 3. Cache (writes through Redis) ──────────────────────────
+        // ── 3. Cache (uses the configured default store) ─────────────
         try {
             $key = 'health:check:' . time();
             Cache::put($key, 'ok', 10);
@@ -93,19 +104,23 @@ class HealthController extends Controller
             $checks['storage'] = 'degraded';
         }
 
-        // ── 5. Queue workers (Horizon) ────────────────────────────────
-        // We check if Horizon's heartbeat was updated recently (within 10 minutes)
-        try {
-            $lastPulse = Cache::store('redis')->get('horizon:master:' . config('horizon.prefix', 'horizon') . ':pulse');
-            if ($lastPulse && (time() - $lastPulse) < 600) {
-                $checks['queue'] = 'ok';
-            } else {
-                // Try an alternative approach: check if any Horizon process is registered
-                $masters = Redis::smembers('horizon:' . config('horizon.prefix', 'horizon') . ':masters');
-                $checks['queue'] = (!empty($masters)) ? 'ok' : 'degraded';
+        // ── 5. Queue workers ──────────────────────────────────────────
+        // Horizon is Redis-only. Database/sync queues must not be probed via
+        // Horizon; worker supervision is an operational check instead.
+        if (in_array(config('queue.default'), ['sync', 'database'], true)) {
+            $checks['queue'] = 'not_applicable';
+        } else {
+            try {
+                $lastPulse = Cache::store('redis')->get('horizon:master:' . config('horizon.prefix', 'horizon') . ':pulse');
+                if ($lastPulse && (time() - $lastPulse) < 600) {
+                    $checks['queue'] = 'ok';
+                } else {
+                    $masters = Redis::smembers('horizon:' . config('horizon.prefix', 'horizon') . ':masters');
+                    $checks['queue'] = (! empty($masters)) ? 'ok' : 'degraded';
+                }
+            } catch (\Throwable) {
+                $checks['queue'] = 'degraded';
             }
-        } catch (\Throwable) {
-            $checks['queue'] = 'degraded'; // degraded, not fail — app still works without queue
         }
 
         // ── Aggregate status ──────────────────────────────────────────

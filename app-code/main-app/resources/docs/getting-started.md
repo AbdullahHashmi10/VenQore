@@ -24,10 +24,10 @@ Welcome to VenQore POS! This Q&A guide walks you through setting up your account
 - **Growth Engine ($63/mo):** Ideal for expanding stores. Unlocks multi-location sync (up to 3 branches), 10 staff accounts, 10,000 SKUs, batch & expiry tracking, recipes (BOM), bank reconciliation, and live agent chat support.
 - **Enterprise Engine ($129/mo):** Designed for multi-channel operations. Unlocks 10 locations, 50 staff, 50,000 SKUs, serial/IMEI tracking, automated assembly production runs, customer loyalty systems, and custom gift cards.
 
-### Q: How does the 14-day free trial work, and do I need a credit card?
+### Q: How does the 14-day free trial work?
 **A:** Every new store starts with a **14-day free trial** of your selected tier:
-- **No Card Required:** If you select the base retail plan with no premium add-ons (like managed AI or eCommerce sync channels), your trial starts instantly without entering payment details.
-- **Trial Expiry:** We never charge you automatically. When your 14 days end, your store access is paused, but your data remains completely safe. You can configure a payment card to subscribe, or export your data at any time.
+- **Instant Activation:** Your trial starts immediately with full access to all features of your selected tier.
+- **Trial Expiry:** You can cancel anytime before the 14 days conclude from your dashboard settings.
 
 ### Q: How do I navigate the main sections of the dashboard?
 **A:** Once logged in, your central menu guides you to:

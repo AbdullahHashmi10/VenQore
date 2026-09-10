@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Mail;
 class ProcessExpiredTrials extends Command
 {
     protected $signature   = 'tenants:process-expired-trials';
-    protected $description = 'Suspend tenants whose trial has ended and send expiry emails';
+    protected $description = 'Transition expired trials to the Solo free tier and send notification emails';
 
     public function handle(): void
     {
@@ -37,8 +37,8 @@ class ProcessExpiredTrials extends Command
         }
 
         foreach ($expiredTrials as $tenant) {
-            // Suspend access
-            $tenant->update(['status' => 'suspended']);
+            // Drop cleanly to Solo free plan so trading and data remain functional
+            \App\Services\PlanDowngradeService::dropToSolo($tenant);
 
             $adminUser = \App\Models\User::withoutTenantScope()
                 ->where('tenant_id', $tenant->id)
@@ -50,15 +50,15 @@ class ProcessExpiredTrials extends Command
                     Mail::to($adminUser->email)
                         ->send(new TrialExpiredMail($tenant, $adminUser));
 
-                    Log::info("Trial expired & suspended: {$tenant->subdomain}");
+                    Log::info("Trial transitioned to Solo free tier: {$tenant->slug}");
                 } catch (\Throwable $e) {
-                    Log::error("Failed to send trial expiry email to {$adminUser->email}", [
+                    Log::error("Failed to send trial transition email to {$adminUser->email}", [
                         'error' => $e->getMessage(),
                     ]);
                 }
             }
 
-            $this->info("✓ Suspended: {$tenant->subdomain}");
+            $this->info("✓ Transitioned to Solo: {$tenant->slug}");
         }
 
         $this->info("Processed {$expiredTrials->count()} expired trial(s).");

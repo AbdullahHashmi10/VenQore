@@ -335,31 +335,42 @@ class Tenant extends Model
      */
     public function getLimit(string $key): mixed
     {
-        // Use PlanRepository which handles DB + cache (priorities 1 & 2)
-        $value = PlanRepository::getEffectiveLimit($this->id, $this->plan, $key);
+        $raw = \App\Services\PlanRepository::getEffectiveLimit($this->id, $this->plan ?? 'starter', $key);
 
-        // 3. Fallback to plan_limits JSON column on this tenant (legacy AppSumo stacking)
-        if ($this->plan === 'ltd' || ($value === null && !array_key_exists($key, PlanRepository::getLimits($this->plan)))) {
-            if ($this->plan_limits && isset($this->plan_limits[$key])) {
-                $value = $this->plan_limits[$key];
-            }
+        if ($raw === null) {
+            return null; // explicitly unlimited in DB
         }
 
-        // Value semantics from DB:
-        // null = unlimited
-        // '0'  = false/disabled
-        // '1'  = true/enabled
-        // numeric string = integer cap
-        // 'basic'/'advanced' = feature variant
-
-        if ($value === null)        return null;   // unlimited
-        if (in_array($key, ['transactions_per_month', 'locations', 'sku_limit', 'staff_limit'])) {
-            return is_numeric($value) ? (int) $value : null;
+        if ($raw === true || $raw === 'true') {
+            return true;
         }
-        if ($value === '0')         return false;  // feature disabled
-        if ($value === '1')         return true;   // feature enabled
-        if (is_numeric($value))     return (int) $value;
-        return $value;                             // string variant e.g. 'basic', 'advanced'
+
+        if ($raw === false || $raw === 'false') {
+            return false;
+        }
+
+        // If known boolean feature from canonical config, return boolean
+        $configVal = config("plans.solo.{$key}", config("plans.business.{$key}"));
+        if (is_bool($configVal) || in_array($key, ['report_profit_loss', 'recurring_invoices', 'fund_management', 'production', 'multi_branch', 'ltd'])) {
+            return ($raw !== '0' && $raw !== 0 && $raw !== false && $raw !== 'false' && $raw !== null && $raw !== '');
+        }
+
+        if (is_numeric($raw)) {
+            return (int) $raw;
+        }
+
+        return $raw;
+    }
+
+    /**
+     * Count active and invited staff who occupy a full seat (excludes cashiers).
+     */
+    public function fullSeatsCount(): int
+    {
+        return $this->memberships()
+            ->where('role', '!=', 'cashier')
+            ->whereIn('status', ['active', 'invited'])
+            ->count();
     }
 
     /**
@@ -382,19 +393,47 @@ class Tenant extends Model
         return PlanRepository::featuresFor($this);
     }
 
+    public function historyRetentionDays(): ?int
+    {
+        $days = $this->getLimit('history_retention_days');
+        return (is_numeric($days) && (int) $days > 0) ? (int) $days : null;
+    }
+
     public function effectivePlan(): string
     {
         if ($this->plan !== 'ltd') {
-            return $this->plan;
+            return $this->plan ?? 'starter';
         }
-        $txLimit = $this->plan_limits['transactions_per_month'] ?? null;
-        if ($txLimit == 1000 || $txLimit == 500) {
+
+        if (isset($this->plan_limits['ltd_tier'])) {
+            return $this->plan_limits['ltd_tier'];
+        }
+
+        $skuLimit = $this->plan_limits['sku_limit'] ?? null;
+        if ($skuLimit == 25000) {
+            return 'ltd_2';
+        } elseif ($skuLimit == 50000) {
+            return 'ltd_3';
+        } elseif ($skuLimit == 5000) {
             return 'ltd_1';
-        } elseif ($txLimit == 3000 || $txLimit == 2000) {
+        }
+
+        $aiAnnual = $this->plan_limits['ai_credits_annual'] ?? null;
+        if ($aiAnnual == 30000) {
+            return 'ltd_2';
+        } elseif ($aiAnnual == 60000) {
+            return 'ltd_3';
+        } elseif ($aiAnnual == 12000) {
+            return 'ltd_1';
+        }
+
+        $txLimit = $this->plan_limits['transactions_per_month'] ?? null;
+        if ($txLimit == 3000 || $txLimit == 2000) {
             return 'ltd_2';
         } elseif ($txLimit == 8000 || $txLimit == 6000) {
             return 'ltd_3';
         }
+
         return 'ltd_1';
     }
 
@@ -440,12 +479,9 @@ class Tenant extends Model
         }
         $locationExceeded = $locationLimit !== null && $locationCount > $locationLimit;
 
-        // 3. Staff Accounts
+        // 3. Staff Accounts (Full seats only)
         $staffLimit = $this->getLimit('staff_limit');
-        $staffCount = 0;
-        if ($staffLimit !== null) {
-            $staffCount = $this->users()->wherePivot('status', 'active')->count();
-        }
+        $staffCount = $staffLimit !== null ? $this->fullSeatsCount() : 0;
         $staffExceeded = $staffLimit !== null && $staffCount > $staffLimit;
 
         // Determine which feature is exceeded (prioritize SKU, then staff, then locations)

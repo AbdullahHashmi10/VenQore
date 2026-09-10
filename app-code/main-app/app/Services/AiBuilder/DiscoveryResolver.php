@@ -46,6 +46,17 @@ namespace App\Services\AiBuilder;
  *  5. Nothing here guesses. An answer that is not a key in that question's
  *     `options` contributes nothing, rather than being fuzzy-matched into the
  *     nearest one.
+ *
+ *  6. `applies_to` scopes a question to specific matched presets — the same
+ *     15-key taxonomy `guessPreset()` already produces — the same way
+ *     `show_if` scopes on prior answers. A question with no `applies_to` is
+ *     universal, same as every question before this existed. `$presetKey` is
+ *     nullable throughout because the match can still be in flight when a
+ *     visitor is answering the first universal questions; while it is null,
+ *     every scoped question stays hidden. Every scoped question in the config
+ *     sits after the universal block and before `fix`, so the match landing
+ *     late only ever appends newly-visible questions — see the matching note
+ *     in useDiscovery.js.
  */
 class DiscoveryResolver
 {
@@ -88,11 +99,11 @@ class DiscoveryResolver
      * @param  array<string,string|list<string>>  $answers  question key => option key(s)
      * @return list<string>
      */
-    public function impliedModules(array $answers): array
+    public function impliedModules(array $answers, ?string $presetKey = null): array
     {
         $implied = [];
 
-        foreach ($this->visibleQuestions($answers) as $question) {
+        foreach ($this->visibleQuestions($answers, $presetKey) as $question) {
             foreach ($this->chosen($question, $answers) as $optionKey) {
                 foreach ($question['implies'][$optionKey] ?? [] as $moduleKey) {
                     $implied[$moduleKey] = true;
@@ -115,11 +126,11 @@ class DiscoveryResolver
      * @param  array<string,string|list<string>>  $answers
      * @return list<string>
      */
-    public function merge(array $presetModules, array $answers, bool $withRecommended = true): array
+    public function merge(array $presetModules, array $answers, bool $withRecommended = true, ?string $presetKey = null): array
     {
         $merged = [];
 
-        $sources = [$presetModules, $this->impliedModules($answers)];
+        $sources = [$presetModules, $this->impliedModules($answers, $presetKey)];
         if ($withRecommended) {
             $sources[] = array_keys($this->recommendations());
         }
@@ -137,9 +148,9 @@ class DiscoveryResolver
      *
      * @param  array<string,string|list<string>>  $answers
      */
-    public function headline(array $answers): ?string
+    public function headline(array $answers, ?string $presetKey = null): ?string
     {
-        foreach ($this->visibleQuestions($answers) as $question) {
+        foreach ($this->visibleQuestions($answers, $presetKey) as $question) {
             if (empty($question['headline'])) {
                 continue;
             }
@@ -160,13 +171,14 @@ class DiscoveryResolver
      * @param  array<string,string|list<string>>  $answers
      * @return list<array<string,mixed>>
      */
-    public function visibleQuestions(array $answers): array
+    public function visibleQuestions(array $answers, ?string $presetKey = null): array
     {
         return array_values(array_filter(
             config('ai_builder.discovery', []),
             fn ($question) => ($question['type'] ?? null) !== 'text'
                 && !empty($question['options'])
-                && $this->isVisible($question, $answers),
+                && $this->isVisible($question, $answers)
+                && $this->appliesTo($question, $presetKey),
         ));
     }
 
@@ -202,6 +214,23 @@ class DiscoveryResolver
         }
 
         return !$any;
+    }
+
+    /**
+     * `applies_to` => ['pharmacy', 'grocery'] means: only once the matched
+     * preset is one of these. No scope at all means universal — the question
+     * applies whatever (or whether) a preset has matched. Rule 6.
+     *
+     * @param  array<string,mixed>  $question
+     */
+    private function appliesTo(array $question, ?string $presetKey): bool
+    {
+        $scope = $question['applies_to'] ?? null;
+        if (empty($scope)) {
+            return true;
+        }
+
+        return $presetKey !== null && in_array($presetKey, $scope, true);
     }
 
     /**

@@ -87,3 +87,40 @@ A test card that always succeeds: `4242 4242 4242 4242`, any future expiry, any 
       the generated password that `ProvisionTenantJob` mails them
 - [ ] Decide on `APP_KEY`: it was exposed, but rotating invalidates all sessions
       and any `encrypted` cast columns. Check for encrypted columns first.
+
+---
+
+## Local vs production invariants
+
+The production config guard enforces the safety-critical entries below. Values
+shown as "vendor value" must be supplied on the server and must never be
+committed. Placeholder values beginning with `REPLACE_ME` deliberately fail the
+guard.
+
+| Key | Local/development | Production |
+|---|---|---|
+| `APP_ENV` | `local` | `production` |
+| `APP_DEBUG` | may be `true` | `false` |
+| `APP_URL` | loopback URL | `https://venqore.com` |
+| `DB_CONNECTION` | `mariadb` | `mariadb` |
+| `QUEUE_CONNECTION` | `database` | `database`, with `venqore-queue.conf` installed |
+| `CACHE_STORE` | `database` | `database` |
+| `SESSION_DRIVER` | `database` | `database` |
+| `SESSION_SECURE_COOKIE` | may be `false` on HTTP | `true` |
+| `MAIL_MAILER` | `log` | real SMTP/provider transport, never `log` |
+| SMTP/provider credential | optional | vendor value; verify SPF, DKIM and DMARC |
+| `GEMINI_API_KEY` | optional | vendor value |
+| `SENTRY_LARAVEL_DSN` | optional | vendor value |
+| `LEMON_SQUEEZY_API_KEY` | test key or absent | rotated live vendor value |
+| `LEMON_SQUEEZY_SIGNING_SECRET` | test value or absent | live webhook vendor value |
+| `LEMON_SQUEEZY_TEST_MODE` | `true` while testing | `false` |
+| Turnstile site/secret keys | optional | vendor values before public forms launch |
+| AWS/R2 storage credentials | optional | vendor values if offsite object storage is enabled |
+
+Before a production deploy, install the database queue worker, populate every
+vendor value, then run:
+
+```bash
+php artisan optimize:clear
+php artisan venqore:config-guard
+```

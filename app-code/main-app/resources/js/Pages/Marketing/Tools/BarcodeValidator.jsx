@@ -70,9 +70,9 @@ export default function BarcodeValidatorTool({ prefill = '', toolGroups = [] }) 
             toolGroups={toolGroups}
             currentSlug="barcode-validator"
             cta={{
-                headline: 'Stop doing this manually.',
-                subtext: 'VenQore validates and generates barcodes automatically on every product you add.',
-            }}
+                    headline: "Checking them one at a time does not scale.",
+                    subtext: "Describe your business and VenQore builds a system that validates and assigns a barcode as each product is created.",
+                }}
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }]}
         >
             <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-8">

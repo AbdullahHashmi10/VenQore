@@ -135,34 +135,20 @@ export default function StockModuleTabs({ activeTab }) {
                         const isActive = activeTab === tab.id;
 
                         return (
-                            <FeatureLockBadge key={tab.id} isLocked={tab.locked} showBadge={false}>
-                                {tab.locked ? (
-                                    <div
-                                        className={`
-                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap cursor-not-allowed
-                                            text-ink-muted border-transparent
-`}
-                                    >
-                                        <Icon size={14} />
-                                        {tab.label}
-                                        <span className="text-3xs px-1 rounded bg-sunken dark:bg-surface text-ink-muted ml-1">LOCK</span>
-                                    </div>
-                                ) : (
-                                    <Link
-                                        href={tab.href}
-                                        className={`
-                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap
-                                            ${isActive
-                                                ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/20 dark:text-brand-400 font-semibold'
-                                                : 'bg-transparent border-transparent text-ink-secondary hover:bg-interactive-hover hover:border-line dark:text-ink-muted dark:hover:bg-interactive-hover dark:hover:border-line-strong'
-                                            }
-`}
-                                    >
-                                        <Icon size={14} />
-                                        {tab.label}
-                                    </Link>
-                                )}
-                            </FeatureLockBadge>
+                            <Link
+                                key={tab.id}
+                                href={tab.href}
+                                className={`
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap
+                                    ${isActive
+                                        ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/20 dark:text-brand-400 font-semibold'
+                                        : 'bg-transparent border-transparent text-ink-secondary hover:bg-interactive-hover hover:border-line dark:text-ink-muted dark:hover:bg-interactive-hover dark:hover:border-line-strong'
+                                    }
+                                `}
+                            >
+                                <Icon size={14} />
+                                {tab.label}
+                            </Link>
                         );
                     })}
                 </div>

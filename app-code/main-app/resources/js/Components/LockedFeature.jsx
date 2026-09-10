@@ -30,7 +30,7 @@ export default function LockedFeature({
     const { hasFeature } = usePlan();
     const [showComingSoon, setShowComingSoon] = useState(false);
 
-    // Canonical entitlement check
+    // Canonical entitlement check from shared features
     const isAllowed = isLocked !== undefined ? !isLocked : hasFeature(feature);
 
     if (isAllowed && !isComingSoon) {

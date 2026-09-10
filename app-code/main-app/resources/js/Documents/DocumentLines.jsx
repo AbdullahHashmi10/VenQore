@@ -146,6 +146,13 @@ const CELLS = {
                 />
 {over && <span className="vqdoc-stock" data-low="true">only {cap} available</span>}
                 {!over && item.product && c.showStock && c.stockBadge !== false && (() => {
+                    if (item.product.type === 'service') {
+                        return (
+                            <span className="vqdoc-stock" style={{ color: 'var(--vq-accent-text, #6366f1)', fontWeight: 600 }}>
+                                {item.product.default_duration ? `${item.product.default_duration}m` : 'Service'}
+                            </span>
+                        );
+                    }
                     const n = stockOf(item.product, item.available_stock, c.stockMode);
                     /* Nothing on the shelf is only worth flagging where that
                        stops you — on a purchase it is the normal reason to be

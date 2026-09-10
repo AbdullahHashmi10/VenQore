@@ -14,7 +14,7 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Expense::with('expenseCategory');
+        $query = Expense::with(['expenseCategory', 'serviceJob']);
 
         // Search
         if ($request->search) {
@@ -25,6 +25,10 @@ class ExpenseController extends Controller
                   ->orWhere('payee', 'like', "%{$term}%")
                   ->orWhereHas('expenseCategory', function ($q) use ($term) {
                       $q->where('name', 'like', "%{$term}%");
+                  })
+                  ->orWhereHas('serviceJob', function ($q) use ($term) {
+                      $q->where('number', 'like', "%{$term}%")
+                        ->orWhere('title', 'like', "%{$term}%");
                   });
             });
         }
@@ -41,6 +45,11 @@ class ExpenseController extends Controller
         // Category Filter
         if ($request->category && $request->category !== 'all') {
             $query->where('expense_category_id', $request->category);
+        }
+
+        // Service Job Filter
+        if ($request->filled('service_job_id')) {
+            $query->where('service_job_id', $request->service_job_id);
         }
 
         // Date Range
@@ -77,6 +86,9 @@ class ExpenseController extends Controller
                     'category_color' => $expense->expenseCategory->color ?? 'gray',
                     'category_group' => $expense->expenseCategory->group ?? 'Miscellaneous',
                     'expense_category_id' => $expense->expense_category_id,
+                    'service_job_id' => $expense->service_job_id,
+                    'service_job_number' => $expense->serviceJob?->number,
+                    'service_job_title' => $expense->serviceJob?->title,
                     'amount' => $expense->amount,
                     'payment_method' => $expense->payment_method,
                     'reference' => $expense->reference,
@@ -148,12 +160,19 @@ class ExpenseController extends Controller
             ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as balance')
             ->value('balance');
 
-                return Inertia::render('Expenses/ExpensesList', [
+        $serviceJobs = \App\Models\ServiceJob::where('tenant_id', $tenantId)
+            ->whereNotIn('status', ['cancelled', 'invoiced'])
+            ->select('id', 'number', 'title')
+            ->orderBy('number', 'desc')
+            ->get();
+
+        return Inertia::render('Expenses/ExpensesList', [
             'expenses' => $expenses,
             'categories' => $categories,
             'stats' => $stats,
             'bankAccounts' => $bankAccounts,
             'cashBalance' => $cashBalance,
+            'serviceJobs' => $serviceJobs,
             'filters' => $request->only(['search', 'filter', 'from_date', 'to_date'])
         ]);
     }
@@ -161,9 +180,17 @@ class ExpenseController extends Controller
     /** The full-page voucher. The modal on the list page still posts to store(). */
     public function create()
     {
+        $tenantId = app('current.tenant')->id;
+        $serviceJobs = \App\Models\ServiceJob::where('tenant_id', $tenantId)
+            ->whereNotIn('status', ['cancelled', 'invoiced'])
+            ->select('id', 'number', 'title')
+            ->orderBy('number', 'desc')
+            ->get();
+
         return Inertia::render('Expenses/Create', [
             'categories'   => ExpenseCategory::orderBy('name')->get(),
             'bankAccounts' => BankAccount::all(),
+            'serviceJobs'  => $serviceJobs,
         ]);
     }
 
@@ -179,17 +206,12 @@ class ExpenseController extends Controller
             'payment_method'      => 'required|in:cash,bank',
             'bank_account_id'     => 'required_if:payment_method,bank|nullable|exists:bank_accounts,id',
             'payee'               => 'nullable|string|max:150',
-            /* The payee as a real party, so an unpaid voucher lands in their
-               ledger rather than in a string nobody can total. */
             'party_id'            => 'nullable|exists:parties,id',
-            /* An expense is not always settled the moment it is written down.
-               Absent means paid in full, which is what it always used to be. */
+            'service_job_id'      => 'nullable|exists:service_jobs,id',
             'amount_paid'         => 'nullable|numeric|min:0',
             'reference'           => 'nullable|string|max:100',
             'description'         => 'nullable|string',
             'notes'               => 'nullable|string',
-            /* One voucher, several things paid for. The table for these has
-               existed for a while with nothing writing to it. */
             'items'                       => 'nullable|array',
             'items.*.expense_category_id' => 'required_with:items|exists:expense_categories,id',
             'items.*.description'         => 'nullable|string|max:255',
@@ -275,6 +297,7 @@ class ExpenseController extends Controller
             'bank_account_id'     => 'required_if:payment_method,bank|nullable|exists:bank_accounts,id',
             'payee'               => 'nullable|string|max:150',
             'party_id'            => 'nullable|exists:parties,id',
+            'service_job_id'      => 'nullable|exists:service_jobs,id',
             'amount_paid'         => 'nullable|numeric|min:0',
             'reference'           => 'nullable|string|max:100',
             'description'         => 'nullable|string',

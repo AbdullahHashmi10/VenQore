@@ -97,9 +97,11 @@ const PostCard = ({ post, index }) => (
     </RevealOnScroll>
 );
 
-export default function BlogIndex({ posts = [] }) {
-    const featured = posts[0];
-    const rest = posts.slice(1);
+export default function BlogIndex({ posts = { data: [] } }) {
+    const postItems = Array.isArray(posts) ? posts : (posts.data || []);
+    const featured = postItems[0];
+    const rest = postItems.slice(1);
+    const hasPagination = !Array.isArray(posts) && posts.last_page > 1;
 
     return (
         <MarketingLayout
@@ -114,7 +116,7 @@ export default function BlogIndex({ posts = [] }) {
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.1}>
                         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[0.9] mb-6 font-display">
-                            <span className="bg-gradient-to-r from-neutral-900 via-neutral-700 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400 bg-clip-text text-transparent">Ideas That</span>{''}
+                            <span className="bg-gradient-to-r from-ink via-ink-secondary to-ink-muted bg-clip-text text-transparent">Ideas That</span>{''}
                             <span className="bg-gradient-to-r from-brand-400 to-brand-400 bg-clip-text text-transparent vq-text-glow">Matter.</span>
                         </h1>
                     </RevealOnScroll>
@@ -146,6 +148,36 @@ export default function BlogIndex({ posts = [] }) {
                         </div>
                     </div>
                 </section>
+            )}
+
+            {hasPagination && (
+                <nav className="px-6 pb-16" aria-label="Blog pagination">
+                    <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 border-t border-line dark:border-white/[0.06] pt-8">
+                        {posts.prev_page_url ? (
+                            <Link
+                                href={posts.prev_page_url}
+                                preserveScroll
+                                className="rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand-500/30 hover:text-brand-600 dark:border-white/[0.08] dark:hover:text-brand-400"
+                            >
+                                Previous
+                            </Link>
+                        ) : <span />}
+
+                        <span className="text-xs font-bold uppercase tracking-widest text-ink-muted">
+                            Page {posts.current_page} of {posts.last_page}
+                        </span>
+
+                        {posts.next_page_url ? (
+                            <Link
+                                href={posts.next_page_url}
+                                preserveScroll
+                                className="rounded-full border border-line px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand-500/30 hover:text-brand-600 dark:border-white/[0.08] dark:hover:text-brand-400"
+                            >
+                                Next
+                            </Link>
+                        ) : <span />}
+                    </div>
+                </nav>
             )}
 
             {/* ── 4. NEWSLETTER CTA ──────────────────────────── */}

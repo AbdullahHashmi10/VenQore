@@ -289,6 +289,10 @@ export default function SidebarItem({
                             'Expense by Item': 'store.reports.expense-by-item',
                             'Staff Summaries': 'store.admin.staff',
                             // New Features
+                            'Service Jobs': 'store.service-jobs.index',
+                            'Dispatch Calendar': 'store.service-jobs.calendar',
+                            'Tools & Equipment': 'store.tools.index',
+                            'Services': 'store.service-jobs.index',
                             'Proposals': 'store.proposals.index',
                             'Returns History': 'store.returns-history.index',
                             'Recurring Invoices': 'store.recurring-invoices.index',
@@ -345,7 +349,7 @@ export default function SidebarItem({
                                     const isComingSoon = itemName.includes('Coming Soon');
 
                                     return (
-                                        <FeatureLockBadge key={sIdx} isLocked={locked || isComingSoon} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
+                                        <FeatureLockBadge key={sIdx} isLocked={false} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
                                             {isComingSoon ? (
                                                 <span className="block pl-4 py-1.5 text-xs font-medium text-ink-muted dark:text-ink-secondary cursor-pointer">
                                                     {itemName}
@@ -355,14 +359,13 @@ export default function SidebarItem({
                                                     <Link
                                                         id={itemName === 'Products' ? 'tour-sidebar-products' : (itemName === 'Purchases' ? 'tour-sidebar-purchases' : undefined)}
                                                         href={window.route(activeRouteName, routeParams || {})}
-                                                        className={`block pl-4 py-1.5 text-xs font-medium transition-colors ${locked ? 'text-ink-muted dark:text-ink-secondary' : 'text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400'}`}
+                                                        className="block pl-4 py-1.5 text-xs font-medium transition-colors text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
                                                     >
                                                         <span className="flex items-center gap-1.5">
                                                             {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
                                                                 <VenaLogo size={13} className="shrink-0" />
                                                             )}
                                                             {itemName}
-                                                            {locked && <span className="text-2xs">🔒</span>}
                                                         </span>
                                                     </Link>
                                                 )
@@ -375,9 +378,9 @@ export default function SidebarItem({
                     }
 
                     // Fallback for simple string items or locked object items
-                    const { label: itemName, locked } = (typeof item === 'object' && !item.group)
-                        ? { label: item.label, locked: item.locked }
-                        : { label: item, locked: false };
+                    const { label: itemName } = (typeof item === 'object' && !item.group)
+                        ? { label: item.label }
+                        : { label: item };
 
                     const baseRoute = (typeof item === 'object' && item.route) ? item.route : getRoute(itemName);
                     if (!baseRoute) {
@@ -396,18 +399,17 @@ export default function SidebarItem({
                         : baseRoute;
 
                     return (
-                        <FeatureLockBadge key={idx} isLocked={locked} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
+                        <FeatureLockBadge key={idx} isLocked={false} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
                             {window.route().has(routeName) && (
                                 <Link
                                     href={window.route(routeName, routeParams || {})}
-                                    className={`block pl-4 py-2 text-xs font-medium transition-colors relative ${locked ? 'text-ink-muted dark:text-ink-secondary' : 'text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400'}`}
+                                    className="block pl-4 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
                                 >
                                     <span className="flex items-center gap-1.5">
                                         {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
                                             <VenaLogo size={13} className="shrink-0" />
                                         )}
                                         {itemName}
-                                        {locked && <span className="text-2xs">🔒</span>}
                                     </span>
                                 </Link>
                             )}

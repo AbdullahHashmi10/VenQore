@@ -66,7 +66,7 @@ function FAQItem({ q, a }) {
                 className="w-full flex items-center justify-between text-left font-bold text-ink group focus:outline-none"
             >
                 <span className="pr-4">{q}</span>
-                <span className={`transform transition-transform duration-normal text-ink-muted group-hover:text-ink-secondary dark:group-hover:text-neutral-300 shrink-0`}>
+                <span className={`transform transition-transform duration-normal text-ink-muted group-hover:text-ink-secondary dark:group-hover:text-ink shrink-0`}>
                     <svg className={`w-4 h-4 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
@@ -156,10 +156,10 @@ export default function ToolShell({
                                 {cta.subtext && <p className="text-sm text-ink-secondary mb-6">{cta.subtext}</p>}
                                 <div className="flex items-center justify-center gap-3 flex-wrap">
                                     <Link
-                                        href="/pricing"
+                                        href="/build-workspace"
                                         className="px-6 py-3 bg-accent-fill text-accent-on rounded-full text-sm font-bold uppercase tracking-wide transition-transform"
                                     >
-                                        Start your 14-day free trial
+                                        Build your system free
                                     </Link>
                                     <Link
                                         href="/demo"

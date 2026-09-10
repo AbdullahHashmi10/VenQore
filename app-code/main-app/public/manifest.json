@@ -1,17 +1,26 @@
 {
-    "name": "VENQORE",
-    "short_name": "VENQORE",
-    "description": "Point of Sale and Accounting System",
+    "name": "VenQore — The AI ERP Builder",
+    "short_name": "VenQore",
+    "description": "Describe your business and VenQore assembles the system that runs it — point of sale, stock, purchasing and a real double-entry ledger.",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#1a56db",
+    "background_color": "#021416",
+    "theme_color": "#0BAA8F",
     "orientation": "any",
+    "categories": ["business", "productivity", "finance"],
+    "lang": "en",
     "icons": [
         {
-            "src": "favicon.ico",
+            "src": "/favicon.ico",
             "type": "image/x-icon",
             "sizes": "64x64",
+            "purpose": "any"
+        },
+        {
+            "src": "/images/logo.svg",
+            "type": "image/svg+xml",
+            "sizes": "any",
             "purpose": "any maskable"
         }
     ]

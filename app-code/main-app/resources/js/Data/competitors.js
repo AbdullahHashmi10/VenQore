@@ -11,25 +11,25 @@ export const competitors = {
         competitorTxFee: '2.6% + 10¢ per tap/dip/swipe',
         competitorAccounting: 'None (requires QuickBooks/Xero @ $30–$80/mo)',
         competitorOffline: 'Basic (24h card buffer, decline risk)',
-        venqorePrice: '$36/mo ($30/mo billed annually)',
+        venqorePrice: 'From $49/mo ($490/yr billed annually)',
         venqoreTxFee: '$0 transaction markup',
         venqoreAccounting: 'Automated double-entry general ledger & balance sheet built in',
         venqoreOffline: '100% offline-first PWA with local SQLite/IndexedDB & auto-sync',
         pricingMath: {
             monthlySales: '$25,000',
             squareFee: '$660/mo in processing fees + $50/mo QuickBooks = $710/mo total cost',
-            venqoreFee: '$36/mo total flat subscription',
-            annualSavings: 'Over $8,000 saved per year with VenQore',
+            venqoreFee: 'From $49/mo total flat subscription',
+            annualSavings: 'Over $7,500 saved per year with VenQore',
         },
         honestVerdict: {
             chooseCompetitor: 'Choose Square POS if your business processes very low volume (under $1,000/month), does not require double-entry financial statements, and wants an all-in-one proprietary card terminal out of the box.',
             chooseVenQore: 'Choose VenQore if your retail or wholesale business processes over $5,000/month, needs real double-entry accounting (P&L, Balance Sheet, Trial Balance), requires offline reliability during internet drops, and wants to keep 100% of your hard-earned margins without per-transaction processing markups.'
         },
         table: [
-            { feature: 'Monthly Software Starting Cost', venqore: '$36 / month', competitor: 'Free / $60+ Plus' },
+            { feature: 'Monthly Software Starting Cost', venqore: 'From $49 / month', competitor: 'Free / $60+ Plus' },
             { feature: 'Per-Transaction Processing Markup', venqore: '$0 (0%)', competitor: '2.6% + 10¢ per sale' },
             { feature: 'Built-in Double-Entry Accounting', venqore: 'Yes — every sale posts a balanced journal entry', competitor: 'No — requires external accounting app' },
-            { feature: 'Automated Balance Sheet & P&L', venqore: 'Yes — real-time 40+ financial reports', competitor: 'No — requires manual reconciliation' },
+            { feature: 'Automated Balance Sheet & P&L', venqore: 'Yes — real-time all 40 reports', competitor: 'No — requires manual reconciliation' },
             { feature: 'Offline-First PWA Architecture', venqore: 'Yes — full checkout, stock & ledger offline', competitor: 'Limited — card payments cached max 24h' },
             { feature: 'FIFO Cost Batch Tracking', venqore: 'Yes — exact unit cost lineage per batch', competitor: 'No — basic average cost only' },
             { feature: 'Serial / IMEI Number Tracking', venqore: 'Yes — built-in item tracking', competitor: 'No — requires 3rd party add-on' },
@@ -40,12 +40,12 @@ export const competitors = {
             { feature: 'WhatsApp & Digital Invoicing', venqore: 'Yes — direct 1-tap WhatsApp sharing', competitor: 'Email / SMS only' },
             { feature: 'Thermal & WebUSB Printing', venqore: 'Yes — works with standard ESC/POS hardware', competitor: 'Proprietary Square hardware preferred' },
             { feature: 'Data Export & Ownership', venqore: 'Yes — full JSON, Excel & SQLite exports', competitor: 'Export CSVs only' },
-            { feature: 'Automated Test Integrity Suite', venqore: '1,500+ automated financial tests', competitor: 'Undisclosed' },
+            { feature: 'Automated Test Integrity Suite', venqore: 'Eight correctness laws, run on every release', competitor: 'Undisclosed' },
         ],
         faqs: [
             {
                 q: 'Why is VenQore significantly cheaper than Square POS for active stores?',
-                a: 'Square POS generates revenue by taking 2.6% + 10¢ from every transaction you process. For a retail store processing $25,000/month, Square fees exceed $660/month. VenQore charges a flat $36/month subscription with $0 processing markup, allowing you to use your existing merchant account or cash/bank payments directly.'
+                a: 'Square POS generates revenue by taking 2.6% + 10¢ from every transaction you process. For a retail store processing $25,000/month, Square fees exceed $660/month. VenQore flat plans start at $49/month or free forever on Solo tier with $0 processing markup, allowing you to use your existing merchant account or cash/bank payments directly.'
             },
             {
                 q: 'Does VenQore replace QuickBooks when migrating from Square?',
@@ -77,14 +77,14 @@ export const competitors = {
         competitorTxFee: 'None',
         competitorAccounting: 'Single-entry billing & basic khata (not double-entry)',
         competitorOffline: 'Desktop Windows app only (mobile sync issues)',
-        venqorePrice: '$36/mo ($30/mo billed annually)',
+        venqorePrice: 'From $49/mo ($490/yr billed annually)',
         venqoreTxFee: '$0 transaction markup',
         venqoreAccounting: 'Auditor-grade double-entry general ledger, Trial Balance & Balance Sheet',
         venqoreOffline: 'Offline-first PWA across Windows, Mac, iOS, Android & tablet',
         pricingMath: {
             monthlySales: '$15,000',
             vyaparFee: 'Low upfront license, but requires hiring an accountant for year-end GST/tax reconciliation ($200+/mo)',
-            venqoreFee: '$36/mo total flat subscription with self-balancing ledger',
+            venqoreFee: 'From $49/mo total flat subscription with self-balancing ledger',
             annualSavings: 'Save over $1,500/year in external accounting cleanup costs with VenQore',
         },
         honestVerdict: {
@@ -106,7 +106,7 @@ export const competitors = {
             { feature: 'Custom Thermal & Label Printing', venqore: 'Yes — WebUSB, Bluetooth & ESC/POS', competitor: 'Windows printer drivers only' },
             { feature: 'User Roles & Permission Control', venqore: 'Granular cashier, manager, admin roles', competitor: 'Basic passcode lock' },
             { feature: 'Audit Trail & Change Logs', venqore: 'Complete immutable action logging', competitor: 'Limited event log' },
-            { feature: 'Automated Codebase Verification', venqore: '1,500+ automated test suite', competitor: 'Undisclosed' },
+            { feature: 'Automated Codebase Verification', venqore: 'Eight correctness laws, run on every release', competitor: 'Undisclosed' },
         ],
         faqs: [
             {

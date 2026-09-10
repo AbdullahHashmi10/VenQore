@@ -8,13 +8,15 @@
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/tests/Unit</directory>
         </testsuite>
-        <testsuite name="Reckoner">
-            <directory suffix="Test.php">./tests/tests/Unit/Reckoner</directory>
-        </testsuite>
         <testsuite name="Feature">
             <directory suffix="Test.php">./tests/tests/Feature</directory>
         </testsuite>
-
+        <testsuite name="Routes">
+            <directory suffix="Test.php">./tests/tests/Routes</directory>
+        </testsuite>
+        <testsuite name="Performance">
+            <directory suffix="Test.php">./tests/tests/Performance</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -22,6 +24,7 @@
         </include>
     </source>
     <php>
+        <ini name="memory_limit" value="-1"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

@@ -11,21 +11,21 @@ class NewsletterHubController extends Controller
 {
     public function index()
     {
-        $cloudCount = NewsletterSubscriber::whereIn('interest', ['cloud', 'both'])->count();
-        $digitalCount = NewsletterSubscriber::whereIn('interest', ['digital', 'both'])->count();
+        $cloudCount = NewsletterSubscriber::subscribed()->whereIn('interest', ['cloud', 'both'])->count();
+        $digitalCount = NewsletterSubscriber::subscribed()->whereIn('interest', ['digital', 'both'])->count();
 
         return Inertia::render('SuperAdmin/NewsletterHub/Index', [
             'stats' => [
                 'cloud_count'   => $cloudCount,
                 'digital_count' => $digitalCount,
-                'total_count'   => NewsletterSubscriber::count(),
+                'total_count'   => NewsletterSubscriber::subscribed()->count(),
             ]
         ]);
     }
 
     public function subscribers()
     {
-        $subscribers = NewsletterSubscriber::latest()->get();
+        $subscribers = NewsletterSubscriber::subscribed()->latest()->get();
         
         $cloudList = $subscribers->filter(fn($s) => in_array($s->interest, ['cloud', 'both']))->values();
         $digitalList = $subscribers->filter(fn($s) => in_array($s->interest, ['digital', 'both']))->values();

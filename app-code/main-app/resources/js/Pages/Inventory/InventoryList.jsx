@@ -25,12 +25,15 @@ import {
     ChevronDown,
     X,
     Layers,
-    BarChart3
+    BarChart3,
+    Wrench,
+    Clock,
+    Sparkles
 } from 'lucide-react';
 
 import PasscodeModal from '@/Components/PasscodeModal';
 
-export default function Inventory({ products: serverProducts, filters, stats, warehouses, categories, attributes }) {
+export default function Inventory({ products: serverProducts, filters, stats, warehouses, categories, attributes, tools }) {
     const { t, tp } = useTerms();
     const { flash, store } = usePage().props;
 
@@ -81,6 +84,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     // UI State
     const [searchTerm, setSearchTerm] = useState(params.get('search') || '');
     const [activeCategory, setActiveCategory] = useState(params.get('category_id') || 'all');
+    const [activeType, setActiveType] = useState(params.get('type') || 'all');
     const [activeActionMenu, setActiveActionMenu] = useState(null);
     const [sortConfig, setSortConfig] = useState({ 
         key: params.get('sort_by') || 'name', 
@@ -93,14 +97,15 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     // Modal State
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [modalMode, setModalMode] = useState('view');
+    const [modalInitialType, setModalInitialType] = useState('standard');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Columns Configuration
     const [tableColumns, setTableColumns] = useState([
-        { key: 'name', label: 'Product Name', width: '25%' },
+        { key: 'name', label: 'Product / Service Name', width: '25%' },
         { key: 'sku', label: 'SKU', width: '10%' },
         { key: 'category', label: 'Category', width: '15%' },
-        { key: 'available_stock', label: 'Stock', width: '10%' },
+        { key: 'available_stock', label: 'Stock / Duration', width: '10%' },
         { key: 'cost_price', label: 'Cost', width: '10%' },
         { key: 'price', label: 'Price', width: '10%' },
         { key: 'status', label: 'Status', width: '10%' },
@@ -118,14 +123,13 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
         return () => document.removeEventListener('click', handleClickOutside);
     }, [activeActionMenu]);
 
-
-
     const applyFilters = (newParams) => {
         router.get(route('store.inventory.index', { store_slug: store?.slug }), {
             search: searchTerm,
             sort_by: sortConfig.key,
             sort_dir: sortConfig.direction,
             category_id: activeCategory,
+            type: activeType,
             ...newParams
         }, { preserveState: true, preserveScroll: true });
     };
@@ -133,6 +137,11 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     const handleCategoryChange = (catId) => {
         setActiveCategory(catId);
         applyFilters({ category_id: catId });
+    };
+
+    const handleTypeChange = (typeVal) => {
+        setActiveType(typeVal);
+        applyFilters({ type: typeVal });
     };
 
     // Sorting
@@ -178,6 +187,14 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     // Modal Handlers
     const handleAddProduct = () => {
         setSelectedProduct(null);
+        setModalInitialType('standard');
+        setModalMode('create');
+        setIsModalOpen(true);
+    };
+
+    const handleAddService = () => {
+        setSelectedProduct(null);
+        setModalInitialType('service');
         setModalMode('create');
         setIsModalOpen(true);
     };
@@ -185,6 +202,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     const handleEditProduct = (product, e) => {
         if (e) e.stopPropagation();
         setSelectedProduct(product);
+        setModalInitialType(product.type || 'standard');
         setModalMode('edit');
         setIsModalOpen(true);
         setActiveActionMenu(null);
@@ -192,6 +210,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
     const handleViewProduct = (product) => {
         setSelectedProduct(product);
+        setModalInitialType(product.type || 'standard');
         setModalMode('view');
         setIsModalOpen(true);
         setActiveActionMenu(null);
@@ -248,7 +267,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
     return (
         <OneGlanceLayout title="Inventory Management" activeMenu="Stock">
-            <Head title="Inventory" />
+            <Head title="Inventory & Services" />
 
             <PasscodeModal
                 isOpen={isPasscodeModalOpen}
@@ -261,7 +280,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     setIsPasscodeModalOpen(false);
                     executeDelete();
                 }}
-                actionName={pendingDeleteAction === 'bulk' ? `delete ${selectedProducts.length} selected products` : "delete this product"}
+                actionName={pendingDeleteAction === 'bulk' ? `delete ${selectedProducts.length} selected items` : "delete this item"}
             />
 
             {isModalOpen && (
@@ -269,9 +288,11 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     isOpen={isModalOpen}
                     product={selectedProduct}
                     mode={modalMode}
+                    initialType={modalInitialType}
                     warehouses={warehouses}
                     categories={categories}
                     attributes={attributes}
+                    tools={tools || []}
                     onClose={() => {
                         setSelectedProduct(null);
                         setModalMode('view');
@@ -336,32 +357,63 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     </div>
                 </div>
 
-                {/* Category Bar Row - Integrated below stats */}
+                {/* Category & Type Filter Row */}
                 <div
-                    className="bg-surface px-2 py-2 rounded-xl border border-line shadow-sm shrink-0 flex items-center gap-2 overflow-x-auto custom-scrollbar select-none"
+                    className="bg-surface px-2 py-2 rounded-xl border border-line shadow-sm shrink-0 flex items-center justify-between gap-2 overflow-x-auto custom-scrollbar select-none"
                 >
-                    <div className="hidden md:flex items-center gap-2 shrink-0">
-                        <Layers size={14} className="text-ink-muted" />
-                        <span className="text-xs font-bold text-ink-muted uppercase mr-2">Categories:</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Type Switcher */}
+                        <div className="inline-flex rounded-lg border border-line bg-app p-0.5">
+                            <button
+                                type="button"
+                                onClick={() => handleTypeChange('all')}
+                                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${activeType === 'all' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
+                            >
+                                All Items
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleTypeChange('standard')}
+                                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${activeType === 'standard' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
+                            >
+                                Products
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleTypeChange('service')}
+                                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors flex items-center gap-1 ${activeType === 'service' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
+                            >
+                                <Wrench size={11} />
+                                Services
+                            </button>
+                        </div>
+
+                        <div className="h-4 w-px bg-line mx-1"></div>
+
+                        <div className="hidden md:flex items-center gap-1.5 shrink-0">
+                            <Layers size={13} className="text-ink-muted" />
+                            <span className="text-2xs font-bold text-ink-muted uppercase">Categories:</span>
+                        </div>
+
+                        <button
+                            onClick={() => handleCategoryChange('all')}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-neutral-800 text-white dark:bg-white dark:text-ink' : 'bg-sunken text-ink-secondary hover:bg-interactive-hover'}`}
+                        >
+                            All
+                        </button>
                     </div>
 
-                    <button
-                        onClick={() => handleCategoryChange('all')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-neutral-800 text-white dark:bg-white dark:text-ink' : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'}`}
-                    >
-                        <span className="md:hidden">All</span>
-                        <span className="hidden md:inline">All Categories</span>
-                    </button>
-
-                    {categories.map(cat => (
-                        <button
-                            key={cat.id}
-                            onClick={() => handleCategoryChange(cat.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${String(activeCategory) === String(cat.id) ? 'bg-brand-600 text-white shadow-lg ' : 'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/30'}`}
-                        >
-                            <span>{cat.name}</span>
-                        </button>
-                    ))}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => handleCategoryChange(cat.id)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1 ${String(activeCategory) === String(cat.id) ? 'bg-brand-600 text-white shadow-sm' : 'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 hover:bg-brand-100'}`}
+                            >
+                                <span>{cat.name}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Mobile Toolbar */}
@@ -386,11 +438,18 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 <Upload size={16} />
                             </Link>
                             <button
+                                onClick={handleAddService}
+                                className="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95 font-bold text-xs"
+                                title="Add Service"
+                            >
+                                <Wrench size={13} /> Service
+                            </button>
+                            <button
                                 id="tour-add-product"
                                 onClick={handleAddProduct}
-                                className="ml-1 px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
+                                className="ml-1 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
                             >
-                                <Plus size={14} /> Add
+                                <Plus size={14} /> Product
                             </button>
                         </div>
                     </div>
@@ -404,7 +463,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         onKeyDown={handleServerSearch}
-                                        placeholder="Search products..."
+                                        placeholder="Search products & services..."
                                         className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                                     />
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
@@ -436,7 +495,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={handleServerSearch}
-                                placeholder="Search products..."
+                                placeholder="Search products & services..."
                                 className="w-full pl-9 pr-8 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                             />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
@@ -447,8 +506,11 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             )}
                         </div>
                         <button onClick={() => applyFilters({ search: searchTerm })} className="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm ">Search</button>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
+                        <div className="flex items-center gap-1.5 border-l border-line pl-2">
                             <Link href={route('store.admin.data', { store_slug: store?.slug })} className="p-1.5 text-ink-muted hover:text-brand-600 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"><Upload size={16} /></Link>
+                            <button onClick={handleAddService} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm ">
+                                <Wrench size={13} /> Add Service
+                            </button>
                             <button id="tour-add-product" onClick={handleAddProduct} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm ">
                                 <Plus size={14} /> Add Product
                             </button>
@@ -492,7 +554,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 <tr><td colSpan={tableColumns.length + 1} className="p-12 text-center text-ink-muted">
                                     <div className="flex flex-col items-center justify-center">
                                         <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-4"><Package size={32} className="text-ink-muted" /></div>
-                                        <p className="text-lg font-bold text-ink-secondary">No products found</p>
+                                        <p className="text-lg font-bold text-ink-secondary">No products or services found</p>
                                     </div>
                                 </td></tr>
                             ) : (
@@ -504,20 +566,73 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                         {tableColumns.map((col) => (
                                             <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
                                                 {(() => {
+                                                    const isService = row.type === 'service';
                                                     switch (col.key) {
-                                                        case 'name': return (<div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center overflow-hidden border border-line">{row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : <Package size={14} className="text-brand-600 dark:text-brand-400" />}</div><div><p className="font-semibold text-ink">{row.name}</p><p className="text-xs text-ink-muted">{row.unit || 'pcs'}</p></div></div>);
+                                                        case 'name': return (
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden border border-line shrink-0 ${isService ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400'}`}>
+                                                                    {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : isService ? <Wrench size={14} /> : <Package size={14} />}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <p className="font-semibold text-ink">{row.name}</p>
+                                                                        {isService && (
+                                                                            <span className="px-1.5 py-0.2 rounded text-3xs font-black uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                                                                Service
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className="text-xs text-ink-muted">
+                                                                        {isService ? (row.skill_tag ? `Skill: ${row.skill_tag}` : 'Labor / Task') : (row.unit || 'pcs')}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        );
                                                         case 'sku': return row.sku || '-';
                                                         case 'category': return <span className="px-2 py-1 bg-sunken rounded text-xs font-semibold">{row.category}</span>;
-                                                        case 'available_stock': return (<div className="flex flex-col"><span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-ink-secondary dark:text-ink'}`}>{row.available_stock}</span>{row.reserved_stock > 0 && <span className="text-2xs text-amber-500">{row.reserved_stock} Rsrvd</span>}</div>);
+                                                        case 'available_stock': return isService ? (
+                                                            <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                                                                <Clock size={12} />
+                                                                <span>{row.default_duration || 60} min</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col">
+                                                                <span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-ink-secondary dark:text-ink'}`}>{row.available_stock}</span>
+                                                                {row.reserved_stock > 0 && <span className="text-2xs text-amber-500">{row.reserved_stock} Rsrvd</span>}
+                                                            </div>
+                                                        );
                                                         case 'cost_price': return formatCurrency(row.cost_price || 0, store);
-                                                        case 'price': return <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>;
-                                                        case 'status': return (<span className={`px-2 py-1 rounded-full text-2xs font-bold border ${row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''} ${row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' : ''} ${row.status === 'Out of Stock' ? 'bg-red-50 text-red-600 border-red-200' : ''}`}>{row.status}</span>);
+                                                        case 'price': return (
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>
+                                                                {isService && row.service_pricing && row.service_pricing !== 'fixed' && (
+                                                                    <span className="text-3xs text-ink-muted uppercase font-bold">
+                                                                        {row.service_pricing === 'hourly' ? '/ hr' : row.service_pricing === 'per_unit' ? '/ unit' : 'estimate'}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                        case 'status': return (
+                                                            <span className={`px-2 py-1 rounded-full text-2xs font-bold border ${
+                                                                isService
+                                                                    ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800'
+                                                                    : row.status === 'In Stock'
+                                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                                                        : row.status === 'Low Stock'
+                                                                            ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                                                            : 'bg-red-50 text-red-600 border-red-200'
+                                                            }`}>
+                                                                {isService ? 'Available' : row.status}
+                                                            </span>
+                                                        );
                                                         case 'actions': return (
                                                             <div className="relative action-menu-container">
                                                                 <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"><MoreVertical size={16} /></button>
                                                                 {activeActionMenu === row.id && (
                                                                     <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line z-50 animate-in zoom-in-95 p-1">
-                                                                        <Link href={route('store.products.variants.index', { store_slug: store?.slug, product: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg flex items-center gap-2 text-sm text-ink-secondary"><Layers size={14} /> Variants</Link>
+                                                                        {!isService && (
+                                                                            <Link href={route('store.products.variants.index', { store_slug: store?.slug, product: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg flex items-center gap-2 text-sm text-ink-secondary"><Layers size={14} /> Variants</Link>
+                                                                        )}
                                                                         <button onClick={(e) => handleEditProduct(row, e)} className="w-full text-left px-3 py-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg flex items-center gap-2 text-sm text-ink-secondary"><Edit size={14} /> Edit Details</button>
                                                                         <div className="h-px bg-sunken my-1"></div>
                                                                         <button onClick={() => { setActiveActionMenu(null); handleDeleteProduct(row); }} className="w-full text-left px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 text-sm text-red-600"><Trash2 size={14} /> Delete</button>
@@ -545,68 +660,99 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     {sortedProducts.length === 0 ? (
                         <div className="bg-surface rounded-xl p-8 text-center border border-line">
                             <Package size={32} className="mx-auto text-ink-muted mb-2" />
-                            <p className="text-sm font-bold text-ink-secondary">No products found</p>
-                            <p className="text-xs text-ink-muted mt-1">Try adjusting your search or add a new product.</p>
+                            <p className="text-sm font-bold text-ink-secondary">No products or services found</p>
+                            <p className="text-xs text-ink-muted mt-1">Try adjusting your search or add a new item.</p>
                         </div>
                     ) : (
-                        sortedProducts.map((row) => (
-                            <div
-                                key={row.id}
-                                className="p-3 bg-surface rounded-xl border border-line shadow-sm flex flex-col gap-2 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
-                                onClick={() => handleViewProduct(row)}
-                            >
-                                {/* Row 1: Image + Name (Left) | Status (Right) */}
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center overflow-hidden border border-line shrink-0">
-                                            {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : <Package size={18} className="text-brand-600 dark:text-brand-400" />}
+                        sortedProducts.map((row) => {
+                            const isService = row.type === 'service';
+                            return (
+                                <div
+                                    key={row.id}
+                                    className="p-3 bg-surface rounded-xl border border-line shadow-sm flex flex-col gap-2 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                                    onClick={() => handleViewProduct(row)}
+                                >
+                                    {/* Row 1: Image + Name (Left) | Status (Right) */}
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden border border-line shrink-0 ${isService ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400'}`}>
+                                                {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : isService ? <Wrench size={18} /> : <Package size={18} />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <h3 className="font-bold text-ink text-sm leading-tight">{row.name}</h3>
+                                                    {isService && (
+                                                        <span className="px-1.5 py-0.2 rounded text-3xs font-black uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                                            Service
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-2xs text-ink-muted font-semibold mt-0.5">
+                                                    {isService ? (row.skill_tag ? `Skill: ${row.skill_tag}` : 'Labor / Task') : (row.unit || 'pcs')}
+                                                    {row.sku ? ` • ${row.sku}` : ''}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-ink text-sm leading-tight">{row.name}</h3>
-                                            <p className="text-2xs text-ink-muted font-semibold mt-0.5">{row.unit || 'pcs'}{row.sku ? ` • ${row.sku}` : ''}</p>
-                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-full text-3xs font-bold border shrink-0 ${
+                                            isService
+                                                ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800'
+                                                : row.status === 'In Stock'
+                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                                    : row.status === 'Low Stock'
+                                                        ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                                        : 'bg-red-50 text-red-600 border-red-200'
+                                        }`}>{isService ? 'Available' : row.status}</span>
                                     </div>
-                                    <span className={`px-2 py-0.5 rounded-full text-3xs font-bold border shrink-0 ${
-                                        row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                                        row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                                        'bg-red-50 text-red-600 border-red-200'
-                                    }`}>{row.status}</span>
-                                </div>
 
-                                {/* Row 2: Category badge */}
-                                {row.category && (
-                                    <div>
-                                        <span className="text-3xs font-bold uppercase bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-muted px-2 py-0.5 rounded border border-line">
-                                            {row.category}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* Row 3: Stock + Price + Actions */}
-                                <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
-                                    <div className="flex items-center gap-5">
+                                    {/* Row 2: Category badge */}
+                                    {row.category && (
                                         <div>
-                                            <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Stock</span>
-                                            <span className={`text-xs font-bold tabular-nums ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-ink'}`}>
-                                                {row.available_stock}
+                                            <span className="text-3xs font-bold uppercase bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-muted px-2 py-0.5 rounded border border-line">
+                                                {row.category}
                                             </span>
                                         </div>
-                                        <div>
-                                            <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Price</span>
-                                            <span className="text-xs font-bold text-brand-600 dark:text-brand-400 tabular-nums">{formatCurrency(row.price || 0, store)}</span>
+                                    )}
+
+                                    {/* Row 3: Stock + Price + Actions */}
+                                    <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+                                        <div className="flex items-center gap-5">
+                                            {isService ? (
+                                                <div>
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Duration</span>
+                                                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tabular-nums flex items-center gap-1">
+                                                        <Clock size={11} /> {row.default_duration || 60}m
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Stock</span>
+                                                    <span className={`text-xs font-bold tabular-nums ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-ink'}`}>
+                                                        {row.available_stock}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Price</span>
+                                                <span className="text-xs font-bold text-brand-600 dark:text-brand-400 tabular-nums">
+                                                    {formatCurrency(row.price || 0, store)}
+                                                    {isService && row.service_pricing && row.service_pricing !== 'fixed' && (
+                                                        <span className="text-3xs ml-0.5 text-ink-muted uppercase">/{row.service_pricing === 'hourly' ? 'hr' : 'unit'}</span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Cost</span>
+                                                <span className="text-xs font-bold text-ink-secondary tabular-nums">{formatCurrency(row.cost_price || 0, store)}</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Cost</span>
-                                            <span className="text-xs font-bold text-ink-secondary tabular-nums">{formatCurrency(row.cost_price || 0, store)}</span>
+                                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                            <button onClick={(e) => handleEditProduct(row, e)} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors" title="Edit"><Edit size={16} /></button>
+                                            <button onClick={() => handleDeleteProduct(row)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-ink-muted hover:text-rose-600 transition-colors" title="Delete"><Trash2 size={16} /></button>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                        <button onClick={(e) => handleEditProduct(row, e)} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors" title="Edit"><Edit size={16} /></button>
-                                        <button onClick={() => handleDeleteProduct(row)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-ink-muted hover:text-rose-600 transition-colors" title="Delete"><Trash2 size={16} /></button>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                     <div ref={observerTarget} className="py-4 text-center text-ink-muted text-sm">
                         {nextPageUrl ? 'Loading more...' : ''}

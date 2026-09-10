@@ -87,6 +87,27 @@ $walk = static function (SimpleXMLElement $node) use (&$walk, &$totals, &$failur
 
 $walk($xml);
 
+// If RunLedger recorded the execution via PHPUnit 11 native subscriber events,
+// use its comprehensive counts (Pest closure suites may omit testcases in raw JUnit XML).
+$ledgerPath = $finalRoot . '/VerificationCenter/runs/latest.json';
+if (is_file($ledgerPath)) {
+    $ledger = json_decode((string) file_get_contents($ledgerPath), true);
+    if ($ledger && isset($ledger['total']) && $ledger['total'] >= $totals['tests']) {
+        $totals['tests']    = (int) $ledger['total'];
+        $totals['failures'] = (int) ($ledger['counts']['failed'] ?? $totals['failures']);
+        $totals['errors']   = (int) ($ledger['counts']['errored'] ?? $totals['errors']);
+        $totals['skipped']  = (int) ($ledger['counts']['skipped'] ?? $totals['skipped']);
+
+        $runSummaryPath = $finalRoot . '/VerificationCenter/runs/' . ($ledger['run_id'] ?? '') . '/summary.json';
+        if (is_file($runSummaryPath)) {
+            $runSummary = json_decode((string) file_get_contents($runSummaryPath), true);
+            if ($runSummary && isset($runSummary['duration_s'])) {
+                $totals['time'] = (float) $runSummary['duration_s'];
+            }
+        }
+    }
+}
+
 $passed = $totals['tests'] - $totals['failures'] - $totals['errors'] - $totals['skipped'];
 
 // ---------------------------------------------------------------------------

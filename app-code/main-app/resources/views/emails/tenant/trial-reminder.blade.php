@@ -17,11 +17,12 @@ All your products, sales, and settings are securely stored. When you subscribe, 
 
 ## Pricing
 
-| Plan | Monthly | Best For |
-|---|---|---|
-| **Starter** | $19/mo | Single location, up to 1,000 SKUs |
-| **Growth** | $39/mo | Up to 3 locations, unlimited SKUs |
-| **Business** | $79/mo | Unlimited everything + API access |
+| Plan | Monthly | Annual (2 months free) | Best For |
+|---|---|---|---|
+| **Solo** | $0/mo | Free | 1 person, 1 register — free forever |
+| **Starter** | $49/mo | $490/yr | 1 location, 5,000 SKUs, full history |
+| **Core** | $99/mo | $990/yr | Multi-branch, API, audit trail (Most popular) |
+| **Scale** | $299/mo | $2,990/yr | 25 seats, white-label, channel syncs |
 
 @component('mail::button', ['url' => $billingUrl, 'color' => 'primary'])
 Subscribe Now — Keep My Data

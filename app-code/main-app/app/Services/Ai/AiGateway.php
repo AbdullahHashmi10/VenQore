@@ -31,7 +31,9 @@ class AiGateway
     {
         $feature = $request->feature;
         $tenant = $request->tenant ?: (app()->bound('current.tenant') ? app('current.tenant') : null);
-        $tenantId = $tenant ? (string) $tenant->id : 'global';
+        $clientIp = request()?->ip() ?? '127.0.0.1';
+        $ipHash = substr(hash('sha256', $clientIp . (config('app.key') ?: 'venqore-salt')), 0, 16);
+        $tenantId = $tenant ? (string) $tenant->id : "anon:{$ipHash}";
 
         // 1. Entitlement Check
         if ($tenant && app()->bound(AiEntitlementService::class)) {
@@ -45,7 +47,7 @@ class AiGateway
             }
         }
 
-        // 2. Rate Limit Check
+        // 2. Rate Limit Check (per-tenant or per-IP)
         $rateCheck = $this->rateLimiter->tryAcquire("{$feature}:{$tenantId}");
         if (!$rateCheck['ok']) {
             return AiResult::failure('rate_limited', 'High traffic rate limit exceeded.');
@@ -60,9 +62,17 @@ class AiGateway
         $spendRecorded = false;
 
         if ($isManagedOrPlatform) {
+            // Check global ceiling if anonymous
+            if (!$tenant) {
+                $globalCap = (float) (config("ai_limits.features.{$feature}.spend_cap", 3.00) * 5);
+                if (!$this->spendGuard->checkAndRecord("{$feature}:global", $estCost, $globalCap)) {
+                    return AiResult::failure('spend_capped', 'Global AI capacity temporarily reached. Please try again shortly.');
+                }
+            }
+
             $spendRecorded = $this->spendGuard->checkAndRecord("{$feature}:{$tenantId}", $estCost, $spendCap);
             if (!$spendRecorded) {
-                return AiResult::failure('spend_capped', 'Daily AI spend limit reached for this store.');
+                return AiResult::failure('spend_capped', 'Daily AI spend limit reached for this session.');
             }
         }
 

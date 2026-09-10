@@ -1034,7 +1034,6 @@ const POSInterface = ({
     };
 
     const addWithOptions = async (product, variant = null) => {
-        if (!tableMode) { addToCart(product, variant); return; }
         const groups = await fetchModifierGroups(product);
         if (!groups.length) { addToCart(product, variant); return; }
         setModifierGroups(groups);
@@ -1602,7 +1601,8 @@ const POSInterface = ({
             addToast('Pick a table first — an order has to belong to one.', 'warning');
             return;
         }
-        if ((product.available_stock ?? product.stock_quantity ?? 0) <= 0 && (!product.has_manufacturing_rule)) {
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        if (!isService && (product.available_stock ?? product.stock_quantity ?? 0) <= 0 && (!product.has_manufacturing_rule)) {
             if (!window.confirm(`Warning: ${product.reserved_quantity || 0} units are reserved for pre-orders. Available: ${product.available_stock || 0}. Selling this will put reservations into backorder. Continue?`)) {
                 updateActiveSale({ searchTerm: '' });
                 setSearchResults([]);
@@ -1614,10 +1614,8 @@ const POSInterface = ({
         if (product.variants && product.variants.length > 0) {
             setSelectedProductForVariant(product);
             setVariantModalOpen(true);
-        } else if (tableMode) {
-            addWithOptions(product);
         } else {
-            addToCart(product);
+            addWithOptions(product);
         }
         updateActiveSale({ searchTerm: '' });
         setSearchResults([]);
@@ -1626,8 +1624,8 @@ const POSInterface = ({
 
     const addToCart = (product, variant = null, mods = null) => {
         const currentCart = activeSale.cart;
-        /* Two of the same burger with different options are two LINES, not one
-           line of two -- the kitchen has to cook them differently and the
+        /* Two of the same burger or service with different options are two LINES, not one
+           line of two -- the staff has to perform/cook them differently and the
            customer is charged differently. So the options are part of the
            identity, and a plain item keeps exactly the key it always had. */
         const modKey = mods && mods.length
@@ -1640,16 +1638,16 @@ const POSInterface = ({
 
         const price = variant ? getProductPrice(variant, 1, settings) : getProductPrice(product, 1, settings);
         const name = variant ? `${product.name} (${variant.sku})` : product.name;
-        const stock = variant ? variant.stock_quantity : product.stock_quantity;
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const stock = isService ? 999999 : (variant ? variant.stock_quantity : product.stock_quantity);
 
         if (existing) {
             const newQty = existing.qty + 1;
 
-            // Stock Validation Logic
-            // BYPASS: Products with manufacturing rules can always be sold (auto-manufactured on-the-fly)
+            // Stock Validation Logic (Bypassed for Services and Auto-manufactured items)
             const canAutoManufacture = product.has_manufacturing_rule === true;
 
-            if (newQty > stock && !canAutoManufacture) {
+            if (!isService && newQty > stock && !canAutoManufacture) {
                 // If setting is undefined, null, or '1' -> BLOCK
                 // Only if setting is explicitly '0' or false -> ALLOW
                 const allowNegative = !shouldStopNegativeStock(settings);
@@ -1667,17 +1665,16 @@ const POSInterface = ({
                     // Allowed but warn
                     addToast(`Warning: ${name} stock will be negative!`, 'warning');
                 }
-            } else if (newQty > stock && canAutoManufacture) {
+            } else if (!isService && newQty > stock && canAutoManufacture) {
                 // Product has manufacturing rule - will be auto-manufactured
                 addToast(`🏭 ${name} will be auto-manufactured`, 'info');
             }
             newCart = currentCart.map(item => item.cartItemId === cartItemId ? { ...item, qty: newQty } : item);
         } else {
-            // Stock Validation Logic
-            // BYPASS: Products with manufacturing rules can always be sold (auto-manufactured on-the-fly)
+            // Stock Validation Logic (Bypassed for Services and Auto-manufactured items)
             const canAutoManufacture = product.has_manufacturing_rule === true;
 
-            if (stock < 1 && !canAutoManufacture) {
+            if (!isService && stock < 1 && !canAutoManufacture) {
                 // If setting is undefined, null, or '1' -> BLOCK
                 // Only if setting is explicitly '0' or false -> ALLOW
                 const allowNegative = !shouldStopNegativeStock(settings);
@@ -1695,7 +1692,7 @@ const POSInterface = ({
                     // Allowed but warn
                     addToast(`Warning: ${name} stock is out (Qty: ${stock})!`, 'warning');
                 }
-            } else if (stock < 1 && canAutoManufacture) {
+            } else if (!isService && stock < 1 && canAutoManufacture) {
                 // Product has manufacturing rule - will be auto-manufactured
                 addToast(`🏭 ${name} will be auto-manufactured from ingredients`, 'info');
             }
@@ -1706,6 +1703,11 @@ const POSInterface = ({
                 id: product.id,
                 variant_id: variant ? variant.id : null,
                 name,
+                type: product.type || 'standard',
+                service_pricing: product.service_pricing || null,
+                default_duration: product.default_duration || null,
+                requires_visit: !!product.requires_visit,
+                skill_tag: product.skill_tag || null,
                 price: price + modDelta,
                 original_price: price,
                 basePrice: price,
@@ -1717,7 +1719,7 @@ const POSInterface = ({
                 stock: stock,
                 has_manufacturing_rule: product.has_manufacturing_rule || false, // Store for updateQty checks
                 image: product.image_url || product.image_path || null, // Robust image path mapping
-                category: product.category?.name || 'General',
+                category: product.category?.name || (isService ? 'Service' : 'General'),
                 wholesale_price: product.wholesale_price,
                 wholesale_min_quantity: product.wholesale_min_quantity
             }];
@@ -3214,12 +3216,21 @@ const POSInterface = ({
                 </div>
             </div>
             <div className="text-right shrink-0 flex items-center gap-3">
-                <div>
-                    <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
-                    <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                        {formatNumber(product.stock_quantity || 0, 0)}
-                    </span>
-                </div>
+                {(product.type === 'service' || product.is_service || product.item_type === 'service') ? (
+                    <div>
+                        <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Type</span>
+                        <span className="vq-num text-xs font-bold leading-none text-brand-600 dark:text-brand-400">
+                            Service
+                        </span>
+                    </div>
+                ) : (
+                    <div>
+                        <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
+                        <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                            {formatNumber(product.stock_quantity || 0, 0)}
+                        </span>
+                    </div>
+                )}
                 <div>
                     <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Price</span>
                     <span className="vq-num font-bold text-brand-600 dark:text-brand-400 block leading-none text-xs sm:text-sm">
@@ -3247,8 +3258,9 @@ const POSInterface = ({
        that is not there is worse than any layout problem. */
     const renderProductPill = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
         const stock = product.stock_quantity;
-        const out = stock !== undefined && Number(stock) <= 0;
+        const out = !isService && stock !== undefined && Number(stock) <= 0;
         return (
             <button
                 key={product.id}
@@ -3287,8 +3299,9 @@ const POSInterface = ({
 
     const renderProductTile = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
         const stock = product.stock_quantity;
-        const out = stock !== undefined && Number(stock) <= 0;
+        const out = !isService && stock !== undefined && Number(stock) <= 0;
         return (
             <button
                 key={product.id}
@@ -3322,7 +3335,7 @@ const POSInterface = ({
 
                 <span className="vq-tile-foot">
                     <span className={`vq-tile-stock${out ? ' is-out' : ''}`}>
-                        {stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : ''}
+                        {isService ? 'Service' : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
                     </span>
                     <span className="vq-num vq-tile-price">
                         {money(product.price || product.selling_price || 0)}

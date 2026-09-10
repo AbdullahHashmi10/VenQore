@@ -25,7 +25,10 @@ class WooWebhookController extends Controller
      */
     public function receive(Request $request, string $uuid)
     {
-        $connection = WooConnection::where('uuid', $uuid)
+        // Public receiver has no tenant binding yet; the signed connection UUID
+        // selects the candidate and the HMAC below authenticates the payload.
+        $connection = WooConnection::withoutTenantScope()
+            ->where('uuid', $uuid)
             ->where('status', 'active')
             ->first();
 
@@ -101,8 +104,10 @@ class WooWebhookController extends Controller
         $webhookSecret = $connection->webhook_secret;
 
         if (!$webhookSecret) {
-            // No secret configured — accept (for initial setup)
-            return true;
+            // Fail closed: a UUID identifies a connection but is not an
+            // authenticator. Initial setup must persist a secret before any
+            // webhook payload can be accepted.
+            return false;
         }
 
         $signature = $request->header('x-wc-webhook-signature');

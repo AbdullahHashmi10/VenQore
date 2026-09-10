@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\User;
+use App\Services\AiBuilder\ConversationalBuilderService;
+use App\Services\AiBuilder\DiscoverySession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -124,11 +127,43 @@ class WorkspaceBuilderController extends Controller
         // nothing and needs no tenant. The full AI call is reserved for
         // post-signup reconfiguration (OnboardingExperienceController, once a
         // tenant/rate-limit scope exists).
+        // Whether the eventual preset is a real signal or the bare "found
+        // nothing, defaulted to Retail Shop" case — an explicit template pick
+        // is always real; free text only counts once guessPresetDetailed()
+        // actually scored something. Surfaced to the client as 'matched' below
+        // so the reveal can be honest about the difference instead of
+        // presenting a shrug as a confident recommendation.
+        $matched = true;
+
         if ($presetKey && $isShippable($presetKey)) {
             $matchedKey = $presetKey;
         } else {
-            $guessed = app(\App\Services\AiBuilder\ConfigurationAIService::class)->guessPreset(['what' => $prompt]);
-            $matchedKey = $isShippable($guessed) ? $guessed : 'retail_shop';
+            $guess = app(\App\Services\AiBuilder\ConfigurationAIService::class)->guessPresetDetailed(['what' => $prompt]);
+            $matchedKey = $isShippable($guess['preset']) ? $guess['preset'] : 'retail_shop';
+            $matched = $guess['matched'];
+        }
+
+        // No real signal from a free-text description is exactly what the
+        // demand log exists for — a plumbing company, an electrician, any
+        // trade this product has no preset built for yet. Same table,
+        // same 'never let the roadmap break onboarding' guard as
+        // ConfigurationAIService::logUnsupported(), and the 'landing_page'
+        // source config/ai_builder.php already reserves for this — unused
+        // until now because nothing on this pre-signup path ever wrote to it.
+        if (!$matched && trim($prompt) !== '') {
+            try {
+                DB::table(config('ai_builder.demand_log.table', 'feature_requests'))->insert([
+                    'tenant_id'  => null,
+                    'source'     => 'landing_page',
+                    'raw_text'   => $request->input('prompt', ''),
+                    'normalised' => trim($prompt),
+                    'status'     => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                // Never let a demand-log write take the builder down with it.
+            }
         }
 
         $preset = $presets[$matchedKey] ?? [
@@ -143,7 +178,7 @@ class WorkspaceBuilderController extends Controller
         // watched being built is the stack that arrives here.
         $answers  = (array) ($validated['answers'] ?? []);
         $resolver = app(\App\Services\AiBuilder\DiscoveryResolver::class);
-        $modules  = $resolver->merge($preset['modules'] ?? [], $answers);
+        $modules  = $resolver->merge($preset['modules'] ?? [], $answers, true, $matchedKey);
 
         // Map technical module keys into friendly user capabilities
         $capabilitiesMap = [
@@ -181,6 +216,7 @@ class WorkspaceBuilderController extends Controller
         return response()->json([
             'success'            => true,
             'preset_key'         => $matchedKey,
+            'matched'            => $matched,
             'preset_label'       => $preset['label'] ?? 'Custom Workspace',
             'preset_description' => $preset['description'] ?? 'Tailored workspace built for your operational needs.',
             'prompt'             => $request->input('prompt', ''),
@@ -190,7 +226,7 @@ class WorkspaceBuilderController extends Controller
             // Written from the answer to the "what do you most want to fix"
             // question, so the proposal is headed with the visitor's own stated
             // problem rather than a module count.
-            'headline'           => $resolver->headline($answers),
+            'headline'           => $resolver->headline($answers, $matchedKey),
 
             // Shown in their own labelled band on the proposal. Never folded
             // silently into `modules` — see config/ai_builder.php §3b.
@@ -226,9 +262,11 @@ class WorkspaceBuilderController extends Controller
                 'message' => 'Thank you! Your business workflow request has been noted by our product team.',
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to record request: ' . $e->getMessage(),
+                'message' => 'Unable to record request right now. Please try again.',
             ], 500);
         }
     }
@@ -282,7 +320,6 @@ class WorkspaceBuilderController extends Controller
             $tenant = Tenant::create([
                 'name'            => $name,
                 'slug'            => $slug,
-                'phone'           => $data['phone'] ?? null,
                 'currency_code'   => $currencyCode,
                 'currency_symbol' => $currencySymbol,
                 'plan'            => 'trial',
@@ -292,6 +329,13 @@ class WorkspaceBuilderController extends Controller
                 'onboarding_step' => 'completed',
                 'business_type'   => $businessType,
             ]);
+
+            if (!empty($data['phone'])) {
+                \App\Models\Setting::updateOrCreate(
+                    ['tenant_id' => $tenant->id, 'key' => 'store_phone'],
+                    ['value' => (string) $data['phone']]
+                );
+            }
 
             try {
                 \App\Services\PlanAiAllowance::applyTo($tenant, 'trial');
@@ -356,7 +400,7 @@ class WorkspaceBuilderController extends Controller
             // Password is now required. A nullable password used to fall back to
             // Str::random(12) — a string never shown or emailed to anyone, which
             // permanently locked the owner out of their own account.
-            'password'      => 'required|string|min:8',
+            'password'      => ['required', 'string', Password::defaults()],
             'modules'       => 'required|array',
             // The matched preset key from analyze(). Never trusted blindly —
             // only written as business_type when it names a real, shippable
@@ -390,6 +434,8 @@ class WorkspaceBuilderController extends Controller
                     'email'    => $email,
                     'password' => Hash::make($password),
                 ]);
+
+                event(new \Illuminate\Auth\Events\Registered($user));
             }
 
             $tenant = $this->provisionForUser($user, [
@@ -417,10 +463,64 @@ class WorkspaceBuilderController extends Controller
             ]);
 
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Workspace provisioning failed: ' . $e->getMessage(),
+                'message' => 'Workspace provisioning failed. Please try again.',
             ], 500);
         }
+    }
+
+    /**
+     * Start a new dynamic conversational AI discovery session.
+     */
+    public function converseStart(Request $request, ConversationalBuilderService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'prompt' => 'required|string|max:1500',
+            'preset' => 'nullable|string|max:64',
+        ]);
+
+        $result = $service->startSession(
+            initialPrompt: $validated['prompt'],
+            preset: $validated['preset'] ?? null
+        );
+
+        return response()->json($result);
+    }
+
+    /**
+     * Advance the discovery conversation by one turn.
+     */
+    public function converseStep(Request $request, ConversationalBuilderService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'session_id'          => 'required|string',
+            'response'            => 'required|string|max:1500',
+            'selected_option_key' => 'nullable|string|max:64',
+        ]);
+
+        $result = $service->step(
+            sessionId: $validated['session_id'],
+            userResponse: $validated['response'],
+            selectedOptionKey: $validated['selected_option_key'] ?? null
+        );
+
+        return response()->json($result);
+    }
+
+    /**
+     * Reset / forget an active discovery session.
+     */
+    public function converseReset(Request $request): JsonResponse
+    {
+        $sessionId = $request->input('session_id');
+        if ($sessionId) {
+            $session = DiscoverySession::load($sessionId);
+            $session?->forget();
+        }
+
+        return response()->json(['success' => true]);
     }
 }

@@ -3,11 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <link rel="canonical" href="https://venqore.com/onboarding">
+<meta property="og:url" content="https://venqore.com/onboarding">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https://venqore.com/images/og/venqore-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="VenQore — the AI ERP builder">
+<meta name="twitter:image" content="https://venqore.com/images/og/venqore-og.png">
+<meta name="twitter:title" content="See a build — a description to a live system | VenQore">
+<meta name="twitter:description" content="Describe your business, review the Blueprint it composes, pick a plan, go live. Four minutes — and nothing is real until you approve it.">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>See a build — describe a business, watch it become a system | VenQore</title>
-<meta name="description" content="The VenQore onboarding flow: describe your business, review the Blueprint it composes, pick a plan, go live. Four minutes, and nothing is real until you approve it.">
-<meta property="og:title" content="See a build — describe a business, watch it become a system | VenQore">
-<meta property="og:description" content="The VenQore onboarding flow: describe your business, review the Blueprint it composes, pick a plan, go live. Four minutes, and nothing is real until you approve it.">
+<title>See a build — a description to a live system | VenQore</title>
+<meta name="description" content="Describe your business, review the Blueprint it composes, pick a plan, go live. Four minutes — and nothing is real until you approve it.">
+<meta property="og:title" content="See a build — a description to a live system | VenQore">
+<meta property="og:description" content="Describe your business, review the Blueprint it composes, pick a plan, go live. Four minutes — and nothing is real until you approve it.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VenQore">
 <meta name="twitter:card" content="summary_large_image">
@@ -19,6 +28,7 @@
 (function(){try{var r=document.documentElement,t=r.getAttribute('data-theme')||localStorage.getItem('vq-theme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',t);r.classList.toggle('dark',t==='dark');}catch(e){}})();
 </script>
 
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://venqore.com/#organization","name":"VenQore","url":"https://venqore.com","logo":{"@type":"ImageObject","url":"https://venqore.com/images/logo.png"},"description":"VenQore is the AI ERP builder: describe your business and it assembles the operating system that runs it.","foundingDate":"2024","address":{"@type":"PostalAddress","addressLocality":"Okara","addressRegion":"Punjab","addressCountry":"PK"},"contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://venqore.com/contact","availableLanguage":["en"]}},{"@type":"WebSite","@id":"https://venqore.com/#website","url":"https://venqore.com","name":"VenQore","publisher":{"@id":"https://venqore.com/#organization"},"inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://venqore.com"},{"@type":"ListItem","position":2,"name":"See a build","item":"https://venqore.com/onboarding"}]}]}</script>
 </head>
 <body class="vq-bare">
 
@@ -128,33 +138,93 @@
             <span class="vq-help">Appears on every receipt, invoice and statement.</span>
           </div>
           <div class="vq-field">
-            <label class="vq-label" for="w-cur">Currency</label>
-            <select class="vq-select" id="w-cur">
-              <option>PKR — Pakistani Rupee (Rs)</option>
-              <option>AED — UAE Dirham (د.إ)</option>
-              <option>SAR — Saudi Riyal (﷼)</option>
-              <option>USD — US Dollar ($)</option>
-              <option>GBP — Pound Sterling (£)</option>
-            </select>
+            <label class="vq-label" id="w-cur-label" for="w-cur-trigger">Currency</label>
+            <div class="vq-custom-select" data-custom-select>
+              <input type="hidden" id="w-cur" value="PKR — Pakistani Rupee (Rs)">
+              <button type="button" class="vq-custom-select__trigger" id="w-cur-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="w-cur-label w-cur-trigger">
+                <span class="vq-custom-select__value">PKR — Pakistani Rupee (Rs)</span>
+                <svg class="vq-custom-select__chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <ul class="vq-custom-select__menu" role="listbox" aria-labelledby="w-cur-label" tabindex="-1">
+                <li class="vq-custom-select__item is-selected" role="option" aria-selected="true" data-value="PKR — Pakistani Rupee (Rs)">
+                  <span>PKR — Pakistani Rupee (Rs)</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="AED — UAE Dirham (د.إ)">
+                  <span>AED — UAE Dirham (د.إ)</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="SAR — Saudi Riyal (﷼)">
+                  <span>SAR — Saudi Riyal (﷼)</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="USD — US Dollar ($)">
+                  <span>USD — US Dollar ($)</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="GBP — Pound Sterling (£)">
+                  <span>GBP — Pound Sterling (£)</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+              </ul>
+            </div>
             <span class="vq-help">Becomes the system default. Critical — it sets the ledger.</span>
           </div>
           <div class="vq-field">
-            <label class="vq-label" for="w-loc">How many locations?</label>
-            <select class="vq-select" id="w-loc" data-wiz-loc>
-              <option value="1">Just one</option>
-              <option value="2">2 to 3</option>
-              <option value="5">4 to 10</option>
-              <option value="12">More than 10</option>
-            </select>
+            <label class="vq-label" id="w-loc-label" for="w-loc-trigger">How many locations?</label>
+            <div class="vq-custom-select" data-custom-select>
+              <input type="hidden" id="w-loc" data-wiz-loc value="1">
+              <button type="button" class="vq-custom-select__trigger" id="w-loc-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="w-loc-label w-loc-trigger">
+                <span class="vq-custom-select__value">Just one</span>
+                <svg class="vq-custom-select__chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <ul class="vq-custom-select__menu" role="listbox" aria-labelledby="w-loc-label" tabindex="-1">
+                <li class="vq-custom-select__item is-selected" role="option" aria-selected="true" data-value="1">
+                  <span>Just one</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="2">
+                  <span>2 to 3</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="5">
+                  <span>4 to 10</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="12">
+                  <span>More than 10</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+              </ul>
+            </div>
           </div>
           <div class="vq-field">
-            <label class="vq-label" for="w-team">How many people work there?</label>
-            <select class="vq-select" id="w-team" data-wiz-team>
-              <option value="2">Just me, or two of us</option>
-              <option value="3">3 to 5</option>
-              <option value="10">6 to 15</option>
-              <option value="40">More than 15</option>
-            </select>
+            <label class="vq-label" id="w-team-label" for="w-team-trigger">How many people work there?</label>
+            <div class="vq-custom-select" data-custom-select>
+              <input type="hidden" id="w-team" data-wiz-team value="2">
+              <button type="button" class="vq-custom-select__trigger" id="w-team-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="w-team-label w-team-trigger">
+                <span class="vq-custom-select__value">Just me, or two of us</span>
+                <svg class="vq-custom-select__chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <ul class="vq-custom-select__menu" role="listbox" aria-labelledby="w-team-label" tabindex="-1">
+                <li class="vq-custom-select__item is-selected" role="option" aria-selected="true" data-value="2">
+                  <span>Just me, or two of us</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="3">
+                  <span>3 to 5</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="10">
+                  <span>6 to 15</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+                <li class="vq-custom-select__item" role="option" aria-selected="false" data-value="40">
+                  <span>More than 15</span>
+                  <svg class="vq-custom-select__check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </li>
+              </ul>
+            </div>
             <span class="vq-help">Sets your roles, approval chain and seat count.</span>
           </div>
         </div>
@@ -202,7 +272,7 @@
         <button class="vq-btn vq-btn--secondary vq-btn--lg" data-back>Back</button>
         <button class="vq-btn vq-btn--primary vq-btn--lg" data-next>Continue <span class="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></button>
       </div>
-      <p class="vq-caption vq-mt-4" style="max-width:none">No card now. We'll remind you before day 14.</p>
+      <p class="vq-caption vq-mt-4" style="max-width:none">Cancel anytime. We'll remind you before day 14.</p>
     </section>
 
     <!-- 5 · Account ------------------------------------------------------- -->
@@ -366,7 +436,80 @@
 
   </div>
 </div>
+
+<section class="vq-section vq-section--alt">
+  <div class="vq-container">
+    <div class="vq-section-head vq-reveal"><span class="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Keep reading</span><h2 class="vq-h2 vq-mt-4">After the build</h2></div>
+    <div class="vq-grid vq-grid--3"><a class="vq-card vq-card--interactive vq-reveal" href="/pricing"><h3 class="vq-h3">Pick a plan when you are ready</h3><p class="vq-tile__body vq-mt-3">14 days at Core level, or start free on Solo.</p><span class="vq-link vq-mt-4">Read on <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a><a class="vq-card vq-card--interactive vq-reveal" href="/dashboard-preview"><h3 class="vq-h3">The dashboard you will land on</h3><p class="vq-tile__body vq-mt-3">58 readings, self-assembling.</p><span class="vq-link vq-mt-4">Read on <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a><a class="vq-card vq-card--interactive vq-reveal" href="/solutions"><h3 class="vq-h3">Or start from your industry</h3><p class="vq-tile__body vq-mt-3">Six ready configurations.</p><span class="vq-link vq-mt-4">Read on <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a></div>
+  </div>
+</section>
 </main>
+
+  <footer class="vq-footer">
+    <div class="footer-bg"></div>
+    
+    <div class="vq-container" style="position:relative;z-index:10;padding-bottom:var(--vq-space-8)">
+      <div style="display:flex;flex-direction:column;gap:var(--vq-space-12)" class="vq-foot-cols">
+        <div style="display:grid;gap:var(--vq-space-8);grid-template-columns:repeat(auto-fit,minmax(150px,1fr));flex:1">
+          <div>
+            <h3 class="vq-footer__head">Product</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/blueprint">Blueprint</a></li>
+              <li><a href="/pos">The register</a></li>
+              <li><a href="/documents">Documents</a></li>
+              <li><a href="/dashboard-preview">Dashboard</a></li>
+              <li><a href="/smartcapture">SmartCapture</a></li>
+              <li><a href="/reckoner">The Reckoner</a></li>
+              <li><a href="/ledger">Core Ledger</a></li>
+              <li><a href="/vensynq">VenSynQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Company</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/blog">Blog</a></li>
+              <li><a href="/roadmap">Roadmap</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Resources</h3>
+            <ul style="margin-top:var(--vq-space-4);display:flex;flex-direction:column;gap:var(--vq-space-3)">
+              <li><a href="/docs">Documentation</a></li>
+              <li><a href="/help">Help centre</a></li>
+              <li><a href="/security">Security</a></li>
+              <li><a href="/onboarding">See a build</a></li>
+              <li><a href="/login">Sign in</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="vq-footer__head">Social</h3>
+            <div style="margin-top:var(--vq-space-4);display:flex;gap:var(--vq-space-3)">
+              <a class="vq-footer__social" href="https://wa.me/923091999489" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp: +92 309 1999489"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="Facebook"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="X"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+              <a class="vq-footer__social" href="#" aria-label="LinkedIn"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:var(--vq-space-12);padding-top:var(--vq-space-8);border-top:1px solid rgb(255 255 255 / .08);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vq-space-4);padding-bottom:var(--vq-space-6)">
+        <p class="vq-small" style="color:var(--vq-ink-500);max-width:none">© 2026 VenQore, Inc. The AI ERP builder.</p>
+        <div style="display:flex;gap:var(--vq-space-6);flex-wrap:wrap">
+          <a class="vq-small" href="/terms">Terms</a>
+          <a class="vq-small" href="/privacy">Privacy</a>
+          <a class="vq-small" href="/privacy#cookies">Cookies</a>
+          <a class="vq-small" href="/refund-policy">Refund Policy</a>
+          <a class="vq-small" href="/known-issues">Known Issues</a>
+          <a class="vq-small" href="/contact?subject=regional" rel="noindex,nofollow">Regional pricing enquiry</a>
+        </div>
+      </div>
+
+      <div class="watermark-wrapper"><span>VenQore</span></div>
+    </div>
+  </footer>
 
 <script src="assets/venqore.js" defer></script>
 
@@ -511,12 +654,13 @@ function reveal(){
 
 /* Step 5 — recommend by capacity, never by capability */
 var PLANS=[
- {n:'Starter',p:'$36',l:['Up to 5,000 products','1 branch, 3 users','The whole system','20 AI pages/month']},
- {n:'Growth', p:'$63',l:['Up to 20,000 products','3 branches, 10 users','Multi-branch + production','60 AI pages/month']},
- {n:'Scale',  p:'$129',l:['Up to 50,000 products','10 branches, 50 users','Channels, API, loyalty','150 AI pages/month']}
+        {n:'Solo',p:'$0',l:['Up to 500 products','1 branch, 1 seat','100 sales/month','10 AI scans/month']},
+        {n:'Starter',p:'$49',l:['Up to 5,000 products','1 branch, 1 seat','Full history retention','500 AI credits/month']},
+        {n:'Core', p:'$99',l:['Up to 25,000 products','1 branch, 5 seats','API, audit trail & signals','2,000 AI credits/month']},
+        {n:'Scale',  p:'$299',l:['Up to 250,000 products','1 branch, 25 seats','White-label & channels','10,000 AI credits/month']}
 ];
 function plans(){
- var rec = state.loc>3||state.team>15 ? 2 : (state.loc>1||state.team>3 ? 1 : 0);
+ var rec = state.loc>3||state.team>15 ? 3 : (state.loc>1||state.team>3 ? 2 : (state.team>2 ? 1 : 0));
  state.plan=rec;
  $('[data-wiz-plans]').innerHTML=PLANS.map(function(p,i){
   return '<div class="vq-plan'+(i===rec?' vq-plan--featured':'')+'" data-plan="'+i+'">'+
@@ -548,5 +692,7 @@ try{
 })();
 </script>
 <script src="/v6/assets/venqore-forms.js" defer></script>
+<!-- Privacy-first cookieless analytics -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "venqore_analytics"}'></script>
 </body>
 </html>

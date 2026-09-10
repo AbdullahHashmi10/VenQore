@@ -73,12 +73,17 @@ class WooCommerceController extends Controller
 
         $body = $request->getContent();
         $secret = $connection->webhook_secret;
-        if ($secret) {
-            $computed = base64_encode(hash_hmac('sha256', $body, $secret, true));
-            if (!hash_equals($computed, $signature)) {
-                Log::warning('WooCommerce webhook signature mismatch', ['connection_id' => $connection->id]);
-                return response()->json(['error' => 'Invalid webhook signature.'], 401);
-            }
+        if (!$secret) {
+            Log::error('WooCommerce webhook rejected: connection has no webhook secret', [
+                'connection_id' => $connection->id,
+            ]);
+            return response()->json(['error' => 'Webhook is not configured.'], 401);
+        }
+
+        $computed = base64_encode(hash_hmac('sha256', $body, $secret, true));
+        if (!hash_equals($computed, $signature)) {
+            Log::warning('WooCommerce webhook signature mismatch', ['connection_id' => $connection->id]);
+            return response()->json(['error' => 'Invalid webhook signature.'], 401);
         }
 
         // Bind the resolved tenant to the DI container

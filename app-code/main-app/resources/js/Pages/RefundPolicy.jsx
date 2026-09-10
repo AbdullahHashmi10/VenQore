@@ -64,7 +64,7 @@ export default function RefundPolicy() {
                     <section>
                         <h2 className="text-xl font-bold text-ink mb-3">2. Monthly / Annual Subscriptions</h2>
                         <p>
-                            For paid monthly or annual subscriptions (Starter $36/mo, Growth $63/mo, Business $129/mo),
+                            For paid monthly or annual subscriptions (Starter $49/mo, Core $99/mo, Scale $299/mo),
                             you may cancel at any time. Cancellation takes effect at the end of the current billing
                             period — you will not be charged for the following period.
                         </p>

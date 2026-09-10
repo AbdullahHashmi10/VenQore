@@ -13,7 +13,10 @@ export default function LeadUnsubscribe({ token }) {
     };
 
     return (
-        <MarketingLayout title="Unsubscribe — VenQore">
+        <MarketingLayout title="Unsubscribe — VenQore"
+                         description="Unsubscribe from VenQore tool emails.">
+            {/* One-time token page — never index */}
+            <Head><meta name="robots" content="noindex, nofollow" /></Head>
             <section className="pt-36 md:pt-44 pb-24 px-6 flex items-center justify-center">
                 <div className="max-w-md text-center">
                     <MailX size={48} className="text-ink-muted mx-auto mb-6" />

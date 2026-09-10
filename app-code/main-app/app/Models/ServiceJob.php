@@ -27,6 +27,8 @@ class ServiceJob extends Model
         'priority',
         'status',
         'scheduled_for',
+        'scheduled_start_at',
+        'scheduled_end_at',
         'started_at',
         'completed_at',
         'estimated_total',
@@ -36,6 +38,8 @@ class ServiceJob extends Model
 
     protected $casts = [
         'scheduled_for' => 'date',
+        'scheduled_start_at' => 'datetime',
+        'scheduled_end_at' => 'datetime',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
         'estimated_total' => 'float',
@@ -72,8 +76,22 @@ class ServiceJob extends Model
         return $this->hasMany(JobEvent::class, 'job_id');
     }
 
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'service_job_id');
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Tools checked out against this specific job (not the service's default
+     * requirement list — see Product::requiredTools() for that).
+     */
+    public function tools()
+    {
+        return $this->hasMany(JobTool::class, 'job_id');
     }
 }

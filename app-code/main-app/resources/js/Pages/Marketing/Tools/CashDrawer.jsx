@@ -181,7 +181,10 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
             toolGroups={toolGroups}
             currentSlug="cash-drawer-count-sheet"
             faqs={FAQS}
-            cta={{ headline: 'Tired of manual cash balancing?', subtext: 'VenQore POS tracks shift sales, cash drawer openings, and payment balances automatically with double-entry precision.' }}
+            cta={{
+                    headline: "Tired of manual cash balancing?",
+                    subtext: "Describe your shop and VenQore builds a till that reconciles itself — shift sales, drawer opens and payment balances, all posted to a real ledger.",
+                }}
             related={[{ href: '/tools/stock-count-sheet', label: 'Stock Count Sheet' }, { href: '/tools/receipt-generator', label: 'Receipt Generator' }]}
         >
             {errors.length > 0 && (

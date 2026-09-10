@@ -961,7 +961,7 @@ export const CookbookDemo = () => {
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FULL FEATURE CATALOG — every capability, click any to read what it does
-   (sourced from the VenQore Product Catalog — 226+ features)
+   (sourced from the VenQore Product Catalog — 144 verified features)
 
 /* ── shared keyframes for every demo ───────────────────────────────────
    Features.jsx already ships these in its own <style> block. Deep-dive pages

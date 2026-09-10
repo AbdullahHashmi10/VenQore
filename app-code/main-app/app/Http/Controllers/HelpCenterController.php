@@ -8,6 +8,16 @@ use Inertia\Response;
 
 class HelpCenterController extends Controller
 {
+    /**
+     * Article slugs, for the sitemap. Exposed so SitemapController reads the
+     * same array the pages render from rather than keeping a second copy —
+     * every hand-maintained duplicate of a truth in this repo has drifted.
+     */
+    public static function slugs(): array
+    {
+        return array_column((new self)->getArticles(), 'slug');
+    }
+
     private function getArticles(): array
     {
         return [

@@ -179,4 +179,23 @@ class Sale extends Model
     {
         return $query->where('is_dropship', true)->where('financial_reconciled', false);
     }
+
+    /**
+     * Scope query to visible history window for plans with history_retention_days (e.g. Solo 90-day retention).
+     * Older records remain safely stored in DB and become visible again upon plan upgrade.
+     */
+    public function scopeVisibleHistory($query, ?Tenant $tenant = null)
+    {
+        $t = $tenant ?? (app()->bound('current.tenant') ? app('current.tenant') : null);
+        if (!$t) {
+            return $query;
+        }
+
+        $retentionDays = $t->historyRetentionDays();
+        if ($retentionDays !== null && $retentionDays > 0) {
+            return $query->where('created_at', '>=', now()->subDays($retentionDays));
+        }
+
+        return $query;
+    }
 }

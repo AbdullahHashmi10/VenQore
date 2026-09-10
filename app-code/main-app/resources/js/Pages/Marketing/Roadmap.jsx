@@ -29,8 +29,8 @@ export default function Roadmap() {
                 <div className="space-y-12">
                     {/* NOW: Shipped */}
                     <RevealOnScroll direction="up">
-                        <div className="bg-surface border-2 border-emerald-500/40 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
-                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500 text-ink text-xs font-bold uppercase tracking-wider">
+                        <div className="bg-surface border-2 border-success-500/40 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
+                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success-500 text-ink text-xs font-bold uppercase tracking-wider">
                                 <CheckCircle2 className="w-4 h-4" /> SHIPPED &amp; LIVE
                             </div>
                             <h2 className="text-2xl md:text-3xl font-bold text-ink mb-3">
@@ -48,10 +48,10 @@ export default function Roadmap() {
                                     "WooCommerce Synchronization (Stock out, Orders in)",
                                     "40+ Financial & Operational Reports from One Ledger",
                                     "Serial & IMEI Tracking + Batch Expiry Controls",
-                                    "1,500+ Automated Verification & Integrity Tests"
+                                    "Eight correctness laws, run on every release"
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-app text-ink">
-                                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                                        <CheckCircle2 className="w-5 h-5 text-success-500 shrink-0" />
                                         <span className="font-semibold">{item}</span>
                                     </div>
                                 ))}
@@ -125,11 +125,11 @@ export default function Roadmap() {
                     Be Part of the Future of Business Software
                 </h2>
                 <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
-                    Start your 14-day free trial today or explore our live demo without signing up.
+                    Describe your business and watch it get built — 14 days at Core level with full feature access. Or explore the live demo without signing up.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
-                    <MagneticButton href="/register" variant="primary">
-                        Start 14-Day Free Trial <ArrowRight className="w-4 h-4 ml-2" />
+                    <MagneticButton href="/build-workspace" variant="primary">
+                        Start building <ArrowRight className="w-4 h-4 ml-2" />
                     </MagneticButton>
                     <MagneticButton href="/demo" variant="secondary">
                         Explore Live Interactive Demo

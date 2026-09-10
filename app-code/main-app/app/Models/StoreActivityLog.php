@@ -10,15 +10,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class StoreActivityLog extends Model
 {
-    use HasTenant, HasUuids;
+    use HasTenant;
 
-    protected $table = 'activity_logs';
+    protected $table = 'store_activity_log';
 
     protected $fillable = [
         'tenant_id',
         'user_id',
         'action',
-        'description',
         'subject_type',
         'subject_id',
         'payload',

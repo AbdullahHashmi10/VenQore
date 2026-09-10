@@ -44,17 +44,18 @@ class PublicToolBudgetGuard
                 ];
             }
 
-            // 2. Check Per-Email Limit (5/month)
+            // 2. Check Per-Email Limit (3/month)
+            $emailLimit = (int) config('smartcapture.public_tool_email_limit', 3);
             $startOfMonth = Carbon::now()->startOfMonth();
             $emailCount = PublicToolRequest::where('email', $cleanEmail)
                 ->where('created_at', '>=', $startOfMonth)
                 ->count();
 
-            if ($emailCount >= 5) {
+            if ($emailCount >= $emailLimit) {
                 return [
                     'allowed' => false,
                     'reason'  => 'email_limit_exceeded',
-                    'message' => 'You have reached the monthly limit of 5 free scans per email.',
+                    'message' => 'You have reached the monthly limit of free scans per email.',
                 ];
             }
 

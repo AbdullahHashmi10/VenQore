@@ -164,7 +164,7 @@ export default function FeatureShow({ slug }) {
                             Try Live Demo — No Signup <ArrowRight className="w-4 h-4 ml-2 inline" />
                         </MagneticButton>
                         <MagneticButton href="/pricing" variant="secondary">
-                            See Pricing — From $36/month
+                            See Pricing — From $49/month or Free
                         </MagneticButton>
                     </div>
 
@@ -442,12 +442,12 @@ export default function FeatureShow({ slug }) {
                         <MagneticButton href="/demo" variant="primary">
                             Try Live Demo — No Signup <ArrowRight className="w-4 h-4 ml-2 inline" />
                         </MagneticButton>
-                        <MagneticButton href="/register" variant="secondary">
-                            Start 14-Day Free Trial
+                        <MagneticButton href="/build-workspace" variant="secondary">
+                            Start building
                         </MagneticButton>
                     </div>
                     <p className="text-xs text-ink-muted mt-6">
-                        Plans from $36/month · No credit card for trial · Cancel any time
+                        Plans from $49/month (Starter) · $99/mo (Core) · $299/mo (Scale) · Free forever (Solo) · 14-day trial · Cancel anytime
                     </p>
                 </RevealOnScroll>
             </section>

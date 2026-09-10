@@ -314,9 +314,9 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
             answer="Add each ingredient with its recipe quantity and purchase cost, and the calculator converts units automatically (grams to kilograms, ounces to pounds, fluid ounces to liters) to compute exact cost contribution. Total your recipe, apply a waste buffer allowance, calculate cost per portion, and solve for a suggested menu price based on your target food cost percentage."
             faqs={FAQS}
             cta={{
-                headline: 'Automate recipe costing and menu profit margins live at POS checkout.',
-                subtext: 'VenQore auto-deducts ingredient stock (composite recipes) on every sale and generates real-time Food Cost & Margin reports across all your store locations.',
-            }}
+                    headline: "Recipe costing should not live in a spreadsheet.",
+                    subtext: "Describe your kitchen and VenQore builds a system that draws ingredients down per recipe on every sale, and reports food cost and margin live.",
+                }}
             related={[
                 { name: 'Margin Calculator', href: '/tools/margin-calculator' },
                 { name: 'Inventory Health Toolkit', href: '/tools/inventory-health' },

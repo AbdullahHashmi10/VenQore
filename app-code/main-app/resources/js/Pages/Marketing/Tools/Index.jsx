@@ -12,11 +12,11 @@ export default function ToolsIndex({ toolGroups = [] }) {
             metaDescription="Free tools for retail and small business: barcode generator, label sheets, invoice templates and more. No signup required, no watermark."
             eyebrow="Free Tools"
             h1="Free Retail Tools"
-            answer="Free, practical tools for retail and small business owners — no signup, no watermark, no ads. Built by the team behind VenQore, an offline-first POS and ERP with verified double-entry accounting."
+            answer="Free, practical tools for retail and small business owners — no signup, no watermark, no ads. They come from VenQore, the AI ERP builder: describe your business in a sentence and it assembles a working system — till, stock, purchasing and a real double-entry ledger — that issues these documents for you."
             toolGroups={toolGroups}
             cta={{
-                headline: 'Stop doing this manually.',
-                subtext: 'VenQore automates the busywork on every sale and keeps a balanced set of books while it does.',
+                headline: "Every document here is one a built system would have issued for you.",
+                subtext: "Describe your business once. VenQore assembles it from 46 modules — you keep the ones you use — and every invoice, label and count sheet comes out of live data instead of a blank form.",
             }}
             wide
         >
@@ -80,12 +80,14 @@ export default function ToolsIndex({ toolGroups = [] }) {
                 point, so it should hand readers a route into the product and
                 industry clusters rather than dead-ending on a tool list. */}
             <div className="mt-6 p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 text-sm text-ink-secondary leading-relaxed">
-                Doing this by hand every day? These tools come from{' '}
-                <InlineLink href="/features/point-of-sale">VenQore's point of sale</InlineLink>, which
-                generates the same documents automatically and posts each one to a{' '}
-                <InlineLink href="/features/accounting">real double-entry ledger</InlineLink> with{' '}
-                <InlineLink href="/features/inventory-management">FIFO stock costing</InlineLink>. See how it
-                fits your trade — <InlineLink href="/solutions/pharmacy">pharmacy</InlineLink>,{' '}
+                Doing this by hand every day? These tools are the manual version of what a built system
+                does on its own. Describe your business to{' '}
+                <InlineLink href="/blueprint">Blueprint</InlineLink> and it proposes the modules you need —{' '}
+                <InlineLink href="/features/point-of-sale">a till</InlineLink>,{' '}
+                <InlineLink href="/features/inventory-management">FIFO stock</InlineLink> and{' '}
+                <InlineLink href="/features/accounting">a real double-entry ledger</InlineLink> — then issues
+                these same documents from live data. See how it lands in your trade:{' '}
+                <InlineLink href="/solutions/pharmacy">pharmacy</InlineLink>,{' '}
                 <InlineLink href="/solutions/grocery">grocery</InlineLink>,{' '}
                 <InlineLink href="/solutions/wholesale">wholesale</InlineLink> — or{' '}
                 <InlineLink href="/compare">compare it against what you use now</InlineLink>.

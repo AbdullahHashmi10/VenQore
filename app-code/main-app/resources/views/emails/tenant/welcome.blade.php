@@ -39,7 +39,7 @@ Go to My Store →
 ✅ Double-entry accounting  
 ✅ 38 built-in reports  
 
-No credit card required during your trial.
+Full feature access with cancel anytime flexibility.
 
 ---
 

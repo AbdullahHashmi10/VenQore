@@ -167,22 +167,71 @@ class SyncController extends Controller
     public function batchOrders(Request $request)
     {
         $orders = $request->input('orders');
-        if (empty($orders)) return response()->json(['message' => 'No orders provided'], 422);
+        if (empty($orders)) {
+            return response()->json(['message' => 'No orders provided'], 422);
+        }
+
+        $storeId = $this->getStoreId();
+        if (!$storeId) {
+            return response()->json(['message' => 'Unauthorized: no active store context'], 401);
+        }
+
+        $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($storeId);
+        if (!$tenant) {
+            return response()->json(['message' => 'Store not found'], 404);
+        }
+
+        if (!app()->bound('current.tenant')) {
+            app()->instance('current.tenant', $tenant);
+        }
 
         try {
-            DB::transaction(function () use ($orders) {
+            $syncedCount = 0;
+            DB::transaction(function () use ($orders, $tenant, &$syncedCount) {
                 foreach ($orders as $orderData) {
-                    if (\App\Models\Sale::withoutGlobalScope('tenant')->where('id', $orderData['id'])->exists()) continue; 
+                    $clientSaleId = $orderData['client_sale_id'] ?? $orderData['id'] ?? null;
+                    if ($clientSaleId) {
+                        $alreadySynced = \App\Models\Sale::withoutGlobalScope('tenant')
+                            ->where('tenant_id', $tenant->id)
+                            ->where(function ($q) use ($clientSaleId) {
+                                $q->where('client_sale_id', (string) $clientSaleId)
+                                  ->orWhere('idempotency_key', (string) $clientSaleId);
+                            })
+                            ->exists();
+
+                        if ($alreadySynced) {
+                            $syncedCount++;
+                            continue;
+                        }
+                    }
+
                     try {
+                        if ($clientSaleId && empty($orderData['idempotency_key'])) {
+                            $orderData['idempotency_key'] = (string) $clientSaleId;
+                        }
+                        if ($clientSaleId && empty($orderData['client_sale_id'])) {
+                            $orderData['client_sale_id'] = (string) $clientSaleId;
+                        }
+
                         $syntheticRequest = new Request($orderData);
-                        app(\App\Http\Controllers\SaleController::class)->store($syntheticRequest);
-                    } catch (\Exception $e) {
-                        Log::error('Offline Sync Error: ' . $e->getMessage());
+                        $syntheticRequest->setUserResolver(fn () => auth()->user());
+
+                        $response = app(\App\Http\Controllers\SaleController::class)->store($syntheticRequest);
+                        $statusCode = method_exists($response, 'getStatusCode') ? $response->getStatusCode() : 200;
+                        if ($statusCode >= 200 && $statusCode < 300) {
+                            $syncedCount++;
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error('Offline Sync Error: ' . $e->getMessage(), [
+                            'tenant_id' => $tenant->id,
+                            'client_sale_id' => $clientSaleId,
+                        ]);
                     }
                 }
             });
-            return response()->json(['status' => 'synced', 'count' => count($orders)]);
-        } catch (\Exception $e) {
+            return response()->json(['status' => 'synced', 'count' => $syncedCount]);
+        } catch (\Throwable $e) {
+            Log::error('Offline batch sync transaction failed: ' . $e->getMessage());
             return response()->json(['message' => 'Sync failed', 'error' => $e->getMessage()], 500);
         }
     }

@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useForm, usePage, router } from '@inertiajs/react';
-import { X, Save, Clock, FileText, ArrowUpRight, ArrowDownLeft, Box, DollarSign, Image, Upload, ChevronDown, Check, RefreshCw, Trash2, Plus, Edit, ExternalLink, AlertTriangle } from 'lucide-react';
+import { 
+    X, Save, Clock, FileText, ArrowUpRight, ArrowDownLeft, Box, DollarSign, Image, 
+    Upload, ChevronDown, Check, RefreshCw, Trash2, Plus, Edit, ExternalLink, AlertTriangle,
+    Wrench, Sparkles, CheckCircle2, Shield, HelpCircle, Briefcase, MapPin, Tag, Sliders, Layers
+} from 'lucide-react';
 import PremiumButton from '@/Components/PremiumButton';
 import axios from 'axios';
 import PremiumSelect from '@/Components/PremiumSelect';
@@ -10,173 +14,220 @@ import { Lock as LockIcon, Unlock } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 
 const StatCard = ({ title, value, icon }) => (
- <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex items-center justify-between">
- <div>
- <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{title}</p>
- <p className="text-xl font-bold text-ink">{value}</p>
- </div>
- <div className="w-10 h-10 rounded-full bg-sunken flex items-center justify-center border border-line dark:border-line">
- {icon}
- </div>
- </div>
+    <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex items-center justify-between">
+        <div>
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{title}</p>
+            <p className="text-xl font-bold text-ink">{value}</p>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-sunken flex items-center justify-center border border-line dark:border-line">
+            {icon}
+        </div>
+    </div>
 );
 
-
-
-const PREMADE_BASE_UNITS = ['pcs', 'kg', 'ltr', 'm', 'g', 'oz', 'lb'];
+const PREMADE_BASE_UNITS = ['pcs', 'kg', 'ltr', 'm', 'g', 'oz', 'lb', 'service', 'hr', 'job'];
 const PREMADE_SECONDARY_UNITS = ['box', 'carton', 'pack', 'dozen', 'crate', 'bundle', 'roll'];
 
-export default function ProductModal({ product, onClose, isOpen, mode = 'view', warehouses = [], categories = [], attributes = [], onSubmit, initialName = '', onSuccess }) {
- const [activeTab, setActiveTab] = useState('details');
- const [isNewCategory, setIsNewCategory] = useState(false);
- const isEditable = mode === 'create' || mode === 'edit';
- const { settings, store } = usePage().props;
+const SERVICE_PRICING_MODELS = [
+    { id: 'fixed', label: 'Fixed Price', desc: 'Flat fee per job / appointment' },
+    { id: 'hourly', label: 'Hourly Rate', desc: 'Billed per hour spent on work' },
+    { id: 'per_unit', label: 'Per Unit / Scope', desc: 'Billed per ton, sqft, or item' },
+    { id: 'quote', label: 'Custom Quote', desc: 'Price determined upon inspection' },
+];
 
- const { data, setData, post, processing, errors, reset } = useForm({
- name: product?.name || initialName || '',
- sku: product?.sku || '',
- category_id: product?.category_id || '',
- new_category_name: '',
- base_unit: '',
- secondary_unit: '',
- conversion_rate: '',
- unit: product?.unit || 'pcs',
- stock: product?.stock ?? product?.stock_quantity ?? 0,
- price: product?.price || 0,
- cost_price: product?.cost_price || product?.cost || 0,
- min_stock_alert: product?.min_stock_alert || 5,
- description: product?.description || '',
- short_description: product?.short_description || '',
- main_image: null,
- main_image_preview: product?.image || null,
- gallery_images: [],
- existing_images: product?.images || [],
- deleted_images: [],
- variants: product?.variants || [],
- barcodes: product?.barcodes || [],
- warehouse_id: product?.stocks?.[0]?.warehouse_id || warehouses?.[0]?.id || '',
- batch_number: '',
- expiry_date: '',
- });
+export default function ProductModal({ 
+    product, 
+    onClose, 
+    isOpen, 
+    mode = 'view', 
+    warehouses = [], 
+    categories = [], 
+    attributes = [], 
+    tools = [],
+    initialType = 'standard',
+    onSubmit, 
+    initialName = '', 
+    onSuccess 
+}) {
+    const [activeTab, setActiveTab] = useState('details');
+    const [isNewCategory, setIsNewCategory] = useState(false);
+    const isEditable = mode === 'create' || mode === 'edit';
+    const { settings, store } = usePage().props;
 
- const [isStockUnlocked, setIsStockUnlocked] = useState(false);
- const [showPasscodeModal, setShowPasscodeModal] = useState(false);
+    const { data, setData, post, processing, errors, reset } = useForm({
+        type: product?.type || initialType || 'standard',
+        name: product?.name || initialName || '',
+        sku: product?.sku || '',
+        category_id: product?.category_id || '',
+        new_category_name: '',
+        base_unit: '',
+        secondary_unit: '',
+        conversion_rate: '',
+        unit: product?.unit || (initialType === 'service' || product?.type === 'service' ? 'service' : 'pcs'),
+        stock: product?.stock ?? product?.stock_quantity ?? 0,
+        price: product?.price || product?.default_rate || 0,
+        cost_price: product?.cost_price || product?.cost || 0,
+        min_stock_alert: product?.min_stock_alert || 5,
+        description: product?.description || '',
+        short_description: product?.short_description || '',
+        main_image: null,
+        main_image_preview: product?.image || null,
+        gallery_images: [],
+        existing_images: product?.images || [],
+        deleted_images: [],
+        variants: product?.variants || [],
+        barcodes: product?.barcodes || [],
+        warehouse_id: product?.stocks?.[0]?.warehouse_id || warehouses?.[0]?.id || '',
+        batch_number: '',
+        expiry_date: '',
+        // Service specific fields
+        service_pricing: product?.service_pricing || 'fixed',
+        default_duration: product?.default_duration || 60,
+        default_rate: product?.default_rate ?? product?.price ?? 0,
+        requires_visit: Boolean(product?.requires_visit),
+        skill_tag: product?.skill_tag || '',
+        modifier_groups: product?.modifier_groups || [],
+        required_tools: product?.required_tools || [],
+    });
 
+    const [isStockUnlocked, setIsStockUnlocked] = useState(false);
+    const [showPasscodeModal, setShowPasscodeModal] = useState(false);
 
- const [customStats, setCustomStats] = useState(null);
- const [dateRange, setDateRange] = useState({ start: '', end: '' });
- const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
- const [editingVariant, setEditingVariant] = useState(null);
- const [variantForm, setVariantForm] = useState({
- variant_name: '',
- sku: '',
- price: '',
- cost_price: '',
- stock: 0,
- barcode: '',
- attributes: {},
- });
- const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
- const [editingBarcode, setEditingBarcode] = useState(null);
- const [barcodeForm, setBarcodeForm] = useState({
- barcode: '',
- barcode_type: 'EAN13',
- is_primary: false,
- description: '',
- });
+    const [customStats, setCustomStats] = useState(null);
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+    const [editingVariant, setEditingVariant] = useState(null);
+    const [variantForm, setVariantForm] = useState({
+        variant_name: '',
+        sku: '',
+        price: '',
+        cost_price: '',
+        stock: 0,
+        barcode: '',
+        attributes: {},
+    });
+    const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
+    const [editingBarcode, setEditingBarcode] = useState(null);
+    const [barcodeForm, setBarcodeForm] = useState({
+        barcode: '',
+        barcode_type: 'EAN13',
+        is_primary: false,
+        description: '',
+    });
 
- const [reservations, setReservations] = useState([]);
- const [loadingReservations, setLoadingReservations] = useState(false);
- const [history, setHistory] = useState([]);
- const [loadingHistory, setLoadingHistory] = useState(false);
- const [quickViewHistory, setQuickViewHistory] = useState(null);
- const [loadingQuickView, setLoadingQuickView] = useState(false);
- // Track last product id for which history was fetched, to avoid refetching unnecessarily
- const historyFetchedFor = useRef(null);
+    const [reservations, setReservations] = useState([]);
+    const [loadingReservations, setLoadingReservations] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+    const [quickViewHistory, setQuickViewHistory] = useState(null);
+    const [loadingQuickView, setLoadingQuickView] = useState(false);
+    const historyFetchedFor = useRef(null);
 
- useEffect(() => {
- if (activeTab === 'reservations' && product?.id) {
- fetchReservations();
- }
- if (activeTab === 'history' && product?.id && historyFetchedFor.current !== product.id) {
- fetchHistory();
- }
- }, [activeTab, product]);
+    useEffect(() => {
+        if (activeTab === 'reservations' && product?.id) {
+            fetchReservations();
+        }
+        if (activeTab === 'history' && product?.id && historyFetchedFor.current !== product.id) {
+            fetchHistory();
+        }
+    }, [activeTab, product]);
 
- const fetchReservations = async () => {
- setLoadingReservations(true);
- try {
- const res = await axios.get(route('store.inventory.reservations', { store_slug: store?.slug, id: product.id }));
- setReservations(res.data);
- } catch (error) {
- console.error("Failed to fetch reservations", error);
- } finally {
- setLoadingReservations(false);
- }
- };
+    const fetchReservations = async () => {
+        setLoadingReservations(true);
+        try {
+            const res = await axios.get(route('store.inventory.reservations', { store_slug: store?.slug, id: product.id }));
+            setReservations(res.data);
+        } catch (error) {
+            console.error("Failed to fetch reservations", error);
+        } finally {
+            setLoadingReservations(false);
+        }
+    };
 
- useEffect(() => {
- if (isOpen && mode === 'create') {
- reset();
- setIsNewCategory(false);
- setData(data => ({
- ...data,
- name: product?.name || initialName || '',
- unit: 'pcs',
- warehouse_id: warehouses?.[0]?.id || ''
- }));
- } else if (isOpen && product) {
- setIsNewCategory(false);
- // Reset history cache when a different product is opened
- if (historyFetchedFor.current !== product.id) {
- setHistory([]);
- historyFetchedFor.current = null;
- }
- setData({
- name: product.name || '',
- sku: product.sku || '',
- category_id: product.category_id || '',
- new_category_name: '',
- base_unit: '',
- secondary_unit: '',
- conversion_rate: '',
- unit: product.unit || 'pcs',
- stock: product.stock ?? product.stock_quantity ?? 0,
- price: product.price || 0,
- cost_price: product.cost_price || product.cost || 0,
- min_stock_alert: product.min_stock_alert || 5,
- description: product.description || '',
- short_description: product.short_description || '',
- main_image: null,
- main_image_preview: product.image || null,
- gallery_images: [],
- existing_images: product.images || [],
- deleted_images: [],
- warehouse_id: product?.stocks?.[0]?.warehouse_id || warehouses?.[0]?.id || '',
- barcodes: product.barcodes || [], // Added back
- variants: product.variants || [], // Added back
- });
- setIsStockUnlocked(false);
- }
- }, [product, mode, isOpen, initialName]);
+    useEffect(() => {
+        if (isOpen && mode === 'create') {
+            reset();
+            setIsNewCategory(false);
+            const chosenType = initialType || 'standard';
+            setData(d => ({
+                ...d,
+                type: chosenType,
+                name: product?.name || initialName || '',
+                unit: chosenType === 'service' ? 'service' : 'pcs',
+                service_pricing: 'fixed',
+                default_duration: 60,
+                default_rate: 0,
+                price: 0,
+                cost_price: 0,
+                requires_visit: false,
+                skill_tag: '',
+                modifier_groups: [],
+                required_tools: [],
+                warehouse_id: warehouses?.[0]?.id || ''
+            }));
+            setActiveTab('details');
+        } else if (isOpen && product) {
+            setIsNewCategory(false);
+            if (historyFetchedFor.current !== product.id) {
+                setHistory([]);
+                historyFetchedFor.current = null;
+            }
+            setData({
+                type: product.type || 'standard',
+                name: product.name || '',
+                sku: product.sku || '',
+                category_id: product.category_id || '',
+                new_category_name: '',
+                base_unit: '',
+                secondary_unit: '',
+                conversion_rate: '',
+                unit: product.unit || (product.type === 'service' ? 'service' : 'pcs'),
+                stock: product.stock ?? product.stock_quantity ?? 0,
+                price: product.price ?? product.default_rate ?? 0,
+                cost_price: product.cost_price || product.cost || 0,
+                min_stock_alert: product.min_stock_alert || 5,
+                description: product.description || '',
+                short_description: product.short_description || '',
+                main_image: null,
+                main_image_preview: product.image || null,
+                gallery_images: [],
+                existing_images: product.images || [],
+                deleted_images: [],
+                warehouse_id: product?.stocks?.[0]?.warehouse_id || warehouses?.[0]?.id || '',
+                barcodes: product.barcodes || [],
+                variants: product.variants || [],
+                service_pricing: product.service_pricing || 'fixed',
+                default_duration: product.default_duration || 60,
+                default_rate: product.default_rate ?? product.price ?? 0,
+                requires_visit: Boolean(product.requires_visit),
+                skill_tag: product.skill_tag || '',
+                modifier_groups: product.modifier_groups || [],
+                required_tools: product.required_tools || [],
+            });
+            setIsStockUnlocked(false);
+            setActiveTab('details');
+        }
+    }, [product, mode, isOpen, initialName, initialType]);
 
- const fetchCustomStats = async () => {
- if (!dateRange.start || !dateRange.end) return;
- try {
- const response = await axios.get(route('store.inventory.stats', { store_slug: store?.slug, id: product.id }), {
- params: { start_date: dateRange.start, end_date: dateRange.end }
- });
- setCustomStats(response.data);
- } catch (error) {
- console.error('Failed to fetch stats:', error);
- }
- };
+    const fetchCustomStats = async () => {
+        if (!dateRange.start || !dateRange.end) return;
+        try {
+            const response = await axios.get(route('store.inventory.stats', { store_slug: store?.slug, id: product.id }), {
+                params: { start_date: dateRange.start, end_date: dateRange.end }
+            });
+            setCustomStats(response.data);
+        } catch (error) {
+            console.error('Failed to fetch stats:', error);
+        }
+    };
 
- const generateSKU = () => {
- const random = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
- const prefix = data.name ? data.name.substring(0, 3).toUpperCase() : 'PRD';
- setData('sku', `${prefix}-${random}`);
- };
+    const generateSKU = () => {
+        const random = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+        const prefix = data.type === 'service' 
+            ? 'SRV' 
+            : (data.name ? data.name.substring(0, 3).toUpperCase() : 'PRD');
+        setData('sku', `${prefix}-${random}`);
+    };
 
  const handleMainImageUpload = (e) => {
  const file = e.target.files[0];
@@ -334,76 +385,153 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  }
  };
 
- const handleSubmit = (e) => {
- if (e) e.preventDefault();
+    // Modifier Groups (Add-ons) handlers
+    const handleAddModifierGroup = () => {
+        const newGroup = {
+            id: null,
+            name: 'Options & Add-ons',
+            min_select: 0,
+            max_select: 5,
+            required: false,
+            modifiers: [
+                { id: null, name: 'Standard Choice', price_delta: 0, is_default: true }
+            ]
+        };
+        setData('modifier_groups', [...(data.modifier_groups || []), newGroup]);
+    };
 
- if (onSubmit) {
- // Custom submission handler (e.g. for Quick Add via Axios)
- const submissionData = {};
- // Rebuild object without stock if in edit mode
- Object.keys(data).forEach(key => {
- if (mode === 'edit' && key === 'stock') return;
- submissionData[key] = data[key];
- });
+    const handleRemoveModifierGroup = (gIndex) => {
+        const updated = [...(data.modifier_groups || [])];
+        updated.splice(gIndex, 1);
+        setData('modifier_groups', updated);
+    };
 
- onSubmit(submissionData, (errors) => {
- // Handle errors from callback if needed
- });
- return;
- }
+    const handleUpdateModifierGroup = (gIndex, field, value) => {
+        const updated = [...(data.modifier_groups || [])];
+        updated[gIndex] = { ...updated[gIndex], [field]: value };
+        setData('modifier_groups', updated);
+    };
 
- if (mode === 'create') {
- post(route('store.inventory.store', { store_slug: store?.slug }), {
- forceFormData: true,
- onSuccess: (page) => {
- // Global Sync Trigger
- window.dispatchEvent(new CustomEvent('amd:product-updated'));
- localStorage.setItem('amd_product_latest_change', Date.now().toString());
+    const handleAddModifier = (gIndex) => {
+        const updated = [...(data.modifier_groups || [])];
+        const group = updated[gIndex];
+        const mods = [...(group.modifiers || []), { id: null, name: '', price_delta: 0, is_default: false }];
+        updated[gIndex] = { ...group, modifiers: mods };
+        setData('modifier_groups', updated);
+    };
 
- // Call the onSuccess callback if present
- if (onSuccess) {
- const newProduct = page.props.flash?.product || page.props.product;
- onSuccess(newProduct);
- }
- 
- onClose();
- },
- });
- } else {
- // For updates with files, we MUST use POST with _method="PUT" because
- // PHP/Laravel cannot read files from native PUT requests due to standard limitations.
- if (!product?.id) {
- console.error("Product ID is missing for update route.");
- return;
- }
- post(route('store.inventory.update', { store_slug: store?.slug, id: product.id }), {
- forceFormData: true,
- transform: (data) => {
- const transformed = { _method: 'PUT' };
- // Whitelist style rebuild. Only Omit stock if NOT unlocked.
- Object.keys(data).forEach(key => {
- if (key === 'stock' && !isStockUnlocked) return;
- transformed[key] = data[key];
- });
- return transformed;
- },
- onSuccess: (page) => {
- // Global Sync Trigger
- window.dispatchEvent(new CustomEvent('amd:product-updated'));
- localStorage.setItem('amd_product_latest_change', Date.now().toString());
+    const handleRemoveModifier = (gIndex, mIndex) => {
+        const updated = [...(data.modifier_groups || [])];
+        const group = updated[gIndex];
+        const mods = [...(group.modifiers || [])];
+        mods.splice(mIndex, 1);
+        updated[gIndex] = { ...group, modifiers: mods };
+        setData('modifier_groups', updated);
+    };
 
- if (onSuccess) {
- const updatedProduct = page.props.flash?.product || page.props.product;
- onSuccess(updatedProduct);
- }
+    const handleUpdateModifier = (gIndex, mIndex, field, value) => {
+        const updated = [...(data.modifier_groups || [])];
+        const group = updated[gIndex];
+        const mods = [...(group.modifiers || [])];
+        mods[mIndex] = { ...mods[mIndex], [field]: value };
+        updated[gIndex] = { ...group, modifiers: mods };
+        setData('modifier_groups', updated);
+    };
 
- onClose();
- },
- });
- }
- };
+    // Tools Handlers
+    const handleToggleTool = (tool) => {
+        const current = data.required_tools || [];
+        const exists = current.some(t => (t.tool_id || t.id) === tool.id);
+        if (exists) {
+            setData('required_tools', current.filter(t => (t.tool_id || t.id) !== tool.id));
+        } else {
+            setData('required_tools', [...current, { id: tool.id, tool_id: tool.id, name: tool.name, category: tool.category, quantity: 1 }]);
+        }
+    };
 
+    const handleToolQtyChange = (toolId, quantity) => {
+        const current = data.required_tools || [];
+        setData('required_tools', current.map(t => {
+            if ((t.tool_id || t.id) === toolId) {
+                return { ...t, quantity: Math.max(1, parseInt(quantity) || 1) };
+            }
+            return t;
+        }));
+    };
 
+    const handleSubmit = (e) => {
+        if (e) e.preventDefault();
+
+        if (data.type === 'service') {
+            if (!data.price && data.default_rate) data.price = data.default_rate;
+            if (!data.default_rate && data.price) data.default_rate = data.price;
+        }
+
+        if (onSubmit) {
+            // Custom submission handler (e.g. for Quick Add via Axios)
+            const submissionData = {};
+            // Rebuild object without stock if in edit mode
+            Object.keys(data).forEach(key => {
+                if (mode === 'edit' && key === 'stock') return;
+                submissionData[key] = data[key];
+            });
+
+            onSubmit(submissionData, (errors) => {
+                // Handle errors from callback if needed
+            });
+            return;
+        }
+
+        if (mode === 'create') {
+            post(route('store.inventory.store', { store_slug: store?.slug }), {
+                forceFormData: true,
+                onSuccess: (page) => {
+                    // Global Sync Trigger
+                    window.dispatchEvent(new CustomEvent('amd:product-updated'));
+                    localStorage.setItem('amd_product_latest_change', Date.now().toString());
+
+                    // Call the onSuccess callback if present
+                    if (onSuccess) {
+                        const newProduct = page.props.flash?.product || page.props.product;
+                        onSuccess(newProduct);
+                    }
+                    
+                    onClose();
+                },
+            });
+        } else {
+            // For updates with files, we MUST use POST with _method="PUT" because
+            // PHP/Laravel cannot read files from native PUT requests due to standard limitations.
+            if (!product?.id) {
+                console.error("Product ID is missing for update route.");
+                return;
+            }
+            post(route('store.inventory.update', { store_slug: store?.slug, id: product.id }), {
+                forceFormData: true,
+                transform: (data) => {
+                    const transformed = { _method: 'PUT' };
+                    // Whitelist style rebuild. Only Omit stock if NOT unlocked.
+                    Object.keys(data).forEach(key => {
+                        if (key === 'stock' && !isStockUnlocked) return;
+                        transformed[key] = data[key];
+                    });
+                    return transformed;
+                },
+                onSuccess: (page) => {
+                    // Global Sync Trigger
+                    window.dispatchEvent(new CustomEvent('amd:product-updated'));
+                    localStorage.setItem('amd_product_latest_change', Date.now().toString());
+
+                    if (onSuccess) {
+                        const updatedProduct = page.props.flash?.product || page.props.product;
+                        onSuccess(updatedProduct);
+                    }
+
+                    onClose();
+                },
+            });
+        }
+    };
 
  const renderInventorySection = () => (
  <section>
@@ -638,15 +766,58 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  <div className="w-12 h-12 rounded-xl bg-sunken flex items-center justify-center text-2xl border border-line shadow-sm overflow-hidden">
  {data.main_image_preview ? (
  <img src={data.main_image_preview} alt={data.name} className="w-full h-full object-cover" />
+ ) : data.type === 'service' ? (
+ <Wrench size={24} className="text-brand-500" />
  ) : (
  <Box size={24} className="text-ink-muted" />
  )}
  </div>
  <div>
- <h2 className="text-xl font-bold text-ink">{mode === 'create' ? 'Add New Product' : data.name}</h2>
- <p className="text-sm text-ink-muted font-medium">{mode === 'create' ? 'Enter product details' : `SKU: ${data.sku}`}</p>
+ <div className="flex items-center gap-2">
+ <h2 className="text-xl font-bold text-ink">
+ {mode === 'create' ? (data.type === 'service' ? 'Add New Service' : 'Add New Product') : data.name}
+ </h2>
+ {data.type === 'service' ? (
+ <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase tracking-tight">
+ Service
+ </span>
+ ) : (
+ <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase tracking-tight">
+ Product
+ </span>
+ )}
+ </div>
+ <p className="text-sm text-ink-muted font-medium">
+ {mode === 'create' 
+ ? (data.type === 'service' ? 'Configure service catalog item, pricing & packing list' : 'Enter product details') 
+ : `SKU: ${data.sku || 'N/A'}`}
+ </p>
  </div>
  </div>
+
+ <div className="flex items-center gap-3">
+ {mode === 'create' && (
+ <div className="hidden sm:flex items-center gap-1 bg-sunken p-1 rounded-xl border border-line">
+ <button
+ type="button"
+ onClick={() => {
+ setData(d => ({ ...d, type: 'standard', unit: 'pcs' }));
+ }}
+ className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${data.type !== 'service' ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'}`}
+ >
+ <Box size={14} className="text-amber-500" /> Product
+ </button>
+ <button
+ type="button"
+ onClick={() => {
+ setData(d => ({ ...d, type: 'service', unit: 'service' }));
+ }}
+ className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${data.type === 'service' ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'}`}
+ >
+ <Wrench size={14} className="text-brand-500" /> Service
+ </button>
+ </div>
+ )}
  <button
  onClick={onClose}
  className="p-2 rounded-full hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors"
@@ -654,17 +825,33 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  <X size={24} />
  </button>
  </div>
+ </div>
 
  {/* Tabs */}
  <div className="flex items-center gap-1 px-6 border-b border-line bg-sunken/50 dark:bg-app overflow-x-auto">
- {['details', 'reservations', 'extra', 'variants', ...(mode !== 'create' ? ['history', 'purchase_stats'] : [])].map(tab => (
+ {(data.type === 'service' 
+ ? [
+ { id: 'details', label: 'Details' },
+ { id: 'extra', label: 'Extra Details' },
+ { id: 'add_ons', label: 'Add-ons & Extras' },
+ { id: 'tools', label: 'Required Tools' },
+ ...(mode !== 'create' ? [{ id: 'history', label: 'History' }] : []),
+ ]
+ : [
+ { id: 'details', label: 'Details' },
+ { id: 'reservations', label: 'Reservations' },
+ { id: 'extra', label: 'Extra Details' },
+ { id: 'variants', label: 'Variants' },
+ ...(mode !== 'create' ? [{ id: 'history', label: 'History' }, { id: 'purchase_stats', label: 'Purchase Stats' }] : []),
+ ]
+ ).map(tab => (
  <button
- key={tab}
- id={`tour-tab-${tab}`}
- onClick={() => setActiveTab(tab)}
- className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap capitalize ${activeTab === tab ? 'border-brand-600 text-brand-600' : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
+ key={tab.id}
+ id={`tour-tab-${tab.id}`}
+ onClick={() => setActiveTab(tab.id)}
+ className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap capitalize ${activeTab === tab.id ? 'border-brand-600 text-brand-600' : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
  >
- {tab.replace('_', ' ')}
+ {tab.label}
  </button>
  ))}
  </div>
@@ -694,7 +881,291 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  {/* DETAILS TAB */}
  {activeTab === 'details' && (
  <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
+ {data.type === 'service' ? (
+ <div className="space-y-6 sm:space-y-8">
+ {/* Service Basic Info */}
+ <section>
+ <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
+ <Wrench size={16} className="text-brand-500" /> Service Information
+ </h3>
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div className="col-span-2">
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">Service Name</label>
+ <input
+ id="tour-product-name"
+ type="text"
+ value={data.name}
+ onChange={e => setData('name', e.target.value)}
+ disabled={!isEditable}
+ placeholder="e.g. AC Deep Cleaning & Gas Refill"
+ className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
+ />
+ {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+ </div>
 
+ <div>
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">Service SKU / Code</label>
+ <div className="flex gap-2" id="tour-product-sku-gen">
+ <input
+ type="text"
+ value={data.sku}
+ onChange={e => setData('sku', e.target.value)}
+ disabled={!isEditable}
+ placeholder="e.g. SRV-AC01"
+ className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
+ />
+ {isEditable && (
+ <button
+ type="button"
+ onClick={generateSKU}
+ className="px-4 py-3 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl font-bold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
+ title="Generate SKU"
+ >
+ <RefreshCw size={18} />
+ </button>
+ )}
+ </div>
+ </div>
+
+ {/* Category Selection */}
+ <div id="tour-product-category">
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">Category</label>
+ <PremiumSelect
+ options={categories}
+ value={isNewCategory ? 'new' : data.category_id}
+ onChange={(val) => {
+ setIsNewCategory(false);
+ setData('category_id', val);
+ }}
+ onAddNew={() => {
+ setIsNewCategory(true);
+ setData('category_id', '');
+ }}
+ addNewLabel="Create New Category"
+ placeholder="Select Category"
+ disabled={!isEditable}
+ />
+ </div>
+
+ {/* New Category Fields */}
+ {isNewCategory && (
+ <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-app rounded-xl border border-line animate-in fade-in slide-in-from-top-2">
+ <div className="col-span-2">
+ <label className="block text-xs font-bold text-brand-500 mb-1.5">New Category Name</label>
+ <input
+ id="tour-new-category-name"
+ type="text"
+ value={data.new_category_name}
+ onChange={e => setData('new_category_name', e.target.value)}
+ className="w-full px-4 py-3 rounded-xl bg-surface border border-brand-200 dark:border-brand-900 text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none"
+ placeholder="e.g. Maintenance Services"
+ />
+ </div>
+ </div>
+ )}
+
+ {/* Skill / Trade Tag */}
+ <div className="col-span-2">
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">Skill / Specialization Tag</label>
+ <div className="flex flex-col gap-2">
+ <div className="relative">
+ <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted">
+ <Tag size={16} />
+ </span>
+ <input
+ type="text"
+ value={data.skill_tag}
+ onChange={e => setData('skill_tag', e.target.value)}
+ disabled={!isEditable}
+ placeholder="e.g. HVAC, Plumbing, Electrician, IT, Cleaning"
+ className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
+ />
+ </div>
+ <div className="flex flex-wrap items-center gap-1.5 pt-1">
+ <span className="text-2xs text-ink-muted font-bold mr-1">Quick suggestions:</span>
+ {['HVAC', 'Electrical', 'Plumbing', 'Cleaning', 'Repair', 'Installation', 'Diagnostic'].map(tag => (
+ <button
+ key={tag}
+ type="button"
+ onClick={() => setData('skill_tag', tag)}
+ className={`px-2 py-0.5 rounded-lg text-2xs font-semibold border transition-all ${data.skill_tag === tag ? 'bg-brand-600 text-white border-brand-600' : 'bg-surface text-ink-muted border-line hover:border-brand-300'}`}
+ >
+ {tag}
+ </button>
+ ))}
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+
+ {/* Pricing Model & Billing */}
+ <section>
+ <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
+ <DollarSign size={16} className="text-emerald-500" /> Pricing & Billing Model
+ </h3>
+ 
+ {/* Pricing Model Cards */}
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+ {SERVICE_PRICING_MODELS.map(model => (
+ <button
+ key={model.id}
+ type="button"
+ onClick={() => isEditable && setData('service_pricing', model.id)}
+ className={`p-4 rounded-xl border text-left transition-all ${data.service_pricing === model.id ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-500 ring-2 ring-brand-500/20 shadow-sm' : 'bg-surface border-line hover:border-brand-300'}`}
+ >
+ <div className="flex items-center justify-between mb-1">
+ <span className="text-sm font-bold text-ink">{model.label}</span>
+ {data.service_pricing === model.id && (
+ <CheckCircle2 size={16} className="text-brand-600 dark:text-brand-400" />
+ )}
+ </div>
+ <p className="text-2xs text-ink-muted leading-tight">{model.desc}</p>
+ </button>
+ ))}
+ </div>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ {/* Rate / Price */}
+ <div>
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">
+ {data.service_pricing === 'fixed' && 'Fixed Selling Price'}
+ {data.service_pricing === 'hourly' && 'Hourly Rate (per Hour)'}
+ {data.service_pricing === 'per_unit' && 'Rate (per Unit / Scope)'}
+ {data.service_pricing === 'quote' && 'Starting / Base Estimate (Optional)'}
+ </label>
+ <div className="relative">
+ <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted font-bold text-sm">
+ {store?.currency_symbol || 'Rs'}
+ </span>
+ <input
+ id="tour-product-price"
+ type="number"
+ value={data.price}
+ onChange={e => {
+ const val = e.target.value;
+ setData(d => ({ ...d, price: val, default_rate: val }));
+ }}
+ disabled={!isEditable}
+ placeholder="0.00"
+ className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-line text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
+ />
+ </div>
+ </div>
+
+ {/* Labor Overhead / Cost */}
+ <div>
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">Estimated Cost / Overhead (Optional)</label>
+ <div className="relative">
+ <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted font-bold text-sm">
+ {store?.currency_symbol || 'Rs'}
+ </span>
+ <input
+ id="tour-product-cost"
+ type="number"
+ value={data.cost_price}
+ onChange={e => setData('cost_price', e.target.value)}
+ disabled={!isEditable}
+ placeholder="0.00"
+ className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-line text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60"
+ />
+ </div>
+ <p className="text-2xs text-ink-muted mt-1">Direct labor or material cost to compute gross margin.</p>
+ </div>
+ </div>
+
+ {/* Estimated Duration */}
+ <div className="mt-6 pt-6 border-t border-line">
+ <div className="flex items-center justify-between mb-2">
+ <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
+ <Clock size={14} className="text-brand-500" /> Estimated Service Duration
+ </label>
+ <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
+ {data.default_duration >= 60 
+ ? `${Math.floor(data.default_duration / 60)}h ${data.default_duration % 60 ? `${data.default_duration % 60}m` : ''}`
+ : `${data.default_duration} min`}
+ </span>
+ </div>
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+ <div className="relative">
+ <input
+ type="number"
+ value={data.default_duration}
+ onChange={e => setData('default_duration', e.target.value)}
+ disabled={!isEditable}
+ className="w-full px-4 py-3 rounded-xl bg-surface border border-line text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none transition-all disabled:opacity-60 pr-16"
+ placeholder="60"
+ />
+ <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-ink-muted uppercase">Minutes</span>
+ </div>
+
+ {/* Quick Duration Pills */}
+ <div className="flex flex-wrap items-center gap-1.5">
+ {[15, 30, 45, 60, 90, 120, 180, 240].map(mins => (
+ <button
+ key={mins}
+ type="button"
+ onClick={() => setData('default_duration', mins)}
+ className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all border ${Number(data.default_duration) === mins ? 'bg-brand-600 text-white border-brand-600' : 'bg-surface text-ink border-line hover:border-brand-300'}`}
+ >
+ {mins >= 60 ? `${mins / 60}h` : `${mins}m`}
+ </button>
+ ))}
+ </div>
+ </div>
+ </div>
+ </section>
+
+ {/* Fulfillment & Dispatch Settings */}
+ <section className="p-4 sm:p-5 bg-app rounded-2xl border border-line">
+ <div className="flex items-start justify-between gap-4">
+ <div className="flex items-start gap-3">
+ <div className="p-2.5 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 mt-0.5">
+ <MapPin size={20} />
+ </div>
+ <div>
+ <h4 className="text-sm font-bold text-ink">Requires On-Site Customer Visit / Dispatch</h4>
+ <p className="text-xs text-ink-muted mt-0.5 max-w-xl">
+ Enable if this service requires field dispatch (assigning technicians, packing equipment, and recording customer address/location) instead of counter checkout.
+ </p>
+ </div>
+ </div>
+ <label className="relative inline-flex items-center cursor-pointer shrink-0">
+ <input
+ type="checkbox"
+ checked={data.requires_visit}
+ onChange={e => setData('requires_visit', e.target.checked)}
+ disabled={!isEditable}
+ className="sr-only peer"
+ />
+ <div className="w-11 h-6 bg-neutral-300 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-brand-600"></div>
+ </label>
+ </div>
+ </section>
+
+ {/* Profit Margin Card */}
+ {data.price > 0 && (
+ <div className="bg-neutral-900 dark:bg-brand-900/20 rounded-2xl p-6 text-white relative overflow-hidden">
+ <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+ <div className="flex items-center justify-between relative z-10">
+ <div>
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Gross Profit Margin</p>
+ <p className="text-3xl font-bold text-white">
+ {data.price > 0 ? Math.round(((data.price - data.cost_price) / data.price) * 100) : 0}%
+ </p>
+ </div>
+ <div className="text-right">
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Gross Profit / Unit</p>
+ <p className="text-2xl font-bold text-emerald-400">
+ {formatCurrency(data.price - data.cost_price, store || settings)}
+ </p>
+ </div>
+ </div>
+ </div>
+ )}
+ </div>
+ ) : (
+ <div className="space-y-6 sm:space-y-8">
  {/* Basic Info */}
  <section>
  <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -871,7 +1342,6 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  <p className="text-2xl font-bold text-emerald-400">{formatCurrency(data.price - data.cost_price, store || settings)}</p>
  </div>
  </div>
-
  </div>
  </section>
 
@@ -907,12 +1377,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  </span>
  {barcode.is_primary && (
  <span className="text-xs font-bold text-green-600 dark:text-green-400">
- â­ PRIMARY
+ ★ PRIMARY
  </span>
  )}
  {barcode.description && (
  <span className="text-xs text-ink-muted">
- Â· {barcode.description}
+ · {barcode.description}
  </span>
  )}
  </div>
@@ -940,6 +1410,8 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  </div>
  )}
  </section>
+ </div>
+ )}
  </div>
  )}
 
@@ -1187,6 +1659,237 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
  <Box size={48} className="mx-auto text-neutral-300 dark:text-ink-secondary mb-3" />
  <p className="text-ink-muted font-medium">No variants yet</p>
  <p className="text-sm text-ink-muted mt-1">Click "Add Variant" to create product variations</p>
+ </div>
+ )}
+ </div>
+ )}
+
+ {/* ADD-ONS & EXTRAS TAB */}
+ {activeTab === 'add_ons' && (
+ <div className="p-4 sm:p-8 space-y-6">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+ <div>
+ <h3 className="text-lg font-bold text-ink flex items-center gap-2">
+ <Sparkles size={20} className="text-amber-500" />
+ Add-ons & Option Groups
+ </h3>
+ <p className="text-sm text-ink-muted mt-0.5">
+ Define optional extras, parts, or choices offered when selling this service.
+ </p>
+ </div>
+ {isEditable && (
+ <PremiumButton onClick={handleAddModifierGroup} className="px-4 py-2">
+ <Plus size={16} /> Add Option Group
+ </PremiumButton>
+ )}
+ </div>
+
+ {data.modifier_groups && data.modifier_groups.length > 0 ? (
+ <div className="space-y-6">
+ {data.modifier_groups.map((group, gIndex) => (
+ <div key={gIndex} className="p-5 rounded-2xl bg-surface border border-line shadow-sm space-y-4">
+ <div className="flex items-start justify-between gap-4">
+ <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+ <div className="sm:col-span-2">
+ <label className="block text-xs font-bold text-ink-muted mb-1">Group Name</label>
+ <input
+ type="text"
+ value={group.name}
+ onChange={e => handleUpdateModifierGroup(gIndex, 'name', e.target.value)}
+ disabled={!isEditable}
+ placeholder="e.g. Replacement Parts, Warranty, Scent"
+ className="w-full px-3.5 py-2.5 rounded-xl bg-app border border-line text-sm font-bold text-ink focus:ring-2 ring-brand-500/20 outline-none"
+ />
+ </div>
+ <div>
+ <label className="block text-xs font-bold text-ink-muted mb-1">Max Choices</label>
+ <input
+ type="number"
+ value={group.max_select || 1}
+ onChange={e => handleUpdateModifierGroup(gIndex, 'max_select', parseInt(e.target.value) || 1)}
+ disabled={!isEditable}
+ className="w-full px-3.5 py-2.5 rounded-xl bg-app border border-line text-sm font-bold text-ink focus:ring-2 ring-brand-500/20 outline-none"
+ min="1"
+ />
+ </div>
+ </div>
+ {isEditable && (
+ <button
+ type="button"
+ onClick={() => handleRemoveModifierGroup(gIndex)}
+ className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors mt-5"
+ title="Delete Option Group"
+ >
+ <Trash2 size={16} />
+ </button>
+ )}
+ </div>
+
+ {/* Modifiers List */}
+ <div className="space-y-2 pt-2 border-t border-line">
+ <div className="flex items-center justify-between mb-2">
+ <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Choices / Items</span>
+ {isEditable && (
+ <button
+ type="button"
+ onClick={() => handleAddModifier(gIndex)}
+ className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
+ >
+ <Plus size={14} /> Add Choice Item
+ </button>
+ )}
+ </div>
+
+ <div className="space-y-2">
+ {group.modifiers?.map((mod, mIndex) => (
+ <div key={mIndex} className="flex items-center gap-3 p-3 bg-app rounded-xl border border-line">
+ <div className="flex-1">
+ <input
+ type="text"
+ value={mod.name}
+ onChange={e => handleUpdateModifier(gIndex, mIndex, 'name', e.target.value)}
+ disabled={!isEditable}
+ placeholder="Choice name (e.g. HEPA Filter, Chemical Flush)"
+ className="w-full px-3 py-1.5 rounded-lg bg-surface border border-line text-sm text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none"
+ />
+ </div>
+
+ <div className="w-36 relative">
+ <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-ink-muted">
+ +{store?.currency_symbol || 'Rs'}
+ </span>
+ <input
+ type="number"
+ value={mod.price_delta}
+ onChange={e => handleUpdateModifier(gIndex, mIndex, 'price_delta', e.target.value)}
+ disabled={!isEditable}
+ placeholder="0.00"
+ className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-surface border border-line text-sm text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none text-right"
+ />
+ </div>
+
+ <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs font-semibold text-ink-muted px-2">
+ <input
+ type="checkbox"
+ checked={mod.is_default}
+ onChange={e => handleUpdateModifier(gIndex, mIndex, 'is_default', e.target.checked)}
+ disabled={!isEditable}
+ className="rounded border-line text-brand-600 focus:ring-brand-500/20"
+ />
+ Default
+ </label>
+
+ {isEditable && (
+ <button
+ type="button"
+ onClick={() => handleRemoveModifier(gIndex, mIndex)}
+ className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+ >
+ <Trash2 size={14} />
+ </button>
+ )}
+ </div>
+ ))}
+ </div>
+ </div>
+ </div>
+ ))}
+ </div>
+ ) : (
+ <div className="p-12 text-center bg-surface rounded-2xl border border-dashed border-line">
+ <Sparkles className="w-12 h-12 text-amber-400 mx-auto mb-3 opacity-60" />
+ <h4 className="text-sm font-bold text-ink">No add-ons or options configured</h4>
+ <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
+ Add optional upgrades, replacement parts, or extras that staff can select when invoicing or booking this service.
+ </p>
+ {isEditable && (
+ <button
+ type="button"
+ onClick={handleAddModifierGroup}
+ className="mt-4 px-4 py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-xl text-xs font-bold hover:bg-brand-100 transition-colors inline-flex items-center gap-1.5"
+ >
+ <Plus size={14} /> Add First Option Group
+ </button>
+ )}
+ </div>
+ )}
+ </div>
+ )}
+
+ {/* REQUIRED TOOLS TAB */}
+ {activeTab === 'tools' && (
+ <div className="p-4 sm:p-8 space-y-6">
+ <div className="flex items-center justify-between">
+ <div>
+ <h3 className="text-lg font-bold text-ink flex items-center gap-2">
+ <Wrench size={20} className="text-brand-500" />
+ Standard Packing List & Equipment
+ </h3>
+ <p className="text-sm text-ink-muted mt-0.5">
+ Select tools and equipment that technicians must check out whenever dispatched for this service.
+ </p>
+ </div>
+ <div className="px-3 py-1.5 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-bold text-xs">
+ {(data.required_tools || []).length} Selected
+ </div>
+ </div>
+
+ {tools && tools.length > 0 ? (
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+ {tools.map(tool => {
+ const selectedItem = (data.required_tools || []).find(t => (t.tool_id || t.id) === tool.id);
+ const isSelected = Boolean(selectedItem);
+
+ return (
+ <div
+ key={tool.id}
+ onClick={() => isEditable && handleToggleTool(tool)}
+ className={`p-4 rounded-2xl border transition-all cursor-pointer select-none flex flex-col justify-between gap-3 ${isSelected ? 'bg-brand-50/50 dark:bg-brand-900/20 border-brand-500 ring-2 ring-brand-500/10' : 'bg-surface border-line hover:border-brand-300'}`}
+ >
+ <div className="flex items-start justify-between gap-2">
+ <div className="flex items-center gap-2.5">
+ <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${isSelected ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}>
+ <Wrench size={14} />
+ </div>
+ <div>
+ <h5 className="text-sm font-bold text-ink leading-tight">{tool.name}</h5>
+ <span className="text-2xs text-ink-muted font-semibold">{tool.category || 'General Equipment'}</span>
+ </div>
+ </div>
+ <input
+ type="checkbox"
+ checked={isSelected}
+ onChange={() => {}}
+ className="rounded border-line text-brand-600 focus:ring-brand-500/20 mt-1 pointer-events-none"
+ />
+ </div>
+
+ {isSelected && (
+ <div className="pt-2 border-t border-brand-200 dark:border-brand-800/40 flex items-center justify-between" onClick={e => e.stopPropagation()}>
+ <span className="text-2xs font-bold text-ink-muted uppercase">Pack Quantity</span>
+ <div className="flex items-center gap-1.5">
+ <input
+ type="number"
+ value={selectedItem.quantity || 1}
+ onChange={e => handleToolQtyChange(tool.id, e.target.value)}
+ disabled={!isEditable}
+ min="1"
+ className="w-16 px-2 py-1 bg-surface border border-line rounded-lg text-xs font-bold text-center text-ink focus:ring-2 ring-brand-500/20 outline-none"
+ />
+ </div>
+ </div>
+ )}
+ </div>
+ );
+ })}
+ </div>
+ ) : (
+ <div className="p-12 text-center bg-surface rounded-2xl border border-dashed border-line">
+ <Wrench className="w-12 h-12 text-neutral-300 dark:text-ink-muted mx-auto mb-3" />
+ <h4 className="text-sm font-bold text-ink">No Tools in Registry</h4>
+ <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
+ No physical tools or equipment are registered in the system yet. Once tools are added to your business registry, you can link them here.
+ </p>
  </div>
  )}
  </div>

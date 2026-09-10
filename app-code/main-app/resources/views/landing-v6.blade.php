@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>VenQore — The AI Business Compiler for ERP &amp; Point of Sale</title>
+<title>VenQore — The AI ERP Builder for POS, Stock &amp; Accounting</title>
 <meta name="description" content="Describe your business in plain language. VenQore assembles the custom operating system that runs it — with double-entry accounting under every module.">
-<meta property="og:title" content="VenQore — The AI Business Compiler for ERP &amp; Point of Sale">
+<meta property="og:title" content="VenQore — The AI ERP Builder for POS, Stock &amp; Accounting">
 <meta property="og:description" content="Describe your business in plain language. VenQore assembles the custom operating system that runs it — with double-entry accounting under every module.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VenQore">
@@ -118,7 +118,7 @@
                 </div>
                 <div class="vq-mega__col">
                   <span class="vq-eyebrow vq-eyebrow--accent">Know</span>
-                  <a class="vq-mega__link" href="dashboard.html"><b>The dashboard</b><span>108 readings, self-assembling.</span></a>
+                  <a class="vq-mega__link" href="dashboard.html"><b>The dashboard</b><span>58 readings, self-assembling.</span></a>
                   <a class="vq-mega__link" href="reckoner.html"><b>The Reckoner</b><span>One place a number is defined.</span></a>
                   <a class="vq-mega__link" href="ledger.html"><b>Core Ledger</b><span>One engine. Every number.</span></a>
                 </div>
@@ -217,7 +217,7 @@
 
       <span class="vq-eyebrow vq-hero-eyebrow" style="display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 14px; border-radius: 9999px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22); backdrop-filter: blur(8px); font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text);">
         <span style="width: 6px; height: 6px; border-radius: 9999px; background: var(--vq-accent); box-shadow: 0 0 8px var(--vq-accent);"></span>
-        THE AI BUSINESS COMPILER
+        THE AI ERP BUILDER
       </span>
 
       <h1 id="main-heading" class="vq-hero vq-hero-h1 fold-text-container" style="font-weight:600;font-size:clamp(44px,7.2vw,84px);line-height:1.0;letter-spacing:-0.04em;max-width:22ch;text-align:center;margin:0">
@@ -255,13 +255,13 @@
         </div>
 
         <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:16px;font:500 13px/1 var(--vq-font-sans);color:var(--vq-text-3);">
-          <span>1,600+ automated tests</span><span style="opacity:.4">·</span>
-          <span>11,000+ assertions</span><span style="opacity:.4">·</span>
+          <span>46 modules, only yours switched on</span><span style="opacity:.4">·</span>
+          <span>58 readings, one definition each</span><span style="opacity:.4">·</span>
           <span>7 correctness checks on every post</span>
         </div>
 
         <p class="vq-caption vq-mt-4 vq-hero-caret" style="max-width:none">
-          Free to try. No card. You'll see your live system before you sign up for anything.
+          14-day free trial. Full access. You'll see your live system before you decide anything.
         </p>
       </form>
     </div>
@@ -281,15 +281,15 @@
   <div class="vq-ticker-strip">
     <div class="vq-ticker-track">
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>1,600+ automated tests</b> guarding compilation integrity</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>11,000+ assertions</b> verifying accounting invariants</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>46 proven modules</b> parameterized in milliseconds</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
       <!-- Seamless Loop Duplicate -->
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>1,600+ automated tests</b> guarding compilation integrity</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>11,000+ assertions</b> verifying accounting invariants</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>46 proven modules</b> parameterized in milliseconds</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
@@ -778,8 +778,8 @@
           </div>
 
           <div class="vq-card vq-reveal" style="padding: 22px; border-radius: var(--vq-r-xl, 20px); border: 1px solid var(--vq-line); background: var(--vq-surface);">
-            <span style="display: block; font: 600 38px/1 var(--vq-font-numeric); letter-spacing: -.03em; color: var(--vq-accent);">1,600+</span>
-            <span style="display: block; margin-top: 12px; font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">TESTS &amp; 11,000+ ASSERTIONS</span>
+            <span style="display: block; font: 600 38px/1 var(--vq-font-numeric); letter-spacing: -.03em; color: var(--vq-accent);">2,000+</span>
+            <span style="display: block; margin-top: 12px; font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">TESTS &amp; 20,000+ ASSERTIONS</span>
             <span style="display: block; margin-top: 8px; font: 500 13px/1.55 var(--vq-font-sans); color: var(--vq-text-2);">The engines are tested; only the topology arrangement is generated.</span>
           </div>
 
@@ -839,7 +839,7 @@
       <div class="mesh-gradient-card" style="border-radius:var(--vq-r-2xl);padding:clamp(32px,5vw,56px);border:1px solid rgb(255 255 255 / .10);box-shadow:var(--vq-elev-3)">
         <div style="max-width:36rem">
           <h2 class="vq-h2" style="color:#fff">Describe your business. See what it becomes.</h2>
-          <p class="vq-lede vq-mt-3" style="color:rgb(255 255 255 / .74)">Free to try. No card. You'll see your whole system before you decide anything.</p>
+          <p class="vq-lede vq-mt-3" style="color:rgb(255 255 255 / .74)">14-day free trial. Full access. You'll see your whole system before you decide anything.</p>
           <form class="vq-row vq-wrap vq-gap-3 vq-mt-8" data-waitlist style="max-width:520px">
             <input type="email" class="vq-input" required placeholder="you@company.com" aria-label="Work email"
                    style="flex:1 1 240px;background:rgb(0 0 0 / .35);border-color:rgb(255 255 255 / .16);color:#fff">
@@ -896,7 +896,7 @@
       </div>
 
       <div style="margin-top:var(--vq-space-12);padding-top:var(--vq-space-8);border-top:1px solid rgb(255 255 255 / .08);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vq-space-4);padding-bottom:14vw">
-        <p class="vq-small" style="color:var(--vq-ink-500);max-width:none">© 2026 VenQore, Inc. The AI Business Compiler for ERP &amp; POS.</p>
+        <p class="vq-small" style="color:var(--vq-ink-500);max-width:none">© 2026 VenQore, Inc. The AI ERP builder for ERP &amp; POS.</p>
         <div style="display:flex;gap:var(--vq-space-6)">
           <a class="vq-small" href="/terms">Terms</a>
           <a class="vq-small" href="/privacy">Privacy</a>

@@ -32,28 +32,29 @@ class AgentChatController extends Controller
             ->with(['claimedByAgent:id,name', 'referredToAgent:id,name', 'tenant:id,name'])
             ->get();
 
-        $staff = [];
-        $tenantId = null;
-
-        if (app()->bound('current.tenant')) {
-            $tenantId = app('current.tenant')->id;
-        } elseif (auth()->check() && auth()->user()->last_store_id) {
-            $tenantId = auth()->user()->last_store_id;
-        }
-
-        if ($tenantId) {
-            $staff = \App\Models\TenantUser::where('tenant_id', $tenantId)
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        if (! $tenant && auth()->check() && auth()->user()->last_store_id) {
+            $membership = \App\Models\TenantUser::where('tenant_id', auth()->user()->last_store_id)
+                ->where('user_id', auth()->id())
                 ->where('status', 'active')
-                ->with('user:id,name,email')
-                ->get()
-                ->map(fn($m) => [
-                    'id' => $m->user_id,
-                    'name' => $m->effectiveName(),
-                    'email' => $m->user?->email,
-                    'role' => $m->role,
-                ])
-                ->values();
+                ->with('tenant')
+                ->first();
+            $tenant = $membership?->tenant;
         }
+
+        abort_unless($tenant, 400, 'No store context.');
+
+        $staff = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->where('status', 'active')
+            ->with('user:id,name,email')
+            ->get()
+            ->map(fn($m) => [
+                'id' => $m->user_id,
+                'name' => $m->effectiveName(),
+                'email' => $m->user?->email,
+                'role' => $m->role,
+            ])
+            ->values();
 
         return response()->json([
             'sessions' => $sessions->map(fn($s) => [

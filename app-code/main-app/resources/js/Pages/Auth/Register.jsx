@@ -63,7 +63,7 @@ export default function Register() {
         <AuthLayout
             title="Create your system"
             heading="Create your system"
-            subheading="14 days, the full product, no card. You will see what it becomes before you decide anything."
+            subheading="14 days, the full product, cancel anytime. You will see what it becomes before you decide anything."
             footer={
                 <>
                     Already have a system?{' '}
@@ -203,7 +203,7 @@ export default function Register() {
                     </AuthButton>
 
                     <p className="text-center text-sm text-ink-muted">
-                        No card required. We'll remind you before the trial ends.
+                        14-day free trial. We'll remind you before the trial ends.
                     </p>
                 </AuthForm>
 

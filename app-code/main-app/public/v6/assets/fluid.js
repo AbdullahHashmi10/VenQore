@@ -241,7 +241,21 @@
         uniform float dt;
         uniform float dissipation;
         uniform vec4 uObstacleBox;
+        uniform vec2 uCanvasSize;
+        uniform float uObstacleRadius;
         uniform vec2 uScrollOffset;
+
+        bool isInsideRoundedBox (vec2 uv, vec4 box, vec2 canvasSize, float radius) {
+            if (box.z <= box.x || box.w <= box.y) return false;
+            vec2 p = uv * canvasSize;
+            vec2 minP = box.xy * canvasSize;
+            vec2 maxP = box.zw * canvasSize;
+            vec2 center = (minP + maxP) * 0.5;
+            vec2 halfSize = (maxP - minP) * 0.5;
+            float r = clamp(radius, 0.0, min(halfSize.x, halfSize.y));
+            vec2 d = abs(p - center) - halfSize + vec2(r);
+            return (min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - r) <= 0.0;
+        }
 
         vec4 bilerp (sampler2D sam, vec2 uv, vec2 tsize) {
             vec2 st = uv / tsize - 0.5;
@@ -257,7 +271,7 @@
         }
 
         void main () {
-            if (vUv.x >= uObstacleBox.x && vUv.x <= uObstacleBox.z && vUv.y >= uObstacleBox.y && vUv.y <= uObstacleBox.w) {
+            if (isInsideRoundedBox(vUv, uObstacleBox, uCanvasSize, uObstacleRadius)) {
                 gl_FragColor = vec4(0.0);
                 return;
             }
@@ -372,6 +386,21 @@
         uniform sampler2D uPressure;
         uniform sampler2D uVelocity;
         uniform vec4 uObstacleBox;
+        uniform vec2 uCanvasSize;
+        uniform float uObstacleRadius;
+
+        bool isInsideRoundedBox (vec2 uv, vec4 box, vec2 canvasSize, float radius) {
+            if (box.z <= box.x || box.w <= box.y) return false;
+            vec2 p = uv * canvasSize;
+            vec2 minP = box.xy * canvasSize;
+            vec2 maxP = box.zw * canvasSize;
+            vec2 center = (minP + maxP) * 0.5;
+            vec2 halfSize = (maxP - minP) * 0.5;
+            float r = clamp(radius, 0.0, min(halfSize.x, halfSize.y));
+            vec2 d = abs(p - center) - halfSize + vec2(r);
+            return (min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - r) <= 0.0;
+        }
+
         void main () {
             float L = texture2D(uPressure, vL).x;
             float R = texture2D(uPressure, vR).x;
@@ -379,7 +408,7 @@
             float B = texture2D(uPressure, vB).x;
             vec2 velocity = texture2D(uVelocity, vUv).xy;
             velocity.xy -= vec2(R - L, T - B);
-            if (vUv.x >= uObstacleBox.x && vUv.x <= uObstacleBox.z && vUv.y >= uObstacleBox.y && vUv.y <= uObstacleBox.w) {
+            if (isInsideRoundedBox(vUv, uObstacleBox, uCanvasSize, uObstacleRadius)) {
                 velocity = vec2(0.0);
             }
             gl_FragColor = vec4(velocity, 0.0, 1.0);
@@ -595,6 +624,7 @@
 
         // 2. Calculate obstacle box bounds in normalized WebGL coords [0, 1]
         let obstacleBox = [0, 0, 0, 0];
+        let obstacleRadius = 0.0;
         const obstacleEl = document.querySelector('.mesh-gradient-card');
         if (obstacleEl) {
             const rect = obstacleEl.getBoundingClientRect();
@@ -604,6 +634,8 @@
             const minY = 1.0 - (rect.bottom / canvas.clientHeight);
             const maxY = 1.0 - (rect.top / canvas.clientHeight);
             obstacleBox = [minX, minY, maxX, maxY];
+            const style = window.getComputedStyle(obstacleEl);
+            obstacleRadius = parseFloat(style.borderRadius) || 28.0;
         }
 
         curlShader.bind();
@@ -645,6 +677,8 @@
         gl.uniform1i(gradientSubtractShader.uniforms.uPressure, pressure.read.attach(0));
         gl.uniform1i(gradientSubtractShader.uniforms.uVelocity, velocity.read.attach(1));
         gl.uniform4f(gradientSubtractShader.uniforms.uObstacleBox, obstacleBox[0], obstacleBox[1], obstacleBox[2], obstacleBox[3]);
+        gl.uniform2f(gradientSubtractShader.uniforms.uCanvasSize, canvas.clientWidth, canvas.clientHeight);
+        gl.uniform1f(gradientSubtractShader.uniforms.uObstacleRadius, obstacleRadius);
         blit(velocity.write);
         velocity.swap();
 
@@ -657,6 +691,8 @@
         gl.uniform1f(advectionShader.uniforms.dt, dt);
         gl.uniform1f(advectionShader.uniforms.dissipation, config.VELOCITY_DISSIPATION);
         gl.uniform4f(advectionShader.uniforms.uObstacleBox, obstacleBox[0], obstacleBox[1], obstacleBox[2], obstacleBox[3]);
+        gl.uniform2f(advectionShader.uniforms.uCanvasSize, canvas.clientWidth, canvas.clientHeight);
+        gl.uniform1f(advectionShader.uniforms.uObstacleRadius, obstacleRadius);
         gl.uniform2f(advectionShader.uniforms.uScrollOffset, 0.0, normDeltaY);
         blit(velocity.write);
         velocity.swap();
@@ -667,6 +703,8 @@
         gl.uniform1i(advectionShader.uniforms.uSource, dye.read.attach(1));
         gl.uniform1f(advectionShader.uniforms.dissipation, config.DENSITY_DISSIPATION);
         gl.uniform4f(advectionShader.uniforms.uObstacleBox, obstacleBox[0], obstacleBox[1], obstacleBox[2], obstacleBox[3]);
+        gl.uniform2f(advectionShader.uniforms.uCanvasSize, canvas.clientWidth, canvas.clientHeight);
+        gl.uniform1f(advectionShader.uniforms.uObstacleRadius, obstacleRadius);
         gl.uniform2f(advectionShader.uniforms.uScrollOffset, 0.0, normDeltaY);
         blit(dye.write);
         dye.swap();

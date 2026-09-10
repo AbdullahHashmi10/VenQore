@@ -4,7 +4,7 @@ import { usePage } from '@inertiajs/react';
 import {
  Search, Plus, Check, Edit2, Package, User, Loader2, ArrowUp, ArrowDown,
  Star, AlertTriangle, TrendingUp, Clock, ShoppingBag, Truck, CreditCard,
- BadgePercent, Wallet, MapPin, Phone, Mail
+ BadgePercent, Wallet, MapPin, Phone, Mail, Sparkles
 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { formatCurrency } from '@/Utils/format';
@@ -202,26 +202,50 @@ const SmartCombobox = ({
  );
  };
 
- // Get party type badge
- const getTypeBadge = (item) => {
- if (item.type === 'customer') {
- return (
- <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
- <ShoppingBag size={10} />
- Customer
- </span>
- );
- }
- if (item.type === 'supplier') {
- return (
- <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-500/30">
- <Truck size={10} />
- Supplier
- </span>
- );
- }
- return null;
- };
+    // Check if item is a service catalog item
+    const isServiceItem = (item) => {
+        if (!item) return false;
+        return Boolean(
+            item.type === 'service' ||
+            item.is_service === true ||
+            item.item_type === 'service' ||
+            item.unit === 'service' ||
+            (item.sku && String(item.sku).toUpperCase().startsWith('SRV-')) ||
+            (item.category?.name && String(item.category.name).toLowerCase().includes('service')) ||
+            item.service_pricing ||
+            item.default_duration ||
+            item.service_duration_minutes
+        );
+    };
+
+    // Get party/service type badge
+    const getTypeBadge = (item) => {
+        if (item.type === 'customer') {
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+                    <ShoppingBag size={10} />
+                    Customer
+                </span>
+            );
+        }
+        if (item.type === 'supplier') {
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-500/30">
+                    <Truck size={10} />
+                    Supplier
+                </span>
+            );
+        }
+        if (isServiceItem(item)) {
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30">
+                    <Sparkles size={10} />
+                    Service
+                </span>
+            );
+        }
+        return null;
+    };
 
  // Get balance display with proper color coding
  const getBalanceDisplay = (item) => {
@@ -313,98 +337,111 @@ const SmartCombobox = ({
  return null;
  };
 
- // Get stock status badge for products
- const getStockBadge = (item) => {
- if (item.stock_quantity === undefined) return null;
+    // Get stock status badge for products
+    const getStockBadge = (item) => {
+        // Services do not track physical inventory and should never show OUT OF STOCK
+        if (isServiceItem(item)) {
+            const duration = item.service_duration_minutes || item.default_duration;
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20">
+                    <Sparkles size={10} /> {duration ? `${duration} min` : 'Service'}
+                </span>
+            );
+        }
 
- const totalStock = item.stock_quantity;
- const reserved = item.reserved_quantity || 0;
- const available = item.available_stock !== undefined ? item.available_stock : Math.max(0, totalStock - reserved);
- const lowStockThreshold = item.low_stock_threshold || 10;
+        if (item.stock_quantity === undefined) return null;
 
- return (
- <span className="inline-flex items-center gap-1.5 flex-wrap">
- {available <= 0 ? (
- <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
- <AlertTriangle size={10} /> OUT OF STOCK
- </span>
- ) : available <= lowStockThreshold ? (
- <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
- <AlertTriangle size={10} /> Avail: {available}
- </span>
- ) : (
- <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
- <Package size={10} /> Avail: {available}
- </span>
- )}
- {reserved > 0 && (
- <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-500/30">
- 🔒 Reserved: {reserved}
- </span>
- )}
- </span>
- );
- };
+        const totalStock = item.stock_quantity;
+        const reserved = item.reserved_quantity || 0;
+        const available = item.available_stock !== undefined ? item.available_stock : Math.max(0, totalStock - reserved);
+        const lowStockThreshold = item.low_stock_threshold || 10;
 
- // Get profit margin indicator
- const getProfitMargin = (item) => {
- if (item.price === undefined || item.cost === undefined) return null;
+        return (
+            <span className="inline-flex items-center gap-1.5 flex-wrap">
+                {available <= 0 ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30">
+                        <AlertTriangle size={10} /> OUT OF STOCK
+                    </span>
+                ) : available <= lowStockThreshold ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+                        <AlertTriangle size={10} /> Avail: {available}
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                        <Package size={10} /> Avail: {available}
+                    </span>
+                )}
+                {reserved > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-500/30">
+                        🔒 Reserved: {reserved}
+                    </span>
+                )}
+            </span>
+        );
+    };
 
- const margin = item.price - item.cost;
- const marginPercent = item.cost > 0 ? ((margin / item.cost) * 100).toFixed(0) : 0;
+    // Get profit margin indicator
+    const getProfitMargin = (item) => {
+        if (item.price === undefined || item.cost === undefined) return null;
 
- if (margin <= 0) {
- return (
- <span className="text-2xs text-red-500 font-bold">
- ⚠️ No Profit
- </span>
- );
- }
+        const margin = item.price - item.cost;
+        const marginPercent = item.cost > 0 ? ((margin / item.cost) * 100).toFixed(0) : 0;
 
- return (
- <span className="text-2xs text-ink-muted">
- Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
- <span className="text-neutral-300 ml-1">({marginPercent}%)</span>
- </span>
- );
- };
+        if (margin <= 0) {
+            return (
+                <span className="text-2xs text-red-500 font-bold">
+                    ⚠️ No Profit
+                </span>
+            );
+        }
 
- // Get last activity indicator
- const getLastActivity = (item) => {
- if (!item.last_transaction_date && !item.updated_at) return null;
+        return (
+            <span className="text-2xs text-ink-muted">
+                Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
+                <span className="text-neutral-300 ml-1">({marginPercent}%)</span>
+            </span>
+        );
+    };
 
- const date = new Date(item.last_transaction_date || item.updated_at);
- const now = new Date();
- const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    // Get last activity indicator
+    const getLastActivity = (item) => {
+        if (!item.last_transaction_date && !item.updated_at) return null;
 
- let timeText;
- if (diffDays === 0) timeText = 'Today';
- else if (diffDays === 1) timeText = 'Yesterday';
- else if (diffDays < 7) timeText = `${diffDays}d ago`;
- else if (diffDays < 30) timeText = `${Math.floor(diffDays / 7)}w ago`;
- else if (diffDays < 365) timeText = `${Math.floor(diffDays / 30)}m ago`;
- else timeText = `${Math.floor(diffDays / 365)}y ago`;
+        const date = new Date(item.last_transaction_date || item.updated_at);
+        const now = new Date();
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
- return (
- <span className="inline-flex items-center gap-1 text-2xs text-ink-muted">
- <Clock size={10} /> {timeText}
- </span>
- );
- };
+        let timeText;
+        if (diffDays === 0) timeText = 'Today';
+        else if (diffDays === 1) timeText = 'Yesterday';
+        else if (diffDays < 7) timeText = `${diffDays}d ago`;
+        else if (diffDays < 30) timeText = `${Math.floor(diffDays / 7)}w ago`;
+        else if (diffDays < 365) timeText = `${Math.floor(diffDays / 30)}m ago`;
+        else timeText = `${Math.floor(diffDays / 365)}y ago`;
 
- // Get item icon based on type
- const getItemIcon = (item) => {
- if (item.type === 'customer') {
- return <User size={18} className="text-blue-500" />;
- }
- if (item.type === 'supplier') {
- return <Truck size={18} className="text-brand-500" />;
- }
- if (item.stock_quantity !== undefined || item.sku) {
- return <Package size={18} className="text-brand-500" />;
- }
- return <Package size={18} className="text-ink-muted" />;
- };
+        return (
+            <span className="inline-flex items-center gap-1 text-2xs text-ink-muted">
+                <Clock size={10} /> {timeText}
+            </span>
+        );
+    };
+
+    // Get item icon based on type
+    const getItemIcon = (item) => {
+        if (item.type === 'customer') {
+            return <User size={18} className="text-blue-500" />;
+        }
+        if (item.type === 'supplier') {
+            return <Truck size={18} className="text-brand-500" />;
+        }
+        if (isServiceItem(item)) {
+            return <Sparkles size={18} className="text-teal-500" />;
+        }
+        if (item.stock_quantity !== undefined || item.sku) {
+            return <Package size={18} className="text-brand-500" />;
+        }
+        return <Package size={18} className="text-ink-muted" />;
+    };
 
  /* A portalled list escapes every clipping ancestor; an inline one keeps
  the old behaviour exactly. */
@@ -560,10 +597,12 @@ const SmartCombobox = ({
  >
  {/* Type Icon */}
  {showTypeIcon && (
- <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'customer' ? 'bg-blue-100 dark:bg-blue-500/20' :
- item.type === 'supplier' ? 'bg-brand-100 dark:bg-brand-500/20' :
- 'bg-sunken'
- }`}>
+ <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                            item.type === 'customer' ? 'bg-blue-100 dark:bg-blue-500/20' :
+                            item.type === 'supplier' ? 'bg-brand-100 dark:bg-brand-500/20' :
+                            isServiceItem(item) ? 'bg-teal-100 dark:bg-teal-500/20' :
+                            'bg-sunken'
+                        }`}>
  {getItemIcon(item)}
  </div>
  )}

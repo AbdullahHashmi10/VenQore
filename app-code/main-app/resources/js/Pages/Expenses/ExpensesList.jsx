@@ -232,7 +232,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
  </div>
  );
 }
-export default function ExpensesIndex({ expenses = [], categories = [], stats = {}, bankAccounts = [], cashBalance = 0, filters = {} }) {
+export default function ExpensesIndex({ expenses = [], categories = [], stats = {}, bankAccounts = [], cashBalance = 0, filters = {}, serviceJobs = [] }) {
  const { t, tp } = useTerms();
  const {
  store
@@ -367,18 +367,19 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  const [editingExpense, setEditingExpense] = useState(null);
  const [loading, setLoading] = useState(false);
  const [formData, setFormData] = useState({
- date: '',
- expense_category_id: '',
- category: '',
- amount: '',
- tax_amount: '',
- payment_method: 'cash',
- bank_account_id: '',
- payee: '',
- reference: '',
- description: '',
- notes: '',
- attachment: null
+  date: '',
+  expense_category_id: '',
+  service_job_id: '',
+  category: '',
+  amount: '',
+  tax_amount: '',
+  payment_method: 'cash',
+  bank_account_id: '',
+  payee: '',
+  reference: '',
+  description: '',
+  notes: '',
+  attachment: null
  });
  const [errors, setErrors] = useState({});
  const [selectedParty, setSelectedParty] = useState(null);
@@ -426,7 +427,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
  useEffect(() => {
  const queryParams = new URLSearchParams(window.location.search);
- if (queryParams.get('action') === 'add') {
+ if (queryParams.get('action') === 'add' || queryParams.get('service_job_id')) {
  handleCreate();
  }
  }, []);
@@ -454,10 +455,12 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
  // CRUD Handlers
  const handleCreate = () => {
+ const qParams = new URLSearchParams(window.location.search);
  setEditingExpense(null);
  setFormData({
  date: new Date().toISOString().split('T')[0],
  expense_category_id: activeCategory !== 'all' ? activeCategory : '',
+ service_job_id: qParams.get('service_job_id') || '',
  channel: '',
  category: '',
  amount: '',
@@ -481,6 +484,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  setFormData({
  date: expense.date ? expense.date.split('T')[0] : new Date().toISOString().split('T')[0],
  expense_category_id: expense.expense_category_id || '',
+ service_job_id: expense.service_job_id || '',
  channel: expense.channel || '',
  category: expense.category || '',
  amount: expense.amount || '',
@@ -1451,6 +1455,22 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  />
  {errors.description?.[0] && <p className="text-rose-500 text-2xs font-bold mt-2 ml-1"><X size={10} className="inline" /> {errors.description[0]}</p>}
  </div>
+
+ <div className="group">
+  <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Linked Work Order / Job (Optional)</label>
+  <select
+  value={formData.service_job_id}
+  onChange={(e) => setFormData({ ...formData, service_job_id: e.target.value })}
+  className="w-full h-12 px-4 rounded-xl text-sm font-bold bg-surface border border-line text-ink focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none shadow-sm"
+  >
+  <option value="">— Not linked to a service job —</option>
+  {serviceJobs.map(job => (
+  <option key={job.id} value={job.id}>
+  {job.number} — {job.title} {job.party?.name ? `(${job.party.name})` : ''}
+  </option>
+  ))}
+  </select>
+  </div>
 
  <div className="group">
  <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Physical Evidence</label>

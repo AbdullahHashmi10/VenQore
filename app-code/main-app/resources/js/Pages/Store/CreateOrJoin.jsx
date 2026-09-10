@@ -72,7 +72,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                             <p className="text-ink-muted text-sm leading-relaxed flex-1 mb-6">
                                 {has_license
                                     ? `Use your ${license_plan} plan license to create your store. Full access from day one.`
-                                    : 'Choose a plan, then start your free 14-day trial. No credit card required to begin.'}
+                                    : 'Choose a plan, then start your free 14-day trial. Full features unlocked from day one.'}
                             </p>
 
                             <div className="space-y-2 mb-6">
@@ -85,7 +85,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                                 ) : (
                                     <>
                                         <Feature text="14-day free trial" />
-                                        <Feature text="No credit card needed" />
+                                        <Feature text="Cancel anytime" />
                                         <Feature text="Set up in 2 minutes" />
                                     </>
                                 )}

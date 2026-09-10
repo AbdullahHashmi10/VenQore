@@ -55,12 +55,27 @@ class FinancialReportingService
      *   period_end: string
      * }
      */
-    public function getProfitAndLoss($start, $end): array
+    public function getProfitAndLoss($start, $end, ?string $tenantId = null): array
     {
         $start = $start instanceof Carbon ? $start->toDateString() : (string) $start;
         $end   = $end instanceof Carbon   ? $end->toDateString()   : (string) $end;
 
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return [
+                'revenue'            => 0.0,
+                'cogs'               => 0.0,
+                'gross_profit'       => 0.0,
+                'operating_expenses' => 0.0,
+                'total_expenses'     => 0.0,
+                'net_profit'         => 0.0,
+                'income_accounts'    => [],
+                'expense_accounts'   => [],
+                'period_start'       => $start,
+                'period_end'         => $end,
+            ];
+        }
+
         $sums = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
@@ -75,7 +90,7 @@ class FinancialReportingService
         // ─── Revenue: SUM(credits - debits) across all income accounts ────────
         // Income accounts have a credit-normal balance.
         // Revenue for period = credits posted - debits posted in that range.
-        $incomeAccounts = Account::where('type', 'income')->get();
+        $incomeAccounts = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->get();
         $incomeDetails  = [];
         $totalRevenue   = 0;
 
@@ -97,7 +112,7 @@ class FinancialReportingService
         // ─── COGS: SUM(debits - credits) on Account code 5000 ────────────────
         // COGS is a debit-normal expense account.
         // COGS for period = debits posted - credits posted (reversals) in range.
-        $cogsAccount = Account::where('code', '5000')->first();
+        $cogsAccount = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->first();
         $totalCogs   = 0;
         $cogsId      = null;
 
@@ -110,7 +125,7 @@ class FinancialReportingService
         }
 
         // ─── Operating Expenses: all expense accounts EXCEPT COGS ─────────────
-        $expenseAccounts   = Account::where('type', 'expense')
+        $expenseAccounts   = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'expense')
             ->when($cogsId, fn($q) => $q->where('id', '!=', $cogsId))
             ->get();
         $expenseDetails    = [];
@@ -163,15 +178,18 @@ class FinancialReportingService
      * $granularity: 'hourly' | 'daily' | 'monthly'.
      * Returns [ periodKey => ['revenue'=>float,'cogs'=>float,'profit'=>float] ].
      */
-    public function getProfitByPeriod($start, $end, string $granularity = 'daily'): array
+    public function getProfitByPeriod($start, $end, string $granularity = 'daily', ?string $tenantId = null): array
     {
         $startStr = $start instanceof Carbon ? $start->toDateString() : (string) $start;
         $endStr   = $end   instanceof Carbon ? $end->toDateString()   : (string) $end;
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return [];
+        }
 
-        $incomeIds = Account::where('type', 'income')->pluck('id')->all();
+        $incomeIds = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->pluck('id')->all();
         if (empty($incomeIds)) { $incomeIds = ['00000000-0000-0000-0000-000000000000']; }
-        $cogsId = Account::where('code', '5000')->value('id') ?? '00000000-0000-0000-0000-000000000000';
+        $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id') ?? '00000000-0000-0000-0000-000000000000';
 
         // je.date is a DATE (no time). Hourly is only meaningful for the same-day "Today" view,
         // so hourly buckets by the hour of je.created_at; daily/monthly bucket by je.date.
@@ -1937,7 +1955,7 @@ class FinancialReportingService
         ];
     }
 
-    private function ageBucket(int $days): string
+    public function ageBucket(int $days): string
     {
         return match(true) {
             $days <= 30  => '0-30',
@@ -2060,4 +2078,3 @@ class AgedReportResult implements \ArrayAccess, \IteratorAggregate, \JsonSeriali
         return count($this->data['rows'] ?? []);
     }
 }
-

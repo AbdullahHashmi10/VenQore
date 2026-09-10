@@ -33,7 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Do not let Laravel register its signed private-disk route at
+            // /storage/{path}; it would replace the hardened public fallback.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

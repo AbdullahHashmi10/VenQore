@@ -193,42 +193,117 @@ class ConfigurationAIService
      * Deterministic preset guess from the five fixed questions. No model, no
      * cost, no network. Good enough that a customer who never sees the AI still
      * gets a system that fits.
+     *
+     * Thin wrapper around guessPresetDetailed() — kept for the two existing
+     * call sites (and any future one) that only ever needed the key, never the
+     * confidence behind it.
      */
     public function guessPreset(array $answers): ?string
+    {
+        return $this->guessPresetDetailed($answers)['preset'];
+    }
+
+    /**
+     * Same guess, plus whether it is a REAL signal or the bare "we found
+     * nothing" default. `retail_shop` is returned both when it genuinely won
+     * on points and when nothing scored at all — collapsing those two into one
+     * string is what let a visitor typing a business this product has no
+     * preset for (a plumbing company, an electrician, any services trade while
+     * `services` stays 'building' — see config/modules.php) get quietly
+     * dropped into Retail Shop with no sign anywhere that this was a shrug,
+     * not a match. Callers that want to be honest about that — log the
+     * request, tell the visitor plainly — use this instead of guessPreset().
+     *
+     * A BLOCKED PRESET STILL HAS TO BE SCORED, NOT SKIPPED — confirmed
+     * 2026-09-07 against this file's own `ai_builder.fixtures`: "I do graphic
+     * design for clients and send them invoices every month" (the project's
+     * own freelancer fixture) scored 0 on every real preset once freelancer
+     * was excluded from scoring, but "clients" is also an alias of the
+     * `customers` module, which sits in retail_shop's module list — one
+     * accidental point, `matched=true`, a services business confidently
+     * boxed into Retail Shop with no disclaimer and nothing written to the
+     * demand log. Same failure for "Hair salon, four stylists..." (salon)
+     * and "We repair air conditioners..." (repair_workshop) — three of
+     * three service-shaped fixtures, silently false-positive. Scoring every
+     * preset (blocked included) and only calling it a match when the best
+     * SHIPPABLE score actually beats the best BLOCKED one fixes all three
+     * with zero change to the five fixtures that already hit correctly.
+     *
+     * @return array{preset: string, matched: bool}
+     */
+    public function guessPresetDetailed(array $answers): array
     {
         $text = strtolower(($answers['what'] ?? '').' '.implode(' ', array_map('strval', $answers)));
 
         // Alias matching, best score wins. The aliases in config/modules.php are
         // doing the work here — which is why they are the highest-return field
         // in that file.
-        $scores = [];
+        $shippableScores = [];
+        $blockedScores = [];
 
         foreach (config('ai_builder.presets', []) as $key => $preset) {
-            if (!empty($preset['blocked_by'])) {
-                continue;
-            }
-
             $score = 0;
 
             foreach ($preset['modules'] as $moduleKey) {
                 foreach (config("modules.{$moduleKey}.aliases", []) as $alias) {
-                    if (str_contains($text, strtolower($alias))) {
+                    if ($this->matchesAlias($text, $alias)) {
                         $score++;
                     }
                 }
             }
 
-            if (str_contains($text, strtolower($preset['label']))) {
+            if ($this->matchesAlias($text, $preset['label'])) {
                 $score += 5;
             }
 
-            $scores[$key] = $score;
+            if (!empty($preset['blocked_by'])) {
+                $blockedScores[$key] = $score;
+            } else {
+                $shippableScores[$key] = $score;
+            }
         }
 
-        arsort($scores);
-        $best = array_key_first($scores);
+        arsort($shippableScores);
+        $bestShippableKey = array_key_first($shippableScores);
+        $bestShippable = $shippableScores[$bestShippableKey] ?? 0;
+        $bestBlocked = $blockedScores === [] ? 0 : max($blockedScores);
 
-        return ($scores[$best] ?? 0) > 0 ? $best : 'retail_shop';
+        // Real signal only when the winning shippable preset actually beats
+        // whatever a blocked preset scored — otherwise the "match" is just
+        // leftover crumbs from a generic alias while the real signal points
+        // at something this product cannot ship yet.
+        $matched = $bestShippable > 0 && $bestShippable > $bestBlocked;
+
+        return [
+            'preset'  => $matched ? $bestShippableKey : 'retail_shop',
+            'matched' => $matched,
+        ];
+    }
+
+    /**
+     * Whole-word match, not `str_contains`. A plain substring check let short
+     * aliases fire inside unrelated words — 'variants' carries the alias
+     * 'nag', which matched the "manage" in "I want to manage those things",
+     * and that single accidental point was enough to swing a plumbing
+     * business onto the Clothing & Footwear preset. Every alias in
+     * config/modules.php is a real word or phrase a customer would say, never
+     * a fragment, so anchoring both ends to a word boundary (or the edge of
+     * the text) removes the false positive without weakening a real one —
+     * "cash register" still matches inside a longer sentence, 'gst' still
+     * matches as its own token, neither matches buried inside another word.
+     */
+    private function matchesAlias(string $text, string $alias): bool
+    {
+        $needle = trim(strtolower($alias));
+        if ($needle === '') {
+            return false;
+        }
+
+        $pattern = preg_quote($needle, '/');
+        $before  = preg_match('/^\w/', $needle) ? '\b' : '';
+        $after   = preg_match('/\w$/', $needle) ? '\b' : '';
+
+        return (bool) preg_match("/{$before}{$pattern}{$after}/u", $text);
     }
 
     /**

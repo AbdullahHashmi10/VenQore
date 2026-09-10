@@ -10,45 +10,8 @@ class ReportTierGate
 
     public static function tier(?string $plan): string
     {
-        if (!$plan) {
-            return 'starter';
-        }
-
-        $plan = strtolower($plan);
-
-        if ($plan === 'ltd' && app()->bound('current.tenant')) {
-            $tenant = app('current.tenant');
-            $txLimit = (int) $tenant->getLimit('transactions_per_month');
-            if ($txLimit === 500 || $txLimit === 1000) {
-                return 'starter';
-            } elseif ($txLimit === 2000 || $txLimit === 3000) {
-                return 'growth';
-            } elseif ($txLimit === 6000 || $txLimit === 8000) {
-                return 'business';
-            }
-        }
-
-        // The public pricing table publishes "Reports — All 33" as a universal
-        // row: every subscription plan sees every report, and the tiers
-        // differentiate on seats, branches, AI allowance and five feature rows
-        // instead. config/report_tiers.php is kept intact so re-gating is a
-        // one-line change here if that ever changes.
-        //
-        // 'counter' was also missing entirely, so every report check on the
-        // entry tier fell through to the "unrecognized tier, failing open"
-        // branch and logged an error on each request.
-        $map = [
-            'ltd_1'    => 'starter',
-            'ltd_2'    => 'growth',
-            'ltd_3'    => 'business',
-            'trial'    => 'business',
-            'counter'  => 'business',
-            'starter'  => 'business',
-            'growth'   => 'business',
-            'business' => 'business',
-        ];
-
-        return $map[$plan] ?? $plan;
+        // Under V11 Universal Spec §1.1, all reports are universal across all plans and LTD tiers
+        return 'business';
     }
 
     public static function check(string $reportKey): bool

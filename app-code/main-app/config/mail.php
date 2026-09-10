@@ -115,4 +115,9 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'notifications' => [
+        'contact' => env('CONTACT_NOTIFICATION_ADDRESS', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+        'partners' => env('PARTNER_NOTIFICATION_ADDRESS', 'founder@venqore.com'),
+    ],
+
 ];

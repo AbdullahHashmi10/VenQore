@@ -50,12 +50,6 @@ trait HasActivityLog
                 'tenant_id'    => $tenantId,
                 'user_id'      => auth()->id(),
                 'action'       => $actionName,
-                // `description` is NOT NULL on a fresh install (see the
-                // create_activity_logs_table migration). It was never written here,
-                // so every insert threw and was swallowed, leaving fresh installs
-                // with no audit trail at all. Populate it rather than relying on
-                // the column having drifted to nullable in one long-lived database.
-                'description'  => $actionName,
                 'subject_type' => get_class($model),
                 'subject_id'   => $model->uuid ?? $model->id,
                 'payload'      => $payload,

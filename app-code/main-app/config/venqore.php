@@ -8,6 +8,10 @@
  */
 return [
 
+    // Public AppSumo redemption is deliberately opt-in. Keep the environment
+    // lookup in config so it survives `php artisan config:cache`.
+    'appsumo_public' => env('APPSUMO_PUBLIC', false),
+
     /*
     |--------------------------------------------------------------------------
     | Purchase shadow write  (Phase 4)

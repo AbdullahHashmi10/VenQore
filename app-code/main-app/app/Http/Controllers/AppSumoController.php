@@ -143,11 +143,11 @@ class AppSumoController extends Controller
                     Tenant::where('id', $existingLicense->tenant_id)
                           ->update([
                               'plan'        => 'ltd',
-                              // Session-3: getLtdSnapshot(), not getLimits(), so the snapshot
-                              // still carries the 'ltd'/'hosted_until' license-bookkeeping keys
-                              // that only config/plans.php tracks — see PlanRepository docblock.
                               'plan_limits' => json_encode(\App\Services\PlanRepository::getLtdSnapshot($plan)),
                           ]);
+
+                    \App\Services\PlanRepository::invalidateTenantCache((int)$existingLicense->tenant_id);
+                    \App\Services\PlanRepository::invalidatePlanCache($plan);
                 }
             }
 

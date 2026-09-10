@@ -37,8 +37,8 @@ use Inertia\Response;
  */
 class StoreController extends Controller
 {
-    /** Subscription plans that can be trialled from the create-store flow. */
-    private const TRIAL_PLAN_SLUGS = ['counter', 'starter', 'growth', 'business'];
+    /** Subscription plans that can be trialled or created from the create-store flow. */
+    private const TRIAL_PLAN_SLUGS = ['solo', 'starter', 'growth', 'business'];
 
     /**
      * Page shown to users with no stores yet.
@@ -144,7 +144,7 @@ class StoreController extends Controller
 
         $request->validate([
             'name'          => 'required|string|max:100',
-            'plan'          => 'nullable|string|in:counter,starter,growth,business',
+            'plan'          => 'nullable|string|in:solo,counter,starter,growth,business',
             'interval'      => 'nullable|string|in:monthly,annual',
             'terms_consent' => 'required|accepted',
         ], [
@@ -253,11 +253,11 @@ class StoreController extends Controller
                 $storeLimits = [
                     'ltd_1'    => 1,
                     'ltd_2'    => 2,
-                    'ltd_3'    => 4,
+                    'ltd_3'    => 5,
                     // legacy keys (pre-fix) — keep for backward compat
                     'starter'  => 1,
                     'growth'   => 2,
-                    'business' => 4,
+                    'business' => 5,
                 ];
                 $storeLimit = $storeLimits[$appsumoLicense->plan] ?? 1;
 
@@ -412,7 +412,7 @@ class StoreController extends Controller
         return match ($slug) {
             'starter'  => 'Starter',
             'growth'   => 'Growth',
-            'business' => 'Enterprise',
+            'business' => 'Scale',
             default    => ucfirst($slug),
         };
     }
@@ -424,51 +424,57 @@ class StoreController extends Controller
     private function planCatalog(string $country): array
     {
         $meta = [
-            'counter' => [
-                'tagline'  => 'Simple checkout for fast-paced stalls and counters.',
+            'solo' => [
+                'tagline'  => 'One person, one register. Free forever with structural limits.',
                 'features' => [
                     '1 Store Location',
-                    '1 Staff Account',
-                    '100 Product SKUs',
-                    'Basic POS Checkout',
-                    'Daily Sales Reports',
-                    'Community Support',
+                    '1 Full Staff Seat (2 Till Logins)',
+                    '1 POS Register',
+                    '500 Product SKUs',
+                    '100 Sales / Month',
+                    '30 Days History Retention',
+                    '100 Monthly AI Credits',
                 ],
                 'popular'  => false,
             ],
             'starter' => [
-                'tagline'  => 'Single-location stores getting serious about POS & inventory.',
+                'tagline'  => 'Single-location shops getting off paper, spreadsheets, or slow legacy POS.',
                 'features' => [
                     '1 Store Location',
-                    '3 Staff Accounts',
-                    '1,000 Product SKUs',
-                    'Full POS Checkout',
-                    'Double-Entry Khata',
-                    'Email Support',
+                    '1 Full Staff Seat (Till logins unlimited)',
+                    '2 POS Registers',
+                    '5,000 Product SKUs',
+                    '500 Monthly AI Credits',
+                    'Smart Invoicing & Double-Entry Ledger',
+                    'All 43 Financial Reports Included',
                 ],
                 'popular'  => false,
             ],
             'growth' => [
-                'tagline'  => 'Expanding outlets that need multi-location stock routing.',
+                'tagline'  => 'Multi-branch control, API access, audit logs, custom roles and signals.',
                 'features' => [
-                    '3 Store Locations',
-                    '10 Staff Accounts',
-                    '10,000 Product SKUs',
-                    '3-Store Multi-Branch Sync',
-                    'Batch & Expiry Tracking',
-                    'WhatsApp Debt Alerts',
+                    '1 Store Location (Multi-Branch ready)',
+                    '5 Full Staff Seats',
+                    '6 POS Registers',
+                    '25,000 Product SKUs',
+                    '2,000 Monthly AI Credits',
+                    'Full API Access & Webhooks',
+                    'Audit Trail & Custom Granular Roles',
+                    'Manufacturing & BOM Assemblies',
                 ],
                 'popular'  => true,
             ],
             'business' => [
-                'tagline'  => 'Multi-channel operators demanding full-scale operations.',
+                'tagline'  => 'Large operations demanding full-scale ERP, white-label, and channel sync.',
                 'features' => [
-                    '10 Store Locations',
-                    '50 Staff Accounts',
-                    '50,000 Product SKUs',
-                    'Serial / IMEI Tracking',
-                    'Loyalty & Gift Cards',
-                    '24/7 Priority SLA',
+                    '1 Store Location (Expandable)',
+                    '25 Full Staff Seats',
+                    '20 POS Registers',
+                    '250,000 Product SKUs',
+                    '10,000 Monthly AI Credits',
+                    'White-Label Branding',
+                    '2 Channel Syncs Included (Woo/Amazon)',
+                    'Named Contact (4hr SLA)',
                 ],
                 'popular'  => false,
             ],
@@ -488,9 +494,9 @@ class StoreController extends Controller
             $catalog[] = [
                 'slug'          => $slug,
                 'name'          => $this->planDisplayName($slug),
-                'tagline'       => $meta[$slug]['tagline'],
-                'features'      => $meta[$slug]['features'],
-                'popular'       => $meta[$slug]['popular'],
+                'tagline'       => $meta[$slug]['tagline'] ?? '',
+                'features'      => $meta[$slug]['features'] ?? [],
+                'popular'       => $meta[$slug]['popular'] ?? false,
                 'price_monthly' => $pricing['monthly'],
                 'price_annual'  => $pricing['annual'],        // per-month equivalent
                 'annual_total'  => $pricing['annual_total'],  // full yearly charge
@@ -509,8 +515,8 @@ class StoreController extends Controller
      */
     private function resolvePricing(?Plan $plan, string $slug, string $country): array
     {
-        $fallbackMonthly = ['starter' => 19, 'growth' => 39, 'business' => 79];
-        $base = $fallbackMonthly[$slug] ?? 19;
+        $fallbackMonthly = ['solo' => 0, 'starter' => 49, 'growth' => 99, 'business' => 299];
+        $base = $fallbackMonthly[$slug] ?? 49;
         $isPK = $country === 'PK';
         $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);
 
@@ -522,14 +528,14 @@ class StoreController extends Controller
             $monthly = $plan?->price_monthly ? (float) $plan->price_monthly : (float) $base;
         }
 
-        // Annual total: prefer a configured annual price, otherwise apply a 20%
-        // saving on twelve months.
+        // Annual total: prefer a configured annual price, otherwise apply a 2-month free
+        // discount on 12 months (10 months price).
         if ($isPK) {
             $annualTotal = $plan?->price_annual_pkr
                 ? (float) $plan->price_annual_pkr
-                : ($plan?->price_annual ? round($plan->price_annual * $rate) : round($monthly * 12 * 0.8));
+                : ($plan?->price_annual ? round($plan->price_annual * $rate) : round($monthly * 10));
         } else {
-            $annualTotal = $plan?->price_annual ? (float) $plan->price_annual : round($monthly * 12 * 0.8);
+            $annualTotal = $plan?->price_annual ? (float) $plan->price_annual : round($monthly * 10);
         }
 
         return [

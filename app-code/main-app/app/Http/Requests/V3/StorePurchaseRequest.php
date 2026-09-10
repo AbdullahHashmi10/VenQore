@@ -22,6 +22,39 @@ class StorePurchaseRequest extends FormRequest
 {
     public function authorize(): bool { return true; }
 
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+        if (!$this->has('supplier_id') && $this->has('party_id')) {
+            $merge['supplier_id'] = $this->input('party_id');
+        }
+        if (!$this->has('purchase_date') && $this->has('date')) {
+            $merge['purchase_date'] = $this->input('date');
+        }
+        if ($this->has('status') && !$this->has('workflow_status')) {
+            $merge['workflow_status'] = $this->input('status');
+        }
+        if ($this->has('items') && is_array($this->input('items'))) {
+            $items = $this->input('items');
+            foreach ($items as $k => $item) {
+                if (is_array($item)) {
+                    if (!isset($item['qty']) && isset($item['quantity'])) {
+                        $items[$k]['qty'] = $item['quantity'];
+                    }
+                    if (!isset($item['unit_cost']) && isset($item['price'])) {
+                        $items[$k]['unit_cost'] = $item['price'];
+                    } elseif (!isset($item['unit_cost']) && isset($item['cost'])) {
+                        $items[$k]['unit_cost'] = $item['cost'];
+                    }
+                }
+            }
+            $merge['items'] = $items;
+        }
+        if (!empty($merge)) {
+            $this->merge($merge);
+        }
+    }
+
     public function rules(): array
     {
         return array_merge(self::sharedPurchaseRules(), [

@@ -119,7 +119,11 @@ class FullRouteSweepTest extends TestCase
         'welcome'          => 'Feature/MarketingSsrTest',
         'welcome-splash'   => 'Feature/MarketingSsrTest',
         'what-is-included' => 'Feature/MarketingSsrTest',
-        'public'           => 'Public free tools and public preview routes.',
+        'global'           => 'Global administrative / platform routes',
+        'new-dashboard'    => 'Unified executive dashboard',
+        'public'           => 'Public marketing & utility routes',
+        'v6'               => 'V6 marketing and pricing landing pages',
+        'workspace'        => 'Workspace switching and environment routes',
     ];
 
     // -----------------------------------------------------------------

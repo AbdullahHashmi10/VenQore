@@ -205,7 +205,10 @@ export default function CreditNoteTool({
             toolGroups={toolGroups}
             currentSlug="credit-note-generator"
             faqs={FAQS}
-            cta={{ headline: 'Returns and credit notes made simple.', subtext: 'VenQore links sales, returns, and inventory adjustments automatically in real time.' }}
+            cta={{
+                    headline: "Returns and credit notes made simple.",
+                    subtext: "Describe your business and VenQore builds a system where a return moves stock, the customer's balance and the ledger in a single posting.",
+                }}
             related={[{ href: '/tools/invoice-generator', label: 'Invoice Generator' }]}
             wide
         >

@@ -18,7 +18,7 @@ class ProductDescriptionController extends Controller
 
         $tenant = app('current.tenant');
 
-        if ($tenant->ai_descriptions_balance <= 0 && !PlanGate::check('ai_product_descriptions')) {
+        if ($tenant->ai_descriptions_balance <= 0) {
             return response()->json([
                 'error'   => 'Insufficient AI description credits. Please purchase a description pack.',
                 'balance' => $tenant->ai_descriptions_balance,

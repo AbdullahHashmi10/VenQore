@@ -58,18 +58,20 @@ class SharedCatalogService
             ]);
         }
 
-        \App\Models\SharedProductContribution::firstOrCreate([
-            'shared_product_id' => $product->id,
-            'tenant_hash'       => $tenantHash,
-        ]);
+        try {
+            \App\Models\SharedProductContribution::firstOrCreate([
+                'shared_product_id' => $product->id,
+                'tenant_hash'       => $tenantHash,
+            ]);
+        } catch (\Throwable $e) {}
 
         $distinctCount = \App\Models\SharedProductContribution::where('shared_product_id', $product->id)->count();
-        $threshold = (int) config('smartcapture.shared_catalog_threshold', 3);
+        $threshold = (int) config('smartcapture.shared_catalog_threshold', 5);
         $isPublished = $distinctCount >= $threshold;
 
         $product->update([
             'confirmations' => $distinctCount,
-            'is_published'  => $isPublished || $product->is_published,
+            'is_published'  => $isPublished || (bool) $product->is_published,
         ]);
 
         return true;

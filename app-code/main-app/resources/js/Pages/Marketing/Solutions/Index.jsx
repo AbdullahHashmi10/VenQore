@@ -90,7 +90,7 @@ export default function Index() {
                         No matter your trade, every transaction updates the same verified double-entry General Ledger — the
                         engine behind <InlineLink href="/features/accounting" className="text-emerald-300 decoration-emerald-400/40">VenQore's accounting</InlineLink> and{''}
                         <InlineLink href="/features/inventory-management" className="text-emerald-300 decoration-emerald-400/40">FIFO inventory</InlineLink>.
-                        Guarded by 1,500+ automated tests, your reports match your money down to the cent.
+                        Guarded by eight correctness laws that run against every reading, your reports match your money down to the cent.
                     </p>
                     <div className="flex flex-wrap justify-center gap-4">
                         <MagneticButton href="/demo" variant="primary">

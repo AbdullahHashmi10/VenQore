@@ -64,7 +64,19 @@ class EnforceTransactionLimit
                 }
 
                 if ($used >= $limit) {
-                    throw new \App\Exceptions\PlanLimitException('transactions_per_month', $used);
+                    if ($request->expectsJson() || $request->isJson()) {
+                        return response()->json([
+                            'type'    => 'plan_limit',
+                            'error'   => 'Monthly transaction limit reached for your plan.',
+                            'message' => 'Monthly transaction limit reached for your plan.',
+                            'code'    => 'TRANSACTION_LIMIT_REACHED',
+                            'feature' => 'transactions_per_month',
+                            'used'    => $used,
+                            'limit'   => $limit,
+                        ], 403);
+                    }
+
+                    throw new \App\Exceptions\PlanLimitException('transactions_per_month', $used, $limit);
                 }
             }
         }

@@ -188,9 +188,9 @@ export default function PriceTagTool({
             toolGroups={toolGroups}
             currentSlug="price-tag-generator"
             cta={{
-                headline: 'Tired of typing prices product by product?',
-                subtext: 'VenQore POS automatically manages your inventory prices, prints shelf tags in bulk, and writes balanced double-entry accounting records.',
-            }}
+                    headline: "Tired of typing prices product by product?",
+                    subtext: "Describe your shop and VenQore builds a system that holds every price and prints shelf tags in bulk the moment they change.",
+                }}
             related={[
                 { label: 'Barcode Generator', href: '/tools/barcode-generator' },
                 { label: 'Barcode Validator', href: '/tools/barcode-validator' },

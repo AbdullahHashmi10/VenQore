@@ -1,228 +1,361 @@
 <?php
 
 /**
- * Plan Limits — REFERENCE COPY + LAST-RESORT FALLBACK ONLY
+ * Plan Limits & Feature Registry — Reference & Last-Resort Fallback
  *
- * ⚠️ THIS FILE IS **NOT** THE RUNTIME SOURCE OF TRUTH. (Header corrected 2026-07-03.)
- *
- * The runtime source of truth is the `plan_limits` TABLE, written by
- * `database/seeders/PlanFeatureMatrixSeeder.php` and read through
- * `App\Services\PlanRepository` → `Tenant::getLimit()` → `PlanGate`.
- *
- * This file is consulted in exactly ONE case: `PlanRepository::getLimits()`
- * falls back here when a plan slug has never been seeded into the DB
- * (fresh install mid-migration). Nothing else reads it — as of 2026-07-03
- * `Tenant::setPlanAttribute()` and `AppSumoController` snapshot LTD limits
- * from the table, not from this file.
- *
- * KEEP THIS FILE IN SYNC WITH THE SEEDER. Reconciled line-by-line on
- * 2026-07-03 (audit findings A1/A2/VNQ-011/VNQ-012):
- *   - transactions_per_month for subscription plans = null (UNLIMITED — decided:
- *     subscriptions are uncapped; only AppSumo LTD tiers carry caps 500/2000/6000).
- *   - growth sku_limit 10000; business staff_limit 50, locations 10 (seeder caps).
- *   - owners_daily_pulse: Growth+ (matches seeder).
- *   - dedicated keys: recurring_invoices, fund_management, loyalty_points,
- *     digital_gift_cards.
- *
- * null  = unlimited · false = disabled · int = numeric cap
- *
- * AppSumo LTD stacking:
- *   1 code  → ltd_1 (starter-equivalent) · 2 codes → ltd_2 (growth-equivalent)
- *   3 codes → ltd_3 (business-equivalent). LTD never expires; hosting included
- *   2 years, then $9/month to stay hosted.
+ * The canonical source of truth for all plans and the 8 capability fences (V6 Spec).
+ * Written to the database by database/seeders/PlanFeatureMatrixSeeder.php.
  */
 
 return [
 
-    'counter' => [
-        'transactions_per_month' => null,
-        'locations'    => 1,
-        'sku_limit'    => 2000,
-        'staff_limit'  => 2,
-        'woocommerce'  => false,
-        'api_access'   => false,
-        'reports'      => 'advanced',
-        'growth_engine'=> false,
-        'multi_branch' => false,
-        'owners_daily_pulse' => false,
-        'production'         => false,
-        'e_invoicing'        => false,
-        'bank_reconciliation'=> false,
-        'marketing_campaigns'=> false,
-        'invoice_reminders'  => false,
-        'recurring_invoices' => false,
-        'fund_management'    => false,
-        'loyalty_points'     => false,
-        'digital_gift_cards' => false,
-        // 2026-09-04: Counter is NOT a crippled edition. The pricing table marks
-        // the ledger and every financial report as included at every tier, and the
-        // page argues the point explicitly. Enforcement follows the promise.
-        'report_profit_loss' => true,
-        'discount_report'    => true,
-        'cash_flow_report'   => true,
-        'stock_valuation'    => true,
+    'solo' => [
+        // Limits
+        'transactions_per_month'   => null, // Unlimited
+        'locations'                => 1,
+        'location_limit'           => 1,
+        'sku_limit'                => 500,
+        'staff_limit'              => 1, // Full seats
+        'registers'                => 1,
+        'devices_per_seat'         => 2,
+        'till_logins'              => null, // Unlimited & free
+        'history_retention_days'   => 90,
+        'ai_credits_monthly'       => 30,
+        'ai_scans_monthly'         => 10,
+
+        // Capability Fences (Denied on Solo)
+        'multi_branch'             => false, // Fence 1
+        'production'               => false, // Fence 2
+        'bill_of_materials'        => false, // Fence 2
+        'ai_system_builder'        => false, // Fence 3
+        'growth_engine'            => false, // Fence 4
+        'owners_daily_pulse'       => false, // Fence 4
+        'loyalty_points'           => false, // Fence 5
+        'digital_gift_cards'       => false, // Fence 5
+        'marketing_campaigns'      => false, // Fence 5
+        'recurring_invoices'       => false, // Fence 6
+        'bank_reconciliation'      => false, // Fence 6
+        'e_invoicing'              => false, // Fence 6
+        'fund_management'          => false, // Fence 6
+        'invoice_reminders'        => false, // Fence 6
+        'fiscal_year_closing'      => false, // Fence 6
+        'fixed_asset_depreciation' => false, // Fence 6
+        'api_access'               => false, // Fence 7
+        'white_label'              => false, // Fence 7
+        'security_activity_log'    => false, // Fence 8
+        'custom_roles'             => false, // Fence 8
+        'imei_scanner'             => false, // Fence 8
+        'serial_tracking'          => false, // Fence 8
+        'woocommerce'              => false,
+
+        // Explicitly Enabled on Solo (Full operational core)
+        'reports'                  => 'advanced',
+        'report_profit_loss'       => true,
+        'discount_report'          => true,
+        'cash_flow_report'         => true,
+        'stock_valuation'          => true,
         'outstanding_balance_grid' => true,
-        'live_chat_widget'   => true,
+        'live_chat_widget'         => true,
+        'bulk_upload'              => true,
+        'senior_mode'              => true,
+        'barcode_scanner'          => true,
+        'keyboard_hotkeys'         => true,
+        'profit_peek'              => true,
+        'park_recall'              => true,
+        'split_payments'           => true,
+        'daily_cash_audit'         => true,
+        'customer_khata'           => true,
+        'supplier_khata'           => true,
+        'purchase_orders'          => true,
+        'double_entry_ledger'      => true,
+        'batch_tracking'           => true,
+        'batch_expiry'             => true,
+        'smart_capture'            => true,
+        'ai_assistant'             => true,
+        'hypersearch_byok'         => true,
     ],
 
     'starter' => [
-        'transactions_per_month' => null,   // unlimited (subscriptions uncapped — 2026-07-03 decision)
-        'locations'    => 1,
-        'sku_limit'    => 5000,
-        'staff_limit'  => 3,
-        'woocommerce'  => false,
-        'api_access'   => false,
-        'reports'      => 'advanced',
-        'growth_engine'=> false,
-        'multi_branch' => false,
-        'owners_daily_pulse' => false,      // Growth+ (matches seeder)
-        'production'         => false,
-        'e_invoicing'        => false,
-        'bank_reconciliation'=> false,
-        'marketing_campaigns'=> false,
-        'invoice_reminders'  => false,
-        'recurring_invoices' => false,
-        'fund_management'    => false,
-        'loyalty_points'     => false,
-        'digital_gift_cards' => false,
-        'report_profit_loss' => true,       // Starter includes P&L (2026-07-03 — the activation hook)
-        'live_chat_widget'   => true,
+        // Limits
+        'transactions_per_month'   => null, // Unlimited
+        'locations'                => 1,
+        'location_limit'           => 1,
+        'sku_limit'                => 10000,
+        'staff_limit'              => 1, // Full seats
+        'registers'                => 2,
+        'devices_per_seat'         => 3,
+        'till_logins'              => null, // Unlimited & free
+        'history_retention_days'   => null,
+        'ai_credits_monthly'       => 1500,
+
+        // Capability Fences (Denied on Starter)
+        'multi_branch'             => false, // Fence 1
+        'production'               => false, // Fence 2
+        'bill_of_materials'        => false, // Fence 2
+        'ai_system_builder'        => false, // Fence 3 (AI rebuild after onboarding)
+        'growth_engine'            => false, // Fence 4
+        'owners_daily_pulse'       => false, // Fence 4
+        'loyalty_points'           => false, // Fence 5
+        'digital_gift_cards'       => false, // Fence 5
+        'marketing_campaigns'      => false, // Fence 5
+        'recurring_invoices'       => false, // Fence 6
+        'bank_reconciliation'      => false, // Fence 6
+        'e_invoicing'              => false, // Fence 6
+        'fund_management'          => false, // Fence 6
+        'invoice_reminders'        => false, // Fence 6
+        'fiscal_year_closing'      => false, // Fence 6
+        'fixed_asset_depreciation' => false, // Fence 6
+        'api_access'               => false, // Fence 7
+        'white_label'              => false, // Fence 7
+        'security_activity_log'    => false, // Fence 8
+        'custom_roles'             => false, // Fence 8
+        'imei_scanner'             => false, // Fence 8
+        'serial_tracking'          => false, // Fence 8
+        'woocommerce'              => false,
+
+        // Explicitly Enabled on Starter
+        'reports'                  => 'advanced',
+        'report_profit_loss'       => true,
+        'discount_report'          => true,
+        'cash_flow_report'         => true,
+        'stock_valuation'          => true,
+        'outstanding_balance_grid' => true,
+        'live_chat_widget'         => true,
+        'bulk_upload'              => true,
+        'senior_mode'              => true,
+        'barcode_scanner'          => true,
+        'keyboard_hotkeys'         => true,
+        'profit_peek'              => true,
+        'park_recall'              => true,
+        'split_payments'           => true,
+        'daily_cash_audit'         => true,
+        'customer_khata'           => true,
+        'supplier_khata'           => true,
+        'purchase_orders'          => true,
+        'double_entry_ledger'      => true,
+        'batch_tracking'           => true,
+        'batch_expiry'             => true,
+        'smart_capture'            => true,
+        'ai_assistant'             => true,
+        'hypersearch_byok'         => true,
     ],
 
     'growth' => [
-        'transactions_per_month' => null,   // unlimited
-        'locations'    => 3,
-        'sku_limit'    => 20000,            // matches the published pricing table
-        'staff_limit'  => 10,
-        'woocommerce'  => false,
-        'api_access'   => false,
-        'reports'      => 'advanced',
-        'growth_engine'=> true,             // AI Growth Engine — enabled on Growth (Phase 1)
-        'multi_branch' => true,
-        'owners_daily_pulse' => true,
-        'production'         => true,
-        'e_invoicing'        => true,
-        'bank_reconciliation'=> true,
-        'marketing_campaigns'=> true,
-        'invoice_reminders'  => true,
-        'recurring_invoices' => true,
-        'fund_management'    => true,
-        'loyalty_points'     => false,
-        'digital_gift_cards' => false,
-        'report_profit_loss' => true,
-        'bulk_upload'        => true,
-        'live_chat_widget'   => true,
+        // Limits
+        'transactions_per_month'   => null, // Unlimited
+        'locations'                => 3,
+        'location_limit'           => 3,
+        'sku_limit'                => 50000,
+        'staff_limit'              => 3,
+        'registers'                => 6,
+        'devices_per_seat'         => 3,
+        'till_logins'              => null,
+        'history_retention_days'   => null,
+        'ai_credits_monthly'       => 4000,
+
+        // Capability Fences (Enabled on Growth: Fences 1–6)
+        'multi_branch'             => true, // Fence 1
+        'production'               => true, // Fence 2
+        'bill_of_materials'        => true, // Fence 2
+        'ai_system_builder'        => true, // Fence 3
+        'growth_engine'            => true, // Fence 4
+        'owners_daily_pulse'       => true, // Fence 4
+        'loyalty_points'           => true, // Fence 5
+        'digital_gift_cards'       => true, // Fence 5
+        'marketing_campaigns'      => true, // Fence 5
+        'recurring_invoices'       => true, // Fence 6
+        'bank_reconciliation'      => true, // Fence 6
+        'e_invoicing'              => true, // Fence 6
+        'fund_management'          => true, // Fence 6
+        'invoice_reminders'        => true, // Fence 6
+        'fiscal_year_closing'      => true, // Fence 6
+        'fixed_asset_depreciation' => true, // Fence 6
+
+        // Fences 7 & 8 (Scale only)
+        'api_access'               => false, // Fence 7
+        'white_label'              => false, // Fence 7
+        'security_activity_log'    => false, // Fence 8
+        'custom_roles'             => false, // Fence 8
+        'imei_scanner'             => false, // Fence 8
+        'serial_tracking'          => false, // Fence 8
+        'woocommerce'              => false,
+
+        // Enabled
+        'reports'                  => 'advanced',
+        'report_profit_loss'       => true,
+        'live_chat_widget'         => true,
+        'bulk_upload'              => true,
+        'senior_mode'              => true,
+        'smart_capture'            => true,
+        'ai_assistant'             => true,
+        'hypersearch_byok'         => true,
     ],
 
     'business' => [
-        'transactions_per_month' => null,   // unlimited
-        'locations'    => 10,               // matches seeder (was wrongly null/unlimited)
-        'sku_limit'    => 50000,            // matches seeder
-        'staff_limit'  => 50,               // matches seeder (was wrongly null/unlimited)
-        'woocommerce'  => false,
-        'api_access'   => true,
-        'reports'      => 'advanced',
-        'growth_engine'=> true,             // AI Growth Engine — enabled on Business (Phase 1)
-        'multi_branch' => true,
-        'owners_daily_pulse' => true,
-        'production'         => true,
-        'e_invoicing'        => true,
-        'bank_reconciliation'=> true,
-        'marketing_campaigns'=> true,
-        'invoice_reminders'  => true,
-        'recurring_invoices' => true,
-        'fund_management'    => true,
-        'loyalty_points'     => true,
-        'digital_gift_cards' => true,
-        'report_profit_loss' => true,
-        'bulk_upload'        => true,
-        'live_chat_widget'   => true,
+        // Limits
+        'transactions_per_month'   => null, // Unlimited
+        'locations'                => 10,
+        'location_limit'           => 10,
+        'sku_limit'                => 250000,
+        'staff_limit'              => 10,
+        'registers'                => 20,
+        'devices_per_seat'         => 5,
+        'till_logins'              => null,
+        'history_retention_days'   => null,
+        'ai_credits_monthly'       => 9000,
+
+        // All 8 Capability Fences Enabled on Scale
+        'multi_branch'             => true, // Fence 1
+        'production'               => true, // Fence 2
+        'bill_of_materials'        => true, // Fence 2
+        'ai_system_builder'        => true, // Fence 3
+        'growth_engine'            => true, // Fence 4
+        'owners_daily_pulse'       => true, // Fence 4
+        'loyalty_points'           => true, // Fence 5
+        'digital_gift_cards'       => true, // Fence 5
+        'marketing_campaigns'      => true, // Fence 5
+        'recurring_invoices'       => true, // Fence 6
+        'bank_reconciliation'      => true, // Fence 6
+        'e_invoicing'              => true, // Fence 6
+        'fund_management'          => true, // Fence 6
+        'invoice_reminders'        => true, // Fence 6
+        'fiscal_year_closing'      => true, // Fence 6
+        'fixed_asset_depreciation' => true, // Fence 6
+        'api_access'               => true, // Fence 7
+        'white_label'              => true, // Fence 7
+        'security_activity_log'    => true, // Fence 8
+        'custom_roles'             => true, // Fence 8
+        'imei_scanner'             => true, // Fence 8
+        'serial_tracking'          => true, // Fence 8
+        'woocommerce'              => true,
+
+        // Enabled
+        'reports'                  => 'advanced',
+        'report_profit_loss'       => true,
+        'live_chat_widget'         => true,
+        'bulk_upload'              => true,
+        'senior_mode'              => true,
+        'smart_capture'            => true,
+        'ai_assistant'             => true,
+        'hypersearch_byok'         => true,
     ],
 
-    // ── AppSumo LTD Plans (Phase 7) — mirror seeder: ltd_1=starter, ltd_2=growth,
-    //    ltd_3=business equivalents, plus the tx caps from the AppSumo listing. ──
+    // ── AppSumo LTD Plans (LTD tx caps removed: set to null) ──
 
     'ltd_1' => [
-        // Value must match database/seeders/PlanFeatureMatrixSeeder.php — the seeded plan_limits table is the runtime source of truth. This config value is read only as a fallback if the plan was never seeded.
-        'transactions_per_month' => 1000,
-        'locations'    => 1,
-        'sku_limit'    => 1000,
-        'staff_limit'  => 3,
-        'woocommerce'  => false,
-        'api_access'   => false,
-        'reports'      => 'advanced',
-        'growth_engine'=> false,
-        'multi_branch' => false,
-        'owners_daily_pulse' => false,
-        'production'         => false,
-        'e_invoicing'        => false,
-        'bank_reconciliation'=> false,
-        'marketing_campaigns'=> false,
-        'invoice_reminders'  => false,
-        'recurring_invoices' => false,
-        'fund_management'    => false,
-        'loyalty_points'     => false,
-        'digital_gift_cards' => false,
-        'report_profit_loss' => true,
-        'bill_of_materials'  => false,
-        'ltd'          => true,
-        'hosted_until' => '+2 years',
-        'live_chat_widget'   => true,
+        'transactions_per_month'   => null, // Unlimited (tx cap removed per V6 spec §5.1)
+        'locations'                => 1,
+        'location_limit'           => 1,
+        'sku_limit'                => 5000,
+        'staff_limit'              => 1,
+        'registers'                => 2,
+        'devices_per_seat'         => 3,
+        'till_logins'              => null,
+        'ai_credits_annual'        => 12000,
+        'multi_branch'             => false,
+        'production'               => false,
+        'bill_of_materials'        => false,
+        'ai_system_builder'        => false,
+        'growth_engine'            => false,
+        'owners_daily_pulse'       => false,
+        'loyalty_points'           => false,
+        'digital_gift_cards'       => false,
+        'marketing_campaigns'      => false,
+        'recurring_invoices'       => false,
+        'bank_reconciliation'      => false,
+        'e_invoicing'              => false,
+        'fund_management'          => false,
+        'invoice_reminders'        => false,
+        'fiscal_year_closing'      => false,
+        'fixed_asset_depreciation' => false,
+        'api_access'               => false,
+        'white_label'              => false,
+        'security_activity_log'    => false,
+        'custom_roles'             => false,
+        'imei_scanner'             => false,
+        'serial_tracking'          => false,
+        'woocommerce'              => false,
+        'reports'                  => 'advanced',
+        'report_profit_loss'       => true,
+        'live_chat_widget'         => true,
+        'ltd'                      => true,
     ],
 
     'ltd_2' => [
-        // Value must match database/seeders/PlanFeatureMatrixSeeder.php — the seeded plan_limits table is the runtime source of truth. This config value is read only as a fallback if the plan was never seeded.
-        'transactions_per_month' => 3000,
-        'locations'    => 3,
-        'sku_limit'    => 10000,            // growth-equivalent (matches seeder)
-        'staff_limit'  => 10,
-        'woocommerce'  => false,
-        'api_access'   => false,
-        'reports'      => 'advanced',
-        'growth_engine'=> true,             // AI Growth Engine — enabled on LTD 2 (Phase 1)
-        'multi_branch' => true,
-        'owners_daily_pulse' => true,
-        'production'         => true,
-        'e_invoicing'        => true,
-        'bank_reconciliation'=> true,
-        'marketing_campaigns'=> true,
-        'invoice_reminders'  => true,
-        'recurring_invoices' => true,
-        'fund_management'    => true,
-        'loyalty_points'     => false,
-        'digital_gift_cards' => false,
-        'report_profit_loss' => true,
-        'bill_of_materials'  => true,
-        'ltd'          => true,
-        'hosted_until' => '+2 years',
-        'live_chat_widget'   => true,
+        'transactions_per_month'   => null, // Unlimited
+        'locations'                => 2,
+        'location_limit'           => 2,
+        'sku_limit'                => 25000,
+        'staff_limit'              => 2,
+        'registers'                => 4,
+        'devices_per_seat'         => 3,
+        'till_logins'              => null,
+        'ai_credits_annual'        => 30000,
+        'multi_branch'             => true,
+        'production'               => true,
+        'bill_of_materials'        => true,
+        'ai_system_builder'        => true,
+        'growth_engine'            => false,
+        'owners_daily_pulse'       => true,
+        'loyalty_points'           => true,
+        'digital_gift_cards'       => true,
+        'marketing_campaigns'      => true,
+        'recurring_invoices'       => true,
+        'bank_reconciliation'      => true,
+        'e_invoicing'              => true,
+        'fund_management'          => true,
+        'invoice_reminders'        => true,
+        'fiscal_year_closing'      => true,
+        'fixed_asset_depreciation' => true,
+        'api_access'               => false,
+        'white_label'              => false,
+        'security_activity_log'    => false,
+        'custom_roles'             => false,
+        'imei_scanner'             => false,
+        'serial_tracking'          => false,
+        'woocommerce'              => false,
+        'reports'                  => 'advanced',
+        'report_profit_loss'       => true,
+        'live_chat_widget'         => true,
+        'ltd'                      => true,
     ],
 
     'ltd_3' => [
-        // Value must match database/seeders/PlanFeatureMatrixSeeder.php — the seeded plan_limits table is the runtime source of truth. This config value is read only as a fallback if the plan was never seeded.
-        'transactions_per_month' => 8000,
-        'locations'    => 10,               // business-equivalent (matches seeder)
-        'sku_limit'    => 50000,
-        'staff_limit'  => 50,
-        'woocommerce'  => false,
-        'api_access'   => true,
-        'reports'      => 'advanced',
-        'growth_engine'=> true,             // AI Growth Engine — enabled on LTD 3 (Phase 1)
-        'multi_branch' => true,
-        'owners_daily_pulse' => true,
-        'production'         => true,
-        'e_invoicing'        => true,
-        'bank_reconciliation'=> true,
-        'marketing_campaigns'=> true,
-        'invoice_reminders'  => true,
-        'recurring_invoices' => true,
-        'fund_management'    => true,
-        'loyalty_points'     => true,
-        'digital_gift_cards' => true,
-        'report_profit_loss' => true,
-        'bill_of_materials'  => true,
-        'ltd'          => true,
-        'hosted_until' => '+2 years',
-        'live_chat_widget'   => true,
+        'transactions_per_month'   => null, // Unlimited
+        'locations'                => 3,
+        'location_limit'           => 3,
+        'sku_limit'                => 50000,
+        'staff_limit'              => 3,
+        'registers'                => 6,
+        'devices_per_seat'         => 3,
+        'till_logins'              => null,
+        'ai_credits_annual'        => 60000,
+        'multi_branch'             => true,
+        'production'               => true,
+        'bill_of_materials'        => true,
+        'ai_system_builder'        => true,
+        'growth_engine'            => false,
+        'owners_daily_pulse'       => true,
+        'loyalty_points'           => true,
+        'digital_gift_cards'       => true,
+        'marketing_campaigns'      => true,
+        'recurring_invoices'       => true,
+        'bank_reconciliation'      => true,
+        'e_invoicing'              => true,
+        'fund_management'          => true,
+        'invoice_reminders'        => true,
+        'fiscal_year_closing'      => true,
+        'fixed_asset_depreciation' => true,
+        'api_access'               => false,
+        'white_label'              => false,
+        'security_activity_log'    => false,
+        'custom_roles'             => false,
+        'imei_scanner'             => false,
+        'serial_tracking'          => false,
+        'woocommerce'              => false,
+        'reports'                  => 'advanced',
+        'report_profit_loss'       => true,
+        'live_chat_widget'         => true,
+        'ltd'                      => true,
     ],
 ];

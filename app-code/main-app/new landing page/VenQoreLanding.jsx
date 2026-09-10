@@ -538,7 +538,7 @@ export default function VenQoreLanding() {
               {/* Live pill */}
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 28, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "6px 16px" }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399", display: "block" }} />
-                <span style={{ fontSize: 12, color: "#94a3b8" }}>665 tests passing · 4,000 assertions live</span>
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>2,000+ tests passing · 20,000+ assertions live</span>
               </div>
 
               <h1 style={{ fontSize: "clamp(38px, 5.8vw, 72px)", fontWeight: 900, lineHeight: 1.04, letterSpacing: "-0.04em", marginBottom: 24 }}>
@@ -564,7 +564,7 @@ export default function VenQoreLanding() {
               </div>
 
               <div style={{ display: "flex", gap: 20, flexWrap: "wrap", fontSize: 12, color: "#4b5563" }}>
-                {["14-day free trial","No credit card","Full access","Instant setup"].map(t => (
+                {["14-day free trial","Cancel anytime","Full access","Instant setup"].map(t => (
                   <span key={t} style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <span style={{ color: "#34d399" }}>✓</span>{t}
                   </span>
@@ -950,13 +950,14 @@ export default function VenQoreLanding() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 60 }}>
             <WordReveal text="Transparent pricing. Full access." style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", color: "#f1f5f9" }} />
-            <p style={{ fontSize: 15, color: "#4b5563", marginTop: 12 }}>14-day free trial. No credit card. Cancel anytime.</p>
+            <p style={{ fontSize: 15, color: "#4b5563", marginTop: 12 }}>14-day free trial. Full access. Cancel anytime.</p>
           </div>
-          <div className="pricing-row" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+          <div className="pricing-row" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
             {[
-              { plan: "Starter", price: "PKR 4,999", mo: "/mo", desc: "Single-store businesses ready to move beyond spreadsheets.", features: ["1 Store","2 Users","POS + Inventory + Purchases","15 Reports","Customer Khata","Email Support"], hi: false, delay: 0 },
-              { plan: "Professional", price: "PKR 12,999", mo: "/mo", desc: "Growing retailers who need the full truth about their business.", features: ["3 Stores","10 Users","All 12 Core Modules","40+ Reports","AI Growth Engine","WooCommerce Sync","Priority Support"], hi: true, delay: 80 },
-              { plan: "Enterprise", price: "Custom", mo: "", desc: "Multi-branch chains, franchise groups, SaaS operators.", features: ["Unlimited Stores","Unlimited Users","SuperAdmin HQ","Full API Access","Dedicated Onboarding","SLA Support"], hi: false, delay: 160 },
+              { plan: "Solo", price: "$0", mo: "/forever", desc: "1 person, 1 register. Core ledger + 43 reports free forever.", features: ["1 Register","500 SKUs","100 Sales / month","Verified Ledger","43 Financial Reports","Offline POS"], hi: false, delay: 0 },
+              { plan: "Starter", price: "$49", mo: "/mo", desc: "Single-store businesses ready to move beyond spreadsheets.", features: ["2 Registers","5,000 SKUs","Unlimited Sales","Google Drive Backup","Full History","Email Support"], hi: false, delay: 60 },
+              { plan: "Core", price: "$99", mo: "/mo", desc: "Growing retailers who need the full truth about their business.", features: ["6 Registers · 5 Seats","25,000 SKUs","Multi-Branch Transfers","REST API & Webhooks","Audit Trail & Custom Roles","Priority 1-Day SLA"], hi: true, delay: 120 },
+              { plan: "Scale", price: "$299", mo: "/mo", desc: "Multi-branch chains, franchise groups, and high-volume operators.", features: ["20 Registers · 25 Seats","250,000 SKUs","White-Label & Domain","2 Channel Syncs Included","Named Contact 4-Hr SLA","Dedicated Onboarding"], hi: false, delay: 180 },
             ].map((p) => {
               const [ref, vis] = useInView(0.1);
               return (
@@ -1013,7 +1014,7 @@ export default function VenQoreLanding() {
                 </button>
               </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 28, fontSize: 12, color: "#374151", flexWrap: "wrap" }}>
-                {["60-second setup","14-day full access","No credit card","Used in 5 countries"].map(t => <span key={t}>{t}</span>)}
+                {["60-second setup","14-day full access","Cancel anytime","Used in 5 countries"].map(t => <span key={t}>{t}</span>)}
               </div>
             </div>
           </div>
@@ -1054,7 +1055,7 @@ export default function VenQoreLanding() {
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 24, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
             <span style={{ fontSize: 11, color: "#1e293b" }}>© 2026 VenQore. All rights reserved.</span>
-            <span style={{ fontSize: 11, color: "#1e293b" }}>V12 Twin Turbo Qore — 665 tests · 4,000 assertions · zero compromises.</span>
+            <span style={{ fontSize: 11, color: "#1e293b" }}>V12 Twin Turbo Qore — 2,000+ tests · 20,000+ assertions · zero compromises.</span>
           </div>
         </div>
       </footer>

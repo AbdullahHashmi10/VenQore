@@ -16,7 +16,7 @@ class RecurringInvoiceController extends Controller
     {
         // ── Plan Gate: Recurring Auto-Invoicing ────────────────────────────
         if (app()->bound('current.tenant')) {
-            PlanGate::enforce('recurring_invoicing');
+            PlanGate::enforce('recurring_invoices');
         }
 
         $invoices = RecurringInvoice::with('customer')->latest()->get();
@@ -43,7 +43,7 @@ class RecurringInvoiceController extends Controller
     {
         // ── Plan Gate: Recurring Auto-Invoicing ────────────────────────────
         if (app()->bound('current.tenant')) {
-            PlanGate::enforce('recurring_invoicing');
+            PlanGate::enforce('recurring_invoices');
         }
 
         $validated = $request->validate([

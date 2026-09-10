@@ -118,66 +118,8 @@ return new class extends Migration
 
     public function up(): void
     {
-        if (!Schema::hasTable('plan_limits') || !Schema::hasTable('plans')) {
-            return;
-        }
-
-        $planIds = DB::table('plans')->pluck('id', 'slug');
-
-        if ($planIds->isEmpty()) {
-            return;
-        }
-
-        $now = now();
-        $rows = [];
-
-        foreach ($planIds as $slug => $planId) {
-            foreach (self::NOW_FREE as $key) {
-                if (in_array($key, self::KEEP, true)) {
-                    continue;   // belt and braces; the lists must never overlap
-                }
-
-                $rows[] = [
-                    'plan_id'      => $planId,
-                    'key'          => $key,
-                    'value'        => '1',
-                    'reset_period' => 'never',
-                    'created_at'   => $now,
-                    'updated_at'   => $now,
-                ];
-            }
-        }
-
-        // upsert, not insert: keys already present flip to '1', keys missing
-        // are created. A tenant on a plan that never had the row is exactly the
-        // fail-closed case this migration exists to remove.
-        foreach (array_chunk($rows, 500) as $batch) {
-            DB::table('plan_limits')->upsert($batch, ['plan_id', 'key'], ['value', 'updated_at']);
-        }
-
-        /*
-        | THE growth_engine BUG.
-        |
-        | Metered AI, given free and forever to one-time buyers. Turned off on
-        | every LTD tier. Subscription tiers keep whatever they had — those
-        | customers pay every month, so an included allowance is honest there.
-        |
-        | PlanTruthFailClosedTest should go green on the next run.
-        */
-        foreach (['ltd_1', 'ltd_2', 'ltd_3'] as $ltd) {
-            if (!isset($planIds[$ltd])) {
-                continue;
-            }
-
-            DB::table('plan_limits')->updateOrInsert(
-                ['plan_id' => $planIds[$ltd], 'key' => 'growth_engine'],
-                ['value' => '0', 'reset_period' => 'never', 'updated_at' => $now, 'created_at' => $now]
-            );
-        }
-
-        // Caches hold the OLD answers. Without this, the change appears to have
-        // done nothing for five minutes and somebody re-runs it in a panic.
-        $this->flushPlanCaches($planIds->keys()->all());
+        (new \Database\Seeders\PlanFeatureMatrixSeeder)->run();
+        \Illuminate\Support\Facades\Cache::flush();
     }
 
     /**

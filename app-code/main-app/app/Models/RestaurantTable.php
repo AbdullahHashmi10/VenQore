@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
+use App\Traits\HasTenant;
 
 class RestaurantTable extends Model
 {
+    use HasTenant;
     protected $fillable = [
         'tenant_id',
         'table_number',

@@ -19,16 +19,16 @@ export const featurePagesData = {
     'accounting': {
         slug: 'accounting',
         metaTitle: 'Double-Entry Accounting Software — VenQore',
-        metaDescription: 'VenQore\'s built-in double-entry accounting engine posts every sale, purchase and expense automatically. P&L, Balance Sheet and 40+ reports — always reconciled.',
+        metaDescription: 'VenQore\'s built-in double-entry accounting engine posts every sale, purchase and expense automatically. P&L, Balance Sheet and 40 reports — always reconciled.',
         heroBadge: 'Built-in Accounting — No Accountant Plugin Required',
         headline: 'Books That Close Themselves.',
-        subhead: 'Every sale, purchase, refund and expense writes a balanced journal entry automatically. VenQore\'s double-entry engine means your Profit & Loss is always right — guarded by 1,500+ automated tests.',
+        subhead: 'Every sale, purchase, refund and expense writes a balanced journal entry automatically. VenQore\'s double-entry engine means your Profit & Loss is always right — guarded by eight correctness laws that run on every release.',
         status: 'shipped',
         category: 'Finance & Accounting',
         stats: [
             { value: '40+', label: 'Financial Reports' },
             { value: '100%', label: 'Trial Balance Always Zero' },
-            { value: '1,500+', label: 'Automated Tests' },
+            { value: 'Eight', label: 'Correctness Laws' },
             { value: '$0', label: 'Extra Accounting Plugin Cost' },
         ],
         answerBlock: {
@@ -77,7 +77,7 @@ export const featurePagesData = {
                 tag: 'Real Costing',
             },
             {
-                title: '40+ Financial Reports',
+                title: 'All 40 Reports',
                 description: 'Profit & Loss, Balance Sheet, Cash Flow Statement, Trial Balance, Accounts Receivable Aging, Payables Aging, Stock Valuation, Item-wise Profit, Party-wise Profit, Daily Sales Summary — all from one verified ledger.',
                 icon: 'BarChart3',
                 tag: 'Full Reporting',
@@ -127,7 +127,7 @@ export const featurePagesData = {
             },
             {
                 q: 'What plans include the accounting features?',
-                a: 'The core double-entry engine and Profit & Loss are included on every VenQore plan, including Starter ($36/month). Bank Reconciliation, Balance Sheet export and advanced 40-report suite unlock on Growth ($63/month) and Enterprise ($129/month).',
+                a: 'The core double-entry engine and all 43 financial reports are included on every VenQore plan, including Solo (Free) and Starter ($49/month). Multi-branch transfers, API access, and advanced capabilities unlock on Core ($99/month) and Scale ($299/month).',
             },
         ],
         crossLinks: [
@@ -488,7 +488,7 @@ export const featurePagesData = {
             },
             {
                 q: 'Is there a per-transaction fee like Square or Stripe?',
-                a: 'No. VenQore charges a flat monthly subscription ($36 / $63 / $129). There is no percentage or per-transaction fee on any sale, regardless of payment method or volume.',
+                a: 'No. VenQore charges a flat monthly subscription ($49 / $99 / $299). There is no percentage or per-transaction fee on any sale, regardless of payment method or volume.',
             },
         ],
         crossLinks: [
@@ -694,7 +694,7 @@ export const featurePagesList = [
     {
         slug: 'accounting',
         title: 'Double-Entry Accounting',
-        description: 'Automatic journal entries on every transaction. P&L, Balance Sheet, 40+ reports — all from one verified ledger.',
+        description: 'Automatic journal entries on every transaction. P&L, Balance Sheet, 40 reports — all from one verified ledger.',
         icon: 'BookOpen',
         status: 'shipped',
         color: 'emerald',

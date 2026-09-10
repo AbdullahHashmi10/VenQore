@@ -81,7 +81,7 @@ export default function CompareIndex({ competitors }) {
                             { icon: ShieldCheck, title: "Zero Processing Markup", text: "Pay flat subscription rates with $0 hidden transaction percentages." },
                             { icon: BarChart3, title: "Auditor-Grade Books", text: "Every sale, purchase, and refund creates a balanced double-entry journal." },
                             { icon: Zap, title: "100% Offline PWA", text: "Keep checking out customers even during complete internet blackouts." },
-                            { icon: Layers, title: "1,500+ Automated Tests", text: "Financial precision verified by robust automated regression suites." },
+                            { icon: Layers, title: "Eight Correctness Laws", text: "Financial precision verified by robust automated regression suites." },
                         ].map((pillar, i) => (
                             <div key={i} className="p-6 rounded-2xl bg-surface border border-line">
                                 <pillar.icon className="w-8 h-8 text-emerald-500 mb-4" />
@@ -99,7 +99,7 @@ export default function CompareIndex({ competitors }) {
                     Ready to Take Control of Your Margins?
                 </h2>
                 <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
-                    Start a 14-day free trial with full feature access — no credit card required.
+                    Start a 14-day free trial with full feature access — cancel anytime.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                     <MagneticButton href="/register" variant="primary">

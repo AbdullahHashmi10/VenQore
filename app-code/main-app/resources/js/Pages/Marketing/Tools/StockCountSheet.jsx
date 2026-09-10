@@ -193,7 +193,10 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
             toolGroups={toolGroups}
             currentSlug="stock-count-sheet"
             faqs={FAQS}
-            cta={{ headline: 'Manual counts are one piece of running inventory.', subtext: 'VenQore tracks FIFO stock, batches and variances automatically — no clipboard required.' }}
+            cta={{
+                    headline: "Manual counts are one piece of running inventory.",
+                    subtext: "Describe your business and VenQore builds a system that tracks FIFO stock, batches and count variances — no clipboard required.",
+                }}
             related={[{ href: '/tools/invoice-generator', label: 'Invoice Generator' }]}
             wide
         >

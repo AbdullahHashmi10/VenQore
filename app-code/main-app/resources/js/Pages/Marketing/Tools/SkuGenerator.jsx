@@ -228,9 +228,9 @@ export default function SkuGenerator({ toolGroups = [] }) {
             toolGroups={toolGroups}
             currentSlug="sku-generator"
             cta={{
-                headline: 'Generating SKUs in a spreadsheet doesn\'t scale past a few dozen products.',
-                subtext: 'VenQore assigns and tracks SKUs, multi-barcodes and FIFO stock automatically as you add products.',
-            }}
+                    headline: "Generating SKUs in a spreadsheet does not scale past a few dozen products.",
+                    subtext: "Describe your business and VenQore builds a system that assigns SKUs, multi-barcodes and FIFO stock as you add products.",
+                }}
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Product CSV Cleaner', href: '/tools/product-csv-cleaner' }]}
         >
             {/* ── Category / variant code maps ─────────────────────────── */}

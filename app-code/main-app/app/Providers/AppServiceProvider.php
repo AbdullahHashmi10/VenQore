@@ -9,6 +9,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +41,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Password::defaults(function () {
+            return app()->isProduction()
+                ? Password::min(10)->letters()->numbers()->uncompromised()
+                : Password::min(8);
+        });
+
         Vite::prefetch(concurrency: 3);
 
         if ($this->app->runningInConsole()) {
@@ -62,6 +69,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Chatbot session state machine observer
         \App\Models\ChatSession::observe(\App\Observers\ChatSessionObserver::class);
+
+        // V7 Quantity Cap Observers
+        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        \App\Models\Warehouse::observe(\App\Observers\WarehouseObserver::class);
+        \App\Models\TenantUser::observe(\App\Observers\TenantUserObserver::class);
+        \App\Models\Register::observe(\App\Observers\RegisterObserver::class);
 
         // 4. Phase 1.7: Tenant-aware Rate Limiting
         // Limits are per-tenant (not per-IP) so one bad actor can't hurt others.

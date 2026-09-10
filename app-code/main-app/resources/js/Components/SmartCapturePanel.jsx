@@ -21,8 +21,7 @@ import { ThinkingOrb } from '@/Components/ThinkingOrbs';
  *          — created new, or appended to an existing open/draft document.
  */
 export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image', embedded = false }) {
-    const { store, pricing } = usePage().props;
-    const aiTiers = pricing?.ai_tiers || {};
+    const { store, ai_tiers: aiTiers = {} } = usePage().props;
     const [activeTab, setActiveTab] = useState(initialTab);
 
     useEffect(() => {

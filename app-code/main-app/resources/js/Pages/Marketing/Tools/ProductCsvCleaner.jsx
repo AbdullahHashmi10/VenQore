@@ -189,6 +189,8 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
 
     return (
         <ToolShell
+            title="Free Product CSV Cleaner — Fix Messy Product Exports | VenQore"
+            metaDescription="Clean a messy product CSV free: missing and duplicate SKUs, malformed prices, invalid barcodes. Review every fix before you download. No signup."
             eyebrow="Inventory & Data"
             h1="Free Product CSV Cleaner"
             answer="Upload or paste a messy product CSV export from Shopify, WooCommerce, or a spreadsheet, and get back a cleaned, validated version with a clear report of what was found and fixed — missing SKUs, duplicate SKUs, malformed prices, invalid barcodes and more. Review before you download. Free, no signup."

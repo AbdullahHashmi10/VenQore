@@ -19,7 +19,7 @@ export const solutionsData = {
             { value: '0%', label: 'Unchecked Expiry Losses' },
             { value: '100%', label: 'Batch-Level Lineage' },
             { value: 'FEFO/FIFO', label: 'Smart Batch Dispatch' },
-            { value: '1,500+', label: 'Automated Integrity Tests' },
+            { value: 'Eight', label: 'Correctness Laws' },
         ],
 
         painPoints: [
@@ -118,7 +118,7 @@ export const solutionsData = {
             { name: 'VenQore vs Vyapar', href: '/compare/venqore-vs-vyapar' },
         ],
         featureCrossLinks: [
-            { name: 'All 226+ Features', href: '/features' },
+            { name: 'All 144 Features', href: '/features' },
             { name: 'Verified Double-Entry Ledger', href: '/features' },
             { name: 'Multi-Store Operating System', href: '/features' },
         ]
@@ -140,7 +140,7 @@ export const solutionsData = {
             { value: '100%', label: 'IMEI & Serial Precision' },
             { value: 'Instant', label: 'Warranty Lookup' },
             { value: '$0', label: 'Transaction Fees' },
-            { value: '1,500+', label: 'Automated Integrity Tests' },
+            { value: 'Eight', label: 'Correctness Laws' },
         ],
 
         painPoints: [
@@ -238,7 +238,7 @@ export const solutionsData = {
             { name: 'VenQore vs Vyapar', href: '/compare/venqore-vs-vyapar' },
         ],
         featureCrossLinks: [
-            { name: 'All 226+ Features', href: '/features' },
+            { name: 'All 144 Features', href: '/features' },
             { name: 'Serial & IMEI Tracking', href: '/features' },
             { name: 'Multi-Store Inventory Sync', href: '/features' },
         ]
@@ -260,7 +260,7 @@ export const solutionsData = {
             { value: '<1s', label: 'Barcode Scan Time' },
             { value: '100%', label: 'Scale Integration' },
             { value: 'Automatic', label: 'Reorder Alerts' },
-            { value: '1,500+', label: 'Automated Integrity Tests' },
+            { value: 'Eight', label: 'Correctness Laws' },
         ],
 
         painPoints: [
@@ -356,7 +356,7 @@ export const solutionsData = {
             { name: 'VenQore vs Vyapar', href: '/compare/venqore-vs-vyapar' },
         ],
         featureCrossLinks: [
-            { name: 'All 226+ Features', href: '/features' },
+            { name: 'All 144 Features', href: '/features' },
             { name: 'Point of Sale Checkout', href: '/features/point-of-sale' },
             { name: 'Offline POS System', href: '/features/offline-pos' },
         ]
@@ -378,7 +378,7 @@ export const solutionsData = {
             { value: '3-Tier', label: 'Pricing Matrix' },
             { value: 'Automated', label: 'Credit Limit Guards' },
             { value: 'Real-time', label: 'AR Aging' },
-            { value: '1,500+', label: 'Automated Integrity Tests' },
+            { value: 'Eight', label: 'Correctness Laws' },
         ],
 
         painPoints: [
@@ -472,7 +472,7 @@ export const solutionsData = {
             { name: 'VenQore vs Vyapar', href: '/compare/venqore-vs-vyapar' },
         ],
         featureCrossLinks: [
-            { name: 'All 226+ Features', href: '/features' },
+            { name: 'All 144 Features', href: '/features' },
             { name: 'Double-Entry Accounting', href: '/features/accounting' },
             { name: 'FIFO Inventory Management', href: '/features/inventory-management' },
         ]
@@ -494,7 +494,7 @@ export const solutionsData = {
             { value: 'Matrix', label: 'Variant Handling' },
             { value: '<5min', label: 'WooCommerce Sync' },
             { value: 'Custom', label: 'Barcode Printing' },
-            { value: '1,500+', label: 'Automated Integrity Tests' },
+            { value: 'Eight', label: 'Correctness Laws' },
         ],
 
         painPoints: [
@@ -588,7 +588,7 @@ export const solutionsData = {
             { name: 'VenQore vs Vyapar', href: '/compare/venqore-vs-vyapar' },
         ],
         featureCrossLinks: [
-            { name: 'All 226+ Features', href: '/features' },
+            { name: 'All 144 Features', href: '/features' },
             { name: 'Point of Sale Checkout', href: '/features/point-of-sale' },
             { name: 'FIFO Inventory Management', href: '/features/inventory-management' },
         ]
@@ -610,7 +610,7 @@ export const solutionsData = {
             { value: 'Consolidated', label: 'General Ledger' },
             { value: 'Atomic', label: 'Stock Transfers' },
             { value: '7 Levels', label: 'Cashier Roles' },
-            { value: '1,500+', label: 'Automated Integrity Tests' },
+            { value: 'Eight', label: 'Correctness Laws' },
         ],
 
         painPoints: [
@@ -704,7 +704,7 @@ export const solutionsData = {
             { name: 'VenQore vs Vyapar', href: '/compare/venqore-vs-vyapar' },
         ],
         featureCrossLinks: [
-            { name: 'All 226+ Features', href: '/features' },
+            { name: 'All 144 Features', href: '/features' },
             { name: 'Double-Entry Accounting Engine', href: '/features/accounting' },
             { name: 'Offline-First POS', href: '/features/offline-pos' },
         ]

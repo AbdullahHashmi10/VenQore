@@ -273,7 +273,7 @@ final class FinanceSource implements ReckonerSource
         foreach ($plByWindow as $window) {
             /** @var ReckonerPeriod $period */
             $period = $window['period'];
-            $pl = $this->reporting->getProfitAndLoss($period->start->toDateString(), $period->end->toDateString());
+            $pl = $this->reporting->getProfitAndLoss($period->start->toDateString(), $period->end->toDateString(), $ctx->tenant?->id);
 
             $revenue = (float) $pl['revenue'];
             $cogs = (float) $pl['cogs'];

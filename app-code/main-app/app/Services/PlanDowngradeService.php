@@ -92,4 +92,19 @@ class PlanDowngradeService
             'reasons' => $reasons,
         ];
     }
+
+    /**
+     * Transition an expired trial or subscription smoothly to the Solo free tier.
+     * Ensures tenant remains functional with data intact.
+     */
+    public static function dropToSolo(Tenant $tenant): void
+    {
+        $tenant->update([
+            'plan'   => 'solo',
+            'status' => 'active',
+        ]);
+        PlanAiAllowance::applyTo($tenant, 'solo');
+        PlanRepository::invalidateTenantCache($tenant);
+        PlanRepository::invalidatePlanCache('solo');
+    }
 }

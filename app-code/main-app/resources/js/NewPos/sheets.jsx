@@ -674,7 +674,6 @@ export function ChargesSheet({ open, onClose, tab, setTab, narrow }) {
             )}
         >
             {tab.charges.map((c, i) => (
-                // eslint-disable-next-line react/no-array-index-key
                 <div className="nqp-field" key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <input value={c.label} onChange={(e) => set(i, { label: e.target.value })} />
                     <input className="num" inputMode="decimal" style={{ flex: '0 0 130px' }} value={c.amount} onChange={(e) => set(i, { amount: Number(e.target.value.replace(/[^\d.]/g, '')) || 0 })} />
@@ -719,7 +718,6 @@ export function SplitSheet({ open, onClose, tab, setTab, total, banks = [], onNe
         >
             <div className="nqp-splitrows" style={{ paddingTop: 12 }}>
                 {(tab.splits || []).map((s, i) => (
-                    // eslint-disable-next-line react/no-array-index-key
                     <div className="nqp-splitrow" key={i}>
                         <select value={s.method} onChange={(e) => set(i, { method: e.target.value })}>
                             {PAY_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
@@ -809,7 +807,6 @@ export function ReceiptSheet({ open, onClose, sale, settings, store }) {
                     const lineQty = Number(it.qty || it.quantity || 1);
                     const linePrice = Number(it.price || it.unit_price || 0);
                     return (
-                        // eslint-disable-next-line react/no-array-index-key
                         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0' }}>
                             <span>{lineQty} × {it.name || it.product?.name || `Item #${it.product_id}`}</span>
                             <span style={{ fontWeight: 600, fontFamily: 'var(--vq-font-numeric)' }}>PKR {n0(lineQty * linePrice)}</span>

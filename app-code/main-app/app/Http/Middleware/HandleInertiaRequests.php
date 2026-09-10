@@ -45,8 +45,8 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         // Scope Inertia SSR: enable SSR ONLY for public marketing routes, keep tenant app 100% client-side SPA
-        $isMarketingRoute = $request->routeIs('welcome', 'marketing.*', 'blog.*', 'demo.*', 'terms', 'privacy', 'refund-policy', 'register')
-            || $request->is('/', 'features', 'features/*', 'pricing', 'about', 'contact', 'roadmap', 'solutions', 'solutions/*', 'compare', 'compare/*', 'blog', 'blog/*', 'demo', 'terms', 'privacy', 'refund-policy', 'register', 'subscribe', 'vensynq', 'smartcapture', 'digital-products', 'partners', 'partners/*', 'docs', 'docs/*');
+        $isMarketingRoute = $request->routeIs('welcome', 'marketing.*', 'blog.*', 'demo.*', 'terms', 'privacy', 'refund-policy', 'register', 'legacy.*')
+            || $request->is('/', 'features', 'features/*', 'pricing', 'about', 'contact', 'roadmap', 'solutions', 'solutions/*', 'compare', 'compare/*', 'blog', 'blog/*', 'demo', 'terms', 'privacy', 'refund-policy', 'register', 'subscribe', 'vensynq', 'smartcapture', 'digital-products', 'partners', 'partners/*', 'docs', 'docs/*', 'legacy/*');
 
         config(['inertia.ssr.enabled' => $isMarketingRoute]);
 
@@ -76,19 +76,19 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user ? array_merge(
                     $user->only(['id', 'name', 'email', 'email_verified_at', 'is_platform_admin', 'last_store_id']),
                     [
-                        'role'              => $user->role,
-                        'permissions'       => $user->permissions,
-                        'avatar_initial'    => strtoupper(substr($user->name, 0, 1)),
+                        'role'              => $user->attributes['role'] ?? null,
+                        'permissions'       => $user->attributes['permissions'] ?? null,
+                        'avatar_initial'    => strtoupper(substr($user->name ?? '', 0, 1)),
                         'is_platform_staff' => $user->isPlatformStaff(),
-                        'staff_role'        => $user->staff_role,
+                        'staff_role'        => $user->attributes['staff_role'] ?? null,
                         // PIN status flags for the Profile settings page
                         // pos_pin (quick-login) and security_pin live on tenant_users, not users
-                        'has_passcode'      => !empty($user->passcode),
-                        'security_pin'      => !empty($user->security_pin) ? '****' : null,
+                        'has_passcode'      => !empty($user->attributes['passcode'] ?? null),
+                        'security_pin'      => !empty($user->attributes['security_pin'] ?? null) ? '****' : null,
                         // Google Auth flags — used by DangerSettingsSection to determine
                         // whether to ask for password or email address for confirmation.
-                        'google_id'         => !empty($user->google_id),
-                        'has_password'      => !empty($user->password),
+                        'google_id'         => !empty($user->attributes['google_id'] ?? null),
+                        'has_password'      => !empty($user->attributes['password'] ?? null),
                     ]
                 ) : null,
                 'notifications' => $user ? \Illuminate\Support\Facades\Cache::remember("user_notifications:{$user->id}", 15, function () use ($user) {
@@ -238,6 +238,13 @@ class HandleInertiaRequests extends Middleware
             'report_tiers' => \App\Services\ReportTierGate::allTiers(),
             'allowed_reports' => \App\Services\ReportTierGate::allowedKeys(),
             'pricing' => config('pricing'),
+            // SmartCapture is mounted across authenticated app pages. Give it
+            // only its display fields; checkout variant IDs remain page-scoped.
+            'ai_tiers' => fn () => app()->bound('current.tenant')
+                ? collect(config('pricing.ai_tiers', []))
+                    ->map(fn (array $tier) => \Illuminate\Support\Arr::except($tier, ['variant_id']))
+                    ->all()
+                : [],
             'turnstile_site_key' => config('services.cloudflare.turnstile_site_key', ''),
             'terms' => (function () use ($dbReady) {
                 if (!$dbReady || !$this->hasTable('tenant_terminology')) return [];

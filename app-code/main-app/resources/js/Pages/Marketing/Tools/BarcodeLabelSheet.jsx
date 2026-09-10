@@ -173,7 +173,10 @@ export default function BarcodeLabelSheetTool({
             toolGroups={toolGroups}
             currentSlug="barcode-label-generator"
             faqs={FAQS}
-            cta={{ headline: 'Every product in VenQore already has a barcode.', subtext: 'Stop generating labels by hand — VenQore prints them straight from your live inventory.' }}
+            cta={{
+                    headline: "Every product in a VenQore system already has a barcode.",
+                    subtext: "Describe your shop once. The system it builds prints labels straight from live stock, instead of from a form you retype.",
+                }}
             related={[{ href: '/tools/barcode-generator', label: 'Barcode Generator' }, { href: '/tools/price-tag-generator', label: 'Price Tag Generator' }]}
             wide
         >

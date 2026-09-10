@@ -164,7 +164,10 @@ export default function PackingSlipTool({ templates = {}, maxItems = 100, sugges
             toolGroups={toolGroups}
             currentSlug="packing-slip-generator"
             faqs={FAQS}
-            cta={{ headline: 'Streamline warehouse & shipping operations.', subtext: 'VenQore syncs inventory across channels, prints barcode labels, and manages orders effortlessly.' }}
+            cta={{
+                    headline: "Picking and packing are one piece of running a store.",
+                    subtext: "Describe your business and VenQore builds a system where picking, packing and the stock movement behind them are the same event.",
+                }}
             related={[{ href: '/tools/purchase-order-generator', label: 'Purchase Order Generator' }, { href: '/tools/invoice-generator', label: 'Invoice Generator' }]}
             wide
         >

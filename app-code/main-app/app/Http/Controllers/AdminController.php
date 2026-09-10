@@ -414,7 +414,7 @@ class AdminController extends Controller
             // Validate: images only, max 4MB — prevents arbitrary/oversized file
             // uploads into a public storage path.
             $request->validate([
-                'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp,svg', 'max:4096'],
+                'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:4096'],
             ]);
 
             $file = $request->file('print_logo_file');

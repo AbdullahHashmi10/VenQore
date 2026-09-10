@@ -33,7 +33,7 @@ class PublicToolController extends Controller
         $rules = [
             'email' => 'required|email|max:255',
             'file'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
-            'type'  => 'required|string|in:invoice,purchase,expense,quotation,packing_slip,credit_note,purchase_order',
+            'type'  => 'nullable|string|in:invoice,purchase,expense,quotation,packing_slip,credit_note,purchase_order',
         ];
 
         $request->validate($rules);

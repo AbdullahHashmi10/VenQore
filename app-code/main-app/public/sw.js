@@ -1,4 +1,4 @@
-const CACHE_NAME = 'venqore-pos-v3.2';
+const CACHE_NAME = 'venqore-pos-v3.3';
 
 const STATIC_ASSETS = [
     '/favicon.ico',
@@ -10,6 +10,8 @@ const BYPASS_ROUTES = [
     '/login',
     '/register',
     '/logout',
+    '/build-workspace',
+    '/workspace',
     '/v3/sales',
     '/v3/purchases',
     '/v3/reports',

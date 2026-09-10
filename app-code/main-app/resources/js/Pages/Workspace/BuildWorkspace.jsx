@@ -41,12 +41,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
-    ArrowRight, Building2, Check, ChevronDown, Globe, Lock, Mail, Phone, Rocket,
-    Send, ShieldCheck, Sparkles, Wand2,
+    ArrowRight, Building2, Check, ChevronDown, Compass, Globe, Lock, Mail,
+    Phone, Rocket, Send, ShieldCheck, Sparkles, Wand2,
 } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import {
     BuilderShell,
+    ConversationalDiscovery,
     HandoffTips,
     LiveStack,
     ModuleGrid,
@@ -114,6 +115,7 @@ export default function BuildWorkspace({
     allModules = [],
     discovery = [],
     recommended = {},
+    presets = {},
 }) {
 
     /* ── Phase machine ─────────────────────────────────────────────────────
@@ -135,6 +137,12 @@ export default function BuildWorkspace({
     const [presetKey, setPresetKey] = useSessionState(`${STORAGE_KEY}:presetKey`, initialPreset);
     const [presetLabel, setPresetLabel] = useSessionState(`${STORAGE_KEY}:presetLabel`, '');
     const [presetDesc, setPresetDesc] = useSessionState(`${STORAGE_KEY}:presetDesc`, '');
+    /* Whether the resolved preset is a real match or the bare "found nothing,
+       defaulted to Retail Shop" case — see WorkspaceBuilderController::
+       analyze()'s 'matched' field. Defaults true so an explicit template pick,
+       or an older cached response that predates this field, never shows the
+       honest note by mistake. */
+    const [matched, setMatched] = useSessionState(`${STORAGE_KEY}:matched`, true);
     const [baseModules, setBaseModules] = useSessionState(`${STORAGE_KEY}:baseModules`, []);
     const [capabilities, setCapabilities] = useSessionState(`${STORAGE_KEY}:capabilities`, []);
     const [analysed, setAnalysed] = useState(false);
@@ -143,13 +151,37 @@ export default function BuildWorkspace({
 
     const {
         questions, answers, answer, commitMulti, modules: proposedModules,
-        attribution, headline, forget: forgetAnswers,
-    } = useDiscovery(discovery, baseModules, legalKeys, STORAGE_KEY);
+        attribution, headline, forget: forgetAnswers, reset: resetAnswers,
+    } = useDiscovery(discovery, baseModules, legalKeys, STORAGE_KEY, presetKey);
 
     /* The user's own edits on the reveal screen override the proposal. Until
        they touch it, the proposal flows straight through. */
     const [edited, setEdited] = useSessionState(`${STORAGE_KEY}:edited`, null);
     const activeModules = edited ?? proposedModules;
+
+    const [discoveryMode, setDiscoveryMode] = useSessionState(`${STORAGE_KEY}:discoveryMode`, 'ai');
+
+    const handleAiComplete = (proposal, modules, preset) => {
+        if (modules && modules.length > 0) {
+            setBaseModules(modules);
+        }
+        if (preset) {
+            setPresetKey(preset);
+            const p = (presets && presets[preset]) || {};
+            setPresetLabel(p.label || preset);
+            setPresetDesc(p.description || '');
+        }
+        if (proposal?.confidence) {
+            setMatched(true);
+        }
+        setPhase('reveal');
+    };
+
+    const handleAiStateUpdate = (confirmedCaps, facts) => {
+        if (confirmedCaps && confirmedCaps.length > 0) {
+            setCapabilities(confirmedCaps);
+        }
+    };
 
     /* A finished attempt should not greet the next visitor to this tab with
        someone else's half-built workspace. Everything under STORAGE_KEY is
@@ -158,7 +190,7 @@ export default function BuildWorkspace({
         forgetAnswers();
         [
             'phase', 'qIndex', 'prompt', 'presetKey', 'presetLabel',
-            'presetDesc', 'baseModules', 'capabilities', 'edited',
+            'presetDesc', 'baseModules', 'capabilities', 'edited', 'matched',
         ].forEach((slot) => {
             try {
                 window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
@@ -199,12 +231,18 @@ export default function BuildWorkspace({
        Runs once, as soon as there is a sentence to run it on. It resolves the
        preset in the background WHILE the visitor answers questions, so the
        reveal has nothing to wait for. */
-    const analyse = async (text, preset) => {
+    const analyse = async (text, preset, answersOverride) => {
         try {
             const data = await postJson(route('workspace.analyze'), {
                 prompt: text,
                 preset,
-                answers,
+                // A caller starting a brand-new attempt (see the mount effect
+                // below) passes {} here explicitly — otherwise this closes
+                // over whatever `answers` happens to be at call time, which
+                // for a fresh attempt is still the PREVIOUS business's
+                // answers for one tick, and would taint the new preset's
+                // module merge with them.
+                answers: answersOverride ?? answers,
             });
             if (!data?.success) return;
             setPresetKey(data.preset_key || '');
@@ -212,6 +250,7 @@ export default function BuildWorkspace({
             setPresetDesc(data.preset_description || '');
             setBaseModules(data.modules || []);
             setCapabilities(data.capabilities || []);
+            setMatched(data.matched !== false);
         } catch (e) {
             /* A failed match is not a dead end — the questions still build a
                stack on their own, and the reveal renders from that. */
@@ -221,11 +260,50 @@ export default function BuildWorkspace({
     };
 
     useEffect(() => {
-        /* Skip re-analysing on a restored attempt — a returning visit already
-           has a resolved preset in sessionStorage (or is mid-questions with
-           none yet, which is also fine), and re-running this would overwrite
-           it with a fresh match built from an empty `answers` object, quietly
-           undoing whatever the questions had already found. */
+        /* A prompt or preset arriving via THIS PAGE LOAD's URL that does not
+           match what this tab already has cached is a NEW attempt, not a
+           resume — someone who tried a different landing-page example, or
+           came back and described a different business entirely.
+           `prompt` and `presetKey` here are already the HYDRATED values from
+           sessionStorage (see useSessionState's initialiser) — they are
+           whatever this tab last resolved, not necessarily what is in the
+           URL right now. Before this fix, that hydration won silently: a
+           second, different prompt never even reached `analyse()`, because
+           the guard below saw a truthy `presetKey` left over from the FIRST
+           attempt and skipped re-analysing — which is what made the reveal
+           keep naming the first business's preset (a stale "Cafe") no matter
+           what the visitor typed the second time. A bare revisit with no
+           prompt/preset in the URL — the browser's own back/forward, or
+           reopening the tab — still falls through to the restore branch
+           below exactly as before. */
+        const incomingPrompt = initialPrompt || '';
+        const incomingPreset = initialPreset || '';
+        const isFreshAttempt =
+            (incomingPrompt && incomingPrompt !== prompt) ||
+            (incomingPreset && incomingPreset !== presetKey);
+
+        if (isFreshAttempt) {
+            resetAnswers();
+            setDiscoveryMode('ai');
+            setPrompt(incomingPrompt);
+            setPresetKey(incomingPreset);
+            setPresetLabel('');
+            setPresetDesc('');
+            setBaseModules([]);
+            setCapabilities([]);
+            setMatched(true);
+            setEdited(null);
+            setQIndex(0);
+            setPhase(incomingPrompt ? 'questions' : 'intent');
+            setAnalysed(false);
+            return;
+        }
+
+        /* Skip re-analysing on a genuine restored attempt — a returning visit
+           already has a resolved preset in sessionStorage (or is mid-questions
+           with none yet, which is also fine), and re-running this would
+           overwrite it with a fresh match built from an empty `answers`
+           object, quietly undoing whatever the questions had already found. */
         if (analysed || presetKey || baseModules.length) {
             setAnalysed(true);
             return;
@@ -334,8 +412,8 @@ export default function BuildWorkspace({
             promptRef.current?.focus();
             return;
         }
-        analyse(prompt, '');
-        setPhase(questions.length ? 'questions' : 'reveal');
+        setDiscoveryMode('ai');
+        setPhase('questions');
     };
 
     const toggleModule = (key) => {
@@ -488,7 +566,7 @@ export default function BuildWorkspace({
                 footer={
                     <span className="flex items-center gap-1.5">
                         <ShieldCheck size={12} className="text-accent-text" />
-                        No card required · 14-day trial
+                        14-day free trial · No credit card required · Cancel anytime
                     </span>
                 }
             >
@@ -569,16 +647,29 @@ export default function BuildWorkspace({
                                 </motion.div>
                             )}
 
-                            {/* ─── 2. The questions ─────────────────────────────────── */}
-                            {phase === 'questions' && questions[qIndex] && (
-                                <QuestionStep
-                                    key={questions[qIndex].key}
-                                    question={questions[qIndex]}
-                                    value={answers[questions[qIndex].key]}
-                                    onAnswer={handleAnswer}
-                                    onContinue={continueFromMulti}
-                                    autoAdvance={advance}
-                                />
+                            {/* ─── 2. The questions / AI Discovery ─────────────────── */}
+                            {phase === 'questions' && (
+                                discoveryMode !== 'manual' ? (
+                                    <ConversationalDiscovery
+                                        key={`ai-discovery-${prompt || 'init'}`}
+                                        initialPrompt={prompt}
+                                        initialPreset={presetKey}
+                                        onComplete={handleAiComplete}
+                                        onFallbackToManual={() => setDiscoveryMode('manual')}
+                                        onStateUpdate={handleAiStateUpdate}
+                                    />
+                                ) : (
+                                    questions[qIndex] && (
+                                        <QuestionStep
+                                            key={questions[qIndex].key}
+                                            question={questions[qIndex]}
+                                            value={answers[questions[qIndex].key]}
+                                            onAnswer={handleAnswer}
+                                            onContinue={continueFromMulti}
+                                            autoAdvance={advance}
+                                        />
+                                    )
+                                )
                             )}
 
                             {/* ─── 3. The reveal ────────────────────────────────────── */}
@@ -602,6 +693,25 @@ export default function BuildWorkspace({
                                         {presetDesc ||
                                             'Everything below is switched on for you. Add or remove anything — nothing here costs extra.'}
                                     </p>
+
+                                    {/* Honest note — shown only when nothing about what was typed
+                                        actually matched a trade this product has a preset for (see
+                                        WorkspaceBuilderController::analyze()'s 'matched' field). The
+                                        request has already been logged automatically; this just says
+                                        so, instead of presenting a defaulted Retail Shop as if it were
+                                        a considered recommendation. */}
+                                    {!matched && (
+                                        <div className="mt-4 flex items-start gap-3 rounded-lg border border-line bg-surface p-4">
+                                            <Compass size={16} className="mt-0.5 shrink-0 text-ink-muted" />
+                                            <p className="text-sm leading-relaxed text-ink-secondary">
+                                                We don&rsquo;t have a ready-made template for what you
+                                                described yet, so this is a general starting point you
+                                                can fully customise below — nothing here is final.
+                                                We&rsquo;ve noted what you told us for what to build
+                                                next.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     {recommendedList.length > 0 && (
                                         <RecommendedBand

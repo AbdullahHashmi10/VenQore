@@ -17,13 +17,17 @@ const PKR_ENABLED = false;
 
 // --- Plan metadata (display-only) -------------------------------------------
 const PLAN_META = {
- counter: { label: 'Counter Engine', price: '$18/mo', color: vq.blue[500], Icon: Monitor },
- starter: { label: 'Starter Engine', price: '$36/mo', color: vq.indigo[500], Icon: Shield },
- growth: { label: 'Growth Engine', price: '$63/mo', color: vq.violet[500], Icon: Zap },
- business: { label: 'Business Engine', price: '$129/mo', color: vq.amber[500], Icon: Crown },
- ltd_1: { label: 'LTD — Starter', price: '$99', color: vq.emerald[500], Icon: Sparkles },
- ltd_2: { label: 'LTD — Growth', price: '$199', color: vq.emerald[500], Icon: Sparkles },
- ltd_3: { label: 'LTD — Business', price: '$349', color: vq.emerald[500], Icon: Sparkles },
+    solo:     { label: 'Solo Engine', price: '$0/mo', color: vq.blue[500], Icon: Monitor },
+    starter:  { label: 'Starter Engine', price: '$49/mo', color: vq.indigo[500], Icon: Shield },
+    core:     { label: 'Core Engine', price: '$99/mo', color: vq.violet[500], Icon: Zap },
+    scale:    { label: 'Scale Engine', price: '$299/mo', color: vq.amber[500], Icon: Crown },
+    custom:   { label: 'Custom Enterprise', price: '$800+/mo', color: vq.rose[500], Icon: Crown },
+    growth:   { label: 'Core Engine', price: '$99/mo', color: vq.violet[500], Icon: Zap },
+    business: { label: 'Scale Engine', price: '$299/mo', color: vq.amber[500], Icon: Crown },
+    counter:  { label: 'Solo Engine', price: '$0/mo', color: vq.blue[500], Icon: Monitor },
+    ltd_1:    { label: 'LTD Tier 1', price: '$199', color: vq.emerald[500], Icon: Sparkles },
+    ltd_2:    { label: 'LTD Tier 2', price: '$399', color: vq.emerald[500], Icon: Sparkles },
+    ltd_3:    { label: 'LTD Tier 3', price: '$699', color: vq.emerald[500], Icon: Sparkles },
 };
 
 const FEATURES = [
@@ -39,19 +43,24 @@ const FEATURES = [
 ];
 
 const FEATURE_UPGRADE_TARGET = {
- growth_engine: 'growth',
- multi_branch: 'growth',
- api_access: 'business',
- bill_of_materials: 'business',
- fixed_asset_depreciation: 'business',
- fiscal_year_closing: 'business',
- recurring_invoicing: 'business',
- chat_support: 'growth',
- feature_serials: 'business',
- whatsapp_reminders: 'growth',
- loyalty_points: 'business',
- wholesale_pricing: 'business',
- dedicated_account_manager: 'business',
+    growth_engine: 'core',
+    multi_branch: 'scale',
+    api_access: 'scale',
+    audit_log: 'scale',
+    custom_roles: 'scale',
+    white_label: 'scale',
+    consolidated_reports: 'scale',
+    multi_store_hub: 'scale',
+    security_activity_log: 'scale',
+    bill_of_materials: 'core',
+    fixed_asset_depreciation: 'scale',
+    fiscal_year_closing: 'scale',
+    recurring_invoicing: 'core',
+    chat_support: 'scale',
+    whatsapp_reminders: 'core',
+    loyalty_points: 'core',
+    wholesale_pricing: 'core',
+    dedicated_account_manager: 'scale',
 };
 
 // --- Onboarding Service Tiers ---

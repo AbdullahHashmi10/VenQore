@@ -24,7 +24,7 @@ class SendTrialWarnings extends Command
             // Usually we'd use whereDate but this handles timezones better for now
             $daysLeftCeil = ceil($daysLeft);
 
-            if ($daysLeftCeil == 7 || $daysLeftCeil == 2) {
+            if ($daysLeftCeil == 7 || $daysLeftCeil == 3 || $daysLeftCeil == 1) {
                 // Find owner
                 $owner = $tenant->owner();
                 if ($owner) {

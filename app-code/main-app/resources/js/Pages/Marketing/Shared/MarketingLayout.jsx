@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, MessageCircle, Lock, Menu, X, Sun, Moon, ChevronDown } from 'lucide-react';
+import { ArrowRight, MessageCircle, Menu, X, Sun, Moon, ChevronDown } from 'lucide-react';
 import { useTheme } from '@/Contexts/ThemeContext';
 
 import { vq } from '@/theme/runtime';
@@ -152,7 +152,7 @@ const MkScrollProgress = () => {
     }, []);
     return (
         <div className="fixed top-0 left-0 right-0 z-sticky h-[2px]">
-            <div className="h-full w-full origin-left bg-gradient-to-r from-brand-500 via-brand-400 to-cyan-400 transition-transform duration-fast ease-out" style={{ transform: `scaleX(${p})` }} />
+            <div className="h-full w-full origin-left bg-gradient-brand transition-transform duration-fast ease-out" style={{ transform: `scaleX(${p})` }} />
         </div>
     );
 };
@@ -278,12 +278,6 @@ const ThemeToggle = ({ isDarkMode, onToggle, compact = false }) => (
     </button>
 );
 
-const isExceptionPath = (pathname = '') => {
-    const prefixes = ['/tools', '/blog', '/docs', '/documentation'];
-    return prefixes.some(
-        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-    );
-};
 
 /* ═══════════════════════════════════════════════════════════════════════════
    SITE MAP — single source of truth for header dropdowns, the footer sitemap
@@ -291,21 +285,30 @@ const isExceptionPath = (pathname = '') => {
    automatically reachable and internally linked from every surface.
    ═══════════════════════════════════════════════════════════════════════════ */
 export const SITE = {
-    product: [
-        { label: 'Point of Sale', href: '/features/point-of-sale', desc: 'Fast, offline-capable terminal' },
-        { label: 'Inventory (FIFO)', href: '/features/inventory-management', desc: 'Batches, serials, real costing' },
-        { label: 'Accounting', href: '/features/accounting', desc: 'True double-entry ledger' },
-        { label: 'Offline POS', href: '/features/offline-pos', desc: 'Keep selling with no internet' },
-        { label: 'Growth Engine', href: '/features/growth-engine', desc: 'Campaigns, loyalty, retention' },
-        { label: 'All features', href: '/features', desc: 'The complete capability map' },
+    /* Build · Run · Know — the three columns of the V6 Product mega-menu. */
+    build: [
+        { label: 'Blueprint', href: '/blueprint', desc: 'Describe it. Approve the plan.' },
+        { label: 'See a build', href: '/onboarding', desc: 'Four minutes, start to live.' },
     ],
+    run: [
+        { label: 'The register', href: '/pos', desc: 'A till you compose yourself.' },
+        { label: 'Documents', href: '/documents', desc: 'Thirteen types, one editor.' },
+        { label: 'VenSynQ', href: '/vensynq', desc: 'Sell in five places, count once.' },
+    ],
+    know: [
+        { label: 'The dashboard', href: '/dashboard-preview', desc: '58 readings, self-assembling.' },
+        { label: 'The Reckoner', href: '/reckoner', desc: 'One place a number is defined.' },
+        { label: 'Core Ledger', href: '/ledger', desc: 'One engine. Every number.' },
+    ],
+    /* Industry pages. The V6 static header points these at a #presets anchor
+       that only exists on two pages; here they point at the real routes. */
     solutions: [
-        { label: 'Pharmacy', href: '/solutions/pharmacy' },
-        { label: 'Grocery', href: '/solutions/grocery' },
-        { label: 'Electronics', href: '/solutions/electronics-store' },
-        { label: 'Clothing', href: '/solutions/clothing' },
-        { label: 'Wholesale', href: '/solutions/wholesale' },
-        { label: 'Multi-store', href: '/solutions/multi-store' },
+        { label: 'Retail shop', href: '/solutions/electronics-store', desc: 'Fast checkout, real margins.' },
+        { label: 'Wholesale & distribution', href: '/solutions/wholesale', desc: 'Credit terms and price tiers.' },
+        { label: 'Pharmacy', href: '/solutions/pharmacy', desc: 'Batch and expiry that hold the line.' },
+        { label: 'Grocery', href: '/solutions/grocery', desc: 'Weight, shrink and daily margins.' },
+        { label: 'Clothing', href: '/solutions/clothing', desc: 'Size, colour and season.' },
+        { label: 'Multi-branch', href: '/solutions/multi-store', desc: 'One truth across every location.' },
     ],
     compare: [
         { label: 'VenQore vs Square', href: '/compare/venqore-vs-square' },
@@ -313,47 +316,58 @@ export const SITE = {
         { label: 'All comparisons', href: '/compare' },
     ],
     resources: [
-        { label: 'Free tools', href: '/tools', desc: 'Invoices, barcodes, calculators' },
-        { label: 'Documentation', href: '/docs', desc: 'Guides and how-tos' },
-        { label: 'Blog', href: '/blog', desc: 'Retail and accounting playbooks' },
-        { label: 'Roadmap', href: '/roadmap', desc: 'What ships next' },
-        { label: 'Live demo', href: '/demo', desc: 'Try it with sample data' },
+        { label: 'Free tools', href: '/tools', desc: 'Invoices, barcodes, calculators.' },
+        { label: 'Documentation', href: '/docs', desc: 'Guides and how-tos.' },
+        { label: 'Help centre', href: '/help', desc: 'Answers, by screen.' },
+        { label: 'Security', href: '/security', desc: 'Isolation, roles and the record.' },
+        { label: 'Blog', href: '/blog', desc: 'Retail and accounting playbooks.' },
+        { label: 'Roadmap', href: '/roadmap', desc: 'What ships next.' },
+        { label: 'Live demo', href: '/demo', desc: 'Try it with sample data.' },
     ],
-    // Pricing deliberately lives ONLY as a top-level header item. Listing it
-    // here too made both the "Pricing" pill and the "Company" pill light up
-    // on /pricing, which read as a bug.
     company: [
-        { label: 'About', href: '/about' },
-        { label: 'Partners', href: '/partners' },
-        { label: 'Contact', href: '/contact' },
-        { label: 'Newsletter', href: '/subscribe' },
-    ],
-    comingSoon: [
-        { label: 'VenSynQ', href: '/vensynq', desc: 'Multi-channel stock sync' },
-        { label: 'SmartCapture', href: '/smartcapture', desc: 'Photo & voice to ledger' },
+        { label: 'About', href: '/about', desc: 'Built on a shop counter in Okara.' },
+        { label: 'How we prove it', href: '/ledger', desc: 'The checks we publish.' },
+        { label: 'Contact', href: '/contact', desc: 'A person answers this one.' },
+        { label: 'Partners', href: '/partners', desc: 'Resell and implement.' },
+        { label: 'Newsletter', href: '/subscribe', desc: 'What changed, monthly.' },
     ],
     legal: [
         { label: 'Terms', href: '/terms' },
         { label: 'Privacy', href: '/privacy' },
+        { label: 'Cookies', href: '/privacy#cookies' },
         { label: 'Refunds', href: '/refund-policy' },
+        { label: 'Known Issues', href: '/known-issues' },
     ],
 };
 
-/* Header groups — four entries, that is the whole header. Everything else
-   lives inside these panels or in the footer sitemap. */
+/* Header groups — the same five the V6 static pages carry, in the same order. */
 const NAV_GROUPS = [
     {
         key: 'product',
         label: 'Product',
+        minWidth: 660,
         columns: [
-            { heading: 'Capabilities', items: SITE.product },
-            { heading: 'By industry', items: SITE.solutions, footerLink: { label: 'All solutions', href: '/solutions' } },
+            { heading: 'Build', items: SITE.build },
+            { heading: 'Run', items: SITE.run },
+            { heading: 'Know', items: SITE.know },
+        ],
+        footerLink: { label: 'SmartCapture \u2014 a photo in, a posted transaction out', href: '/smartcapture' },
+    },
+    {
+        key: 'solutions',
+        label: 'Solutions',
+        minWidth: 460,
+        columns: [
+            { heading: 'By industry', items: SITE.solutions.slice(0, 3) },
+            { heading: '\u00a0', items: SITE.solutions.slice(3), footerLink: { label: 'All solutions', href: '/solutions' } },
         ],
     },
+    { key: 'features', label: 'Features', href: '/features' },
     { key: 'pricing', label: 'Pricing', href: '/pricing' },
     {
         key: 'resources',
         label: 'Resources',
+        minWidth: 520,
         columns: [
             { heading: 'Learn & use', items: SITE.resources },
             { heading: 'Compare', items: SITE.compare },
@@ -362,9 +376,9 @@ const NAV_GROUPS = [
     {
         key: 'company',
         label: 'Company',
+        minWidth: 340,
         columns: [
             { heading: 'VenQore', items: SITE.company },
-            { heading: 'Coming soon', items: SITE.comingSoon },
         ],
     },
 ];
@@ -401,8 +415,10 @@ const NavDropdown = ({ group, isOpen, onOpen, onClose, isActive }) => {
                     isOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-1 pointer-events-none'
                 }`}
             >
-                <div className="w-[min(38rem,92vw)] p-6 rounded-2xl bg-white/95 dark:bg-void-900/95 backdrop-blur-2xl border border-line dark:border-white/[0.08] shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)] dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                <div
+                    style={{ minWidth: group.minWidth || 480 }}
+                    className="max-w-[92vw] p-6 rounded-2xl bg-white/95 dark:bg-void-900/95 backdrop-blur-2xl border border-line dark:border-white/[0.08] shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)] dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)]">
+                    <div className="grid gap-x-6 gap-y-1" style={{ gridTemplateColumns: `repeat(${group.columns.length}, minmax(0,1fr))` }}>
                         {group.columns.map((col) => (
                             <div key={col.heading}>
                                 <p className="text-3xs font-bold uppercase tracking-[0.25em] text-ink-muted mb-3 px-3">
@@ -439,6 +455,17 @@ const NavDropdown = ({ group, isOpen, onOpen, onClose, isActive }) => {
                             </div>
                         ))}
                     </div>
+                    {group.footerLink && (
+                        <div className="mt-4 pt-4 border-t border-line dark:border-white/[0.08]">
+                            <Link
+                                href={group.footerLink.href}
+                                onClick={onClose}
+                                className="inline-flex items-center gap-2 px-3 text-sm font-bold text-brand-600 dark:text-brand-300 hover:gap-3 transition-all"
+                            >
+                                {group.footerLink.label} <ArrowRight size={13} />
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -620,10 +647,11 @@ export default function MarketingLayout({ children, title, description }) {
     // A group is "active" when the current URL lives anywhere inside it.
     const groupIsActive = (group) => {
         if (group.href) return currentPath === group.href;
+        const hit = (href) => href && href !== '/' &&
+            (currentPath === href || currentPath.startsWith(href + '/'));
         return group.columns.some((col) =>
-            col.items.some((i) => currentPath === i.href || (i.href !== '/' && currentPath.startsWith(i.href + '/')))
-            || (col.footerLink && currentPath.startsWith(col.footerLink.href))
-        );
+            col.items.some((i) => hit(i.href)) || (col.footerLink && hit(col.footerLink.href))
+        ) || (group.footerLink && hit(group.footerLink.href));
     };
 
     return (
@@ -667,9 +695,11 @@ export default function MarketingLayout({ children, title, description }) {
                         ))}
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                        {isExceptionPath(currentPath) && <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />}
-                        <Link href="/login" className="hidden sm:block px-5 py-2.5 text-1xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-ink dark:hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-accent-fill text-accent-on rounded-full text-2xs sm:text-1xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
+                        <ThemeToggle isDarkMode={isDarkMode} onToggle={toggleTheme} compact />
+                        <Link href="/login" className="hidden sm:block px-5 py-2.5 text-1xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-ink dark:hover:text-white transition-colors">Sign in</Link>
+                        <Link href="/build-workspace" className="group/cta inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-accent-fill text-accent-on rounded-full text-2xs sm:text-1xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)] dark:hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">
+                            Start building <ArrowRight size={12} className="transition-transform duration-slow group-hover/cta:translate-x-0.5" />
+                        </Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-ink-secondary hover:text-ink dark:hover:text-white transition-colors" aria-label="Menu" aria-expanded={mobileMenu}>
                             {mobileMenu ? <X size={22} /> : <Menu size={22} />}
                         </button>
@@ -683,7 +713,7 @@ export default function MarketingLayout({ children, title, description }) {
                         <div className="pt-3 mt-3 border-t border-line dark:border-white/[0.06] sm:hidden">
                             <Link href="/login" onClick={() => setMobileMenu(false)}
                                 className="block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-ink-muted hover:text-ink dark:hover:text-white hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.04] transition-colors">
-                                Sign In
+                                Sign in
                             </Link>
                         </div>
                     </div>
@@ -692,71 +722,74 @@ export default function MarketingLayout({ children, title, description }) {
 
             <main className="relative z-10">{children}</main>
 
-            {/* Footer */}
-            <footer className="border-t border-line dark:border-white/[0.06] pt-24 pb-12 px-6 relative z-10 bg-app">
-                {/* Brand + CTA rail */}
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
-                    <div className="lg:col-span-5">
-                        <Link href="/" className="flex items-center gap-3 mb-8">
-                            <img src={logo} alt={appName} width="40" height="40" loading="lazy" decoding="async" className="h-10 w-auto" />
-                            <span className="font-bold text-ink text-xl uppercase tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
-                        </Link>
-                        <p className="text-ink-muted max-w-sm leading-relaxed text-sm mb-8 font-medium">
-                            Run your business, not your software. The all-in-one operating system for point of sale, inventory, and real accounting.
+            {/* Footer — mirrors public/v6 chrome: four columns, a legal bar,
+                and the oversized wordmark watermark. */}
+            <footer className="relative z-10 overflow-hidden border-t border-line dark:border-white/[0.06] bg-sunken dark:bg-void-950 pt-24">
+                <div className="max-w-7xl mx-auto px-6">
+
+                    {/* Closing CTA — the V6 footer opens with the same line */}
+                    <div className="mb-20 max-w-2xl">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-ink tracking-tight" style={{ fontFamily: "'Space Grotesk','Inter',system-ui,sans-serif" }}>
+                            Describe your business. See what it becomes.
+                        </h2>
+                        <p className="mt-4 text-ink-muted leading-relaxed max-w-lg">
+                            Fourteen days at Core level, full access. Your system is built before you decide anything.
                         </p>
-                        <a href="https://wa.me/923091999489" aria-label="Chat on WhatsApp" className="inline-flex p-3 rounded-xl bg-sunken dark:bg-white/5 border border-line dark:border-white/5 text-ink-muted hover:text-emerald-500 dark:hover:text-emerald-400 hover:border-emerald-500/20 hover:bg-emerald-500/5 transition-all duration-slow">
-                            <MessageCircle size={18} />
-                        </a>
-                    </div>
-                    <div className="lg:col-span-7 lg:justify-self-end lg:text-right">
-                        <h4 className="text-2xs font-bold text-ink-secondary uppercase tracking-[0.3em] mb-4">Start today</h4>
-                        <p className="text-ink-muted text-sm mb-6 leading-relaxed max-w-xs lg:ml-auto">
-                            14-day trial. No credit card. Your data stays yours.
-                        </p>
-                        <div className="flex flex-wrap lg:justify-end gap-3">
-                            <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-full text-2xs font-bold uppercase tracking-[0.15em] transition-all shadow-lg ">
-                                Get Started <ArrowRight size={12} />
+                        <div className="mt-8 flex flex-wrap gap-3">
+                            <Link href="/build-workspace" className="group/f inline-flex items-center gap-2 px-6 py-3 bg-accent-fill text-accent-on rounded-full text-2xs font-bold uppercase tracking-[0.15em] transition-all hover:shadow-[0_0_40px_-6px_rgb(var(--vq-ramp-teal-500)/0.4)]">
+                                Start building <ArrowRight size={12} className="transition-transform duration-slow group-hover/f:translate-x-0.5" />
                             </Link>
                             <Link href="/demo" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line dark:border-white/12 text-ink-secondary text-2xs font-bold uppercase tracking-[0.15em] hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05] transition-all">
-                                Live Demo
+                                Live demo
                             </Link>
                         </div>
                     </div>
-                </div>
 
-                {/* Full sitemap — the header is minimal, so this is where every
-                    SEO page stays crawlable and one click from anywhere. */}
-                <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-8 gap-y-10 mb-16 pt-12 border-t border-line dark:border-white/[0.06]">
-                    {[
-                        { heading: 'Capabilities', links: SITE.product },
-                        { heading: 'By industry', links: [...SITE.solutions, { label: 'All solutions', href: '/solutions' }] },
-                        { heading: 'Resources', links: SITE.resources },
-                        { heading: 'Compare', links: SITE.compare },
-                        // Pricing is header-only in the nav, but the footer is the
-                        // full sitemap, so it belongs here.
-                        { heading: 'Company', links: [{ label: 'Pricing', href: '/pricing' }, ...SITE.company, ...SITE.comingSoon] },
-                    ].map(col => (
-                        <div key={col.heading}>
-                            <h4 className="text-2xs font-bold text-ink-secondary uppercase tracking-[0.3em] mb-5">{col.heading}</h4>
-                            <ul className="space-y-3">
-                                {col.links.map(l => (
-                                    <li key={l.href}>
-                                        <Link href={l.href} className="text-sm text-ink-muted hover:text-ink dark:hover:text-white transition-colors font-medium">
-                                            {l.label}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-line dark:border-white/[0.06]">
-                    <span className="text-ink-muted text-2xs font-bold uppercase tracking-[0.2em]">© 2026 {appName}. All rights reserved.</span>
-                    <div className="flex flex-wrap justify-center gap-6 sm:gap-8 text-2xs font-bold uppercase tracking-[0.15em] text-ink-muted">
-                        {SITE.legal.map(l => (
-                            <Link key={l.href} href={l.href} className="hover:text-ink dark:hover:text-neutral-300 transition-colors">{l.label}</Link>
+                    {/* Sitemap — the header is grouped, so this stays the crawlable map */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10 pt-12 border-t border-line dark:border-white/[0.06]">
+                        {[
+                            { heading: 'Product', links: [...SITE.build, ...SITE.run, ...SITE.know, { label: 'SmartCapture', href: '/smartcapture' }, { label: 'Features', href: '/features' }, { label: 'Pricing', href: '/pricing' }] },
+                            { heading: 'Solutions', links: [...SITE.solutions, { label: 'All solutions', href: '/solutions' }, ...SITE.compare] },
+                            { heading: 'Resources', links: SITE.resources },
+                            { heading: 'Company', links: SITE.company },
+                        ].map(col => (
+                            <div key={col.heading}>
+                                <h3 className="text-2xs font-bold text-ink-secondary uppercase tracking-[0.3em] mb-5">{col.heading}</h3>
+                                <ul className="space-y-3">
+                                    {col.links.map(l => (
+                                        <li key={col.heading + l.href}>
+                                            <Link href={l.href} className="text-sm text-ink-muted hover:text-ink dark:hover:text-white transition-colors font-medium">
+                                                {l.label}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         ))}
+                    </div>
+
+                    {/* Legal bar */}
+                    <div className="mt-16 pt-8 border-t border-line dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-4">
+                        <p className="text-sm text-ink-muted">© {new Date().getFullYear()} {appName}, Inc. The AI ERP builder.</p>
+                        <div className="flex flex-wrap gap-6">
+                            {SITE.legal.map(l => (
+                                <Link key={l.href + l.label} href={l.href} className="text-sm text-ink-muted hover:text-ink dark:hover:text-white transition-colors">
+                                    {l.label}
+                                </Link>
+                            ))}
+                            <a href="https://wa.me/923091999489" aria-label="Chat on WhatsApp"
+                               className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink dark:hover:text-white transition-colors">
+                                <MessageCircle size={15} /> WhatsApp
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Wordmark watermark — the V6 footer signature */}
+                    <div aria-hidden="true" className="select-none pointer-events-none pt-14 -mb-[2.5vw]">
+                        <span className="block w-full text-center font-bold leading-[0.8] tracking-tighter text-ink/[0.06] dark:text-white/[0.05]"
+                              style={{ fontFamily: "'Space Grotesk','Inter',system-ui,sans-serif", fontSize: 'clamp(4rem,17vw,16rem)' }}>
+                            {appName}
+                        </span>
                     </div>
                 </div>
             </footer>

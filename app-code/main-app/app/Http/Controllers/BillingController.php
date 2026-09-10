@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Plan;
 use App\Services\LemonSqueezyCheckoutService;
 use App\Services\PlanGate;
+use App\Support\Pricing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -249,6 +250,7 @@ class BillingController extends Controller
                 'transactions'   => $tenant->getLimit('transactions_per_month'),
             ],
             'feature_status' => $featureStatus,
+            'pricing' => config('pricing'),
             // Non-null only while a trial still has unused days. Drives the
             // "you keep your free days" confirmation before checkout — the
             // percentages come from the service that mints the real discount,
@@ -470,28 +472,14 @@ class BillingController extends Controller
      */
     protected function resolvePlanVariantId(string $plan, bool $isAnnual, bool $usePKR): ?string
     {
-        $pricing = config('pricing.plans.' . $plan);
-        if ($pricing) {
-            $key = match (true) {
-                $usePKR && $isAnnual  => 'variant_annual_pkr',
-                $usePKR               => 'variant_pkr',
-                $isAnnual             => 'variant_annual',
-                default               => 'variant_monthly',
-            };
-            $variantId = $pricing['variants'][$key] ?? null;
-            if ($variantId && $variantId !== 'REPLACE_ME') {
-                return (string) $variantId;
-            }
-        }
-
         $key = match (true) {
-            $usePKR && $isAnnual  => "{$plan}_annual_pkr_variant_id",
-            $usePKR               => "{$plan}_pkr_variant_id",
-            $isAnnual             => "{$plan}_annual_variant_id",
-            default               => "{$plan}_variant_id",
+            $usePKR && $isAnnual  => 'variant_id_annual_pkr',
+            $usePKR               => 'variant_id_pkr',
+            $isAnnual             => 'variant_id_annual',
+            default               => 'variant_id_monthly',
         };
 
-        $variantId = config("services.lemon_squeezy.{$key}");
+        $variantId = config("pricing.plans.{$plan}.{$key}");
 
         return ($variantId && $variantId !== 'REPLACE_ME') ? (string) $variantId : null;
     }
@@ -832,19 +820,26 @@ class BillingController extends Controller
 
         $addonType = $request->input('addon_type');
 
-        // Map addon_type to variant ID from config/pricing.php (or fallback)
-        $variantId = match ($addonType) {
-            'ai_byok'          => config('pricing.add_ons.byok.variant_id') ?? config('services.lemon_squeezy.ai_byok_addon_id'),
-            'ai_spark'         => config('pricing.ai_tiers.spark.variant_id') ?? config('services.lemon_squeezy.ai_spark_addon_id'),
-            'ai_shop'          => config('pricing.ai_tiers.shop.variant_id') ?? config('services.lemon_squeezy.ai_shop_addon_id'),
-            'ai_pro'           => config('pricing.ai_tiers.pro.variant_id') ?? config('services.lemon_squeezy.ai_pro_addon_id'),
-            'ai_max'           => config('pricing.ai_tiers.max.variant_id') ?? config('services.lemon_squeezy.ai_max_addon_id'),
-            'sync_woocommerce' => config('services.lemon_squeezy.woocommerce_addon_id'),
-            'sync_amazon'      => config('services.lemon_squeezy.amazon_addon_id'),
-            default            => null
+        $variantConfigPath = match ($addonType) {
+            'ai_byok'          => 'pricing.add_ons.byok.variant_id',
+            'ai_spark'         => 'pricing.ai_tiers.spark.variant_id',
+            'ai_shop'          => 'pricing.ai_tiers.shop.variant_id',
+            'ai_pro'           => 'pricing.ai_tiers.pro.variant_id',
+            'ai_max'           => 'pricing.ai_tiers.max.variant_id',
+            'sync_woocommerce' => 'services.lemon_squeezy.woocommerce_addon_id',
+            'sync_amazon'      => 'services.lemon_squeezy.amazon_addon_id',
+            default            => null,
         };
 
-        if (!$variantId) {
+        if ($variantConfigPath === null) {
+            return response()->json(['error' => 'Unknown add-on type.'], 422);
+        }
+
+        try {
+            $variantId = Pricing::variantId($variantConfigPath);
+        } catch (\RuntimeException $e) {
+            report($e);
+
             return response()->json(['error' => 'Add-on variant ID not configured.'], 500);
         }
 
@@ -1259,7 +1254,13 @@ class BillingController extends Controller
 
         // Fetch credentials from config
         $checkoutService = app(LemonSqueezyCheckoutService::class);
-        $variantId = config('services.lemon_squeezy.upload_service_variant_id') ?: config('services.lemon_squeezy.starter_variant_id');
+        try {
+            $variantId = Pricing::variantId('services.lemon_squeezy.upload_service_variant_id');
+        } catch (\RuntimeException $e) {
+            report($e);
+
+            return response()->json(['error' => 'Product upload service variant is not configured.'], 500);
+        }
 
         if (!$checkoutService->isConfigured() || !$variantId) {
             return response()->json(['error' => 'Lemon Squeezy credentials or variant configuration is missing.'], 500);

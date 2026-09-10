@@ -2512,14 +2512,15 @@ class ReportController extends Controller
 
     public function refundReasons(Request $request)
     {
-        $tenantId = app('current.tenant')?->id;
-        
-        $query = Sale::where('status', 'returned');
-        if ($tenantId) {
-            $query->where('tenant_id', $tenantId);
-        }
-        
-        $reasons = $query->selectRaw('refund_reason, COUNT(*) as count, SUM(ABS(total)) as total_amount')
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        abort_unless($tenant, 400, 'No store context.');
+
+        $query = Sale::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('status', 'returned');
+
+        $reasons = $query->toBase()
+            ->selectRaw('refund_reason, COUNT(*) as count, SUM(ABS(total)) as total_amount')
             ->groupBy('refund_reason')
             ->orderByDesc('count')
             ->get();

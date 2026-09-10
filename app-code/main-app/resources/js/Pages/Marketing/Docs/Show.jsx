@@ -27,7 +27,7 @@ function DocFAQItem({ qa, index }) {
                     <span className="text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase bg-brand-500/10 px-2 py-0.5 rounded shrink-0">Q</span>
                     <span>{qa.question}</span>
                 </h3>
-                <span className={`transform transition-transform duration-normal text-ink-muted group-hover:text-ink-secondary dark:group-hover:text-neutral-300 shrink-0`}>
+                <span className={`transform transition-transform duration-normal text-ink-muted group-hover:text-ink-secondary dark:group-hover:text-ink shrink-0`}>
                     <svg className={`w-4 h-4 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
@@ -72,8 +72,14 @@ export default function DocsShow({
         router.get('/docs');
     };
 
+    const docTitle = currentDoc?.title
+        ? `${currentDoc.title} — VenQore Documentation`
+        : 'Documentation — VenQore';
+    const docDescription = currentDoc?.description
+        || 'Guides and how-tos for VenQore — setting up your system, the point of sale, inventory, purchasing, documents and the double-entry ledger behind them.';
+
     return (
-        <MarketingLayout>
+        <MarketingLayout title={docTitle} description={docDescription}>
             <div className="min-h-screen text-ink-muted font-sans relative overflow-hidden pt-24 pb-20">
                 {/* Background glow effects */}
                 <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full bg-brand-500/[0.02] blur-[150px] pointer-events-none" />

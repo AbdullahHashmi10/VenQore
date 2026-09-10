@@ -27,7 +27,12 @@ class ReckonerComparisonTest extends TestCase
     {
         $reckoner = app(Reckoner::class);
         $tenant = app('current.tenant');
-        $user = User::make(['id' => 1, 'is_platform_admin' => true]);
+        $user = User::make();
+        $user->id = 1;
+        $user->forceFill([
+            'is_platform_admin' => true,
+            'platform_role' => 'platform_owner',
+        ]);
 
         // Use anonymous class because SalesSource is final and cannot be doubled with PHPUnit createMock
         $sourceMock = new class implements \App\Reckoner\Sources\ReckonerSource {
@@ -58,7 +63,12 @@ class ReckonerComparisonTest extends TestCase
     {
         $reckoner = app(Reckoner::class);
         $tenant = app('current.tenant');
-        $user = User::make(['id' => 1, 'is_platform_admin' => true]);
+        $user = User::make();
+        $user->id = 1;
+        $user->forceFill([
+            'is_platform_admin' => true,
+            'platform_role' => 'platform_owner',
+        ]);
 
         $sourceMock = new class implements \App\Reckoner\Sources\ReckonerSource {
             public function supports(): array {
@@ -88,7 +98,12 @@ class ReckonerComparisonTest extends TestCase
     {
         $reckoner = app(Reckoner::class);
         $tenant = app('current.tenant');
-        $user = User::make(['id' => 1, 'is_platform_admin' => true]);
+        $user = User::make();
+        $user->id = 1;
+        $user->forceFill([
+            'is_platform_admin' => true,
+            'platform_role' => 'platform_owner',
+        ]);
 
         $sourceMock = new class implements \App\Reckoner\Sources\ReckonerSource {
             public function supports(): array {

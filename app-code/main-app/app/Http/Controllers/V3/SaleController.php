@@ -23,17 +23,6 @@ class SaleController extends Controller
         try {
             $lock->block(5); // Wait up to 5 seconds to acquire the lock
 
-            $date = Carbon::parse($request->input('sale_date', Carbon::now()->toDateString()));
-            $start = $date->copy()->startOfMonth();
-            $end = $date->copy()->endOfMonth();
-
-            $monthlyCount = Sale::where('status', 'posted')
-                ->whereBetween('created_at', [$start, $end])
-                ->count();
-
-            PlanGate::enforce('transactions_per_month', $monthlyCount);
-            // ─────────────────────────────────────────────────────────────────
-
             $sale = $this->sales->post($request->validated());
         } finally {
             $lock->release();

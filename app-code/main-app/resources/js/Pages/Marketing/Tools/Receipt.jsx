@@ -188,7 +188,10 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
             toolGroups={toolGroups}
             currentSlug="receipt-generator"
             faqs={FAQS}
-            cta={{ headline: 'Tired of manually printing receipts?', subtext: 'VenQore POS automatically prints scannable thermal receipts with integrated inventory deduction on every sale.' }}
+            cta={{
+                    headline: "Tired of manually printing receipts?",
+                    subtext: "Describe your shop and VenQore builds a system that prints the receipt and deducts the stock as a single action.",
+                }}
             related={[{ href: '/tools/invoice-generator', label: 'Invoice Generator' }, { href: '/tools/barcode-generator', label: 'Barcode Generator' }]}
             wide
         >

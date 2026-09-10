@@ -17,22 +17,28 @@
  */
 
 import {
-    ArrowLeft, ArrowRight, BadgeCheck, Boxes, Building2, CalendarCheck, ChartLine,
-    Check, ChefHat, Clock, Factory, FileSignature, FileStack, FileText, Globe,
-    Hammer, HandCoins, Layers, Moon, NotebookPen, Package, PackageCheck, PackageOpen,
-    PackageX, Plus, Receipt, Rocket, ScanBarcode, Search, ShieldCheck, ShoppingCart,
-    Shuffle, Sparkles, Store, Sun, Tags, Target, TrendingUp, Truck, User, Users,
-    UsersRound, UtensilsCrossed, Wind, Wrench, X,
+    ArrowLeft, ArrowRight, BadgeCheck, Boxes, Building2, Calculator, CalendarCheck,
+    CalendarClock, ChartLine, Check, ChefHat, ClipboardList, Clock, Coins,
+    ConciergeBell, Factory, FileSignature, FileStack, FileText, Gift, Globe,
+    Hammer, HandCoins, Hash, Layers, MapPin, MessageSquare, Moon, NotebookPen,
+    NotebookTabs, Package, PackageCheck, PackageOpen, PackageX, Palette, Plus,
+    Receipt, Refrigerator, Repeat, Rocket, Route, ScanBarcode, Scale, Search,
+    ShieldCheck, ShoppingCart, Shuffle, Sparkles, Store, Sun, Tags, Target, Timer,
+    TrendingUp, Truck, User, Users, UsersRound, UtensilsCrossed, Wallet, Wind,
+    Wrench, X,
 } from 'lucide-react';
 
 /** Everything the discovery config and the module map are allowed to name. */
 export const GLYPHS = {
-    ArrowLeft, ArrowRight, BadgeCheck, Boxes, Building2, CalendarCheck, ChartLine,
-    Check, ChefHat, Clock, Factory, FileSignature, FileStack, FileText, Globe,
-    Hammer, HandCoins, Layers, Moon, NotebookPen, Package, PackageCheck, PackageOpen,
-    PackageX, Plus, Receipt, Rocket, ScanBarcode, Search, ShieldCheck, ShoppingCart,
-    Shuffle, Sparkles, Store, Sun, Tags, Target, TrendingUp, Truck, User, Users,
-    UsersRound, UtensilsCrossed, Wind, Wrench, X,
+    ArrowLeft, ArrowRight, BadgeCheck, Boxes, Building2, Calculator, CalendarCheck,
+    CalendarClock, ChartLine, Check, ChefHat, ClipboardList, Clock, Coins,
+    ConciergeBell, Factory, FileSignature, FileStack, FileText, Gift, Globe,
+    Hammer, HandCoins, Hash, Layers, MapPin, MessageSquare, Moon, NotebookPen,
+    NotebookTabs, Package, PackageCheck, PackageOpen, PackageX, Palette, Plus,
+    Receipt, Refrigerator, Repeat, Rocket, Route, ScanBarcode, Scale, Search,
+    ShieldCheck, ShoppingCart, Shuffle, Sparkles, Store, Sun, Tags, Target, Timer,
+    TrendingUp, Truck, User, Users, UsersRound, UtensilsCrossed, Wallet, Wind,
+    Wrench, X,
 };
 
 /**

@@ -6,8 +6,8 @@ This is the authoritative context file for AI agents working in this codebase. R
 
 | File | What it is |
 |---|---|
-| **`PHASE_0_STATUS.md`** | **Start here.** What is done, what is next, and the rules for working in this repo right now |
-| **`V6_ROLLOUT_AUDIT_AND_PLAN.md`** | **The design rollout. Audit, architecture and 9 phases. Read before touching any styling** |
+| **`extras/PHASE_0_STATUS.md`** | **Start here.** What is done, what is next, and the rules for working in this repo right now |
+| *(referenced but not present in repo as of 2026-09-09 — locate or remove this reference)* | **The design rollout. Audit, architecture and 9 phases. Read before touching any styling** |
 | `DESIGN-RULES.md` | Authoritative design and styling rules (**v3.0, V6-aligned**) — colors, radii, hover effects, type scale, z-index, CI greps |
 | `VENQORE_LAYOUT_LAW.md` | Geometry law v2.0 — grid, gutters, row track, card categories C1–C6. **Outranks DESIGN-RULES on any geometry number** |
 | `VENQORE_TECHNICAL_BUILD_PLAN_V4.md` | The authoritative technical plan — phases, tasks, acceptance criteria |
@@ -359,8 +359,13 @@ with its components. See `finance.net_margin_pct`, `sales.gross_margin_pct`,
 This section exists because a session once had to re-derive it from scratch and got it wrong.
 
 - A purchase is a row in **`purchases`** with lines in **`purchase_items`**; a purchase return is a row in **`purchase_returns`**.
-- **Nothing may write a purchase into the `invoices` table.** `invoices` held the legacy purchase island and is being retired — see `V3_CONSOLIDATION_PLAN.md`.
+- **Nothing may write a purchase into the `invoices` table.** `invoices` held the legacy purchase island and is being retired — *(the referenced `V3_CONSOLIDATION_PLAN.md` was not present in the repo as of 2026-09-09; locate it or remove this reference)*.
 - The only engine that may create, edit, void, receive or return a purchase is **`App\Services\V3\PurchaseService`**.
+> **Clarification (2026-09-09):** `App\Services\V3\PurchaseService` extends
+> `App\Engines\PurchaseService` and adds input-shape adaptation. Call sites should
+> use the V3 class; `App\Engines\PurchaseService` is the implementation, not the
+> entry point. See T-14 for the equivalent question on Fifo/Accounting/Payment/Tax,
+> where the V3 classes are empty subclasses with no added behaviour.
 - **`paid_amount` is never stored.** It is derived from the ledger: AP debits on non-reversed `purchase_payment` journal entries. A stored column drifts.
 - **`payment_status` and `workflow_status` are separate columns.** Overloading one field is what left unpaid purchases stuck on `pending`. `PaymentService::updatePurchaseBadge()` is the only writer of `payment_status` after insert.
 - **Never hard-delete a posted purchase.** Reverse the journal and set `workflow_status = 'cancelled'`.
@@ -401,7 +406,7 @@ Cutover switches live in `config/venqore.php` (`purchase_cutover`, `purchase_cut
 - **Inertia responses** use `Inertia::render('PageName', [...data])`.
 - **React components** use Tailwind utility classes (no separate CSS files).
 - **All DB queries must include `tenant_id` scope** — never query cross-tenant.
-- **Purchase Engine:** The canonical purchase engine is `App\Engines\PurchaseService`. (The old warning about `Allocation` needing a `JournalEntry` ID rather than a `Payment` ID still applies to any code writing that table — the DB trigger enforces it.)
+- **Purchase Engine:** Call sites use `App\Services\V3\PurchaseService`; its implementation extends `App\Engines\PurchaseService`. (The old warning about `Allocation` needing a `JournalEntry` ID rather than a `Payment` ID still applies to any code writing that table — the DB trigger enforces it.)
 - **No Trailing NUL-Bytes:** Never commit or save files ending with trailing NUL (`\x00`) bytes. CI automatically runs a python scan to block pushes with NUL-byte corruption.
 - Route names follow `feature.action` convention (e.g., `sales.store`, `inventory.index`).
 - Use `route()` Ziggy helper in React for named routes.

@@ -28,6 +28,30 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+    ],
+
+    'deepseek' => [
+        'key' => env('DEEPSEEK_API_KEY'),
+    ],
+
+    'sms' => [
+        'api_key' => env('SMS_GATEWAY_API_KEY'),
+    ],
+
+    'whatsapp' => [
+        'token' => env('WHATSAPP_TOKEN'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
@@ -47,16 +71,16 @@ return [
         'test_mode'                   => env('LEMON_SQUEEZY_TEST_MODE', false),
         
         // Monthly
-        'counter_variant_id'          => env('LEMON_SQUEEZY_COUNTER_VARIANT_ID', 'variant_counter'),
-        'starter_variant_id'          => env('LEMON_SQUEEZY_STARTER_VARIANT_ID', 'variant_starter'),
-        'growth_variant_id'           => env('LEMON_SQUEEZY_GROWTH_VARIANT_ID', 'variant_growth'),
-        'business_variant_id'         => env('LEMON_SQUEEZY_BUSINESS_VARIANT_ID', 'variant_business'),
+        'counter_variant_id'          => env('LEMON_SQUEEZY_COUNTER_VARIANT_ID'),
+        'starter_variant_id'          => env('LEMON_SQUEEZY_STARTER_VARIANT_ID'),
+        'growth_variant_id'           => env('LEMON_SQUEEZY_GROWTH_VARIANT_ID'),
+        'business_variant_id'         => env('LEMON_SQUEEZY_BUSINESS_VARIANT_ID'),
         
         // Annual
-        'counter_annual_variant_id'   => env('LEMON_SQUEEZY_COUNTER_ANNUAL_VARIANT_ID', 'variant_counter_annual'),
-        'starter_annual_variant_id'   => env('LEMON_SQUEEZY_STARTER_ANNUAL_VARIANT_ID', 'variant_starter_annual'),
-        'growth_annual_variant_id'    => env('LEMON_SQUEEZY_GROWTH_ANNUAL_VARIANT_ID', 'variant_growth_annual'),
-        'business_annual_variant_id'  => env('LEMON_SQUEEZY_BUSINESS_ANNUAL_VARIANT_ID', 'variant_business_annual'),
+        'counter_annual_variant_id'   => env('LEMON_SQUEEZY_COUNTER_ANNUAL_VARIANT_ID'),
+        'starter_annual_variant_id'   => env('LEMON_SQUEEZY_STARTER_ANNUAL_VARIANT_ID'),
+        'growth_annual_variant_id'    => env('LEMON_SQUEEZY_GROWTH_ANNUAL_VARIANT_ID'),
+        'business_annual_variant_id'  => env('LEMON_SQUEEZY_BUSINESS_ANNUAL_VARIANT_ID'),
         
         // LTD
         'starter_ltd_variant_id'      => env('LEMON_SQUEEZY_STARTER_LTD_VARIANT_ID'),

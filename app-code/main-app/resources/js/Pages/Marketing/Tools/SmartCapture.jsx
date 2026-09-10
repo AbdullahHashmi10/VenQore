@@ -69,7 +69,7 @@ const FAQS = [
   },
   {
     q: 'How many free scans do I get per month?',
-    a: 'The free public tier provides 5 scan pages per month — no credit card required, no signup needed for the test/demo mode. If you create a VenQore account, your 5 free pages reset automatically on the 1st of each month. If you need more volume, paid standalone scan credit tiers start from 500 pages/month at $3.00. Inside the VenQore ERP subscription, scans are included with no separate page count.',
+    a: 'The free public tier provides 5 scan pages per month — completely free to try, no signup needed for the test/demo mode. If you create a VenQore account, your 5 free pages reset automatically on the 1st of each month. If you need more volume, paid standalone scan credit tiers start from 500 pages/month at $3.00. Inside the VenQore ERP subscription, scans are included with no separate page count.',
   },
   {
     q: 'Can I download the extracted document as a PDF?',
@@ -351,9 +351,9 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
       currentSlug="smart-capture"
       faqs={FAQS}
       cta={{
-        headline: 'Smart Capture inside your ERP is a different world entirely.',
-        subtext:  'When Smart Capture connects to your live VenQore inventory and ledger, every scanned bill auto-posts to your accounts payable and adjusts stock — zero manual entry from receipt to reconciliation.',
-      }}
+                    headline: "SmartCapture is one of the 46 modules VenQore assembles for you.",
+                    subtext: "Inside the system it builds, a photographed bill posts to accounts payable and adjusts stock on its own — no manual entry from receipt to reconciliation.",
+                }}
       related={[
         { href: '/tools/invoice-generator', label: 'Invoice Generator' },
         { href: '/tools/receipt-generator', label: 'Receipt Generator' },

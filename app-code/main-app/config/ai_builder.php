@@ -116,6 +116,32 @@ return [
     | deterministic signals: they let you sanity-check the model's answer
     | WITHOUT a second model call, and they let you fall back to a preset with
     | confidence when the model is unavailable.
+    |
+    | UPDATE (2026-09-07) — category scoping. The set below grew from twelve
+    | universal questions into a universal block (Q1-Q11, plus the closing
+    | 'fix') PLUS a bank of trade-specific follow-ups that only appear once a
+    | preset has matched, via 'applies_to'. A pharmacy visitor now sees
+    | questions a cafe visitor never does, and vice versa, without either of
+    | them wading through the other trade's questions to get there.
+    |
+    | 'applies_to' => ['pharmacy', 'grocery'] on a question means: only show
+    | this once the matched preset (see presets, §9 below) is one of these. No
+    | 'applies_to' at all means universal, same as always. It composes with
+    | 'show_if' — a question can be gated on BOTH a prior answer and the
+    | matched category — and both are evaluated identically on the server
+    | (DiscoveryResolver) and the client (useDiscovery.js), same as every rule
+    | in this file.
+    |
+    | THE ORDERING RULE THAT MAKES THIS SAFE: every 'applies_to' question below
+    | is placed after the universal block and before 'fix'. The preset match
+    | runs in the background and can land after the visitor has already
+    | started answering, so a newly-visible category question must only ever
+    | be able to APPEND to the end of the array the visitor is stepping
+    | through — never insert itself before their current position. Keep new
+    | category questions in that same span, and this holds without further
+    | thought. 'fix' stays the last question in the file on purpose — it is
+    | what keys the reveal headline, and every visitor, whatever their trade,
+    | answers it last.
     */
 
     'discovery' => [
@@ -154,8 +180,8 @@ return [
             'implies'   => [
                 'goods'     => ['products'],
                 'made'      => ['products', 'cookbook', 'production_runs'],
-                'time'      => ['invoicing'],
-                'jobs'      => ['invoicing', 'customers'],
+                'time'      => ['services', 'invoicing'],
+                'jobs'      => ['services', 'invoicing', 'customers'],
                 'recurring' => ['recurring_invoices', 'customers'],
             ],
             'option_meta' => [
@@ -463,6 +489,411 @@ return [
                 'books'   => ['icon' => 'Calculator',  'hint' => 'Ledger, bank, reconciliation'],
                 'buyer'   => ['icon' => 'Truck',       'hint' => 'Suppliers, orders, receiving'],
                 'field'   => ['icon' => 'MapPin',      'hint' => 'Away from the counter'],
+            ],
+        ],
+
+        /*
+        |======================================================================
+        | CATEGORY-SCOPED QUESTIONS
+        |======================================================================
+        | Everything from here to 'fix' carries 'applies_to' and is scoped to
+        | one or more matched presets — see the UPDATE note at the top of this
+        | section. These are what turn "a pharmacy and a cafe get the same
+        | eleven questions" into "a pharmacy gets asked about batches and
+        | supplier credit; a cafe gets asked about packaged retail and nothing
+        | about branches it does not have". Same rules as every question above:
+        | multi where forcing one answer would throw away real information,
+        | 'implies' only ever adds, and a question earns its place only if at
+        | least one option moves the module stack for at least one visitor who
+        | can reach it.
+        |
+        | Dependency note: several options here imply a module with a
+        | 'requires' entry in config/modules.php (bank_reconciliation needs
+        | bank_accounts, loans and fixed_assets need accounting_workspace).
+        | Rather than lean on the target preset already carrying the
+        | dependency, each such option lists the full chain itself — the same
+        | belt-and-braces style Q7 (buying_depth) already uses — so the
+        | proposal is correct even if a preset's own module list changes later.
+        */
+
+        /*
+        | Branch count. Asked of single-site trades where growing to a second
+        | location is common and changes the build (stock has to move between
+        | places, not just in and out of one). Wholesale and multi-branch
+        | retail are excluded on purpose — both presets already ship
+        | multi_location and stock_transfers by default, so asking again would
+        | just repeat a question they have effectively already answered by
+        | picking that preset.
+        */
+        [
+            'key'       => 'branches',
+            'type'      => 'choice',
+            'question'  => 'Do you run more than one location?',
+            'hint'      => 'A second counter, branch or godown — not just storage at home.',
+            'icon'      => 'Building2',
+            'applies_to' => ['pharmacy', 'grocery', 'hardware_store', 'clothing', 'mobile_electronics', 'retail_shop', 'cafe', 'restaurant', 'bakery'],
+            'options'   => [
+                'one'     => 'Just the one, for now',
+                'few'     => 'A couple of locations',
+                'several' => 'Several, and stock moves between them',
+            ],
+            'implies'   => [
+                'one'     => [],
+                'few'     => ['multi_location', 'stock_transfers', 'inventory'],
+                'several' => ['multi_location', 'stock_transfers', 'inventory'],
+            ],
+            'option_meta' => [
+                'one'     => ['icon' => 'Store',    'hint' => 'One address, one stockroom'],
+                'few'     => ['icon' => 'Building2', 'hint' => 'More than one, still hands-on'],
+                'several' => ['icon' => 'Factory',   'hint' => 'Enough that transfers need a paper trail'],
+            ],
+        ],
+
+        /*
+        | Trade / wholesale side-channel. Asked of retail-shaped presets where
+        | a bulk buyer at a different price is a real, common pattern but not
+        | guaranteed — grocery, hardware, clothing, phone shops and bakeries
+        | all sometimes supply a smaller business down the street alongside
+        | their normal retail counter. Wholesale and multi-branch retail are
+        | excluded because their preset already assumes this.
+        */
+        [
+            'key'       => 'b2b_channel',
+            'type'      => 'choice',
+            'question'  => 'Does anyone buy from you in bulk, at a trade price?',
+            'hint'      => 'A shop, a business or a reseller — not just a customer buying more than usual.',
+            'icon'      => 'Building2',
+            'applies_to' => ['retail_shop', 'grocery', 'hardware_store', 'clothing', 'mobile_electronics', 'bakery'],
+            'options'   => [
+                'regular'    => 'Yes, regular trade accounts',
+                'occasional' => 'Sometimes, when asked',
+                'no'         => 'No, everyone pays the same retail price',
+            ],
+            'implies'   => [
+                'regular'    => ['b2b_proposals', 'pricing_tiers', 'customers'],
+                'occasional' => ['pricing_tiers', 'customers'],
+                'no'         => [],
+            ],
+            'option_meta' => [
+                'regular'    => ['icon' => 'Building2',    'hint' => 'The same trade names every month'],
+                'occasional' => ['icon' => 'HandCoins',    'hint' => 'A one-off bulk price, now and then'],
+                'no'         => ['icon' => 'Store',        'hint' => 'One price list for everyone'],
+            ],
+        ],
+
+        /*
+        | Returns. Asked only of presets where a physical item changes hands
+        | and so could plausibly come back — never freelancer/salon/repair
+        | shape, which is why services-only presets are absent from the scope.
+        */
+        [
+            'key'       => 'sales_returns_check',
+            'type'      => 'choice',
+            'question'  => 'Do customers ever bring something back?',
+            'hint'      => 'Faulty, wrong item, changed their mind — any reason.',
+            'icon'      => 'Repeat',
+            'applies_to' => ['retail_shop', 'grocery', 'hardware_store', 'multi_branch_retail', 'bakery', 'wholesale', 'pharmacy'],
+            'options'   => [
+                'often' => 'Often enough that we need a proper process',
+                'rare'  => 'Rarely, but it happens',
+                'never' => 'Basically never',
+            ],
+            'implies'   => [
+                'often' => ['sales_returns'],
+                'rare'  => ['sales_returns'],
+                'never' => [],
+            ],
+            'option_meta' => [
+                'often' => ['icon' => 'Repeat', 'hint' => 'Credit notes, refunds, exchanges'],
+                'rare'  => ['icon' => 'Shuffle', 'hint' => 'Occasional, still worth having ready'],
+                'never' => ['icon' => 'Wind',    'hint' => 'Every sale is final'],
+            ],
+        ],
+
+        /*
+        | Physical stock counts. Also gated by show_if on Q4 (stock) so nobody
+        | who said "none to speak of" gets asked how they count nothing —
+        | 'applies_to' and 'show_if' compose freely, evaluated by the same AND.
+        */
+        [
+            'key'       => 'stock_counts',
+            'type'      => 'choice',
+            'question'  => 'How do you check your stock is actually right?',
+            'hint'      => 'What the shelf says versus what the system says.',
+            'icon'      => 'ClipboardList',
+            'applies_to' => ['pharmacy', 'grocery', 'hardware_store', 'clothing', 'mobile_electronics', 'retail_shop', 'wholesale', 'multi_branch_retail'],
+            'show_if'   => ['stock' => ['catalogue', 'deep']],
+            'options'   => [
+                'periodic'   => 'We do a physical count on a regular schedule',
+                'occasional' => 'Only now and then, or when something feels off',
+                'never'      => 'We just trust the system',
+            ],
+            'implies'   => [
+                'periodic'   => ['stock_takes'],
+                'occasional' => ['stock_takes'],
+                'never'      => [],
+            ],
+            'option_meta' => [
+                'periodic'   => ['icon' => 'ClipboardList', 'hint' => 'Weekly, monthly, or by cycle'],
+                'occasional' => ['icon' => 'Search',        'hint' => 'Spot checks when it matters'],
+                'never'      => ['icon' => 'Wind',           'hint' => 'No formal count'],
+            ],
+        ],
+
+        /*
+        | Deposits / holding stock against a future sale. Asked of presets
+        | where a customer plausibly puts money down before taking the item —
+        | a phone on order, a custom cake, a bulk order awaiting delivery.
+        */
+        [
+            'key'       => 'deposits_presale',
+            'type'      => 'choice',
+            'question'  => 'Do people ever pay a deposit to hold something before they take it?',
+            'hint'      => 'Reserved, not yet handed over.',
+            'icon'      => 'CalendarClock',
+            'applies_to' => ['mobile_electronics', 'hardware_store', 'bakery', 'clothing', 'wholesale'],
+            'options'   => [
+                'yes'      => 'Yes, regularly',
+                'sometimes' => 'Occasionally, for bigger items',
+                'no'       => 'No, they pay and take it there and then',
+            ],
+            'implies'   => [
+                'yes'       => ['pre_sales', 'products', 'inventory'],
+                'sometimes' => ['pre_sales', 'products', 'inventory'],
+                'no'        => [],
+            ],
+            'option_meta' => [
+                'yes'       => ['icon' => 'CalendarClock', 'hint' => 'Reserved and tracked until collected'],
+                'sometimes' => ['icon' => 'Clock',         'hint' => 'The occasional advance booking'],
+                'no'        => ['icon' => 'Check',         'hint' => 'Paid in full, taken immediately'],
+            ],
+        ],
+
+        /*
+        | The finance / back-office layer. Multi and optional, same reassuring
+        | tone as Q7 (buying_depth) — nobody should feel like skipping this
+        | costs them something. Scoped to the two presets where a formal set of
+        | books is common (wholesale, multi-branch) rather than every trade,
+        | because pushing accounting-workspace-shaped questions on a one-person
+        | counter is exactly the "form, not a flow" failure this bank exists to
+        | avoid.
+        */
+        [
+            'key'          => 'books_banking',
+            'type'         => 'multi',
+            'question'     => 'Anything on the finance side you would like properly tracked?',
+            'hint'         => 'Pick what would actually help. Skipping is a fine answer.',
+            'icon'         => 'Wallet',
+            'applies_to'   => ['wholesale', 'multi_branch_retail'],
+            'optional'     => true,
+            'reassurance'  => 'All of these are included on every plan, and you can switch any of them on later. Nothing here costs extra.',
+            'options'      => [
+                'bank'   => 'Bank balances and transfers',
+                'loans'  => 'A loan or financing we are repaying',
+                'assets' => 'Equipment or vehicles we own',
+                'tax'    => 'Tax filing and e-invoicing',
+            ],
+            'implies'      => [
+                'bank'   => ['bank_accounts', 'bank_reconciliation'],
+                'loans'  => ['loans', 'accounting_workspace'],
+                'assets' => ['fixed_assets', 'accounting_workspace'],
+                'tax'    => ['tax_compliance'],
+            ],
+            'option_meta'  => [
+                'bank'   => ['icon' => 'Wallet',       'hint' => 'Balances that match the bank statement'],
+                'loans'  => ['icon' => 'HandCoins',    'hint' => 'Every repayment against what is owed'],
+                'assets' => ['icon' => 'Factory',      'hint' => 'What you own long-term, written down over time'],
+                'tax'    => ['icon' => 'FileSignature', 'hint' => 'Rates, summaries, e-invoicing'],
+            ],
+        ],
+
+        /*
+        | Loyalty. Asked wherever repeat visits are the norm. Deliberately a
+        | soft choice, not multi — this is a preference, not a fact about the
+        | trade, and 'maybe later' is a real, common, honest answer.
+        */
+        [
+            'key'       => 'loyalty_rewards',
+            'type'      => 'choice',
+            'question'  => 'Would you like to reward people for coming back?',
+            'hint'      => 'Points, a stamp card, store credit or a gift card.',
+            'icon'      => 'Gift',
+            'applies_to' => ['cafe', 'restaurant', 'retail_shop', 'grocery', 'bakery', 'clothing', 'pharmacy'],
+            'options'   => [
+                'yes'   => 'Yes, points or a loyalty card',
+                'maybe' => 'Maybe later, not right now',
+                'no'    => 'Not something we want',
+            ],
+            'implies'   => [
+                'yes'   => ['customers', 'loyalty_gift'],
+                'maybe' => [],
+                'no'    => [],
+            ],
+            'option_meta' => [
+                'yes'   => ['icon' => 'Gift',  'hint' => 'Brings people back on purpose'],
+                'maybe' => ['icon' => 'Clock', 'hint' => 'Worth switching on later'],
+                'no'    => ['icon' => 'X',     'hint' => 'Not the priority right now'],
+            ],
+        ],
+
+        /*
+        | Cafe-only. The single most common way a cafe's build differs from
+        | the deliberately minimal five-module baseline (see the 'note' on the
+        | cafe preset above) — a retail line of beans, bottles or merchandise
+        | sold alongside the counter.
+        */
+        [
+            'key'       => 'cafe_takehome',
+            'type'      => 'choice',
+            'question'  => 'Do you also sell packaged items people take home — beans, bottled drinks, merchandise?',
+            'hint'      => 'Anything with a barcode, sold alongside the counter.',
+            'icon'      => 'Package',
+            'applies_to' => ['cafe'],
+            'options'   => [
+                'yes' => 'Yes, a small retail line alongside the counter',
+                'no'  => 'No, everything is eaten or drunk on the spot',
+            ],
+            'implies'   => [
+                'yes' => ['products', 'barcodes_labels'],
+                'no'  => [],
+            ],
+            'option_meta' => [
+                'yes' => ['icon' => 'Tags',           'hint' => 'Barcoded and priced like retail'],
+                'no'  => ['icon' => 'UtensilsCrossed', 'hint' => 'Consumed on the premises'],
+            ],
+        ],
+
+        /*
+        | Restaurant-only. Delivery apps and online ordering are common enough
+        | in this trade to name directly rather than fold into the universal
+        | 'channels' question, which is written to stay industry-neutral.
+        */
+        [
+            'key'       => 'restaurant_delivery',
+            'type'      => 'choice',
+            'question'  => 'Do orders come in through delivery apps or your own online ordering?',
+            'hint'      => 'Anything that is not a table or a phone call.',
+            'icon'      => 'Globe',
+            'applies_to' => ['restaurant'],
+            'options'   => [
+                'apps' => 'Yes, one or more delivery platforms',
+                'own'  => 'Just our own number or website',
+                'no'   => 'No, dine-in and takeaway only',
+            ],
+            'implies'   => [
+                'apps' => ['marketplace_sync', 'sales_orders', 'products', 'inventory'],
+                'own'  => ['sales_orders'],
+                'no'   => [],
+            ],
+            'option_meta' => [
+                'apps' => ['icon' => 'Globe',         'hint' => 'Synced so a platform order shows up here'],
+                'own'  => ['icon' => 'MessageSquare', 'hint' => 'Booked the same way a phone order is'],
+                'no'   => ['icon' => 'UtensilsCrossed', 'hint' => 'Table and takeaway only'],
+            ],
+        ],
+
+        /*
+        | Restaurant-only, follow-up in spirit to the universal 'channels'
+        | walk-in answer (which already implies cash_register) — this refines
+        | it for a restaurant running more than one till at once, where a
+        | single end-of-day cash count is not enough.
+        */
+        [
+            'key'       => 'restaurant_tills',
+            'type'      => 'choice',
+            'question'  => 'How many tills or cash drawers are running at once?',
+            'hint'      => 'Counting registers, not staff.',
+            'icon'      => 'Coins',
+            'applies_to' => ['restaurant'],
+            'options'   => [
+                'one'      => 'Just one',
+                'multiple' => 'Two or more, and each needs its own count',
+            ],
+            'implies'   => [
+                'one'      => [],
+                'multiple' => ['cash_register'],
+            ],
+            'option_meta' => [
+                'one'      => ['icon' => 'ScanBarcode', 'hint' => 'One drawer, one count'],
+                'multiple' => ['icon' => 'Coins',       'hint' => 'Each till reconciled on its own'],
+            ],
+        ],
+
+        /*
+        | Mobile & electronics-only. Trade-ins and buybacks are close to
+        | universal in this trade and change how a used unit enters stock.
+        */
+        [
+            'key'       => 'mobile_tradein',
+            'type'      => 'choice',
+            'question'  => 'Do you ever buy a used device back from a customer, or take a trade-in?',
+            'hint'      => 'Money or credit going the other way, for once.',
+            'icon'      => 'Repeat',
+            'applies_to' => ['mobile_electronics'],
+            'options'   => [
+                'yes'      => 'Yes, regularly',
+                'sometimes' => 'Now and then',
+                'no'       => 'No, sales only',
+            ],
+            'implies'   => [
+                'yes'       => ['purchases'],
+                'sometimes' => ['purchases'],
+                'no'        => [],
+            ],
+            'option_meta' => [
+                'yes'       => ['icon' => 'Repeat',  'hint' => 'A regular part of the counter'],
+                'sometimes' => ['icon' => 'Shuffle', 'hint' => 'When the right device comes in'],
+                'no'        => ['icon' => 'X',       'hint' => 'One direction only'],
+            ],
+        ],
+
+        /*
+        | Wholesale-only. Formal quotes are the difference between "tell them
+        | a price" and a document a buyer signs off before ordering.
+        */
+        [
+            'key'       => 'wholesale_quotes',
+            'type'      => 'choice',
+            'question'  => 'Do trade customers expect a formal quote or proposal before they order?',
+            'hint'      => 'A document with line items, not just a number over the phone.',
+            'icon'      => 'FileSignature',
+            'applies_to' => ['wholesale'],
+            'options'   => [
+                'yes' => 'Yes, a proper document with line items',
+                'no'  => 'No, a price and a nod is enough',
+            ],
+            'implies'   => [
+                'yes' => ['b2b_proposals', 'pricing_tiers', 'customers'],
+                'no'  => [],
+            ],
+            'option_meta' => [
+                'yes' => ['icon' => 'FileSignature', 'hint' => 'Something they can forward and approve'],
+                'no'  => ['icon' => 'HandCoins',      'hint' => 'Kept informal'],
+            ],
+        ],
+
+        /*
+        | Multi-branch retail-only. Whether price varies by branch decides
+        | whether pricing_tiers earns its place beyond the preset default.
+        */
+        [
+            'key'       => 'branch_pricing',
+            'type'      => 'choice',
+            'question'  => 'Do prices ever differ from branch to branch?',
+            'hint'      => 'Not discounts — the same item, a different listed price.',
+            'icon'      => 'Tags',
+            'applies_to' => ['multi_branch_retail'],
+            'options'   => [
+                'yes' => 'Yes, different branches, different prices',
+                'no'  => 'No, one price list everywhere',
+            ],
+            'implies'   => [
+                'yes' => ['pricing_tiers', 'customers'],
+                'no'  => [],
+            ],
+            'option_meta' => [
+                'yes' => ['icon' => 'Tags',  'hint' => 'Price lists that vary by location'],
+                'no'  => ['icon' => 'Check', 'hint' => 'One list, every branch'],
             ],
         ],
 
@@ -818,8 +1249,8 @@ TXT,
             'modules'    => ['services', 'invoicing', 'quotations', 'sales_returns', 'customers', 'expenses', 'reports'],
             'terms'      => ['invoice' => ['singular' => 'Invoice', 'plural' => 'Invoices']],
             'cards'      => ['revenue_trend', 'receivables', 'expenses', 'net_profit'],
-            'blocked_by' => ['services', 'quotations'],
-            'note'       => 'THE OTHER NAMED CUSTOMER. Five to seven nav items, no products page, no accounting menu — and the ledger underneath still produces "you earned Rs. 312,000 this month, Rs. 84,000 is owed to you". Do not ship until Services is live and ServiceOnlySaleTest is green.',
+            'blocked_by' => ['quotations'],
+            'note'       => 'THE OTHER NAMED CUSTOMER. Five to seven nav items, no products page, no accounting menu — and the ledger underneath still produces "you earned Rs. 312,000 this month, Rs. 84,000 is owed to you".',
         ],
 
         'salon' => [
@@ -828,7 +1259,7 @@ TXT,
             'modules'    => ['services', 'customers', 'invoicing', 'staff_attendance', 'loyalty_gift', 'expenses', 'reports'],
             'terms'      => ['service' => ['singular' => 'Treatment', 'plural' => 'Treatments'], 'staff' => ['singular' => 'Stylist', 'plural' => 'Stylists']],
             'cards'      => ['revenue_today', 'active_staff', 'top_customers', 'expenses'],
-            'blocked_by' => ['services'],
+            'blocked_by' => [],
         ],
 
         'repair_workshop' => [
@@ -837,7 +1268,7 @@ TXT,
             'modules'    => ['services', 'products', 'pos', 'park_recall', 'inventory', 'customers', 'invoicing', 'expenses', 'reports'],
             'terms'      => ['job' => ['singular' => 'Job', 'plural' => 'Jobs'], 'occupancy' => ['singular' => 'Bay', 'plural' => 'Bays']],
             'cards'      => ['revenue_today', 'open_orders', 'low_stock', 'receivables'],
-            'blocked_by' => ['services'],
+            'blocked_by' => [],
             'note'       => 'This preset is Park & Recall wearing a third hat: the same built feature that gives restaurants tables gives a workshop its job queue.',
         ],
     ],

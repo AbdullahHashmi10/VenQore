@@ -29,19 +29,19 @@ function countMethods($file) {
     return (int) $n;
 }
 
-function rglob($pattern) {
-    $files = glob($pattern) ?: [];
-    foreach (glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) ?: [] as $dir) {
-        $files = array_merge($files, rglob($dir . '/' . basename($pattern)));
+function findTestFiles($dir) {
+    $results = [];
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS));
+    foreach ($it as $file) {
+        if ($file->isFile() && str_ends_with($file->getFilename(), 'Test.php')) {
+            $results[] = str_replace('\\', '/', $file->getPathname());
+        }
     }
-    return $files;
+    return $results;
 }
 
-$all = array_merge(
-    rglob('tests/tests/*Test.php'),
-    rglob('tests/Unit/*Test.php')
-);
-$liveFiles = array_values(array_filter($all, fn ($f) => strpos(str_replace('\\', '/', $f), '/_archive/') === false));
+$all = findTestFiles('tests/tests');
+$liveFiles = array_values(array_filter($all, fn ($f) => strpos($f, '/_archive/') === false));
 
 foreach ($liveFiles as $fullPath) {
     $rel = str_replace('\\', '/', substr($fullPath, strlen('tests/')));

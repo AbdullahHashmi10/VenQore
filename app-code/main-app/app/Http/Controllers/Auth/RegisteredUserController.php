@@ -52,9 +52,14 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'is_platform_admin' => $isFirstUser,
-            'platform_role'  => $isFirstUser ? 'platform_owner' : 'none',
         ]);
+
+        if ($isFirstUser) {
+            $user->forceFill([
+                'is_platform_admin' => true,
+                'platform_role' => 'platform_owner',
+            ])->save();
+        }
 
         event(new Registered($user));
 

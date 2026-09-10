@@ -35,10 +35,6 @@
          Writes to FinalTester/VerificationCenter/runs/<runId>/ -->
     <extensions>
         <bootstrap class="Tests\Support\RunLedger\RunLedgerExtension"/>
-        <!-- Streams assertion counts and incomplete markers to STDOUT so the
-             dashboard can show them live. The TeamCity protocol carries
-             neither. See tests/Support/Live/LiveMetricsExtension.php -->
-        <bootstrap class="Tests\Support\Live\LiveMetricsExtension"/>
     </extensions>
 
     <!-- ===================================================================

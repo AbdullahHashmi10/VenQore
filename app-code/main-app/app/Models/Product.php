@@ -25,6 +25,7 @@ class Product extends Model
         'alert_quantity', 'stock_quantity', 'quantity', 'is_weighted',
         'is_manufactured', 'is_expiry_tracked', 'has_variants', 'track_serial',
         'description', 'short_description', 'image_path', 'woocommerce_id', 'created_via', 'supplier_sku',
+        'service_pricing', 'default_duration', 'default_rate', 'requires_visit', 'skill_tag',
     ];
 
     protected static function booted(): void
@@ -122,5 +123,16 @@ class Product extends Model
     public function wooLinks()
     {
         return $this->hasMany(\App\Models\WooProductLink::class, 'venqore_product_id');
+    }
+
+    /**
+     * Tools this service (type = 'service') normally requires — the default
+     * packing list an owner sets once per service. A specific booking's
+     * actual checked-out tools live on ServiceJob::tools() via job_tools.
+     */
+    public function requiredTools()
+    {
+        return $this->belongsToMany(Tool::class, 'service_tools', 'product_id', 'tool_id')
+            ->withPivot('quantity');
     }
 }

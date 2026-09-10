@@ -143,7 +143,7 @@ export default function Partners() {
  IP & Technical Moat Integrity
  </h4>
  <p className="text-ink-muted text-xs leading-relaxed">
- VenQore is governed by strict developer-owner copyrights, no third-party contested intellectual property, and contains a locked database integrity engine tested under <strong>1,500+ automated test suites</strong>. All partnership inquiries route directly to our founding team.
+ VenQore is governed by strict developer-owner copyrights, no third-party contested intellectual property, and contains a locked database integrity engine tested under <strong>eight correctness laws run on every release</strong>. All partnership inquiries route directly to our founding team.
  </p>
  </div>
  </div>

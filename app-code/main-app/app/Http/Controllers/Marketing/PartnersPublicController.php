@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ContactSubmissionReceived;
 use App\Models\ContactSubmission;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
 
 class PartnersPublicController extends Controller
 {
@@ -33,7 +33,7 @@ class PartnersPublicController extends Controller
             'message'          => ['required', 'string', 'max:5000'],
         ]);
 
-        ContactSubmission::create([
+        $submission = ContactSubmission::create([
             'name'       => $validated['name'],
             'email'      => $validated['email'],
             'company'    => $validated['company'],
@@ -44,23 +44,12 @@ class PartnersPublicController extends Controller
         ]);
 
         try {
-            Mail::raw(
-                "New Partnership Inquiry received!\n\n" .
-                "Name: {$validated['name']}\n" .
-                "Email: {$validated['email']}\n" .
-                "Company: {$validated['company']}\n" .
-                "Type: {$validated['partnership_type']}\n\n" .
-                "Message:\n{$validated['message']}",
-                function ($message) use ($validated) {
-                    $message->to('founder@venqore.com')
-                        ->subject('Partnership Inquiry: ' . $validated['partnership_type'])
-                        ->from('noreply@venqore.com', 'VenQore Partnerships');
-                }
-            );
+            Mail::to(config('mail.notifications.partners'))
+                ->send(new ContactSubmissionReceived($submission));
         } catch (\Throwable $e) {
-            Log::warning('Could not send partnership email: ' . $e->getMessage());
+            report($e);
         }
 
-        return back()->with('success', 'Thank you! Your partnership inquiry has been routed to our founding team.');
+        return back()->with('success', "Thanks — we've got your message and will reply to {$validated['email']}.");
     }
 }

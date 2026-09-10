@@ -55,7 +55,15 @@ class LemonSqueezyCheckoutService
         }
 
         $primaryVariant = $variantItems[0]['variant_id'] ?? null;
-        if (!$primaryVariant) {
+        $hasInvalidVariant = collect($variantItems)->contains(
+            fn (array $item) => empty($item['variant_id']) || $item['variant_id'] === 'REPLACE_ME'
+        );
+
+        if ($hasInvalidVariant) {
+            Log::error('Refusing to create bundled checkout with an invalid variant id', [
+                'tenant' => $tenant->id,
+            ]);
+
             return null;
         }
 
@@ -110,7 +118,16 @@ class LemonSqueezyCheckoutService
      */
     public function createCheckout(Tenant $tenant, string|int $variantId, array $options = []): ?string
     {
-        if (!$this->isConfigured() || empty($variantId)) {
+        if (!$this->isConfigured()) {
+            return null;
+        }
+
+        if (empty($variantId) || $variantId === 'REPLACE_ME') {
+            Log::error('Refusing to create checkout with an invalid variant id', [
+                'variant' => $variantId,
+                'tenant' => $tenant->id,
+            ]);
+
             return null;
         }
 
@@ -393,4 +410,3 @@ class LemonSqueezyCheckoutService
         }
     }
 }
-

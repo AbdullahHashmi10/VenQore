@@ -3266,7 +3266,7 @@ try { (() => {
         font: "500 12.5px/1 var(--vq-font-sans)",
         color: "rgb(234 251 245 / .6)"
       }
-    }, "14-day trial \xB7 no card \xB7 live in 15 minutes"))));
+    }, "14-day trial \xB7 cancel anytime \xB7 live in 15 minutes"))));
   }
   Object.assign(window, {
     Hero,

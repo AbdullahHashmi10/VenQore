@@ -285,7 +285,7 @@ export default function Contact() {
                             Not Ready to Talk?<br /><span className="text-brand-600 dark:text-brand-400">Try It First.</span>
                         </h2>
                         <p className="text-lg text-ink-muted mb-10 max-w-lg mx-auto relative z-10">
-                            14-day free trial. No credit card. No sales call required.
+                            14-day free trial. Cancel anytime. No sales call required.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">

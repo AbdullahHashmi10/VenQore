@@ -79,11 +79,33 @@ class OnboardingExperienceController extends Controller
         // (solo_cafe / wholesaler / retail_grocery never existed in config).
         $promptLower = strtolower($request->input('prompt', '') . ' ' . $request->input('industry', ''));
 
-        $matchedKey = app(\App\Services\AiBuilder\ConfigurationAIService::class)
-            ->guessPreset(['what' => $promptLower]);
+        $guess = app(\App\Services\AiBuilder\ConfigurationAIService::class)
+            ->guessPresetDetailed(['what' => $promptLower]);
+
+        $matchedKey = $guess['preset'];
+        $matched    = $guess['matched'];
 
         if (!$isShippable($matchedKey)) {
             $matchedKey = 'retail_shop';
+        }
+
+        // Same honesty as the pre-signup builder (WorkspaceBuilderController::
+        // analyze()) — a tenant exists here, so this goes on their own demand
+        // log entry rather than an anonymous one.
+        if (!$matched && trim($promptLower) !== '') {
+            try {
+                \Illuminate\Support\Facades\DB::table(config('ai_builder.demand_log.table', 'feature_requests'))->insert([
+                    'tenant_id'  => app('current.tenant')->id ?? null,
+                    'source'     => 'ai_unsupported',
+                    'raw_text'   => $request->input('prompt', ''),
+                    'normalised' => trim($promptLower),
+                    'status'     => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                // Never let a demand-log write take onboarding down with it.
+            }
         }
 
         $chosenPreset = $presets[$matchedKey] ?? reset($presets);
@@ -96,14 +118,17 @@ class OnboardingExperienceController extends Controller
         $modules  = $resolver->merge(
             $chosenPreset['modules'] ?? ['products', 'pos', 'inventory', 'expenses', 'reports'],
             $answers,
+            true,
+            $matchedKey,
         );
 
         return response()->json([
             'success'           => true,
             'preset_key'        => $matchedKey,
+            'matched'           => $matched,
             'preset'            => $chosenPreset,
             'suggested_modules' => $modules,
-            'headline'          => $resolver->headline($answers),
+            'headline'          => $resolver->headline($answers, $matchedKey),
             'recommended'       => $resolver->recommendations(),
         ]);
     }

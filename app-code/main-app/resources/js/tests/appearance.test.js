@@ -160,15 +160,12 @@ describe('CSS custom property naming', () => {
  * ------------------------------------------------------------------ */
 
 describe('theme library', () => {
-    // Two, and the order matters: Midnight is the product's look and the
-    // default every user gets, so it is listed and rendered first. Minimal,
-    // Classic and Colour remain registered in AVAILABLE_THEMES — the build
-    // still validates them — but are not offered, because they were never
-    // verified across all screens.
-    it('offers Midnight and Daylight, with Midnight first', () => {
+    // V6 is the product's look and the single selectable theme. Minimal,
+    // Classic, Colour, Midnight and Daylight remain registered in AVAILABLE_THEMES
+    // — the build still validates them — but are not offered.
+    it('offers the active V6 selectable theme', () => {
         expect(SELECTABLE_THEMES).toEqual([
-            'midnight-nebula',
-            'daylight-calm',
+            'venqore-v6',
         ]);
     });
 

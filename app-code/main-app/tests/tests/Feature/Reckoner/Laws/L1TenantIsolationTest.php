@@ -213,6 +213,9 @@ class L1TenantIsolationTest extends VenQoreTestCase
             'phone'     => '0987654321',
         ]);
 
+        $tenantNow = now($tenant->timezone);
+        $tenantDate = $tenantNow->toDateString();
+
         // Sale with items & Journal Entry
         $revenue = $vals['sale_revenue'] ?? 1000.00;
         $cogs    = $vals['sale_cogs'] ?? 600.00;
@@ -222,7 +225,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
             'party_id'         => $customer->id,
             'reference_number' => $vals['sale_ref'] ?? 'SALE-001',
             'status'           => 'posted',
-            'posted_at'        => now(),
+            'posted_at'        => $tenantNow,
             'total'            => $revenue,
             'subtotal'         => $revenue,
             'net_sales'        => $revenue,
@@ -241,7 +244,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
         $je = JournalEntry::create([
             'id'          => (string) Str::uuid(),
             'tenant_id'   => $tenantId,
-            'date'        => now()->toDateString(),
+            'date'        => $tenantDate,
             'reference'   => $vals['sale_ref'] ?? 'SALE-001',
             'description' => 'Sale transaction',
             'user_id'     => $user->id,
@@ -288,7 +291,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
             'account_id'     => $expAcc->id,
             'category'       => 'Rent',
             'amount'         => $expenseAmount,
-            'date'           => now()->toDateString(),
+            'date'           => $tenantDate,
             'payment_method' => 'cash',
         ]);
 
@@ -296,7 +299,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
         $jeExp = JournalEntry::create([
             'id'          => (string) Str::uuid(),
             'tenant_id'   => $tenantId,
-            'date'        => now()->toDateString(),
+            'date'        => $tenantDate,
             'reference'   => 'EXP-' . $tenantId,
             'description' => 'Operating Expense',
             'user_id'     => $user->id,
@@ -330,8 +333,8 @@ class L1TenantIsolationTest extends VenQoreTestCase
                 'payment_status'   => 'paid',
                 'total'            => $purchaseAmount,
                 'subtotal'         => $purchaseAmount,
-                'purchase_date'    => now()->toDateString(),
-                'created_at'       => now(),
+                'purchase_date'    => $tenantDate,
+                'created_at'       => $tenantNow,
             ]);
         }
 
@@ -343,7 +346,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
                 'party_id'         => $customer->id,
                 'reference_number' => $vals['ret_ref'] ?? 'RET-' . $tenantId,
                 'status'           => 'returned',
-                'posted_at'        => now(),
+                'posted_at'        => $tenantNow,
                 'total'            => 50.0,
                 'subtotal'         => 50.0,
                 'net_sales'        => 50.0,

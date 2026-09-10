@@ -48,7 +48,7 @@ final class SalesSource implements ReckonerSource
 
         foreach ($byWindow as $windowKey => $data) {
             $period = $data['period'];
-            $pl = $this->reporting->getProfitAndLoss($period->start->toDateString(), $period->end->toDateString());
+            $pl = $this->reporting->getProfitAndLoss($period->start->toDateString(), $period->end->toDateString(), $ctx->tenant?->id);
             $revenue = (float) $pl['revenue'];
 
             foreach ($data['items'] as $item) {
@@ -61,7 +61,7 @@ final class SalesSource implements ReckonerSource
                             'this_year', 'last_year', 'last_12_months' => 'monthly',
                             default => 'daily',
                         };
-                        $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), $granularity);
+                        $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), $granularity, $ctx->tenant?->id);
                         $series = [];
                         foreach ($profitByPeriod as $date => $metrics) {
                             $series[] = [

@@ -151,6 +151,24 @@
                     .then(function (res) {
                         if (res.ok) {
                             form.reset();
+                            // Reset custom select to first item if present
+                            var cs = form.querySelector('[data-custom-select], .vq-custom-select');
+                            if (cs) {
+                                var firstOpt = cs.querySelector('.vq-custom-select__item');
+                                if (firstOpt) {
+                                    var val = firstOpt.getAttribute('data-value') || firstOpt.textContent.trim();
+                                    var lbl = firstOpt.querySelector('span') ? firstOpt.querySelector('span').textContent.trim() : firstOpt.textContent.trim();
+                                    var vEl = cs.querySelector('.vq-custom-select__value');
+                                    var inp = cs.querySelector('input[type="hidden"]');
+                                    if (vEl) vEl.textContent = lbl;
+                                    if (inp) inp.value = val;
+                                    cs.querySelectorAll('.vq-custom-select__item').forEach(function(it){
+                                        var isFirst = it === firstOpt;
+                                        it.classList.toggle('is-selected', isFirst);
+                                        it.setAttribute('aria-selected', isFirst ? 'true' : 'false');
+                                    });
+                                }
+                            }
                             status(form, 'Thank you — your message is with us. A person answers this one.', 'ok');
                         } else if (res.status === 422) {
                             status(form, 'Please check the form and try again.', 'error');
@@ -166,4 +184,118 @@
             });
         }
     );
+
+    /* ── 4 · Custom Selects Init ─────────────────────────────────────────── */
+    function initCustomSelects() {
+        var selects = document.querySelectorAll('[data-custom-select], .vq-custom-select');
+        selects.forEach(function (selectEl) {
+            if (selectEl._vqInit) return;
+            selectEl._vqInit = true;
+
+            var trigger = selectEl.querySelector('.vq-custom-select__trigger');
+            var valueEl = selectEl.querySelector('.vq-custom-select__value');
+            var menu = selectEl.querySelector('.vq-custom-select__menu');
+            var input = selectEl.querySelector('input[type="hidden"]');
+            var items = Array.prototype.slice.call(selectEl.querySelectorAll('.vq-custom-select__item'));
+
+            function openMenu() {
+                document.querySelectorAll('[data-custom-select].is-open, .vq-custom-select.is-open').forEach(function (other) {
+                    if (other !== selectEl) {
+                        other.classList.remove('is-open');
+                        var t = other.querySelector('.vq-custom-select__trigger');
+                        if (t) t.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                selectEl.classList.add('is-open');
+                if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeMenu() {
+                selectEl.classList.remove('is-open');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+            }
+
+            function selectOption(item) {
+                var val = item.getAttribute('data-value') || (item.querySelector('span') ? item.querySelector('span').textContent.trim() : item.textContent.trim());
+                var label = item.querySelector('span') ? item.querySelector('span').textContent.trim() : item.textContent.trim();
+
+                items.forEach(function (it) {
+                    it.classList.remove('is-selected');
+                    it.setAttribute('aria-selected', 'false');
+                });
+                item.classList.add('is-selected');
+                item.setAttribute('aria-selected', 'true');
+
+                if (valueEl) valueEl.textContent = label;
+                if (input) {
+                    input.value = val;
+                    var evt = new Event('change', { bubbles: true });
+                    input.dispatchEvent(evt);
+                }
+                closeMenu();
+                if (trigger) trigger.focus();
+            }
+
+            if (trigger) {
+                trigger.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (selectEl.classList.contains('is-open')) {
+                        closeMenu();
+                    } else {
+                        openMenu();
+                    }
+                });
+            }
+
+            items.forEach(function (item) {
+                item.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    selectOption(item);
+                });
+            });
+
+            var form = selectEl.closest('form');
+            if (form) {
+                var defaultItem = selectEl.querySelector('.vq-custom-select__item.is-selected') || items[0];
+                form.addEventListener('reset', function () {
+                    setTimeout(function () {
+                        if (defaultItem) selectOption(defaultItem);
+                    }, 10);
+                });
+            }
+        });
+
+        if (!window._vqSelectListenersAttached) {
+            window._vqSelectListenersAttached = true;
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('[data-custom-select], .vq-custom-select')) {
+                    document.querySelectorAll('[data-custom-select].is-open, .vq-custom-select.is-open').forEach(function (s) {
+                        s.classList.remove('is-open');
+                        var t = s.querySelector('.vq-custom-select__trigger');
+                        if (t) t.setAttribute('aria-expanded', 'false');
+                    });
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('[data-custom-select].is-open, .vq-custom-select.is-open').forEach(function (s) {
+                        s.classList.remove('is-open');
+                        var t = s.querySelector('.vq-custom-select__trigger');
+                        if (t) {
+                            t.setAttribute('aria-expanded', 'false');
+                            t.focus();
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCustomSelects);
+    } else {
+        initCustomSelects();
+    }
 })();

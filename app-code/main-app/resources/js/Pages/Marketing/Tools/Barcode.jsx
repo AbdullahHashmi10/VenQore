@@ -232,9 +232,9 @@ export default function BarcodeTool({
             toolGroups={toolGroups}
             currentSlug="barcode-generator"
             cta={{
-                headline: 'Stop doing this one product at a time.',
-                subtext: 'VenQore generates and prints barcodes for your whole catalogue — and writes a balanced double-entry journal on every sale.',
-            }}
+                    headline: "Stop doing this one product at a time.",
+                    subtext: "Describe your business and VenQore builds you a system that carries a barcode on every product it stocks — and posts a balanced journal on every sale.",
+                }}
             related={[{ label: 'Barcode Validator', href: '/tools/barcode-validator' }]}
         >
             {/* ── Generator ─────────────────────────────────────────────── */}

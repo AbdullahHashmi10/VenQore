@@ -149,9 +149,9 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
             toolGroups={toolGroups}
             currentSlug="payment-fee-calculator"
             cta={{
-                headline: 'Reconciling processor statements by hand doesn\'t scale.',
-                subtext: 'VenQore records the exact fee on every sale automatically and reports net revenue per payment method — no spreadsheet required.',
-            }}
+                    headline: "Reconciling processor statements by hand does not scale.",
+                    subtext: "Describe your business and VenQore builds a system that records the exact fee on every sale and reports net revenue per payment method.",
+                }}
             related={[{ label: 'Profit Margin & Markup Calculator', href: '/tools/margin-calculator' }, { label: 'POS ROI Calculator', href: '/tools/pos-roi-calculator' }]}
         >
             <SmartCaptureNudge documentType="payment fee details" />

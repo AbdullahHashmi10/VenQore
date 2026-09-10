@@ -163,6 +163,17 @@ class ImportMappingController extends Controller
                 $options = $request->input('options', []);
                 $importAction = $request->input('import_action', 'import_all');
 
+                if ($limit !== null && $importAction !== 'truncate') {
+                    $dryRunImport = new ProductsImport($request->mapping, $options, true);
+                    Excel::import($dryRunImport, $fullPath);
+                    $totalAfter = $currentCount + $dryRunImport->importedCount;
+                    if ($totalAfter > $limit) {
+                        $overage = $totalAfter - $limit;
+                        return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])
+                            ->with('error', "Import exceeds your plan limit of " . number_format($limit) . " products. This file would add {$dryRunImport->importedCount} new products ({$overage} over your SKU cap). Please upgrade your plan to continue.");
+                    }
+                }
+
                 if ($importAction === 'truncate' && $limit !== null) {
                     $allowedToImport = max(0, $limit - $currentCount);
                     $options['truncate_to'] = $allowedToImport;

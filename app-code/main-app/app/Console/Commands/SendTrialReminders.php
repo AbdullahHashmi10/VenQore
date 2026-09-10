@@ -37,10 +37,10 @@ class SendTrialReminders extends Command
                 $adminUser = \App\Models\User::withoutTenantScope()
                     ->where('tenant_id', $tenant->id)
                     ->where('role', 'platform_admin')
-                    ->first();
+                    ->first() ?? $tenant->owner();
 
                 if (!$adminUser) {
-                    $this->warn("No admin user for tenant {$tenant->subdomain} — skipping");
+                    $this->warn("No admin/owner user for tenant {$tenant->slug} — skipping");
                     continue;
                 }
 

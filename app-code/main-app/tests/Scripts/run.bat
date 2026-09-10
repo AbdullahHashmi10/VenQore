@@ -166,6 +166,6 @@ echo.
 echo   Reports : FinalTester\reports\summary.json
 echo   Full log: FinalTester\logs\ ^(dashboard runs^) or scroll up
 echo.
-pause
+if not defined NO_PAUSE pause
 endlocal
 exit /b %RUN_EXIT%

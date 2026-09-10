@@ -5,23 +5,9 @@ namespace Tests\Feature\Module;
 use App\Engines\ModuleDependencyResolver;
 use App\Services\AiBuilder\ConfigurationValidator;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Feature\VenQoreTestCase;
+use Tests\TestCase;
 
-/**
- * STEP 11 — THE ADVERSARIAL SUITE.
- *
- * Build plan acceptance criterion, verbatim:
- *
- *     "no AI output, however hostile, can produce an invalid configuration."
- *
- * WRITE THESE FIRST, WATCH THEM FAIL, THEN WRITE THE VALIDATOR. Writing the
- * validator first produces a validator that passes its own assumptions — which
- * is the same as no validator at all.
- *
- * Every test here is a real thing a model has done to somebody: fenced JSON,
- * confident nonsense, an instruction it was told to ignore and did not.
- */
-class ConfigurationValidatorTest extends VenQoreTestCase
+class ConfigurationValidatorTest extends TestCase
 {
     private ConfigurationValidator $validator;
 
@@ -155,10 +141,9 @@ class ConfigurationValidatorTest extends VenQoreTestCase
     #[Test]
     public function unfinished_modules_become_coming_soon_and_are_never_enabled(): void
     {
-        $result = $this->validator->validate(['modules' => ['pos', 'services', 'quotations']]);
+        $result = $this->validator->validate(['modules' => ['pos', 'quotations']]);
 
-        $this->assertNotContains('services', $result['modules'], "A 'building' module was enabled.");
-        $this->assertNotContains('quotations', $result['modules']);
+        $this->assertNotContains('quotations', $result['modules'], "A 'building' module was enabled.");
 
         // Unlike a hallucination, these ARE surfaced — "coming soon" is true,
         // and it is the honest answer to someone who asked for them.

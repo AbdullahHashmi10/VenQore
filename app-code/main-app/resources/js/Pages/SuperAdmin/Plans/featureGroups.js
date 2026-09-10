@@ -1901,13 +1901,16 @@ export const FEATURE_DEFAULTS = {
 export const getFeatureDefault = (featureKey, planSlug) => {
     let baseSlug = planSlug;
     if (planSlug === 'ltd_1') baseSlug = 'starter';
-    else if (planSlug === 'ltd_2') baseSlug = 'growth';
-    else if (planSlug === 'ltd_3') baseSlug = 'business';
+    else if (planSlug === 'ltd_2') baseSlug = 'core';
+    else if (planSlug === 'ltd_3') baseSlug = 'scale';
+    else if (planSlug === 'growth') baseSlug = 'core';
+    else if (planSlug === 'business') baseSlug = 'scale';
+    else if (planSlug === 'counter') baseSlug = 'solo';
 
-    // Specific transaction caps for LTD plans
-    if (planSlug === 'ltd_1' && featureKey === 'transactions_per_month') return '500';
-    if (planSlug === 'ltd_2' && featureKey === 'transactions_per_month') return '2000';
-    if (planSlug === 'ltd_3' && featureKey === 'transactions_per_month') return '6000';
+    // In V11, LTD tiers have NO transaction caps
+    if (['ltd_1', 'ltd_2', 'ltd_3'].includes(planSlug) && featureKey === 'transactions_per_month') {
+        return null;
+    }
 
-    return FEATURE_DEFAULTS[featureKey]?.[baseSlug] ?? null;
+    return FEATURE_DEFAULTS[featureKey]?.[baseSlug] ?? FEATURE_DEFAULTS[featureKey]?.[planSlug] ?? null;
 };

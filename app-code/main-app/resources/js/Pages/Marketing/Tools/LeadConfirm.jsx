@@ -1,11 +1,14 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import MarketingLayout from '../Shared/MarketingLayout';
 
 export default function LeadConfirm({ found, confirmed }) {
     return (
-        <MarketingLayout title="Confirm subscription — VenQore">
+        <MarketingLayout title="Confirm subscription — VenQore"
+                         description="Confirm your email address to receive the file you generated.">
+            {/* One-time token page — never index */}
+            <Head><meta name="robots" content="noindex, nofollow" /></Head>
             <section className="pt-36 md:pt-44 pb-24 px-6 flex items-center justify-center">
                 <div className="max-w-md text-center">
                     {found ? (

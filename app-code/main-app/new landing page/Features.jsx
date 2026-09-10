@@ -124,7 +124,7 @@ export default function Features() {
                 'FIFO batch-level cost tracking — real COGS, not averages',
                 'Tax separated at the database level — never inflates revenue',
                 'Immutable ledger with reversal-only corrections, no silent edits',
-                'Verified by 665+ tests and 4,000+ live assertions across 13 reconciliation gates',
+                'Verified by 2,000+ tests and 20,000+ live assertions across 13 reconciliation gates',
                 'DECIMAL(20,4) precision on every currency column — no rounding drift',
             ]
         },
@@ -407,7 +407,7 @@ export default function Features() {
                             See It <span className="text-indigo-400">Working.</span>
                         </h2>
                         <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed relative z-10">
-                            14-day free trial. Full access. No credit card. Set up in 15 minutes.
+                            14-day free trial. Full access. Cancel anytime. Set up in 15 minutes.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">

@@ -18,6 +18,8 @@ tests/Unit/*
 tests/Feature/*
 !tests/Feature/Reckoner/
 !tests/Feature/Module/
+!tests/Feature/Security/
+!tests/Feature/Security/*.php
 reports/*.json
 reports/*.xml
 reports/coverage/
@@ -40,4 +42,3 @@ VerificationCenter/
 # rule does NOT work on its own — git cannot re-include a path whose
 # parent directory (tests/tests/Feature/) is still excluded by an
 # earlier tests/* rule, no matter how specific the later "!" is.
-

@@ -287,7 +287,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                                     <p className="text-sm font-semibold text-neutral-300 group-hover:text-white transition-colors">
                                         Create a new store
                                     </p>
-                                    <p className="text-xs text-ink-muted">Pick a plan · 14-day free trial · No card required</p>
+                                    <p className="text-xs text-ink-muted">Pick a plan · 14-day free trial · Cancel anytime</p>
                                 </div>
                             </div>
                             <ArrowRight size={16} className="text-ink-muted group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all" />

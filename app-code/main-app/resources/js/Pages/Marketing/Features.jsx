@@ -36,7 +36,7 @@ const FEATURE_CATS = [
         key: 'start', label: 'Getting Started', icon: Gauge, color: 'indigo',
         items: [
             { n: 'One-Click Interactive Demo', d: 'Launch a fully pre-populated demo store from the landing page — test checkout, reports and dummy products with no account.' },
-            { n: '14-Day Free Trial', d: 'Explore the full platform for 14 days with no credit card required.' },
+            { n: '14-Day Free Trial', d: 'Explore the full platform for 14 days with full feature access and instant setup.' },
             { n: 'Instant Store Creator', d: 'Start setup by entering only your store name — no servers or technical knowledge needed.' },
             { n: 'Smart Industry Seeding', d: 'Auto-imports standard units, tax settings and categories tailored to your industry (Retail, Grocery, F&B, Fashion, Hard Goods).' },
             { n: 'Dark Theme (Midnight Nebula)', d: 'Premium glassmorphic dark dashboard with amber accents — easy on cashiers’ eyes during long shifts.' },
@@ -494,7 +494,7 @@ export default function Features() {
         { e: 6, s: '', l: 'Live Demos' },
     ];
     return (
-        <MarketingLayout title="Features - VenQore" description="Explore every VenQore feature with live, interactive demos of the real product - Reports, POS, Smart Capture AI, VenSynQ, the Growth Intelligence Engine and Cookbook - plus a searchable catalog of all 255+ capabilities.">
+        <MarketingLayout title="Features - VenQore" description="Explore every VenQore feature with live, interactive demos of the real product - Reports, POS, Smart Capture AI, VenSynQ, the Growth Intelligence Engine and Cookbook - plus a searchable catalog of all 144 verified features.">
             {/* HERO */}
             <section className="relative pt-36 md:pt-44 pb-12 px-6">
                 <div className="max-w-5xl mx-auto text-center">
@@ -604,7 +604,7 @@ export default function Features() {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
                         <h2 className="text-4xl md:text-7xl font-bold text-ink mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-brand-600 dark:text-brand-400">your numbers.</span></h2>
-                        <p className="text-lg md:text-xl text-ink-muted mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
+                        <p className="text-lg md:text-xl text-ink-muted mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · cancel anytime · live in 15 minutes.</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">Start Free Trial <ArrowRight size={16} /></MagneticButton>
                             <MagneticButton href="/demo" variant="ghost">Launch Live Demo</MagneticButton>

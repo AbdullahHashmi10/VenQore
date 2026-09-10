@@ -99,10 +99,10 @@ export default function BlogShow({ post, recentPosts = [] }) {
                             <span className="px-3 py-1 rounded-full bg-brand-500/15 border border-brand-500/30 text-brand-400 text-3xs font-bold tracking-[0.2em] uppercase">
                                 {post.category || 'Retail Intelligence'}
                             </span>
-                            <span className="text-2xs text-ink-muted font-bold flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/40 border border-white/5">
+                            <span className="text-2xs text-ink-muted font-bold flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-2/40 border border-line">
                                 <Clock size={12} className="text-brand-400" /> {readTime} min read ({wordCount.toLocaleString()} words)
                             </span>
-                            <span className="text-2xs text-ink-muted font-bold flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/40 border border-white/5">
+                            <span className="text-2xs text-ink-muted font-bold flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-2/40 border border-line">
                                 <Tag size={12} className="text-brand-400" /> Published {post.date}
                             </span>
                         </div>
@@ -167,7 +167,7 @@ export default function BlogShow({ post, recentPosts = [] }) {
                                     alt={post.title}
                                     className="w-full h-72 md:h-[420px] object-cover object-center group-hover:scale-105 transition-transform duration-slower"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-neutral-950/20 to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-sunken/80 via-sunken/20 to-transparent pointer-events-none" />
                             </div>
                         </RevealOnScroll>
                     )}
@@ -208,9 +208,9 @@ export default function BlogShow({ post, recentPosts = [] }) {
 
             {/* ── 4. CTA BANNER ───────────────────────────────── */}
             <section className="py-24 px-6 text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-brand-950/30 to-neutral-950 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-b from-brand-950/30 to-sunken pointer-events-none" />
                 <RevealOnScroll>
-                    <div className="max-w-3xl mx-auto relative z-10 bg-neutral-900/60 border border-white/10 rounded-2xl p-10 backdrop-blur-xl">
+                    <div className="max-w-3xl mx-auto relative z-10 bg-surface-2/60 border border-line rounded-2xl p-10 backdrop-blur-xl">
                         <span className="px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-3xs font-bold uppercase tracking-widest inline-block mb-4">
                             Zero Processing Markups
                         </span>
@@ -221,8 +221,8 @@ export default function BlogShow({ post, recentPosts = [] }) {
                             Join independent retailers saving thousands annually on credit card processing markups. Hardware-agnostic, offline-resilient, and 100% transparent.
                         </p>
                         <div className="flex flex-wrap justify-center gap-4">
-                            <MagneticButton href="/register" variant="primary">
-                                Start 14-Day Free Trial <ArrowRight size={16} />
+                            <MagneticButton href="/build-workspace" variant="primary">
+                                Start building <ArrowRight size={16} />
                             </MagneticButton>
                             <Link href="/pricing" className="px-6 py-3 rounded-full border border-white/15 text-white hover:bg-white/5 transition-all text-xs font-bold uppercase tracking-widest inline-flex items-center">
                                 View TCO Calculator

@@ -108,7 +108,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
  <div className="text-center mb-9">
  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-300 text-sm font-semibold mb-5">
  <Sparkles size={14} />
- {trial_days}-day free trial · No card required
+ {trial_days}-day free trial · Cancel anytime
  </div>
  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">
  Choose a plan to start your trial
@@ -263,7 +263,7 @@ export default function SelectPlan({ plans = [], currency = { code: 'USD', symbo
  </button>
  </div>
  <p className="text-center sm:text-left text-1xs text-ink-muted mt-4 flex items-center gap-1.5 justify-center sm:justify-start">
- <CreditCard size={11} /> No credit card required to start. Cancel anytime before your trial ends.
+ <CreditCard size={11} /> Cancel anytime before your trial ends. Full feature access.
  </p>
  </div>
 

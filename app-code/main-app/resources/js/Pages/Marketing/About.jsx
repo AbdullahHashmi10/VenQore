@@ -79,8 +79,8 @@ const TONE = {
 const TIMELINE = [
     { k: 'The frustration', d: 'Owners ringing up a thousand sales a day still could not answer one question: did I actually make money this month?' },
     { k: 'The decision', d: 'Instead of bolting reports onto a cash register, we chose to rebuild retail software on a real double-entry foundation.' },
-    { k: 'The engine', d: 'A DECIMAL(20,4) ledger with a FIFO cost core — wrapped in 1,500+ automated tests so the math can never quietly drift.' },
-    { k: 'The platform', d: '226+ features grew on top of that engine: POS, inventory, manufacturing, AI and 40+ reports — one connected system.' },
+    { k: 'The engine', d: 'A DECIMAL(20,4) ledger with a FIFO cost core — wrapped in eight correctness laws run against every reading on every release, so the math can never quietly drift.' },
+    { k: 'The platform', d: '144 verified features grew on top of that engine: POS, inventory, manufacturing, AI and 40 reports — one connected system.' },
     { k: 'Today', d: 'From a single counter to multi-store operations, VenQore gives owners one number they can finally trust.' },
 ];
 const PRINCIPLES = [
@@ -136,7 +136,7 @@ export default function About() {
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.3}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-16 border-t border-white/[0.06] pt-10">
-                            {[{ e: 226, s: '+', l: 'Features' }, { e: 1000, s: '+', l: 'Tests Passed' }, { e: 40, s: '+', l: 'Reports' }, { e: 5, s: '', l: 'Audit Layers' }].map((x, i) => (
+                            {[{ e: 226, s: '+', l: 'Features' }, { e: 2000, s: '+', l: 'Tests Passed' }, { e: 40, s: '+', l: 'Reports' }, { e: 5, s: '', l: 'Audit Layers' }].map((x, i) => (
                                 <div key={i} className="text-center">
                                     <div className="text-3xl md:text-4xl font-bold text-ink tracking-tighter font-display"><Num end={x.e} suffix={x.s} /></div>
                                     <div className="text-2xs text-ink-secondary font-bold uppercase tracking-[0.22em] mt-1">{x.l}</div>
@@ -229,8 +229,8 @@ export default function About() {
                     <RevealOnScroll delay={0.12} direction="left">
                         <div className="grid grid-cols-2 gap-4">
                             {[
-                                { e: 1000, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
-                                { e: 4000, s: '+', l: 'Integrity Checks', ic: Database, c: 'text-brand-300' },
+                                { e: 2000, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
+                                { e: 20000, s: '+', l: 'Live Assertions', ic: Database, c: 'text-brand-300' },
                                 { e: 13, s: '', l: 'E2E Scenarios', ic: Activity, c: 'text-cyan-300' },
                                 { e: 0, s: '', disp: 'DECIMAL(20,4)', l: 'Ledger Precision', ic: Scale, c: 'text-brand-300' },
                             ].map((x, i) => (
@@ -322,7 +322,7 @@ export default function About() {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
                         <h2 className="text-4xl md:text-7xl font-bold text-ink mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Run your business on<br /><span className="vq-headline-grad">numbers you trust.</span></h2>
-                        <p className="text-lg md:text-xl text-ink-muted mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
+                        <p className="text-lg md:text-xl text-ink-muted mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · cancel anytime · live in 15 minutes.</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">Start Free Trial <ArrowRight size={16} /></MagneticButton>
                             <MagneticButton href="/contact" variant="ghost">Talk to us</MagneticButton>

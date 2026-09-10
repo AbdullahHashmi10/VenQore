@@ -286,11 +286,11 @@ export default function Show({ slug }) {
                     Ready to Upgrade Your {data.name} Operations?
                 </h2>
                 <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
-                    Start your 14-day free trial today or test drive our interactive live demo with zero signup required.
+                    Describe your business and VenQore assembles the system for it — 14 days at Core level with full feature access. Or test drive the live demo with no signup at all.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
-                    <MagneticButton href="/register" variant="primary">
-                        Start 14-Day Free Trial <ArrowRight className="w-4 h-4 ml-2" />
+                    <MagneticButton href="/build-workspace" variant="primary">
+                        Start building <ArrowRight className="w-4 h-4 ml-2" />
                     </MagneticButton>
                     <MagneticButton href="/demo" variant="secondary">
                         Explore Live Demo

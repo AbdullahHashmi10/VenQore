@@ -60,7 +60,7 @@ export default function CompareShow({ slug }) {
                             RECOMMENDED
                         </div>
                         <h3 className="text-2xl font-bold text-ink mb-2">VenQore</h3>
-                        <p className="text-emerald-600 dark:text-emerald-400 font-semibold mb-6">The All-in-One Operating System</p>
+                        <p className="text-success-600 dark:text-success-400 font-semibold mb-6">The AI ERP builder</p>
                         <ul className="space-y-3 text-sm text-ink-secondary dark:text-ink">
                             <li className="flex items-center gap-2">
                                 <Check className="w-5 h-5 text-emerald-500 shrink-0" />
@@ -248,8 +248,8 @@ export default function CompareShow({ slug }) {
                     Start a 14-day free trial. Our team assists with zero-downtime data migration from {data.name}.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
-                    <MagneticButton href="/register" variant="primary">
-                        Start 14-Day Free Trial <ArrowRight className="w-4 h-4 ml-2" />
+                    <MagneticButton href="/build-workspace" variant="primary">
+                        Start building <ArrowRight className="w-4 h-4 ml-2" />
                     </MagneticButton>
                     <MagneticButton href="/demo" variant="secondary">
                         Try Live Interactive Demo

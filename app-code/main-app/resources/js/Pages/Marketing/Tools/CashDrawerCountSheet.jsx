@@ -255,7 +255,10 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
             toolGroups={toolGroups}
             currentSlug="cash-drawer-count-sheet"
             faqs={FAQS}
-            cta={{ headline: 'Till counts are one piece of running a store.', subtext: 'VenQore ties every register close to real inventory and accounting — automatically, every shift.' }}
+            cta={{
+                    headline: "Till counts are one piece of running a store.",
+                    subtext: "Describe your business once. The system VenQore builds ties every register close to live stock and the ledger, every shift.",
+                }}
             related={[{ href: '/tools/stock-count-sheet', label: 'Stock Count Sheet' }]}
             wide
         >

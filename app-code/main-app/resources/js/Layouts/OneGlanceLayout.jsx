@@ -609,17 +609,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  routeParams: store ? { store_slug: store.slug } : {}
  },
  {
- name: 'Sell',
- icon: ShoppingCart,
- // PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
- subs: userRole === 'cashier' ? [] : [
- { group: 'Transactions', items: ['Orders', 'Quotations / Pre-Sales', 'Proposals'] },
- { group: 'Post-Sale', items: ['Returns History', { label: 'Invoice Reminders', locked: !store?.features?.invoice_reminders }, { label: 'Recurring Invoices', locked: !store?.features?.recurring_invoices }] },
- { group: 'Config', items: [{ label: 'E-Invoicing (Coming Soon)', locked: true }] }
- ],
- route: store ? 'store.sales.dashboard' : 'sales.dashboard',
- routeParams: store ? { store_slug: store.slug } : {}
- },
+ 		name: 'Sell',
+		icon: ShoppingCart,
+		// PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
+		subs: userRole === 'cashier' ? [] : [
+			{ group: 'Transactions', items: ['Orders', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
+			{ group: 'Post-Sale', items: ['Returns History', 'Invoice Reminders', 'Recurring Invoices'] },
+			{ group: 'Config', items: ['E-Invoicing'] }
+		],
+		route: store ? 'store.sales.dashboard' : 'sales.dashboard',
+		routeParams: store ? { store_slug: store.slug } : {}
+	},
  {
  name: 'Purchase',
  icon: ShoppingBag,
@@ -637,7 +637,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  { group: 'Catalog', items: ['Products', 'Categories', 'Attributes', 'Labels'] },
  { group: 'Operations', items: ['Stock Levels', 'Stock Operations', 'Stock Transfers', 'Stock Audit'] },
  { group: 'Tracking', items: ['Batch Tracking', 'Serial Tracking'] },
- { group: 'Manufacturing', items: [{ label: 'Production', locked: !store?.features?.production }, { label: 'Cookbook', locked: !store?.features?.bill_of_materials }] }
+ { group: 'Manufacturing', items: ['Production', 'Cookbook'] }
  ],
  route: store ? 'store.inventory.dashboard' : 'inventory.dashboard',
  routeParams: store ? { store_slug: store.slug } : {}
@@ -656,7 +656,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  icon: Wallet,
  subs: [
  { group: 'Cash Flow', items: ['Payments', 'Expenses', 'To Receive', 'To Pay'] },
- { group: 'Banking', items: [{ label: 'Fund Management', locked: !store?.features?.fund_management }, 'Bank Accounts', { label: 'Bank Reconciliation', locked: !store?.features?.bank_reconciliation }] },
+ { group: 'Banking', items: ['Fund Management', 'Bank Accounts', 'Bank Reconciliation'] },
  ],
  route: store ? 'store.transactions.index' : 'transactions.index',
  routeParams: store ? { store_slug: store.slug } : {}
@@ -666,7 +666,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  icon: RefreshCcw,
  subs: [
  { group: 'Multi-Channel', items: ['VenSynQ'] },
- { group: 'Promotion', items: [{ label: 'Email Marketing', locked: !store?.features?.email_marketing }, { label: 'SMS Marketing', locked: !store?.features?.sms_marketing }, { label: 'Campaigns', locked: !store?.features?.campaigns }] },
+ { group: 'Promotion', items: ['Email Marketing', 'SMS Marketing', 'Campaigns'] },
  { group: 'Integrations', items: [woocommerce_enabled ? 'WooCommerce Sync' : null].filter(Boolean) },
  { group: 'Configuration', items: ['VenSynQ Settings'] }
  ],
@@ -677,7 +677,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  name: 'Insights',
  icon: TrendingUp,
  subs: [
- { group: 'Growth', items: [!store?.features?.growth_engine ? { label: 'Growth Engine', locked: true } : 'Growth Engine'] },
+ { group: 'Growth', items: ['Growth Engine'] },
  { group: 'Financial Health', items: ['Chart of Accounts', 'Profit & Loss', 'Balance Sheet', 'Cash Flow', 'Tax Report'] },
  { group: 'Sales Analysis', items: ['Sales Report', 'Discount Report', 'Sale Aging'] },
  { group: 'Purchase Analysis', items: ['Purchase Report', 'Expense Report'] },
@@ -723,6 +723,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	// When all sub-items in a top-level group are gone, the entire group hides.
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
+		'Service Jobs': 'services',
+		'Dispatch Calendar': 'services',
+		'Tools & Equipment': 'services',
+		'Services': 'services',
 		'Quotations / Pre-Sales': 'pre_sales',
 		'Proposals': 'b2b_proposals',
 		'Returns History': 'sales_returns',
@@ -760,6 +764,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 	const SUBITEM_ROUTES = {
 		'Orders': ['store.sales-orders.index', 'store.sales.index'],
+		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
+		'Dispatch Calendar': ['store.service-jobs.calendar'],
+		'Tools & Equipment': ['store.tools.index'],
+		'Services': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar', 'store.tools.index'],
 		'Quotations / Pre-Sales': ['store.pre-sales.index', 'store.quotations.index'],
 		'Proposals': ['store.proposals.index'],
 		'Returns History': ['store.returns-history.index'],
@@ -968,7 +976,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'Support': [],
  'Activity Feed': [],
  'Demo Store': [],
- 'Settings': [],
  'System Update': [],
  'Staff Summaries': ['users'],
  'Staff Attendance': ['users'],

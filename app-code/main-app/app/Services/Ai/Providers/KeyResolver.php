@@ -63,8 +63,18 @@ class KeyResolver
 
         // 2. Platform Key Resolution (Managed or Free)
         $profile = config("ai_models.{$feature}") ?? config('ai_models.default', []);
-        $provider = strtolower($requestedProvider ?: ($profile['provider'] ?? 'gemini'));
-        $model = $requestedModel ?: ($profile['model'] ?? 'gemini-2.5-flash-lite');
+        
+        // Check if platform key was set directly in Hashmi Dashboard (global setting with tenant_id = null)
+        $globalSettings = Setting::withoutGlobalScopes()
+            ->whereNull('tenant_id')
+            ->whereIn('key', ['gemini_api_key', 'ai_api_key', 'global_ai_api_key', 'openai_api_key', 'ai_provider', 'ai_model'])
+            ->pluck('value', 'key');
+
+        $provider = strtolower($requestedProvider ?: ($globalSettings->get('ai_provider') ?: ($profile['provider'] ?? 'gemini')));
+        $model = $requestedModel ?: ($globalSettings->get('ai_model') ?: ($profile['model'] ?? 'gemini-3.1-flash-lite'));
+
+        $dashboardGeminiKey = $globalSettings->get('gemini_api_key') ?: $globalSettings->get('ai_api_key') ?: $globalSettings->get('global_ai_api_key');
+        $dashboardOpenAiKey = $globalSettings->get('openai_api_key');
 
         // Staff operations operate on real tenant data and resolve to the platform paid key.
         // Free tier is strictly reserved for trial/free allowance and public marketing tools.
@@ -72,25 +82,26 @@ class KeyResolver
             || $feature === 'public_tool';
 
         if ($isFreeTier) {
-            $apiKey = config('smartcapture.free_api_key')
-                ?: (config('smartcapture.gemini_key') ?: env('GEMINI_API_KEY') ?: config('smartcapture.api_key'));
+            $apiKey = $dashboardGeminiKey
+                ?: config('smartcapture.free_api_key')
+                ?: (config('smartcapture.gemini_key') ?: config('services.gemini.key') ?: config('smartcapture.api_key'));
             $keyMode = 'platform_free';
         } else {
             if ($provider === 'gemini') {
-                $apiKey = config('smartcapture.gemini_key')
-                    ?: env('GEMINI_API_KEY')
+                $apiKey = $dashboardGeminiKey
+                    ?: config('smartcapture.gemini_key')
                     ?: config('services.gemini.key')
                     ?: config('smartcapture.api_key');
             } elseif ($provider === 'openai') {
-                $apiKey = config('services.openai.key')
-                    ?: env('OPENAI_API_KEY')
+                $apiKey = $dashboardOpenAiKey
+                    ?: config('services.openai.key')
                     ?: config('smartcapture.api_key');
             } elseif ($provider === 'anthropic') {
-                $apiKey = config('services.anthropic.key') ?: env('ANTHROPIC_API_KEY');
+                $apiKey = config('services.anthropic.key');
             } elseif ($provider === 'deepseek') {
-                $apiKey = config('services.deepseek.key') ?: env('DEEPSEEK_API_KEY');
+                $apiKey = config('services.deepseek.key');
             } else {
-                $apiKey = config('smartcapture.gemini_key') ?: env('GEMINI_API_KEY');
+                $apiKey = $dashboardGeminiKey ?: config('smartcapture.gemini_key') ?: config('services.gemini.key');
             }
             $keyMode = 'platform_paid';
         }

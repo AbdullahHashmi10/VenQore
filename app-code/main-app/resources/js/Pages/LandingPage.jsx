@@ -1233,7 +1233,7 @@ const MODULES = [
     { ic: Package, n: 'Variant Factory', d: 'Color, size, weight & serial' },
     { ic: Factory, n: 'Manufacturing', d: 'Recipe-based assembly & BOM' },
     { ic: ShieldCheck, n: 'SuperAdmin', d: 'Platform-wide command center' },
-    { ic: BarChart3, n: 'Report Factory', d: '40+ reports on demand' },
+    { ic: BarChart3, n: 'Report Factory', d: '40 reports on demand' },
     { ic: Users, n: 'Workforce & Security', d: 'Logins, shifts & audit logs' },
     { ic: Globe, n: 'E-Commerce Sync', d: 'WooCommerce & marketplaces' },
 ];
@@ -1323,7 +1323,7 @@ export default function LandingPage() {
         { q: 'Do I need an accountant to use it?', a: 'No. VenQore handles the double-entry mechanics automatically. Every sale, purchase, return, transfer and adjustment writes the correct balanced entry. Your accountant can verify the output — they just won’t need to create it by hand.' },
         { q: 'How long does setup take?', a: 'The Instant Store Creator needs only your store name, then seeds units, taxes and categories for your industry. Most businesses are live in 10–15 minutes, and full historical data can be imported the same day.' },
         { q: 'Will it work across multiple stores?', a: 'Yes. The Multi-Store Hub switches between branches in one click, and granular roles let you be Owner in one store, Manager in another and read-only Viewer in a third — all from a single account.' },
-        { q: 'How accurate is the financial engine, really?', a: 'It runs on a DECIMAL(20,4) double-entry core verified by 1,500+ automated tests, 4,000+ integrity checks and 13 end-to-end scenarios. Dashboard figures reconcile to the general ledger down to the cent.' },
+        { q: 'How accurate is the financial engine, really?', a: 'It runs on a DECIMAL(20,4) double-entry core verified by eight correctness laws, 2,000+ automated tests, 20,000+ integrity assertions and 13 end-to-end scenarios. Dashboard figures reconcile to the general ledger down to the cent.' },
         { q: 'What happens to my data if I cancel?', a: 'It’s yours. Export it at any time via the import/export tools. We never hold your data hostage.' },
     ];
 
@@ -1335,7 +1335,7 @@ export default function LandingPage() {
            those are no longer rendered here. */
         <MarketingLayout
             title={`${appName} — The Books Are Always Right.`}
-            description="VenQore is the all-in-one POS & ERP built on a real double-entry engine. Every sale, purchase, return and transfer posts a correct journal entry — automatically. 226+ features, 40+ reports, AI growth engine."
+            description="VenQore is the all-in-one POS & ERP built on a real double-entry engine. Every sale, purchase, return and transfer posts a correct journal entry — automatically. 144 verified features, 40 reports, AI growth engine."
         >
             {/* ── REMOVED: bespoke nav ─────────────────────────── */}
             <>
@@ -1346,7 +1346,7 @@ export default function LandingPage() {
                         <div className={`transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                             <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 backdrop-blur-md text-2xs font-bold tracking-[0.3em] uppercase mb-10">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                                <span className="text-ink-secondary">226+ Features · One Source of Truth</span>
+                                <span className="text-ink-secondary">144 verified Features · One Source of Truth</span>
                             </div>
 
                             <h1 className="mb-8 leading-[0.86]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
@@ -1391,7 +1391,11 @@ export default function LandingPage() {
 
                                 <div className="flex items-center justify-between text-xs">
                                     <span className="text-ink-muted text-1xs">
-                                        Try: <button onClick={() => { document.getElementById('hero-ai-prompt').value = "I run a grocery store with 2 counters and sell on credit."; }} className="text-brand-400 hover:underline text-left">"Grocery store with 2 counters"</button>
+                                        {/* Clicking this goes straight into the questions, same as pressing
+                                            Enter or "Build Workspace" — it used to only fill the input and
+                                            leave the visitor to click Build Workspace themselves, which read
+                                            as broken: they picked an example, nothing happened. */}
+                                        Try: <button onClick={() => { window.location.href = `/build-workspace?prompt=${encodeURIComponent("I run a grocery store with 2 counters and sell on credit.")}`; }} className="text-brand-400 hover:underline text-left">"Grocery store with 2 counters"</button>
                                     </span>
                                     <a
                                         href="/build-workspace"
@@ -1525,8 +1529,8 @@ export default function LandingPage() {
                         <Reveal delay={0.1}><IntegrityPipeline /></Reveal>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-5xl mx-auto">
                             {[
-                                { e: 1500, s: '+', l: 'Automated Tests', g: true },
-                                { e: 4000, s: '+', l: 'Integrity Checks', g: true },
+                                { e: 2000, s: '+', l: 'Automated Tests', g: true },
+                                { e: 20000, s: '+', l: 'Live Assertions', g: true },
                                 { e: 13, s: '', l: 'E2E Scenarios' },
                                 { e: 4, s: '', l: 'Decimal Precision', disp: 'DECIMAL(20,4)' },
                             ].map((s, i) => (
@@ -1591,7 +1595,7 @@ export default function LandingPage() {
                         </div>
                         <Reveal delay={0.15}>
                             <div className="text-center mt-12">
-                                <MagBtn href="/features" variant="ghost">Explore all 226+ features <ArrowRight size={15} /></MagBtn>
+                                <MagBtn href="/features" variant="ghost">Explore all 144 verified features <ArrowRight size={15} /></MagBtn>
                             </div>
                         </Reveal>
                     </div>
@@ -1639,7 +1643,7 @@ export default function LandingPage() {
                         <Reveal>
                             <Eyebrow icon={BarChart3} tone="amber">Report Factory</Eyebrow>
                             <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                40+ reports.<br /><span className="text-amber-600 dark:text-amber-400">One source of truth.</span>
+                                40 reports.<br /><span className="text-amber-600 dark:text-amber-400">One source of truth.</span>
                             </h2>
                             <p className="text-ink-muted text-lg max-w-2xl mx-auto mb-12">P&amp;L, balance sheet and cash flow don’t come from separate calculators — they read the same verified ledger, so they always agree.</p>
                         </Reveal>
@@ -1662,7 +1666,7 @@ export default function LandingPage() {
                         {[
                             { e: 226, s: '+', l: 'Platform Features' },
                             { e: 40, s: '+', l: 'Business Reports' },
-                            { e: 1500, s: '+', l: 'Automated Tests', g: true },
+                            { e: 2000, s: '+', l: 'Automated Tests', g: true },
                             { e: 5, s: '', l: 'Audit Layers' },
                         ].map((s, i) => (
                             <Reveal key={i} delay={0.07 * i}>
@@ -1706,24 +1710,106 @@ export default function LandingPage() {
                     </div>
                 </section>
 
-                {/* ══ 11 · PRICING TEASER ══ */}
+                {/* ══ 11 · PRICING ══ */}
                 <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-5xl mx-auto">
+                    <div className="max-w-6xl mx-auto">
                         <Reveal>
-                            <Glass className="p-10 md:p-16 text-center overflow-hidden" glow>
+                            <div className="text-center mb-12">
+                                <Eyebrow icon={BadgeCheck} tone="emerald">Transparent Pricing</Eyebrow>
+                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    Priced for real businesses.<br /><span className="text-emerald-600 dark:text-emerald-400">Not enterprise budgets.</span>
+                                </h2>
+                                <p className="text-ink-muted text-lg max-w-2xl mx-auto">
+                                    Traditional ERP costs tens of thousands a year. VenQore starts free, scales with you. Every plan includes the full double-entry ledger and all 43 financial reports.
+                                </p>
+                            </div>
+                        </Reveal>
+
+                        {/* Plan cards */}
+                        <Reveal delay={0.08}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+                                {[
+                                    {
+                                        name: 'Solo', price: '$0', suffix: '/forever', badge: 'Free forever',
+                                        color: 'text-teal-400', border: 'border-teal-500/20', bg: 'bg-teal-500/5',
+                                        features: ['500 SKUs · 1 register', '100 sales/month', 'Core ledger + 43 reports', 'Full offline POS'],
+                                        cta: 'Start Free',
+                                    },
+                                    {
+                                        name: 'Starter', price: '$49', suffix: '/mo', badge: 'Essential',
+                                        color: 'text-blue-400', border: 'border-blue-500/20', bg: 'bg-blue-500/5',
+                                        features: ['5,000 SKUs · 2 registers', 'Unlimited transactions', 'Google Drive backup', 'Email support 2-day SLA'],
+                                        cta: 'Start Trial',
+                                    },
+                                    {
+                                        name: 'Core', price: '$99', suffix: '/mo', badge: 'Most Popular', popular: true,
+                                        color: 'text-brand-400', border: 'border-brand-500/40', bg: 'bg-brand-500/8',
+                                        features: ['25,000 SKUs · 5 seats', 'Multi-branch + REST API', 'Audit trail & custom roles', 'Priority 1-day SLA'],
+                                        cta: 'Start 14-Day Trial',
+                                    },
+                                    {
+                                        name: 'Scale', price: '$299', suffix: '/mo', badge: 'Enterprise',
+                                        color: 'text-purple-400', border: 'border-purple-500/20', bg: 'bg-purple-500/5',
+                                        features: ['250,000 SKUs · 25 seats', '20 registers · White-label', '2 channel syncs included', 'Named contact 4-hr SLA'],
+                                        cta: 'Start Trial',
+                                    },
+                                ].map((plan) => (
+                                    <div
+                                        key={plan.name}
+                                        className={`relative rounded-2xl border p-6 flex flex-col transition-all duration-300 ${plan.border} ${plan.bg} ${plan.popular ? 'shadow-[0_0_40px_rgba(11,170,143,0.15)] scale-[1.02]' : ''}`}
+                                    >
+                                        {plan.popular && (
+                                            <div className="absolute -top-px left-4 right-4 h-[2px] bg-gradient-to-r from-brand-500 via-teal-400 to-brand-500 rounded-full" />
+                                        )}
+                                        <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${plan.color}`}>{plan.badge}</div>
+                                        <div className="text-ink font-bold text-xl mb-0.5">{plan.name}</div>
+                                        <div className="flex items-baseline gap-1 mb-4">
+                                            <span className={`text-4xl font-bold font-display ${plan.color}`}>{plan.price}</span>
+                                            <span className="text-ink-muted text-sm">{plan.suffix}</span>
+                                        </div>
+                                        <ul className="space-y-2 flex-1 mb-6">
+                                            {plan.features.map((f) => (
+                                                <li key={f} className="flex items-start gap-2 text-xs text-ink-secondary">
+                                                    <span className={`mt-0.5 flex-shrink-0 ${plan.color}`}>✓</span>
+                                                    {f}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <a
+                                            href="/pricing"
+                                            className={`w-full py-2.5 rounded-xl text-xs font-bold text-center transition-all ${plan.popular ? 'bg-brand-600 hover:bg-brand-500 text-white' : 'bg-white/5 hover:bg-white/10 text-ink-secondary border border-white/10'}`}
+                                        >
+                                            {plan.cta}
+                                        </a>
+                                    </div>
+                                ))}
+                            </div>
+                        </Reveal>
+
+                        {/* Annual savings note */}
+                        <Reveal delay={0.12}>
+                            <div className="text-center mb-10">
+                                <p className="text-ink-muted text-sm">
+                                    💡 Pay annually and get <strong className="text-emerald-400">2 months free</strong> — Starter $490/yr · Core $990/yr · Scale $2,990/yr
+                                </p>
+                            </div>
+                        </Reveal>
+
+                        {/* CTA row */}
+                        <Reveal delay={0.15}>
+                            <Glass className="p-10 md:p-14 text-center overflow-hidden" glow>
                                 <div className="absolute inset-0 vq-grid opacity-30 pointer-events-none" />
                                 <div className="relative z-10">
-                                    <Eyebrow icon={BadgeCheck} tone="emerald">Risk-free to start</Eyebrow>
-                                    <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                                    <h3 className="text-3xl md:text-4xl font-bold text-ink tracking-tighter mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                         Try the whole platform.<br /><span className="text-emerald-600 dark:text-emerald-400">Free for 14 days.</span>
-                                    </h2>
-                                    <p className="text-ink-muted text-lg max-w-xl mx-auto mb-9">Full access. No credit card. Launch a pre-populated demo store in one click, or start your own and be live in 15 minutes.</p>
-                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+                                    </h3>
+                                    <p className="text-ink-muted text-base max-w-xl mx-auto mb-8">Full Core access. Card authorized today at $0.00. Cancel anytime from your dashboard before day 14.</p>
+                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
                                         <MagBtn href="/register" variant="primary">Start Free Trial <ArrowRight size={18} /></MagBtn>
-                                        <MagBtn href="/pricing" variant="ghost">See pricing</MagBtn>
+                                        <MagBtn href="/pricing" variant="ghost">See full pricing details</MagBtn>
                                     </div>
                                     <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-bold text-ink-muted">
-                                        {['No credit card', 'Cancel anytime', 'Export your data', 'Free demo store'].map(x => (
+                                        {['14-day free trial', 'Cancel anytime', 'Export your data', 'Solo plan free forever'].map(x => (
                                             <span key={x} className="inline-flex items-center gap-1.5"><Check size={13} className="text-emerald-600 dark:text-emerald-400" /> {x}</span>
                                         ))}
                                     </div>
@@ -1801,7 +1887,7 @@ export default function LandingPage() {
                                 You already suspect<br />your <span className="vq-headline-grad">numbers are wrong.</span>
                             </h2>
                             <p className="text-xl text-ink-muted mb-12 max-w-2xl mx-auto leading-relaxed relative z-10">
-                                The only question is whether you fix it this year — or keep guessing. 14-day free trial, full access, no credit card.
+                                The only question is whether you fix it this year — or keep guessing. 14-day free trial, full access, cancel anytime.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                                 <MagBtn href="/register" variant="primary">Start Your Free Trial <ArrowRight size={18} /></MagBtn>

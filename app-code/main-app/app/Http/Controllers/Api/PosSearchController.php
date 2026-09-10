@@ -48,15 +48,20 @@ class PosSearchController extends Controller
         $page       = max(1, (int) $request->get('page', 1));
         $perPage    = 30;
 
-        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        abort_unless($tenant, 400, 'No store context.');
+        $tenantId = $tenant->id;
 
         $customerId = $request->get('customer_id') ?? $request->get('party_id');
         $isWholesale = false;
         $cust = null;
         if ($customerId) {
             $cust = DB::table('customers')
-                ->where('id', $customerId)
-                ->orWhere('party_id', $customerId)
+                ->where('tenant_id', $tenantId)
+                ->where(function ($w) use ($customerId) {
+                    $w->where('id', $customerId)
+                      ->orWhere('party_id', $customerId);
+                })
                 ->first();
             if ($cust && $cust->type === 'wholesale') {
                 $isWholesale = true;
@@ -74,10 +79,16 @@ class PosSearchController extends Controller
                     ->where('b.is_primary', true);
             })
             ->whereNull('p.deleted_at')
+            ->where('p.tenant_id', $tenantId)
             ->select([
                 'p.id',
                 'p.name',
                 'p.sku',
+                'p.type',
+                'p.service_pricing',
+                'p.default_duration',
+                'p.requires_visit',
+                'p.skill_tag',
                 'p.price',
                 'p.wholesale_price',
                 'p.cost_price',
@@ -90,14 +101,10 @@ class PosSearchController extends Controller
                 DB::raw('COALESCE(SUM(s.quantity), 0) as stock_quantity'),
                 DB::raw('MAX(b.barcode) as primary_barcode'),
             ])
-            ->groupBy('p.id', 'p.name', 'p.sku', 'p.price', 'p.wholesale_price', 'p.cost_price',
+            ->groupBy('p.id', 'p.name', 'p.sku', 'p.type', 'p.service_pricing', 'p.default_duration', 'p.requires_visit', 'p.skill_tag',
+                      'p.price', 'p.wholesale_price', 'p.cost_price',
                       'p.image_path', 'p.has_variants', 'p.base_unit',
                       'p.tax_rate', 'p.category_id', 'c.name');
-
-        // Apply tenant isolation manually (DB query bypasses Eloquent scope)
-        if ($tenantId) {
-            $q->where('p.tenant_id', $tenantId);
-        }
 
         // Search filter
         if (!empty($query)) {
@@ -318,15 +325,17 @@ class PosSearchController extends Controller
                 ->whereNull('p.deleted_at')
                 ->when($tenantId, fn($q) => $q->where('p.tenant_id', $tenantId))
                 ->select([
-                    'p.id', 'p.name', 'p.sku', 'p.price', 'p.image_path',
+                    'p.id', 'p.name', 'p.sku', 'p.type', 'p.service_pricing', 'p.default_duration', 'p.requires_visit', 'p.skill_tag',
+                    'p.price', 'p.image_path',
                     'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id',
                     'c.name as category_name',
                     DB::raw('COALESCE(SUM(s.quantity), 0) as stock_quantity'),
                     DB::raw('COALESCE(MAX(recent_sales.sold_qty), 0) as recent_sold'),
                 ])
-                ->groupBy('p.id', 'p.name', 'p.sku', 'p.price', 'p.image_path',
-                         'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'c.name')
-                ->having(DB::raw('COALESCE(SUM(s.quantity), 0)'), '>', 0)
+                ->groupBy('p.id', 'p.name', 'p.sku', 'p.type', 'p.service_pricing', 'p.default_duration', 'p.requires_visit', 'p.skill_tag',
+                          'p.price', 'p.image_path',
+                          'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'c.name')
+                ->havingRaw("COALESCE(SUM(s.quantity), 0) > 0 OR p.type = 'service'")
                 ->orderByDesc('recent_sold')
                 ->orderBy('p.name')
                 ->limit(50)
@@ -352,15 +361,14 @@ class PosSearchController extends Controller
      */
     public function recentSales(Request $request): JsonResponse
     {
-        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        abort_unless($tenant, 400, 'No store context.');
 
-        $query = Sale::with(['items', 'customer'])->latest();
-        
-        if ($tenantId) {
-            $query->where('tenant_id', $tenantId);
-        }
-
-        $sales = $query->take(50)->get();
+        $sales = Sale::where('tenant_id', $tenant->id)
+            ->with(['items', 'customer'])
+            ->latest()
+            ->take(50)
+            ->get();
 
         return response()->json([
             'status' => 'success',
@@ -370,15 +378,24 @@ class PosSearchController extends Controller
 
     private function transformProduct(Product $product): array
     {
+        $isService = $product->type === 'service';
+
         return [
             'id'             => $product->id,
             'name'           => $product->name,
             'sku'            => $product->sku,
+            'type'           => $product->type ?? 'standard',
+            'is_service'     => $isService,
+            'unit'           => $product->unit,
+            'service_pricing' => $product->service_pricing,
+            'default_duration' => $product->default_duration,
+            'requires_visit' => (bool) $product->requires_visit,
+            'skill_tag'      => $product->skill_tag,
             'price'          => (float) $product->price,
             'cost_price'     => (float) $product->cost_price,
             'tax_rate'       => (float) ($product->tax_rate ?? 0),
             'image_url'      => $product->image_path ? Storage::url($product->image_path) : null,
-            'stock_quantity' => $product->stocks->sum('quantity'),
+            'stock_quantity' => $isService ? 999999 : $product->stocks->sum('quantity'),
             'has_variants'   => (bool) $product->has_variants,
             'base_unit'      => $product->base_unit ?? 'pcs',
             'category_id'    => $product->category_id,

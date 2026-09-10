@@ -204,29 +204,17 @@ class EnsureModuleTest extends VenQoreTestCase
     }
 
     #[Test]
-    public function a_requires_one_with_a_single_shippable_option_is_resolved_not_asked(): void
+    public function a_requires_one_with_multiple_live_options_is_asked_not_guessed(): void
     {
-        // Invoicing needs Products OR Services, but Services is still
-        // 'building' — so today there is exactly one real answer. Asking a
-        // question with one possible answer is a dead end wearing a choice's
-        // clothing, so the resolver adds it AND explains why.
-        //
-        // WHEN SERVICES GOES LIVE THIS TEST SHOULD START FAILING. That is the
-        // signal to move Invoicing back to a genuine question — see the
-        // includeNonLive assertion below for the shape it must take.
+        // Invoicing needs Products OR Services. Now that both are live,
+        // it becomes a genuine question for the tenant.
         $result = $this->resolver->resolve(['invoicing']);
 
-        $this->assertSame([], $result['questions']);
-        $this->assertContains('products', $result['modules']);
-        $this->assertArrayHasKey('products', $result['added']);
-        $this->assertStringContainsString('only option available today', $result['added']['products']['why']);
-
-        // And with Services treated as available, it becomes a real question.
-        $future = $this->resolver->resolve(['invoicing'], true);
-        $this->assertNotEmpty($future['questions']);
-        $this->assertEqualsCanonicalizing(['products', 'services'], $future['questions'][0]['options']);
-        $this->assertStringContainsString('what you sell', $future['questions'][0]['prompt']);
-        $this->assertNotContains('products', $future['modules']);
+        $this->assertNotEmpty($result['questions']);
+        $this->assertEqualsCanonicalizing(['products', 'services'], $result['questions'][0]['options']);
+        $this->assertStringContainsString('what you sell', $result['questions'][0]['prompt']);
+        $this->assertNotContains('products', $result['modules']);
+        $this->assertNotContains('services', $result['modules']);
     }
 
     #[Test]
@@ -254,15 +242,15 @@ class EnsureModuleTest extends VenQoreTestCase
     #[Test]
     public function unknown_and_unfinished_modules_are_dropped_silently(): void
     {
-        $result = $this->resolver->resolve(['pos', 'teleportation', 'accounting', 'services']);
+        $result = $this->resolver->resolve(['pos', 'teleportation', 'accounting', 'quotations']);
 
         $this->assertContains('pos', $result['modules']);
         $this->assertNotContains('teleportation', $result['modules']);
         $this->assertNotContains('accounting', $result['modules'], 'A Qore key reached the resolved set.');
-        $this->assertNotContains('services', $result['modules'], "Services is 'building' and must never be enabled.");
+        $this->assertNotContains('quotations', $result['modules'], "Quotations is 'building' and must never be enabled.");
 
-        $this->assertEqualsCanonicalizing(['teleportation', 'accounting', 'services'], $result['dropped']);
-        $this->assertArrayNotHasKey('services', $result['added'], 'A dropped module must not sneak back in through a cascade.');
+        $this->assertEqualsCanonicalizing(['teleportation', 'accounting', 'quotations'], $result['dropped']);
+        $this->assertArrayNotHasKey('quotations', $result['added'], 'A dropped module must not sneak back in through a cascade.');
     }
 
     #[Test]

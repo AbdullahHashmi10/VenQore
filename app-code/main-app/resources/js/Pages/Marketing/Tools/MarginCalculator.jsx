@@ -285,9 +285,9 @@ export default function MarginCalculator({ toolGroups = [] }) {
             toolGroups={toolGroups}
             currentSlug="margin-calculator"
             cta={{
-                headline: 'Pricing a whole catalogue by hand doesn\'t scale.',
-                subtext: 'VenQore tracks landed cost per unit automatically and reports margin on every sale — no spreadsheet required.',
-            }}
+                    headline: "Pricing a whole catalogue by hand does not scale.",
+                    subtext: "Describe your business and VenQore builds a system that carries landed cost per unit and reports margin on every sale — no spreadsheet required.",
+                }}
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Invoice Generator', href: '/tools/invoice-generator' }]}
         >
             {/* ── Bidirectional solver ─────────────────────────────────── */}

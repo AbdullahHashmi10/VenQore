@@ -9,7 +9,7 @@ class PlanFeatureMatrixSeeder extends Seeder
 {
     public function run(): void
     {
-        $planSlugs = ['trial', 'counter', 'starter', 'growth', 'business', 'ltd_1', 'ltd_2', 'ltd_3'];
+        $planSlugs = ['trial', 'solo', 'starter', 'core', 'scale', 'custom', 'growth', 'business', 'ltd_1', 'ltd_2', 'ltd_3'];
         $pricingConfig = config('pricing.plans', []);
         
         $websiteId = DB::table('platforms')->where('slug', 'website')->value('id') ?? 1;
@@ -17,11 +17,22 @@ class PlanFeatureMatrixSeeder extends Seeder
 
         $planIds = [];
         foreach ($planSlugs as $slug) {
-            $planInfo = $pricingConfig[$slug] ?? null;
-            $name = $planInfo['name'] ?? ucfirst($slug);
+            $configKey = match ($slug) {
+                'growth' => 'core',
+                'business' => 'scale',
+                default => $slug,
+            };
+
+            $planInfo = $pricingConfig[$configKey] ?? null;
+            $name = match ($slug) {
+                'growth' => 'Core (Legacy Growth)',
+                'business' => 'Scale (Legacy Business)',
+                default => ($planInfo['name'] ?? ucfirst($slug)),
+            };
+
             $priceMonthly = $planInfo['price_monthly'] ?? 0;
             $priceAnnual = $planInfo['price_annual'] ?? 0;
-            $isVisible = !str_starts_with($slug, 'ltd_');
+            $isVisible = !str_starts_with($slug, 'ltd_') && !in_array($slug, ['growth', 'business'], true);
             $platformId = str_starts_with($slug, 'ltd_') ? $appsumoId : $websiteId;
 
             DB::table('plans')->updateOrInsert(
@@ -39,385 +50,375 @@ class PlanFeatureMatrixSeeder extends Seeder
             $planIds[$slug] = DB::table('plans')->where('slug', $slug)->value('id');
         }
 
-        // Define feature matrix default mappings
+        // Define feature matrix default mappings across tiers according to V11 Spec §1
         $matrix = [
-            // Group 1 — Onboarding & First Impression
-            'demo_store'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'free_trial_days'         => ['trial' => '14', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'instant_store_creator'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'industry_seeding'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'dark_theme'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'light_theme'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'multi_store_hub'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'multi_store_roles'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'cashier_pin_login'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'device_adaptive'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'pwa_install'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'guided_setup_tour'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'coupon_stacking'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'platform_status_badge'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'system_cache_refresher'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'owner_profile_card'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'one_click_system_wipe'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'smtp_mail'               => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'sms_gateway'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'security_activity_log'   => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
+            // Group 1 — Onboarding & System Setup (Universal)
+            'demo_store'                 => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'free_trial_days'            => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '0'],
+            'instant_store_creator'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'industry_seeding'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'dark_theme'                 => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'light_theme'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'multi_store_hub'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'multi_store_roles'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'cashier_pin_login'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'], // Till logins free & unlimited on paid; 2 on Solo
+            'device_adaptive'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'pwa_install'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'guided_setup_tour'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'coupon_stacking'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'platform_status_badge'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'system_cache_refresher'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'owner_profile_card'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'one_click_system_wipe'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'smtp_mail'                  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'sms_gateway'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 2 — POS & Supercharged Checkout
-            'barcode_scanner'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'imei_scanner'               => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'keyboard_hotkeys'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'senior_mode'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'high_contrast_colors'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'profit_peek'                => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'cart_tabs_limit'            => ['trial' => '3', 'starter' => '3', 'growth' => '10', 'business' => '50'],
-            'park_recall'                => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'inflight_product_creation'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'cart_session_protection'    => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'contextual_qty_modifiers'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'auto_customer_discounts'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'fuzzy_product_finder'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'auto_cash_rounding'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'split_payments'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'daily_cash_audit'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'silent_webusb_printing'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'receipt_cutline_padding'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'custom_thermal_widths'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'dynamic_accent_colors'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'invoice_column_toggles'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'amount_to_words'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'receipt_qr_code'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'branded_receipt_sync'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'auto_assembly_checkout'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'pos_negative_stock_alert'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'negative_stock_lock'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'service_fee_additions'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'auto_vat_gst'               => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'custom_charge_toggle'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'fuzzy_customer_lookup'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'recent_invoices_panel'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'cashier_change_helper'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'barcode_label_print'        => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'label_qr_codes'             => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            // Scale Fences — Security, Audit & Custom Roles (V11 §1.3: Core & Scale included, $39 add-on on Starter)
+            'security_activity_log'      => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'audit_trail'                => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'custom_roles'               => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+
+            // Group 2 — POS & Checkout (Universal — ON for Solo too)
+            'pos'                        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'barcode_scanner'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'imei_scanner'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'], // Universal in V11
+            'serial_tracking'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'], // Universal in V11
+            'keyboard_hotkeys'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'senior_mode'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'high_contrast_colors'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'profit_peek'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'cart_tabs_limit'            => ['solo' => '5', 'starter' => '10', 'core' => '25', 'scale' => '50'],
+            'park_recall'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'inflight_product_creation'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'cart_session_protection'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'contextual_qty_modifiers'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'auto_customer_discounts'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'fuzzy_product_finder'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'auto_cash_rounding'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'split_payments'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'daily_cash_audit'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'silent_webusb_printing'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'receipt_cutline_padding'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'custom_thermal_widths'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'dynamic_accent_colors'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'invoice_column_toggles'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'amount_to_words'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'receipt_qr_code'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'branded_receipt_sync'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'pos_negative_stock_alert'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'negative_stock_lock'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'service_fee_additions'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'auto_vat_gst'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'custom_charge_toggle'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'fuzzy_customer_lookup'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'recent_invoices_panel'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'cashier_change_helper'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'barcode_label_print'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'label_qr_codes'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'barcode_label_factory'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
             // Group 3 — Invoicing, Customer Khata & Receivables
-            'customer_khata'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'customer_payments_log'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'customer_statements'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'aged_receivables'           => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'whatsapp_reminders'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'sms_debt_alerts'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'credit_limit_rules'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'multi_payment_invoices'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'customer_payment_alloc'     => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'anniversary_tracker'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'customer_ltv_score'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'customer_wallet'            => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'loyalty_points'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'digital_gift_cards'         => ['trial' => '1', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'wholesale_pricing'          => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'b2b_proposal_builder'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'quotation_conversion'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'inflight_session_recovery'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'tax_inclusive_exclusive'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'b2b_margin_displayer'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'sales_return_vouchers'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'b2b_invoice_designer'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'pre_sales_reservation'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'refund_reason_analysis'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'tax_exempt_customers'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'customer_address_book'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'a4_invoice_pdf'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'letter_size_invoice'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'outstanding_balance_grid'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'payment_due_dates'          => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'overdue_highlights'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'lump_sum_payments'          => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'partial_payment_indicator'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'unified_party_ledger'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            'customer_khata'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'customer_payments_log'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'customer_statements'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'aged_receivables'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'credit_limit_rules'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'multi_payment_invoices'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'customer_payment_alloc'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'anniversary_tracker'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'customer_ltv_score'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'customer_wallet'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'loyalty_points'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'], // Universal in V11
+            'digital_gift_cards'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'], // Universal in V11
+            'marketing_campaigns'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'], // Universal in V11
+            'wholesale_pricing'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'b2b_proposal_builder'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'quotation_conversion'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'inflight_session_recovery'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'tax_inclusive_exclusive'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'b2b_margin_displayer'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'sales_return_vouchers'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'b2b_invoice_designer'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'pre_sales_reservation'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'refund_reason_analysis'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'tax_exempt_customers'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'customer_address_book'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'a4_invoice_pdf'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'letter_size_invoice'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'outstanding_balance_grid'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'payment_due_dates'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'overdue_highlights'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'lump_sum_payments'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'partial_payment_indicator'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'unified_party_ledger'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 4 — Procurement & Suppliers
-            'supplier_khata'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'delayed_supplier_payments'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'supplier_statements'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'aged_payables'              => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'installment_payments'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'purchase_orders'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'partial_shipments'          => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'supplier_debit_notes'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'auto_cost_adjuster'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'cost_price_fluctuator'      => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'supplier_lead_time'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'landing_costs'              => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'suppliers_directory'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'supplier_sku_mapping'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'inbound_expiry_tracking'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'purchase_returns'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'auto_po_generation'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'bulk_supplier_payments'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'purchase_pdf_upload'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'reconciled_bank_payments'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'tax_inclusive_procurement'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'supplier_outstanding_alerts'=> ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'supplier_refund_tracker'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'custom_payment_terms'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            // Paid Plans Only (OFF on Solo only per V11 §1.2)
+            'recurring_invoices'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'invoice_reminders'          => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 5 — Inventory & Multi-Warehouse
-            'locations'                  => ['trial' => '1', 'starter' => '1', 'growth' => '3', 'business' => '10'],
-            'stock_transfer'             => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'product_variants'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'fifo_costing'               => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'barcode_label_factory'      => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'batch_tracking'             => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'batch_expiry'               => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'stock_take_audit'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'disaster_claim'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'bill_of_materials'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'auto_assembly_logic'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'production_simulator'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'recipe_history_archival'    => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'product_history_timeline'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'category_management'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'stock_levels_view'          => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'low_stock_alerts'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'imei_lifecycle'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'uom_converter'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'sku_limit'                  => ['trial' => '20000', 'starter' => '5000', 'growth' => '20000', 'business' => '50000'],
+            // Group 4 — Procurement & Suppliers (Universal)
+            'supplier_khata'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'delayed_supplier_payments'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'supplier_statements'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'aged_payables'              => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'installment_payments'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'purchase_orders'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'partial_shipments'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'supplier_debit_notes'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'auto_cost_adjuster'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'cost_price_fluctuator'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'supplier_lead_time'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'landing_costs'              => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'suppliers_directory'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'supplier_sku_mapping'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'inbound_expiry_tracking'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'purchase_returns'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'auto_po_generation'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'bulk_supplier_payments'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'purchase_pdf_upload'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'reconciled_bank_payments'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'tax_inclusive_procurement'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'supplier_outstanding_alerts'=> ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'supplier_refund_tracker'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'custom_payment_terms'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 6 — E-Commerce & VenSynQ
-            'vensync_command'            => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'marketplace_oauth'          => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'commission_isolation'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'dropshipping'               => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'jit_procurement'            => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'bulk_tracking_sync'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'multichannel_expense_alloc' => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            // 2026-07-04 decision (owner): WooCommerce is NOT included in any plan —
-            // it stays off until sold separately. Entitlement, when granted, goes
-            // through tenant_plan_overrides (per-tenant), never a plan default.
-            'woocommerce'                => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'woocommerce_customer_reg'   => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'woocommerce_stock_sync'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'woocommerce_orders_bridge'  => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'web_catalog_toggles'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            // Group 5 — Inventory, Production & Scale Fences
+            'locations'                  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '10'],
+            'location_limit'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '10'],
+            'stock_transfer'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'product_variants'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'fifo_costing'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'batch_tracking'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'batch_expiry'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'stock_take_audit'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'disaster_claim'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 7 — Double-Entry Accounting & Finance
-            'double_entry_ledger'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'cash_account_reconciliation'=> ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'fixed_asset_depreciation'   => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'loan_ledger'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'inter_register_transfers'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'advance_allocation'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'fiscal_year_closing'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'debit_credit_notes'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'bank_reconciliation'        => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'production'                 => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'e_invoicing'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'marketing_campaigns'        => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'invoice_reminders'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'recurring_invoices'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'fund_management'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'tax_summary_engine'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'expense_manager'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'charity_engine'             => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'petty_cash'                 => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            // Manufacturing & BOM (Universal in V11 §1.1 — ON for Solo too)
+            'bill_of_materials'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'production'                 => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'manufacturing'              => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'auto_assembly_logic'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'auto_assembly_checkout'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'production_simulator'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'recipe_history_archival'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'product_history_timeline'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'category_management'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'stock_levels_view'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'low_stock_alerts'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'uom_converter'              => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 8 — Report Factory (40 Reports)
-            'reports'                    => ['trial' => 'advanced', 'starter' => 'advanced', 'growth' => 'advanced', 'business' => 'advanced'],
-            'report_sales_summary'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_low_stock'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_expenses_directory'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_party_statement'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_cash_flow'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_stock_valuation'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_purchases'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_daily_sales_trend'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_day_book'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_tax_compliance'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_general_discount'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_bank_statements'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_account_ledger'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_stock_aging'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_expiring_soon'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_profit_loss'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_trial_balance'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            // Launch gap found 2026-08-07: these 3 keys are used by routes/web.php
-            // (plan.feature:discount_report / cash_flow_report / stock_valuation)
-            // but were never seeded here, so featureOn()'s fail-closed default
-            // locked them for EVERY plan including business/ltd_3. Tiered to match
-            // similar-weight report keys above (report_account_ledger/report_stock_aging).
-            'discount_report'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'cash_flow_report'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'stock_valuation'            => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'point_in_time_inventory'    => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'customer_insights'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'supplier_insights'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            // 'stock_aging' (no 'report_' prefix) is the actual key routes/web.php
-            // gates /reports/stock-aging on. 'report_stock_aging' above is a
-            // DIFFERENT, separate SuperAdmin-only toggle (see featureGroups.js)
-            // with no route wired to it — not a duplicate, don't merge these.
-            'stock_aging'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'report_transactions_history'=> ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_item_profit'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_bill_profitability'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_graph_analytics'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_loan_statement'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_sales_aging'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_sales_orders_status' => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_party_profitability' => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_expense_by_category' => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_expense_by_item'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_stock_by_category'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_sales_by_party'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_sales_by_category'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_category_pl'         => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_item_discounting'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_sales_order_items'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_sales_party_group'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_item_by_party'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_party_by_item'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'report_tax_rate_breakdown'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            // Core Limits (V11 §1 Table)
+            'sku_limit'                  => ['solo' => '500', 'starter' => '5000', 'core' => '25000', 'scale' => '250000'],
+            'staff_limit'                => ['solo' => '1', 'starter' => '1', 'core' => '5', 'scale' => '25'],
+            'till_logins'                => ['solo' => '2', 'starter' => null, 'core' => null, 'scale' => null],
+            'registers'                  => ['solo' => '1', 'starter' => '2', 'core' => '6', 'scale' => '20'],
+            'devices_per_seat'           => ['solo' => '2', 'starter' => '3', 'core' => '3', 'scale' => '5'],
+            'history_retention_days'     => ['solo' => '30', 'starter' => null, 'core' => null, 'scale' => null],
+            'transactions_per_month'     => ['solo' => '100', 'starter' => null, 'core' => null, 'scale' => null],
+            'service_jobs_per_month'     => ['solo' => '20', 'starter' => null, 'core' => null, 'scale' => null],
 
-            // Group 9 — Platform HQ & Infrastructure
-            'ai_assistant'               => ['trial' => '1', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'superadmin_command_center'   => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'redis_plan_gates'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'limit_override_manager'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'invitation_codes'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'demo_sandbox_cloner'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'sandbox_time_shift'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'sandbox_expiration'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'soft_delete_trash'           => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'custom_tax_rates'            => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'customer_credit_limits_cfg'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'low_stock_threshold_cfg'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'cashier_inactivity_logout'   => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'passcode_security_controls'  => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'stock_reservation_rules'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'barcode_pattern_recognition' => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'auto_assembly_recipes'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'multi_currency'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'module_toggles'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'hard_lock_negative_stock'    => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'transactions_per_month'      => ['trial' => null, 'starter' => null, 'growth' => null, 'business' => null, 'ltd_1' => '1000', 'ltd_2' => '3000', 'ltd_3' => '8000'],
-            'staff_limit'                 => ['trial' => '2', 'starter' => '3', 'growth' => '10', 'business' => '50'],
-            'multi_branch'                => ['trial' => '0', 'starter' => '0', 'growth' => '3', 'business' => '10'],
-            'api_access'                  => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
+            // Scale Fence 1 — Multi-branch (V11 §1.3: Scale included, Starter & Core activate with 2nd location)
+            'multi_branch'               => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
 
-            // Group 10 — AI & Automation Extras
-            'hypersearch_byok'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            // 2026-07-04 decision (owner, per Pricing.jsx): Smart Capture is part of
-            // the AI add-on (managed AI Core/Lite/Pro/Ultimate, or $5 one-time BYOK
-            // unlock) — purchasable with ANY base plan, included in NONE. Plan default
-            // is therefore '0' everywhere; the add-on purchase / BYOK activation must
-            // write a tenant_plan_overrides row (smart_capture='1') for that tenant.
-            'smart_capture'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'smart_capture_limit'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_pages_limit'             => ['trial' => '60', 'starter' => '20', 'growth' => '60', 'business' => '150'],
-            'growth_engine'              => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'], // Enabled on Growth & Business (Phase 1 change - 2026-08-08)
-            'ai_churn_predictions'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_revenue_forecasting'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_outreach_copy'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_queries_limit'           => ['trial' => '400', 'starter' => '100', 'growth' => '400', 'business' => '1000'],
-            'ai_outreach_limit'          => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'owners_daily_pulse'         => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'bulk_upload'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            // Scale Fences — E-Commerce & Channels
+            'woocommerce'                => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'amazon_sync'                => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'ebay_sync'                  => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'tiktok_sync'                => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'woocommerce_customer_reg'   => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'woocommerce_stock_sync'     => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'woocommerce_orders_bridge'  => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'web_catalog_toggles'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 11 — Live Chat & Customer Engagement
-            'live_chat_widget'           => ['trial' => '1', 'counter' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'ai_bot_handoff'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'canned_responses'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'ai_copilot_suggestions'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'passive_learning_engine'    => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'agent_referral'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            // Scale Fences — API & Webhooks (V11 §1.3: Core & Scale included, $29 add-on on Starter)
+            'api_access'                 => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'webhooks'                   => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'api_webhooks'               => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
 
-            // Group 12 — Support & Onboarding Perks
-            'dedicated_account_manager'  => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'white_glove_onboarding'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'white_label'                => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'industry_templates_count'   => ['trial' => '16', 'starter' => '16', 'growth' => '16', 'business' => '16'],
-            'priority_support'           => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'email_support'              => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'chat_support'               => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'phone_support'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
+            // Scale Fence — White Label (V11 §1.3: Scale included, $49 add-on on Core)
+            'white_label'                => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
 
-            // Group 13 — V3 Modular Building Blocks Conversion
-            'optical_prescription'       => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'tailor_measurements'        => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'jewelry_metal_rates'        => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'work_orders'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'service_contracts'          => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            // Scale Fence — Network Unlimited & Consolidated Reporting (V11 §1.3)
+            'network_basic'              => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'network_unlimited'          => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'consolidated_reporting'     => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+
+            // Group 7 — Double-Entry Accounting & Finance (Universal vs Paid-only)
+            'double_entry_ledger'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'cash_account_reconciliation'=> ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'loan_ledger'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'inter_register_transfers'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'advance_allocation'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'debit_credit_notes'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'tax_summary_engine'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'expense_manager'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'charity_engine'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'petty_cash'                 => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+
+            // Paid Plans Only Accounting/Finance (V11 §1.2)
+            'fixed_asset_depreciation'   => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'fiscal_year_closing'        => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'bank_reconciliation'        => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'e_invoicing'                => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'fund_management'            => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'google_drive_backup'        => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'adviser_seat'               => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+
+            // Group 8 — Reports (All 43 reports universal across ALL plans including Solo per V11 §1.1)
+            'reports'                    => ['solo' => 'advanced', 'starter' => 'advanced', 'core' => 'advanced', 'scale' => 'advanced'],
+            'report_sales_summary'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_low_stock'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_expenses_directory'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_party_statement'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_cash_flow'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_stock_valuation'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_purchases'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_daily_sales_trend'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_day_book'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_tax_compliance'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_general_discount'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_bank_statements'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_account_ledger'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_stock_aging'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_expiring_soon'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_profit_loss'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_trial_balance'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'discount_report'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'cash_flow_report'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'stock_valuation'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'point_in_time_inventory'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'customer_insights'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'supplier_insights'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'stock_aging'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_transactions_history'=> ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_item_profit'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_bill_profitability'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_graph_analytics'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_loan_statement'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'aged_receivables'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_sales_aging'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_sales_orders_status' => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_party_profitability' => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_expense_by_category' => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_expense_by_item'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_stock_by_category'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_sales_by_party'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_sales_by_category'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_category_pl'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_item_discounting'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_sales_order_items'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_sales_party_group'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_item_by_party'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_party_by_item'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_tax_rate_breakdown'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+
+            // Group 9 — AI, Signals & Builder
+            'ai_assistant'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'smart_capture'              => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'hypersearch_byok'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'ai_credits_monthly'         => ['solo' => '100', 'starter' => '500', 'core' => '2000', 'scale' => '10000'],
+            'ai_scans_monthly'           => ['solo' => '10', 'starter' => null, 'core' => null, 'scale' => null],
+            'ai_system_builder'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'growth_engine'              => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '0', 'ltd_3' => '0'],
+            'growth_signals'             => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '0', 'ltd_3' => '0'],
+            'owners_daily_pulse'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '0', 'ltd_3' => '0'],
+            'bulk_upload'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'live_chat_widget'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+
+            // Group 10 — Building Blocks, Services & Industry Features (Universal in V11 §1.1)
+            'services'                   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'service_jobs'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'service_contracts'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'optical_prescription'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'tailor_measurements'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'jewelry_metal_rates'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'work_orders'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+
+            'ltd'                        => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '0', 'ltd_1' => '1', 'ltd_2' => '1', 'ltd_3' => '1'],
         ];
 
-        // Seed/Update limits for all 7 plans (incorporating LTD equivalents) in a single transaction
+        // Seed/Update limits for all plans (including LTD equivalents) in a single transaction
         DB::transaction(function () use ($matrix, $planSlugs, $planIds) {
             foreach ($matrix as $key => $values) {
                 foreach ($planSlugs as $slug) {
                     $pid = $planIds[$slug] ?? null;
                     if (!$pid) continue;
 
-                    // Resolve values for LTD plans from their equivalents:
-                    // ltd_1 = starter, ltd_2 = growth, ltd_3 = business
-                    $baseSlug = $slug;
-                    // The pricing page sells the trial as "14 days, the full
-                    // product". Resolving it to Growth makes that true; the
-                    // 'trial' column left in the matrix above is now unused.
-                    if ($slug === 'trial')  $baseSlug = 'growth';
-                    if ($slug === 'ltd_1') $baseSlug = 'starter';
-                    if ($slug === 'ltd_2') $baseSlug = 'growth';
-                    if ($slug === 'ltd_3') $baseSlug = 'business';
+                    // Resolve values for LTD, trial, and alias plans from their base equivalents:
+                    // trial = core, growth = core, business = scale, ltd_1 = starter, ltd_2 = core, ltd_3 = scale
+                    $baseSlug = match ($slug) {
+                        'trial', 'growth' => 'core',
+                        'business'        => 'scale',
+                        'ltd_1'           => 'starter',
+                        'ltd_2'           => 'core',
+                        'ltd_3'           => 'scale',
+                        default           => $slug,
+                    };
 
-                    // We also keep some standard overrides specifically as in migrations:
-                    $val = array_key_exists($baseSlug, $values)
-                        ? $values[$baseSlug]
-                        : (array_key_exists('starter', $values) ? $values['starter'] : '0');
+                    $val = array_key_exists($slug, $values)
+                        ? $values[$slug]
+                        : (array_key_exists($baseSlug, $values)
+                            ? $values[$baseSlug]
+                            : (array_key_exists('starter', $values) ? $values['starter'] : '0'));
 
-                    // Specific Counter plan overrides
-                    if ($slug === 'counter') {
-                        // Mirrors the "no" cells of the public pricing table exactly.
-                        // Counter is deliberately NOT a crippled edition: the ledger,
-                        // every financial report, purchasing, suppliers, expenses and
-                        // the party khata are all included, because the page promises
-                        // them and the whole positioning rests on it. Counter differs
-                        // by seats, branches, AI allowance and these five rows only.
-                        $counterDisabledKeys = [
-                            'multi_branch',
-                            'production', 'bill_of_materials',
-                            'loyalty_points', 'digital_gift_cards', 'marketing_campaigns',
-                            'api_access', 'white_label',
-                            'woocommerce',
-                            // Not advertised at any tier below Growth.
-                            'recurring_invoices', 'fund_management', 'bank_reconciliation',
-                            'e_invoicing',
+                    // LTD Specific overrides per V11 Spec §7
+                    if (str_starts_with($slug, 'ltd_')) {
+                        // Fences always off on LTD tiers (except multi-branch on ltd_2/ltd_3 and channel sync on ltd_3)
+                        $ltdFencesOff = [
+                            'api_access', 'webhooks', 'api_webhooks', 'white_label',
+                            'security_activity_log', 'audit_trail', 'custom_roles',
+                            'consolidated_reporting', 'network_unlimited',
                         ];
-
-                        if (in_array($key, $counterDisabledKeys, true)) {
+                        if (in_array($key, $ltdFencesOff, true)) {
                             $val = '0';
                         }
-                        if ($key === 'sku_limit') $val = '2000';
-                        if ($key === 'staff_limit') $val = '2';
-                        if ($key === 'location_limit' || $key === 'locations') $val = '1';
-                        if ($key === 'ai_pages_limit') $val = '10';
-                        if ($key === 'ai_queries_limit') $val = '50';
                     }
 
-                    // Specific AppSumo customizations to preserve V4 build plan specs (single source of truth: 1000 / 3000 / 8000):
-                    if ($slug === 'ltd_1' && $key === 'transactions_per_month') $val = '1000';
-                    if ($slug === 'ltd_2' && $key === 'transactions_per_month') $val = '3000';
-                    if ($slug === 'ltd_3' && $key === 'transactions_per_month') $val = '8000';
-                    if ($slug === 'ltd_2' && str_starts_with($key, 'woocommerce')) $val = '0';
-                    if ($slug === 'ltd_3' && str_starts_with($key, 'woocommerce')) $val = '0';
+                    if ($slug === 'ltd_1') {
+                        if ($key === 'sku_limit') $val = '5000';
+                        if ($key === 'staff_limit') $val = '1';
+                        if ($key === 'locations' || $key === 'location_limit') $val = '1';
+                        if ($key === 'registers') $val = '2';
+                        if ($key === 'devices_per_seat') $val = '3';
+                        if ($key === 'ai_credits_annual') $val = '12000';
+                        if ($key === 'multi_branch') $val = '0';
+                        if ($key === 'woocommerce' || $key === 'amazon_sync' || $key === 'ebay_sync' || $key === 'tiktok_sync') $val = '0';
+                    } elseif ($slug === 'ltd_2') {
+                        if ($key === 'sku_limit') $val = '25000';
+                        if ($key === 'staff_limit') $val = '2';
+                        if ($key === 'locations' || $key === 'location_limit') $val = '2';
+                        if ($key === 'registers') $val = '4';
+                        if ($key === 'devices_per_seat') $val = '3';
+                        if ($key === 'ai_credits_annual') $val = '30000';
+                        if ($key === 'multi_branch') $val = '1';
+                        if ($key === 'woocommerce' || $key === 'amazon_sync' || $key === 'ebay_sync' || $key === 'tiktok_sync') $val = '0';
+                    } elseif ($slug === 'ltd_3') {
+                        if ($key === 'sku_limit') $val = '50000';
+                        if ($key === 'staff_limit') $val = '5';
+                        if ($key === 'locations' || $key === 'location_limit') $val = '5';
+                        if ($key === 'registers') $val = '10';
+                        if ($key === 'devices_per_seat') $val = '3';
+                        if ($key === 'ai_credits_annual') $val = '60000';
+                        if ($key === 'multi_branch') $val = '1';
+                        if ($key === 'woocommerce') $val = '1'; // 1 channel sync included
+                    }
 
-                    // Launch Readiness §1.3: LTD plans receive bounded managed AI (50 pages / 250 queries) with BYOK beyond
-                    if (str_starts_with($slug, 'ltd_') && $key === 'ai_pages_limit') $val = '50';
-                    if (str_starts_with($slug, 'ltd_') && $key === 'ai_queries_limit') $val = '250';
+                    // Monthly transaction allowances: 100 for Solo; unlimited (null) for ltd_1, ltd_2, ltd_3 and standard subscription plans
+                    if ($key === 'transactions_per_month') {
+                        $val = ($slug === 'solo') ? '100' : null;
+                    }
+
+                    // Service jobs unlimited across all paid & LTD plans; 20 for Solo
+                    if ($key === 'service_jobs_per_month') {
+                        $val = ($slug === 'solo') ? '20' : null;
+                    }
 
                     // Write/Update using updateOrInsert to prevent duplicate constraints
                     DB::table('plan_limits')->updateOrInsert(
                         ['plan_id' => $pid, 'key' => $key],
                         [
                             'value' => $val !== null ? (string)$val : null,
-                            'reset_period' => ($key === 'transactions_per_month') ? 'monthly' : 'never',
+                            'reset_period' => in_array($key, ['transactions_per_month', 'service_jobs_per_month', 'ai_credits_monthly'], true) ? 'monthly' : 'never',
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]
@@ -425,5 +426,10 @@ class PlanFeatureMatrixSeeder extends Seeder
                 }
             }
         });
+
+        // Invalidate all plan limit caches
+        foreach ($planSlugs as $slug) {
+            \App\Services\PlanRepository::invalidatePlanCache($slug);
+        }
     }
 }

@@ -148,15 +148,10 @@ class ReckonerGateTest extends TestCase
     private function makeUser(array $attrs = []): User
     {
         /** @var User $user */
-        $user = User::make(array_merge([
+        $user = (new User())->forceFill(array_merge([
             'id'   => 1,
             'name' => 'Test User',
         ], $attrs));
-
-        // Stub hasPermission to always return true for simplicity — gate 3
-        // behaviour is separately verifiable once a real User factory exists
-        // with the permission system wired in Feature tests.
-        // For these gate tests, we want to reach gate 2 (scope) and gate 6.
 
         return $user;
     }

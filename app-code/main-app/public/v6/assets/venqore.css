@@ -255,7 +255,6 @@
   --vq-grad-hero: linear-gradient(180deg, #ECF9FB 0%, #327882 50%, #021416 100%);
   --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(50 120 130 / .25), transparent 70%),
                   radial-gradient(50% 60% at 85% 80%, rgb(35 196 166 / .18), transparent 70%);
-}
 
   /* Dark elevation is carried by surface lightness first, a 1px top
      highlight second. A black shadow on a near-black background is
@@ -727,46 +726,234 @@ html.dark .vq-card--accent { box-shadow: var(--vq-glow-accent-strong); }
 }
 
 /* ── Form ──────────────────────────────────────────────────────────────────
-   Input height 48, radius md (14px), 1px line, 16px padding.
-   Font-size 16px minimum — anything smaller makes iOS Safari zoom on focus.
-   Label above the field, always. Placeholder never substitutes a label. */
-.vq-field { display: flex; flex-direction: column; gap: var(--vq-space-2); }
+   Input height 48, radius md (14px), visible border line, 16px padding.
+   Font-size 16px minimum — prevents iOS Safari zoom on focus.
+   Label above the field, always. */
+.vq-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
 .vq-label {
-  font-size: var(--vq-fs-caption);
-  font-weight: var(--vq-fw-medium);
-  color: var(--vq-text-2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vq-text);
   word-spacing: normal;
+  letter-spacing: -0.01em;
 }
 .vq-input, .vq-select, .vq-textarea {
   width: 100%;
-  height: var(--vq-control-lg);
-  padding-inline: var(--vq-space-4);
-  background: var(--vq-surface);
-  border: 1px solid var(--vq-line);
-  border-radius: var(--vq-r-md);
+  box-sizing: border-box;
+  height: 48px;
+  padding-inline: 16px;
+  background: var(--vq-surface-2, #f8fafc);
+  border: 1px solid var(--vq-line-strong, rgba(2, 20, 22, 0.18));
+  border-radius: var(--vq-r-md, 14px);
   color: var(--vq-text);
-  font-size: 16px;
+  font-family: inherit;
+  font-size: 15px;
   word-spacing: normal;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   transition: border-color var(--vq-dur-1) var(--vq-ease-out),
-              box-shadow   var(--vq-dur-2) var(--vq-ease-out);
+              background-color var(--vq-dur-1) var(--vq-ease-out),
+              box-shadow var(--vq-dur-2) var(--vq-ease-out);
 }
-.vq-textarea { height: auto; min-height: 132px; padding-block: var(--vq-space-3); resize: vertical; line-height: 1.6; }
-.vq-input::placeholder, .vq-textarea::placeholder { color: var(--vq-text-3); }
+.vq-input:hover, .vq-select:hover, .vq-textarea:hover {
+  border-color: var(--vq-teal-400, #23c4a6);
+}
+.vq-textarea {
+  height: auto;
+  min-height: 120px;
+  padding: 14px 16px;
+  resize: vertical;
+  line-height: 1.55;
+}
+.vq-input::placeholder, .vq-textarea::placeholder {
+  color: var(--vq-text-3, #8b9a93);
+  opacity: 0.8;
+}
 .vq-input:focus, .vq-select:focus, .vq-textarea:focus {
   outline: none;
-  border-color: var(--vq-focus);
-  box-shadow: var(--vq-ring-focus);
+  background: var(--vq-surface, #ffffff);
+  border-color: var(--vq-teal-500, #0baa8f);
+  box-shadow: 0 0 0 3.5px rgba(11, 170, 143, 0.2);
 }
-.vq-help { font-size: var(--vq-fs-caption); color: var(--vq-text-3); }
+.vq-help {
+  font-size: 12px;
+  color: var(--vq-text-3, #6b7a73);
+  margin-top: 2px;
+}
 .vq-select {
   appearance: none;
+  cursor: pointer;
   padding-right: 44px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7A73' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230BAA8F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
 }
-.vq-check { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
-.vq-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--vq-teal-600); flex: none; }
+
+/* ── Custom Select (V6 Design System) ─────────────────────────────────── */
+.vq-custom-select {
+  position: relative;
+  width: 100%;
+}
+.vq-custom-select__trigger {
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 0 16px;
+  background: var(--vq-surface-2, #f8fafc);
+  border: 1px solid var(--vq-line-strong, rgba(2, 20, 22, 0.18));
+  border-radius: var(--vq-r-md, 14px);
+  color: var(--vq-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: border-color var(--vq-dur-1) var(--vq-ease-out),
+              background-color var(--vq-dur-1) var(--vq-ease-out),
+              box-shadow var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-custom-select__trigger:hover {
+  border-color: var(--vq-teal-400, #23c4a6);
+  background: var(--vq-surface, #ffffff);
+}
+.vq-custom-select__trigger:focus,
+.vq-custom-select.is-open .vq-custom-select__trigger {
+  outline: none;
+  background: var(--vq-surface, #ffffff);
+  border-color: var(--vq-teal-500, #0baa8f);
+  box-shadow: 0 0 0 3.5px rgba(11, 170, 143, 0.2);
+}
+.vq-custom-select__value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--vq-text);
+}
+.vq-custom-select__chevron {
+  flex: none;
+  color: var(--vq-teal-500, #0baa8f);
+  transition: transform var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-custom-select.is-open .vq-custom-select__chevron {
+  transform: rotate(180deg);
+}
+.vq-custom-select__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 120;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--vq-surface, #ffffff);
+  border: 1px solid var(--vq-line-strong, rgba(2, 20, 22, 0.15));
+  border-radius: var(--vq-r-lg, 20px);
+  box-shadow: var(--vq-elev-3, 0 12px 32px rgba(0, 0, 0, 0.15));
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top center;
+  pointer-events: none;
+  transition: opacity var(--vq-dur-1) var(--vq-ease-out),
+              transform var(--vq-dur-1) var(--vq-ease-out),
+              visibility var(--vq-dur-1) var(--vq-ease-out);
+  max-height: 280px;
+  overflow-y: auto;
+}
+:root[data-theme="dark"] .vq-custom-select__menu,
+html.dark .vq-custom-select__menu {
+  background: var(--vq-surface, #08272b);
+  border-color: rgba(236, 249, 251, 0.14);
+  box-shadow: 0 1px 0 rgb(255 255 255 / .07), 0 24px 50px -12px rgb(0 0 0 / .85);
+}
+.vq-custom-select.is-open .vq-custom-select__menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.vq-custom-select__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--vq-r-md, 12px);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--vq-text);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--vq-dur-1) var(--vq-ease-out),
+              color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-custom-select__item:hover,
+.vq-custom-select__item.is-focused {
+  background: var(--vq-surface-2, #f1f5f2);
+  color: var(--vq-text);
+}
+:root[data-theme="dark"] .vq-custom-select__item:hover,
+html.dark .vq-custom-select__item:hover,
+:root[data-theme="dark"] .vq-custom-select__item.is-focused,
+html.dark .vq-custom-select__item.is-focused {
+  background: var(--vq-surface-2, #0c3237);
+}
+.vq-custom-select__item.is-selected {
+  background: var(--vq-accent-quiet, rgba(11, 170, 143, 0.12));
+  color: var(--vq-accent-text, #088975);
+  font-weight: 600;
+}
+:root[data-theme="dark"] .vq-custom-select__item.is-selected,
+html.dark .vq-custom-select__item.is-selected {
+  color: var(--vq-accent-text, #59dbc0);
+}
+.vq-custom-select__check {
+  flex: none;
+  opacity: 0;
+  color: var(--vq-accent-text, #088975);
+  transition: opacity var(--vq-dur-1) var(--vq-ease-out);
+}
+:root[data-theme="dark"] .vq-custom-select__check,
+html.dark .vq-custom-select__check {
+  color: var(--vq-accent-text, #59dbc0);
+}
+.vq-custom-select__item.is-selected .vq-custom-select__check {
+  opacity: 1;
+}
+.vq-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 4px;
+}
+.vq-check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--vq-teal-500, #0baa8f);
+  flex: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.vq-btn--block {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
 /* ── Table ─────────────────────────────────────────────────────────────────
    Horizontal rules only. Numbers right-aligned, Space Grotesk, tabular.
@@ -2306,6 +2493,7 @@ html.dark .hero-gradient-overlay {
   color: #F4F6F8;
   position: relative;
   overflow: hidden;
+  border-radius: var(--vq-r-2xl, 28px);
 }
 .mesh-gradient-card::before {
   content: '';
@@ -2854,16 +3042,7 @@ html.dark .vq-card--accent, html.dark .vq-dcard--accent {
 
 /* ── LaserFlow Canvas ─────────────────────────────────────────────────── */
 .laser-flow-container {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translate(-50%, 20%);
-  width: 100%;
-  height: 40vw;
-  max-height: 500px;
-  pointer-events: none;
-  z-index: 5;
-  opacity: 0.85;
+  display: none !important;
 }
 
 /* ── Floating Domain Pills & Hero Beam ────────────────────────────────── */

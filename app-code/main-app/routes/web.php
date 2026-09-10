@@ -42,7 +42,7 @@ Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $re
 })->name('marketing.pricing.override');
 Route::get('/about',    fn() => \App\Http\Controllers\Marketing\V6PageController::render('about'))->name('marketing.about');
 Route::get('/contact',  fn() => \App\Http\Controllers\Marketing\V6PageController::render('contact'))->name('marketing.contact');
-Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware('throttle:10,1')->name('marketing.contact.submit');
+Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.contact.submit');
 
 // Coming-soon product lines & V6 product showcases
 Route::get('/vensynq', fn() => \App\Http\Controllers\Marketing\V6PageController::render('vensynq'))->name('marketing.vensynq');
@@ -51,14 +51,17 @@ Route::get('/documents', fn() => \App\Http\Controllers\Marketing\V6PageControlle
 Route::get('/reckoner', fn() => \App\Http\Controllers\Marketing\V6PageController::render('reckoner'))->name('marketing.reckoner');
 Route::get('/ledger', fn() => \App\Http\Controllers\Marketing\V6PageController::render('ledger'))->name('marketing.ledger');
 Route::get('/blueprint', fn() => \App\Http\Controllers\Marketing\V6PageController::render('blueprint'))->name('marketing.blueprint');
+Route::get('/security', fn() => \App\Http\Controllers\Marketing\V6PageController::render('security'))->name('marketing.security');
 Route::get('/onboarding', fn() => \App\Http\Controllers\Marketing\V6PageController::render('onboarding'))->name('marketing.onboarding');
 Route::get('/dashboard-preview', fn() => \App\Http\Controllers\Marketing\V6PageController::render('dashboard'))->name('marketing.dashboard-preview');
+
+Route::get('/pos', fn () => \App\Http\Controllers\Marketing\V6PageController::render('pos'))->name('marketing.pos');
 
 // ── V6 Static Page & Direct .html Dispatcher ────────────────────────────
 Route::get('/v6/{page?}', fn (?string $page = 'index') => \App\Http\Controllers\Marketing\V6PageController::render($page ?? 'index'))
     ->where('page', '[A-Za-z0-9\-]+')->name('v6.page');
 
-Route::get('/{page}.html', fn (string $page) => \App\Http\Controllers\Marketing\V6PageController::render($page))
+Route::get('/{page}.html', fn (string $page) => redirect("/{$page}", 301))
     ->where('page', '[A-Za-z0-9\-]+');
 
 // ── Legacy Marketing Pages (Comparison Routes) ───────────────────────────
@@ -77,7 +80,10 @@ Route::prefix('legacy')->group(function () {
         } catch (\Throwable $e) {
             $plans = collect();
         }
-        return Inertia::render('Marketing/Pricing', ['plans' => $plans]);
+        return Inertia::render('Marketing/Pricing', [
+            'plans' => $plans,
+            'pricing' => config('pricing'),
+        ]);
     })->name('legacy.pricing');
     Route::get('/about', fn() => Inertia::render('Marketing/About'))->name('legacy.about');
     Route::get('/contact', fn() => Inertia::render('Marketing/Contact'))->name('legacy.contact');
@@ -94,7 +100,10 @@ Route::prefix('legacy')->group(function () {
 
 // Newsletter subscription
 Route::get('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'index'])->name('marketing.newsletter');
-Route::post('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'store'])->middleware('throttle:10,1')->name('marketing.newsletter.submit');
+Route::post('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.newsletter.submit');
+Route::get('/subscribe/confirm/{token}', [\App\Http\Controllers\Marketing\NewsletterController::class, 'confirm'])->name('marketing.newsletter.confirm');
+Route::get('/subscribe/unsubscribe/{token}', [\App\Http\Controllers\Marketing\NewsletterController::class, 'unsubscribe'])->name('marketing.newsletter.unsubscribe');
+Route::post('/subscribe/unsubscribe/{token}', [\App\Http\Controllers\Marketing\NewsletterController::class, 'unsubscribeConfirm'])->name('marketing.newsletter.unsubscribe.confirm');
 
 // Digital products list page
 Route::get('/digital-products', [\App\Http\Controllers\Marketing\DigitalProductsPublicController::class, 'index'])->name('marketing.digital-products');
@@ -146,7 +155,7 @@ Route::get('/new-dashboard', function () {
 })->name('new-dashboard');
 
 Route::get('/new-dashbaord', function () {
-    return redirect('/new-dashboard');
+    return redirect('/new-dashboard', 301);
 });
 
 
@@ -172,7 +181,7 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::post('/barcode-generator/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'sheet'])
         ->middleware('throttle:tools')->name('barcode.sheet');
 
-    // Smart Capture Tool (T7-2)
+    // Smart Capture Tool (T7-2) / Invoice Scanner
     Route::get('/smart-capture', [\App\Http\Controllers\PublicToolController::class, 'showSmartCapture'])->name('smart-capture');
     Route::post('/smart-capture', [\App\Http\Controllers\PublicToolController::class, 'submitSmartCapture'])->middleware('throttle:tools')->name('smart-capture.submit');
 
@@ -300,6 +309,10 @@ Route::prefix('tools')->name('tools.')->group(function () {
         ->middleware('signed')->name('download');
 });
 
+// Invoice Scanner alias (Phase 7 compatibility)
+Route::get('/tools/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'showSmartCapture'])->name('public.invoice-scanner');
+Route::post('/tools/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'submitSmartCapture'])->middleware('throttle:tools')->name('public.invoice-scanner.submit');
+
 // Public static WordPress plugin download route (compiles on-the-fly)
 Route::get('/downloads/venqore-sync.zip', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadStaticPlugin']);
 Route::get('/api/woo/plugin/check-update', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'checkPluginUpdate']);
@@ -327,9 +340,6 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\Marketing\SitemapController::c
 Route::get('/sitemap-{type}.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'showSubSitemap'])
     ->where('type', 'pages|blog|compare|solutions|tools')
     ->name('sitemap.sub');
-Route::post('/webhooks/lemon-squeezy', [\App\Http\Controllers\LemonSqueezyWebhookController::class, 'handle'])
-    ->name('webhooks.lemon-squeezy');
-
 // ── Demo Sandbox Routes ───────────────────────────────────────────────
 // /demo landing stays indexable (marketing page, covered by MarketingSeo).
 // Login/logout are transactional entry points into the sandbox — noindex them.
@@ -383,6 +393,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::c
     Route::get('/start',     [\App\Http\Controllers\StoreController::class, 'createOrJoin'])->name('store.create-or-join');
     Route::get('/new-store', [\App\Http\Controllers\StoreController::class, 'create'])->name('store.create');
     Route::post('/new-store',[\App\Http\Controllers\StoreController::class, 'store'])->name('store.store');
+
+    // AppSumo Code Redemption
+    Route::get('/redeem',    [\App\Http\Controllers\AppSumoController::class, 'index'])->name('appsumo.redeem');
+    Route::post('/redeem',   [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('appsumo.redeem.submit');
 
     // Join by store code
     Route::get('/join',  [\App\Http\Controllers\StaffController::class, 'joinForm'])->name('store.join');
@@ -531,6 +545,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::post('/mark-all-read', [\App\Http\Controllers\PlanNotificationController::class, 'markAllRead'])->name('markAllRead');
             Route::post('/{id}/read',     [\App\Http\Controllers\PlanNotificationController::class, 'markRead'])->name('read');
         });
+
+        // ── Device & Session Management (§3) ──────────────────────────────
+        Route::get('/api/devices',                     [\App\Http\Controllers\DeviceController::class, 'index'])->name('devices.index');
+        Route::post('/api/devices/{id}/deactivate',    [\App\Http\Controllers\DeviceController::class, 'deactivate'])->name('devices.deactivate');
+        Route::get('/api/session/eviction-status',     [\App\Http\Controllers\DeviceController::class, 'evictionStatus'])->name('session.eviction-status');
 
         // ── Store Admin Panel (Restored Legacy Experience) ──────────────────
         Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['permission:admin.settings_manage']], function () {
@@ -887,8 +906,11 @@ Route::get('/welcome-splash', function () {
 // mass tenant creation.
 Route::get('/build-workspace', [\App\Http\Controllers\WorkspaceBuilderController::class, 'show'])->name('workspace.build');
 Route::post('/workspace/analyze', [\App\Http\Controllers\WorkspaceBuilderController::class, 'analyze'])->middleware('throttle:30,1')->name('workspace.analyze');
+Route::post('/workspace/converse/start', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseStart'])->middleware(['throttle:30,1', 'turnstile'])->name('workspace.converse.start');
+Route::post('/workspace/converse/step', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseStep'])->middleware('throttle:30,1')->name('workspace.converse.step');
+Route::post('/workspace/converse/reset', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseReset'])->middleware('throttle:30,1')->name('workspace.converse.reset');
 Route::post('/workspace/prepare-google', [\App\Http\Controllers\WorkspaceBuilderController::class, 'prepareGoogle'])->middleware('throttle:30,1')->name('workspace.prepare-google');
-Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware('throttle:5,1')->name('workspace.provision');
+Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware(['throttle:5,1', 'turnstile'])->name('workspace.provision');
 Route::post('/workspace/demand-log', [\App\Http\Controllers\WorkspaceBuilderController::class, 'logDemand'])->middleware('throttle:10,1')->name('workspace.demand');
 
 
@@ -902,8 +924,7 @@ Route::get('/gift/{token}', [\App\Http\Controllers\GiftRedemptionController::cla
 // ── Phase 7: AppSumo LTD Code Redemption ──────────────────────────────────────
 // Public routes — no auth required (buyers arrive from AppSumo email)
 // Launch toggle (2026-07-03): set APPSUMO_PUBLIC=true in .env to open /redeem publicly — config change, not a deploy.
-// (This routes file uses closures and is never route:cached, so env() is safe here.)
-$hideAppSumoPublic = !env('APPSUMO_PUBLIC', false) && !app()->runningUnitTests();
+$hideAppSumoPublic = !config('venqore.appsumo_public', false) && !app()->runningUnitTests();
 Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () use ($hideAppSumoPublic) {
     if ($hideAppSumoPublic) {
         Route::get('/redeem',  fn() => abort(404))->name('redeem');
@@ -933,14 +954,36 @@ Route::get('/refund-policy', function () {
 Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');
 
 
-// Image Fallback Route (for Shared Hosting limits)
-Route::get('/storage/{path}', function ($path) {
-    $filePath = storage_path('app/public/' . $path);
-    if (!file_exists($filePath)) {
-        \abort(404);
-    }
-    $mimeType = File::mimeType($filePath);
-    return \response()->file($filePath, ['Content-Type' => $mimeType]);
+// Image fallback for shared hosting where `storage:link` is unavailable.
+// TODO(T-03b): This endpoint has no per-tenant authorization. Tenant-scoped
+// uploads should move to a signed-URL controller after launch.
+// SECURITY: the {path} parameter is attacker-controlled. realpath() both
+// resolves ../ segments and confirms existence; the prefix assertion is what
+// keeps the read inside the public disk. Do not remove either.
+Route::get('/storage/{path}', function (string $path) {
+    $base = realpath(storage_path('app/public'));
+    abort_unless($base !== false, 404);
+
+    $real = realpath($base . DIRECTORY_SEPARATOR . $path);
+
+    // Not found, or resolved outside the public disk -> 404 (never 403; do not
+    // confirm to a prober that a path exists).
+    abort_unless(
+        $real !== false && str_starts_with($real, $base . DIRECTORY_SEPARATOR),
+        404
+    );
+
+    abort_unless(is_file($real), 404);
+
+    // Even inside the public disk, never serve executable/config/database logs.
+    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'pdf', 'ico'];
+    $ext = strtolower(pathinfo($real, PATHINFO_EXTENSION));
+    abort_unless(in_array($ext, $allowed, true), 404);
+
+    return response()->file($real, [
+        'Content-Type' => File::mimeType($real),
+        'X-Content-Type-Options' => 'nosniff',
+    ]);
 })->where('path', '.*');
 
 // --- INSTALLER ROUTES ---
@@ -1088,7 +1131,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
         Route::name('store.')->group(function () {
     Route::get('/new-dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('new-dashboard');
-    Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug]));
+    Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug], 301));
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/onboarding/step', function ($store_slug) {
         return redirect()->route('store.dashboard', ['store_slug' => $store_slug]);
@@ -1312,6 +1355,64 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales-orders/{salesOrder}/print', [\App\Http\Controllers\SalesOrderController::class, 'print'])->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.print');
     Route::post('/sales-orders/{salesOrder}/cancel', [\App\Http\Controllers\SalesOrderController::class, 'cancel'])->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.cancel');
 
+    // Service Jobs (field service / repair work orders) — the web screens for
+    // App\Engines\ServiceEngine, mirroring Api\WorkOrderController's contract.
+    // 'services' stays 'building' in config/modules.php until
+    // ServiceOnlySaleTest is green — these routes are real and reachable
+    // directly, they are just not yet offered from the sidebar or to a new
+    // tenant. See ServiceJobController's own class doc for exact scope.
+    // Services & Field Work Routes
+    Route::get('/service-jobs', [\App\Http\Controllers\ServiceJobController::class, 'index'])
+        ->middleware('permission:sales.view')->name('service-jobs.index');
+    Route::get('/service-jobs/calendar', [\App\Http\Controllers\ServiceJobController::class, 'calendar'])
+        ->middleware('permission:sales.view')->name('service-jobs.calendar');
+    Route::get('/service-jobs/create', [\App\Http\Controllers\ServiceJobController::class, 'create'])
+        ->middleware('permission:sales.create')->name('service-jobs.create');
+    Route::post('/service-jobs', [\App\Http\Controllers\ServiceJobController::class, 'store'])
+        ->middleware('permission:sales.create')->name('service-jobs.store');
+    Route::post('/service-jobs/quick-book', [\App\Http\Controllers\ServiceJobController::class, 'quickBook'])
+        ->middleware('permission:sales.create')->name('service-jobs.quick-book');
+    Route::get('/service-jobs/{serviceJob}', [\App\Http\Controllers\ServiceJobController::class, 'show'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.view')->name('service-jobs.show');
+    Route::post('/service-jobs/{serviceJob}/status', [\App\Http\Controllers\ServiceJobController::class, 'updateStatus'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.status');
+    Route::post('/service-jobs/{serviceJob}/assign', [\App\Http\Controllers\ServiceJobController::class, 'assign'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.assign');
+    Route::delete('/service-jobs/{serviceJob}/assign/{employeeId}', [\App\Http\Controllers\ServiceJobController::class, 'removeAssignment'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.unassign');
+    Route::post('/service-jobs/{serviceJob}/schedule', [\App\Http\Controllers\ServiceJobController::class, 'updateSchedule'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.update-schedule');
+    Route::post('/service-jobs/{serviceJob}/checkout-tool', [\App\Http\Controllers\ServiceJobController::class, 'checkoutTool'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.checkout-tool');
+    Route::post('/service-jobs/{serviceJob}/return-tool/{toolId}', [\App\Http\Controllers\ServiceJobController::class, 'returnTool'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.return-tool');
+    Route::post('/service-jobs/{serviceJob}/convert-invoice', [\App\Http\Controllers\ServiceJobController::class, 'convertInvoice'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.convert-invoice');
+
+    // Tools & Field Equipment Management
+    Route::get('/tools', [\App\Http\Controllers\ToolController::class, 'index'])
+        ->middleware('permission:sales.view')->name('tools.index');
+    Route::post('/tools', [\App\Http\Controllers\ToolController::class, 'store'])
+        ->middleware('permission:sales.create')->name('tools.store');
+    Route::put('/tools/{tool}', [\App\Http\Controllers\ToolController::class, 'update'])
+        ->middleware('permission:sales.create')->name('tools.update');
+    Route::post('/tools/{tool}/maintenance', [\App\Http\Controllers\ToolController::class, 'logMaintenance'])
+        ->middleware('permission:sales.create')->name('tools.maintenance');
+    Route::post('/tools/{tool}/checkout', [\App\Http\Controllers\ToolController::class, 'checkout'])
+        ->middleware('permission:sales.create')->name('tools.checkout');
+    Route::post('/tools/{tool}/checkin', [\App\Http\Controllers\ToolController::class, 'checkin'])
+        ->middleware('permission:sales.create')->name('tools.checkin');
+    Route::delete('/tools/{tool}', [\App\Http\Controllers\ToolController::class, 'destroy'])
+        ->middleware('permission:sales.create')->name('tools.destroy');
+
     // Labels
     Route::get('/labels', [\App\Http\Controllers\LabelController::class, 'index'])->middleware('plan.feature:barcode_label_print')->name('labels.index');
     Route::post('/labels/print', [\App\Http\Controllers\LabelController::class, 'print'])->middleware('plan.feature:barcode_label_print')->name('labels.print');
@@ -1385,13 +1486,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     });
 
     // Cookbook
-    Route::get('/cookbook', [\App\Http\Controllers\CookbookController::class, 'index'])->middleware('plan.feature:compositions')->name('cookbook.index');
-    Route::get('/cookbook/create', [\App\Http\Controllers\CookbookController::class, 'create'])->middleware('plan.feature:compositions')->name('cookbook.create');
-    Route::post('/cookbook', [\App\Http\Controllers\CookbookController::class, 'store'])->middleware('plan.feature:compositions')->name('cookbook.store');
-    Route::get('/cookbook/{id}/edit', [\App\Http\Controllers\CookbookController::class, 'edit'])->middleware('plan.feature:compositions')->name('cookbook.edit');
-    Route::put('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'update'])->middleware('plan.feature:compositions')->name('cookbook.update');
-    Route::delete('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'destroy'])->middleware('plan.feature:compositions')->name('cookbook.destroy');
-    Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->middleware('plan.feature:compositions')->name('cookbook.simulate');
+    Route::get('/cookbook', [\App\Http\Controllers\CookbookController::class, 'index'])->middleware('plan.feature:bill_of_materials')->name('cookbook.index');
+    Route::get('/cookbook/create', [\App\Http\Controllers\CookbookController::class, 'create'])->middleware('plan.feature:bill_of_materials')->name('cookbook.create');
+    Route::post('/cookbook', [\App\Http\Controllers\CookbookController::class, 'store'])->middleware('plan.feature:bill_of_materials')->name('cookbook.store');
+    Route::get('/cookbook/{id}/edit', [\App\Http\Controllers\CookbookController::class, 'edit'])->middleware('plan.feature:bill_of_materials')->name('cookbook.edit');
+    Route::put('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'update'])->middleware('plan.feature:bill_of_materials')->name('cookbook.update');
+    Route::delete('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'destroy'])->middleware('plan.feature:bill_of_materials')->name('cookbook.destroy');
+    Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->middleware('plan.feature:bill_of_materials')->name('cookbook.simulate');
 
     // growth-engine
     Route::middleware(['permission:reports.summary', 'plan.feature:growth_engine'])->group(function () {
@@ -1633,8 +1734,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // WooCommerce Sync
     Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug') ?? request()->segment(2)]))
+        ->middleware('plan.feature:woocommerce')
         ->name('woocommerce.index');
-    Route::prefix('woo')->name('woo.')->group(function () {
+    Route::prefix('woo')->name('woo.')->middleware('plan.feature:woocommerce')->group(function () {
         Route::get('/connections/{connection}/download', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadPlugin'])->name('plugin.download');
         Route::get('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'index'])->name('connections.index');
         Route::post('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'store'])->name('connections.store');
@@ -1980,9 +2082,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // ── WooCommerce Sync (Full System) ────────────────────────────────────────
     // Entry point: redirects to the new connection list
     Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug') ?? request()->segment(2)]))
+        ->middleware('plan.feature:woocommerce')
         ->name('woocommerce.index');
     // WooSync — Connection Management & Sync Operations
-    Route::prefix('woo')->name('woo.')->group(function () {
+    Route::prefix('woo')->name('woo.')->middleware('plan.feature:woocommerce')->group(function () {
         // Plugin download (public within auth context)
         Route::get('/connections/{connection}/download', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadPlugin'])
             ->name('plugin.download');
@@ -2159,7 +2262,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::put('parties/{id}',       [\App\Http\Controllers\V3\PartyController::class, 'update'])->name('parties.update');
     Route::delete('parties/{id}',    [\App\Http\Controllers\V3\PartyController::class, 'destroy'])->name('parties.destroy');
 
-    Route::post('sales', [\App\Http\Controllers\V3\SaleController::class, 'store'])->name('sales.store');
+    Route::post('sales', [\App\Http\Controllers\V3\SaleController::class, 'store'])->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.store');
     Route::get('sales/{saleId}/pdf', [\App\Http\Controllers\V3\InvoicePdfController::class, 'show'])->name('sales.pdf');
     Route::post('sales/{saleId}/return', [\App\Http\Controllers\V3\SaleReturnController::class, 'store'])->name('sales.return.store');
     Route::post('customer-payments', [\App\Http\Controllers\V3\CustomerPaymentController::class, 'store'])->name('customer-payments.store');
@@ -2273,82 +2376,6 @@ Route::get('/error/{code}', function ($code) {
 
 // [SECURITY] /debug-error removed — exposed full laravel.log to anyone with the
 // hardcoded key committed to source. Use SSH or `tail storage/logs/laravel.log`.
-
-// Temporary route to create local PK test account
-Route::get('/create-pk-test', function () {
-    $user = \App\Models\User::firstOrCreate(
-        ['email' => 'testpk@venqore.com'],
-        [
-            'name' => 'Pakistani Test User',
-            'password' => \Illuminate\Support\Facades\Hash::make('password'),
-        ]
-    );
-
-    $tenant = \App\Models\Tenant::firstOrCreate(
-        ['slug' => 'test-pk-store'],
-        [
-            'name' => 'Pakistani Test Store',
-            'status' => 'trial',
-            'plan' => 'business',
-            'trial_ends_at' => now()->addDays(14),
-            'currency_symbol' => 'Rs',
-            'country_code' => 'PK',
-            'language_code' => 'en',
-        ]
-    );
-
-    \App\Models\TenantUser::firstOrCreate(
-        [
-            'user_id' => $user->id,
-            'tenant_id' => $tenant->id,
-        ],
-        [
-            'role' => 'owner',
-            'status' => 'active',
-        ]
-    );
-
-    $user->update(['last_store_id' => $tenant->id]);
-
-    return response('Test user testpk@venqore.com and store test-pk-store (PK) created successfully! You can now log in with "password".');
-});
-
-// Temporary route to clear Laravel cache on local
-Route::get('/clear-local-cache', function () {
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    
-    if (auth()->check()) {
-        auth()->user()->update([
-            'is_platform_admin' => true,
-            'platform_role' => 'platform_owner',
-        ]);
-        return response('Local Laravel cache cleared, and your user (' . auth()->user()->email . ') was granted Platform Owner role successfully!');
-    }
-
-    return response('Local Laravel cache cleared successfully! (Note: No user was logged in, so role was not updated).');
-});
-
-// Temporary route to inspect plan pricing in local DB
-Route::get('/check-plans', function () {
-    return response()->json(\App\Models\Plan::select('slug', 'price_monthly', 'price_monthly_pkr')->get());
-});
-
-// Temporary route to set local PKR prices directly
-Route::get('/set-local-prices', function () {
-    \App\Models\Plan::where('slug', 'starter')->update([
-        'price_monthly_pkr' => 1100,
-        'price_annual_pkr' => 11000,
-    ]);
-    \App\Models\Plan::where('slug', 'growth')->update([
-        'price_monthly_pkr' => 1800,
-        'price_annual_pkr' => 18000,
-    ]);
-    \App\Models\Plan::where('slug', 'business')->update([
-        'price_monthly_pkr' => 5300,
-        'price_annual_pkr' => 53000,
-    ]);
-    return response('Local PKR prices set successfully! You can verify at /check-plans.');
-});
 
 // ── FALLBACK: 404 for any URL not matched above ────────────────────────────
 // This is the last line of defense. Every URL that doesn't match a route

@@ -38,6 +38,24 @@
  * question list have to be derived from the same rule, or a stale answer keeps
  * a module switched on that the user can no longer see the question for.
  *
+ * ── Category scoping ─────────────────────────────────────────────────────
+ *
+ *   'applies_to' => ['pharmacy', 'grocery']
+ *
+ * means: only ask this once the matched preset is one of these. This is the
+ * mechanism that keeps the bank from asking a freelancer about stock counts
+ * or a pharmacy about kitchen tickets — every trade shares the same eleven
+ * universal questions (they are written to be industry-neutral by design, see
+ * their own comments in config/ai_builder.php), and `applies_to` is what adds
+ * real, trade-specific depth on top without turning every visitor's flow into
+ * the union of all of it. A question with no `applies_to` is universal, same
+ * as before this existed. `presetKey` starts empty and resolves once the
+ * background match returns — see BuildWorkspace.jsx's `analyse()` — so a
+ * category question can pop into view once that lands. That is safe ONLY
+ * because every scoped question in the config sits after the universal block
+ * and before `fix`: appending later entries never renumbers a question the
+ * visitor has already answered or is currently on.
+ *
  * ── What `implies` may and may not do ──────────────────────────────────────
  *
  * It may only ADD. A discovery answer never removes a module the matched preset
@@ -91,10 +109,17 @@ export function isVisible(question, answers) {
     return question.show_if_mode === 'any' ? entries.some(test) : entries.every(test);
 }
 
+/** Does `question`'s `applies_to` allow the matched preset? No scope = universal. */
+export function appliesTo(question, presetKey) {
+    const scope = question.applies_to;
+    if (!scope || scope.length === 0) return true;
+    return presetKey != null && scope.includes(presetKey);
+}
+
 /** The steps to actually render, in config order, for these answers. */
-export function visibleQuestions(discovery = [], answers = {}) {
+export function visibleQuestions(discovery = [], answers = {}, presetKey = null) {
     return (discovery || []).filter(
-        (q) => q && q.type !== 'text' && q.options && isVisible(q, answers),
+        (q) => q && q.type !== 'text' && q.options && isVisible(q, answers) && appliesTo(q, presetKey),
     );
 }
 
@@ -106,11 +131,11 @@ export function visibleQuestions(discovery = [], answers = {}) {
  *          which is what lets the live panel show WHY a row appeared instead of
  *          just sliding it in.
  */
-export function resolveImplied(discovery = [], answers = {}) {
+export function resolveImplied(discovery = [], answers = {}, presetKey = null) {
     const implied = [];
     const attribution = {};
 
-    for (const q of visibleQuestions(discovery, answers)) {
+    for (const q of visibleQuestions(discovery, answers, presetKey)) {
         for (const chosen of asList(answers[q.key])) {
             for (const modKey of (q.implies && q.implies[chosen]) || []) {
                 if (!implied.includes(modKey)) {
@@ -125,9 +150,9 @@ export function resolveImplied(discovery = [], answers = {}) {
 }
 
 /** The reveal headline, when the user answered a question that carries one. */
-export function resolveHeadline(discovery = [], answers = {}) {
+export function resolveHeadline(discovery = [], answers = {}, presetKey = null) {
     for (const q of discovery || []) {
-        if (!q?.headline || !isVisible(q, answers)) continue;
+        if (!q?.headline || !isVisible(q, answers) || !appliesTo(q, presetKey)) continue;
         for (const chosen of asList(answers[q.key])) {
             if (q.headline[chosen]) return q.headline[chosen];
         }
@@ -144,8 +169,13 @@ export function resolveHeadline(discovery = [], answers = {}) {
  *                                under this key and rehydrate on remount — see
  *                                the class note above on why that is not the
  *                                same thing as the in-app Back button.
+ * @param {string}   [presetKey] the matched preset, once known — gates any
+ *                                question carrying `applies_to`. Starts null
+ *                                (nothing scoped is visible yet) and typically
+ *                                arrives after the background match resolves;
+ *                                see the "Category scoping" note above.
  */
-export default function useDiscovery(discovery = [], baseModules = [], legalKeys = null, storageKey = null) {
+export default function useDiscovery(discovery = [], baseModules = [], legalKeys = null, storageKey = null, presetKey = null) {
     const [memoryAnswers, setMemoryAnswers] = useState({});
     const [storedAnswers, setStoredAnswers, forgetStored] = useSessionState(
         storageKey ? `${storageKey}:answers` : 'vq-discovery:unused',
@@ -192,13 +222,13 @@ export default function useDiscovery(discovery = [], baseModules = [], legalKeys
     }, [storageKey, forgetStored]);
 
     const questions = useMemo(
-        () => visibleQuestions(discovery, answers),
-        [discovery, answers],
+        () => visibleQuestions(discovery, answers, presetKey),
+        [discovery, answers, presetKey],
     );
 
     const { implied, attribution } = useMemo(
-        () => resolveImplied(discovery, answers),
-        [discovery, answers],
+        () => resolveImplied(discovery, answers, presetKey),
+        [discovery, answers, presetKey],
     );
 
     /**
@@ -216,7 +246,10 @@ export default function useDiscovery(discovery = [], baseModules = [], legalKeys
         return merged.filter((key) => legal.has(key));
     }, [baseModules, implied, legalKeys]);
 
-    const headline = useMemo(() => resolveHeadline(discovery, answers), [discovery, answers]);
+    const headline = useMemo(
+        () => resolveHeadline(discovery, answers, presetKey),
+        [discovery, answers, presetKey],
+    );
 
     const answeredCount = questions.filter((q) => isAnswered(q, answers)).length;
 

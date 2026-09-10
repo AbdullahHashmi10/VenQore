@@ -53,6 +53,20 @@ return [
             'spend_cap'      => 1.00,
             'estimated_cost' => 0.0005,
         ],
+        'config_ai' => [
+            'capacity'       => 15,
+            'refill_per_sec' => 0.5,
+            'day_limit'      => 500,
+            'spend_cap'      => 15.00,
+            'estimated_cost' => 0.0010,
+        ],
+        'ai_discovery' => [
+            'capacity'       => 15,
+            'refill_per_sec' => 0.5,
+            'day_limit'      => 500,
+            'spend_cap'      => 15.00,
+            'estimated_cost' => 0.0010,
+        ],
     ],
 
     'default' => [

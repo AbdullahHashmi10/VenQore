@@ -27,10 +27,6 @@ class StoreChatbotMiddleware
                 ->first();
 
             if ($membership) {
-                if ($tenant->ai_status === 'none') {
-                    throw new \App\Exceptions\PlanLimitException('ai_access');
-                }
-
                 // Strictly require owner or admin membership status for any write modifications
                 if ($request->isMethod('POST') || $request->isMethod('PUT') || $request->isMethod('PATCH') || $request->isMethod('DELETE')) {
                     if (!in_array($membership->role, ['owner', 'admin'])) {

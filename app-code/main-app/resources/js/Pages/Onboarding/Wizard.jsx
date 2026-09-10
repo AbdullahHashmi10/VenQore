@@ -96,7 +96,7 @@ export default function Wizard({
     const {
         questions, answers, answer, commitMulti,
         modules: proposedModules, attribution, headline, forget: forgetAnswers,
-    } = useDiscovery(discovery, baseModules, legalKeys, STORAGE_KEY);
+    } = useDiscovery(discovery, baseModules, legalKeys, STORAGE_KEY, presetKey);
 
     const activeModules = edited ?? proposedModules;
 

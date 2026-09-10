@@ -33,6 +33,13 @@ const NavIcon = ({ name, size = 18 }) => {
 const NAV_GROUP_LABELS = { A:'Catalog', B:'Sell', C:'Stock', D:'Buy', E:'Make', F:'Money', G:'Grow' };
 const NAV_GROUP_ORDER = ['A','B','C','D','E','F','G'];
 
+function abbrNum(num) {
+  const n = Number(num) || 0;
+  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return n.toLocaleString();
+}
+
 // React Bits Components
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
 import WelcomeTourModal from '@/Components/WelcomeTourModal';
@@ -3129,14 +3136,58 @@ function renderLibrary(){
 
 /* ── persistence ───────────────────────────────────────────────────────────
    The board a person builds is theirs: every change is written to this
-   browser, per store, and comes back on the next visit. A reset swaps in a
-   starting layout rather than silently destroying their work. */
+   browser (localStorage) and synced to the server (/api/dashboards/{id}/layout).
+   A reset swaps in a starting layout rather than silently destroying their work. */
 const BOARD_KEY = () => `vq-dashboard-v6:${STORE_SLUG || "default"}`;
 let PERSIST_ON = false;            /* off until the first board is in place */
+let ACTIVE_DASHBOARD_ID = null;
+let BACKEND_SYNC_TIMER = null;
+
+function syncBoardToBackend() {
+  if (!ACTIVE_DASHBOARD_ID || typeof axios === 'undefined') return;
+  clearTimeout(BACKEND_SYNC_TIMER);
+  BACKEND_SYNC_TIMER = setTimeout(() => {
+    try {
+      const payload = {
+        cards: CARDS.map(c => ({
+          id: (typeof c.id === 'string' && c.id.length === 36) ? c.id : undefined,
+          reading_key: c.key || 'sales.revenue',
+          chart: c.chart || 'stat',
+          period: toReckonerPeriod(c.period),
+          category: c.cat || 'C4',
+          fit: c.fit || 0,
+          x: Number.isInteger(c.gx) ? c.gx : 0,
+          y: Number.isInteger(c.gy) ? c.gy : 0,
+          w: c.w || 3,
+          h: c.h || 2,
+          title_override: c.title || null,
+          args: c.args || null,
+          style: {
+            variant: c.variant || 'standard',
+            tone: c.tone || 'surface',
+            glare: c.glare,
+            starBorder: c.starBorder,
+            showDelta: c.showDelta,
+            showWhen: c.showWhen,
+            showPeriodPicker: c.showPeriodPicker,
+            type: c.type || null,
+            targetUrl: c.targetUrl || c.link || null,
+            icon: c.icon || null,
+            btnColor: c.btnColor || null,
+            extraKeys: c.extraKeys || [],
+          },
+        })).filter(c => c.reading_key && !c.reading_key.startsWith('platform.'))
+      };
+      axios.put(`/api/dashboards/${ACTIVE_DASHBOARD_ID}/layout`, payload, { _skipGlobalErrorHandler: true }).catch(() => {});
+    } catch {}
+  }, 600);
+}
+
 function persistBoard(){
   if (!PERSIST_ON || typeof localStorage === "undefined") return;
   try { localStorage.setItem(BOARD_KEY(), JSON.stringify({ v: 2, cards: CARDS })); }
   catch {}
+  syncBoardToBackend();
 }
 function loadBoard(){
   if (typeof localStorage === "undefined") return null;
@@ -3279,6 +3330,8 @@ function boot(presetId){
   PERSIST_ON = false;
   if (presetId){
     applyPreset(presetId);
+    PERSIST_ON = true;
+    persistBoard();
   } else {
     const saved = loadBoard();
     if (saved){
@@ -3289,36 +3342,57 @@ function boot(presetId){
       draw();
     } else {
       applyPreset(DEFAULT_PRESET);
-      if (typeof axios !== 'undefined') {
-        axios.get('/api/dashboards').then(res => {
-          const list = res?.data?.data || [];
-          if (Array.isArray(list) && list.length > 0) {
-            const activeBoard = list.find(b => b.is_default) || list[0];
-            if (activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
-              const backendCards = activeBoard.cards.map(bc => ({
-                id: bc.id || newId(),
-                key: bc.reading_key || bc.key,
-                chart: bc.style || bc.chart,
-                period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_year' ? 'Year' : 'Month',
-                w: bc.w,
-                h: bc.h,
-                gx: bc.x,
-                gy: bc.y,
-                cat: bc.cat || 'C4',
-                fit: bc.fit || 0,
-                type: bc.type,
-                variant: bc.variant || defaultVariant(bc.style || 'area'),
-              }));
+    }
+
+    // Always fetch server dashboard to bind ACTIVE_DASHBOARD_ID and hydrate live server layout
+    if (typeof axios !== 'undefined') {
+      axios.get('/api/dashboards').then(res => {
+        const list = res?.data?.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          const activeBoard = list.find(b => b.is_default) || list[0];
+          if (activeBoard) {
+            ACTIVE_DASHBOARD_ID = activeBoard.id;
+            if (Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
+              const backendCards = activeBoard.cards.map(bc => {
+                const st = bc.style || {};
+                return {
+                  id: bc.id || newId(),
+                  key: bc.reading_key || bc.key,
+                  chart: bc.chart || st.chart || 'stat',
+                  period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_quarter' ? 'Quarter' : bc.period === 'this_year' ? 'Year' : 'Month',
+                  w: bc.w || 3,
+                  h: bc.h || 2,
+                  gx: bc.x,
+                  gy: bc.y,
+                  cat: bc.category || bc.cat || 'C4',
+                  fit: bc.fit || 0,
+                  type: st.type || bc.type,
+                  variant: st.variant || bc.variant || defaultVariant(bc.chart || 'stat'),
+                  tone: st.tone || bc.tone || 'surface',
+                  glare: st.glare ?? bc.glare,
+                  starBorder: st.starBorder ?? bc.starBorder,
+                  showDelta: st.showDelta ?? bc.showDelta,
+                  showWhen: st.showWhen ?? bc.showWhen,
+                  showPeriodPicker: st.showPeriodPicker ?? bc.showPeriodPicker,
+                  targetUrl: st.targetUrl || bc.targetUrl,
+                  link: st.link || bc.link,
+                  icon: st.icon || bc.icon,
+                  btnColor: st.btnColor || bc.btnColor,
+                  extraKeys: st.extraKeys || bc.extraKeys || [],
+                  title: bc.title_override || st.title || bc.title,
+                };
+              });
               CARDS = availableCards(backendCards).map(normaliseCard);
               draw();
             }
           }
-        }).catch(() => {});
-      }
+        }
+      }).catch(() => {});
     }
+
+    PERSIST_ON = true;
+    persistBoard();
   }
-  PERSIST_ON = true;
-  persistBoard();
 
   /* Theme is owned by the React shell now (persisted, light by default) —
      the engine only repaints when told. */
@@ -3399,7 +3473,6 @@ window.VenQoreCards = {
   getPresets: () => PRESETS,
   applyPreset,
   setEnabledModules,
-  getAvailableReadings: availableReadings,
   specialAvailable,
   destinationName,
   titleOf,

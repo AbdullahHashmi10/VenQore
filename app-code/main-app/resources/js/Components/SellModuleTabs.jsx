@@ -41,8 +41,8 @@ export default function SellModuleTabs({ activeTab }) {
             icon: FileText,
             items: [
                 { id: 'returns', label: 'Returns History', href: getRoute('store.returns-history.index'), icon: FileText },
-                { id: 'recurring', label: 'Recurring Invoices', href: getRoute('store.recurring-invoices.index'), icon: PauseCircle, locked: !store?.features?.recurring_invoices },
-                { id: 'reminders', label: 'Invoice Reminders', href: getRoute('store.invoice-reminders.index'), icon: PauseCircle, locked: !store?.features?.invoice_reminders }
+                { id: 'recurring', label: 'Recurring Invoices', href: getRoute('store.recurring-invoices.index'), icon: PauseCircle },
+                { id: 'reminders', label: 'Invoice Reminders', href: getRoute('store.invoice-reminders.index'), icon: PauseCircle }
             ]
         },
         {
@@ -50,7 +50,7 @@ export default function SellModuleTabs({ activeTab }) {
             label: 'Config',
             icon: Settings,
             items: [
-                { id: 'e-invoicing', label: 'E-Invoicing (Coming Soon)', href: getRoute('store.e-invoicing.index'), icon: FileText, locked: true }
+                { id: 'e-invoicing', label: 'E-Invoicing', href: getRoute('store.e-invoicing.index'), icon: FileText }
             ]
         }
     ];
@@ -141,47 +141,9 @@ export default function SellModuleTabs({ activeTab }) {
                     {groups.find(g => g.id === activeGroup)?.items.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
-                        const isComingSoon = tab.label.includes('Coming Soon');
-                        const isLocked = tab.locked;
 
-                        if (isComingSoon) {
-                            return (
-                                <FeatureLockBadge key={tab.id} isLocked={true} showBadge={false}>
-                                    <button
-                                        type="button"
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap bg-transparent border-transparent text-ink-muted cursor-pointer"
-                                    >
-                                        <Icon size={14} />
-                                        <span>{tab.label}</span>
-                                    </button>
-                                </FeatureLockBadge>
-                            );
-                        }
-
-                        if (isLocked) {
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        window.dispatchEvent(new CustomEvent('amd:plan-limit', {
-                                            detail: {
-                                                feature: tab.id === 'e-invoicing' ? 'e_invoicing' : (tab.id === 'recurring' ? 'recurring_invoicing' : tab.id.replace('-', '_')),
-                                                message: `${tab.label} is not available on your current plan. Please upgrade your plan to unlock.`,
-                                                current_plan: store?.plan === 'ltd' ? 'starter' : 'starter',
-                                                upgrade_url: `/s/${store?.slug}/billing/upgrade`,
-                                                billing_url: `/s/${store?.slug}/billing`,
-                                                portal_url: `/s/${store?.slug}/billing/portal`
-                                            }
-                                        }));
-                                    }}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-normal border whitespace-nowrap bg-transparent border-transparent text-ink-muted hover:text-brand-600 dark:text-ink-secondary dark:hover:text-brand-400 cursor-pointer"
-                                >
-                                    <Icon size={14} />
-                                    <span>{tab.label}</span>
-                                    <span className="text-2xs">🔒</span>
-                                </button>
-                            );
+                        if (!tab.href) {
+                            return null;
                         }
 
                         return (

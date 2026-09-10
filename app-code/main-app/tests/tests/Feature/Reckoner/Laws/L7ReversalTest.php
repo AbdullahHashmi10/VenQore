@@ -46,7 +46,7 @@ class L7ReversalTest extends VenQoreTestCase
         $entry = JournalEntry::create([
             'id'          => (string) Str::uuid(),
             'tenant_id'   => $tenant->id,
-            'date'        => now()->toDateString(),
+            'date'        => now($tenant->timezone)->toDateString(),
             'reference'   => 'SALE-001',
             'description' => 'Test Sale',
             'user_id'     => $user->id,
@@ -131,7 +131,7 @@ class L7ReversalTest extends VenQoreTestCase
         $entry = JournalEntry::create([
             'id'          => (string) Str::uuid(),
             'tenant_id'   => $tenant->id,
-            'date'        => now()->toDateString(),
+            'date'        => now($tenant->timezone)->toDateString(),
             'reference'   => 'SALE-002',
             'description' => 'Test Sale 2',
             'user_id'     => $user->id,

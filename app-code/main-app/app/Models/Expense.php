@@ -18,7 +18,7 @@ class Expense extends Model
            `$fillable` is a silent filter, not a validation. */
         'party_id',
         'amount_paid',
-        'grand_total', 'purchase_id',
+        'grand_total', 'purchase_id', 'service_job_id',
         'allocation_method', 'channel',
     ];
 
@@ -40,6 +40,11 @@ class Expense extends Model
     public function purchase()
     {
         return $this->belongsTo(Purchase::class, 'purchase_id');
+    }
+
+    public function serviceJob()
+    {
+        return $this->belongsTo(ServiceJob::class, 'service_job_id');
     }
 
     /** The lines of this voucher, where it has more than one. */

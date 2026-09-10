@@ -15,6 +15,27 @@ class ReceivePurchaseRequest extends FormRequest
 {
     public function authorize(): bool { return true; }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('items') && is_array($this->input('items'))) {
+            $items = $this->input('items');
+            foreach ($items as $k => $item) {
+                if (is_array($item)) {
+                    if (!isset($item['purchase_item_id'])) {
+                        if (isset($item['item_id'])) {
+                            $items[$k]['purchase_item_id'] = $item['item_id'];
+                        } elseif (isset($item['invoice_item_id'])) {
+                            $items[$k]['purchase_item_id'] = $item['invoice_item_id'];
+                        } elseif (isset($item['id'])) {
+                            $items[$k]['purchase_item_id'] = $item['id'];
+                        }
+                    }
+                }
+            }
+            $this->merge(['items' => $items]);
+        }
+    }
+
     public function rules(): array
     {
         return [

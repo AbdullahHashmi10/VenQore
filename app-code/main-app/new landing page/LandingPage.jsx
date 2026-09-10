@@ -317,7 +317,7 @@ export default function LandingPage() {
                         {/* Risk Reversal Microcopy */}
                         <p className="text-[11px] text-slate-600 font-bold uppercase tracking-[0.2em] mb-20"
                             style={{ opacity: heroLoaded ? 1 : 0, transition: 'opacity 1s cubic-bezier(0.22,1,0.36,1) 0.7s' }}>
-                            No credit card · One-click demo store · Live in 15 minutes
+                            14-day free trial · One-click demo store · Live in 15 minutes
                         </p>
 
                         {/* Stats Strip */}
@@ -498,7 +498,7 @@ export default function LandingPage() {
                                 <MechanismRow delay={0.20} title="Hardware Heartbeat" mechanism="Electron power-state detection" outcome="Loss-Proof POS" />
                                 <MechanismRow delay={0.24} title="Auto-Assembly" mechanism="BOM-triggered manufacturing" outcome="Instant Stock Fulfillment" />
                                 <MechanismRow delay={0.28} title="Three AI Brains" mechanism="Retention, Forecasting, Churn" outcome="Proactive Intelligence" />
-                                <MechanismRow delay={0.32} title="5-Category Audit Gate" mechanism="665+ tests, 4,000+ live assertions" outcome="Verified, Not Promised" />
+                                <MechanismRow delay={0.32} title="5-Category Audit Gate" mechanism="2,000+ tests, 20,000+ live assertions" outcome="Verified, Not Promised" />
                             </div>
                         </Reveal>
                         
@@ -626,7 +626,7 @@ export default function LandingPage() {
                                 You already know <br />your <span className="text-indigo-400">numbers are wrong.</span>
                             </h2>
                             <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto leading-relaxed relative z-10">
-                                The only question is whether you'll fix it this year or keep guessing. 14-day free trial, full access, no credit card required — or launch the one-click demo store first.
+                                The only question is whether you'll fix it this year or keep guessing. 14-day free trial, full access, cancel anytime — or launch the one-click demo store first.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                                 <MagBtn href="/register" variant="primary">

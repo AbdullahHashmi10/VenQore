@@ -224,6 +224,10 @@ class PurchaseController extends Controller
     {
         $purchase = $this->purchaseService->store($request->validated());
 
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'purchase' => $purchase], 200);
+        }
+
         return $this->redirectTo('show', ['purchase' => $purchase->id])
             ->with('success', 'Purchase recorded successfully.');
     }
