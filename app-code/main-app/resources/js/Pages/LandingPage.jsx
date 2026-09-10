@@ -187,20 +187,20 @@ export default function LandingPage() {
 
   {/*  Side Live Slider Rail Tracking Sections  */}
   <aside data-rail="1">
-    <a data-dot="1" data-htmlFor="top" href="#top" aria-label="Intent"><span data-dotlabel="1">Intent</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="trust" href="#trust" aria-label="Proof"><span data-dotlabel="1">Proof</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="extremes" href="#extremes" aria-label="Problem"><span data-dotlabel="1">Problem</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="value" href="#value" aria-label="Value"><span data-dotlabel="1">Value</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="compiler" href="#compiler" aria-label="Compiler"><span data-dotlabel="1">Compiler</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="showcase" href="#showcase" aria-label="Product"><span data-dotlabel="1">Product</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="tailored" href="#tailored" aria-label="Modules"><span data-dotlabel="1">Modules</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="day2" href="#day2" aria-label="AI"><span data-dotlabel="1">AI</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="offline" href="#offline" aria-label="Offline"><span data-dotlabel="1">Offline</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="industries" href="#industries" aria-label="Industries"><span data-dotlabel="1">Industries</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="integrations" href="#integrations" aria-label="Channels"><span data-dotlabel="1">Channels</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="analytics" href="#analytics" aria-label="Dashboard"><span data-dotlabel="1">Dashboard</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="ledger" href="#ledger" aria-label="Evidence"><span data-dotlabel="1">Evidence</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-htmlFor="start" href="#start" aria-label="Start"><span data-dotlabel="1">Start</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="top" href="#top" aria-label="Intent"><span data-dotlabel="1">Intent</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="trust" href="#trust" aria-label="Proof"><span data-dotlabel="1">Proof</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="extremes" href="#extremes" aria-label="Problem"><span data-dotlabel="1">Problem</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="value" href="#value" aria-label="Value"><span data-dotlabel="1">Value</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="compiler" href="#compiler" aria-label="Compiler"><span data-dotlabel="1">Compiler</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="showcase" href="#showcase" aria-label="Product"><span data-dotlabel="1">Product</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="tailored" href="#tailored" aria-label="Modules"><span data-dotlabel="1">Modules</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="day2" href="#day2" aria-label="AI"><span data-dotlabel="1">AI</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="offline" href="#offline" aria-label="Offline"><span data-dotlabel="1">Offline</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="industries" href="#industries" aria-label="Industries"><span data-dotlabel="1">Industries</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="integrations" href="#integrations" aria-label="Channels"><span data-dotlabel="1">Channels</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="analytics" href="#analytics" aria-label="Dashboard"><span data-dotlabel="1">Dashboard</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="ledger" href="#ledger" aria-label="Evidence"><span data-dotlabel="1">Evidence</span><span data-dotmark="1"></span></a>
+    <a data-dot="1" data-for="start" href="#start" aria-label="Start"><span data-dotlabel="1">Start</span><span data-dotmark="1"></span></a>
   </aside>
 
   <main id="main">
