@@ -351,7 +351,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
       currentSlug="smart-capture"
       faqs={FAQS}
       cta={{
-                    headline: "SmartCapture is one of the 46 modules VenQore assembles for you.",
+                    headline: "SmartCapture is one of the 140+ modules VenQore assembles for you.",
                     subtext: "Inside the system it builds, a photographed bill posts to accounts payable and adjusts stock on its own — no manual entry from receipt to reconciliation.",
                 }}
       related={[

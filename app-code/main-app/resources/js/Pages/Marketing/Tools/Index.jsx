@@ -16,7 +16,7 @@ export default function ToolsIndex({ toolGroups = [] }) {
             toolGroups={toolGroups}
             cta={{
                 headline: "Every document here is one a built system would have issued for you.",
-                subtext: "Describe your business once. VenQore assembles it from 46 modules — you keep the ones you use — and every invoice, label and count sheet comes out of live data instead of a blank form.",
+                subtext: "Describe your business once. VenQore assembles it from 140+ modules — you keep the ones you use — and every invoice, label and count sheet comes out of live data instead of a blank form.",
             }}
             wide
         >

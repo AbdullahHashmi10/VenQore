@@ -309,6 +309,7 @@ Route::get('/blog/{slug}',       [\App\Http\Controllers\Marketing\BlogController
 // unreachable because a route registered earlier always wins).
 Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
 Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
+Route::get('/refund-policy', fn() => Inertia::render('RefundPolicy'))->name('refund-policy');
 Route::get('/help', [\App\Http\Controllers\HelpCenterController::class, 'index'])->name('help.index');
 Route::get('/help/articles/{slug}', [\App\Http\Controllers\HelpCenterController::class, 'show'])->name('help.show');
 Route::get('/known-issues', [\App\Http\Controllers\KnownIssuesController::class, 'show'])->name('known-issues.show');

@@ -95,7 +95,7 @@ export default function Security() {
                   <span className="vq-eyebrow vq-eyebrow--accent">Build</span>
                   <a className="vq-mega__link" href="/blueprint"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
                   <a className="vq-mega__link" href="/onboarding"><b>See a build</b><span>Four minutes, start to live.</span></a>
-                  <a className="vq-mega__link" href="/features"><b>Watch it assemble</b><span>46 modules in, only yours out.</span></a>
+                  <a className="vq-mega__link" href="/features"><b>Watch it assemble</b><span>140+ modules in, only yours out.</span></a>
                 </div>
                 <div className="vq-mega__col">
                   <span className="vq-eyebrow vq-eyebrow--accent">Run</span>

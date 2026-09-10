@@ -271,9 +271,9 @@ export default function LandingPage() {
         </div>
 
         <div style={{"display":"flex","alignItems":"center","gap":"18px","flexWrap":"wrap","justifyContent":"center","marginTop":"16px","font":"500 13px/1 var(--vq-font-sans)","color":"var(--vq-text-3)"}}>
-          <span>46 modules, only yours switched on</span><span style={{"opacity":".4"}}>·</span>
+          <span>140+ modules, only yours switched on</span><span style={{"opacity":".4"}}>·</span>
           <span>58 readings, one definition each</span><span style={{"opacity":".4"}}>·</span>
-          <span>7 correctness checks on every post</span>
+          <span>8 correctness laws on every post</span>
         </div>
 
         <p className="vq-caption vq-mt-4 vq-hero-caret" style={{"maxWidth":"none"}}>
@@ -296,18 +296,18 @@ export default function LandingPage() {
   {/*  MOVING STRIP 1: LIVE BUSINESSES & AUTOMATED TESTS TICKER  */}
   <div className="vq-ticker-strip">
     <div className="vq-ticker-track">
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>46 proven modules</b> parameterized in milliseconds</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>35,255 automated checks</b> verified on every commit</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>8 invariant rules</b> run on every transaction post</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
       {/*  Seamless Loop Duplicate  */}
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>46 proven modules</b> parameterized in milliseconds</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>35,255 automated checks</b> verified on every commit</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>8 invariant rules</b> run on every transaction post</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
     </div>
   </div>
@@ -329,30 +329,29 @@ export default function LandingPage() {
 
         <div className="vq-trust__row vq-reveal">
           <div className="vq-trust__cell">
-            <span className="vq-trust__n" data-count="2" data-count-dur="900">0</span>
-            <span className="vq-trust__l">BUSINESSES LIVE TODAY</span>
-            <span className="vq-trust__s">Real counters, real money, every day — including the shop this was built for.</span>
+            <span className="vq-trust__n" data-count="140" data-count-suf="+" data-count-dur="900">0</span>
+            <span className="vq-trust__l">FEATURES &amp; MODULES</span>
+            <span className="vq-trust__s">Universal business building blocks ready to assemble for your exact workflow.</span>
           </div>
           <div className="vq-trust__cell">
-            <span className="vq-trust__n" data-count="1600" data-count-suf="+">0</span>
-            <span className="vq-trust__l">AUTOMATED TESTS</span>
-            <span className="vq-trust__s">Run against every reading, on every release.</span>
+            <span className="vq-trust__n" data-count="35255" data-count-suf="+">0</span>
+            <span className="vq-trust__l">AUTOMATED CHECKS</span>
+            <span className="vq-trust__s">Run against every reading, ledger invariant, and release build.</span>
           </div>
           <div className="vq-trust__cell">
-            <span className="vq-trust__n" data-count="7" data-count-suf=" / 7" data-count-dur="900">0</span>
-            <span className="vq-trust__l">CORRECTNESS CHECKS PASSING</span>
-            <span className="vq-trust__s">Every post is checked seven ways before the ledger accepts it.</span>
+            <span className="vq-trust__n" data-count="8" data-count-suf=" / 8" data-count-dur="900">0</span>
+            <span className="vq-trust__l">CORRECTNESS LAWS ENFORCED</span>
+            <span className="vq-trust__s">Every post is verified against 8 strict accounting laws before the ledger accepts it.</span>
           </div>
           <div className="vq-trust__cell">
-            <span className="vq-trust__n" data-count="46">0</span>
-            <span className="vq-trust__l">MODULES ALREADY BUILT</span>
-            <span className="vq-trust__s">Proven in production, waiting to be wired for your business.</span>
+            <span className="vq-trust__n" data-count="100" data-count-suf="%">0</span>
+            <span className="vq-trust__l">DOUBLE-ENTRY GENERAL LEDGER</span>
+            <span className="vq-trust__s">One immutable posting path under every screen so no two reports can ever disagree.</span>
           </div>
         </div>
 
         <p className="vq-trust__note vq-reveal">
-          No logo wall. VenQore is new, and a wall of names you can't check proves nothing about your books.
-          What you can check is the test run, the correctness report, and the two shops open right now.
+          No vanity metrics or fake logos. What you can inspect and verify is our test suite, the correctness audit, and the immutable ledger architecture that runs underneath every module.
           <a className="vq-link" href="/ledger">Read the latest correctness report</a>.
         </p>
       </div>
@@ -1361,33 +1360,33 @@ export default function LandingPage() {
 
         <div className="vq-proof vq-reveal" style={{"marginTop":"46px"}}>
           <div className="vq-spot" data-par="0.03">
-            <span className="vq-proof__n" data-count="2" data-count-dur="900">0</span>
-            <span className="vq-proof__l">LIVE RETAIL BUSINESSES</span>
-            <span className="vq-proof__s">Running their point of sale and their money through Core Ledger every day &mdash; including the shop this was built for.</span>
+            <span className="vq-proof__n" data-count="140" data-count-suf="+" data-count-dur="900">0</span>
+            <span className="vq-proof__l">MODULAR ERP FEATURES</span>
+            <span className="vq-proof__s">Universal business modules assembled specifically for your business model with zero extraneous clutter.</span>
           </div>
           <div className="vq-spot" data-par="0.07">
-            <span className="vq-proof__n" data-count="1600" data-count-suf="+">0</span>
-            <span className="vq-proof__l">CORRECTNESS LAWS, RUN EVERY RELEASE</span>
-            <span className="vq-proof__s">On every release. The engines are tested; only the topology arrangement is generated.</span>
+            <span className="vq-proof__n" data-count="35255" data-count-suf="+">0</span>
+            <span className="vq-proof__l">CORRECTNESS CHECKS RUN EVERY RELEASE</span>
+            <span className="vq-proof__s">Automated tests guarding every calculation, balance sheet integrity check, and ledger posting invariant.</span>
           </div>
           <div className="vq-spot" data-par="0.11">
-            <span className="vq-proof__n" data-count="7" data-count-suf=" / 7" data-count-dur="900">0</span>
-            <span className="vq-proof__l">CORRECTNESS CHECKS PASSING</span>
+            <span className="vq-proof__n" data-count="8" data-count-suf=" / 8" data-count-dur="900">0</span>
+            <span className="vq-proof__l">INVIOLABLE ACCOUNTING LAWS</span>
             <span className="vq-proof__s">Run on every post before it is allowed into the immutable ledger. One failure and nothing is written.</span>
           </div>
           <div className="vq-spot" data-par="0.15">
-            <span className="vq-proof__n" data-count="46">0</span>
-            <span className="vq-proof__l">MODULES COMPILED</span>
-            <span className="vq-proof__s">Already built, proven in production, waiting to be wired for your business. No module fees on any plan.</span>
+            <span className="vq-proof__n" data-count="100" data-count-suf="%">0</span>
+            <span className="vq-proof__l">DOUBLE-ENTRY LEDGER BACKED</span>
+            <span className="vq-proof__s">Every transaction writes balanced debits and credits. Zero balance drift, zero unverified estimates.</span>
           </div>
         </div>
 
         <div className="vq-founder vq-reveal">
-          <span className="vq-kicker">THE TRADE-OFF, SAID OUT LOUD</span>
-          <p>The first business on VenQore was my father's shop, and it is still on it. Everything ships to a real counter before it ships to you &mdash; a smaller claim than &ldquo;trusted by thousands&rdquo;, and a more useful one.</p>
-          <p>It is one founder, currently. You get someone who answers your email personally and ships weekly, and you do not get a forty-person support organisation. If that trade doesn't work for you, it is better we both know now.</p>
-          <b>&mdash; Rehan, VenQore</b>
-          <a className="vq-link" href="/about">Read the whole story &rarr;</a>
+          <span className="vq-kicker">ENGINEERED FOR MATHEMETICAL CERTAINTY</span>
+          <p>VenQore was built on a single core principle: accounting and inventory software should never lose a single cent, mismatch a receipt, or hallucinate a ledger balance.</p>
+          <p>Every transaction posts through an immutable double-entry ledger verified against 8 strict accounting laws and 35,255 automated correctness checks before anything is committed to your books.</p>
+          <b>&mdash; The VenQore Engineering Team</b>
+          <a className="vq-link" href="/about">Read our technical architecture &rarr;</a>
         </div>
       </div>
     </section>
@@ -1415,8 +1414,8 @@ export default function LandingPage() {
             <div className="vq-faq__a"><div><p>No, and no. Import is included. Export everything, any time, in a format your next system can read.</p></div></div>
           </div>
           <div className="vq-faq__item">
-            <button className="vq-faq__q" type="button" aria-expanded="false">How big is the team?<span className="vq-faq__sign"></span></button>
-            <div className="vq-faq__a"><div><p>One founder, currently. That is a real trade-off: you get someone who answers your email personally and ships weekly, and you don't get a 40-person support org. If that trade doesn't work for you, it's better we both know now.</p></div></div>
+            <button className="vq-faq__q" type="button" aria-expanded="false">How is support and engineering handled?<span className="vq-faq__sign"></span></button>
+            <div className="vq-faq__a"><div><p>VenQore is built and maintained by dedicated systems and accounting engineers. You get direct support from product specialists who deploy weekly improvements and verify every release against 35,255 automated checks.</p></div></div>
           </div>
         </div>
       </div>

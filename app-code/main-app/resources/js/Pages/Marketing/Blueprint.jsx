@@ -95,7 +95,7 @@ export default function Blueprint() {
                   <span className="vq-eyebrow vq-eyebrow--accent">Build</span>
                   <a className="vq-mega__link" href="/blueprint"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
                   <a className="vq-mega__link" href="/onboarding"><b>See a build</b><span>Four minutes, start to live.</span></a>
-                  <a className="vq-mega__link" href="/features"><b>Watch it assemble</b><span>46 modules in, only yours out.</span></a>
+                  <a className="vq-mega__link" href="/features"><b>Watch it assemble</b><span>140+ modules in, only yours out.</span></a>
                 </div>
                 <div className="vq-mega__col">
                   <span className="vq-eyebrow vq-eyebrow--accent">Run</span>
@@ -186,7 +186,7 @@ export default function Blueprint() {
     <div style={{"maxWidth":"820px"}}>
       <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Blueprint</span>
       <h1 className="vq-display vq-mt-4">Describe your business. <em className="vq-italic">Approve</em> the plan. It exists.</h1>
-      <p className="vq-lede vq-mt-6">Blueprint is the part of VenQore that turns a description of your business into a working ERP and POS configuration: which of the 46 modules you get, what each thing is called, who can see what, which tax rules apply and which of the 13 document types you issue. You review every line before anything becomes real, and you can rebuild it at any time.</p>
+      <p className="vq-lede vq-mt-6">Blueprint is the part of VenQore that turns a description of your business into a working ERP and POS configuration: which of the 140+ modules you get, what each thing is called, who can see what, which tax rules apply and which of the 13 document types you issue. You review every line before anything becomes real, and you can rebuild it at any time.</p>
       <div className="vq-row vq-wrap vq-gap-3 vq-mt-8"><a className="vq-btn vq-btn--primary vq-btn--lg" href="/build-workspace">Start building <span className="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
         <a className="vq-btn vq-btn--secondary vq-btn--lg" href="/onboarding"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg> See a build</a></div>
     </div>
