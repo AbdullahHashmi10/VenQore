@@ -72,46 +72,9 @@ Route::get('/dashboard-preview', fn() => Inertia::render('Marketing/DashboardPre
 
 Route::get('/pos', fn () => Inertia::render('Marketing/PosShowcase'))->name('marketing.pos');
 
-// ── V6 Static Page & Direct .html Dispatcher ────────────────────────────
-Route::get('/v6/{page?}', fn (?string $page = 'index') => \App\Http\Controllers\Marketing\V6PageController::render($page ?? 'index'))
-    ->where('page', '[A-Za-z0-9\-]+')->name('v6.page');
-
+// ── Direct .html Legacy URL 301 Redirects ──────────────────────────────
 Route::get('/{page}.html', fn (string $page) => redirect("/{$page}", 301))
     ->where('page', '[A-Za-z0-9\-]+');
-
-// ── Legacy Marketing Pages (Comparison Routes) ───────────────────────────
-Route::prefix('legacy')->group(function () {
-    Route::get('/', fn() => Inertia::render('LandingPage'))->name('legacy.home');
-    Route::get('/landing', fn() => Inertia::render('LandingPage'))->name('legacy.landing');
-    Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('legacy.features');
-    Route::get('/pricing', function () {
-        try {
-            $plans = \App\Models\Plan::with(['limits', 'features'])
-                ->where('is_active', true)
-                ->where('is_visible', true)
-                ->where('slug', 'not like', 'ltd%')
-                ->orderBy('sort_order')
-                ->get();
-        } catch (\Throwable $e) {
-            $plans = collect();
-        }
-        return Inertia::render('Marketing/Pricing', [
-            'plans' => $plans,
-            'pricing' => config('pricing'),
-        ]);
-    })->name('legacy.pricing');
-    Route::get('/about', fn() => Inertia::render('Marketing/About'))->name('legacy.about');
-    Route::get('/contact', fn() => Inertia::render('Marketing/Contact'))->name('legacy.contact');
-    Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('legacy.vensynq');
-    Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('legacy.smartcapture');
-    Route::get('/digital-products', [\App\Http\Controllers\Marketing\DigitalProductsPublicController::class, 'index'])->name('legacy.digital-products');
-    Route::get('/partner-support', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'index'])->name('legacy.partner-support');
-    Route::get('/roadmap', [\App\Http\Controllers\Marketing\RoadmapController::class, 'index'])->name('legacy.roadmap');
-    Route::get('/solutions', [\App\Http\Controllers\Marketing\SolutionsController::class, 'index'])->name('legacy.solutions');
-    Route::get('/compare', [\App\Http\Controllers\Marketing\CompareController::class, 'index'])->name('legacy.compare');
-    Route::get('/blog', [\App\Http\Controllers\Marketing\BlogController::class, 'index'])->name('legacy.blog');
-    Route::get('/demo', fn() => Inertia::render('Demo/Landing'))->name('legacy.demo');
-});
 
 // Newsletter subscription
 Route::get('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'index'])->name('marketing.newsletter');
