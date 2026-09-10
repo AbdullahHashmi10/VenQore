@@ -1,635 +1,874 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Head, Link } from '@inertiajs/react';
-import { vq } from '@/theme/runtime';
-import MarketingLayout, {
-    RevealOnScroll, MagneticButton, SectionLabel
-} from './Shared/MarketingLayout';
-import {
-    AlertTriangle, ArrowRight, BarChart3, Bot, Boxes, Brain, Calculator, Check,
-    CheckCircle2, ChevronRight, Cpu, Factory, Gauge, Globe, Layers, Loader2, Lock,
-    Mic, Minus, Package, Percent, Plus, Receipt, RefreshCw, Repeat, ScanBarcode,
-    Search, ShieldCheck, ShoppingCart, Sparkles, Target, Trash2, TrendingDown,
-    TrendingUp, Truck, Upload, Users, Wallet, Warehouse, X
-} from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   VENQORE FEATURES — "See the whole machine."
-   Live, simulated mini-apps of the real product (Reports, POS, Smart Capture,
-   VenSynQ, Growth Engine, Cookbook) + a searchable catalog of every feature.
-   Nothing here saves data — it's a guided simulation of the actual UI.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* The six live demos now live in Shared/FeatureDemos so the dedicated
-   /features/{slug} deep-dive pages can render them too. */
-import {
-    usePRM, useInView, Num, DemoFrame, PillTabs,
-    ProfitLossDemo, PosInvoiceDemo, SmartCaptureDemo,
-    VenSynQDemo, GrowthEngineDemo, CookbookDemo,
-} from './Shared/FeatureDemos';
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   FULL FEATURE CATALOG — every capability, click any to read what it does
-   (sourced from the VenQore Product Catalog)
-   ═══════════════════════════════════════════════════════════════════════════ */
-const FEATURE_CATS = [
-    {
-        key: 'start', label: 'Getting Started', icon: Gauge, color: 'indigo',
-        items: [
-            { n: 'One-Click Interactive Demo', d: 'Launch a fully pre-populated demo store from the landing page — test checkout, reports and dummy products with no account.' },
-            { n: '14-Day Free Trial', d: 'Explore the full platform for 14 days with full feature access and instant setup.' },
-            { n: 'Instant Store Creator', d: 'Start setup by entering only your store name — no servers or technical knowledge needed.' },
-            { n: 'Smart Industry Seeding', d: 'Auto-imports standard units, tax settings and categories tailored to your industry (Retail, Grocery, F&B, Fashion, Hard Goods).' },
-            { n: 'Dark Theme (Midnight Nebula)', d: 'Premium glassmorphic dark dashboard with amber accents — easy on cashiers’ eyes during long shifts.' },
-            { n: 'Light Theme', d: 'Crisp, high-contrast layout designed for bright storefront environments.' },
-            { n: 'Multi-Store Hub Dashboard', d: 'Central launchpad showing all branches with one-click switching between them.' },
-            { n: 'Granular Multi-Store Roles', d: 'Be Owner in Store A, Manager in Store B and read-only Viewer in Store C — from one account.' },
-            { n: 'Cashier PIN Login', d: 'Staff log in with a fast 4-digit PIN — no retyping email and password between shifts.' },
-            { n: 'Progressive Web App (PWA)', d: 'Install VenQore on Windows, Android or iOS as a native-feeling app.' },
-            { n: 'Self-Guiding Setup Tour', d: 'Interactive onboarding that highlights buttons and walks new staff through their first sale.' },
-            { n: 'Coupon Code Upgrades', d: 'Apply, stack and upgrade license voucher codes to instantly unlock higher limits or store slots.' },
-            { n: 'Hardware Status Badge', d: 'Live indicator showing whether thermal printers and payment hardware are connected and ready.' },
-            { n: 'One-Click Cache Refresh', d: 'Instantly optimize local performance so every screen loads at full speed.' },
-            { n: 'Owner Profile Card', d: 'See your active tier, remaining trial days and login details at a glance.' },
-            { n: 'Test Data Wipe', d: 'Securely erase demo/test transactions while preserving tax rules, settings and staff accounts.' },
-            { n: 'Security Activity Log', d: 'Traces staff IP addresses, login timestamps and locations for every sensitive action.' },
-        ],
-    },
-    {
-        key: 'pos', label: 'Point of Sale', icon: ShoppingCart, color: 'amber',
-        items: [
-            { n: 'Instant Barcode Scanner', d: 'Scan product tags to add items to the cart instantly — no mouse or keyboard.' },
-            { n: 'Serial & IMEI Scanner', d: 'Prompts operators to scan device identifiers (phone IMEIs, appliance serials) at checkout.' },
-            { n: 'Keyboard-First Checkout', d: 'F1 search, F2 quantity, F3 discount, F4 checkout — process whole queues without a mouse.' },
-            { n: 'Senior Mode Accessibility', d: 'Increases font sizes by 40% with high-contrast, traffic-light colors for easier reading.' },
-            { n: 'Color-Coded Price & Qty', d: 'Green pricing, blue quantities — prevents numerical confusion at a glance.' },
-            { n: 'Owner Profit Peek', d: 'Drag down on the bill total to reveal the live profit margin of the active cart, hidden from the customer.' },
-            { n: 'Multi-Tab Customer Checkout', d: 'Manage up to 10 active customer carts simultaneously, switchable via hotkeys.' },
-            { n: 'Park & Recall (Hold Bill)', d: 'Put a cart on hold with a note (e.g. “Table 5”) while serving others, then recall it instantly.' },
-            { n: 'In-Flight Product Creation', d: 'Add a new product to the catalog inside the checkout screen without losing the cart.' },
-            { n: 'Cart Rescue & Session Protection', d: 'Active sales are saved to local memory — carts survive power cuts and browser crashes.' },
-            { n: 'Auto-Applying Customer Discounts', d: 'Applies pre-negotiated discount agreements the moment a customer is selected.' },
-            { n: 'Typo-Tolerant Search (OmniSearch)', d: 'Finds products even when the cashier misspells the name.' },
-            { n: 'Automatic Cash Rounding', d: 'Rounds fractional change to the nearest valid denomination by local currency rules.' },
-            { n: 'Multi-Account Split Payments', d: 'Accept any mix of Cash, Card, Bank Transfer and Store Credit in one transaction.' },
-            { n: 'Daily Cash Register Audit', d: 'End-of-day cash-out wizard comparing the physical drawer against the system total.' },
-            { n: 'Silent WebUSB Thermal Printing', d: 'Prints receipts directly to thermal hardware without browser popup dialogs.' },
-            { n: 'Custom Thermal Roll Widths', d: 'Switch print templates between 80mm and 58mm thermal paper.' },
-            { n: 'Receipt Cut-Line Padding', d: 'Adds blank lines so totals clear the paper cutter cleanly.' },
-            { n: 'Dynamic Brand Colors on PDFs', d: 'Customize B2B invoice PDFs to match your corporate palette.' },
-            { n: 'Print Column Toggles', d: 'Show/hide MRP, HSN codes, batch details, serials or savings by customer type.' },
-            { n: 'Amount-to-Words Translation', d: 'Prints totals as written words (e.g. “Five Thousand Rupees Only”).' },
-            { n: 'Tax Verification QR Codes', d: 'Embeds regional tax-compliance QR codes on printed receipts.' },
-            { n: 'Branded Receipt Sync', d: 'Scales and positions store logos, headers and footer terms on all templates.' },
-            { n: 'Auto-Deducting Composite Items', d: 'Selling a bundled/manufactured item deducts raw ingredients from stock in real time.' },
-            { n: 'Negative Stock Alert & Lock', d: 'Warns — or hard-blocks — selling an item with empty inventory (configurable).' },
-            { n: 'Service Fee & Freight Additions', d: 'Add delivery charges, assembly fees or service costs directly to invoices.' },
-            { n: 'Automatic VAT / GST Calculation', d: 'Computes regional tax at the line-item level automatically — no cashier input.' },
-            { n: 'Recent Invoices Panel', d: 'Shows the last 50 completed sales inside POS for quick refunds or reprints.' },
-            { n: 'Cashier Change Calculator', d: 'Displays the exact change to hand back upon payment entry.' },
-            { n: 'Barcode Label Print Factory', d: 'Design and print custom barcode stickers with name, logo, price and variant info.' },
-            { n: 'Dynamic Label QR Codes', d: 'Embeds product QR codes on labels that link to your online storefront.' },
-        ],
-    },
-    {
-        key: 'receivables', label: 'Invoicing & Receivables', icon: Receipt, color: 'emerald',
-        items: [
-            { n: 'Customer Account Registry (Khata)', d: 'A dedicated ledger for every buyer — lifetime purchases, credit balance and payment history.' },
-            { n: 'Customer Payments Log', d: 'Records cash, bank transfers and partial cheque deposits against specific invoices.' },
-            { n: 'Customer Statement Generator', d: 'Clean downloadable PDF statements of purchases, returns and payments.' },
-            { n: 'Aged Receivables Report', d: 'Categorizes outstanding balances into 30/60/90/120+ day buckets for collection priority.' },
-            { n: 'WhatsApp & SMS Debt Reminders', d: 'One-click pre-formatted overdue-balance reminders from the customer ledger (coming soon).' },
-            { n: 'Credit Limit Enforcement', d: 'Blocks credit sales when a customer’s balance exceeds their configured limit.' },
-            { n: 'Multi-Payment Invoices', d: 'Accept partial payments across multiple sessions against one invoice.' },
-            { n: 'Automatic Payment Allocation', d: 'Distributes lump-sum payments against the oldest unpaid invoices automatically.' },
-            { n: 'Customer Lifetime Value Score', d: 'Ranks customers by total profit generated and sales volume.' },
-            { n: 'Customer Wallet Credit', d: 'Returns refunds into a digital store wallet, keeping capital in your business.' },
-            { n: 'Loyalty Points System', d: 'Awards purchase points automatically, redeemable as discounts on future orders.' },
-            { n: 'Wholesale vs Retail Pricing Tiers', d: 'Assigns custom price lists per customer for automatic wholesale pricing.' },
-            { n: 'B2B Proposal Builder', d: 'Creates corporate proposals and estimates with tracked “Valid Until” dates.' },
-            { n: 'One-Click Quotation Conversion', d: 'Converts accepted quotes into posted tax invoices and updates the ledger in one click.' },
-            { n: 'Tax-Inclusive / Exclusive Toggle', d: 'Switch B2B pricing between tax-inclusive and tax-exclusive display.' },
-            { n: 'B2B Invoice Margin Display', d: 'Shows calculated profit per line item while building an invoice (owner-only).' },
-            { n: 'Sales Return Vouchers', d: 'Generates formal return records and restores returned items to inventory.' },
-            { n: 'Interactive B2B Invoice Designer', d: 'Customizable invoice layout with brand colors, logos, margins and signature fields.' },
-            { n: 'Pre-Sales Inventory Reservation', d: 'Locks stock batches for pending orders without recording revenue until delivery.' },
-            { n: 'Automated Recurring Invoicing', d: 'Schedules subscription invoices on daily, weekly, monthly or quarterly cycles.' },
-            { n: 'Refund Reason Analysis', d: 'Tracks return reasons (damaged, wrong size…) to surface product quality patterns.' },
-            { n: 'Tax-Exempt Customer Flag', d: 'Marks corporate clients as tax-exempt, skipping tax on their orders.' },
-            { n: 'Customer Address Book', d: 'Stores billing, shipping and multiple warehouse addresses per customer.' },
-            { n: 'A4 & Letter Invoice PDF Export', d: 'Generates clean professional A4 or US-Letter PDF invoices ready to email.' },
-            { n: 'Outstanding Balance Dashboard', d: 'Widget showing total receivables across all customer accounts at a glance.' },
-            { n: 'Unified Party Ledger', d: 'Merges a customer’s full sales, returns and payment history into one clean view.' },
-            { n: 'Customer Milestone Tracker', d: 'Logs birthdays and anniversaries, sending automated greetings and discount vouchers.' },
-            { n: 'Digital Gift Cards', d: 'Issues promotional digital gift cards with configurable balances and expiry dates.' },
-            { n: 'Overdue Customer Highlights', d: 'Highlights past-due customer profiles in red across all ledger screens.' },
-        ],
-    },
-    {
-        key: 'procurement', label: 'Procurement & Payables', icon: Truck, color: 'cyan',
-        items: [
-            { n: 'Supplier Account Registry (Khata)', d: 'Vendor profile tracking what you owe each supplier and their payment terms.' },
-            { n: 'Delayed Supplier Payments', d: 'Record stock on credit, track the balance and pay in installments.' },
-            { n: 'Supplier Statement Generator', d: 'Downloadable PDF statements of purchases, returns and payments per vendor.' },
-            { n: 'Aged Payables Directory', d: 'Categorizes vendor balances owed into 30/60/90/120+ day buckets.' },
-            { n: 'Purchase Order Tracker', d: 'Tracks POs from Draft → Ordered → Partially Received → Fully Received.' },
-            { n: 'Partial Shipment Intake', d: 'Logs split deliveries, keeping remaining quantities active.' },
-            { n: 'Supplier Debit Notes', d: 'Formal debit notes when returning faulty stock to claim vendor credits.' },
-            { n: 'Automated Cost Price Updater', d: 'Recalculates product cost prices automatically from each new supplier invoice.' },
-            { n: 'Cost Price Increase Alert', d: 'Warns when a supplier charges more than their historical average.' },
-            { n: 'Supplier Lead Time Tracker', d: 'Logs average delivery days between order and receipt per vendor.' },
-            { n: 'Landing Cost Allocations', d: 'Distributes freight, customs and overhead across product batch costs accurately.' },
-            { n: 'Supplier SKU Mapping', d: 'Maps supplier product codes to your internal catalog for fast reordering.' },
-            { n: 'Inbound Expiry Date Tracking', d: 'Logs expiry dates at intake to prevent silent shelf expiry.' },
-            { n: 'Purchase Returns Register', d: 'Processes vendor returns, adjusts stock and reduces payables automatically.' },
-            { n: 'Auto-Generated Purchase Orders', d: 'Drafts POs for products that drop below safety stock levels.' },
-            { n: 'Bulk Supplier Payments', d: 'Records one payment settled across multiple outstanding vendor invoices.' },
-            { n: 'Bank-Linked Supplier Payments', d: 'Connects outgoing vendor payments to your cash and bank ledgers.' },
-            { n: 'Custom Supplier Payment Terms', d: 'Set vendor-specific terms such as Net 15, Net 30 or Net 60.' },
-            { n: 'Purchase Invoice Document Scanner', d: 'Upload and attach scanned invoices directly to purchase records for auditing.' },
-            { n: 'Supplier Refund Tracker', d: 'Logs refund payments received back from suppliers for returned goods.' },
-            { n: 'Tax-Inclusive Procurement Toggle', d: 'Switches purchase calculations between tax-inclusive and tax-exclusive formats.' },
-            { n: 'Supplier Credit Limit Alerts', d: 'Highlights vendor accounts in red when balances approach their pre-set caps.' },
-            { n: 'Outstanding Payables Dashboard', d: 'A widget showing total amounts owed across all suppliers in one view.' },
-        ],
-    },
-    {
-        key: 'inventory', label: 'Inventory & Warehouses', icon: Warehouse, color: 'blue',
-        items: [
-            { n: 'Multi-Warehouse Isolation (Godown)', d: 'Separate inventory balances for each godown, retail floor or wholesale depot.' },
-            { n: 'Stock Transfer Vouchers', d: 'Logged transfers between locations, complete with printable waybills.' },
-            { n: 'Product Variant Support', d: 'Tracks size, color and weight variants under single product groups.' },
-            { n: 'Variant-Aware FIFO Costing', d: 'Separate cost pools per variant for accurate COGS from actual batch prices.' },
-            { n: 'Batch Intake Number Tracking', d: 'Records manufacturing batch numbers at receipt for precise traceability.' },
-            { n: 'Batch Expiry Warnings', d: 'Dashboard notifications for batches approaching their expiration date.' },
-            { n: 'Stock Take Audit Wizard', d: 'Reconciles system inventory against physical counts, logging discrepancy causes.' },
-            { n: 'Disaster & Asset Claim Manager', d: 'Logs stock lost to theft, fire or water, handles write-offs and tracks insurance claims.' },
-            { n: 'Bill of Materials (BOM) Recipes', d: 'Defines composite items built from multiple raw stock components.' },
-            { n: 'Auto-Assembly Cookbook', d: 'Deducts raw ingredients in real time when a manufactured item is sold.' },
-            { n: 'Production Run Simulator', d: 'Checks raw materials to confirm whether a planned production run can complete.' },
-            { n: 'Recipe History Archive', d: 'Preserves historical cost and component configs so past audits stay accurate.' },
-            { n: 'Product History Timeline', d: 'Unified list of all purchase, sale and return movements per product.' },
-            { n: 'Category Management Center', d: 'Hierarchical category groups for organizing thousands of items cleanly.' },
-            { n: 'Low Stock Threshold Alerts', d: 'Configurable per-product triggers when inventory drops below reorder levels.' },
-            { n: 'IMEI & Serial Lifecycle Tracking', d: 'Tracks device identifiers from supplier purchase through sale and returns.' },
-            { n: 'Unit of Measure Converter', d: 'Buy in cartons, sell in pieces — convert between base and secondary units.' },
-            { n: 'Stock Valuation by Location', d: 'Detailed value of all active stock holdings by warehouse using real FIFO cost.' },
-        ],
-    },
-    {
-        key: 'ecom', label: 'E-Commerce & Channels', icon: Globe, color: 'violet',
-        items: [
-            { n: 'VenSynQ Command Center', d: 'Connects Amazon, WooCommerce, TikTok Shop and eBay — syncs stock and manages all channel orders in one place.' },
-            { n: '3-Click OAuth Store Connection', d: 'Connect marketplace accounts through a secure authorization link in three clicks.' },
-            { n: 'Automated Commission Isolation', d: 'Calculates platform fees (e.g. Amazon’s 15%) to reveal your clean net margin per sale.' },
-            { n: 'Dropshipping Order Automator', d: 'Syncs incoming marketplace orders and compiles dropship sales invoices automatically.' },
-            { n: 'Just-in-Time Purchase Orders', d: 'Drafts a supplier PO the moment a dropship sale is recorded — locking your margin.' },
-            { n: 'Bulk Tracking ID Sync', d: 'Pushes courier tracking numbers and carriers back to marketplaces in bulk.' },
-            { n: 'Multi-Channel Expense Allocation', d: 'Routes platform fees and commissions into custom expense categories automatically.' },
-            { n: 'WooCommerce Real-Time Webhook', d: 'Listens to WooCommerce orders, matches by SKU and deducts inventory instantly.' },
-            { n: 'WooCommerce Customer Auto-Registry', d: 'Creates a unified “Web Customer” contact for all incoming e-commerce orders.' },
-            { n: 'WooCommerce Stock Sync', d: 'Pushes updated inventory levels to your WooCommerce store every 5 minutes.' },
-            { n: 'Online Orders Bridge', d: 'Pulls pending web orders into the central POS dashboard for fulfillment.' },
-            { n: 'Web Store Catalog Controls', d: 'Choose which products appear or are hidden from your public storefront.' },
-        ],
-    },
-    {
-        key: 'accounting', label: 'Accounting & Ledgers', icon: Calculator, color: 'emerald',
-        items: [
-            { n: 'Double-Entry Journal Engine', d: 'Posts balanced debit/credit entries for every transaction — the gold standard of accuracy.' },
-            { n: 'Automated Cash Reconciliation', d: 'Computes current cash from live ledger queries, eliminating cached reporting errors.' },
-            { n: 'Fixed Asset Depreciation Tracker', d: 'Calculates monthly depreciation for fixtures, hardware and vehicles automatically.' },
-            { n: 'Business Loan Ledger', d: 'Tracks loans separately, splitting principal repayments from interest expense.' },
-            { n: 'Inter-Register Cash Transfers', d: 'Records cash moved between registers and banks with manager approvals.' },
-            { n: 'Advance Payment Allocation', d: 'Registers and applies customer pre-payments and supplier deposits to later invoices.' },
-            { n: 'Fiscal Year Closing Wizard', d: 'Locks year-end entries, archives balances and opens fresh books for the new period.' },
-            { n: 'Debit & Credit Note Registry', d: 'Generates and prints formal financial notes for returns and adjustments.' },
-            { n: 'Bank Reconciliation Checker', d: 'Compares uploaded bank CSV statements against records, flagging unmatched lines.' },
-            { n: 'Tax Summary Engine', d: 'Tracks output tax collected vs input tax paid, computing net tax liability.' },
-            { n: 'Expense Manager + Receipt Uploads', d: 'Logs expenses by category with scanned receipt images for audit trails.' },
-            { n: 'Charity Allocation Engine', d: 'Directs a configured percentage of checkout profit to a dedicated charity ledger.' },
-            { n: 'Petty Cash Logs', d: 'Records small cash movements between registers with mandatory approval trails.' },
-            { n: 'Immutable Transaction Locks', d: 'System observers block any modification to posted financial transactions.' },
-            { n: 'Balanced Reversal Engine', d: 'Generates matching zero-balance entries for reversals, keeping ledgers correct.' },
-            { n: 'Multi-Currency Configuration', d: 'Exchange rates, symbols and formatting for SAR, AED, USD, PKR, GBP and more.' },
-        ],
-    },
-    {
-        key: 'reports', label: 'Reports', icon: BarChart3, color: 'pink',
-        items: [
-            { n: 'Profit & Loss Statement', d: 'Net revenue, COGS, gross margin and operating expenses with category drill-down.' },
-            { n: 'Balance Sheet', d: 'Real-time snapshot of total assets, liabilities and equity.' },
-            { n: 'Cash Flow Statement', d: 'Monitors operating, investing and financing cash flows.' },
-            { n: 'Double-Entry Trial Balance', d: 'Verifies accounting health by matching all debit and credit totals.' },
-            { n: 'Sales Summary & Daily Trend', d: 'Transaction history filterable by date, customer and payment status; daily tax/discount trends.' },
-            { n: 'Day Book Log', d: 'Chronological minute-by-minute diary of all cash inflows and outflows.' },
-            { n: 'Account Ledger Report', d: 'Comprehensive audit ledger for any category in your chart of accounts.' },
-            { n: 'Party Statement (Khata Ledger)', d: 'Credit statements for customers or suppliers with debit, credit and closing balance.' },
-            { n: 'Stock Valuation Report', d: 'Value of all active stock holdings by warehouse, at real FIFO cost.' },
-            { n: 'Low Stock Shortages Report', d: 'Lists products below reorder threshold with exact shortage quantities.' },
-            { n: 'Stock Movement History', d: 'Every receipt, adjustment, transfer and sale with operator details.' },
-            { n: 'Tax Compliance Summary', d: 'Output tax collected vs input tax credits, showing net tax due.' },
-            { n: 'Item-Wise Profit Analysis', d: 'Identifies high-margin products by revenue and cost per item.' },
-            { n: 'Party-Wise Profitability', d: 'Ranks customers and suppliers by the net margin they generate.' },
-            { n: 'Bill-Wise Profitability', d: 'Computes net profit margins generated by individual invoices.' },
-            { n: 'Sales Aging Report', d: 'Categorizes outstanding receivables into 30/60/90+ day intervals.' },
-            { n: 'Expense by Category', d: 'Pie-chart view of overhead costs across all custom business categories.' },
-            { n: 'Stock Summary & Aging', d: 'Inventory levels and capital by category; flags slow-moving stock by age in each godown.' },
-            { n: 'Item / Party Cross Reports', d: 'Every product a customer bought, and every customer who bought a product.' },
-            { n: 'Loan Repayment Statement', d: 'Amortization showing principal reduction and interest paid per period.' },
-            { n: 'Graph Analytics Dashboard', d: 'Heatmaps and trend charts showing platform performance over time.' },
-            { n: 'Purchases Report', d: 'Procurement totals, supplier amounts owed and full invoice histories.' },
-            { n: 'Transactions History', d: 'Searchable directory of every operational transaction in the system.' },
-            { n: 'Expenses Directory', d: 'Categorized operating-expense report with receipt file attachments.' },
-            { n: 'Bank Statements Log', d: 'Traces all bank ledger accounts, cash balances and payment records.' },
-            { n: 'Expiring Soon Alert', d: 'Highlights inventory batches expiring within a configurable window.' },
-            { n: 'All Parties Credit Summary', d: 'Combined outstanding receivables and payables across all contacts.' },
-            { n: 'General Discount Report', d: 'Analyzes the total cost of discount strategies across all transactions.' },
-            { n: 'Category Profit & Loss', d: 'Tracks profit and loss performance for individual product departments.' },
-            { n: 'Tax Rate Breakdown', d: 'Traces output taxes collected, organized by tax-rate bracket.' },
-            { n: 'Sales Order Items', d: 'Line-item breakdown of every pending and fulfilled sales order.' },
-            { n: 'Daily Sales Trend', d: 'Daily records of tax collected, discounts applied and transaction volume.' },
-            { n: 'Stock Summary by Category', d: 'Inventory levels and capital values grouped by product category.' },
-            { n: 'Stock Aging Analysis', d: 'Identifies slow-moving inventory by how long stock has sat in each godown.' },
-            { n: 'Sales & Purchases by Party', d: 'Evaluates trade volume and balances with each individual business partner.' },
-            { n: 'Item Report by Party', d: 'Lists every product ever purchased by a selected customer.' },
-            { n: 'Party Report by Item', d: 'Identifies all customers who have purchased a specific product.' },
-            { n: 'Item-Wise Discount Report', d: 'Breaks down the discount given on each individual product line.' },
-            { n: 'Owner Daily Pulse', d: 'A one-screen morning briefing of sales, cash and alerts for the owner.' },
-            { n: 'Sale Orders Report', d: 'Tracks open and fulfilled sales orders with delivery status.' },
-            { n: 'Purchase Returns Report', d: 'Summarizes goods returned to suppliers and the credits claimed.' },
-        ],
-    },
-    {
-        key: 'growth', label: 'Growth Intelligence', icon: Brain, color: 'violet',
-        items: [
-            /* ── Customer brain ─────────────────────────────────────────── */
-            { n: 'Per-Customer Rhythm Detection', d: 'Learns how often each customer actually buys — and how consistent they are — instead of applying one average to everybody.' },
-            { n: 'Reorder Due Alerts', d: 'Tells you a regular is about to reorder so you can reach them before a competitor does.' },
-            { n: 'Late Customer Warnings', d: 'Flags a customer only when they are late by their OWN standard, measured in standard deviations of their personal buying gap.' },
-            { n: 'Churn Risk & Lost Customer Detection', d: 'Separates “slipping” from “gone”, with the lifetime revenue and profit at stake attached to each.' },
-            { n: 'Quiet Decline Detection', d: 'Catches customers who are still ordering but have halved their spend — invisible to every normal churn rule.' },
-            { n: 'Rising Star Alerts', d: 'Surfaces customers growing fast, so you can lock them in with better terms while it matters.' },
-            { n: 'Revenue Concentration Warning', d: 'Tells you when one customer has become a dangerous share of your total business.' },
-            { n: 'First-Purchase Follow-Up', d: 'Flags brand-new customers who never came back — the single highest-leverage retention moment in retail.' },
-            { n: 'Credit Limit Breach Alerts', d: 'Warns the moment a customer’s balance passes the limit you set, before you extend more credit.' },
-            { n: 'Market Basket Cross-Sell', d: 'Finds the product pairs that keep appearing on the same receipt so you can shelve or prompt them together.' },
-            { n: 'RFM Customer Segmentation', d: 'Scores every customer on Recency, Frequency and Monetary value against your own distribution — champions, at-risk, lost and more.' },
-            { n: 'Predicted Customer Lifetime Value', d: 'Projects each customer’s annual worth from their observed spend rate — explainable, not a black box.' },
-
-            /* ── Stock brain ────────────────────────────────────────────── */
-            { n: 'Velocity-Based Demand Model', d: 'Measures units-per-day across 7, 30 and 90-day windows so acceleration and collapse are both visible.' },
-            { n: 'Days-of-Cover & Stockout Dates', d: 'Projects exactly when each product runs out at its current rate.' },
-            { n: 'Lead-Time-Aware Reorder Alerts', d: 'Learns how long your suppliers actually take, then warns early enough that you can still act.' },
-            { n: 'Out-of-Stock Revenue Loss', d: 'Shows how much you are losing every week a selling product sits empty.' },
-            { n: 'Dead Stock Detection', d: 'Surfaces the cash locked in products that have stopped moving — where most small retailers’ money quietly dies.' },
-            { n: 'Overstock & Trapped Cash', d: 'Flags lines you hold months of supply of, with the excess above healthy cover priced.' },
-            { n: 'Expiry Write-Off Forecast', d: 'Calculates how much expiring stock you will realistically sell before the date, and what you will lose.' },
-            { n: 'Demand Surge Alerts', d: 'Tells you to buy deeper while a run is still happening, not after it ends.' },
-            { n: 'Return Rate Quality Flags', d: 'Highlights products customers keep returning — usually a supplier or quality problem worth catching before the next order.' },
-            { n: 'ABC Product Classification', d: 'Ranks products by revenue contribution so a stockout on an A-line is treated differently from a C-line.' },
-
-            /* ── Profit brain ───────────────────────────────────────────── */
-            { n: 'Selling-Below-Cost Detection', d: 'Catches lines where your supplier cost rose but the till price never did — using real FIFO cost, not averages.' },
-            { n: 'Margin Erosion Tracking', d: 'Compares each product’s margin this month against last, in percentage points, with the annual cost of ignoring it.' },
-            { n: 'Discount Leakage Analysis', d: 'Shows what discounting actually costs as a share of gross sales, and how that has moved.' },
-            { n: 'Price Headroom Detection', d: 'Identifies strong-demand products earning well under your own median margin, with the monthly upside quantified.' },
-            { n: 'Unprofitable Customer Detection', d: 'Finds big-revenue accounts contributing almost no profit — common, painful, and invisible on a sales report.' },
-            { n: 'Sales Mix Shift Alerts', d: 'Warns when revenue is holding but profit is falling because the MIX moved to low-margin lines.' },
-
-            /* ── Cash & operations brain ────────────────────────────────── */
-            { n: 'Aged Receivable Chasing', d: 'Groups overdue money by customer with the oldest invoice named and the ageing bucket stated.' },
-            { n: 'Receivable Concentration Risk', d: 'Warns when too much of what you are owed sits with a single customer.' },
-            { n: 'Collection Velocity Monitoring', d: 'Detects cash arriving slower than it used to, even while sales look healthy.' },
-            { n: 'Supplier Payment Planning', d: 'Surfaces the largest balances coming due so you can protect your credit terms.' },
-            { n: 'Revenue Anomaly Detection', d: 'Compares this week against the same weekdays in your own history using a median-based method that one exceptional day cannot distort.' },
-            { n: 'Peak Trading Hour Analysis', d: 'Shows the hours that carry most of your revenue so you can staff and stock around them.' },
-            { n: 'Quiet Day Identification', d: 'Finds days consistently running well below normal, so you can promote into them or cut cost.' },
-            { n: 'Cashier Discount Outlier Detection', d: 'Flags a staff member whose discount rate is far above the team median, with the monthly cost attached.' },
-
-            /* ── The engine itself ──────────────────────────────────────── */
-            { n: 'Evidence On Every Insight', d: 'Each recommendation shows the underlying numbers, so you can verify the claim instead of trusting it.' },
-            { n: 'Self-Scoring Accuracy Loop', d: 'Every prediction is checked afterwards against what actually happened, and the hit rate is published to you per insight type.' },
-            { n: 'Self-Tuning Thresholds', d: 'Insight types that prove accurate and get acted on become more sensitive; ones that keep missing get quieter automatically.' },
-            { n: 'Automatic Noise Suppression', d: 'An insight type that is repeatedly wrong or endlessly dismissed mutes itself for a few weeks — and every mute expires so it can earn its place back.' },
-            { n: 'Learns Your Scale', d: 'Median order value, reorder gap, supplier lead time and payment terms are all measured from your own trading — no hardcoded thresholds.' },
-            { n: 'Intervention-Aware Scoring', d: 'If you act and the predicted problem is avoided, that counts as a success — not a failed forecast.' },
-            { n: 'Runs Without an AI Key', d: 'Deterministic statistics over your own ledger. No LLM, no API key, no per-message cost, and identical results every run.' },
-            { n: 'Daily Business Snapshots', d: 'Records revenue, margin, basket size, receivables and inventory value every day, building the baseline the engine compares against.' },
-            { n: 'Snooze & Dismiss Memory', d: 'Insights you reject stay rejected for a cooling-off period instead of reappearing tomorrow.' },
-            { n: 'Auto-Resolving Signals', d: 'When you fix the underlying problem the insight closes itself, so the list only ever shows what is still live.' },
-        ],
-    },
-    {
-        key: 'ai', label: 'AI & Administration', icon: Cpu, color: 'violet',
-        items: [
-            { n: 'Floating AI Assistant', d: 'Context-aware chat that answers ledger and business questions in plain English.' },
-            { n: 'Smart Capture (Image & Audio)', d: 'Snap a bill or speak — AI extracts a sale, purchase or expense and matches products to your catalog.' },
-            { n: 'Bring-Your-Own-Key AI', d: 'Plug in your own AI key so intelligence runs on your terms and budget.' },
-            { n: 'Multi-Tenant Store Isolation', d: 'Each store runs in a completely isolated database scope, accessible only to its users.' },
-            { n: 'Three-Zone Security Architecture', d: 'Server-side partitioning between public, store and SuperAdmin layers.' },
-            { n: 'SuperAdmin Command Center', d: 'An 8-tab war room monitoring store creation, subscriptions and platform metrics.' },
-            { n: 'Subscription Plan Enforcement', d: 'Enforces transaction limits, seat counts and store caps per tier automatically.' },
-            { n: 'Redis-Cached Plan Gates', d: 'Verifies tenant plan limits instantly, reducing DB load during peak periods.' },
-            { n: 'Automated Limit Override Manager', d: 'Lets admins grant custom plan extensions to specific tenants.' },
-            { n: 'Staff Invitation Codes', d: 'Secure alphanumeric tokens (e.g. VQ-A3X9P2) for adding staff without sharing passwords.' },
-            { n: 'Ephemeral Demo Sandbox', d: 'Builds temporary public demo environments by cloning a master dataset, auto-expiring after 48h.' },
-            { n: 'Soft-Delete Trash Management', d: 'Restore or permanently delete soft-deleted stores and user accounts.' },
-            { n: 'Custom Tax Rate Configurator', d: 'Create regional brackets (GST, VAT) configurable at the product level.' },
-            { n: 'Cashier Inactivity Auto-Logout', d: 'Automatic terminal logout timers based on cashier inactivity.' },
-            { n: 'Module Toggle Controls', d: 'Enable or disable modules (AI, WooCommerce, Manufacturing) per tenant dynamically.' },
-            { n: 'Backups & Google Drive Sync', d: 'Automated backups with restore points, syncable to your own Google Drive.' },
-            { n: 'Import / Export Tools', d: 'Bulk import and export products, parties and transactions — your data is always yours.' },
-            { n: 'Barcode Pattern Recognition', d: 'Maps scanner input to distinguish SKUs, serial numbers and IMEI identifiers.' },
-            { n: 'Stock Reservation Rules', d: 'Configures whether sales orders reserve active stock or draft from empty allocations.' },
-            { n: 'Passcode Security Standards', d: 'Enforces numerical complexity requirements for all employee access codes.' },
-        ],
-    },
-    {
-        key: 'roadmap', label: 'On the Roadmap', icon: Sparkles, color: 'amber',
-        items: [
-            { n: 'Device-Adaptive Layouts', d: 'Optimizing checkout across ultra-wide monitors, legacy tablets and small phones.' },
-            { n: 'Custom SMTP Mail Gateway', d: 'Send invoices and statements from your own branded company email domain.' },
-            { n: 'SMS & Messaging Gateway', d: 'Connect leading SMS providers for automated customer text alerts.' },
-            { n: 'WhatsApp & SMS Debt Reminders', d: 'One-click overdue payment alerts sent from customer ledger pages.' },
-            { n: 'Anniversary & Birthday Tracker', d: 'Automated milestone greetings paired with targeted discount vouchers.' },
-            { n: 'Digital Gift Cards & Wallet Credit', d: 'Issue promotional gift cards and handle refunds as store credit.' },
-        ],
-    },
-];
-const TOTAL_FEATURES = FEATURE_CATS.reduce((s, c) => s + c.items.length, 0);
-const CAT_COLOR = {
-    indigo: 'text-brand-300 bg-brand-500/12 border-brand-400/20',
-    amber: 'text-amber-300 bg-amber-500/12 border-amber-400/20',
-    emerald: 'text-emerald-300 bg-emerald-500/12 border-emerald-400/20',
-    cyan: 'text-cyan-300 bg-cyan-500/12 border-cyan-400/20',
-    blue: 'text-blue-300 bg-blue-500/12 border-blue-400/20',
-    violet: 'text-brand-300 bg-brand-500/12 border-brand-400/20',
-    pink: 'text-brand-300 bg-brand-500/12 border-brand-400/20',
-};
-
-/* ── Feature explorer: search + filter + click-to-explain ─────────────────── */
-const ALL_ITEMS = FEATURE_CATS.flatMap(c => c.items.map(it => ({ ...it, cat: c.label, color: c.color, ckey: c.key, icon: c.icon })));
-const FeatureExplorer = () => {
-    const [q, setQ] = useState('');
-    const [cat, setCat] = useState('all');
-    const [sel, setSel] = useState(null);
-    const filtered = useMemo(() => {
-        const ql = q.trim().toLowerCase();
-        return ALL_ITEMS.filter(it =>
-            (cat === 'all' || it.ckey === cat) &&
-            (!ql || it.n.toLowerCase().includes(ql) || it.d.toLowerCase().includes(ql))
-        );
-    }, [q, cat]);
-    return (
-        <div>
-            {/* controls */}
-            <div className="flex flex-col gap-4 mb-8">
-                <div className="relative max-w-md mx-auto w-full">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" />
-                    <input value={q} onChange={e => setQ(e.target.value)} placeholder={`Search all ${TOTAL_FEATURES} features…`}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-brand-500/50 text-ink text-sm outline-none transition-colors" />
-                </div>
-                <div className="flex flex-wrap justify-center gap-2">
-                    <button onClick={() => setCat('all')} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all ${cat === 'all' ? 'bg-white text-void-900 border-white' : 'bg-white/[0.03] text-ink-muted border-line dark:border-white/10 hover:text-white'}`}>All <span className="opacity-60">{TOTAL_FEATURES}</span></button>
-                    {FEATURE_CATS.map(c => (
-                        <button key={c.key} onClick={() => setCat(c.key)} className={`px-3.5 py-1.5 rounded-full text-1xs font-bold border transition-all inline-flex items-center gap-1.5 ${cat === c.key ? CAT_COLOR[c.color] + ' brightness-125' : 'bg-white/[0.03] text-ink-muted border-line dark:border-white/10 hover:text-white'}`}>
-                            <c.icon size={12} /> {c.label} <span className="opacity-60">{c.items.length}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                {filtered.map((it, i) => (
-                    <button key={it.cat + it.n} onClick={() => setSel(it)}
-                        className="group text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-brand-400/25 transition-all hover:-translate-y-0.5">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className={`w-7 h-7 rounded-lg flex items-center justify-center border ${CAT_COLOR[it.color]}`}><it.icon size={13} /></span>
-                            <span className="text-4xs font-bold uppercase tracking-widest text-ink-secondary">{it.cat}</span>
-                            <ChevronRight size={13} className="ml-auto text-ink-secondary group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all" />
-                        </div>
-                        <div className="text-[13px] font-bold text-ink tracking-tight mb-1">{it.n}</div>
-                        <div className="text-1xs text-ink-muted leading-snug line-clamp-2">{it.d}</div>
-                    </button>
-                ))}
-            </div>
-            {filtered.length === 0 && <div className="text-center py-12 text-ink-muted text-sm">No features match “{q}”.</div>}
-
-            {/* detail modal */}
-            {sel && (
-                <div className="fixed inset-0 z-drawer flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm vqf-in" onClick={() => setSel(null)}>
-                    <div className="relative max-w-lg w-full rounded-2xl border border-line dark:border-white/10 bg-void-800 p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-3xl" />
-                        <button onClick={() => setSel(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-sunken dark:bg-white/5 hover:bg-white/10 flex items-center justify-center text-ink-muted"><X size={16} /></button>
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${CAT_COLOR[sel.color]}`}><sel.icon size={22} /></span>
-                            <div>
-                                <div className="text-3xs font-bold uppercase tracking-widest text-ink-muted">{sel.cat}</div>
-                                <h3 className="text-xl font-bold text-ink tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{sel.n}</h3>
-                            </div>
-                        </div>
-                        <p className="text-ink-secondary leading-relaxed text-[15px] mb-5">{sel.d}</p>
-                        <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/15">
-                            <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span className="text-[12px] text-ink-muted">Included in VenQore — verified by the same double-entry engine that powers every number.</span>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-/* ── anchor nav pill ─────────────────────────────────────────────────────── */
-const JumpPill = ({ href, icon: Ic, children }) => (
-    <a href={href} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.03] border border-line dark:border-white/10 text-1xs font-bold text-ink-secondary hover:text-white hover:border-brand-400/40 hover:bg-white/[0.06] transition-all">
-        <Ic size={13} className="text-brand-300" /> {children}
-    </a>
-);
-
-const ACCENT_TEXTS = {
-    indigo: 'text-brand-400 hover:text-brand-300',
-    emerald: 'text-emerald-400 hover:text-emerald-300',
-    violet: 'text-brand-400 hover:text-brand-300',
-    blue: 'text-blue-400 hover:text-blue-300',
-    amber: 'text-amber-400 hover:text-amber-300',
-};
-
-/* ── Demo section wrapper ────────────────────────────────────────────────── */
-const DemoSection = ({ id, eyebrow, icon: Ic, title, accent, lead, hero, soon, deepDiveLink, deepDiveText, children }) => (
-    <section id={id} className="vqf-anchor py-16 md:py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-            <RevealOnScroll>
-                <div className="text-center mb-10 max-w-3xl mx-auto">
-                    <SectionLabel icon={Ic}>{eyebrow}</SectionLabel>
-                    {hero && <div className="inline-block ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-2xs font-bold tracking-widest uppercase align-middle">★ Hero feature</div>}
-                    {soon && <div className="inline-flex items-center gap-1.5 ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-2xs font-bold tracking-widest uppercase align-middle"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 vqf-blink" /> Coming very soon</div>}
-                    <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tighter leading-[0.95] font-display">{title}</h2>
-                    <p className="text-ink-muted text-base md:text-lg mt-5">{lead}</p>
-                </div>
-            </RevealOnScroll>
-            <RevealOnScroll delay={0.1}>
-                {children}
-                {deepDiveLink && (
-                    <div className="mt-8 text-center">
-                        <Link href={deepDiveLink} className={`inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider ${ACCENT_TEXTS[accent] || ACCENT_TEXTS.indigo} hover:underline`}>
-                            {deepDiveText || 'Read the Deep-Dive Feature Page'} <ArrowRight size={14} />
-                        </Link>
-                    </div>
-                )}
-            </RevealOnScroll>
-        </div>
-    </section>
-);
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   PAGE
-   ═══════════════════════════════════════════════════════════════════════════ */
 export default function Features() {
-    const heroStats = [
-        { e: TOTAL_FEATURES, s: '+', l: 'Features' },
-        { e: 40, s: '+', l: 'Reports' },
-        { e: 12, s: '', l: 'Core Modules' },
-        { e: 6, s: '', l: 'Live Demos' },
-    ];
+    const { auth = {}, flash = {}, ...props } = usePage().props;
+
+    useEffect(() => {
+        // Unlock document and body scrolling for marketing shell
+        document.documentElement.setAttribute('data-vq-shell', 'marketing');
+        document.documentElement.style.overflowY = 'auto';
+        document.documentElement.style.overflowX = 'clip';
+        document.body.style.overflow = 'visible';
+        document.body.style.height = 'auto';
+        const appRoot = document.getElementById('app');
+        if (appRoot) {
+            appRoot.style.height = 'auto';
+            appRoot.style.overflow = 'visible';
+        }
+
+        let active = true;
+
+        const loadScript = (src) => {
+            return new Promise((resolve, reject) => {
+                const existing = document.querySelector(`script[src="${src}"]`);
+                if (existing) {
+                    existing.remove();
+                }
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = false;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error(`Failed to load ${src}`));
+                document.body.appendChild(script);
+            });
+        };
+
+        const initEngines = async () => {
+            try {
+                await loadScript('/v6/assets/venqore.js');
+                await loadScript('/v6/assets/venqore-forms.js');
+                
+                window.dispatchEvent(new Event('resize'));
+                window.dispatchEvent(new Event('scroll'));
+            } catch (err) {
+                console.warn('VenQore visual engines init notice:', err);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            if (active) initEngines();
+        }, 50);
+
+        return () => {
+            active = false;
+            clearTimeout(timer);
+        };
+    }, []);
+
     return (
-        <MarketingLayout title="Features - VenQore" description="Explore every VenQore feature with live, interactive demos of the real product - Reports, POS, Smart Capture AI, VenSynQ, the Growth Intelligence Engine and Cookbook - plus a searchable catalog of all 144 verified features.">
-            {/* HERO */}
-            <section className="relative pt-36 md:pt-44 pb-12 px-6">
-                <div className="max-w-5xl mx-auto text-center">
-                    <RevealOnScroll><SectionLabel icon={Layers}>The whole machine</SectionLabel></RevealOnScroll>
-                    <RevealOnScroll delay={0.08}>
-                        <h1 className="text-[2.5rem] xs:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[0.95] sm:leading-[0.9] mb-8 font-display">
-                            <span className="bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">Don’t take our word.</span><br />
-                            <span className="bg-gradient-to-r from-brand-400 via-brand-400 to-cyan-300 bg-clip-text text-transparent vq-text-glow">See it run.</span>
-                        </h1>
-                    </RevealOnScroll>
-                    <RevealOnScroll delay={0.16}>
-                        <p className="text-lg md:text-2xl text-ink-muted max-w-3xl mx-auto leading-relaxed font-medium">
-                            Six of VenQore’s flagship tools — playable right here as guided simulations of the real product. Then browse every one of the <span className="text-ink font-semibold">{TOTAL_FEATURES}+ features</span>, each explained in a click.
-                        </p>
-                    </RevealOnScroll>
-                    <RevealOnScroll delay={0.24}>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-12 border-t border-white/[0.06] pt-8">
-                            {heroStats.map((s, i) => (
-                                <div key={i} className="text-center">
-                                    <div className="text-3xl md:text-4xl font-bold text-ink tracking-tighter font-display"><Num end={s.e} />{s.s}</div>
-                                    <div className="text-2xs text-ink-secondary font-bold uppercase tracking-[0.22em] mt-1">{s.l}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </RevealOnScroll>
-                    <RevealOnScroll delay={0.3}>
-                        <div className="flex flex-wrap justify-center gap-2 mt-10">
-                            <JumpPill href="#reports" icon={BarChart3}>Reports</JumpPill>
-                            <JumpPill href="#pos" icon={ShoppingCart}>POS</JumpPill>
-                            <JumpPill href="#capture" icon={ScanBarcode}>Smart Capture</JumpPill>
-                            <JumpPill href="#vensynq" icon={Globe}>VenSynQ</JumpPill>
-                            <JumpPill href="#growth" icon={Cpu}>Growth Engine</JumpPill>
-                            <JumpPill href="#cookbook" icon={Factory}>Cookbook</JumpPill>
-                            <JumpPill href="#all" icon={Layers}>All {TOTAL_FEATURES}</JumpPill>
-                        </div>
-                    </RevealOnScroll>
+        <>
+            <Head>
+                <title>Features — 46 modules, nothing charged extra | VenQore</title>
+                <meta name="description" content="Everything VenQore ships today: 46 modules, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
+                <link rel="canonical" href="https://venqore.com/features" />
+                <meta property="og:title" content="Features — 46 modules, nothing charged extra | VenQore" />
+                <meta property="og:description" content="Everything VenQore ships today: 46 modules, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://venqore.com/features" />
+                <meta property="og:image" content="https://venqore.com/images/og/venqore-og.png" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Features — 46 modules, nothing charged extra | VenQore" />
+                <meta name="twitter:description" content="Everything VenQore ships today: 46 modules, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
+                <meta name="twitter:image" content="https://venqore.com/images/og/venqore-og.png" />
+            </Head>
+
+            <div className="vq-site vq-app-body" style={{ background: 'var(--vq-bg)', color: 'var(--vq-text)', overflow: 'visible', minHeight: '100vh' }}>
+
+
+
+  <a className="vq-skip" href="#main">Skip to content</a>
+  <header className="vq-header" data-header>
+    <div className="vq-header__inner">
+      <a className="vq-brand" href="/" aria-label="VenQore home">
+        <img src="/v6/assets/logo.png" alt="" width="30" height="30" />
+        <span className="vq-brand__word">VenQore</span>
+      </a>
+
+      <nav className="vq-nav" aria-label="Main">
+        <ul className="vq-nav__list">
+          <li className="vq-nav__item">
+            <a href="/blueprint" className="vq-nav__link">Product <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div className="vq-mega" style={{"minWidth":"660px"}}>
+              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr 1fr 1fr"}}>
+                <div className="vq-mega__col">
+                  <span className="vq-eyebrow vq-eyebrow--accent">Build</span>
+                  <a className="vq-mega__link" href="/blueprint"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
+                  <a className="vq-mega__link" href="/onboarding"><b>See a build</b><span>Four minutes, start to live.</span></a>
+                  <a className="vq-mega__link" href="/features"><b>Watch it assemble</b><span>46 modules in, only yours out.</span></a>
                 </div>
-            </section>
-
-            {/* DEMO 1 · REPORTS (hero, first) */}
-            <DemoSection id="reports" eyebrow="Reporting Engine" icon={BarChart3} accent="emerald" hero
-                title={<>Reports that <span className="text-emerald-600 dark:text-emerald-400">never disagree.</span></>}
-                lead="40+ statements from one verified ledger. Here’s the live Profit & Loss — switch periods, then let AI read it for you."
-                deepDiveLink="/features/accounting"
-                deepDiveText="Deep Dive: Double-Entry Accounting Engine">
-                <ProfitLossDemo />
-            </DemoSection>
-
-            {/* DEMO 2 · POS */}
-            <DemoSection id="pos" eyebrow="Point of Sale" icon={ShoppingCart} accent="indigo" hero
-                title={<>Ring up a sale <span className="text-brand-600 dark:text-brand-400">right now.</span></>}
-                lead="This is the real POS. Add products, change quantities, pick a payment method and complete the sale — nothing is saved, it’s yours to play with."
-                deepDiveLink="/features/point-of-sale"
-                deepDiveText="Deep Dive: Point of Sale Checkout System">
-                <PosInvoiceDemo />
-            </DemoSection>
-
-            {/* DEMO 3 · SMART CAPTURE */}
-            <DemoSection id="capture" eyebrow="Smart Capture · AI" icon={ScanBarcode} accent="violet" soon
-                title={<>Snap it. Say it. <span className="text-brand-400">Booked.</span></>}
-                lead="Photograph a supplier bill or speak a sale out loud. Your own AI key reads it, figures out the transaction type, and matches every line to your catalog.">
-                <SmartCaptureDemo />
-            </DemoSection>
-
-            {/* DEMO 4 · VENSYNQ */}
-            <DemoSection id="vensynq" eyebrow="VenSynQ · Multi-Channel" icon={Globe} accent="blue" soon
-                title={<>Every marketplace, <span className="text-blue-400">one truth.</span></>}
-                lead="Amazon, eBay, TikTok, Etsy and WooCommerce in a single command center — real net margin after fees, live inventory status, and which channel actually makes you money.">
-                <VenSynQDemo />
-            </DemoSection>
-
-            {/* DEMO 5 · GROWTH ENGINE (Intelligence Engine) */}
-            <DemoSection id="growth" eyebrow="Growth · Intelligence Engine" icon={Cpu} accent="violet" hero
-                title={<>It shows you <span className="text-brand-400">its working.</span></>}
-                lead="Four brains read your customers, stock, margin and cash — every insight comes with the numbers behind it, and every prediction is scored afterwards against what actually happened."
-                deepDiveLink="/features/growth-engine"
-                deepDiveText="Deep Dive: The Intelligence Engine">
-                <GrowthEngineDemo />
-            </DemoSection>
-
-            {/* DEMO 6 · COOKBOOK */}
-            <DemoSection id="cookbook" eyebrow="Cookbook · Manufacturing" icon={Factory} accent="amber" hero
-                title={<>Build products from <span className="text-amber-600 dark:text-amber-400">recipes.</span></>}
-                lead="Define a Bill of Materials once. Produce a batch — or sell a composite item and watch raw stock deduct automatically, costed by real FIFO."
-                deepDiveLink="/features/inventory-management"
-                deepDiveText="Deep Dive: FIFO Inventory Management">
-                <CookbookDemo />
-            </DemoSection>
-
-            {/* ALL FEATURES */}
-            <section id="all" className="vqf-anchor py-20 md:py-28 px-6 border-t border-line dark:border-white/5">
-                <div className="max-w-7xl mx-auto">
-                    <RevealOnScroll>
-                        <div className="text-center mb-12 max-w-3xl mx-auto">
-                            <SectionLabel icon={Layers}>The complete catalog</SectionLabel>
-                            <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tighter leading-[0.95] font-display">All {TOTAL_FEATURES}+ features.<br /><span className="text-brand-600 dark:text-brand-400">Every one explained.</span></h2>
-                            <p className="text-ink-muted text-base md:text-lg mt-5">Search, filter by area, and click any feature to read exactly what it does.</p>
-                        </div>
-                    </RevealOnScroll>
-                    <FeatureExplorer />
+                <div className="vq-mega__col">
+                  <span className="vq-eyebrow vq-eyebrow--accent">Run</span>
+                  <a className="vq-mega__link" href="/pos"><b>The register</b><span>A till you compose yourself.</span></a>
+                  <a className="vq-mega__link" href="/documents"><b>Documents</b><span>Thirteen types, one editor.</span></a>
+                  <a className="vq-mega__link" href="/vensynq"><b>VenSynQ</b><span>Sell in five places, count once.</span></a>
                 </div>
-            </section>
-
-            {/* CTA */}
-            <section className="py-28 md:py-36 px-6 text-center">
-                <div className="max-w-4xl mx-auto relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px] pointer-events-none" />
-                    <RevealOnScroll>
-                        <h2 className="text-4xl md:text-7xl font-bold text-ink mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-brand-600 dark:text-brand-400">your numbers.</span></h2>
-                        <p className="text-lg md:text-xl text-ink-muted mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · cancel anytime · live in 15 minutes.</p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-                            <MagneticButton href="/register" variant="primary">Start Free Trial <ArrowRight size={16} /></MagneticButton>
-                            <MagneticButton href="/demo" variant="ghost">Launch Live Demo</MagneticButton>
-                        </div>
-                    </RevealOnScroll>
+                <div className="vq-mega__col">
+                  <span className="vq-eyebrow vq-eyebrow--accent">Know</span>
+                  <a className="vq-mega__link" href="/dashboard-preview"><b>The dashboard</b><span>58 readings, self-assembling.</span></a>
+                  <a className="vq-mega__link" href="/reckoner"><b>The Reckoner</b><span>One place a number is defined.</span></a>
+                  <a className="vq-mega__link" href="/ledger"><b>Core Ledger</b><span>One engine. Every number.</span></a>
                 </div>
-            </section>
+              </div>
+              <div className="vq-mega__foot">
+                <a className="vq-link" href="/smartcapture">SmartCapture — a photo in, a posted transaction out <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              </div>
+            </div>
+          </li>
+          <li className="vq-nav__item">
+            <a href="/solutions" className="vq-nav__link">Solutions <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div className="vq-mega" style={{"minWidth":"420px"}}>
+              <div className="vq-mega__grid">
+                <div className="vq-mega__col">
+                  <a className="vq-mega__link" href="/solutions/grocery"><b>Grocery &amp; supermarket</b><span>Fast checkout, real margins.</span></a>
+                  <a className="vq-mega__link" href="/solutions/wholesale"><b>Wholesale &amp; distribution</b><span>Credit terms and price tiers.</span></a>
+                  <a className="vq-mega__link" href="/solutions/pharmacy"><b>Pharmacy</b><span>Batch and expiry that hold the line.</span></a>
+                </div>
+                <div className="vq-mega__col">
+                  <a className="vq-mega__link" href="/solutions/clothing"><b>Apparel &amp; fashion</b><span>Size and colour, counted properly.</span></a>
+                  <a className="vq-mega__link" href="/solutions/electronics-store"><b>Electronics &amp; hardware</b><span>Serial and IMEI, tracked to the unit.</span></a>
+                  <a className="vq-mega__link" href="/solutions/multi-store"><b>Multi-branch chains</b><span>One truth across every location.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li className="vq-nav__item"><a href="/features" className="vq-nav__link" aria-current="page">Features</a></li>
+          <li className="vq-nav__item"><a href="/pricing" className="vq-nav__link">Pricing</a></li>
+          <li className="vq-nav__item">
+            <a href="/about" className="vq-nav__link">Company <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div className="vq-mega" style={{"minWidth":"320px"}}>
+              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr"}}>
+                <div className="vq-mega__col">
+                  <a className="vq-mega__link" href="/about"><b>About</b><span>Our mission, architecture, and principles.</span></a>
+                  <a className="vq-mega__link" href="/ledger"><b>How we prove it</b><span>The checks we publish.</span></a>
+                  <a className="vq-mega__link" href="/contact"><b>Contact</b><span>A person answers this one.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <div className="vq-header__actions">
+        <button className="vq-theme-btn" data-theme-toggle type="button" aria-label="Switch theme">
+          <span className="vq-icon-sun"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span className="vq-icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        </button>
+        <a href="/login" className="vq-nav__link">Sign in</a>
+        <a href="/build-workspace" className="vq-btn vq-btn--primary">Start building <span className="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+      </div>
+      <button className="vq-burger" type="button" data-menu-open aria-label="Open menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+    </div>
+  </header>
+  <div className="vq-mobile" data-menu hidden>
+    <button className="vq-burger" type="button" data-menu-close aria-label="Close menu"
+            style={{"position":"absolute","top":"24px","right":"20px"}}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <a href="/blueprint">Blueprint</a>
+    <a href="/pos">The register</a>
+    <a href="/documents">Documents</a>
+    <a href="/dashboard-preview">Dashboard</a>
+    <a href="/smartcapture">SmartCapture</a>
+    <a href="/reckoner">The Reckoner</a>
+    <a href="/ledger">Core Ledger</a>
+    <a href="/vensynq">VenSynQ</a>
+    <a href="/features">Features</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+    <div className="vq-mobile__actions">
+      <a href="/login" className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Sign in</a>
+      <a href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Start building <span className="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+    </div>
+  </div>
+<main id="main">
 
-            {/* local demo keyframes */}
-            <style>{`
-                .vqf-anchor { scroll-margin-top: 100px; }
-                .tabular-nums { font-variant-numeric: tabular-nums; }
-                .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-                @keyframes vqf-blink { 0%,100%{opacity:1;} 50%{opacity:.25;} }
-                .vqf-blink { animation: vqf-blink 1.6s ease-in-out infinite; }
-                @keyframes vqf-in { 0%{opacity:0;transform:translateY(8px);} 100%{opacity:1;transform:none;} }
-                .vqf-in { animation: vqf-in .45s cubic-bezier(0.22,1,0.36,1) both; }
-                @keyframes vqf-scan { 0%{top:6%;} 50%{top:86%;} 100%{top:6%;} }
-                .vqf-scan { animation: vqf-scan 1.5s ease-in-out infinite; }
-                @keyframes vqf-wave { 0%,100%{transform:scaleY(.3);} 50%{transform:scaleY(1);} }
-                .vqf-wave { transform-origin:bottom; animation: vqf-wave .9s ease-in-out infinite; }
-                @keyframes vqf-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.08);opacity:.85;} }
-                .vqf-pulse { animation: vqf-pulse 1.4s ease-in-out infinite; }
-                @media (prefers-reduced-motion: reduce){ .vqf-blink,.vqf-scan,.vqf-wave,.vqf-pulse{animation:none!important;} }
-`}</style>
-        </MarketingLayout>
+<section className="vq-section" style={{"paddingTop":"clamp(140px,15vw,200px)","paddingBottom":"clamp(48px,6vw,72px)"}}>
+  <div className="vq-amb"><span className="vq-amb__dots"></span></div>
+  <div className="vq-container" style={{"position":"relative"}}>
+    <div style={{"maxWidth":"820px"}}>
+      <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">What's inside</span>
+      <h1 className="vq-display vq-mt-4">Everything the business actually runs on. Nothing charged as a <em className="vq-italic">module</em>.</h1>
+      <p className="vq-lede vq-mt-6">Everything VenQore ships today, across ten groups: point of sale with offline mode, FIFO inventory with batch and expiry tracking, purchasing, invoicing, customer credit, expenses, staff and permissions, multi-channel sync, AI capture, and double-entry accounting. 46 modules, 13 document types, 40 reports and 58 dashboard readings — all of it on every plan.</p>
+      <div className="vq-row vq-wrap vq-gap-3 vq-mt-8"><a className="vq-btn vq-btn--primary vq-btn--lg" href="/build-workspace">Start building <span className="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
+        <a className="vq-btn vq-btn--secondary vq-btn--lg" href="/pricing">See pricing</a></div>
+    </div>
+  </div>
+</section>
+
+<section className="vq-section" style={{"paddingTop":"0"}}>
+  <div className="vq-container">
+    <div className="vq-grid vq-grid--4">
+      
+      <div className="vq-card vq-card--xl vq-stat vq-reveal vq-card--accent">
+        <span className="vq-stat__label">Modules to compose</span>
+        <span className="vq-stat__value"><span data-count="46">46</span></span>
+        <span className="vq-stat__note">Turned on by your Blueprint, not bought one at a time</span>
+      </div>
+      <div className="vq-card vq-card--xl vq-stat vq-reveal">
+        <span className="vq-stat__label">Dashboard readings</span>
+        <span className="vq-stat__value"><span data-count="108">108</span></span>
+        <span className="vq-stat__note">Across 18 period windows — 1,944 distinct figures</span>
+      </div>
+      <div className="vq-card vq-card--xl vq-stat vq-reveal">
+        <span className="vq-stat__label">Document types</span>
+        <span className="vq-stat__value"><span data-count="13">13</span></span>
+        <span className="vq-stat__note">One editor, one payload builder, one ledger path</span>
+      </div>
+      <div className="vq-card vq-card--xl vq-stat vq-reveal">
+        <span className="vq-stat__label">Passing tests</span>
+        <span className="vq-stat__value"><span data-count="1610">1610</span></span>
+        <span className="vq-stat__note">Run against every reading, on every release</span>
+      </div>
+    </div>
+
+    <nav className="vq-row vq-wrap vq-gap-2 vq-mt-10 vq-reveal" aria-label="Jump to a group">
+      <a className="vq-chip" href="#selling">Selling</a><a className="vq-chip" href="#stock">Stock</a><a className="vq-chip" href="#buying">Buying</a><a className="vq-chip" href="#money">Money</a><a className="vq-chip" href="#parties">Customers &amp; suppliers</a><a className="vq-chip" href="#reports">Reports</a><a className="vq-chip" href="#people">People &amp; access</a><a className="vq-chip" href="#channels">Channels</a><a className="vq-chip" href="#ai">AI &amp; intelligence</a><a className="vq-chip" href="#platform">Platform</a>
+    </nav>
+  </div>
+</section>
+
+
+<section className="vq-section vq-section--tight" style={{"paddingTop":"0"}}>
+  <div className="vq-container">
+    <div className="vq-section-head vq-reveal">
+      <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">See them working</span>
+      <h2 className="vq-h1">Six live demos, not six screenshots.</h2>
+    </div>
+    <div className="vq-grid vq-grid--3">
+      
+      <a className="vq-card vq-card--xl vq-fcard vq-reveal" href="/pos">
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span>
+        <h3 className="vq-tile__title">The register</h3>
+        <p className="vq-tile__body">Seven starting points and eight controls. Recompose the till and watch the panes re-derive.</p>
+        <div className="vq-fcard__meta">
+          <span className="vq-fcard__n">7<small>layouts</small></span>
+          <span className="vq-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a className="vq-card vq-card--xl vq-fcard vq-reveal" href="/documents">
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>
+        <h3 className="vq-tile__title">Documents</h3>
+        <p className="vq-tile__body">Switch between all thirteen types and watch the same editor reconfigure itself.</p>
+        <div className="vq-fcard__meta">
+          <span className="vq-fcard__n">13<small>types</small></span>
+          <span className="vq-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a className="vq-card vq-card--xl vq-fcard vq-reveal" href="/dashboard-preview">
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></span>
+        <h3 className="vq-tile__title">The dashboard</h3>
+        <p className="vq-tile__body">Tap a reading and the card lands, already sized to what it needs.</p>
+        <div className="vq-fcard__meta">
+          <span className="vq-fcard__n">58<small>readings</small></span>
+          <span className="vq-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a className="vq-card vq-card--xl vq-fcard vq-reveal" href="/smartcapture">
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span>
+        <h3 className="vq-tile__title">SmartCapture</h3>
+        <p className="vq-tile__body">Point it at a bill, a screenshot or a voice note and watch a transaction come back.</p>
+        <div className="vq-fcard__meta">
+          <span className="vq-fcard__n">11<small>seconds</small></span>
+          <span className="vq-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a className="vq-card vq-card--xl vq-fcard vq-reveal" href="/reckoner">
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg></span>
+        <h3 className="vq-tile__title">The Reckoner</h3>
+        <p className="vq-tile__body">One definition per figure, eighteen windows, and a history that survives every rename.</p>
+        <div className="vq-fcard__meta">
+          <span className="vq-fcard__n">18<small>windows</small></span>
+          <span className="vq-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+      <a className="vq-card vq-card--xl vq-fcard vq-reveal" href="/vensynq">
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg></span>
+        <h3 className="vq-tile__title">VenSynQ</h3>
+        <p className="vq-tile__body">One catalogue behind five channels, with commission isolated from your margin.</p>
+        <div className="vq-fcard__meta">
+          <span className="vq-fcard__n">5<small>channels</small></span>
+          <span className="vq-link">Open <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<section className="vq-section vq-section--tight" id="selling">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Selling</h2>
+        <p className="vq-tile__body vq-mt-3">The counter, and everything that happens at it.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>17 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Instant barcode scanner</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Serial &amp; IMEI scanner</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Park &amp; recall (hold bill)</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Cart rescue &amp; session protection</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Typo-tolerant search</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Multi-account split payments</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Daily cash register audit</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Negative stock alert &amp; lock</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Barcode pattern recognition</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Service fee &amp; freight additions</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Automatic VAT / GST calculation</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">A4 &amp; letter invoice PDF</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Recurring invoicing</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Sales return vouchers</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Pre-sales inventory reservation</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Wholesale vs retail price tiers</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Barcode label print factory</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight vq-section--alt" id="stock">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Stock</h2>
+        <p className="vq-tile__body vq-mt-3">What you have, what it cost, and where it is.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>14 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Product variant support</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Variant-aware FIFO costing</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Batch intake number tracking</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Stock take audit wizard</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Category management centre</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Low stock threshold alerts</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">IMEI &amp; serial lifecycle tracking</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Unit of measure converter</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Stock reservation rules</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Disaster &amp; asset claim manager</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Multi-warehouse isolation (godown)</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Stock transfer vouchers</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Stock valuation by location</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Inbound expiry date tracking</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight" id="buying">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Buying</h2>
+        <p className="vq-tile__body vq-mt-3">Suppliers, terms, and what you actually paid.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>17 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Purchase order tracker</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Auto-generated purchase orders</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Supplier debit notes</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Purchase returns register</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Supplier account registry (khata)</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Delayed supplier payments</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Supplier statement generator</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Aged payables directory</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Outstanding payables dashboard</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Supplier lead time tracker</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Supplier SKU mapping</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Custom supplier payment terms</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Landing cost allocations</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Cost price increase alert</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Bulk supplier payments</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Tax-inclusive procurement toggle</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Supplier credit limit alerts</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight vq-section--alt" id="money">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Money</h2>
+        <p className="vq-tile__body vq-mt-3">The Core Ledger and everything that posts through it.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>14 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Double-entry journal engine</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Automated cash reconciliation</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Fixed asset depreciation tracker</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Business loan ledger</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Inter-register cash transfers</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Advance payment allocation</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Fiscal year closing wizard</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Bank reconciliation checker</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Tax summary engine</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Expense manager + receipt uploads</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Charity allocation engine</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Balanced reversal engine</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Multi-currency configuration</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Custom tax rate configurator</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight" id="parties">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Customers &amp; suppliers</h2>
+        <p className="vq-tile__body vq-mt-3">Who owes what, and who is worth keeping.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>16 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Customer account registry (khata)</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Customer payments log</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Customer statement generator</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Aged receivables report</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Multi-payment invoices</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Outstanding balance dashboard</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Unified party ledger</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Customer address book</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Credit limit enforcement</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Credit limit breach alerts</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Customer milestone tracker</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Anniversary &amp; birthday tracker</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Tax-exempt customer flag</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Customer wallet credit</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Loyalty points system</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Digital gift cards</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight vq-section--alt" id="reports">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Reports</h2>
+        <p className="vq-tile__body vq-mt-3">40 built reports, all reading the same ledger.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>25 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Profit &amp; loss statement</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Balance sheet</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Double-entry trial balance</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Sales summary &amp; daily trend</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Day book log</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Account ledger report</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Party statement (khata ledger)</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Stock valuation report</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Low stock shortages</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Stock movement history</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Tax compliance summary</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Item-wise profit analysis</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Party-wise profitability</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Bill-wise profitability</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Sales aging report</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Expense by category</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Stock summary &amp; aging</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Loan repayment statement</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Purchases report</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Transactions history</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Bank statements log</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Expiring soon alert</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Category profit &amp; loss</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Discount &amp; tax rate breakdown</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Sale orders report</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight" id="people">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">People &amp; access</h2>
+        <p className="vq-tile__body vq-mt-3">Roles, limits, and a trail of who did what.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>9 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Granular multi-store roles</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Cashier PIN login</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Staff invitation codes</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Owner daily pulse</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Owner profit peek</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Security activity log</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Cashier inactivity auto-logout</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Passcode security standards</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Senior mode accessibility</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight vq-section--alt" id="channels">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Channels</h2>
+        <p className="vq-tile__body vq-mt-3">Sell in five places. Count stock once.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>10 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">VenSynQ command centre</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">3-click OAuth store connection</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Automated commission isolation</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Just-in-time purchase orders</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Bulk tracking ID sync</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">WooCommerce real-time webhook</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">WooCommerce stock sync</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">WooCommerce customer auto-registry</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Web store catalog controls</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Multi-channel expense allocation</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight" id="ai">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">AI &amp; intelligence</h2>
+        <p className="vq-tile__body vq-mt-3">Deterministic where it can be, honest where it can't.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>9 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Smart capture (image &amp; audio)</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Floating AI assistant</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Reorder due alerts</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Evidence on every insight</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Self-scoring accuracy loop</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Self-tuning thresholds</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Learns your scale</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Runs without an AI key</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Daily business snapshots</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section className="vq-section vq-section--tight vq-section--alt" id="platform">
+  <div className="vq-container">
+    <div className="vq-grid" style={{"gridTemplateColumns":"minmax(0,280px) minmax(0,1fr)","gap":"var(--vq-space-12)"}}>
+      <div className="vq-reveal" style={{"position":"sticky","top":"120px","alignSelf":"start"}}>
+        <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <h2 className="vq-h2 vq-mt-4">Platform</h2>
+        <p className="vq-tile__body vq-mt-3">The parts you only notice when they are missing.</p>
+        <span className="vq-badge vq-badge--accent vq-mt-4" style={{"display":"inline-flex"}}>13 shipped</span>
+      </div>
+      <ul className="vq-grid vq-grid--2 vq-reveal" style={{"gap":"var(--vq-space-3) var(--vq-space-6)","alignContent":"start"}}>
+        <li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Progressive web app (PWA)</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Multi-tenant store isolation</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Subscription plan enforcement</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Automated limit override manager</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Soft-delete trash management</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Backups &amp; Google Drive sync</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Import / export tools</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Test data wipe</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Instant store creator</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Self-guiding setup tour</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Custom domain mapping</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">SSO / SAML authentication</span></li><li className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span className="vq-small">Dark &amp; light themes</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section className="vq-section vq-band-dark">
+  <div className="vq-amb"><span className="vq-amb__grain"></span></div>
+  <div className="vq-container" style={{"position":"relative"}}>
+    <div className="vq-grid vq-grid--2" style={{"gap":"var(--vq-space-16)"}}>
+      <div className="vq-reveal">
+        <span className="vq-eyebrow">Being straight about it</span>
+        <h2 className="vq-display vq-mt-4">What isn't here yet.</h2>
+        <p className="vq-lede vq-mt-6">A site that admits one real limitation is believed about everything
+          else. So: these are named in our own catalogue and are <b style={{"color":"#fff"}}>not</b> shipping.
+          We will not sell you a feature that does not function.</p>
+      </div>
+      <div className="vq-stack vq-gap-4 vq-reveal">
+        
+        <div className="vq-card">
+          <div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+            <span style={{"color":"var(--vq-text-3)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></span>
+            <div><b className="vq-small">SMS &amp; WhatsApp reminders</b><p className="vq-caption vq-mt-2" style={{"maxWidth":"none"}}>The gateway is not built, so debt reminders do not send. Statements and PDFs do.</p></div>
+          </div>
+        </div>
+        <div className="vq-card">
+          <div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+            <span style={{"color":"var(--vq-text-3)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></span>
+            <div><b className="vq-small">Custom SMTP mail gateway</b><p className="vq-caption vq-mt-2" style={{"maxWidth":"none"}}>Mail goes out on our infrastructure. You cannot yet point it at your own server.</p></div>
+          </div>
+        </div>
+        <div className="vq-card">
+          <div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+            <span style={{"color":"var(--vq-text-3)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></span>
+            <div><b className="vq-small">Appointments &amp; scheduling</b><p className="vq-caption vq-mt-2" style={{"maxWidth":"none"}}>Which is why we do not sell to salons, clinics, gyms or hotels yet. When scheduling ships, all four unlock at once.</p></div>
+          </div>
+        </div>
+        <div className="vq-card">
+          <div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+            <span style={{"color":"var(--vq-text-3)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></span>
+            <div><b className="vq-small">A support organisation</b><p className="vq-caption vq-mt-2" style={{"maxWidth":"none"}}>One founder answers the email. That is a real trade-off, and it is better you know now.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section className="vq-section vq-section--alt">
+  <div className="vq-container">
+    <div className="vq-section-head vq-reveal"><span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Keep reading</span><h2 className="vq-h2 vq-mt-4">Go deeper</h2></div>
+    <div className="vq-grid vq-grid--3"><a className="vq-card vq-card--interactive vq-reveal" href="/solutions"><h3 className="vq-h3">Your trade, specifically</h3><p className="vq-tile__body vq-mt-3">Six industry configurations.</p><span className="vq-link vq-mt-4">Read on <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a><a className="vq-card vq-card--interactive vq-reveal" href="/compare"><h3 className="vq-h3">How this compares</h3><p className="vq-tile__body vq-mt-3">Against Square and Vyapar, with the maths.</p><span className="vq-link vq-mt-4">Read on <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a><a className="vq-card vq-card--interactive vq-reveal" href="/docs"><h3 className="vq-h3">Guides and how-tos</h3><p className="vq-tile__body vq-mt-3">Setting it up, screen by screen.</p><span className="vq-link vq-mt-4">Read on <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a></div>
+  </div>
+</section>
+</main>
+
+  <footer className="vq-footer">
+    <div className="footer-bg"></div>
+    
+    <div className="vq-container" style={{"position":"relative","zIndex":"10","paddingBottom":"var(--vq-space-16)"}}>
+      <div className="mesh-gradient-card" style={{"borderRadius":"var(--vq-r-2xl)","padding":"clamp(32px,5vw,56px)","border":"1px solid rgb(255 255 255 / .10)","boxShadow":"var(--vq-elev-3)"}}>
+        <div style={{"maxWidth":"36rem"}}>
+          <h2 className="vq-h2" style={{"color":"#fff"}}>Describe your business. See what it becomes.</h2>
+          <p className="vq-lede vq-mt-3" style={{"color":"rgb(255 255 255 / .74)"}}>14-day free trial. Full access. You'll see your whole system before you decide anything.</p>
+          <form className="vq-row vq-wrap vq-gap-3 vq-mt-8" data-waitlist style={{"maxWidth":"520px"}}>
+            <input type="email" className="vq-input" required placeholder="you@company.com" aria-label="Work email"
+                   style={{"flex":"1 1 240px","background":"rgb(0 0 0 / .35)","borderColor":"rgb(255 255 255 / .16)","color":"#fff"}} />
+            <button type="submit" className="vq-btn vq-btn--lg vq-btn--light">Start building</button>
+          </form>
+          <p className="vq-caption vq-mt-4" style={{"color":"rgb(255 255 255 / .55)"}}>Takes about four minutes. Nothing goes live until you approve it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div className="vq-container" style={{"position":"relative","zIndex":"10","paddingBottom":"var(--vq-space-8)"}}>
+      <div style={{"display":"flex","flexDirection":"column","gap":"var(--vq-space-12)"}} className="vq-foot-cols">
+        <div style={{"display":"grid","gap":"var(--vq-space-8)","gridTemplateColumns":"repeat(auto-fit,minmax(150px,1fr))","flex":"1"}}>
+          <div>
+            <h3 className="vq-footer__head">Product</h3>
+            <ul style={{"marginTop":"var(--vq-space-4)","display":"flex","flexDirection":"column","gap":"var(--vq-space-3)"}}>
+              <li><a href="/blueprint">Blueprint</a></li>
+              <li><a href="/pos">The register</a></li>
+              <li><a href="/documents">Documents</a></li>
+              <li><a href="/dashboard-preview">Dashboard</a></li>
+              <li><a href="/smartcapture">SmartCapture</a></li>
+              <li><a href="/reckoner">The Reckoner</a></li>
+              <li><a href="/ledger">Core Ledger</a></li>
+              <li><a href="/vensynq">VenSynQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="vq-footer__head">Company</h3>
+            <ul style={{"marginTop":"var(--vq-space-4)","display":"flex","flexDirection":"column","gap":"var(--vq-space-3)"}}>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/blog">Blog</a></li>
+              <li><a href="/roadmap">Roadmap</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="vq-footer__head">Resources</h3>
+            <ul style={{"marginTop":"var(--vq-space-4)","display":"flex","flexDirection":"column","gap":"var(--vq-space-3)"}}>
+              <li><a href="/docs">Documentation</a></li>
+              <li><a href="/help">Help centre</a></li>
+              <li><a href="/security">Security</a></li>
+              <li><a href="/onboarding">See a build</a></li>
+              <li><a href="/login">Sign in</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="vq-footer__head">Social</h3>
+            <div style={{"marginTop":"var(--vq-space-4)","display":"flex","gap":"var(--vq-space-3)"}}>
+              <a className="vq-footer__social" href="https://wa.me/923091999489" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp: +92 309 1999489"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
+              <a className="vq-footer__social" href="#" aria-label="Facebook"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+              <a className="vq-footer__social" href="#" aria-label="X"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+              <a className="vq-footer__social" href="#" aria-label="LinkedIn"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{"marginTop":"var(--vq-space-12)","paddingTop":"var(--vq-space-8)","borderTop":"1px solid rgb(255 255 255 / .08)","display":"flex","flexWrap":"wrap","alignItems":"center","justifyContent":"space-between","gap":"var(--vq-space-4)","paddingBottom":"var(--vq-space-6)"}}>
+        <p className="vq-small" style={{"color":"var(--vq-ink-500)","maxWidth":"none"}}>© 2026 VenQore, Inc. The AI ERP builder.</p>
+        <div style={{"display":"flex","gap":"var(--vq-space-6)"}}>
+          <a className="vq-small" href="/terms">Terms</a>
+          <a className="vq-small" href="/privacy">Privacy</a>
+          <a className="vq-small" href="/privacy#cookies">Cookies</a>
+          <a className="vq-small" href="/refund-policy">Refund Policy</a>
+          <a className="vq-small" href="/known-issues">Known Issues</a>
+        </div>
+      </div>
+
+      <div className="watermark-wrapper"><span>VenQore</span></div>
+    </div>
+  </footer>
+
+
+
+
+{/*  Privacy-first cookieless analytics  */}
+
+
+            </div>
+        </>
     );
 }
