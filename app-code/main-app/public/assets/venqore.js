@@ -21,30 +21,32 @@
       var html = document.documentElement;
       html.classList.add('vq-theming');
       html.setAttribute('data-theme', t);
+      html.setAttribute('data-vq-theme', t);
       html.classList.toggle('dark', t === 'dark');
       try {
+        localStorage.setItem('amd_theme', t);
         localStorage.setItem('vq-theme', t);
         localStorage.setItem('vq_theme', t);
       } catch (e) {}
+      window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: t === 'dark' } }));
       requestAnimationFrame(function () {
         requestAnimationFrame(function () { html.classList.remove('vq-theming'); });
       });
     }
 
-    var saved = localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
+    var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
     if (!saved) {
-      saved = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      saved = document.documentElement.classList.contains('dark') ? 'dark' : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     }
     setTheme(saved);
 
-    var toggles = $$('[data-theme-toggle], #theme-toggle');
-    toggles.forEach(function (b) {
-      b.addEventListener('click', function (e) {
-        e.preventDefault();
-        var curr = document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        var next = curr === 'dark' ? 'light' : 'dark';
-        setTheme(next);
-      });
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-theme-toggle], #theme-toggle, .vq-theme-btn');
+      if (!btn) return;
+      e.preventDefault();
+      var curr = document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      var next = curr === 'dark' ? 'light' : 'dark';
+      setTheme(next);
     });
   }
 

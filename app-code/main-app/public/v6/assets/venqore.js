@@ -21,30 +21,32 @@
       var html = document.documentElement;
       html.classList.add('vq-theming');
       html.setAttribute('data-theme', t);
+      html.setAttribute('data-vq-theme', t);
       html.classList.toggle('dark', t === 'dark');
       try {
+        localStorage.setItem('amd_theme', t);
         localStorage.setItem('vq-theme', t);
         localStorage.setItem('vq_theme', t);
       } catch (e) {}
+      window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: t === 'dark' } }));
       requestAnimationFrame(function () {
         requestAnimationFrame(function () { html.classList.remove('vq-theming'); });
       });
     }
 
-    var saved = localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
+    var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
     if (!saved) {
-      saved = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      saved = document.documentElement.classList.contains('dark') ? 'dark' : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     }
     setTheme(saved);
 
-    var toggles = $$('[data-theme-toggle], #theme-toggle');
-    toggles.forEach(function (b) {
-      b.addEventListener('click', function (e) {
-        e.preventDefault();
-        var curr = document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        var next = curr === 'dark' ? 'light' : 'dark';
-        setTheme(next);
-      });
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-theme-toggle], #theme-toggle, .vq-theme-btn');
+      if (!btn) return;
+      e.preventDefault();
+      var curr = document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      var next = curr === 'dark' ? 'light' : 'dark';
+      setTheme(next);
     });
   }
 
@@ -645,114 +647,6 @@
     });
   }
 
-  /* ── 12. Custom Select Dropdowns (V6 Design System) ───────────────────── */
-  function initCustomSelects() {
-    var selects = $$('[data-custom-select], .vq-custom-select');
-    selects.forEach(function (selectEl) {
-      if (selectEl._vqInit) return;
-      selectEl._vqInit = true;
-
-      var trigger = selectEl.querySelector('.vq-custom-select__trigger');
-      var valueEl = selectEl.querySelector('.vq-custom-select__value');
-      var menu = selectEl.querySelector('.vq-custom-select__menu');
-      var input = selectEl.querySelector('input[type="hidden"]');
-      var items = $$('.vq-custom-select__item', selectEl);
-
-      function openMenu() {
-        $$('[data-custom-select].is-open, .vq-custom-select.is-open').forEach(function (other) {
-          if (other !== selectEl) {
-            other.classList.remove('is-open');
-            var t = other.querySelector('.vq-custom-select__trigger');
-            if (t) t.setAttribute('aria-expanded', 'false');
-          }
-        });
-        selectEl.classList.add('is-open');
-        if (trigger) trigger.setAttribute('aria-expanded', 'true');
-      }
-
-      function closeMenu() {
-        selectEl.classList.remove('is-open');
-        if (trigger) trigger.setAttribute('aria-expanded', 'false');
-      }
-
-      function selectOption(item) {
-        var val = item.getAttribute('data-value') || (item.querySelector('span') ? item.querySelector('span').textContent.trim() : item.textContent.trim());
-        var label = item.querySelector('span') ? item.querySelector('span').textContent.trim() : item.textContent.trim();
-
-        items.forEach(function (it) {
-          it.classList.remove('is-selected');
-          it.setAttribute('aria-selected', 'false');
-        });
-        item.classList.add('is-selected');
-        item.setAttribute('aria-selected', 'true');
-
-        if (valueEl) valueEl.textContent = label;
-        if (input) {
-          input.value = val;
-          var evt = new Event('change', { bubbles: true });
-          input.dispatchEvent(evt);
-        }
-        closeMenu();
-        if (trigger) trigger.focus();
-      }
-
-      if (trigger) {
-        trigger.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (selectEl.classList.contains('is-open')) {
-            closeMenu();
-          } else {
-            openMenu();
-          }
-        });
-      }
-
-      items.forEach(function (item) {
-        item.addEventListener('click', function (e) {
-          e.stopPropagation();
-          selectOption(item);
-        });
-      });
-
-      var form = selectEl.closest('form');
-      if (form) {
-        var defaultItem = selectEl.querySelector('.vq-custom-select__item.is-selected') || items[0];
-        form.addEventListener('reset', function () {
-          setTimeout(function () {
-            if (defaultItem) selectOption(defaultItem);
-          }, 10);
-        });
-      }
-    });
-
-    if (!window._vqSelectListenersAttached) {
-      window._vqSelectListenersAttached = true;
-      document.addEventListener('click', function (e) {
-        if (!e.target.closest('[data-custom-select], .vq-custom-select')) {
-          $$('[data-custom-select].is-open, .vq-custom-select.is-open').forEach(function (s) {
-            s.classList.remove('is-open');
-            var t = s.querySelector('.vq-custom-select__trigger');
-            if (t) t.setAttribute('aria-expanded', 'false');
-          });
-        }
-      });
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          $$('[data-custom-select].is-open, .vq-custom-select.is-open').forEach(function (s) {
-            s.classList.remove('is-open');
-            var t = s.querySelector('.vq-custom-select__trigger');
-            if (t) {
-              t.setAttribute('aria-expanded', 'false');
-              t.focus();
-            }
-          });
-        }
-      });
-    }
-  }
-
   /* ── Initialize Everything on DOM Load ─────────────────────────────────── */
   function init() {
     initTheme();
@@ -766,7 +660,6 @@
     initMarqueeScroll();
     initFaq();
     initPricingToggle();
-    initCustomSelects();
   }
 
   if (document.readyState === 'loading') {

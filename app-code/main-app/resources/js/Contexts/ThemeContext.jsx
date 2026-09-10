@@ -106,7 +106,23 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     useEffect(() => {
         if (managed) return;
         document.documentElement.classList.toggle('dark', isDarkMode);
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-vq-theme', isDarkMode ? 'dark' : 'light');
+        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDarkMode } }));
     }, [isDarkMode, managed]);
+
+    // Global event delegation for any [data-theme-toggle] button rendered anywhere
+    useEffect(() => {
+        const handleGlobalThemeToggle = (e) => {
+            const toggleBtn = e.target.closest('[data-theme-toggle], .vq-theme-btn');
+            if (toggleBtn) {
+                e.preventDefault();
+                toggleTheme();
+            }
+        };
+        document.addEventListener('click', handleGlobalThemeToggle);
+        return () => document.removeEventListener('click', handleGlobalThemeToggle);
+    }, [toggleTheme]);
 
     /** Explicit user action — this is what gets remembered. */
     const persist = useCallback((dark) => {
