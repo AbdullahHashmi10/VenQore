@@ -1,2008 +1,1075 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
-    AlertTriangle, ArrowDownRight, ArrowRight, ArrowUpRight, BadgeCheck, Banknote,
-    BarChart3, Bot, Boxes, Building2, Check, CheckCircle2, ChevronDown,
-    CreditCard, Cpu, Factory, Gauge, Globe, Layers, Lock,
-    Mail, MoreHorizontal, Network, Package, Play, Plus, Quote,
-    Receipt, RefreshCw, Repeat, ScanBarcode, ShieldCheck, ShoppingCart, Sparkles,
-    TrendingUp, Truck, Users, Wallet, Warehouse, X
+    ArrowRight, Check, CheckCircle2, ShieldCheck, Scale, Sparkles,
+    Clock, ChevronDown, ChevronUp, Layers, Zap, Boxes, Database,
+    Scan, Receipt, Bot, Repeat, Building2, TrendingUp, ShoppingCart,
+    Truck, Cpu, Warehouse, Banknote, FileText, AlertTriangle, Play,
+    Plus, Lock, RefreshCw, BarChart3, Users, ExternalLink, Globe,
+    ChevronRight, CornerDownRight, CheckCircle, Package, Send
 } from 'lucide-react';
-import axios from 'axios';
+import MarketingLayout, { RevealOnScroll, MagneticButton, SectionLabel, GlassCard } from './Marketing/Shared/MarketingLayout';
 
-import { vq } from '@/theme/runtime';
-import MarketingLayout from './Marketing/Shared/MarketingLayout';
-import QoreCore3D from '@/Components/QoreCore3D';
-/* ═══════════════════════════════════════════════════════════════════════════
-   VENQORE — "The Books Are Always Right."
-   ──────────────────────────────────────────────────────────────────────────
-   Midnight Nebula 2.0 · Cinematic, code-built product experience.
-   Motion engine: IntersectionObserver + rAF + CSS — no external animation deps.
-   Everything degrades gracefully under prefers-reduced-motion.
-   Functionality preserved: usePage() settings, /subscribe newsletter (axios),
-   auth links, nav routes, WhatsApp, fonts, Inertia <Link>, Lucide, Tailwind.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* ── Reduced-motion preference ───────────────────────────────────────────── */
-function usePrefersReducedMotion() {
-    const [reduced, setReduced] = useState(false);
-    useEffect(() => {
-        const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-        const on = () => setReduced(mq.matches);
-        on();
-        mq.addEventListener?.('change', on);
-        return () => mq.removeEventListener?.('change', on);
-    }, []);
-    return reduced;
-}
-
-/* ── Scroll reveal (one-shot) ────────────────────────────────────────────── */
-function useReveal(options = {}) {
-    const ref = useRef(null);
-    const [vis, setVis] = useState(false);
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const obs = new IntersectionObserver(
-            ([e]) => { if (e.isIntersecting) { setVis(true); obs.unobserve(el); } },
-            { threshold: options.threshold ?? 0.15, rootMargin: options.rootMargin ?? '0px 0px -60px 0px' }
-        );
-        obs.observe(el);
-        return () => obs.disconnect();
-    }, []);
-    return [ref, vis];
-}
-
-/* ── "In view" (repeatable) — used to start/stop heavy loops on visibility ── */
-function useInView(threshold = 0.2) {
-    const ref = useRef(null);
-    const [inView, setInView] = useState(false);
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const obs = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold });
-        obs.observe(el);
-        return () => obs.disconnect();
-    }, [threshold]);
-    return [ref, inView];
-}
-
-/* ── Scroll progress (0..1) ──────────────────────────────────────────────── */
-function useScrollProgress() {
-    const [p, setP] = useState(0);
-    useEffect(() => {
-        const h = () => {
-            const d = document.documentElement;
-            const max = d.scrollHeight - d.clientHeight;
-            setP(max > 0 ? Math.min(1, window.scrollY / max) : 0);
-        };
-        h();
-        window.addEventListener('scroll', h, { passive: true });
-        window.addEventListener('resize', h);
-        return () => { window.removeEventListener('scroll', h); window.removeEventListener('resize', h); };
-    }, []);
-    return p;
-}
-
-/* ── Reveal wrapper ──────────────────────────────────────────────────────── */
-const Reveal = ({ children, delay = 0, direction = 'up', className = '', as: Tag = 'div' }) => {
-    const [ref, vis] = useReveal();
-    const t = {
-        up: 'translateY(46px)', down: 'translateY(-34px)',
-        left: 'translateX(46px)', right: 'translateX(-46px)',
-        scale: 'scale(0.94)', none: 'none',
-    };
-    return (
-        <Tag ref={ref} className={className} style={{
-            opacity: vis ? 1 : 0,
-            transform: vis ? 'none' : (t[direction] || t.up),
-            transition: `opacity 0.9s cubic-bezier(0.22,1,0.36,1) ${delay}s, transform 0.9s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
-            willChange: 'opacity, transform',
-        }}>
-            {children}
-        </Tag>
-    );
-};
-
-/* ── Animated counter (locale-formatted, easing, decimals) ───────────────── */
-const fmtNum = (n, decimals = 0, group = true) => {
-    const v = decimals > 0 ? Number(n).toFixed(decimals) : String(Math.round(n));
-    if (!group) return v;
-    const [int, dec] = v.split('.');
-    const gi = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return dec ? `${gi}.${dec}` : gi;
-};
-
-const AnimCounter = ({ end, decimals = 0, group = false, suffix = '', prefix = '', duration = 1900 }) => {
-    const reduced = usePrefersReducedMotion();
+/* ── Animated Counter Hook ─────────────────────────────────────────────────── */
+function AnimCounter({ end, decimals = 0, suffix = '', prefix = '', duration = 1800 }) {
     const [val, setVal] = useState(0);
-    const [ref, vis] = useReveal({ threshold: 0.4 });
-    const ran = useRef(false);
-    useEffect(() => {
-        if (!vis || ran.current) return;
-        ran.current = true;
-        if (reduced) { setVal(end); return; }
-        const start = performance.now();
-        const tick = (now) => {
-            const p = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - p, 4);
-            setVal(eased * end);
-            if (p < 1) requestAnimationFrame(tick);
-            else setVal(end);
-        };
-        requestAnimationFrame(tick);
-    }, [vis, reduced, end, duration]);
-    return <span ref={ref}>{prefix}{fmtNum(val, decimals, group)}{suffix}</span>;
-};
-
-/* ── Magnetic button (Inertia Link) ──────────────────────────────────────── */
-const MagBtn = ({ children, href, variant = 'primary', className = '', onClick }) => {
-    const reduced = usePrefersReducedMotion();
-    const r = useRef(null);
-    const onMove = useCallback(e => {
-        if (reduced) return;
-        const b = r.current; if (!b) return;
-        const rect = b.getBoundingClientRect();
-        b.style.transform = `translate(${(e.clientX - rect.left - rect.width / 2) * 0.18}px, ${(e.clientY - rect.top - rect.height / 2) * 0.28}px)`;
-    }, [reduced]);
-    const onLeave = useCallback(() => { if (r.current) r.current.style.transform = ''; }, []);
-
-    /* These live in a plain object rather than a className attribute, so they
-       need their light/dark pairs written by hand. `glow` and `accent` sit on
-       saturated backgrounds and stay white in both themes. */
-    const variants = {
-        primary: 'px-9 py-4 bg-void-900 dark:bg-white text-white dark:text-void-900 font-bold text-[15px] rounded-full shadow-[0_8px_40px_-8px_rgba(15,23,42,0.35)] dark:shadow-[0_8px_40px_-8px_rgba(255,255,255,0.35)] hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-500)/0.45)] dark:hover:shadow-[0_0_70px_-6px_rgb(var(--vq-ramp-teal-400)/0.55)]',
-        glow: 'px-9 py-4 text-white font-bold text-[15px] rounded-full vq-cta-glow',
-        ghost: 'px-8 py-4 bg-void-900/[0.04] dark:bg-white/[0.04] border border-void-900/10 dark:border-white/12 text-ink font-bold text-[15px] rounded-full hover:bg-interactive-hover/[0.08] dark:hover:bg-white/[0.08] hover:border-line-strong dark:hover:border-white/25 backdrop-blur-md',
-        accent: 'px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-full shadow-xl ',
-    };
-    return (
-        <Link ref={r} href={href || '/register'} onClick={onClick}
-            className={`group/btn relative inline-flex items-center justify-center gap-2.5 transition-[transform,box-shadow,background] duration-slow ease-[cubic-bezier(0.22,1,0.36,1)] ${variants[variant]} ${className}`}>
-            {children}
-        </Link>
-    );
-};
-
-/* ── Eyebrow label ───────────────────────────────────────────────────────── */
-const Eyebrow = ({ children, icon: Ic, tone = 'indigo' }) => {
-    const tones = {
-        indigo: 'bg-brand-500/10 border-brand-400/20 text-brand-300',
-        cyan: 'bg-cyan-500/10 border-cyan-400/20 text-cyan-300',
-        amber: 'bg-amber-500/10 border-amber-400/20 text-amber-300',
-        emerald: 'bg-emerald-500/10 border-emerald-400/20 text-emerald-300',
-        rose: 'bg-rose-500/10 border-rose-400/20 text-rose-300',
-        violet: 'bg-brand-500/10 border-brand-400/20 text-brand-300', // 'violet' tone now renders V6 brand teal, not off-brand violet
-    };
-    return (
-        <div className={`inline-flex items-center gap-2.5 px-4 py-2 rounded-full border ${tones[tone]} text-2xs font-bold tracking-[0.32em] uppercase mb-7 backdrop-blur-sm`}>
-            {Ic && <Ic size={13} />}
-            {children}
-        </div>
-    );
-};
-
-/* ── Glass surface ───────────────────────────────────────────────────────── */
-const Glass = ({ children, className = '', glow = false }) => (
-    <div className={`relative rounded-xl border border-line dark:border-white/[0.08] bg-white/[0.025] backdrop-blur-xl ${glow ? 'shadow-[0_30px_120px_-40px_rgb(var(--vq-ramp-teal-500)/0.45)]' : ''} ${className}`}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-xl" />
-        {children}
-    </div>
-);
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   SECTION 2 · "WHAT WRONG NUMBERS COST YOU" — three-part sequence
-   ──────────────────────────────────────────────────────────────────────────
-   Replaces the old static "Most business software quietly lies to you" block.
-   The old section asserted a claim in big type; these three prove it:
-
-     1. TrueCostCalculator — the reader's OWN numbers, so the problem stops
-        being abstract. Nothing is sent anywhere; it is pure client-side math.
-     2. SameSaleSplit     — one transaction running down two systems at once,
-        so the *mechanism* is visible rather than described.
-     3. LedgerTape        — an endless stream of balanced entries, debits and
-        credits always equal, as ambient proof the engine holds.
-
-   All three are theme-aware and fully disabled under prefers-reduced-motion.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-const money = (n) => '$' + Math.round(n).toLocaleString('en-US');
-
-/* ── 2a · What wrong numbers actually cost ───────────────────────────────── */
-const TrueCostCalculator = () => {
-    const reduced = usePrefersReducedMotion();
-    const [revenue, setRevenue] = useState(80000);   // monthly, incl. tax
-    const [margin, setMargin] = useState(32);        // reported gross margin %
-    const [taxRate, setTaxRate] = useState(15);      // sales tax / VAT / GST %
-
-    /*
-     * Three costs, each traceable to a specific accounting mistake:
-     *
-     * 1. Tax booked as revenue. If a system records the gross till total as
-     *    revenue, the overstatement is revenue x rate/(1+rate) — the tax
-     *    portion that was never yours.
-     * 2. Averaged cost drift. When purchase costs overwrite each other, COGS
-     *    is stated at the wrong basis. 3% of COGS is a deliberately
-     *    conservative figure for a business with moving supplier prices.
-     * 3. Margin decisions made on the above. Pricing off an overstated margin
-     *    quietly gives away roughly a quarter of the drift again.
-     */
-    const { taxInflation, costDrift, decisionCost, annual, realMargin } = useMemo(() => {
-        const taxInflation = revenue * (taxRate / 100) / (1 + taxRate / 100);
-        const netRevenue = revenue - taxInflation;
-        const cogs = netRevenue * (1 - margin / 100);
-        const costDrift = cogs * 0.03;
-        const decisionCost = costDrift * 0.25;
-        const monthly = taxInflation === 0 ? costDrift + decisionCost : costDrift + decisionCost;
-        const realGross = netRevenue - (cogs + costDrift);
-        return {
-            taxInflation,
-            costDrift,
-            decisionCost,
-            annual: monthly * 12,
-            realMargin: netRevenue > 0 ? (realGross / netRevenue) * 100 : 0,
-        };
-    }, [revenue, margin, taxRate]);
-
-    const Slider = ({ label, value, onChange, min, max, step, format }) => (
-        <div>
-            <div className="flex items-baseline justify-between mb-2">
-                <label className="text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted">{label}</label>
-                <span className="text-lg font-bold text-ink tabular-nums" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                    {format(value)}
-                </span>
-            </div>
-            <input
-                type="range" min={min} max={max} step={step} value={value}
-                onChange={(e) => onChange(Number(e.target.value))}
-                aria-label={label}
-                className="vq-range w-full"
-            />
-        </div>
-    );
-
-    return (
-        <Glass className="p-7 md:p-10" glow>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                {/* Inputs */}
-                <div className="lg:col-span-5 space-y-7">
-                    <div>
-                        <h3 className="text-xl font-bold text-ink tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                            Your numbers.
-                        </h3>
-                        <p className="text-sm text-ink-muted leading-relaxed">
-                            Move the sliders. Everything is calculated in your browser — nothing is sent anywhere.
-                        </p>
-                    </div>
-                    <Slider label="Monthly revenue" value={revenue} onChange={setRevenue}
-                        min={5000} max={500000} step={5000} format={money} />
-                    <Slider label="Reported gross margin" value={margin} onChange={setMargin}
-                        min={5} max={70} step={1} format={(v) => `${v}%`} />
-                    <Slider label="Sales tax / VAT rate" value={taxRate} onChange={setTaxRate}
-                        min={0} max={30} step={1} format={(v) => `${v}%`} />
-                </div>
-
-                {/* Output */}
-                <div className="lg:col-span-7">
-                    <div className="rounded-lg border border-rose-500/20 bg-rose-500/[0.06] p-7 md:p-8 mb-4">
-                        <p className="text-2xs font-bold uppercase tracking-[0.28em] text-rose-500 dark:text-rose-400 mb-3">
-                            Cost of wrong numbers · per year
-                        </p>
-                        <div
-                            className={`text-4xl md:text-6xl font-bold tracking-tighter text-ink tabular-nums ${reduced ? '' : 'transition-all duration-slower'}`}
-                            style={{ fontFamily: "'Space Grotesk',sans-serif" }}
-                        >
-                            {money(annual)}
-                        </div>
-                        <p className="text-sm text-ink-secondary mt-3 leading-relaxed">
-                            Not a fee anyone charges you. It is margin that leaks because the books were
-                            approximately right instead of exactly right.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {[
-                            {
-                                v: money(taxInflation), l: 'Tax counted as revenue', m: 'per month',
-                                note: 'Money you owe the government, sitting in your top line.',
-                                tone: 'border-amber-500/20 bg-amber-500/[0.05]', accent: 'text-amber-600 dark:text-amber-400',
-                            },
-                            {
-                                v: money(costDrift), l: 'Cost basis drift', m: 'per month',
-                                note: 'COGS stated from averaged costs that overwrote the real ones.',
-                                tone: 'border-rose-500/20 bg-rose-500/[0.05]', accent: 'text-rose-600 dark:text-rose-400',
-                            },
-                            {
-                                v: `${realMargin.toFixed(1)}%`, l: 'Your actual margin', m: `reported as ${margin}%`,
-                                note: 'The gap between these two is where pricing decisions go wrong.',
-                                tone: 'border-brand-500/20 bg-brand-500/[0.05]', accent: 'text-brand-600 dark:text-brand-400',
-                            },
-                        ].map((c, i) => (
-                            <div key={i} className={`p-5 rounded-2xl border ${c.tone}`}>
-                                <div className={`text-2xl font-bold tracking-tight tabular-nums ${c.accent}`} style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    {c.v}
-                                </div>
-                                <div className="text-2xs font-bold uppercase tracking-[0.18em] text-ink-secondary mt-1.5">{c.l}</div>
-                                <div className="text-3xs uppercase tracking-widest text-ink-muted mt-0.5">{c.m}</div>
-                                <p className="text-xs text-ink-muted mt-3 leading-relaxed">{c.note}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </Glass>
-    );
-};
-
-/* ── 2b · The same sale, two systems ─────────────────────────────────────── */
-const SALE_STEPS = [
-    {
-        t: 'Customer pays $115',
-        typical: { line: 'Revenue +$115', ok: false, note: 'Tax folded into the top line' },
-        venqore: { line: 'Revenue +$100 · Tax payable +$15', ok: true, note: 'Split at the ledger' },
-    },
-    {
-        t: 'Stock leaves the shelf',
-        typical: { line: 'COGS −$62 (average cost)', ok: false, note: 'Basis overwritten 3 purchases ago' },
-        venqore: { line: 'COGS −$58 (batch #2941, FIFO)', ok: true, note: 'The cost you actually paid' },
-    },
-    {
-        t: 'Profit is calculated',
-        typical: { line: 'Gross profit $53', ok: false, note: 'Off by $11 — and nothing flags it' },
-        venqore: { line: 'Gross profit $42', ok: true, note: 'Reconciles to the general ledger' },
-    },
-    {
-        t: 'Someone edits the sale',
-        typical: { line: 'Row overwritten silently', ok: false, note: 'No trail, no reversal' },
-        venqore: { line: 'Reversing entry + new entry', ok: true, note: 'Both immutable, both visible' },
-    },
-];
-
-const SameSaleSplit = () => {
-    const reduced = usePrefersReducedMotion();
-    const [ref, inView] = useInView(0.3);
-    const [step, setStep] = useState(reduced ? SALE_STEPS.length - 1 : -1);
-
-    useEffect(() => {
-        if (reduced) { setStep(SALE_STEPS.length - 1); return; }
-        if (!inView) return;
-        // Restart the walkthrough each time the section scrolls back in.
-        setStep(-1);
-        let i = -1;
-        const id = setInterval(() => {
-            i += 1;
-            setStep(i);
-            if (i >= SALE_STEPS.length - 1) clearInterval(id);
-        }, 1100);
-        return () => clearInterval(id);
-    }, [inView, reduced]);
-
-    const Column = ({ side, title, subtitle }) => {
-        const isVq = side === 'venqore';
-        return (
-            <div className={`rounded-lg border p-6 ${isVq
-                ? 'border-emerald-500/25 bg-emerald-500/[0.04]'
-                : 'border-line dark:border-white/[0.08] bg-sunken dark:bg-white/[0.02]'}`}>
-                <div className="mb-5">
-                    <h4 className={`text-base font-bold tracking-tight ${isVq ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-secondary'}`}
-                        style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                        {title}
-                    </h4>
-                    <p className="text-2xs uppercase tracking-[0.2em] text-ink-muted mt-1">{subtitle}</p>
-                </div>
-                <div className="space-y-2.5">
-                    {SALE_STEPS.map((s, i) => {
-                        const cell = s[side];
-                        const shown = i <= step;
-                        return (
-                            <div
-                                key={i}
-                                className={`p-3.5 rounded-xl border transition-all duration-slower ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'} ${
-                                    cell.ok
-                                        ? 'border-emerald-500/20 bg-emerald-500/[0.06]'
-                                        : 'border-rose-500/20 bg-rose-500/[0.05]'
-                                }`}
-                            >
-                                <div className="flex items-start gap-2.5">
-                                    {cell.ok
-                                        ? <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                                        : <AlertTriangle size={15} className="text-rose-500 shrink-0 mt-0.5" />}
-                                    <div className="min-w-0">
-                                        <div className="text-sm font-bold text-ink tabular-nums">{cell.line}</div>
-                                        <div className="text-2xs text-ink-muted mt-0.5">{cell.note}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        );
-    };
-
-    return (
-        <div ref={ref}>
-            {/* Step rail */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-7">
-                {SALE_STEPS.map((s, i) => (
-                    <div
-                        key={i}
-                        className={`px-3.5 py-1.5 rounded-full text-2xs font-bold uppercase tracking-[0.15em] border transition-all duration-slower ${
-                            i <= step
-                                ? 'border-brand-500/40 bg-brand-500/10 text-brand-600 dark:text-brand-300'
-                                : 'border-line dark:border-white/[0.08] text-ink-muted'
-                        }`}
-                    >
-                        {s.t}
-                    </div>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Column side="typical" title="A typical POS" subtitle="Numbers that drift" />
-                <Column side="venqore" title="VenQore" subtitle="Numbers that reconcile" />
-            </div>
-
-            <p className="text-center text-sm text-ink-muted mt-7 max-w-2xl mx-auto leading-relaxed">
-                Same customer. Same $115. One system ends the day $11 wrong on a single sale and cannot tell you why —
-                the other can show you the journal entry.
-            </p>
-        </div>
-    );
-};
-
-/* ── 2c · The ledger tape ────────────────────────────────────────────────── */
-const TAPE_ROWS = [
-    { ref: 'SL-4471', d: 'Cash', c: 'Sales revenue', amt: 1240.00 },
-    { ref: 'SL-4471', d: 'Cost of goods sold', c: 'Inventory', amt: 742.16 },
-    { ref: 'PU-1188', d: 'Inventory', c: 'Accounts payable', amt: 8600.00 },
-    { ref: 'SL-4472', d: 'Accounts receivable', c: 'Sales revenue', amt: 3175.50 },
-    { ref: 'SL-4472', d: 'Cost of goods sold', c: 'Inventory', amt: 1904.30 },
-    { ref: 'EX-0913', d: 'Rent expense', c: 'Bank', amt: 2400.00 },
-    { ref: 'RT-0221', d: 'Sales returns', c: 'Cash', amt: 318.75 },
-    { ref: 'RT-0221', d: 'Inventory', c: 'Cost of goods sold', amt: 191.25 },
-    { ref: 'SL-4473', d: 'Cash', c: 'Sales revenue', amt: 96.40 },
-    { ref: 'SL-4473', d: 'Cash', c: 'Tax payable', amt: 14.46 },
-    { ref: 'TF-0044', d: 'Inventory · Branch 2', c: 'Inventory · Branch 1', amt: 5120.00 },
-    { ref: 'PY-2210', d: 'Accounts payable', c: 'Bank', amt: 8600.00 },
-];
-
-const LedgerTape = () => {
-    const reduced = usePrefersReducedMotion();
-    const [ref, inView] = useInView(0.25);
-    const [head, setHead] = useState(0);
-
-    useEffect(() => {
-        if (reduced || !inView) return;
-        const id = setInterval(() => setHead((h) => (h + 1) % TAPE_ROWS.length), 1400);
-        return () => clearInterval(id);
-    }, [inView, reduced]);
-
-    // Six rows visible at a time, newest on top.
-    const visible = Array.from({ length: 6 }, (_, i) => {
-        const row = TAPE_ROWS[(head + i) % TAPE_ROWS.length];
-        return { ...row, key: `${head}-${i}`, fade: i / 6 };
-    });
-    const totalDr = visible.reduce((s, r) => s + r.amt, 0);
-
-    return (
-        <div ref={ref} className="rounded-lg border border-line dark:border-white/[0.08] bg-sunken dark:bg-app overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-line dark:border-white/[0.06]">
-                <div className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                    <span className="text-2xs font-bold uppercase tracking-[0.22em] text-ink-muted">
-                        General ledger · posting live
-                    </span>
-                </div>
-                <span className="hidden sm:block text-2xs font-mono text-ink-muted">double-entry · DECIMAL(20,4)</span>
-            </div>
-
-            <div className="divide-y divide-line dark:divide-white/[0.04]">
-                {visible.map((r, i) => (
-                    <div
-                        key={r.key}
-                        className={`grid grid-cols-12 gap-2 px-5 py-3 text-xs ${i === 0 && !reduced ? 'vq-row-in' : ''}`}
-                        style={{ opacity: 1 - r.fade * 0.75 }}
-                    >
-                        <span className="col-span-2 font-mono text-ink-muted">{r.ref}</span>
-                        <span className="col-span-4 font-semibold text-ink-secondary dark:text-ink truncate">{r.d}</span>
-                        <span className="col-span-4 text-ink-muted truncate">{r.c}</span>
-                        <span className="col-span-2 text-right font-bold tabular-nums text-ink">
-                            {r.amt.toFixed(2)}
-                        </span>
-                    </div>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-2 border-t border-line dark:border-white/[0.06]">
-                {[
-                    { l: 'Total debits', v: totalDr },
-                    { l: 'Total credits', v: totalDr },
-                ].map((t, i) => (
-                    <div key={i} className={`px-5 py-4 ${i === 0 ? 'border-r border-line dark:border-white/[0.06]' : ''}`}>
-                        <div className="text-3xs font-bold uppercase tracking-[0.2em] text-ink-muted">{t.l}</div>
-                        <div className="text-lg font-bold tabular-nums text-ink mt-0.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                            {t.v.toFixed(2)}
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500/[0.07] border-t border-emerald-500/15">
-                <CheckCircle2 size={14} className="text-emerald-500" />
-                <span className="text-2xs font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
-                    Balanced — every entry, every time
-                </span>
-            </div>
-        </div>
-    );
-};
-
-/* ── Scroll progress bar ─────────────────────────────────────────────────── */
-const ScrollProgressBar = () => {
-    const p = useScrollProgress();
-    return (
-        <div className="fixed top-0 left-0 right-0 z-sticky h-[2px] bg-transparent">
-            <div className="h-full bg-gradient-to-r from-brand-600 via-brand-400 to-brand-500 origin-left transition-transform duration-fast ease-out"
-                style={{ transform: `scaleX(${p})`, width: '100%' }} />
-        </div>
-    );
-};
-
-/* ── Floating particle field (subtle dust; desktop + motion only) ─────────── */
-const ParticleField = () => {
-    const reduced = usePrefersReducedMotion();
-    const canvasRef = useRef(null);
-    useEffect(() => {
-        if (reduced || window.matchMedia('(pointer: coarse)').matches) return;
-        const canvas = canvasRef.current; if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        let w, h, raf = 0, particles = [], running = true;
-        const COLORS = ['rgba(129,140,248,', 'rgba(167,139,250,', 'rgba(34,211,238,'];
-        const resize = () => {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-            const count = Math.min(64, Math.floor(w / 30));
-            particles = Array.from({ length: count }, () => ({
-                x: Math.random() * w, y: Math.random() * h,
-                r: Math.random() * 1.5 + 0.4,
-                vy: -(Math.random() * 0.22 + 0.05),
-                vx: (Math.random() - 0.5) * 0.1,
-                a: Math.random() * 0.32 + 0.06,
-                c: COLORS[(Math.random() * COLORS.length) | 0],
-                tw: Math.random() * Math.PI * 2,
-            }));
-        };
-        const draw = () => {
-            if (!running) return;
-            ctx.clearRect(0, 0, w, h);
-            for (const p of particles) {
-                p.y += p.vy; p.x += p.vx; p.tw += 0.02;
-                if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
-                if (p.x < -10) p.x = w + 10; else if (p.x > w + 10) p.x = -10;
-                const a = p.a * (0.55 + 0.45 * Math.sin(p.tw));
-                ctx.beginPath();
-                ctx.fillStyle = p.c + a.toFixed(3) + ')';
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            raf = requestAnimationFrame(draw);
-        };
-        const onVis = () => { running = !document.hidden; if (running) { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); } };
-        resize(); draw();
-        window.addEventListener('resize', resize);
-        document.addEventListener('visibilitychange', onVis);
-        return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVis); };
-    }, [reduced]);
-    if (reduced) return null;
-    return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 hidden md:block" style={{ opacity: 0.55 }} />;
-};
-
-/* ── Ambient background: deep gradient + beams + edge glows + vignette ─────── */
-/* No raster images — solid gradient base keeps every component crisp & legible. */
-const Ambient = () => (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Deep gradient base (single cohesive color field) */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 95% at 50% -10%, #0c0922 0%, #070518 46%, #040210 100%)' }} />
-        {/* Volumetric light beams fanning from the top */}
-        <div className="absolute -top-[10%] left-1/2 w-[140vw] h-[85vh] -translate-x-1/2 vq-beams" />
-        {/* Edge-confined glows (low opacity, away from content) */}
-        <div className="absolute top-[-26%] left-[-16%] w-[52vw] h-[52vw] rounded-full blur-[190px] vq-blob"
-            style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / 0.15), transparent 62%)' }} />
-        <div className="absolute top-[-22%] right-[-16%] w-[48vw] h-[48vw] rounded-full blur-[190px] vq-blob-2"
-            style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-teal-400) / 0.12), transparent 62%)' }} />
-        <div className="absolute bottom-[-28%] left-[28%] w-[46vw] h-[46vw] rounded-full blur-[210px] vq-blob"
-            style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.07), transparent 62%)' }} />
-        {/* Subtle grid */}
-        <div className="absolute inset-0 vq-grid opacity-[0.35]" />
-        {/* Center-darkening vignette → guarantees readable foreground */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(95% 75% at 50% 40%, rgba(4,2,12,0) 0%, rgba(4,2,12,0.5) 100%)' }} />
-        <div className="absolute inset-0 vq-grain opacity-[0.3]" />
-    </div>
-);
-
-/* ── Cursor spotlight (desktop, motion-on only) ──────────────────────────── */
-const Spotlight = () => {
-    const reduced = usePrefersReducedMotion();
     const ref = useRef(null);
+    const ran = useRef(false);
+
     useEffect(() => {
-        if (reduced || window.matchMedia('(pointer: coarse)').matches) return;
         const el = ref.current;
-        let raf = 0, tx = 0, ty = 0, cx = 0, cy = 0;
-        const move = (e) => { tx = e.clientX; ty = e.clientY; if (!raf) raf = requestAnimationFrame(loop); };
-        const loop = () => {
-            cx += (tx - cx) * 0.12; cy += (ty - cy) * 0.12;
-            if (el) el.style.transform = `translate(${cx}px, ${cy}px)`;
-            raf = Math.abs(tx - cx) > 0.5 || Math.abs(ty - cy) > 0.5 ? requestAnimationFrame(loop) : 0;
-        };
-        window.addEventListener('pointermove', move, { passive: true });
-        return () => { window.removeEventListener('pointermove', move); cancelAnimationFrame(raf); };
-    }, [reduced]);
-    if (reduced) return null;
-    return (
-        <div className="fixed inset-0 pointer-events-none z-base hidden md:block">
-            <div ref={ref} className="absolute -left-[300px] -top-[300px] w-[600px] h-[600px] rounded-full"
-                style={{ background: 'radial-gradient(circle, rgb(var(--vq-ramp-teal-500) / 0.07), transparent 60%)' }} />
-        </div>
-    );
-};
+        if (!el) return;
+        const obs = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting && !ran.current) {
+                ran.current = true;
+                const start = performance.now();
+                const target = Number(end);
+                const step = (now) => {
+                    const progress = Math.min(1, (now - start) / duration);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    setVal(target * eased);
+                    if (progress < 1) requestAnimationFrame(step);
+                    else setVal(target);
+                };
+                requestAnimationFrame(step);
+            }
+        }, { threshold: 0.2 });
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, [end, duration]);
 
-/* ── SVG smooth-path helpers ─────────────────────────────────────────────── */
-const _line = (a, b) => ({ len: Math.hypot(b[0] - a[0], b[1] - a[1]), ang: Math.atan2(b[1] - a[1], b[0] - a[0]) });
-const _ctrl = (cur, prev, next, rev) => {
-    prev = prev || cur; next = next || cur;
-    const o = _line(prev, next); const ang = o.ang + (rev ? Math.PI : 0); const len = o.len * 0.16;
-    return [cur[0] + Math.cos(ang) * len, cur[1] + Math.sin(ang) * len];
-};
-const smoothPath = (pts) => pts.reduce((acc, p, i, a) => {
-    if (i === 0) return `M ${p[0]},${p[1]}`;
-    const cs = _ctrl(a[i - 1], a[i - 2], p, false);
-    const ce = _ctrl(p, a[i - 1], a[i + 1], true);
-    return `${acc} C ${cs[0]},${cs[1]} ${ce[0]},${ce[1]} ${p[0]},${p[1]}`;
-}, '');
-
-/* ── Revenue Analytics chart — dual area (Sales + Gross Profit), real colors ── */
-const REV_SETS = {
-    Today: { s: [140, 132, 150, 128, 142, 120, 130, 110, 124, 104, 116, 92, 102, 84, 92, 70], p: 0.42 },
-    Month: { s: [168, 160, 150, 156, 138, 146, 128, 136, 120, 128, 108, 116, 96, 104, 84, 64], p: 0.50 },
-    Year:  { s: [176, 158, 164, 146, 150, 132, 138, 120, 128, 106, 114, 92, 100, 78, 70, 52], p: 0.46 },
-};
-const RevenueChart = ({ height = 210, tab = 'Month', reduced = false }) => {
-    const [ref, inView] = useInView(0.3);
-    const W = 520, H = 240;
-    const set = REV_SETS[tab] || REV_SETS.Month;
-    const ptsS = useMemo(() => set.s.map((y, i) => [(i * (W - 16)) / (set.s.length - 1) + 8, y]), [tab]);
-    const ptsP = useMemo(() => ptsS.map(([x, y]) => [x, Math.min(232, y + 34 + (1 - set.p) * 30)]), [ptsS]);
-    const lineS = useMemo(() => smoothPath(ptsS), [ptsS]);
-    const lineP = useMemo(() => smoothPath(ptsP), [ptsP]);
-    const areaS = `${lineS} L ${ptsS[ptsS.length - 1][0]},${H} L ${ptsS[0][0]},${H} Z`;
-    const areaP = `${lineP} L ${ptsP[ptsP.length - 1][0]},${H} L ${ptsP[0][0]},${H} Z`;
-    const last = ptsS[ptsS.length - 1];
-    const drawn = reduced || inView;
-    return (
-        <div ref={ref} className="relative w-full">
-            <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={height} preserveAspectRatio="none" className="overflow-visible">
-                <defs>
-                    <linearGradient id="vqSales" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity="0.34" />
-                        <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity="0" />
-                    </linearGradient>
-                    <linearGradient id="vqProfit" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity="0.40" />
-                        <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity="0.04" />
-                    </linearGradient>
-                </defs>
-                {[60, 120, 180].map(y => (
-                    <line key={y} x1="0" y1={y} x2={W} y2={y} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" strokeWidth="1" />
-                ))}
-                <path key={`pa-${tab}`} d={areaP} fill="url(#vqProfit)" style={{ opacity: drawn ? 1 : 0, transition: 'opacity 1s ease 0.5s' }} />
-                <path key={`sa-${tab}`} d={areaS} fill="url(#vqSales)" style={{ opacity: drawn ? 1 : 0, transition: 'opacity 1s ease 0.6s' }} />
-                <path key={`pl-${tab}`} d={lineP} fill="none" stroke={vq.emerald[500]} strokeWidth="2.5" strokeLinecap="round" pathLength="1"
-                    style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: reduced ? 'none' : 'stroke-dashoffset 1.7s cubic-bezier(0.65,0,0.35,1) 0.15s' }} />
-                <path key={`sl-${tab}`} d={lineS} fill="none" stroke={vq.indigo[500]} strokeWidth="3" strokeLinecap="round" pathLength="1"
-                    style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: reduced ? 'none' : 'stroke-dashoffset 1.7s cubic-bezier(0.65,0,0.35,1)', filter: 'drop-shadow(0 6px 16px rgb(var(--vq-ramp-teal-500) / 0.45))' }} />
-                <g style={{ opacity: drawn ? 1 : 0, transition: 'opacity 0.6s ease 1.5s' }}>
-                    <circle cx={last[0]} cy={last[1]} r="9" fill="rgb(var(--vq-ramp-teal-500) / 0.2)" className={reduced ? '' : 'vq-ping'} />
-                    <circle cx={last[0]} cy={last[1]} r="4" fill={vq.indigo[400]} />
-                </g>
-            </svg>
-        </div>
-    );
-};
-
-/* ── Live activity feed (mirrors the real dashboard RightPanel "Activity") ── */
-const ACTIVITY_POOL = [
-    { type: 'Sale', ref: 'INV-2041', amt: '+ 1,250', dir: 'in', tone: 'blue' },
-    { type: 'Purchase', ref: 'GRN-118', amt: '- 3,400', dir: 'out', tone: 'amber' },
-    { type: 'Payment In', ref: 'RCP-330', amt: '+ 5,000', dir: 'in', tone: 'emerald' },
-    { type: 'Expense', ref: 'Utilities', amt: '- 145', dir: 'out', tone: 'red' },
-    { type: 'Return', ref: 'CRN-07', amt: '- 220', dir: 'out', tone: 'rose' },
-    { type: 'Sale', ref: 'INV-2042', amt: '+ 860', dir: 'in', tone: 'blue' },
-    { type: 'Transfer', ref: 'WT-12', amt: '980', dir: 'move', tone: 'orange' },
-];
-const ACT_TONE = {
-    blue: 'bg-blue-500/20 text-blue-300', amber: 'bg-amber-500/20 text-amber-300',
-    emerald: 'bg-emerald-500/20 text-emerald-300', red: 'bg-red-500/20 text-red-300',
-    rose: 'bg-rose-500/20 text-rose-300', orange: 'bg-orange-500/20 text-orange-300',
-};
-const TIMES = ['just now', '2m ago', '6m ago', '11m ago', '18m ago', '25m ago'];
-const ActivityRow = ({ a, fresh, t }) => (
-    <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-interactive-hover/[0.04] dark:hover:bg-white/5 transition-colors ${fresh ? 'vq-row-in' : ''}`}>
-        <div className="flex items-center gap-2.5 min-w-0">
-            <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${ACT_TONE[a.tone]}`}>
-                {a.dir === 'in' ? <ArrowDownRight size={12} /> : a.dir === 'move' ? <RefreshCw size={12} /> : <ArrowUpRight size={12} />}
-            </div>
-            <div className="leading-tight min-w-0">
-                <div className="text-1xs font-semibold text-ink/90 truncate">{a.type} <span className="text-ink-muted font-mono">· {a.ref}</span></div>
-                <div className="text-3xs text-ink-muted">{t}</div>
-            </div>
-        </div>
-        <span className={`text-1xs font-bold tabular-nums shrink-0 ${a.dir === 'in' ? 'text-emerald-600 dark:text-emerald-400' : a.dir === 'move' ? 'text-orange-300' : 'text-ink-secondary'}`}>{a.amt}</span>
-    </div>
-);
-const ActivityFeed = () => {
-    const reduced = usePrefersReducedMotion();
-    const [ref, inView] = useInView(0.25);
-    const [rows, setRows] = useState(() => [0, 1, 2, 3, 4].map(i => ({ ...ACTIVITY_POOL[i], k: i })));
-    const ptr = useRef(5); const idk = useRef(100);
-    useEffect(() => {
-        if (reduced || !inView) return;
-        const tm = setInterval(() => {
-            const a = { ...ACTIVITY_POOL[ptr.current % ACTIVITY_POOL.length], k: idk.current++ };
-            ptr.current++;
-            setRows(prev => [a, ...prev].slice(0, 5));
-        }, 2400);
-        return () => clearInterval(tm);
-    }, [reduced, inView]);
-    return (
-        <div ref={ref} className="space-y-0.5">
-            {rows.map((a, i) => <ActivityRow key={a.k} a={a} fresh={i === 0 && !reduced} t={TIMES[i]} />)}
-        </div>
-    );
-};
-
-/* ── Hero command center (glass window + tilt + parallax chips) ───────────── */
-const railIcons = [Gauge, ShoppingCart, Boxes, Users, BarChart3, Wallet, Cpu];
-const HeroDashboard = () => {
-    const reduced = usePrefersReducedMotion();
-    const wrapRef = useRef(null);
-    const cardRef = useRef(null);
-    const chipRefs = useRef([]);
-    const [revTab, setRevTab] = useState('Month');
-    useEffect(() => {
-        if (reduced) return;
-        const t = setInterval(() => setRevTab(p => (p === 'Today' ? 'Month' : p === 'Month' ? 'Year' : 'Today')), 4200);
-        return () => clearInterval(t);
-    }, [reduced]);
-    const onMove = useCallback((e) => {
-        if (reduced || !wrapRef.current) return;
-        const r = wrapRef.current.getBoundingClientRect();
-        const dx = (e.clientX - r.left) / r.width - 0.5;
-        const dy = (e.clientY - r.top) / r.height - 0.5;
-        if (cardRef.current) cardRef.current.style.transform =
-            `perspective(1600px) rotateY(${dx * 7}deg) rotateX(${-dy * 7}deg) translateZ(0)`;
-        chipRefs.current.forEach((c, i) => {
-            if (!c) return;
-            const depth = (i % 3 + 1) * 10;
-            c.style.transform = `translate(${dx * depth}px, ${dy * depth}px)`;
-        });
-    }, [reduced]);
-    const onLeave = useCallback(() => {
-        if (cardRef.current) cardRef.current.style.transform = 'perspective(1600px) rotateY(0) rotateX(0)';
-        chipRefs.current.forEach(c => { if (c) c.style.transform = ''; });
-    }, []);
-    const setChip = (i) => (el) => { chipRefs.current[i] = el; };
+    const formatted = decimals > 0
+        ? val.toFixed(decimals)
+        : Math.round(val).toLocaleString();
 
     return (
-        <div ref={wrapRef} onMouseMove={onMove} onMouseLeave={onLeave} className="relative mx-auto w-full max-w-5xl">
-            {/* Floating chips */}
-            <div ref={setChip(0)} className="hidden md:flex absolute -left-6 top-16 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-400/20 backdrop-blur-xl shadow-2xl vq-float">
-                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
-                <span className="text-1xs font-bold text-emerald-200">Balanced to the cent</span>
-            </div>
-            <div ref={setChip(1)} className="hidden md:flex absolute -right-4 top-32 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-brand-500/10 border border-brand-400/20 backdrop-blur-xl shadow-2xl vq-float-2">
-                <ScanBarcode size={16} className="text-brand-300" />
-                <span className="text-1xs font-bold text-brand-100">Scan → Journal · 1.2s</span>
-            </div>
-            <div ref={setChip(2)} className="hidden lg:flex absolute -left-10 bottom-24 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 backdrop-blur-xl shadow-2xl vq-float-3">
-                <Layers size={16} className="text-cyan-300" />
-                <span className="text-1xs font-bold text-cyan-100">FIFO COGS per batch</span>
-            </div>
-            <div ref={setChip(3)} className="hidden md:flex absolute -right-8 bottom-16 z-20 items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-400/20 backdrop-blur-xl shadow-2xl vq-float">
-                <TrendingUp size={16} className="text-amber-300" />
-                <span className="text-1xs font-bold text-amber-100">+18.4% MoM</span>
-            </div>
-
-            {/* Glass window */}
-            <div ref={cardRef} className="relative z-10 rounded-xl border border-line dark:border-white/[0.08] bg-void-950/70 backdrop-blur-2xl shadow-[0_50px_160px_-50px_rgb(var(--vq-ramp-teal-500)/0.6)] overflow-hidden transition-transform duration-slow ease-out">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                {/* window bar */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-line dark:border-white/[0.06]">
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-3 h-3 rounded-full bg-rose-400/70" />
-                        <span className="w-3 h-3 rounded-full bg-amber-400/70" />
-                        <span className="w-3 h-3 rounded-full bg-emerald-400/70" />
-                    </div>
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.06]">
-                        <Lock size={10} className="text-ink-muted" />
-                        <span className="text-2xs font-mono text-ink-muted">app.venqore.com/dashboard</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                        <span className="text-3xs font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Live Sync</span>
-                    </div>
-                </div>
-                {/* body */}
-                <div className="flex">
-                    {/* rail */}
-                    <div className="hidden sm:flex flex-col items-center gap-4 py-5 px-3 border-r border-line dark:border-white/[0.06] bg-white/[0.015]">
-                        {railIcons.map((Ic, i) => (
-                            <div key={i} className={`w-9 h-9 rounded-xl flex items-center justify-center ${i === 0 ? 'bg-brand-500/20 text-brand-300' : 'text-ink-secondary'}`}>
-                                <Ic size={16} />
-                            </div>
-                        ))}
-                    </div>
-                    {/* main */}
-                    <div className="flex-1 p-4 sm:p-5 min-w-0">
-                        <div className="flex items-center justify-between mb-4">
-                            <div>
-                                <div className="text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted">VenQore</div>
-                                <div className="text-lg font-bold text-ink tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>Dashboard</div>
-                            </div>
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-400/20">
-                                <Sparkles size={12} className="text-brand-300" />
-                                <span className="text-2xs font-bold text-brand-200">AI Insight</span>
-                            </div>
-                        </div>
-
-                        {/* KPI row — real dashboard cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
-                            {/* Performance */}
-                            <div className="rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] p-3">
-                                <div className="flex items-center gap-2 mb-2.5">
-                                    <div className="p-1.5 rounded-lg bg-brand-500/15 text-brand-300"><TrendingUp size={14} /></div>
-                                    <span className="text-2xs font-bold uppercase tracking-wide text-ink-muted">Performance</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-ink-muted">Month <ChevronDown size={10} /></span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-sunken dark:bg-white/[0.06]" />
-                                    <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Sales</div>
-                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={1245670} group duration={2200} /></div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Gross Profit</div>
-                                        <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">$<AnimCounter end={772315} group duration={2400} /></div>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Outstanding */}
-                            <div className="rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] p-3">
-                                <div className="flex items-center gap-2 mb-2.5">
-                                    <div className="p-1.5 rounded-lg bg-orange-500/15 text-orange-300"><CreditCard size={14} /></div>
-                                    <span className="text-2xs font-bold uppercase tracking-wide text-ink-muted">Outstanding</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-ink-muted">Month <ChevronDown size={10} /></span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-sunken dark:bg-white/[0.06]" />
-                                    <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">To Receive</div>
-                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={84200} group duration={2200} /></div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">To Pay</div>
-                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={51940} group duration={2400} /></div>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Net Profit */}
-                            <div className="rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] p-3 relative overflow-hidden">
-                                <div className="absolute -right-3 -top-3 w-16 h-16 bg-emerald-500/10 rounded-full blur-2xl" />
-                                <div className="flex items-center gap-2 mb-2.5 relative">
-                                    <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-300"><Wallet size={14} /></div>
-                                    <span className="text-2xs font-bold uppercase tracking-wide text-ink-muted">Net Profit</span>
-                                    <span className="ml-auto inline-flex items-center gap-1 text-3xs font-bold text-ink-muted">Month <ChevronDown size={10} /></span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 relative">
-                                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-sunken dark:bg-white/[0.06]" />
-                                    <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Status</div>
-                                        <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Healthy</div>
-                                    </div>
-                                    <div className="text-center">
-                                        <div className="text-3xs uppercase font-bold text-ink-muted mb-0.5 tracking-wider">Net</div>
-                                        <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={184920} group duration={2400} /></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Revenue Analytics + Right panel */}
-                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
-                            <div className="lg:col-span-3 rounded-2xl border border-line dark:border-white/[0.06] bg-white/[0.015] p-3.5">
-                                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-1.5 rounded-lg bg-brand-500/15 text-brand-300"><TrendingUp size={14} /></div>
-                                        <span className="text-[13px] font-bold text-ink">Revenue Analytics</span>
-                                    </div>
-                                    <div className="flex bg-sunken dark:bg-white/[0.04] p-0.5 rounded-lg">
-                                        {['Today', 'Month', 'Year'].map(t => (
-                                            <button key={t} onClick={() => setRevTab(t)} className={`px-2.5 py-0.5 text-2xs font-bold rounded-md transition-all ${revTab === t ? 'bg-sunken dark:bg-white/10 text-brand-300' : 'text-ink-muted hover:text-neutral-300'}`}>{t}</button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 mb-1">
-                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-brand-500" /><span className="font-semibold text-ink-muted">Sales</span></span>
-                                    <span className="flex items-center gap-1.5 text-1xs"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /><span className="font-semibold text-ink-muted">Gross Profit</span></span>
-                                </div>
-                                <RevenueChart height={168} tab={revTab} reduced={reduced} />
-                            </div>
-
-                            <div className="lg:col-span-2 rounded-2xl border border-line dark:border-white/[0.06] bg-void-800 p-3.5 relative overflow-hidden">
-                                <div className="absolute -right-10 -top-10 w-40 h-40 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
-                                <div className="relative flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-sunken dark:bg-white/10 flex items-center justify-center"><Wallet size={15} className="text-ink" /></div>
-                                        <div>
-                                            <div className="text-3xs text-ink-muted font-medium">Total Balance</div>
-                                            <div className="text-sm font-bold text-ink tabular-nums">$<AnimCounter end={328400} group duration={2400} /></div>
-                                        </div>
-                                    </div>
-                                    <MoreHorizontal size={16} className="text-ink-muted" />
-                                </div>
-                                <div className="relative grid grid-cols-3 gap-1.5 mb-3">
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300"><ArrowDownRight size={14} /><span className="text-4xs font-bold tracking-wider">SALE</span></div>
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-orange-500/10 border border-orange-500/40 text-orange-300"><ArrowUpRight size={14} /><span className="text-4xs font-bold tracking-wider">PURCHASE</span></div>
-                                    <div className="flex flex-col items-center justify-center gap-1 py-2 rounded-xl bg-brand-500/10 border border-brand-500/40 text-brand-300"><Plus size={14} /><span className="text-4xs font-bold tracking-wider">ACTIONS</span></div>
-                                </div>
-                                <div className="relative grid grid-cols-2 gap-1.5 mb-3">
-                                    <div className="rounded-xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 p-2.5">
-                                        <div className="flex items-center gap-1.5 mb-1"><Wallet size={12} className="text-emerald-300" /><span className="text-3xs font-bold text-ink-secondary">Cash</span></div>
-                                        <div className="text-[12px] font-bold text-ink tabular-nums">$<AnimCounter end={142300} group duration={2200} /></div>
-                                    </div>
-                                    <div className="rounded-xl bg-gradient-to-br from-brand-500/10 to-brand-600/10 border border-brand-500/20 p-2.5">
-                                        <div className="flex items-center gap-1.5 mb-1"><Package size={12} className="text-brand-300" /><span className="text-3xs font-bold text-ink-secondary">Stock Value</span></div>
-                                        <div className="text-[12px] font-bold text-ink tabular-nums">$<AnimCounter end={486100} group duration={2400} /></div>
-                                    </div>
-                                </div>
-                                <div className="relative rounded-xl bg-black/30 border border-line dark:border-white/5 p-2.5">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Activity</span>
-                                        <span className="flex items-center gap-2 text-4xs text-ink-muted">
-                                            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Sale</span>
-                                            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" />Buy</span>
-                                        </span>
-                                    </div>
-                                    <ActivityFeed />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Bottom tables (lg+) */}
-                        <div className="hidden lg:grid grid-cols-5 gap-3 mt-3">
-                            <div className="col-span-3 rounded-2xl border border-line dark:border-white/[0.06] bg-white/[0.015] p-3.5">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
-                                    <span className="text-[13px] font-bold text-ink">Top Products</span>
-                                </div>
-                                <div className="space-y-1">
-                                    {[['🥤', 'Cola 500ml', 'Beverages', '312', '$1,840'], ['🍫', 'Dark Choco', 'Snacks', '268', '$1,210'], ['🧴', 'Hand Wash', 'Care', '190', '$980']].map((r, i) => (
-                                        <div key={i} className="flex items-center justify-between py-1.5">
-                                            <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className="w-7 h-7 rounded-lg bg-sunken dark:bg-white/5 border border-line dark:border-white/10 flex items-center justify-center text-sm">{r[0]}</div>
-                                                <div className="min-w-0"><div className="text-[12px] font-bold text-neutral-200 truncate">{r[1]}</div><div className="text-3xs text-ink-muted">{r[2]}</div></div>
-                                            </div>
-                                            <div className="flex items-center gap-3 shrink-0">
-                                                <span className="text-2xs font-semibold text-ink-muted bg-sunken dark:bg-white/5 px-1.5 py-0.5 rounded">{r[3]}</span>
-                                                <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums w-14 text-right">{r[4]}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="col-span-2 rounded-2xl border border-line dark:border-white/[0.06] bg-white/[0.015] p-3.5">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="w-1.5 h-4 rounded-full bg-red-500" />
-                                    <span className="text-[13px] font-bold text-ink">Low Stock Alerts</span>
-                                </div>
-                                <div className="space-y-2">
-                                    {[['SKU-492 · Alpha 12', '5', '20'], ['SKU-781 · Beta 4', '8', '25']].map((r, i) => (
-                                        <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-red-500/[0.06] border border-red-500/15">
-                                            <div className="min-w-0"><div className="text-1xs font-bold text-neutral-200 truncate">{r[0]}</div><div className="text-3xs text-red-400 font-bold">Stock: {r[1]} / {r[2]}</div></div>
-                                            <span className="text-3xs font-bold text-ink-muted bg-sunken dark:bg-white/5 px-2 py-1 rounded-lg">Order</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <span ref={ref}>
+            {prefix}{formatted}{suffix}
+        </span>
     );
-};
+}
 
-/* ── Scan → Journal mechanic (the core differentiator, animated) ─────────── */
-const ScanToJournal = () => {
-    const reduced = usePrefersReducedMotion();
-    const [ref, inView] = useInView(0.4);
-    const [stage, setStage] = useState(reduced ? 3 : 0);
-    useEffect(() => {
-        if (reduced || !inView) return;
-        const t = setInterval(() => setStage(s => (s + 1) % 4), 1400);
-        return () => clearInterval(t);
-    }, [reduced, inView]);
-    const active = (s) => stage >= s;
-    return (
-        <div ref={ref} className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 lg:gap-10 items-center">
-            {/* Scan side */}
-            <div className="flex flex-col items-center gap-4">
-                <div className={`relative w-40 h-28 rounded-2xl border flex items-center justify-center transition-all duration-slower ${active(0) ? 'border-brand-400/40 bg-brand-500/10' : 'border-line dark:border-white/10 bg-sunken dark:bg-white/[0.02]'}`}>
-                    <svg viewBox="0 0 120 60" className="w-28 h-14">
-                        {[4, 10, 13, 20, 26, 30, 38, 44, 48, 56, 62, 66, 74, 80, 86, 94, 100, 106, 112].map((x, i) => (
-                            <rect key={i} x={x} y="8" width={i % 3 === 0 ? 3.5 : 1.8} height="44"
-                                fill={active(0) ? vq.indigo[200] : vq.slate[600]} className="transition-colors duration-slower" />
-                        ))}
-                    </svg>
-                    {!reduced && active(0) && <div className="absolute left-2 right-2 h-0.5 bg-rose-400 shadow-[0_0_12px_2px_rgba(251,113,133,0.8)] vq-scanline" />}
-                </div>
-                <span className="text-2xs font-bold uppercase tracking-[0.25em] text-ink-muted">Barcode Scan</span>
-            </div>
-            {/* Flow → ledger */}
-            <div className="relative">
-                <div className="hidden lg:flex absolute -left-8 top-1/2 -translate-y-1/2 text-ink-secondary">
-                    <ArrowRight size={22} className={`transition-all duration-slower ${active(1) ? 'text-brand-600 dark:text-brand-400 translate-x-1' : ''}`} />
-                </div>
-                <Glass className={`p-5 transition-all duration-slower ${active(2) ? 'opacity-100 translate-y-0' : 'opacity-40 translate-y-2'}`}>
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-2xs font-bold uppercase tracking-[0.22em] text-ink-muted">Journal Entry · Auto-posted</span>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-3xs font-bold uppercase tracking-wider transition-all duration-slower ${active(3) ? 'bg-emerald-500/15 text-emerald-300' : 'bg-sunken dark:bg-white/5 text-ink-secondary'}`}>
-                            <CheckCircle2 size={11} /> {active(3) ? 'Balanced' : 'Posting…'}
-                        </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 font-mono text-sm">
-                        <div className="space-y-2">
-                            <div className="text-3xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">Debit</div>
-                            <div className="flex justify-between text-neutral-200"><span>Cash</span><span className="tabular-nums">1,250.00</span></div>
-                            <div className="flex justify-between text-neutral-200"><span>COGS</span><span className="tabular-nums">742.50</span></div>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="text-3xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Credit</div>
-                            <div className="flex justify-between text-neutral-200"><span>Revenue + VAT</span><span className="tabular-nums">1,250.00</span></div>
-                            <div className="flex justify-between text-neutral-200"><span>Inventory (FIFO)</span><span className="tabular-nums">742.50</span></div>
-                        </div>
-                    </div>
-                    <div className="mt-4 pt-3 border-t border-line dark:border-white/[0.06] flex items-center justify-between text-xs">
-                        <span className="text-ink-muted font-bold uppercase tracking-wider">Σ Debits = Σ Credits</span>
-                        <span className="font-mono text-emerald-300 tabular-nums">1,992.50 = 1,992.50</span>
-                    </div>
-                </Glass>
-            </div>
-        </div>
-    );
-};
-
-/* ── 5-layer financial integrity pipeline ────────────────────────────────── */
-const INTEGRITY = [
-    { t: 'Journal Integrity', d: 'One controlled gateway. Direct DB tampering blocked at the system level.' },
-    { t: 'Live Balances', d: 'Computed from raw entries — never cached numbers that drift out of sync.' },
-    { t: 'Unified Engine', d: 'Dashboard, P&L and balance sheet read one source. They always agree.' },
-    { t: 'Scenario Testing', d: '13 end-to-end real-world flows verified automatically on every release.' },
-    { t: 'Statement Alignment', d: 'Summary figures reconciled to the general ledger, down to the cent.' },
-];
-const IntegrityPipeline = () => {
-    const reduced = usePrefersReducedMotion();
-    const [ref, inView] = useInView(0.3);
-    return (
-        <div ref={ref} className="relative">
-            <div className="absolute left-0 right-0 top-7 h-0.5 bg-sunken dark:bg-white/[0.06] hidden md:block">
-                <div className="h-full bg-gradient-to-r from-brand-600 via-brand-400 to-brand-500 origin-left transition-transform duration-slower ease-out"
-                    style={{ transform: `scaleX(${reduced ? 1 : (inView ? 1 : 0)})` }} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-3 relative">
-                {INTEGRITY.map((n, i) => (
-                    <div key={i} className="relative">
-                        <div className="flex md:flex-col items-center md:items-start gap-4 md:gap-0">
-                            <div className={`relative z-10 w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 md:mb-5 transition-all duration-slower ${(reduced || inView) ? 'bg-brand-500/15 border-brand-400/40 text-brand-200' : 'bg-sunken dark:bg-white/[0.02] border-line dark:border-white/10 text-ink-secondary'}`}
-                                style={{ transitionDelay: reduced ? '0s' : `${i * 0.28}s` }}>
-                                <span className="text-lg font-bold" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{i + 1}</span>
-                                <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center transition-all duration-slower ${(reduced || inView) ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
-                                    style={{ transitionDelay: reduced ? '0s' : `${i * 0.28 + 0.4}s` }}>
-                                    <Check size={11} className="text-void-900" strokeWidth={4} />
-                                </span>
-                            </div>
-                            <div>
-                                <div className="text-2xs font-bold uppercase tracking-[0.18em] text-ink-muted mb-1">Layer {i + 1}</div>
-                                <h4 className="text-ink font-bold text-[15px] tracking-tight mb-1.5" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{n.t}</h4>
-                                <p className="text-ink-muted text-[12.5px] leading-relaxed">{n.d}</p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-/* ── AI Growth Engine — plain-English chat demo ──────────────────────────── */
-const AI_QA = [
-    {
-        q: 'Which customers are about to churn?',
-        type: 'bars',
-        head: '3 high-value accounts dropped 40%+ in order frequency.',
-        rows: [['Khan Traders', 82], ['Bilal Mart', 67], ['Noor Wholesale', 54]],
-        unit: '% churn risk',
-    },
-    {
-        q: "What will I run out of next week?",
-        type: 'bars',
-        head: '5 SKUs breach safety stock by Tuesday — draft POs ready.',
-        rows: [['SKU-492 · Alpha 12', 12], ['SKU-781 · Beta 4', 24], ['SKU-118 · Core', 38]],
-        unit: 'days of cover',
-    },
-    {
-        q: 'Show me last month’s net profit.',
-        type: 'stat',
-        head: 'Net profit $184,920 — gross margin 62%, opex $110K.',
-        stat: ['$184,920', '+12.6% vs prior month'],
-    },
-];
-const AIChatDemo = () => {
-    const reduced = usePrefersReducedMotion();
-    const [ref, inView] = useInView(0.3);
-    const [idx, setIdx] = useState(0);
-    const [phase, setPhase] = useState('answer'); // 'typing' | 'answer'
-    useEffect(() => {
-        if (reduced || !inView) return;
-        let toType, toNext;
-        const cycle = () => {
-            setPhase('typing');
-            toType = setTimeout(() => setPhase('answer'), 1100);
-            toNext = setTimeout(() => { setIdx(i => (i + 1) % AI_QA.length); cycle(); }, 4600);
-        };
-        toNext = setTimeout(cycle, 3200);
-        return () => { clearTimeout(toType); clearTimeout(toNext); };
-    }, [reduced, inView]);
-    const cur = AI_QA[idx];
-    return (
-        <div ref={ref}>
-            <Glass className="p-5 sm:p-6" glow>
-                <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-line dark:border-white/[0.06]">
-                    <div className="w-8 h-8 rounded-xl bg-brand-500/20 flex items-center justify-center"><Bot size={16} className="text-brand-300" /></div>
-                    <div>
-                        <div className="text-sm font-bold text-ink tracking-tight">VenQore Assistant</div>
-                        <div className="text-2xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" /> Reading your ledger</div>
-                    </div>
-                </div>
-                {/* user bubble */}
-                <div className="flex justify-end mb-4">
-                    <div key={`q${idx}`} className="vq-row-in max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-brand-500/15 border border-brand-400/20 text-brand-50 text-sm font-medium">
-                        {cur.q}
-                    </div>
-                </div>
-                {/* assistant */}
-                <div className="flex justify-start">
-                    {phase === 'typing' && !reduced ? (
-                        <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.06] flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-neutral-400 vq-dot" />
-                            <span className="w-2 h-2 rounded-full bg-neutral-400 vq-dot" style={{ animationDelay: '0.15s' }} />
-                            <span className="w-2 h-2 rounded-full bg-neutral-400 vq-dot" style={{ animationDelay: '0.3s' }} />
-                        </div>
-                    ) : (
-                        <div key={`a${idx}`} className="vq-row-in max-w-[92%] w-full px-4 py-3.5 rounded-2xl rounded-tl-sm bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.06]">
-                            <p className="text-neutral-200 text-sm font-medium mb-3">{cur.head}</p>
-                            {cur.type === 'bars' && (
-                                <div className="space-y-2.5">
-                                    {cur.rows.map(([name, val], i) => (
-                                        <div key={i}>
-                                            <div className="flex justify-between text-1xs mb-1">
-                                                <span className="text-ink-muted font-semibold">{name}</span>
-                                                <span className="text-ink-muted tabular-nums">{val}{cur.unit.includes('%') ? '%' : 'd'}</span>
-                                            </div>
-                                            <div className="h-1.5 rounded-full bg-sunken dark:bg-white/[0.06] overflow-hidden">
-                                                <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-rose-400 origin-left"
-                                                    style={{ transform: `scaleX(${reduced ? 1 : (phase === 'answer' ? Math.min(1, val / 100 + 0.12) : 0)})`, transition: 'transform 1s cubic-bezier(0.22,1,0.36,1)', transitionDelay: `${i * 0.12}s` }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div className="text-2xs font-bold uppercase tracking-widest text-ink-secondary pt-1">{cur.unit}</div>
-                                </div>
-                            )}
-                            {cur.type === 'stat' && (
-                                <div className="flex items-end gap-3">
-                                    <span className="text-3xl font-bold text-ink" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{cur.stat[0]}</span>
-                                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">{cur.stat[1]}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </Glass>
-        </div>
-    );
-};
-
-/* ── 12 core modules (light grid) ────────────────────────────────────────── */
-const MODULES = [
-    { ic: Truck, n: 'Procurement', d: 'POs, supplier credit & intake' },
-    { ic: ShoppingCart, n: 'POS Checkout', d: 'Barcode-fast, keyboard-first' },
-    { ic: Receipt, n: 'Invoicing & Billing', d: 'Wholesale, quotes & pre-sales' },
-    { ic: Wallet, n: 'Customer Khata', d: 'Balances & payment histories' },
-    { ic: Banknote, n: 'Expense Manager', d: 'Overheads & supplier charges' },
-    { ic: Warehouse, n: 'Multi-Warehouse', d: 'Transfers across godowns' },
-    { ic: Package, n: 'Variant Factory', d: 'Color, size, weight & serial' },
-    { ic: Factory, n: 'Manufacturing', d: 'Recipe-based assembly & BOM' },
-    { ic: ShieldCheck, n: 'SuperAdmin', d: 'Platform-wide command center' },
-    { ic: BarChart3, n: 'Report Factory', d: '40 reports on demand' },
-    { ic: Users, n: 'Workforce & Security', d: 'Logins, shifts & audit logs' },
-    { ic: Globe, n: 'E-Commerce Sync', d: 'WooCommerce & marketplaces' },
-];
-const ModuleCard = ({ m, delay }) => (
-    <Reveal delay={delay}>
-        <div className="group relative h-full p-5 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] hover:bg-white/[0.04] hover:border-brand-400/25 transition-all duration-slower hover:-translate-y-1 overflow-hidden">
-            <div className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-slower"
-                style={{ background: 'radial-gradient(220px circle at var(--mx,50%) var(--my,0%), rgb(var(--vq-ramp-teal-500) / 0.12), transparent 70%)' }} />
-            <div className="relative z-10">
-                <div className="w-11 h-11 rounded-xl bg-brand-500/12 text-brand-300 flex items-center justify-center mb-4 group-hover:rotate-3 transition-transform duration-slower">
-                    <m.ic size={20} />
-                </div>
-                <h4 className="text-ink font-bold text-[15px] tracking-tight mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m.n}</h4>
-                <p className="text-ink-muted text-[12.5px] leading-snug">{m.d}</p>
-            </div>
-        </div>
-    </Reveal>
-);
-
-/* ── Qore — The Intelligence Core ─────────────────────────────────────────
-   Now a real 3D scene (perspective projection, depth sorting, directional
-   lighting) rendered on a canvas with no added dependencies. Lives in
-   Components/QoreCore3D.jsx. */
-
-/* ── FAQ accordion ───────────────────────────────────────────────────────── */
-const FaqItem = ({ q, a, open, onClick }) => (
-    <div className="border-b border-line dark:border-white/[0.07]">
-        <button onClick={onClick} className="w-full py-6 flex items-center justify-between text-left group gap-6">
-            <span className="text-[17px] font-bold text-ink tracking-tight group-hover:text-brand-300 transition-colors">{q}</span>
-            <span className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-slower ${open ? 'rotate-180 border-brand-400/40 bg-brand-500/10 text-brand-300' : 'border-line dark:border-white/10 text-ink-secondary'}`}>
-                <ChevronDown size={16} />
-            </span>
-        </button>
-        <div className={`overflow-hidden transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-72 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
-            <p className="text-ink-muted leading-relaxed text-[15px] max-w-3xl">{a}</p>
-        </div>
-    </div>
-);
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   MAIN PAGE
-   ═══════════════════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
-    const { props } = usePage();
-    const settings = props.settings || {};
-    const appName = settings.app_name || 'VenQore';
+    const { auth = {}, flash = {} } = usePage().props;
 
-    const [heroLoaded, setHeroLoaded] = useState(false);
-    const [openFaq, setOpenFaq] = useState(0);
+    // Hero prompt state
+    const [promptText, setPromptText] = useState('');
+    const promptPlaceholders = useMemo(() => [
+        'Retail pharmacy with batch & expiry tracking...',
+        'Wholesale FMCG distributor with 30-day credit aging...',
+        'Multi-branch clothing boutique with variant matrix...',
+        'Electronics repair & retail with serial IMEI lineage...',
+        'Supermarket with fast lane barcode scanning...'
+    ], []);
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-    /* Newsletter — preserved contract */
-    const [newsletterEmail, setNewsletterEmail] = useState('');
-    const [newsletterStatus, setNewsletterStatus] = useState('idle');
-    const [newsletterMsg, setNewsletterMsg] = useState('');
-    const handleNewsletterSubmit = async (e) => {
-        e.preventDefault();
-        setNewsletterStatus('loading');
-        setNewsletterMsg('');
-        try {
-            await axios.post('/subscribe', { email: newsletterEmail, interest: 'cloud' });
-            setNewsletterStatus('success');
-            setNewsletterMsg('Awesome! You have successfully subscribed to our newsletter.');
-            setNewsletterEmail('');
-        } catch (err) {
-            setNewsletterStatus('error');
-            setNewsletterMsg(err.response?.data?.errors?.email?.[0] || err.response?.data?.message || 'Subscription failed.');
-        }
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setPlaceholderIndex((prev) => (prev + 1) % promptPlaceholders.length);
+        }, 3600);
+        return () => clearInterval(interval);
+    }, [promptPlaceholders]);
+
+    const handlePromptSubmit = (e) => {
+        e?.preventDefault();
+        const text = promptText.trim() || promptPlaceholders[placeholderIndex];
+        router.visit('/build-workspace?prompt=' + encodeURIComponent(text));
     };
 
-    useEffect(() => { setHeroLoaded(true); }, []);
+    const handleSelectChip = (chipText) => {
+        setPromptText(chipText);
+        router.visit('/build-workspace?prompt=' + encodeURIComponent(chipText));
+    };
 
-    const marquee =['Retail', 'Grocery', 'Food & Beverage', 'Fashion', 'Electronics', 'Wholesale', 'Pharmacy', 'Hardware'];
+    // ── 5-Stage Compiler Theater State ──────────────────────────────────────────
+    const [activeStage, setActiveStage] = useState(0);
+    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-    const aiBrains = [
-        { ic: Repeat, t: 'Return Predictor', d: 'Forecasts when each customer is due back — so promos land before they lapse.', tone: 'indigo' },
-        { ic: Boxes, t: 'Stock Forecaster', d: 'Projects depletion per SKU and drafts purchase orders before you stock out.', tone: 'cyan' },
-        { ic: AlertTriangle, t: 'Churn Detector', d: 'Flags high-value accounts losing momentum while there is still time to act.', tone: 'rose' },
-    ];
+    const compilerStages = useMemo(() => [
+        {
+            num: '01',
+            title: 'Intent',
+            sub: 'You describe how you operate',
+            heading: 'THE OWNER TYPES',
+            code: 'Retail pharmacy with 2 branches, 3 cashiers per shift, batch-level FEFO expiry tracking, and distributor credit terms on 30-day invoices.',
+            explainer: 'No forms. No implementation consultant. One paragraph in your own words.'
+        },
+        {
+            num: '02',
+            title: 'Parse',
+            sub: 'Entities, workflows & ledger routes',
+            heading: 'DOMAIN DECONSTRUCTION',
+            entities: ['Drugs & SKUs', 'Batches (FEFO)', 'Expiry Dates', 'Branches (2)', 'Distributors'],
+            workflows: ['Counter Checkout', 'Batch-first Picking', 'Branch Transfers', 'Expiry Write-off'],
+            financialRoutes: ['Accounts Payable (30-day terms)', 'Sales Tax on Invoice', 'FIFO Inventory Valuation']
+        },
+        {
+            num: '03',
+            title: 'Select',
+            sub: 'Proven engines parameterized',
+            heading: 'ENGINE TOPOLOGY',
+            engines: [
+                { name: 'POS Checkout', status: 'SELECTED' },
+                { name: 'Batch & Expiry', status: 'SELECTED' },
+                { name: 'Stock Ledger (FIFO)', status: 'SELECTED' },
+                { name: 'Manufacturing BOM', status: 'BYPASSED' },
+                { name: 'Purchases & Credit', status: 'SELECTED' },
+                { name: 'Branch Transfers', status: 'SELECTED' },
+                { name: 'Payroll Engine', status: 'BYPASSED' },
+                { name: 'Core Ledger', status: 'ALWAYS ON' }
+            ]
+        },
+        {
+            num: '04',
+            title: 'Wire',
+            sub: 'Routes bound to double-entry core',
+            heading: 'LEDGER WIRING',
+            topology: [
+                { source: 'POS Terminals (Branch 1 & 2)', target: 'Stock & Batch Engine', type: 'Instant Debit' },
+                { source: 'Purchase Receipts', target: 'Payables & Terms Ledger', type: 'Credit 30-day' },
+                { source: 'SmartCapture Scan', target: 'Core Ledger Invariant', type: 'Self-Balanced' }
+            ]
+        },
+        {
+            num: '05',
+            title: 'Live',
+            sub: 'Your verified system, running',
+            heading: 'ACTIVE TERMINAL',
+            cart: [
+                { item: 'Amoxicillin 500mg × 2', batch: 'BATCH A-2291 · EXP 03/2027', price: '$24.00' },
+                { item: 'Insulin pen refill', batch: 'BATCH C-0417 · EXP 11/2026', price: '$48.50' },
+                { item: 'Paracetamol strip × 4', batch: 'BATCH P-8802 · EXP 08/2028', price: '$8.00' }
+            ],
+            total: '$80.50',
+            checksPassed: '8/8 Correctness Laws Verified',
+            debitCredit: 'Debits $80.50 = Credits $80.50'
+        }
+    ], []);
 
-    const reports = [
-        'Profit & Loss', 'Balance Sheet', 'Cash Flow', 'Trial Balance',
-        'Aged Receivables', 'Stock Valuation', 'Item-Wise Profit', 'Day Book',
-    ];
+    useEffect(() => {
+        if (!isAutoPlaying) return;
+        const timer = setInterval(() => {
+            setActiveStage((prev) => (prev + 1) % compilerStages.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [isAutoPlaying, compilerStages.length]);
 
-    const faqs = [
-        { q: 'Is VenQore a POS or an accounting system?', a: 'Both — and they are the same system, not two apps synced together. The POS posts double-entry journal entries as it runs; the accounting module reads those exact entries to produce auditor-grade statements. No integration layer to drift.' },
-        { q: 'Do I need an accountant to use it?', a: 'No. VenQore handles the double-entry mechanics automatically. Every sale, purchase, return, transfer and adjustment writes the correct balanced entry. Your accountant can verify the output — they just won’t need to create it by hand.' },
-        { q: 'How long does setup take?', a: 'The Instant Store Creator needs only your store name, then seeds units, taxes and categories for your industry. Most businesses are live in 10–15 minutes, and full historical data can be imported the same day.' },
-        { q: 'Will it work across multiple stores?', a: 'Yes. The Multi-Store Hub switches between branches in one click, and granular roles let you be Owner in one store, Manager in another and read-only Viewer in a third — all from a single account.' },
-        { q: 'How accurate is the financial engine, really?', a: 'It runs on a DECIMAL(20,4) double-entry core verified by eight correctness laws, 2,000+ automated tests, 20,000+ integrity assertions and 13 end-to-end scenarios. Dashboard figures reconcile to the general ledger down to the cent.' },
-        { q: 'What happens to my data if I cancel?', a: 'It’s yours. Export it at any time via the import/export tools. We never hold your data hostage.' },
-    ];
+    // ── Product Showcase Tabs ───────────────────────────────────────────────────
+    const [activeShowcase, setActiveShowcase] = useState(0);
+    const showcaseTabs = useMemo(() => [
+        {
+            id: 'pos',
+            title: '01 · The Register',
+            subtitle: 'A till you compose yourself.',
+            badge: 'OFFLINE FIRST',
+            desc: 'Keyboard-first, barcode-ready, and laid out the way your counter actually works. Split tender, parked sales, partial returns against the original line — and an instant PIN cashier switch.',
+            href: '/pos',
+            sampleData: [
+                { line: 'Amoxicillin 500mg × 2', sub: 'BATCH A-2291 · EXP 03/2027', val: '$24.00' },
+                { line: 'Insulin pen refill', sub: 'BATCH C-0417 · EXP 11/2026', val: '$48.50' },
+                { line: 'Paracetamol strip × 4', sub: 'BATCH P-8802 · EXP 08/2028', val: '$8.00' },
+            ],
+            total: '$80.50'
+        },
+        {
+            id: 'documents',
+            title: '02 · Documents',
+            subtitle: '13 document types, one verified editor.',
+            badge: 'LINKED FLOWS',
+            desc: 'Quote, sales order, delivery challan, invoice, credit note, purchase order, GRN, supplier bill, statement — all the same editor, all posting through the immutable general ledger.',
+            href: '/documents',
+            sampleData: [
+                { line: 'Converted from Quote Q-0288', sub: 'Same items, same customer, zero retyping', val: 'LINKED' },
+                { line: 'Posted to Core Ledger', sub: 'AR $80.50 / Revenue $72.00 / Tax $8.50', val: '7/7 CHECKS' },
+                { line: 'Delivery Status', sub: 'Waybill generated · Dispatch confirmed', val: 'DISPATCHED' }
+            ],
+            total: '13 TYPES'
+        },
+        {
+            id: 'blueprint',
+            title: '03 · Blueprint',
+            subtitle: 'Describe the change. Read the diff. Approve it.',
+            badge: 'VERSIONED DIFF',
+            desc: 'Adding a branch, a sales channel or a whole product line is a sentence. Blueprint shows you exactly what it will add, alter and touch downstream before a single row moves.',
+            href: '/blueprint',
+            sampleData: [
+                { line: '+ Tier pricing matrix', sub: 'New engine wired', val: 'ADD' },
+                { line: '+ Branch transfers', sub: 'Atomic double-entry stock routes', val: 'ADD' },
+                { line: '~ Customer record', sub: 'Gains credit limit & price tier', val: 'ALTER' }
+            ],
+            total: 'ZERO DOWNTIME'
+        },
+        {
+            id: 'reckoner',
+            title: '04 · The Reckoner',
+            subtitle: 'One single place a number is defined.',
+            badge: '58 READINGS',
+            desc: 'Every figure on every screen resolves to a single definition you can inspect and audit. No two reports disagreeing about margin, because there is only one definition in the entire system.',
+            href: '/reckoner',
+            sampleData: [
+                { line: 'Gross margin', sub: '(Revenue − COGS) ÷ Revenue', val: '34.2%' },
+                { line: 'True Revenue', sub: 'Posted sales, net of returns and tax', val: '$148,920' },
+                { line: 'FIFO COGS', sub: 'Batch cost lineage at time of sale', val: '$97,989' }
+            ],
+            total: 'ZERO DRIFT'
+        },
+        {
+            id: 'dashboard',
+            title: '05 · The Dashboard',
+            subtitle: 'It builds itself out of what you turned on.',
+            badge: 'LIVE INTELLIGENCE',
+            desc: 'A pharmacy sees expiry exposure and supplier aging. A boutique sees variant sell-through and channel split. Same engine, same 58 readings underneath — only relevant metrics appear.',
+            href: '/dashboard-preview',
+            sampleData: [
+                { line: 'Consolidated Cash Position', sub: 'Across all active registers', val: '$42,100' },
+                { line: 'Expiring in 45 days', sub: '3 batches flagged for FEFO priority', val: '$1,840' },
+                { line: 'Payables over 30 days', sub: '2 suppliers pending settlement', val: '$4,120' }
+            ],
+            total: '58 METRICS'
+        }
+    ], []);
+
+    // ── 8 Correctness Laws ──────────────────────────────────────────────────────
+    const correctnessLaws = useMemo(() => [
+        { num: '01', title: 'Debits Equal Credits Always', desc: 'Every transaction posts balanced double-entry journals. Unbalanced entries are rejected at the engine level.' },
+        { num: '02', title: 'Immutable Posted Ledger', desc: 'Posted records can never be edited or erased in place. Corrections flow strictly through reversal entries.' },
+        { num: '03', title: 'True FIFO Cost Lineage', desc: 'Inventory consumes the exact purchase batch cost in sequence, ensuring auditor-grade COGS.' },
+        { num: '04', title: 'Derived Zero-Drift Balances', desc: 'Account balances are calculated deterministically from posted history, eliminating silent total drift.' },
+        { num: '05', title: 'Universal Tenant Scoping', desc: 'Global query scopes enforce strict multi-tenant isolation across all 116 data models.' },
+        { num: '06', title: 'Atomic Multi-Branch Transfers', desc: 'Stock movements between locations deduct from source and credit destination in a single atomic transaction.' },
+        { num: '07', title: 'Auditable Reversible Actions', desc: 'Every user and cashier action produces an immutable audit trail with full cryptographic traceability.' },
+        { num: '08', title: 'Automated Continuous Verification', desc: 'Eight correctness laws and 1,600+ tests execute against every build before code is allowed to ship.' }
+    ], []);
+
+    // ── Industry Verticals Switcher ─────────────────────────────────────────────
+    const [selectedIndustry, setSelectedIndustry] = useState('pharmacy');
+    const industriesData = useMemo(() => ({
+        pharmacy: {
+            name: 'Pharmacy & Healthcare',
+            headline: 'FEFO batch expiry tracking with instant lane checkout',
+            features: ['Batch & Expiry Date Management', 'Short-Dated Stock Alerts (45 Days)', 'Doctor & Prescription Reference', 'Narcotics & Controlled Schedule Logs'],
+            badge: 'HEALTHCARE READY',
+            href: '/solutions/pharmacy'
+        },
+        grocery: {
+            name: 'Supermarket & Grocery',
+            headline: 'High-speed lane barcode scanning with weight scale integration',
+            features: ['Weighed Item & Barcode Scale Sync', 'Fast Multi-Cart Park & Recall', 'Automated Reorder Trigger Points', 'Daily Margin & Shrinkage Analytics'],
+            badge: 'HIGH SPEED',
+            href: '/solutions/grocery'
+        },
+        clothing: {
+            name: 'Apparel & Boutiques',
+            headline: 'Size, color, and fit variant matrix with customer loyalty',
+            features: ['2D Size/Color Variant Grid', 'Seasonal Collection Tagging', 'Customer Loyalty & Khata Points', 'Rail Price Tag Sheet Printing'],
+            badge: 'VARIANT MATRIX',
+            href: '/solutions/clothing'
+        },
+        electronics: {
+            name: 'Electronics & Repairs',
+            headline: 'Serial IMEI tracking from purchase PO to warranty claims',
+            features: ['Serial Number & IMEI Lineage', 'Repair Job Card & Dispatch', 'Warranty History Lookup in Seconds', 'Deposit & Split Tender Intake'],
+            badge: 'SERIAL TRACKING',
+            href: '/solutions/electronics-store'
+        },
+        wholesale: {
+            name: 'Wholesale & Distribution',
+            headline: 'Tier pricing, credit aging, container POs and delivery challans',
+            features: ['Customer Tier Pricing Matrix', 'Aged Receivables & WhatsApp Khata', 'Partial Delivery Challans', 'Multi-Warehouse Atomic Transfers'],
+            badge: 'B2B DISTRIBUTION',
+            href: '/solutions/wholesale'
+        },
+        multi: {
+            name: 'Multi-Store Chains',
+            headline: 'Consolidated executive visibility across all branches and channels',
+            features: ['Central Stock Balancing', 'Inter-Branch Stock Transfers', 'Aggregated P&L and Balance Sheet', 'Role-Based Cashier Security'],
+            badge: 'ENTERPRISE READY',
+            href: '/solutions/multi-store'
+        }
+    }), []);
+
+    // ── Pricing Switcher ────────────────────────────────────────────────────────
+    const [isAnnual, setIsAnnual] = useState(true);
+
+    // ── FAQ Accordion ───────────────────────────────────────────────────────────
+    const [openFaq, setOpenFaq] = useState(null);
+    const faqs = useMemo(() => [
+        {
+            q: 'Is my accounting safe if an AI configured it?',
+            a: 'Yes. The AI composes your system — which modules run, what your fields are called, who approves what. It never touches the accounting engine. Debits equal credits or the transaction does not post, and that rule is in the deterministic engine, not in a prompt.'
+        },
+        {
+            q: 'What happens if the Blueprint gets my setup wrong?',
+            a: 'You see the full plan before anything is real. Every module, field, and workflow is editable. Nothing posts to your books until you approve it, and every applied configuration keeps a version snapshot you can roll back.'
+        },
+        {
+            q: 'Can I add more branches or channels later?',
+            a: 'Just describe the change in plain English. Blueprint shows you a diff — what is added, what changes, and what is affected downstream — and you approve it in seconds. Adding a branch or e-commerce store is a sentence, not a 3-month consulting project.'
+        },
+        {
+            q: 'Does VenQore work when my internet goes down?',
+            a: 'Yes. VenQore is built as an offline-first Progressive Web App (PWA). Your POS checkout, barcode lookups, local carts, and WebUSB receipt printing run seamlessly without internet and sync back automatically when connectivity returns.'
+        },
+        {
+            q: 'Are there any hidden transaction fees or markups like Square?',
+            a: 'Zero. VenQore charges a flat subscription starting at $18/month (or free forever on Solo tier). We charge $0 transaction fees regardless of whether you process $1,000 or $1,000,000.'
+        }
+    ], []);
 
     return (
-        /* The landing page now wears the same shell as every other public
-           page — same minimal header, same dropdowns, same footer sitemap.
-           MarketingLayout also supplies the scroll progress bar, ambient
-           gradient, particle field and spotlight, so the local copies of
-           those are no longer rendered here. */
-        <MarketingLayout
-            title={`${appName} — The Books Are Always Right.`}
-            description="VenQore is the all-in-one POS & ERP built on a real double-entry engine. Every sale, purchase, return and transfer posts a correct journal entry — automatically. 144 verified features, 40 reports, AI growth engine."
-        >
-            {/* ── REMOVED: bespoke nav ─────────────────────────── */}
-            <>
+        <MarketingLayout title="VenQore — The AI ERP Builder for POS, Stock & Accounting">
+            <Head>
+                <title>VenQore — The AI ERP Builder for POS, Stock &amp; Accounting</title>
+                <meta name="description" content="Describe your business in plain language. VenQore assembles the operating system that runs it, with verified double-entry accounting under every module." />
+            </Head>
 
-                {/* ══ 1 · HERO ══ */}
-                <section className="relative px-6 pt-32 md:pt-40 pb-20">
-                    <div className="max-w-7xl mx-auto text-center">
-                        <div className={`transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 backdrop-blur-md text-2xs font-bold tracking-[0.3em] uppercase mb-10">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 vq-blink" />
-                                <span className="text-ink-secondary">144 verified Features · One Source of Truth</span>
-                            </div>
+            {/* ══════════════════════════════════════════════════════════════════════
+                1. HERO SECTION WITH INTERACTIVE AI PROMPT
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="relative pt-32 pb-20 px-6 max-w-7xl mx-auto text-center overflow-hidden">
+                {/* Background Ambient Halo */}
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-brand-500/10 blur-[140px] pointer-events-none rounded-full" />
 
-                            <h1 className="mb-8 leading-[0.86]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-bold tracking-tighter text-ink hero-rise">
-                                    The last software
-                                </span>
-                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-bold tracking-tighter -mt-1 md:-mt-4 hero-rise-d">
-                                    <span className="vq-headline-grad vq-text-glow">your business will need.</span>
-                                </span>
-                            </h1>
+                <RevealOnScroll direction="up">
+                    <SectionLabel icon={Sparkles} text="THE AI ERP BUILDER" />
 
-                            {/* Hero Interactive AI Prompt — Start With The Question */}
-                            <div className="max-w-2xl mx-auto my-8 p-4 md:p-6 bg-void-900 border border-brand-500/30 rounded-2xl shadow-2xl backdrop-blur-2xl text-left space-y-4">
-                                <div className="flex items-center gap-2 text-brand-400 text-xs font-bold uppercase tracking-wider">
-                                    <Bot size={16} />
-                                    <span>What does your business need?</span>
-                                </div>
+                    <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-ink tracking-tight mb-6 mt-4 max-w-4xl mx-auto font-display leading-[1.08]">
+                        Tell us how you operate.<br />
+                        We <span className="text-brand-500 relative inline-block">assemble<span className="absolute left-0 right-0 bottom-1.5 h-1.5 rounded-full bg-brand-500/30"></span></span> your system.
+                    </h1>
 
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        id="hero-ai-prompt"
-                                        placeholder="Tell us about your business... (e.g. I run a cafe with dine-in, takeaway & pastry kitchen)"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && e.target.value) {
-                                                window.location.href = `/build-workspace?prompt=${encodeURIComponent(e.target.value)}`;
-                                            }
-                                        }}
-                                        className="w-full px-5 py-4 bg-void-950 border border-void-700/80 rounded-2xl text-white placeholder-slate-500 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all pr-32"
-                                    />
-                                    <button
-                                        onClick={() => {
-                                            const val = document.getElementById('hero-ai-prompt')?.value || '';
-                                            window.location.href = `/build-workspace?prompt=${encodeURIComponent(val)}`;
-                                        }}
-                                        className="absolute right-2 top-2 bottom-2 px-5 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5 transition-all"
-                                    >
-                                        <span>Build Workspace</span>
-                                        <ArrowRight size={14} />
-                                    </button>
-                                </div>
+                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
+                        VenQore is an AI ERP builder for retail and wholesale. Describe how you operate and it assembles the system that runs it — point of sale, inventory, purchasing, invoicing and real double-entry accounting — keeping only the modules you use. Starts at $18 a month, or free on Solo, with no implementation project.
+                    </p>
 
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-ink-muted text-1xs">
-                                        {/* Clicking this goes straight into the questions, same as pressing
-                                            Enter or "Build Workspace" — it used to only fill the input and
-                                            leave the visitor to click Build Workspace themselves, which read
-                                            as broken: they picked an example, nothing happened. */}
-                                        Try: <button onClick={() => { window.location.href = `/build-workspace?prompt=${encodeURIComponent("I run a grocery store with 2 counters and sell on credit.")}`; }} className="text-brand-400 hover:underline text-left">"Grocery store with 2 counters"</button>
-                                    </span>
-                                    <a
-                                        href="/build-workspace"
-                                        className="text-brand-400 hover:text-brand-300 font-semibold flex items-center gap-1"
-                                    >
-                                        <span>Browse Templates</span>
-                                        <ArrowRight size={12} />
-                                    </a>
-                                </div>
-                            </div>
-
-                            <p className="text-1xs font-bold uppercase tracking-[0.2em] text-ink-muted mb-12 hero-fade-2">No upfront signup required · Experience value first · Live in 30 seconds</p>
-                        </div>
-
-                        {/* Living command center */}
-                        <div className={`transition-all duration-slower ease-[cubic-bezier(0.22,1,0.36,1)] delay-200 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`}>
-                            <HeroDashboard />
-                        </div>
-
-                        {/* Trust marquee */}
-                        <div className="mt-20 max-w-5xl mx-auto">
-                            <p className="text-2xs font-bold uppercase tracking-[0.3em] text-ink-secondary mb-6">Built for real businesses</p>
-                            <div className="relative overflow-hidden vq-marquee-mask">
-                                <div className="flex gap-10 vq-marquee whitespace-nowrap">
-                                    {[...marquee, ...marquee].map((m, i) => (
-                                        <span key={i} className="text-lg font-bold text-ink-secondary uppercase tracking-wider shrink-0" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{m}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* ══ 2 · THE UNCOMFORTABLE TRUTH ══ */}
-                {/* ══ 2 · WHAT WRONG NUMBERS COST YOU ══
-                    Calculator (their numbers) → split-screen (the mechanism)
-                    → ledger tape (the proof). One argument, three registers. */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-7xl mx-auto">
-                        <Reveal>
-                            <div className="text-center max-w-3xl mx-auto mb-14">
-                                <Eyebrow icon={AlertTriangle} tone="rose">The Uncomfortable Truth</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-ink mb-7 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    Wrong numbers<br />
-                                    <span className="bg-gradient-to-r from-rose-500 to-amber-500 dark:from-rose-400 dark:to-amber-400 bg-clip-text text-transparent italic">have a price.</span>
-                                </h2>
-                                <p className="text-lg md:text-xl text-ink-secondary leading-relaxed font-medium">
-                                    Your revenue includes tax you owe the government. Your profit uses a cost that was
-                                    overwritten three purchases ago. Nobody sends you an invoice for that —
-                                    <span className="text-ink font-semibold"> so here is what it actually costs.</span>
-                                </p>
-                            </div>
-                        </Reveal>
-
-                        {/* 2a — their own numbers */}
-                        <Reveal delay={0.08}><TrueCostCalculator /></Reveal>
-
-                        {/* 2b — the mechanism, side by side */}
-                        <div className="mt-24 md:mt-32">
-                            <Reveal>
-                                <div className="text-center max-w-2xl mx-auto mb-12">
-                                    <Eyebrow icon={Repeat} tone="amber">Watch it happen</Eyebrow>
-                                    <h3 className="text-3xl md:text-5xl font-bold tracking-tighter text-ink leading-[0.95]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                        One sale.<br /><span className="text-amber-500 dark:text-amber-400">Two very different stories.</span>
-                                    </h3>
-                                    <p className="text-ink-muted mt-5 leading-relaxed">
-                                        A single $115 transaction, posted by both systems at the same time.
-                                    </p>
-                                </div>
-                            </Reveal>
-                            <Reveal delay={0.08}><SameSaleSplit /></Reveal>
-                        </div>
-
-                        {/* 2c — ambient proof */}
-                        <div className="mt-24 md:mt-32 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                            <Reveal direction="right" className="lg:col-span-5">
-                                <Eyebrow icon={ShieldCheck} tone="emerald">The engine underneath</Eyebrow>
-                                <h3 className="text-3xl md:text-5xl font-bold tracking-tighter text-ink leading-[0.95] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    Debits equal credits.<br /><span className="text-emerald-500 dark:text-emerald-400">Always.</span>
-                                </h3>
-                                <p className="text-ink-secondary leading-relaxed mb-6">
-                                    Every sale, purchase, return, transfer and payment writes a balanced journal entry the
-                                    instant it happens. Not at month end. Not after an export. Immediately — and the entry
-                                    is immutable, so a correction posts a reversal instead of quietly rewriting history.
-                                </p>
-                                <div className="flex flex-wrap gap-3">
-                                    <Link href="/features/accounting" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.06] border border-line dark:border-white/10 text-2xs font-bold uppercase tracking-[0.15em] text-ink-secondary dark:text-ink hover:bg-interactive-hover/[0.09] dark:hover:bg-white/[0.1] transition-colors">
-                                        How the ledger works <ArrowRight size={12} />
-                                    </Link>
-                                    <Link href="/features/inventory-management" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.06] border border-line dark:border-white/10 text-2xs font-bold uppercase tracking-[0.15em] text-ink-secondary dark:text-ink hover:bg-interactive-hover/[0.09] dark:hover:bg-white/[0.1] transition-colors">
-                                        FIFO costing <ArrowRight size={12} />
-                                    </Link>
-                                </div>
-                            </Reveal>
-                            <Reveal direction="left" delay={0.1} className="lg:col-span-7">
-                                <LedgerTape />
-                            </Reveal>
-                        </div>
-                    </div>
-                </section>
-
-                {/* ══ 3 · SCAN → JOURNAL ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-6xl mx-auto">
-                        <Reveal>
-                            <div className="text-center mb-14">
-                                <Eyebrow icon={ScanBarcode}>How it works</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    One scan becomes<br /><span className="text-brand-600 dark:text-brand-400">balanced accounting.</span>
-                                </h2>
-                                <p className="text-ink-muted text-lg max-w-2xl mx-auto mt-6">No exports. No month-end reconstruction. The instant an item is scanned, a correct double-entry posts — and your statements update live.</p>
-                            </div>
-                        </Reveal>
-                        <Reveal delay={0.12}>
-                            <Glass className="p-8 md:p-12"><ScanToJournal /></Glass>
-                        </Reveal>
-                    </div>
-                </section>
-
-                {/* ══ 4 · FINANCIAL INTEGRITY ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-7xl mx-auto">
-                        <Reveal>
-                            <div className="text-center mb-16">
-                                <Eyebrow icon={ShieldCheck} tone="emerald">Financial Verification</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    Five layers between you<br />and a wrong number.
-                                </h2>
-                            </div>
-                        </Reveal>
-                        <Reveal delay={0.1}><IntegrityPipeline /></Reveal>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-5xl mx-auto">
-                            {[
-                                { e: 2000, s: '+', l: 'Automated Tests', g: true },
-                                { e: 20000, s: '+', l: 'Live Assertions', g: true },
-                                { e: 13, s: '', l: 'E2E Scenarios' },
-                                { e: 4, s: '', l: 'Decimal Precision', disp: 'DECIMAL(20,4)' },
-                            ].map((s, i) => (
-                                <Reveal key={i} delay={0.08 * i}>
-                                    <div className="text-center p-6 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02]">
-                                        <div className="text-2xl md:text-3xl font-bold text-ink mb-1 tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                            {s.disp ? <span className="text-base md:text-lg">{s.disp}</span> : <><AnimCounter end={s.e} group={s.g} />{s.s}</>}
-                                        </div>
-                                        <div className="text-2xs text-ink-secondary font-bold uppercase tracking-[0.18em]">{s.l}</div>
-                                    </div>
-                                </Reveal>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* ══ 5 · AI GROWTH ENGINE ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-                        <Reveal direction="right">
-                            <Eyebrow icon={Cpu} tone="violet">AI Growth Engine</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Ask your business<br /><span className="text-brand-400">anything.</span>
-                            </h2>
-                            <p className="text-ink-muted text-lg leading-relaxed mb-8 max-w-xl">
-                                A context-aware assistant reads your live ledger and answers in plain English — no spreadsheets, no SQL. Behind it, three models work continuously so you act before problems do.
-                            </p>
-                            <div className="space-y-3">
-                                {aiBrains.map((b, i) => (
-                                    <Reveal key={i} delay={0.08 * i} direction="right">
-                                        <div className="flex items-start gap-4 p-4 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${b.tone === 'indigo' ? 'bg-brand-500/15 text-brand-300' : b.tone === 'cyan' ? 'bg-cyan-500/15 text-cyan-300' : 'bg-rose-500/15 text-rose-300'}`}>
-                                                <b.ic size={18} />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-ink font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{b.t}</h3>
-                                                <p className="text-ink-muted text-sm leading-snug">{b.d}</p>
-                                            </div>
-                                        </div>
-                                    </Reveal>
-                                ))}
-                            </div>
-                        </Reveal>
-                        <Reveal delay={0.15} direction="left"><AIChatDemo /></Reveal>
-                    </div>
-                </section>
-
-                {/* ══ 6 · CORE MODULES (light) ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-7xl mx-auto">
-                        <Reveal>
-                            <div className="text-center mb-14">
-                                <Eyebrow icon={Layers}>One platform, twelve engines</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    Every part of the business,<br /><span className="text-brand-600 dark:text-brand-400">one connected system.</span>
-                                </h2>
-                                <p className="text-ink-muted text-lg max-w-2xl mx-auto mt-6">From the counter to the godown to the general ledger — twelve modules, no integrations, nothing to sync.</p>
-                            </div>
-                        </Reveal>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {MODULES.map((m, i) => <ModuleCard key={m.n} m={m} delay={(i % 4) * 0.06} />)}
-                        </div>
-                        <Reveal delay={0.15}>
-                            <div className="text-center mt-12">
-                                <MagBtn href="/features" variant="ghost">Explore all 144 verified features <ArrowRight size={15} /></MagBtn>
-                            </div>
-                        </Reveal>
-                    </div>
-                </section>
-
-                {/* ══ 7 · QORE — THE INTELLIGENCE CORE ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-7xl mx-auto">
-                        <Reveal>
-                            <div className="text-center mb-12 max-w-3xl mx-auto">
-                                <Eyebrow icon={Cpu} tone="violet">Qore — The Intelligence Core</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    One core.<br /><span className="vq-headline-grad">Every module, in sync.</span>
-                                </h2>
-                                <p className="text-ink-muted text-lg mt-6">
-                                    Qore is the engine at the centre of VenQore — continuously coordinating Sales, Inventory, Accounting, AI and every other module so your whole business runs on one live set of numbers.
-                                </p>
-                            </div>
-                        </Reveal>
-                        <Reveal delay={0.12}>
-                            <Glass className="p-6 md:p-10 overflow-hidden" glow><QoreCore3D /></Glass>
-                        </Reveal>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 max-w-4xl mx-auto">
-                            {[
-                                { ic: RefreshCw, t: 'Real-Time Sync', d: 'WebSocket-fast, no reloads' },
-                                { ic: Network, t: 'Every Module', d: '12 engines, one system' },
-                                { ic: ShieldCheck, t: 'One Source of Truth', d: 'Every number agrees' },
-                                { ic: Building2, t: 'Multi-Store', d: 'All branches, one view' },
-                            ].map((c, i) => (
-                                <Reveal key={i} delay={0.06 * i}>
-                                    <div className="p-4 rounded-2xl border border-line dark:border-white/[0.06] bg-sunken dark:bg-white/[0.02] text-center hover:border-brand-400/25 hover:bg-white/[0.04] transition-all duration-slower">
-                                        <c.ic size={20} className="text-brand-300 mb-2 mx-auto" />
-                                        <h3 className="text-ink font-bold text-[13px] tracking-tight mb-1">{c.t}</h3>
-                                        <p className="text-ink-muted text-1xs leading-snug">{c.d}</p>
-                                    </div>
-                                </Reveal>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* ══ 8 · REPORTS (light) ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-6xl mx-auto text-center">
-                        <Reveal>
-                            <Eyebrow icon={BarChart3} tone="amber">Report Factory</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-6" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                40 reports.<br /><span className="text-amber-600 dark:text-amber-400">One source of truth.</span>
-                            </h2>
-                            <p className="text-ink-muted text-lg max-w-2xl mx-auto mb-12">P&amp;L, balance sheet and cash flow don’t come from separate calculators — they read the same verified ledger, so they always agree.</p>
-                        </Reveal>
-                        <Reveal delay={0.1}>
-                            <div className="flex flex-wrap justify-center gap-3">
-                                {reports.map((r, i) => (
-                                    <span key={r} className="px-5 py-2.5 rounded-full border border-line dark:border-white/[0.08] bg-sunken dark:bg-white/[0.025] text-sm font-bold text-ink-secondary hover:border-amber-400/30 hover:text-ink dark:hover:text-white transition-colors">
-                                        {r}
-                                    </span>
-                                ))}
-                                <span className="px-5 py-2.5 rounded-full border border-amber-400/25 bg-amber-500/10 text-sm font-bold text-amber-300">+32 more</span>
-                            </div>
-                        </Reveal>
-                    </div>
-                </section>
-
-                {/* ══ 9 · STAT BAND ══ */}
-                <section className="py-20 px-6 border-y border-line dark:border-white/[0.06] bg-white/[0.012]">
-                    <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10">
-                        {[
-                            { e: 226, s: '+', l: 'Platform Features' },
-                            { e: 40, s: '+', l: 'Business Reports' },
-                            { e: 2000, s: '+', l: 'Automated Tests', g: true },
-                            { e: 5, s: '', l: 'Audit Layers' },
-                        ].map((s, i) => (
-                            <Reveal key={i} delay={0.07 * i}>
-                                <div className="text-center">
-                                    <div className="text-4xl md:text-6xl font-bold text-ink tracking-tighter mb-2 vq-headline-grad" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                        <AnimCounter end={s.e} />{s.s}
-                                    </div>
-                                    <div className="text-2xs md:text-1xs text-ink-muted font-bold uppercase tracking-[0.22em]">{s.l}</div>
-                                </div>
-                            </Reveal>
-                        ))}
-                    </div>
-                </section>
-
-                {/* ══ 10 · TESTIMONIALS ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-                        <Reveal direction="right">
-                            <Eyebrow icon={Users}>Built for operators</Eyebrow>
-                            <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter mb-6 leading-[0.9]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Real results.<br /><span className="text-brand-600 dark:text-brand-400">Real operators.</span>
-                            </h2>
-                            <p className="text-lg text-ink-muted leading-relaxed mb-8 max-w-md">We built VenQore for the operator who is done guessing. Here’s what changes when the numbers are finally right.</p>
-                            <MagBtn href="/about" variant="ghost">Read our story <ArrowRight size={15} /></MagBtn>
-                        </Reveal>
-                        <div className="space-y-5">
-                            {[
-                                { t: 'For the first time, my daily revenue matched what my accountant calculated at month-end. We’re not adjusting numbers anymore — they just come out right.', a: 'Electronics Retailer · 3 locations' },
-                                { t: 'We process 800+ transactions a day. Keyboard shortcuts and multi-tab checkout mean our cashiers never touch a mouse. Throughput went up 30%.', a: 'Supermarket Operator' },
-                            ].map((q, i) => (
-                                <Reveal key={i} delay={i * 0.12} direction="left">
-                                    <Glass className="p-7">
-                                        <Quote size={26} className="text-brand-400/50 mb-4" />
-                                        <p className="text-lg text-neutral-200 leading-relaxed mb-5">{q.t}</p>
-                                        <div className="flex items-center gap-1 mb-3">{[...Array(5)].map((_, k) => <span key={k} className="text-amber-600 dark:text-amber-400">★</span>)}</div>
-                                        <div className="text-1xs font-bold text-ink-muted uppercase tracking-[0.15em]">{q.a}</div>
-                                    </Glass>
-                                </Reveal>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* ══ 11 · PRICING ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-6xl mx-auto">
-                        <Reveal>
-                            <div className="text-center mb-12">
-                                <Eyebrow icon={BadgeCheck} tone="emerald">Transparent Pricing</Eyebrow>
-                                <h2 className="text-4xl md:text-6xl font-bold text-ink tracking-tighter leading-[0.9] mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                    Priced for real businesses.<br /><span className="text-emerald-600 dark:text-emerald-400">Not enterprise budgets.</span>
-                                </h2>
-                                <p className="text-ink-muted text-lg max-w-2xl mx-auto">
-                                    Traditional ERP costs tens of thousands a year. VenQore starts free, scales with you. Every plan includes the full double-entry ledger and all 43 financial reports.
-                                </p>
-                            </div>
-                        </Reveal>
-
-                        {/* Plan cards */}
-                        <Reveal delay={0.08}>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-                                {[
-                                    {
-                                        name: 'Solo', price: '$0', suffix: '/forever', badge: 'Free forever',
-                                        color: 'text-teal-400', border: 'border-teal-500/20', bg: 'bg-teal-500/5',
-                                        features: ['500 SKUs · 1 register', '100 sales/month', 'Core ledger + 43 reports', 'Full offline POS'],
-                                        cta: 'Start Free',
-                                    },
-                                    {
-                                        name: 'Starter', price: '$49', suffix: '/mo', badge: 'Essential',
-                                        color: 'text-blue-400', border: 'border-blue-500/20', bg: 'bg-blue-500/5',
-                                        features: ['5,000 SKUs · 2 registers', 'Unlimited transactions', 'Google Drive backup', 'Email support 2-day SLA'],
-                                        cta: 'Start Trial',
-                                    },
-                                    {
-                                        name: 'Core', price: '$99', suffix: '/mo', badge: 'Most Popular', popular: true,
-                                        color: 'text-brand-400', border: 'border-brand-500/40', bg: 'bg-brand-500/8',
-                                        features: ['25,000 SKUs · 5 seats', 'Multi-branch + REST API', 'Audit trail & custom roles', 'Priority 1-day SLA'],
-                                        cta: 'Start 14-Day Trial',
-                                    },
-                                    {
-                                        name: 'Scale', price: '$299', suffix: '/mo', badge: 'Enterprise',
-                                        color: 'text-brand-400', border: 'border-brand-500/20', bg: 'bg-brand-500/5',
-                                        features: ['250,000 SKUs · 25 seats', '20 registers · White-label', '2 channel syncs included', 'Named contact 4-hr SLA'],
-                                        cta: 'Start Trial',
-                                    },
-                                ].map((plan) => (
-                                    <div
-                                        key={plan.name}
-                                        className={`relative rounded-2xl border p-6 flex flex-col transition-all duration-300 ${plan.border} ${plan.bg} ${plan.popular ? 'shadow-[0_0_40px_rgba(11,170,143,0.15)] scale-[1.02]' : ''}`}
-                                    >
-                                        {plan.popular && (
-                                            <div className="absolute -top-px left-4 right-4 h-[2px] bg-gradient-to-r from-brand-500 via-teal-400 to-brand-500 rounded-full" />
-                                        )}
-                                        <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${plan.color}`}>{plan.badge}</div>
-                                        <div className="text-ink font-bold text-xl mb-0.5">{plan.name}</div>
-                                        <div className="flex items-baseline gap-1 mb-4">
-                                            <span className={`text-4xl font-bold font-display ${plan.color}`}>{plan.price}</span>
-                                            <span className="text-ink-muted text-sm">{plan.suffix}</span>
-                                        </div>
-                                        <ul className="space-y-2 flex-1 mb-6">
-                                            {plan.features.map((f) => (
-                                                <li key={f} className="flex items-start gap-2 text-xs text-ink-secondary">
-                                                    <span className={`mt-0.5 flex-shrink-0 ${plan.color}`}>✓</span>
-                                                    {f}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <a
-                                            href="/pricing"
-                                            className={`w-full py-2.5 rounded-xl text-xs font-bold text-center transition-all ${plan.popular ? 'bg-brand-600 hover:bg-brand-500 text-white' : 'bg-white/5 hover:bg-white/10 text-ink-secondary border border-white/10'}`}
-                                        >
-                                            {plan.cta}
-                                        </a>
-                                    </div>
-                                ))}
-                            </div>
-                        </Reveal>
-
-                        {/* Annual savings note */}
-                        <Reveal delay={0.12}>
-                            <div className="text-center mb-10">
-                                <p className="text-ink-muted text-sm">
-                                    💡 Pay annually and get <strong className="text-emerald-400">2 months free</strong> — Starter $490/yr · Core $990/yr · Scale $2,990/yr
-                                </p>
-                            </div>
-                        </Reveal>
-
-                        {/* CTA row */}
-                        <Reveal delay={0.15}>
-                            <Glass className="p-10 md:p-14 text-center overflow-hidden" glow>
-                                <div className="absolute inset-0 vq-grid opacity-30 pointer-events-none" />
-                                <div className="relative z-10">
-                                    <h3 className="text-3xl md:text-4xl font-bold text-ink tracking-tighter mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                        Try the whole platform.<br /><span className="text-emerald-600 dark:text-emerald-400">Free for 14 days.</span>
-                                    </h3>
-                                    <p className="text-ink-muted text-base max-w-xl mx-auto mb-8">Full Core access. Card authorized today at $0.00. Cancel anytime from your dashboard before day 14.</p>
-                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-                                        <MagBtn href="/register" variant="primary">Start Free Trial <ArrowRight size={18} /></MagBtn>
-                                        <MagBtn href="/pricing" variant="ghost">See full pricing details</MagBtn>
-                                    </div>
-                                    <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-bold text-ink-muted">
-                                        {['14-day free trial', 'Cancel anytime', 'Export your data', 'Solo plan free forever'].map(x => (
-                                            <span key={x} className="inline-flex items-center gap-1.5"><Check size={13} className="text-emerald-600 dark:text-emerald-400" /> {x}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </Glass>
-                        </Reveal>
-                    </div>
-                </section>
-
-                {/* ══ 12 · FAQ ══ */}
-                <section className="py-24 md:py-32 px-6">
-                    <div className="max-w-3xl mx-auto">
-                        <Reveal>
-                            <h2 className="text-3xl md:text-5xl font-bold text-ink text-center mb-14 tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Common <span className="text-brand-600 dark:text-brand-400">questions</span>
-                            </h2>
-                        </Reveal>
-                        <Reveal delay={0.1}>
-                            <div>
-                                {faqs.map((f, i) => (
-                                    <FaqItem key={i} q={f.q} a={f.a} open={openFaq === i} onClick={() => setOpenFaq(openFaq === i ? -1 : i)} />
-                                ))}
-                            </div>
-                        </Reveal>
-                    </div>
-                </section>
-
-                {/* ══ 13 · NEWSLETTER (preserved) ══ */}
-                <section className="py-24 px-6 border-t border-line dark:border-white/[0.06] relative">
-                    <div className="absolute inset-0 bg-gradient-to-b from-brand-500/[0.06] to-transparent pointer-events-none" />
-                    <div className="max-w-4xl mx-auto relative z-10 text-center">
-                        <Reveal>
-                            <Eyebrow icon={Mail}>Stay updated</Eyebrow>
-                            <h2 className="text-4xl md:text-5xl font-bold text-ink tracking-tighter mb-4" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                Subscribe to <span className="text-brand-600 dark:text-brand-400">VenQore Insights</span>
-                            </h2>
-                            <p className="text-ink-muted text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
-                                Direct news on system upgrades, cloud accounting releases, and platform enhancements.
-                            </p>
-                        </Reveal>
-                        <Reveal delay={0.1}>
-                            <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-3">
+                    {/* Interactive Prompt & Preset Builder */}
+                    <div className="max-w-2xl mx-auto mb-8">
+                        <form onSubmit={handlePromptSubmit} className="relative rounded-2xl border border-line dark:border-white/10 bg-surface/90 dark:bg-white/[0.03] backdrop-blur-xl shadow-2xl p-2.5 transition-all focus-within:border-brand-500/50 focus-within:ring-2 focus-within:ring-brand-500/20">
+                            <div className="flex items-center gap-3">
                                 <input
-                                    type="email"
-                                    required
-                                    value={newsletterEmail}
-                                    onChange={e => setNewsletterEmail(e.target.value)}
-                                    placeholder="Enter your email address"
-                                    className="w-full px-5 py-3.5 bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/[0.08] hover:border-white/15 focus:border-brand-500/50 rounded-xl text-ink text-sm outline-none transition-all duration-slow"
+                                    type="text"
+                                    value={promptText}
+                                    onChange={(e) => setPromptText(e.target.value)}
+                                    placeholder={promptPlaceholders[placeholderIndex]}
+                                    className="w-full bg-transparent border-none outline-none text-ink text-sm md:text-base px-4 py-3 placeholder:text-ink-muted focus:ring-0"
                                 />
                                 <button
                                     type="submit"
-                                    disabled={newsletterStatus === 'loading'}
-                                    className="w-full sm:w-auto h-12 px-8 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shrink-0 shadow-lg "
+                                    className="vq-btn vq-btn--primary shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm"
                                 >
-                                    {newsletterStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
-                                    <ArrowRight size={14} />
+                                    <span>Build System</span>
+                                    <ArrowRight size={16} />
                                 </button>
-                            </form>
-                            {newsletterMsg && (
-                                <p className={`text-xs mt-4 font-semibold ${newsletterStatus === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-400'}`}>
-                                    {newsletterMsg}
-                                </p>
-                            )}
-                        </Reveal>
-                    </div>
-                </section>
-
-                {/* ══ 14 · FINAL CTA ══ */}
-                <section className="py-28 md:py-40 px-6 text-center overflow-hidden">
-                    <div className="max-w-4xl mx-auto relative">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-600/10 rounded-full blur-[150px] pointer-events-none" />
-                        <Reveal>
-                            <h2 className="text-5xl md:text-8xl font-bold text-ink mb-8 tracking-tighter leading-[0.9] relative z-10" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                You already suspect<br />your <span className="vq-headline-grad">numbers are wrong.</span>
-                            </h2>
-                            <p className="text-xl text-ink-muted mb-12 max-w-2xl mx-auto leading-relaxed relative z-10">
-                                The only question is whether you fix it this year — or keep guessing. 14-day free trial, full access, cancel anytime.
-                            </p>
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-                                <MagBtn href="/register" variant="primary">Start Your Free Trial <ArrowRight size={18} /></MagBtn>
-                                <MagBtn href="/contact" variant="ghost">Talk to Sales</MagBtn>
                             </div>
-                        </Reveal>
+                        </form>
+
+                        {/* Industry Preset Quick Chips */}
+                        <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+                            <span className="text-2xs uppercase tracking-widest text-ink-muted font-bold mr-2">Try Presets:</span>
+                            <button onClick={() => handleSelectChip('Retail pharmacy with FEFO batch expiry')} className="px-3 py-1 rounded-full text-xs font-semibold bg-sunken dark:bg-white/5 text-ink-secondary hover:text-brand-500 hover:bg-brand-500/10 border border-line dark:border-white/5 transition-all">
+                                💊 Pharmacy
+                            </button>
+                            <button onClick={() => handleSelectChip('Wholesale distributor with 30-day credit aging')} className="px-3 py-1 rounded-full text-xs font-semibold bg-sunken dark:bg-white/5 text-ink-secondary hover:text-brand-500 hover:bg-brand-500/10 border border-line dark:border-white/5 transition-all">
+                                📦 Wholesale
+                            </button>
+                            <button onClick={() => handleSelectChip('Supermarket with lane barcode scanning & scale')} className="px-3 py-1 rounded-full text-xs font-semibold bg-sunken dark:bg-white/5 text-ink-secondary hover:text-brand-500 hover:bg-brand-500/10 border border-line dark:border-white/5 transition-all">
+                                🛒 Grocery
+                            </button>
+                            <button onClick={() => handleSelectChip('Clothing boutique with size color variants')} className="px-3 py-1 rounded-full text-xs font-semibold bg-sunken dark:bg-white/5 text-ink-secondary hover:text-brand-500 hover:bg-brand-500/10 border border-line dark:border-white/5 transition-all">
+                                👗 Apparel
+                            </button>
+                            <button onClick={() => handleSelectChip('Multi-branch retail chain with central stock')} className="px-3 py-1 rounded-full text-xs font-semibold bg-sunken dark:bg-white/5 text-ink-secondary hover:text-brand-500 hover:bg-brand-500/10 border border-line dark:border-white/5 transition-all">
+                                🏢 Multi-Store
+                            </button>
+                        </div>
                     </div>
-                </section>
-            </>
 
-            {/* ── REMOVED: bespoke footer — MarketingLayout renders the
-                   shared footer sitemap used by every other page ── */}
+                    {/* Value Metrics Row */}
+                    <div className="flex flex-wrap justify-center items-center gap-6 text-xs text-ink-muted font-medium mb-12">
+                        <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-brand-500" /> 46 modules, only yours switched on</span>
+                        <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-brand-500" /> 58 readings, one definition each</span>
+                        <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-brand-500" /> 8 correctness laws run on every release</span>
+                    </div>
 
+                    {/* CTAs */}
+                    <div className="flex flex-wrap justify-center items-center gap-4">
+                        <MagneticButton href="/demo" variant="primary">
+                            Explore Live Demo — No Signup <ArrowRight className="w-4 h-4 ml-2" />
+                        </MagneticButton>
+                        <MagneticButton href="/build-workspace" variant="secondary">
+                            Start Building Now
+                        </MagneticButton>
+                    </div>
+                </RevealOnScroll>
+            </section>
 
-            {/* ══ STYLES ══ */}
-            <style>{VQ_CSS}</style>
+            {/* ══════════════════════════════════════════════════════════════════════
+                2. TICKER STRIP — CONTINUOUS VERIFICATION
+                ══════════════════════════════════════════════════════════════════════ */}
+            <div className="border-y border-line dark:border-white/5 bg-sunken/40 dark:bg-white/[0.01] py-4 overflow-hidden">
+                <div className="flex gap-12 text-xs font-semibold uppercase tracking-wider text-ink-secondary whitespace-nowrap animate-marquee">
+                    <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-brand-500"></span> 2 Businesses Live Today Running Real Money Through Core Ledger</span>
+                    <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-brand-500"></span> Eight Correctness Laws Run on Every Release</span>
+                    <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-brand-500"></span> One Core Ledger Under Every Module</span>
+                    <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-brand-500"></span> 46 Proven Modules Parameterized in Milliseconds</span>
+                    <span className="inline-flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-brand-500"></span> Zero Balance Drift with Immutable Double-Entry Ledger</span>
+                </div>
+            </div>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                3. PROOF & METRICS STRIP
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 max-w-7xl mx-auto">
+                <RevealOnScroll direction="up">
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <span className="text-2xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">WHAT WE CAN ACTUALLY PROVE</span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase">
+                            <ShieldCheck size={12} /> AMAZON SP-API APPROVED
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5">
+                            <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-numeric">
+                                <AnimCounter end={2} />
+                            </div>
+                            <div className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">Businesses Live Today</div>
+                            <p className="text-xs text-ink-muted">Real counters, real money every day — including the shop this system was built for.</p>
+                        </div>
+
+                        <div className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5">
+                            <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-numeric">
+                                <AnimCounter end={1600} suffix="+" />
+                            </div>
+                            <div className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">Automated Tests</div>
+                            <p className="text-xs text-ink-muted">Continuous correctness suite run against every calculation and release.</p>
+                        </div>
+
+                        <div className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5">
+                            <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-numeric">
+                                <AnimCounter end={8} suffix=" / 8" />
+                            </div>
+                            <div className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">Correctness Laws</div>
+                            <p className="text-xs text-ink-muted">Every transaction is checked eight ways before the ledger accepts it.</p>
+                        </div>
+
+                        <div className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5">
+                            <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-numeric">
+                                <AnimCounter end={46} />
+                            </div>
+                            <div className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">Proven Modules</div>
+                            <p className="text-xs text-ink-muted">Hardened in production, ready to be wired instantly for your business.</p>
+                        </div>
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                4. THE PROBLEM — COMPARISON MATRIX
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 max-w-7xl mx-auto border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <SectionLabel icon={Scale} text="THE PROBLEM" />
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                            Rigid software, or hallucinated software.
+                        </h2>
+                        <p className="text-ink-secondary text-base md:text-lg">
+                            For thirty years those were the only two options. One asks your business to change shape. The other invents your numbers.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {/* Option 1 */}
+                        <div className="p-8 rounded-2xl bg-surface border border-line dark:border-white/5 flex flex-col justify-between">
+                            <div>
+                                <span className="text-2xs font-bold uppercase tracking-widest text-ink-muted">LEGACY ERP / POS</span>
+                                <h3 className="text-xl font-bold text-ink mt-2 mb-3">Clunky &amp; Inflexible</h3>
+                                <p className="text-sm text-ink-secondary leading-relaxed mb-6">
+                                    500 pre-built menus and rigid settings. A bakery gets buried in wholesale manufacturing screens. A pharmacy finds batch expiry was never built into checkout.
+                                </p>
+                            </div>
+                            <ul className="space-y-2 text-xs text-ink-muted border-t border-line dark:border-white/5 pt-4">
+                                <li className="flex items-center gap-2 text-rose-500 font-medium">✕ 3 to 6 months of expensive implementation</li>
+                                <li className="flex items-center gap-2 text-rose-500 font-medium">✕ Hundreds of cluttered menus you never use</li>
+                            </ul>
+                        </div>
+
+                        {/* Option 2 */}
+                        <div className="p-8 rounded-2xl bg-surface border border-line dark:border-white/5 flex flex-col justify-between">
+                            <div>
+                                <span className="text-2xs font-bold uppercase tracking-widest text-ink-muted">GENERIC AI APP BUILDERS</span>
+                                <h3 className="text-xl font-bold text-ink mt-2 mb-3">Hallucinated Books</h3>
+                                <p className="text-sm text-ink-secondary leading-relaxed mb-6">
+                                    A prompt generates raw code from scratch. Raw code breaks accounting rules, invents numbers, and cracks under real transaction load.
+                                </p>
+                            </div>
+                            <ul className="space-y-2 text-xs text-ink-muted border-t border-line dark:border-white/5 pt-4">
+                                <li className="flex items-center gap-2 text-rose-500 font-medium">✕ No double-entry ledger invariants</li>
+                                <li className="flex items-center gap-2 text-rose-500 font-medium">✕ Cannot trust financial totals for audits</li>
+                            </ul>
+                        </div>
+
+                        {/* Option 3: VenQore */}
+                        <div className="p-8 rounded-2xl bg-brand-500/10 border-2 border-brand-500/40 flex flex-col justify-between relative overflow-hidden shadow-xl">
+                            <div className="absolute top-4 right-4 bg-brand-500 text-white text-2xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                                THE COMPILER
+                            </div>
+                            <div>
+                                <span className="text-2xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">VENQORE · THE AI COMPILER</span>
+                                <h3 className="text-xl font-bold text-ink mt-2 mb-3">Both, without the trade</h3>
+                                <p className="text-sm text-ink-secondary leading-relaxed mb-6">
+                                    AI compiles your intent into parameterized, battle-tested financial modules. The agility of natural language with the arithmetic of hardened double-entry accounting.
+                                </p>
+                            </div>
+                            <ul className="space-y-2 text-xs text-brand-700 dark:text-brand-300 border-t border-brand-500/20 pt-4 font-semibold">
+                                <li className="flex items-center gap-2">✓ 100% custom workflows, 0% hallucinated arithmetic</li>
+                                <li className="flex items-center gap-2">✓ Live in minutes with verified double-entry books</li>
+                            </ul>
+                        </div>
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                5. CORE VALUE — LEDGER BALANCE EQUATION
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 max-w-5xl mx-auto text-center border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <SectionLabel icon={Scale} text="THE CORE VALUE" />
+                    <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                        Flexible where it should be. Rigid where it must be.
+                    </h2>
+                    <p className="text-ink-secondary text-base md:text-lg max-w-2xl mx-auto mb-10">
+                        The AI decides what your system looks like. It never decides what your numbers say. Those are two different jobs, and VenQore is the only platform that keeps them strictly apart.
+                    </p>
+
+                    <div className="inline-flex flex-wrap items-center justify-center gap-8 p-8 rounded-2xl bg-surface border border-line dark:border-white/5 shadow-2xl">
+                        <div className="text-center sm:text-right">
+                            <span className="text-2xs font-bold uppercase tracking-widest text-ink-muted block mb-1">TOTAL DEBITS</span>
+                            <span className="text-2xl sm:text-4xl font-bold text-brand-600 dark:text-brand-400 font-numeric">$66,365.20</span>
+                        </div>
+                        <div className="text-2xl sm:text-4xl font-bold text-ink-muted">=</div>
+                        <div className="text-center sm:text-left">
+                            <span className="text-2xs font-bold uppercase tracking-widest text-ink-muted block mb-1">TOTAL CREDITS</span>
+                            <span className="text-2xl sm:text-4xl font-bold text-brand-600 dark:text-brand-400 font-numeric">$66,365.20</span>
+                        </div>
+                    </div>
+                    <p className="text-xs text-ink-muted mt-4">
+                        Debits equal credits or the transaction is refused — that rule lives in the engine, not in a prompt.
+                    </p>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                6. 5-STAGE COMPILER THEATER (INTERACTIVE SIMULATION)
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section id="compiler" className="py-24 px-6 max-w-7xl mx-auto border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <SectionLabel icon={Cpu} text="5-STAGE COMPILER THEATER" />
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                            Watch AI compile your business system.
+                        </h2>
+                        <p className="text-ink-secondary text-base md:text-lg">
+                            From natural language prompt to a running, multi-register operating system in five automated stages.
+                        </p>
+                    </div>
+
+                    <div className="grid lg:grid-cols-12 gap-8 items-start">
+                        {/* Stages Selector Column */}
+                        <div className="lg:col-span-4 space-y-3">
+                            {compilerStages.map((stage, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => { setActiveStage(idx); setIsAutoPlaying(false); }}
+                                    className={`w-full text-left p-4 rounded-xl border transition-all ${activeStage === idx
+                                        ? 'bg-brand-500/10 border-brand-500/40 shadow-lg'
+                                        : 'bg-surface/50 border-line dark:border-white/5 hover:border-brand-500/20'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className={`text-xs font-bold font-numeric px-2 py-0.5 rounded ${activeStage === idx ? 'bg-brand-500 text-white' : 'bg-sunken text-ink-muted'
+                                            }`}>
+                                            {stage.num}
+                                        </span>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-ink">{stage.title}</h4>
+                                            <p className="text-2xs text-ink-muted">{stage.sub}</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Live Theater Display Box */}
+                        <div className="lg:col-span-8 p-6 md:p-8 rounded-2xl bg-surface border border-line dark:border-white/10 shadow-2xl min-h-[420px] flex flex-col justify-between">
+                            <div className="flex items-center justify-between border-b border-line dark:border-white/5 pb-4 mb-6">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full bg-rose-500/80"></span>
+                                    <span className="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                                    <span className="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+                                    <span className="text-2xs font-bold uppercase tracking-widest text-ink-muted ml-2">
+                                        COMPILER · STAGE {compilerStages[activeStage].num}: {compilerStages[activeStage].title}
+                                    </span>
+                                </div>
+                                <span className="text-2xs font-bold text-brand-500 uppercase tracking-widest animate-pulse">● ACTIVE RUN</span>
+                            </div>
+
+                            {/* Stage Content Renderers */}
+                            <div className="flex-1 flex flex-col justify-center">
+                                {activeStage === 0 && (
+                                    <div className="space-y-4">
+                                        <span className="text-2xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">INPUT INTENT</span>
+                                        <p className="text-lg md:text-xl font-medium text-ink leading-relaxed font-mono bg-sunken/60 p-4 rounded-xl border border-line dark:border-white/5">
+                                            "{compilerStages[0].code}"
+                                        </p>
+                                        <p className="text-xs text-ink-muted">{compilerStages[0].explainer}</p>
+                                    </div>
+                                )}
+
+                                {activeStage === 1 && (
+                                    <div className="space-y-4">
+                                        <span className="text-2xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">IDENTIFIED DOMAIN OBJECTS</span>
+                                        <div className="grid sm:grid-cols-3 gap-4">
+                                            <div className="p-3 bg-sunken rounded-xl border border-line dark:border-white/5">
+                                                <span className="text-3xs uppercase font-bold text-ink-muted block mb-2">ENTITIES</span>
+                                                <ul className="text-xs space-y-1 text-ink font-medium">
+                                                    {compilerStages[1].entities.map((e, i) => <li key={i}>• {e}</li>)}
+                                                </ul>
+                                            </div>
+                                            <div className="p-3 bg-sunken rounded-xl border border-line dark:border-white/5">
+                                                <span className="text-3xs uppercase font-bold text-ink-muted block mb-2">WORKFLOWS</span>
+                                                <ul className="text-xs space-y-1 text-ink font-medium">
+                                                    {compilerStages[1].workflows.map((w, i) => <li key={i}>• {w}</li>)}
+                                                </ul>
+                                            </div>
+                                            <div className="p-3 bg-sunken rounded-xl border border-line dark:border-white/5">
+                                                <span className="text-3xs uppercase font-bold text-ink-muted block mb-2">FINANCIAL ROUTES</span>
+                                                <ul className="text-xs space-y-1 text-ink font-medium">
+                                                    {compilerStages[1].financialRoutes.map((f, i) => <li key={i}>• {f}</li>)}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeStage === 2 && (
+                                    <div className="space-y-4">
+                                        <span className="text-2xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">ENGINE SELECTION</span>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                            {compilerStages[2].engines.map((eng, i) => (
+                                                <div key={i} className={`p-3 rounded-xl border ${eng.status === 'SELECTED' || eng.status === 'ALWAYS ON' ? 'bg-brand-500/10 border-brand-500/30 text-ink' : 'bg-sunken/40 border-line text-ink-muted opacity-50'}`}>
+                                                    <div className="text-xs font-bold">{eng.name}</div>
+                                                    <div className="text-3xs font-semibold uppercase mt-1 text-brand-600 dark:text-brand-400">{eng.status}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeStage === 3 && (
+                                    <div className="space-y-4">
+                                        <span className="text-2xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">LEDGER TOPOLOGY WIRING</span>
+                                        <div className="space-y-2.5 font-mono text-xs">
+                                            {compilerStages[3].topology.map((t, i) => (
+                                                <div key={i} className="p-3 bg-sunken rounded-xl border border-line dark:border-white/5 flex items-center justify-between">
+                                                    <span className="text-ink font-semibold">{t.source}</span>
+                                                    <span className="text-brand-500">───►</span>
+                                                    <span className="text-ink font-semibold">{t.target}</span>
+                                                    <span className="text-3xs font-bold uppercase px-2 py-0.5 rounded bg-brand-500/15 text-brand-500">{t.type}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeStage === 4 && (
+                                    <div className="space-y-4">
+                                        <span className="text-2xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">ACTIVE REGISTER · READY TO OPERATE</span>
+                                        <div className="p-4 bg-sunken rounded-xl border border-line dark:border-white/5 space-y-2">
+                                            {compilerStages[4].cart.map((item, i) => (
+                                                <div key={i} className="flex justify-between items-center text-xs pb-2 border-b border-line/50 last:border-none last:pb-0">
+                                                    <div>
+                                                        <div className="font-bold text-ink">{item.item}</div>
+                                                        <div className="text-3xs text-ink-muted">{item.batch}</div>
+                                                    </div>
+                                                    <span className="font-bold font-numeric text-ink">{item.price}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex justify-between items-center pt-2 font-bold">
+                                            <span className="text-xs text-ink-muted">TOTAL (POSTED TO LEDGER)</span>
+                                            <span className="text-lg text-brand-600 dark:text-brand-400 font-numeric">{compilerStages[4].total}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-6 pt-4 border-t border-line dark:border-white/5 flex items-center justify-between text-xs text-ink-muted">
+                                <span>Stage {activeStage + 1} of 5</span>
+                                <Link href="/build-workspace" className="text-brand-600 dark:text-brand-400 font-bold hover:underline flex items-center gap-1">
+                                    Assemble Your Business Now <ArrowRight size={14} />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                7. PRODUCT SHOWCASE — 5 CORE SURFACES
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section id="showcase" className="py-24 px-6 max-w-7xl mx-auto border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <SectionLabel icon={Boxes} text="SURFACES YOU TOUCH" />
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                            Five screens. Everything else is behind them.
+                        </h2>
+                        <p className="text-ink-secondary text-base md:text-lg">
+                            Simple interfaces on top, rigorous mathematics underneath.
+                        </p>
+                    </div>
+
+                    {/* Showcase Tabs */}
+                    <div className="flex flex-wrap justify-center gap-2 mb-10">
+                        {showcaseTabs.map((tab, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setActiveShowcase(idx)}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeShowcase === idx
+                                    ? 'bg-brand-500 text-white shadow-lg'
+                                    : 'bg-surface border border-line dark:border-white/5 text-ink-secondary hover:text-ink'
+                                    }`}
+                            >
+                                {tab.title}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Showcase Active Surface Card */}
+                    <div className="p-8 rounded-3xl bg-surface border border-line dark:border-white/10 shadow-2xl">
+                        <div className="grid md:grid-cols-12 gap-8 items-center">
+                            <div className="md:col-span-6 space-y-4">
+                                <span className="inline-block px-3 py-1 rounded-full text-3xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                    {showcaseTabs[activeShowcase].badge}
+                                </span>
+                                <h3 className="text-2xl md:text-3xl font-bold text-ink font-display">
+                                    {showcaseTabs[activeShowcase].subtitle}
+                                </h3>
+                                <p className="text-ink-secondary text-sm md:text-base leading-relaxed">
+                                    {showcaseTabs[activeShowcase].desc}
+                                </p>
+                                <Link
+                                    href={showcaseTabs[activeShowcase].href}
+                                    className="inline-flex items-center gap-2 text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline pt-2"
+                                >
+                                    <span>Explore {showcaseTabs[activeShowcase].title.split('·')[1]}</span>
+                                    <ArrowRight size={16} />
+                                </Link>
+                            </div>
+
+                            <div className="md:col-span-6 p-6 rounded-2xl bg-sunken border border-line dark:border-white/5 shadow-inner">
+                                <div className="space-y-3">
+                                    {showcaseTabs[activeShowcase].sampleData.map((row, i) => (
+                                        <div key={i} className="p-3 bg-surface rounded-xl border border-line dark:border-white/5 flex items-center justify-between text-xs">
+                                            <div>
+                                                <div className="font-bold text-ink">{row.line}</div>
+                                                <div className="text-3xs text-ink-muted">{row.sub}</div>
+                                            </div>
+                                            <span className="font-bold font-numeric text-brand-600 dark:text-brand-400">{row.val}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-line dark:border-white/5">
+                                    <span className="text-3xs uppercase font-bold text-ink-muted">SUMMARY STATUS</span>
+                                    <span className="text-sm font-bold font-numeric text-ink">{showcaseTabs[activeShowcase].total}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                8. EIGHT CORRECTNESS LAWS (INVARIANTS)
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-24 px-6 max-w-7xl mx-auto border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <SectionLabel icon={ShieldCheck} text="MATHEMATICAL PROOF" />
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                            The Eight Correctness Laws.
+                        </h2>
+                        <p className="text-ink-secondary text-base md:text-lg">
+                            Financial integrity enforced at the database level on every transaction.
+                        </p>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {correctnessLaws.map((law, i) => (
+                            <div key={i} className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5 flex flex-col justify-between hover:border-brand-500/30 transition-all">
+                                <div>
+                                    <span className="text-xs font-bold font-numeric text-brand-600 dark:text-brand-400 block mb-2">{law.num}</span>
+                                    <h4 className="text-base font-bold text-ink mb-2">{law.title}</h4>
+                                    <p className="text-xs text-ink-muted leading-relaxed">{law.desc}</p>
+                                </div>
+                                <div className="mt-4 pt-3 border-t border-line dark:border-white/5 text-3xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                    <CheckCircle2 size={12} /> INVARIANT VERIFIED
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                9. INDUSTRY SOLUTIONS TABS
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-24 px-6 max-w-7xl mx-auto border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <SectionLabel icon={Building2} text="TAILORED VERTICALS" />
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                            Configured for your exact trade.
+                        </h2>
+                        <p className="text-ink-secondary text-base md:text-lg">
+                            Pre-compiled topologies for high-velocity retail, wholesale, and multi-store operations.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-2 mb-10">
+                        {Object.keys(industriesData).map((key) => (
+                            <button
+                                key={key}
+                                onClick={() => setSelectedIndustry(key)}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedIndustry === key
+                                    ? 'bg-brand-500 text-white shadow-lg'
+                                    : 'bg-surface border border-line dark:border-white/5 text-ink-secondary hover:text-ink'
+                                    }`}
+                            >
+                                {industriesData[key].name.split('&')[0]}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="p-8 rounded-3xl bg-surface border border-line dark:border-white/10 shadow-2xl">
+                        <div className="max-w-3xl mx-auto text-center space-y-4">
+                            <span className="px-3 py-1 rounded-full text-3xs font-bold uppercase tracking-wider bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                {industriesData[selectedIndustry].badge}
+                            </span>
+                            <h3 className="text-2xl md:text-3xl font-bold text-ink">
+                                {industriesData[selectedIndustry].name}
+                            </h3>
+                            <p className="text-base text-ink-secondary">
+                                {industriesData[selectedIndustry].headline}
+                            </p>
+
+                            <div className="grid sm:grid-cols-2 gap-3 pt-6 text-left">
+                                {industriesData[selectedIndustry].features.map((feat, idx) => (
+                                    <div key={idx} className="p-3 bg-sunken rounded-xl border border-line dark:border-white/5 flex items-center gap-2.5 text-xs font-semibold text-ink">
+                                        <Check className="w-4 h-4 text-brand-500 shrink-0" />
+                                        <span>{feat}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="pt-8">
+                                <Link
+                                    href={industriesData[selectedIndustry].href}
+                                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-500 text-white font-bold text-sm hover:bg-brand-600 transition-all shadow-lg"
+                                >
+                                    <span>Explore Full {industriesData[selectedIndustry].name} Solution</span>
+                                    <ArrowRight size={16} />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                10. PRICING TEASER CARDS
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-24 px-6 max-w-7xl mx-auto border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <SectionLabel icon={Banknote} text="TRANSPARENT PRICING" />
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                            Starts free. Scales with your volume.
+                        </h2>
+                        <p className="text-ink-secondary text-base md:text-lg mb-8">
+                            Zero transaction fees. Zero hidden markups. 14-day free trial on paid plans.
+                        </p>
+
+                        {/* Annual / Monthly Toggle */}
+                        <div className="inline-flex items-center gap-3 p-1.5 rounded-full bg-sunken border border-line dark:border-white/5">
+                            <button
+                                onClick={() => setIsAnnual(false)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${!isAnnual ? 'bg-surface text-ink shadow' : 'text-ink-muted'}`}
+                            >
+                                Monthly Billing
+                            </button>
+                            <button
+                                onClick={() => setIsAnnual(true)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isAnnual ? 'bg-brand-500 text-white shadow' : 'text-ink-muted'}`}
+                            >
+                                Annual Billing (Save 17%)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-4 gap-6">
+                        {/* Solo Plan */}
+                        <div className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5 flex flex-col justify-between">
+                            <div>
+                                <h4 className="text-lg font-bold text-ink">Solo</h4>
+                                <p className="text-xs text-ink-muted mb-4">Single cash counter &amp; small shop</p>
+                                <div className="text-3xl font-bold text-ink font-numeric mb-6">$0 <span className="text-xs text-ink-muted">/ forever</span></div>
+                                <ul className="space-y-2 text-xs text-ink-secondary mb-6">
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 1 POS Register</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 500 SKUs</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> Offline Checkout</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> Full Double-Entry Ledger</li>
+                                </ul>
+                            </div>
+                            <Link href="/register" className="w-full py-2.5 rounded-xl border border-line text-center text-xs font-bold text-ink hover:bg-sunken">
+                                Start Free
+                            </Link>
+                        </div>
+
+                        {/* Starter Plan */}
+                        <div className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5 flex flex-col justify-between">
+                            <div>
+                                <h4 className="text-lg font-bold text-ink">Starter</h4>
+                                <p className="text-xs text-ink-muted mb-4">Growing shop with inventory tracking</p>
+                                <div className="text-3xl font-bold text-ink font-numeric mb-6">
+                                    {isAnnual ? '$15' : '$18'} <span className="text-xs text-ink-muted">/ month</span>
+                                </div>
+                                <ul className="space-y-2 text-xs text-ink-secondary mb-6">
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 2 POS Registers</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 5,000 SKUs</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> FIFO Batch &amp; Expiry</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> Google Drive Backups</li>
+                                </ul>
+                            </div>
+                            <Link href="/pricing" className="w-full py-2.5 rounded-xl border border-line text-center text-xs font-bold text-ink hover:bg-sunken">
+                                View Details
+                            </Link>
+                        </div>
+
+                        {/* Growth Plan */}
+                        <div className="p-6 rounded-2xl bg-brand-500/10 border-2 border-brand-500/40 flex flex-col justify-between relative shadow-xl">
+                            <div className="absolute top-3 right-3 bg-brand-500 text-white text-3xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full">
+                                POPULAR
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold text-ink">Growth</h4>
+                                <p className="text-xs text-ink-muted mb-4">Multi-store &amp; wholesale operations</p>
+                                <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 font-numeric mb-6">
+                                    {isAnnual ? '$41' : '$49'} <span className="text-xs text-ink-muted">/ month</span>
+                                </div>
+                                <ul className="space-y-2 text-xs text-ink-secondary mb-6">
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 6 POS Registers</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 25,000 SKUs</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> Inter-Branch Transfers</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> WhatsApp Reminders &amp; Khata</li>
+                                </ul>
+                            </div>
+                            <Link href="/pricing" className="w-full py-2.5 rounded-xl bg-brand-500 text-center text-xs font-bold text-white hover:bg-brand-600 shadow-md">
+                                Start 14-Day Trial
+                            </Link>
+                        </div>
+
+                        {/* Scale Plan */}
+                        <div className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5 flex flex-col justify-between">
+                            <div>
+                                <h4 className="text-lg font-bold text-ink">Scale</h4>
+                                <p className="text-xs text-ink-muted mb-4">Large chains &amp; custom workflows</p>
+                                <div className="text-3xl font-bold text-ink font-numeric mb-6">
+                                    {isAnnual ? '$249' : '$299'} <span className="text-xs text-ink-muted">/ month</span>
+                                </div>
+                                <ul className="space-y-2 text-xs text-ink-secondary mb-6">
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 20 POS Registers</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> 250,000 SKUs</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> VenSynQ Multi-Channel</li>
+                                    <li className="flex items-center gap-2"><Check size={14} className="text-brand-500" /> Dedicated 4-hr SLA Support</li>
+                                </ul>
+                            </div>
+                            <Link href="/pricing" className="w-full py-2.5 rounded-xl border border-line text-center text-xs font-bold text-ink hover:bg-sunken">
+                                View Enterprise
+                            </Link>
+                        </div>
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                11. FAQ ACCORDION
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-24 px-6 max-w-4xl mx-auto border-t border-line dark:border-white/5">
+                <RevealOnScroll direction="up">
+                    <div className="text-center mb-16">
+                        <SectionLabel icon={Sparkles} text="FREQUENT QUESTIONS" />
+                        <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight mb-4 mt-3">
+                            Questions &amp; Honest Answers.
+                        </h2>
+                    </div>
+
+                    <div className="space-y-4">
+                        {faqs.map((faq, idx) => (
+                            <div
+                                key={idx}
+                                className="p-6 rounded-2xl bg-surface border border-line dark:border-white/5 transition-all"
+                            >
+                                <button
+                                    onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                                    className="w-full flex items-center justify-between text-left font-bold text-base text-ink"
+                                >
+                                    <span>{faq.q}</span>
+                                    <ChevronDown size={18} className={`transform transition-transform ${openFaq === idx ? 'rotate-180 text-brand-500' : 'text-ink-muted'}`} />
+                                </button>
+                                {openFaq === idx && (
+                                    <p className="mt-4 text-sm text-ink-secondary leading-relaxed border-t border-line dark:border-white/5 pt-4">
+                                        {faq.a}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </RevealOnScroll>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════════════════════
+                12. FINAL CALL TO ACTION BANNER
+                ══════════════════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 max-w-7xl mx-auto">
+                <div className="p-12 md:p-16 rounded-3xl bg-gradient-to-br from-brand-600 to-brand-700 text-white text-center shadow-2xl relative overflow-hidden">
+                    <div className="relative z-10 max-w-3xl mx-auto space-y-6">
+                        <h2 className="text-3xl md:text-5xl font-bold font-display leading-tight">
+                            Run your business. Not five subscriptions and a notebook.
+                        </h2>
+                        <p className="text-brand-100 text-base md:text-lg">
+                            Start a 14-day trial or explore the running demo store immediately with zero signup.
+                        </p>
+                        <div className="flex flex-wrap justify-center items-center gap-4 pt-4">
+                            <Link
+                                href="/demo"
+                                className="px-8 py-4 rounded-xl bg-white text-brand-700 font-bold text-sm hover:bg-brand-50 transition-all shadow-lg"
+                            >
+                                Explore Live Demo
+                            </Link>
+                            <Link
+                                href="/build-workspace"
+                                className="px-8 py-4 rounded-xl bg-brand-800/80 text-white font-bold text-sm hover:bg-brand-900 transition-all border border-white/20"
+                            >
+                                Build Your System Now
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </MarketingLayout>
     );
 }
-
-/* ── Global stylesheet (motion + tokens) ─────────────────────────────────── */
-const VQ_CSS = `
-* { font-family: 'Inter','Figtree',system-ui,sans-serif; }
-html { scroll-behavior: smooth; }
-.tabular-nums { font-variant-numeric: tabular-nums; }
-
-/*
-   .vq-headline-grad and .vq-text-glow are NOT redefined here on purpose.
-   MarketingLayout.jsx (the shared chokepoint every marketing page — this
-   one included — renders inside of) owns both, reading V6's teal ramp.
-   This file used to carry a second, competing definition of each, hardcoded
-   to the old indigo/violet palette with a raw cyan hex thrown in — whichever
-   one won the cascade still wasn't V6, and the split between the two is why
-   the headline showed two off-brand colours instead of one on-brand colour.
-   @keyframes vq-shimmer is still needed here since MarketingLayout's
-   .vq-headline-grad animation references it and this stylesheet is injected
-   separately; keep it, drop only the colour rules above.
-*/
-@keyframes vq-shimmer { to { background-position: 200% center; } }
-
-@keyframes vq-rise { 0%{transform:translateY(110%);opacity:0;filter:blur(10px);} 100%{transform:translateY(0);opacity:1;filter:blur(0);} }
-.hero-rise { display:inline-block; animation: vq-rise 1.1s cubic-bezier(0.22,1,0.36,1) forwards; }
-.hero-rise-d { display:inline-block; animation: vq-rise 1.1s cubic-bezier(0.22,1,0.36,1) 0.18s forwards; transform: translateY(110%); }
-.hero-fade { opacity:0; animation: vq-fade 1s ease 0.5s forwards; }
-.hero-fade-2 { opacity:0; animation: vq-fade 1s ease 0.7s forwards; }
-@keyframes vq-fade { to { opacity:1; } }
-
-/* Ambient */
-@keyframes vq-blob { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(3%,2%) scale(1.06);} }
-.vq-blob { animation: vq-blob 18s ease-in-out infinite; }
-.vq-blob-2 { animation: vq-blob 22s ease-in-out infinite 3s; }
-.vq-beams {
-    background: conic-gradient(from 90deg at 50% 0%,
-        transparent 0deg, rgb(var(--vq-ramp-teal-500) / 0.07) 10deg, transparent 22deg,
-        transparent 44deg, rgb(var(--vq-ramp-teal-400) / 0.06) 56deg, transparent 70deg,
-        transparent 104deg, rgba(34,211,238,0.05) 118deg, transparent 134deg);
-    filter: blur(22px); transform-origin: 50% 0%;
-    animation: vq-beamspin 26s ease-in-out infinite;
-}
-@keyframes vq-beamspin { 0%,100%{transform:translateX(-50%) rotate(-7deg);} 50%{transform:translateX(-50%) rotate(7deg);} }
-.vq-grid { background-image:
-    linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
-    background-size: 64px 64px; }
-.vq-grain { background-image: url('/images/noise.svg'); background-repeat: repeat; }
-
-/* Floating chips */
-@keyframes vq-float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
-.vq-float { animation: vq-float 6s ease-in-out infinite; }
-.vq-float-2 { animation: vq-float 7s ease-in-out infinite 1s; }
-.vq-float-3 { animation: vq-float 8s ease-in-out infinite 0.5s; }
-
-/* Core spins */
-@keyframes vq-spin-slow { to { transform: rotate(360deg); } }
-@keyframes vq-spin-rev { to { transform: rotate(-360deg); } }
-
-/* Misc motion */
-@keyframes vq-blink { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
-.vq-blink { animation: vq-blink 1.6s ease-in-out infinite; }
-@keyframes vq-ping { 0%{transform:scale(1);opacity:0.8;} 75%,100%{transform:scale(2.4);opacity:0;} }
-.vq-ping { transform-origin: center; transform-box: fill-box; animation: vq-ping 1.8s cubic-bezier(0,0,0.2,1) infinite; }
-@keyframes vq-scan { 0%{top:8%;} 50%{top:82%;} 100%{top:8%;} }
-.vq-scanline { animation: vq-scan 1.6s ease-in-out infinite; }
-@keyframes vq-rowin { 0%{opacity:0;transform:translateY(-8px) scale(0.98);} 100%{opacity:1;transform:none;} }
-.vq-row-in { animation: vq-rowin 0.5s cubic-bezier(0.22,1,0.36,1); }
-@keyframes vq-dot { 0%,60%,100%{transform:translateY(0);opacity:0.4;} 30%{transform:translateY(-5px);opacity:1;} }
-.vq-dot { animation: vq-dot 1s ease-in-out infinite; }
-@keyframes vq-pulsenode { 0%,100%{opacity:0.9;transform:scale(1);} 50%{opacity:1;transform:scale(1.05);filter:drop-shadow(0 0 18px rgb(var(--vq-ramp-teal-500) / 0.7));} }
-.vq-pulse-node { animation: vq-pulsenode 2.8s ease-in-out infinite; }
-
-.vq-cta-glow { background: linear-gradient(100deg, rgb(var(--vq-ramp-teal-600)), rgb(var(--vq-ramp-teal-400)), rgb(var(--vq-ramp-teal-600))); background-size:200% auto; box-shadow:0 10px 50px -12px rgb(var(--vq-ramp-teal-500) / 0.6); animation: vq-shimmer 5s linear infinite; }
-
-/* Range sliders in the cost calculator — native inputs look wrong in both
-   themes, so the track and thumb are drawn explicitly. */
-.vq-range { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; background: rgba(15,23,42,0.10); outline: none; cursor: pointer; }
-.dark .vq-range { background: rgba(255,255,255,0.10); }
-.vq-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-ramp-teal-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgb(var(--vq-ramp-teal-500) / 0.45); cursor: grab; transition: transform .15s ease; }
-.dark .vq-range::-webkit-slider-thumb { border-color: #0c0922; }
-.vq-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
-.vq-range::-webkit-slider-thumb:active { cursor: grabbing; }
-.vq-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: rgb(var(--vq-ramp-teal-500)); border: 3px solid #fff; box-shadow: 0 2px 10px rgb(var(--vq-ramp-teal-500) / 0.45); cursor: grab; }
-.dark .vq-range::-moz-range-thumb { border-color: #0c0922; }
-.vq-range:focus-visible::-webkit-slider-thumb { outline: 2px solid rgb(var(--vq-ramp-teal-500)); outline-offset: 2px; }
-
-@keyframes vq-marq { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
-.vq-marquee { animation: vq-marq 30s linear infinite; }
-.vq-marquee-mask { -webkit-mask-image: linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); mask-image: linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); }
-
-::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: rgb(var(--vq-ramp-void-950)); }
-::-webkit-scrollbar-thumb { background: rgb(var(--vq-ramp-teal-500) / 0.25); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgb(var(--vq-ramp-teal-500) / 0.4); }
-
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
-    .hero-rise, .hero-rise-d, .hero-fade, .hero-fade-2 { opacity:1 !important; transform:none !important; }
-}
-`;
