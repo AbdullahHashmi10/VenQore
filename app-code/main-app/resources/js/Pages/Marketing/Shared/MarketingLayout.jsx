@@ -655,7 +655,7 @@ export default function MarketingLayout({ children, title, description }) {
     };
 
     return (
-        <div className="min-h-screen bg-app text-ink font-sans selection:bg-brand-500/30 dark:selection:bg-brand-500/40 overflow-x-clip antialiased transition-colors duration-slow">
+        <div className="vq-site min-h-screen bg-app text-ink font-sans selection:bg-brand-500/30 dark:selection:bg-brand-500/40 overflow-x-clip antialiased transition-colors duration-slow">
             <Head>
                 <title>{title || `${appName}`}</title>
                 {description && <meta name="description" content={description} />}

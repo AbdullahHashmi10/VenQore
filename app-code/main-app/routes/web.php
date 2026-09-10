@@ -18,8 +18,8 @@ use Carbon\Carbon;
 use Inertia\Inertia;
 
 
-// ── V6 Public Production Pages ──────────────────────────────────────────
-Route::get('/features', fn() => \App\Http\Controllers\Marketing\V6PageController::render('features'))->name('marketing.features');
+// ── Public Marketing Pages (Dynamic Inertia / V6) ──────────────────────────
+Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
 Route::get('/features/{slug}', [\App\Http\Controllers\Marketing\FeaturesController::class, 'show'])->name('marketing.features.show');
 
 Route::get('/roadmap', [\App\Http\Controllers\Marketing\RoadmapController::class, 'index'])->name('marketing.roadmap');
@@ -27,7 +27,22 @@ Route::get('/solutions', [\App\Http\Controllers\Marketing\SolutionsController::c
 Route::get('/solutions/{slug}', [\App\Http\Controllers\Marketing\SolutionsController::class, 'show'])->name('marketing.solutions.show');
 Route::get('/compare', [\App\Http\Controllers\Marketing\CompareController::class, 'index'])->name('marketing.compare.index');
 Route::get('/compare/{slug}', [\App\Http\Controllers\Marketing\CompareController::class, 'show'])->name('marketing.compare.show');
-Route::get('/pricing', fn() => \App\Http\Controllers\Marketing\V6PageController::render('pricing'))->name('marketing.pricing');
+Route::get('/pricing', function () {
+    try {
+        $plans = \App\Models\Plan::with(['limits', 'features'])
+            ->where('is_active', true)
+            ->where('is_visible', true)
+            ->where('slug', 'not like', 'ltd%')
+            ->orderBy('sort_order')
+            ->get();
+    } catch (\Throwable $e) {
+        $plans = collect();
+    }
+    return Inertia::render('Marketing/Pricing', [
+        'plans'   => $plans,
+        'pricing' => config('pricing'),
+    ]);
+})->name('marketing.pricing');
 Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $request) {
     $request->validate(['country' => 'required|string|size:2']);
     $country = strtoupper($request->country);
@@ -40,22 +55,22 @@ Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $re
     
     return back()->with('success', 'Region updated successfully.');
 })->name('marketing.pricing.override');
-Route::get('/about',    fn() => \App\Http\Controllers\Marketing\V6PageController::render('about'))->name('marketing.about');
-Route::get('/contact',  fn() => \App\Http\Controllers\Marketing\V6PageController::render('contact'))->name('marketing.contact');
+Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marketing.about');
+Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.contact.submit');
 
-// Coming-soon product lines & V6 product showcases
-Route::get('/vensynq', fn() => \App\Http\Controllers\Marketing\V6PageController::render('vensynq'))->name('marketing.vensynq');
-Route::get('/smartcapture', fn() => \App\Http\Controllers\Marketing\V6PageController::render('smartcapture'))->name('marketing.smartcapture');
-Route::get('/documents', fn() => \App\Http\Controllers\Marketing\V6PageController::render('documents'))->name('marketing.documents');
-Route::get('/reckoner', fn() => \App\Http\Controllers\Marketing\V6PageController::render('reckoner'))->name('marketing.reckoner');
-Route::get('/ledger', fn() => \App\Http\Controllers\Marketing\V6PageController::render('ledger'))->name('marketing.ledger');
-Route::get('/blueprint', fn() => \App\Http\Controllers\Marketing\V6PageController::render('blueprint'))->name('marketing.blueprint');
-Route::get('/security', fn() => \App\Http\Controllers\Marketing\V6PageController::render('security'))->name('marketing.security');
-Route::get('/onboarding', fn() => \App\Http\Controllers\Marketing\V6PageController::render('onboarding'))->name('marketing.onboarding');
-Route::get('/dashboard-preview', fn() => \App\Http\Controllers\Marketing\V6PageController::render('dashboard'))->name('marketing.dashboard-preview');
+// Product lines & V6 showcases
+Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('marketing.vensynq');
+Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('marketing.smartcapture');
+Route::get('/documents', fn() => Inertia::render('Marketing/Documents'))->name('marketing.documents');
+Route::get('/reckoner', fn() => Inertia::render('Marketing/Reckoner'))->name('marketing.reckoner');
+Route::get('/ledger', fn() => Inertia::render('Marketing/Ledger'))->name('marketing.ledger');
+Route::get('/blueprint', fn() => Inertia::render('Marketing/Blueprint'))->name('marketing.blueprint');
+Route::get('/security', fn() => Inertia::render('Marketing/Security'))->name('marketing.security');
+Route::get('/onboarding', fn() => Inertia::render('Marketing/Onboarding'))->name('marketing.onboarding');
+Route::get('/dashboard-preview', fn() => Inertia::render('Marketing/DashboardPreview'))->name('marketing.dashboard-preview');
 
-Route::get('/pos', fn () => \App\Http\Controllers\Marketing\V6PageController::render('pos'))->name('marketing.pos');
+Route::get('/pos', fn () => Inertia::render('Marketing/PosShowcase'))->name('marketing.pos');
 
 // ── V6 Static Page & Direct .html Dispatcher ────────────────────────────
 Route::get('/v6/{page?}', fn (?string $page = 'index') => \App\Http\Controllers\Marketing\V6PageController::render($page ?? 'index'))
@@ -888,9 +903,8 @@ Route::get('/', function () {
         }
     }
 
-    // 4. Show the new V6 landing page to unauthenticated visitors
-    // (Legacy landing page remains available at /legacy or /legacy/landing)
-    return \App\Http\Controllers\Marketing\V6PageController::render('index');
+    // 4. Show the dynamic landing page to unauthenticated visitors
+    return Inertia::render('LandingPage');
 })->name('welcome');
 
 

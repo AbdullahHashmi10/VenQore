@@ -78,3 +78,8 @@
 
 /* Deprecated v2.0 names, aliased onto V6. Shrinks to nothing — see the file. */
 @import './compat.css';
+
+/* The V6 public-site layer, ported from public/v6/assets/venqore.css.
+   site-base.css is scoped to .vq-site; components.css is .vq-* namespaced. */
+@import './site-base.css';
+@import './components.css';
