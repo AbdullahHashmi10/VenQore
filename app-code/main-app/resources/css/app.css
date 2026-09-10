@@ -174,23 +174,28 @@
     }
 
     html[data-vq-shell="marketing"],
+    html[data-vq-shell="workspace-builder"],
+    html[data-vq-shell="builder"],
+    html:has(.vq-site) {
+        height: auto;
+        min-height: 100%;
+        overflow-y: auto !important;
+        overflow-x: clip !important;
+    }
+
     html[data-vq-shell="marketing"] body,
     html[data-vq-shell="marketing"] #app,
-    html[data-vq-shell="workspace-builder"],
     html[data-vq-shell="workspace-builder"] body,
     html[data-vq-shell="workspace-builder"] #app,
-    html[data-vq-shell="builder"],
     html[data-vq-shell="builder"] body,
     html[data-vq-shell="builder"] #app,
-    html:has(.vq-site),
     html:has(.vq-site) body,
     html:has(.vq-site) #app,
     body:has(.vq-site),
     #app:has(.vq-site) {
         height: auto;
         min-height: 100%;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
+        overflow: visible !important;
     }
 
     /* Webkit Browsers (Chrome, Safari, Edge) */

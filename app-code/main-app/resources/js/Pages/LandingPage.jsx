@@ -8,14 +8,13 @@ export default function LandingPage() {
         // Unlock document and body scrolling for marketing landing page
         document.documentElement.setAttribute('data-vq-shell', 'marketing');
         document.documentElement.style.overflowY = 'auto';
-        document.documentElement.style.overflowX = 'hidden';
-        document.body.style.overflowY = 'auto';
-        document.body.style.overflowX = 'hidden';
+        document.documentElement.style.overflowX = 'clip';
+        document.body.style.overflow = 'visible';
         document.body.style.height = 'auto';
         const appRoot = document.getElementById('app');
         if (appRoot) {
             appRoot.style.height = 'auto';
-            appRoot.style.overflowY = 'visible';
+            appRoot.style.overflow = 'visible';
         }
 
         // Master initializer for Fluid Ink simulation and Scroll Choreography
@@ -86,7 +85,7 @@ export default function LandingPage() {
                 <meta name="twitter:image" content="https://venqore.com/images/og/venqore-og.png" />
             </Head>
 
-            <div className="vq-site vq-app-body" style={{ background: 'var(--vq-bg)', color: 'var(--vq-text)', overflowX: 'hidden', minHeight: '100vh' }}>
+            <div className="vq-site vq-app-body" style={{ background: 'var(--vq-bg)', color: 'var(--vq-text)', overflow: 'visible', minHeight: '100vh' }}>
 
   {/*  Real-time WebGL Fluid Canvas (Full-page viewport persistent)  */}
   <canvas id="fluid-canvas" className="pointer-events-none fixed inset-0" style={{"position":"fixed","inset":"0","width":"100%","height":"100%","pointerEvents":"none","zIndex":"2","filter":"blur(1px)","opacity":"0.9"}}></canvas>
