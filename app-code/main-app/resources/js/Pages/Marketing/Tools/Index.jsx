@@ -20,24 +20,24 @@ export default function ToolsIndex({ toolGroups = [] }) {
             }}
             wide
         >
-            <div className="space-y-10">
+            <div className="space-y-12">
                 {toolGroups.map((group) => (
                     <section key={group.key}>
-                        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-ink-muted mb-4">
+                        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-muted mb-5">
                             {group.label}
                         </h2>
-                        <div className="grid sm:grid-cols-2 gap-3">
+                        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                             {group.tools.map((tool) => {
                                 const isLive = tool.status === 'live' && tool.href;
 
                                 const inner = (
                                     <>
-                                        <div className="flex items-start justify-between gap-3 mb-2">
-                                            <h3 className={`text-base font-bold ${isLive ? 'text-ink group-hover:text-brand-600 dark:group-hover:text-brand-300' : 'text-ink-muted'} transition-colors`}>
+                                        <div className="flex items-start justify-between gap-3 mb-2.5">
+                                            <h3 className={`text-base font-bold ${isLive ? 'text-ink group-hover:text-brand-500' : 'text-ink-muted'} transition-colors`}>
                                                 {tool.name}
                                             </h3>
                                             {!isLive && (
-                                                <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-sunken dark:bg-white/[0.06] text-ink-muted shrink-0 mt-0.5">
+                                                <span className="text-3xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sunken border border-line text-ink-muted shrink-0 mt-0.5">
                                                     Soon
                                                 </span>
                                             )}
@@ -48,20 +48,20 @@ export default function ToolsIndex({ toolGroups = [] }) {
                                     </>
                                 );
 
-                                const base = 'p-5 rounded-2xl border transition-all group';
+                                const base = 'p-6 rounded-2xl border transition-all duration-normal group';
 
                                 return isLive ? (
                                     <Link
                                         key={tool.slug}
                                         href={tool.href}
-                                        className={`${base} bg-sunken dark:bg-white/[0.03] border-line dark:border-white/10 hover:border-brand-400/40 hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05]`}
+                                        className={`${base} bg-surface border-line hover:border-brand-400/40 hover:shadow-md`}
                                     >
                                         {inner}
                                     </Link>
                                 ) : (
                                     <div
                                         key={tool.slug}
-                                        className={`${base} bg-sunken dark:bg-white/[0.015] border-line dark:border-white/[0.06] cursor-default`}
+                                        className={`${base} bg-surface/50 border-line opacity-60 cursor-default`}
                                     >
                                         {inner}
                                     </div>
@@ -72,14 +72,12 @@ export default function ToolsIndex({ toolGroups = [] }) {
                 ))}
             </div>
 
-            <p className="mt-10 text-sm text-ink-muted">
+            <p className="mt-12 text-sm text-ink-muted">
                 {liveCount} {liveCount === 1 ? 'tool is' : 'tools are'} live now — the rest are on the way. No ads, no trackers beyond basic analytics.
             </p>
 
-            {/* In-copy contextual links: the tools hub is a top-of-funnel entry
-                point, so it should hand readers a route into the product and
-                industry clusters rather than dead-ending on a tool list. */}
-            <div className="mt-6 p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 text-sm text-ink-secondary leading-relaxed">
+            {/* In-copy contextual links */}
+            <div className="mt-8 p-6 sm:p-8 rounded-2xl bg-surface border border-line text-sm text-ink-secondary leading-relaxed shadow-sm">
                 Doing this by hand every day? These tools are the manual version of what a built system
                 does on its own. Describe your business to{' '}
                 <InlineLink href="/blueprint">Blueprint</InlineLink> and it proposes the modules you need —{' '}

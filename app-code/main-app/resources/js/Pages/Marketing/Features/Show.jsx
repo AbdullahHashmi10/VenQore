@@ -141,7 +141,7 @@ export default function FeatureShow({ slug }) {
             </Head>
 
             {/* ── HERO ───────────────────────────────────────────────── */}
-            <section className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto text-center">
+            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={ShieldCheck} text={data.heroBadge} />
 

@@ -57,7 +57,7 @@ export default function BlogShow({ post, recentPosts = [] }) {
                 <meta property="og:description" content={post.excerpt} />
             </Head>
 
-            <article style={{ paddingTop: 'clamp(70px, 8vw, 100px)', paddingBottom: 'var(--vq-space-16)' }}>
+            <article style={{ paddingTop: 'clamp(140px, 15vw, 200px)', paddingBottom: 'var(--vq-space-16)' }}>
                 <div className="vq-container vq-container--narrow">
                     {/* Back link */}
                     <div style={{ marginBottom: '28px' }}>

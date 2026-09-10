@@ -41,7 +41,7 @@ export default function KnownIssues({ issues, lastUpdated }) {
             title="Known Issues — VenQore POS"
             description="Live status board updated during launch week. Check active issues and verified workarounds below."
         >
-            <section className="max-w-4xl mx-auto px-6 pt-32 pb-12 text-center">
+            <section className="max-w-4xl mx-auto px-6 pt-36 lg:pt-44 pb-16 text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={Activity} text="SYSTEM STATUS" />
 

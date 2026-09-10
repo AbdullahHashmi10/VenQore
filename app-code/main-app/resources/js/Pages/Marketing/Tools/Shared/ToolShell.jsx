@@ -59,20 +59,20 @@ function EditHintBanner() {
 function FAQItem({ q, a }) {
     const [isExpanded, setIsExpanded] = useState(false);
     return (
-        <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 transition-all duration-normal">
+        <div className="p-6 rounded-2xl bg-surface border border-line transition-all duration-normal shadow-sm">
             <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="w-full flex items-center justify-between text-left font-bold text-ink group focus:outline-none"
             >
-                <span className="pr-4">{q}</span>
-                <span className={`transform transition-transform duration-normal text-ink-muted group-hover:text-ink-secondary dark:group-hover:text-ink shrink-0`}>
-                    <svg className={`w-4 h-4 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <span className="pr-4 text-base">{q}</span>
+                <span className={`transform transition-transform duration-normal text-ink-secondary group-hover:text-brand-500 shrink-0`}>
+                    <svg className={`w-5 h-5 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                 </span>
             </button>
-            <div className={`grid transition-all duration-normal ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
+            <div className={`grid transition-all duration-normal ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100 mt-4 pt-4 border-t border-line' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
                 <div className="overflow-hidden">
                     <p className="text-sm text-ink-secondary leading-relaxed">{a}</p>
                 </div>
@@ -110,25 +110,21 @@ export default function ToolShell({
     showPromo = true,
     wide = false,
 }) {
-    // The promo rail is part of the standard /tools page furniture — it
-    // must show and behave identically (sticky, always visible on scroll)
-    // on every tool page, `wide` or not. `wide` only affects how much room
-    // the middle document-preview column gets; it must never hide the rail.
     return (
         <MarketingLayout title={title} description={metaDescription}>
-            <div className="pt-32 md:pt-36 pb-24 px-2 sm:px-4">
-                <div className={`mx-auto px-2 md:px-4 flex gap-4 md:gap-6 ${wide ? 'max-w-[96rem]' : 'max-w-7xl'}`}>
+            <div className="pt-36 lg:pt-40 pb-28 px-4 sm:px-6 lg:px-8">
+                <div className={`mx-auto flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12 items-start ${wide ? 'max-w-[96rem]' : 'max-w-7xl'}`}>
                     <ToolsSidebar groups={toolGroups} currentSlug={currentSlug} />
 
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 w-full">
                         {eyebrow && <SectionLabel>{eyebrow}</SectionLabel>}
 
-                        <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-6 text-ink">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 text-ink">
                             {h1}
                         </h1>
 
                         {answer && (
-                            <p className="text-base md:text-lg text-ink-secondary leading-relaxed mb-10">
+                            <p className="text-base sm:text-lg text-ink-secondary leading-relaxed mb-10 max-w-3xl">
                                 {answer}
                             </p>
                         )}
@@ -151,19 +147,19 @@ export default function ToolShell({
                         )}
 
                         {cta && (
-                            <section className="mb-16 p-8 rounded-2xl bg-gradient-to-br from-brand-500/10 to-brand-500/5 dark:from-brand-600/20 dark:to-brand-600/10 border border-brand-500/20 text-center">
-                                <p className="text-lg font-bold text-ink mb-2">{cta.headline}</p>
-                                {cta.subtext && <p className="text-sm text-ink-secondary mb-6">{cta.subtext}</p>}
-                                <div className="flex items-center justify-center gap-3 flex-wrap">
+                            <section className="mb-16 p-8 sm:p-10 rounded-2xl bg-gradient-to-br from-brand-500/10 via-brand-500/5 to-transparent border border-brand-500/20 text-center">
+                                <p className="text-xl font-bold text-ink mb-2">{cta.headline}</p>
+                                {cta.subtext && <p className="text-sm sm:text-base text-ink-secondary mb-8 max-w-2xl mx-auto leading-relaxed">{cta.subtext}</p>}
+                                <div className="flex items-center justify-center gap-4 flex-wrap">
                                     <Link
                                         href="/build-workspace"
-                                        className="px-6 py-3 bg-accent-fill text-accent-on rounded-full text-sm font-bold uppercase tracking-wide transition-transform"
+                                        className="vq-btn vq-btn--primary"
                                     >
                                         Build your system free
                                     </Link>
                                     <Link
                                         href="/demo"
-                                        className="px-6 py-3 bg-sunken dark:bg-white/[0.06] border border-line dark:border-white/15 text-ink rounded-full text-sm font-bold uppercase tracking-wide hover:bg-interactive-hover/[0.1] dark:hover:bg-white/[0.1] transition-colors"
+                                        className="vq-btn vq-btn--secondary"
                                     >
                                         Try the live demo
                                     </Link>
@@ -173,13 +169,13 @@ export default function ToolShell({
 
                         {related.length > 0 && (
                             <section>
-                                <h2 className="text-lg font-bold text-ink-secondary mb-4">Related tools</h2>
+                                <h2 className="text-lg font-bold text-ink mb-4">Related tools</h2>
                                 <div className="flex flex-wrap gap-3">
                                     {related.map((tool) => (
                                         <Link
                                             key={tool.href}
                                             href={tool.href}
-                                            className="px-5 py-2.5 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-sm font-bold text-ink-secondary hover:text-ink dark:hover:text-white hover:border-brand-400/40 transition-colors"
+                                            className="px-5 py-2.5 rounded-full bg-surface border border-line text-sm font-semibold text-ink-secondary hover:text-ink hover:border-brand-400/40 transition-colors shadow-sm"
                                         >
                                             {tool.label}
                                         </Link>

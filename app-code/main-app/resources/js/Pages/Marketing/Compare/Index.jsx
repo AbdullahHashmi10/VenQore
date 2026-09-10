@@ -12,7 +12,7 @@ export default function CompareIndex({ competitors }) {
             </Head>
 
             {/* Hero */}
-            <section className="relative pt-32 pb-20 px-6 max-w-7xl mx-auto text-center">
+            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={Scale} text="HONEST COMPETITOR COMPARISONS" />
                     <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4">

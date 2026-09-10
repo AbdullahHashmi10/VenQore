@@ -12,7 +12,7 @@ export default function Roadmap() {
             </Head>
 
             {/* Hero Section */}
-            <section className="relative pt-32 pb-16 px-6 max-w-7xl mx-auto text-center">
+            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
                 <RevealOnScroll direction="up">
                     <SectionLabel icon={Clock} text="PUBLIC PRODUCT ROADMAP" />
                     <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4">

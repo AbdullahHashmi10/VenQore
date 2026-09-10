@@ -97,7 +97,7 @@ export default function DocsShow({
                     {JSON.stringify(jsonLd)}
                 </script>
             </Head>
-            <div className="min-h-screen text-ink-muted font-sans relative overflow-hidden pt-24 pb-20">
+            <div className="min-h-screen text-ink font-sans relative overflow-hidden pt-36 lg:pt-40 pb-24">
                 {/* Background glow effects */}
                 <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full bg-brand-500/[0.02] blur-[150px] pointer-events-none" />
                 <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] rounded-full bg-brand-500/[0.02] blur-[180px] pointer-events-none" />

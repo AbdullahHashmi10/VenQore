@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { Head, Link, usePage } from '@inertiajs/react';
+import CookieConsent from '@/Components/CookieConsent';
 
 export default function LandingPage() {
     const { isDarkMode, toggleTheme } = useTheme();
@@ -110,6 +111,7 @@ export default function LandingPage() {
 
       <nav className="vq-nav" aria-label="Main">
         <ul className="vq-nav__list">
+          {/* Product Mega Menu */}
           <li className="vq-nav__item">
             <a href="/blueprint" className="vq-nav__link">Product <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
             <div className="vq-mega" style={{"minWidth":"660px"}}>
@@ -138,16 +140,65 @@ export default function LandingPage() {
               </div>
             </div>
           </li>
+
+          {/* Solutions Mega Menu */}
+          <li className="vq-nav__item">
+            <a href="/solutions" className="vq-nav__link">Solutions <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div className="vq-mega" style={{"minWidth":"440px"}}>
+              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr 1fr"}}>
+                <div className="vq-mega__col">
+                  <a className="vq-mega__link" href="/solutions/grocery"><b>Grocery &amp; Supermarket</b><span>Fast checkout, real margins.</span></a>
+                  <a className="vq-mega__link" href="/solutions/wholesale"><b>Wholesale &amp; Distribution</b><span>Credit terms and price tiers.</span></a>
+                  <a className="vq-mega__link" href="/solutions/pharmacy"><b>Pharmacy</b><span>Batch and expiry tracking.</span></a>
+                </div>
+                <div className="vq-mega__col">
+                  <a className="vq-mega__link" href="/solutions/clothing"><b>Apparel &amp; Fashion</b><span>Size and colour variants.</span></a>
+                  <a className="vq-mega__link" href="/solutions/electronics-store"><b>Electronics &amp; Hardware</b><span>Serial &amp; IMEI logs.</span></a>
+                  <a className="vq-mega__link" href="/solutions/multi-store"><b>Multi-branch Retail</b><span>One truth across locations.</span></a>
+                </div>
+              </div>
+              <div className="vq-mega__foot">
+                <a className="vq-link" href="/solutions">View all industry solutions <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              </div>
+            </div>
+          </li>
+
           <li className="vq-nav__item"><a href="/features" className="vq-nav__link">Features</a></li>
           <li className="vq-nav__item"><a href="/pricing" className="vq-nav__link">Pricing</a></li>
+
+          {/* Resources Mega Menu */}
+          <li className="vq-nav__item">
+            <a href="/docs" className="vq-nav__link">Resources <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
+            <div className="vq-mega" style={{"minWidth":"420px"}}>
+              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr 1fr"}}>
+                <div className="vq-mega__col">
+                  <span className="vq-eyebrow vq-eyebrow--accent">Guides</span>
+                  <a className="vq-mega__link" href="/tools"><b>Free tools</b><span>Invoices, barcodes, math.</span></a>
+                  <a className="vq-mega__link" href="/docs"><b>Documentation</b><span>Guides &amp; technical refs.</span></a>
+                  <a className="vq-mega__link" href="/help"><b>Help centre</b><span>Step-by-step workflows.</span></a>
+                  <a className="vq-mega__link" href="/security"><b>Security</b><span>Isolation &amp; integrity.</span></a>
+                </div>
+                <div className="vq-mega__col">
+                  <span className="vq-eyebrow vq-eyebrow--accent">Intelligence</span>
+                  <a className="vq-mega__link" href="/blog"><b>Blog</b><span>Retail &amp; accounting playbooks.</span></a>
+                  <a className="vq-mega__link" href="/roadmap"><b>Roadmap</b><span>What ships next.</span></a>
+                  <a className="vq-mega__link" href="/compare"><b>Comparisons</b><span>VenQore vs legacy POS.</span></a>
+                  <a className="vq-mega__link" href="/demo"><b>Live demo</b><span>Explore pre-loaded system.</span></a>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          {/* Company Mega Menu */}
           <li className="vq-nav__item">
             <a href="/about" className="vq-nav__link">Company <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
             <div className="vq-mega" style={{"minWidth":"320px"}}>
               <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr"}}>
                 <div className="vq-mega__col">
                   <a className="vq-mega__link" href="/about"><b>About</b><span>Our mission, architecture, and principles.</span></a>
-                  <a className="vq-mega__link" href="/ledger"><b>How we prove it</b><span>The checks we publish.</span></a>
+                  <a className="vq-mega__link" href="/ledger"><b>How we prove it</b><span>The 35,255 correctness checks.</span></a>
                   <a className="vq-mega__link" href="/contact"><b>Contact</b><span>A person answers this one.</span></a>
+                  <a className="vq-mega__link" href="/partners"><b>Partners</b><span>Resell and implement.</span></a>
                 </div>
               </div>
             </div>
@@ -177,8 +228,12 @@ export default function LandingPage() {
     <a href="/reckoner">The Reckoner</a>
     <a href="/ledger">Core Ledger</a>
     <a href="/vensynq">VenSynQ</a>
+    <a href="/solutions">Solutions</a>
     <a href="/features">Features</a>
     <a href="/pricing">Pricing</a>
+    <a href="/tools">Free tools</a>
+    <a href="/docs">Documentation</a>
+    <a href="/blog">Blog</a>
     <a href="/about">About</a>
     <a href="/contact">Contact</a>
     <div className="vq-mobile__actions">
@@ -1540,10 +1595,10 @@ export default function LandingPage() {
 
       <div style={{"marginTop":"var(--vq-space-12)","paddingTop":"var(--vq-space-8)","borderTop":"1px solid rgb(255 255 255 / .08)","display":"flex","flexWrap":"wrap","alignItems":"center","justifyContent":"space-between","gap":"var(--vq-space-4)","paddingBottom":"var(--vq-space-6)"}}>
         <p className="vq-small" style={{"color":"var(--vq-ink-500)","maxWidth":"none"}}>© 2026 VenQore, Inc. The AI ERP builder for ERP &amp; POS.</p>
-        <div style={{"display":"flex","gap":"var(--vq-space-6)"}}>
+        <div style={{"display":"flex","gap":"var(--vq-space-6)","alignItems":"center"}}>
           <a className="vq-small" href="/terms">Terms</a>
           <a className="vq-small" href="/privacy">Privacy</a>
-          <a className="vq-small" href="/privacy#cookies">Cookies</a>
+          <button type="button" className="vq-small" style={{"background":"none","border":"none","padding":"0","cursor":"pointer","color":"inherit"}} onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-preferences'))}>Cookies</button>
           <a className="vq-small" href="/refund-policy">Refund Policy</a>
           <a className="vq-small" href="/known-issues">Known Issues</a>
         </div>
@@ -1576,19 +1631,10 @@ export default function LandingPage() {
     </div>
   </div>
 
-  {/*  WebGL Fluid Simulation Engine  */}
-  
+  {/*  V6 Cookie Consent Banner & Preferences Customizer  */}
+  <CookieConsent />
 
-  {/*  Application Logic  */}
-  
-
-  {/*  Landing choreography: ScrollStack, ScrollFloat, CountUp, LogoLoop, parallax  */}
-  
-
-{/*  Privacy-first cookieless analytics  */}
-
-
-            </div>
-        </>
-    );
+</div>
+</>
+);
 }

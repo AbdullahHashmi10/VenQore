@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowRight, MessageCircle, Menu, X, Sun, Moon, ChevronDown, Clock, ArrowLeft } from 'lucide-react';
 import { useTheme } from '@/Contexts/ThemeContext';
+import CookieConsent from '@/Components/CookieConsent';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    UNIFIED V6 MARKETING LAYOUT
@@ -940,12 +941,20 @@ export default function MarketingLayout({ children, title, description, activeNa
                             style={{
                                 display: 'flex',
                                 gap: 'var(--vq-space-6)',
-                                flexWrap: 'wrap'
+                                flexWrap: 'wrap',
+                                alignItems: 'center'
                             }}
                         >
                             <Link className="vq-small" href="/terms">Terms</Link>
                             <Link className="vq-small" href="/privacy">Privacy</Link>
-                            <Link className="vq-small" href="/privacy#cookies">Cookies</Link>
+                            <button
+                                type="button"
+                                className="vq-small"
+                                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit' }}
+                                onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-preferences'))}
+                            >
+                                Cookies
+                            </button>
                             <Link className="vq-small" href="/refund-policy">Refund Policy</Link>
                             <Link className="vq-small" href="/known-issues">Known Issues</Link>
                         </div>
@@ -956,6 +965,9 @@ export default function MarketingLayout({ children, title, description, activeNa
                     </div>
                 </div>
             </footer>
+
+            {/* V6 Cookie Consent Banner & Preferences Customizer */}
+            <CookieConsent />
         </div>
     );
 }

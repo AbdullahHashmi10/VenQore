@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { router } from '@inertiajs/react';
 
 const ThemeContext = createContext();
@@ -87,7 +87,12 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
         } catch (e) { /* storage unavailable — session-only theme is fine */ }
     }, []);
 
+    const lastToggleRef = useRef(0);
+
     const toggleTheme = useCallback(() => {
+        const now = Date.now();
+        if (now - lastToggleRef.current < 150) return;
+        lastToggleRef.current = now;
         setIsDarkMode((prev) => {
             const next = !prev;
             persist(next);
@@ -135,7 +140,7 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     // Global event delegation for any [data-theme-toggle] button rendered anywhere
     useEffect(() => {
         const handleGlobalThemeToggle = (e) => {
-            const toggleBtn = e.target.closest('[data-theme-toggle], .vq-theme-btn');
+            const toggleBtn = e.target.closest('[data-theme-toggle]');
             if (toggleBtn) {
                 e.preventDefault();
                 toggleTheme();

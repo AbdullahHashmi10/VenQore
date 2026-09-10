@@ -142,7 +142,7 @@ export default function BlogIndex({ posts = { data: [] } }) {
             description="Deep dives into financial accuracy, operational control, and the hidden mechanics that make or break retail & wholesale businesses."
         >
             {/* ── 1. HERO ─────────────────────────────────────── */}
-            <section className="vq-section vq-section--tight" style={{ paddingTop: 'clamp(80px, 10vw, 120px)', textAlign: 'center' }}>
+            <section className="vq-section vq-section--tight" style={{ paddingTop: 'clamp(140px, 15vw, 200px)', textAlign: 'center' }}>
                 <div className="vq-container vq-container--narrow">
                     <span className="vq-eyebrow vq-eyebrow--accent" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                         <span style={{ width: '6px', height: '6px', borderRadius: '999px', background: 'var(--vq-accent)', boxShadow: '0 0 8px var(--vq-accent)' }}></span>
