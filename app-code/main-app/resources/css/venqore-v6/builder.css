@@ -50,7 +50,7 @@
 }
 /* The site layer draws a focus outline on every textarea; the box owns it. */
 .vq-prompt-box__input:focus,
-.vq-prompt-box__input:focus-visible { outline: none; box-shadow: none; }
+.vq-prompt-box__input:focus-visible { outline: none !important; box-shadow: none !important; border: 0 !important; }
 .vq-prompt-box__input::placeholder { color: var(--vq-text-3); opacity: 1; }
 .vq-prompt-box__input:disabled { cursor: not-allowed; }
 .vq-prompt-box--lg .vq-prompt-box__input { font-size: var(--vq-fs-lede); padding: 8px 0; }

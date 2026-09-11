@@ -206,7 +206,7 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) submit(e);
                         }}
-                        className="vq-hp__input"
+                        className="vq-hp__input focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 outline-none ring-0"
                     />
                 </div>
                 <div className="vq-hp__bar">

@@ -466,6 +466,12 @@
   scrollbar-width: thin;
   scrollbar-color: var(--vq-line-strong) transparent;
 }
+.vq-hp__input:focus,
+.vq-hp__input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
 .vq-hp__input::-webkit-scrollbar { width: 6px; }
 .vq-hp__input::-webkit-scrollbar-thumb { background: var(--vq-line-strong); border-radius: var(--vq-r-full); }
 .vq-hp__input::-webkit-scrollbar-track { background: transparent; }
