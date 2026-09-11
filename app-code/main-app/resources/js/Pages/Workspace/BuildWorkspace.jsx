@@ -3,7 +3,17 @@
  * ║  BuildWorkspace — the public builder. Landing sentence in, system out.    ║
  * ╚═══════════════════════════════════════════════════════════════════════════╝
  *
- * WHAT CHANGED AND WHY
+ * FLOW (11 Sep 2026 — nothing is compulsory except a login)
+ *   intent   — describe the business (recommended) OR one-click a ready-made
+ *              setup (goes straight to reveal, no questions)
+ *   questions— AI or manual; "Skip questions" always visible → reveal
+ *   reveal   — the stack; add/remove anything
+ *   plan     — pick the plan for after the trial, or "Skip — decide later"
+ *   account  — business name (defaults) + currency + Google / email+password
+ *   → emailed code (local dev: 0000) → dashboard
+ * ?preset=<key> opens on the reveal; ?plan=<key> preselects the plan step.
+ *
+ * WHAT CHANGED AND WHY (earlier)
  *
  * This screen used to open on `step: 'result'` with `isAnalyzing: true`. One
  * sentence typed on the landing page went in, and a finished architecture came
@@ -32,7 +42,7 @@
  *   workspace.analyze   { prompt, preset, answers? } -> preset + modules + capabilities
  *   workspace.demand    { prompt, email, source }
  *   workspace.provision { business_name, currency, phone, email, password,
- *                         modules, preset_key }
+ *                         modules, preset_key, plan? }
  * `answers` is additive and optional: the server applies the same `implies` map
  * this page does, so the two agree, and an older server simply ignores it.
  */
@@ -41,8 +51,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
-    ArrowRight, Building2, Check, ChevronDown, Compass, Globe, Lock, Mail,
-    Phone, Rocket, Send, ShieldCheck, Sparkles,
+    ArrowRight, Briefcase, Building2, Check, ChevronDown, Coffee, Compass, Croissant,
+    FastForward, Globe, Hammer, LayoutGrid, Lock, Mail, MessageSquareText, Phone, Pill,
+    Rocket, ScanBarcode, Scissors, Send, Shirt, ShieldCheck, ShoppingBasket,
+    Smartphone, Sparkles, Store, Truck, UtensilsCrossed, Wrench,
 } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import useTurnstile from '@/Components/Builder/useTurnstile';
@@ -93,6 +105,33 @@ const EXAMPLES = [
     'Phone repair shop — parts, jobs and walk-in sales.',
 ];
 
+/* One glyph per ready-made setup (config/ai_builder.php presets). A preset
+   missing here falls back to a neutral grid glyph — never a broken tile. */
+const PRESET_ICONS = {
+    pos_only: ScanBarcode,
+    retail_shop: Store,
+    grocery: ShoppingBasket,
+    pharmacy: Pill,
+    cafe: Coffee,
+    restaurant: UtensilsCrossed,
+    bakery: Croissant,
+    mobile_electronics: Smartphone,
+    clothing: Shirt,
+    hardware_store: Hammer,
+    wholesale: Truck,
+    multi_branch_retail: Building2,
+    freelancer: Briefcase,
+    salon: Scissors,
+    repair_workshop: Wrench,
+};
+
+/* Smaller setups are pointed at the smaller plan by default; everything else
+   at the plan the pricing page badges. Only a default — one tap changes it. */
+const LIGHT_PRESETS = ['pos_only', 'cafe', 'freelancer', 'salon'];
+
+const isShippablePreset = (presets, key) =>
+    !!key && !!presets?.[key] && !(presets[key].blocked_by || []).length;
+
 const csrf = () =>
     document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
@@ -118,6 +157,8 @@ export default function BuildWorkspace({
     discovery = [],
     recommended = {},
     presets = {},
+    plans = [],
+    intendedPlan = null,
 }) {
     const getTurnstileToken = useTurnstile();
 
@@ -130,23 +171,43 @@ export default function BuildWorkspace({
        sessionStorage via useSessionState, not plain useState — see the note
        by STORAGE_KEY above. Session state hydrates synchronously from the
        initialiser, so there is no flash of the wrong phase on remount. */
-    const [rawPhase, setPhase] = useSessionState(
-        `${STORAGE_KEY}:phase`,
-        initialPrompt ? 'questions' : 'intent',
+    /* Where a fresh attempt opens. A landing sentence goes to the questions;
+       a template picked on the site (?preset=) goes straight to its reveal —
+       asking someone who already chose "Pharmacy" to describe their business
+       again is exactly the friction this flow must not have. */
+    const entryPhase = initialPrompt
+        ? 'questions'
+        : isShippablePreset(presets, initialPreset)
+          ? 'reveal'
+          : 'intent';
+    const [rawPhase, setPhase] = useSessionState(`${STORAGE_KEY}:phase`, entryPhase);
+    /* How this attempt reached the reveal: 'preset' (one-click setup, no
+       questions) or 'questions'. Drives Back and the progress rail. */
+    const [path, setPath] = useSessionState(
+        `${STORAGE_KEY}:path`,
+        !initialPrompt && isShippablePreset(presets, initialPreset) ? 'preset' : 'questions',
     );
+    /* Plan picked on the plan step. null = "decide after the trial". */
+    const [planKey, setPlanKey] = useSessionState(`${STORAGE_KEY}:planKey`, intendedPlan || '');
+    const [planTouched, setPlanTouched] = useSessionState(`${STORAGE_KEY}:planTouched`, !!intendedPlan);
+    const [skipping, setSkipping] = useState(false);
     const [qIndex, setQIndex] = useSessionState(`${STORAGE_KEY}:qIndex`, 0);
 
     const [prompt, setPrompt] = useSessionState(`${STORAGE_KEY}:prompt`, initialPrompt);
     const [presetKey, setPresetKey] = useSessionState(`${STORAGE_KEY}:presetKey`, initialPreset);
-    const [presetLabel, setPresetLabel] = useSessionState(`${STORAGE_KEY}:presetLabel`, '');
-    const [presetDesc, setPresetDesc] = useSessionState(`${STORAGE_KEY}:presetDesc`, '');
+    const entryPreset = !initialPrompt && isShippablePreset(presets, initialPreset) ? presets[initialPreset] : null;
+    const [presetLabel, setPresetLabel] = useSessionState(`${STORAGE_KEY}:presetLabel`, entryPreset?.label || '');
+    const [presetDesc, setPresetDesc] = useSessionState(
+        `${STORAGE_KEY}:presetDesc`,
+        entryPreset ? entryPreset.description || entryPreset.blurb || '' : '',
+    );
     /* Whether the resolved preset is a real match or the bare "found nothing,
        defaulted to Retail Shop" case — see WorkspaceBuilderController::
        analyze()'s 'matched' field. Defaults true so an explicit template pick,
        or an older cached response that predates this field, never shows the
        honest note by mistake. */
     const [matched, setMatched] = useSessionState(`${STORAGE_KEY}:matched`, true);
-    const [baseModules, setBaseModules] = useSessionState(`${STORAGE_KEY}:baseModules`, []);
+    const [baseModules, setBaseModules] = useSessionState(`${STORAGE_KEY}:baseModules`, entryPreset?.modules || []);
     const [capabilities, setCapabilities] = useSessionState(`${STORAGE_KEY}:capabilities`, []);
     const [analysed, setAnalysed] = useState(false);
 
@@ -222,7 +283,7 @@ export default function BuildWorkspace({
         [
             'phase', 'qIndex', 'prompt', 'presetKey', 'presetLabel',
             'presetDesc', 'baseModules', 'capabilities', 'edited', 'matched',
-            'converse', 'discoveryMode',
+            'converse', 'discoveryMode', 'path', 'planKey', 'planTouched',
         ].forEach((slot) => {
             try {
                 window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
@@ -239,12 +300,17 @@ export default function BuildWorkspace({
        second render and a frame of the wrong UI. Deriving it means the bad state
        never exists in the first place. */
     const phase =
-        rawPhase === 'questions' && questions.length === 0 ? 'reveal' : rawPhase;
+        rawPhase === 'questions' && questions.length === 0
+            ? 'reveal'
+            : rawPhase === 'identity' // merged into 'account'; old tabs may still hold it
+              ? 'account'
+              : rawPhase;
 
     /* Identity + account */
     const [businessName, setBusinessName] = useState('');
     const [currency, setCurrency] = useState(initialCurrency || 'USD');
     const [phone, setPhone] = useState('');
+    const [showPhone, setShowPhone] = useState(false);
     const [email, setEmail] = useState(initialEmail || '');
     const [password, setPassword] = useState('');
     const [provisionError, setProvisionError] = useState('');
@@ -276,16 +342,18 @@ export default function BuildWorkspace({
                 // module merge with them.
                 answers: answersOverride ?? answers,
             });
-            if (!data?.success) return;
+            if (!data?.success) return null;
             setPresetKey(data.preset_key || '');
             setPresetLabel(data.preset_label || '');
             setPresetDesc(data.preset_description || '');
             setBaseModules(data.modules || []);
             setCapabilities(data.capabilities || []);
             setMatched(data.matched !== false);
+            return data;
         } catch (e) {
             /* A failed match is not a dead end — the questions still build a
                stack on their own, and the reveal renders from that. */
+            return null;
         } finally {
             setAnalysed(true);
         }
@@ -327,7 +395,20 @@ export default function BuildWorkspace({
             setMatched(true);
             setEdited(null);
             setQIndex(0);
-            setPhase(incomingPrompt ? 'questions' : 'intent');
+            if (!incomingPrompt && isShippablePreset(presets, incomingPreset)) {
+                // Template picked on the site: straight to its reveal.
+                const p = presets[incomingPreset];
+                setPresetLabel(p.label || incomingPreset);
+                setPresetDesc(p.description || p.blurb || '');
+                setBaseModules(p.modules || []);
+                setPath('preset');
+                setPhase('reveal');
+                analyse('', incomingPreset, {});
+            } else {
+                setPath('questions');
+                setPhase(incomingPrompt ? 'questions' : 'intent');
+                if (incomingPrompt) analyse(incomingPrompt, incomingPreset, {});
+            }
             setDraft(incomingPrompt);
             setAnalysed(false);
             setAttemptResolved(true);
@@ -340,6 +421,13 @@ export default function BuildWorkspace({
            overwrite it with a fresh match built from an empty `answers`
            object, quietly undoing whatever the questions had already found. */
         if (analysed || presetKey || baseModules.length) {
+            /* Exception: a one-click / ?preset= reveal that has not been
+               resolved server-side yet (no capabilities) — resolve it once so
+               the house recommendations are merged in, as provisioning will. */
+            if (path === 'preset' && presetKey && !capabilities.length) {
+                analyse('', presetKey, {});
+                return;
+            }
             setAnalysed(true);
             return;
         }
@@ -458,8 +546,65 @@ export default function BuildWorkspace({
             analyse(text, initialPreset || '', {});
         }
         setDiscoveryMode('ai');
+        setPath('questions');
         setPhase('questions');
     };
+
+    /* ── One-click setups ─────────────────────────────────────────────────
+       The standard module set for a business type, applied without a single
+       question. The preset's modules are shown instantly from the page props;
+       analyse() then re-resolves on the server (adds the house recommendations)
+       so the reveal matches exactly what provisioning will switch on. */
+    const pickPreset = (key) => {
+        const p = presets?.[key];
+        if (!p) return;
+        resetAnswers();
+        setEdited(null);
+        setPresetKey(key);
+        setPresetLabel(p.label || key);
+        setPresetDesc(p.description || p.blurb || '');
+        setBaseModules(p.modules || []);
+        setMatched(true);
+        setPath('preset');
+        setPhase('reveal');
+        analyse('', key, {});
+    };
+
+    /* Skip the rest of the questions: keep whatever was answered, use the
+       standard setup for the business type matched so far, go to the reveal. */
+    const skipQuestions = async () => {
+        if (skipping) return;
+        if (!presetKey && !baseModules.length) {
+            setSkipping(true);
+            await analyse(prompt || '', '', answers);
+            setSkipping(false);
+        }
+        setPhase('reveal');
+    };
+
+    /* Default plan for the plan step: what they picked on the pricing page,
+       else a size-appropriate one. Never overrides a choice they made here. */
+    const suggestedPlan = useMemo(() => {
+        const keys = plans.map((p) => p.key);
+        if (intendedPlan && keys.includes(intendedPlan)) return intendedPlan;
+        const pick = LIGHT_PRESETS.includes(presetKey) ? 'starter' : 'core';
+        return keys.includes(pick) ? pick : keys[0] || '';
+    }, [plans, intendedPlan, presetKey]);
+
+    const goToPlan = () => {
+        if (!planTouched) setPlanKey(suggestedPlan);
+        setPhase(plans.length ? 'plan' : 'account');
+    };
+
+    const selectedPlan = plans.find((p) => p.key === planKey) || null;
+
+    const shippablePresets = useMemo(
+        () =>
+            Object.entries(presets || {})
+                .filter(([key]) => isShippablePreset(presets, key))
+                .map(([key, p]) => ({ key, ...p })),
+        [presets],
+    );
 
     const editPrompt = () => {
         setDraft(prompt || '');
@@ -508,6 +653,7 @@ export default function BuildWorkspace({
                 password,
                 modules: activeModules,
                 preset_key: presetKey || null,
+                plan: planKey || null,
             });
             if (data?.success && data.redirect) {
                 setBuildIndex(3);
@@ -537,6 +683,7 @@ export default function BuildWorkspace({
                 phone,
                 modules: activeModules,
                 preset_key: presetKey || null,
+                plan: planKey || null,
             });
             if (data?.auth_url) {
                 forgetAttempt();
@@ -554,7 +701,10 @@ export default function BuildWorkspace({
        visitor, so someone who arrived with a sentence sees a shorter flow than
        someone who did not — because they have one. */
     const hasIntent = !initialPrompt;
-    const totalSteps = (hasIntent ? 1 : 0) + questions.length + 3;
+    /* A one-click setup has no question screens; the rail says so. */
+    const qCount = path === 'preset' ? 0 : questions.length;
+    const planSteps = plans.length ? 1 : 0;
+    const totalSteps = (hasIntent ? 1 : 0) + qCount + 2 + planSteps;
     const stepNow =
         phase === 'intent'
             ? 1
@@ -564,22 +714,23 @@ export default function BuildWorkspace({
                     ? Math.max(1, Math.round((aiProgress / 100) * questions.length))
                     : qIndex + 1)
               : phase === 'reveal'
-                ? (hasIntent ? 1 : 0) + questions.length + 1
-                : phase === 'identity'
-                  ? (hasIntent ? 1 : 0) + questions.length + 2
+                ? (hasIntent ? 1 : 0) + qCount + 1
+                : phase === 'plan'
+                  ? (hasIntent ? 1 : 0) + qCount + 2
                   : totalSteps;
 
     const backTarget = () => {
-        if (phase === 'questions' && qIndex > 0) return () => setQIndex((i) => i - 1);
-        if (phase === 'questions' && hasIntent) return editPrompt;
+        if (phase === 'questions' && qIndex > 0 && discoveryMode === 'manual') return () => setQIndex((i) => i - 1);
+        if (phase === 'questions') return editPrompt;
+        if (phase === 'reveal' && path === 'preset') return () => setPhase('intent');
         if (phase === 'reveal' && questions.length) {
             return () => {
                 setPhase('questions');
-                setQIndex(questions.length - 1);
+                setQIndex(Math.max(0, questions.length - 1));
             };
         }
-        if (phase === 'identity') return () => setPhase('reveal');
-        if (phase === 'account') return () => setPhase('identity');
+        if (phase === 'plan') return () => setPhase('reveal');
+        if (phase === 'account') return () => setPhase(plans.length ? 'plan' : 'reveal');
         return null;
     };
 
@@ -645,6 +796,26 @@ export default function BuildWorkspace({
                             />
                         )}
 
+                        {phase === 'questions' && (
+                            <div className="mb-5 flex flex-col gap-3 rounded-lg border border-line bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs leading-relaxed text-ink-secondary">
+                                    <span className="font-semibold text-ink">In a hurry?</span>{' '}
+                                    Skip the questions and use the standard setup
+                                    {presetLabel ? <> for <strong className="font-semibold text-ink">{presetLabel}</strong></> : ' for your business'}.
+                                    Answering them gets you a closer fit.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={skipQuestions}
+                                    disabled={skipping}
+                                    className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md border border-line bg-sunken px-3.5 text-xs font-semibold text-ink transition-colors duration-fast ease-standard hover:bg-interactive-hover disabled:opacity-60"
+                                >
+                                    <FastForward size={14} />
+                                    {skipping ? 'Setting up…' : 'Skip questions'}
+                                </button>
+                            </div>
+                        )}
+
                         <AnimatePresence mode="wait">
                             {/* ─── 1. Free text, only when the hero did not capture it ─── */}
                             {phase === 'intent' && (
@@ -657,13 +828,17 @@ export default function BuildWorkspace({
                                     className="mx-auto max-w-2xl"
                                 >
                                     <div className="vq-intent">
+                                        <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-accent bg-accent-quiet px-2.5 py-1 text-3xs font-bold uppercase tracking-widest text-accent-text">
+                                            <MessageSquareText size={12} />
+                                            Recommended · about a minute
+                                        </span>
                                         <h1 className="vq-intent__title">
                                             Tell us what your business does.
                                         </h1>
                                         <p className="vq-intent__lede" id="vq-intent-lede">
-                                            One sentence in your own words, in any language. This
-                                            does most of the work &mdash; the questions after it
-                                            are quick.
+                                            One sentence in your own words, in any language. A few
+                                            quick questions after it let us fit the system to how
+                                            you actually work &mdash; you can skip them at any point.
                                         </p>
 
                                         <PromptTextarea
@@ -705,6 +880,54 @@ export default function BuildWorkspace({
                                             ))}
                                         </div>
                                     </div>
+
+                                    {shippablePresets.length > 0 && (
+                                        <section className="mt-10" aria-labelledby="vq-presets-title">
+                                            <div className="relative flex items-center py-2">
+                                                <div className="w-full border-t border-line" />
+                                                <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap bg-app px-3 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+                                                    or skip the questions
+                                                </span>
+                                            </div>
+                                            <h2 id="vq-presets-title" className="mt-4 text-base font-semibold text-ink">
+                                                Start from a ready-made setup
+                                            </h2>
+                                            <p className="mt-1 text-sm text-ink-secondary">
+                                                The standard setup for your type of business, in one
+                                                click. You can add or remove anything before and after
+                                                you sign up.
+                                            </p>
+                                            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                                                {shippablePresets.map((p) => {
+                                                    const Icon = PRESET_ICONS[p.key] || LayoutGrid;
+                                                    return (
+                                                        <button
+                                                            key={p.key}
+                                                            type="button"
+                                                            onClick={() => pickPreset(p.key)}
+                                                            className="group flex items-start gap-3 rounded-lg border border-line bg-surface p-3.5 text-left transition-colors duration-fast ease-standard hover:border-accent hover:bg-accent-quiet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                                        >
+                                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sunken text-ink-secondary group-hover:text-accent-text">
+                                                                <Icon size={18} />
+                                                            </span>
+                                                            <span className="min-w-0 flex-1">
+                                                                <span className="flex items-center justify-between gap-2">
+                                                                    <span className="truncate text-sm font-semibold text-ink">{p.label}</span>
+                                                                    <span className="shrink-0 text-3xs font-semibold text-ink-muted">
+                                                                        {(p.modules || []).length} modules
+                                                                    </span>
+                                                                </span>
+                                                                <span className="mt-0.5 block text-xs leading-snug text-ink-secondary">
+                                                                    {p.blurb || p.description}
+                                                                </span>
+                                                            </span>
+                                                            <ArrowRight size={15} className="mt-2.5 shrink-0 text-ink-faint group-hover:text-accent-text" />
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </section>
+                                    )}
                                 </motion.div>
                             )}
 
@@ -839,73 +1062,137 @@ export default function BuildWorkspace({
                                         )}
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => setPhase('identity')}
-                                        className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:w-auto"
-                                    >
-                                        <Rocket size={16} />
-                                        Build this workspace
-                                        <ArrowRight size={16} />
-                                    </button>
+                                    <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                                        <button
+                                            type="button"
+                                            onClick={goToPlan}
+                                            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:w-auto"
+                                        >
+                                            <Rocket size={16} />
+                                            Build this workspace
+                                            <ArrowRight size={16} />
+                                        </button>
+                                        {path === 'preset' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => setPhase('intent')}
+                                                className="text-xs font-semibold text-accent-text underline-offset-4 hover:underline"
+                                            >
+                                                Pick a different business type
+                                            </button>
+                                        ) : null}
+                                    </div>
                                 </motion.div>
                             )}
 
-                            {/* ─── 4. Identity ──────────────────────────────────────── */}
-                            {phase === 'identity' && (
+                            {/* ─── 4. Plan (skippable) ─────────────────────────────────
+                                Every plan starts on the same 14-day trial; this
+                                only records which one they expect to continue
+                                on, so Billing can offer it first. "Decide later"
+                                is a first-class answer, not a hidden link. */}
+                            {phase === 'plan' && (
                                 <motion.div
-                                    key="identity"
+                                    key="plan"
                                     initial={{ opacity: 0, y: 16 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -12 }}
                                     transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                                    className="mx-auto max-w-xl"
+                                    className="mx-auto max-w-3xl"
                                 >
                                     <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight text-ink">
-                                        Let&rsquo;s name it.
+                                        Pick a plan for after your trial.
                                     </h1>
                                     <p className="mt-3 text-base text-ink-secondary">
-                                        This is what prints on receipts and invoices. You can
-                                        change all of it later.
+                                        You get 14 days free on any plan, with no card needed now.
+                                        Not sure? Skip this and decide before the trial ends.
                                     </p>
 
-                                    <div className="mt-7 space-y-4">
-                                        <Field label="Business name" icon={Building2}>
-                                            <input
-                                                type="text"
-                                                value={businessName}
-                                                onChange={(e) => setBusinessName(e.target.value)}
-                                                placeholder="e.g. Rahman Trading Co."
-                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                                            />
-                                        </Field>
-
-                                        <div className="grid gap-4 sm:grid-cols-2">
-                                            <CurrencyDropdown
-                                                value={currency}
-                                                onChange={setCurrency}
-                                            />
-
-                                            <Field label="Phone (optional)" icon={Phone}>
-                                                <input
-                                                    type="tel"
-                                                    value={phone}
-                                                    onChange={(e) => setPhone(e.target.value)}
-                                                    placeholder="For receipts"
-                                                    className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                                                />
-                                            </Field>
-                                        </div>
+                                    <div className="mt-7 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Plan">
+                                        {plans.map((p) => {
+                                            const on = planKey === p.key;
+                                            return (
+                                                <button
+                                                    key={p.key}
+                                                    type="button"
+                                                    role="radio"
+                                                    aria-checked={on}
+                                                    onClick={() => {
+                                                        setPlanKey(p.key);
+                                                        setPlanTouched(true);
+                                                    }}
+                                                    className={`relative flex flex-col rounded-lg border p-4 text-left transition-colors duration-fast ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${
+                                                        on
+                                                            ? 'border-accent bg-accent-quiet'
+                                                            : 'border-line bg-surface hover:border-line-strong'
+                                                    }`}
+                                                >
+                                                    <span className="flex items-start justify-between gap-3">
+                                                        <span>
+                                                            <span className="block text-sm font-semibold text-ink">{p.name}</span>
+                                                            <span className="mt-0.5 block font-display text-2xl font-semibold text-ink">
+                                                                {p.price_monthly > 0 ? `$${p.price_monthly}` : 'Free'}
+                                                                {p.price_monthly > 0 && (
+                                                                    <span className="text-xs font-medium text-ink-muted"> /mo</span>
+                                                                )}
+                                                            </span>
+                                                        </span>
+                                                        <span
+                                                            className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                                                                on ? 'border-accent bg-accent-fill text-accent-on' : 'border-line-strong'
+                                                            }`}
+                                                        >
+                                                            {on && <Check size={12} strokeWidth={3} />}
+                                                        </span>
+                                                    </span>
+                                                    {p.badge && (
+                                                        <span className="mt-2 inline-flex w-fit rounded-full bg-sunken px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-ink-secondary">
+                                                            {p.badge}
+                                                        </span>
+                                                    )}
+                                                    <ul className="mt-3 space-y-1">
+                                                        {(p.points || []).map((pt) => (
+                                                            <li key={pt} className="flex items-center gap-2 text-xs text-ink-secondary">
+                                                                <Check size={12} className="shrink-0 text-accent-text" />
+                                                                {pt}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                    {p.price_annual ? (
+                                                        <span className="mt-3 text-3xs text-ink-muted">
+                                                            or ${p.price_annual}/yr billed annually
+                                                        </span>
+                                                    ) : null}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => setPhase('account')}
-                                        className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                                    >
-                                        Continue
-                                        <ArrowRight size={16} />
-                                    </button>
+                                    <p className="mt-3 text-2xs text-ink-muted">
+                                        Prices in USD. Local pricing, if available, is shown at checkout.
+                                    </p>
+
+                                    <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => setPhase('account')}
+                                            disabled={!planKey}
+                                            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60 sm:w-auto"
+                                        >
+                                            {selectedPlan ? `Continue with ${selectedPlan.name}` : 'Continue'}
+                                            <ArrowRight size={16} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPlanKey('');
+                                                setPlanTouched(true);
+                                                setPhase('account');
+                                            }}
+                                            className="inline-flex h-12 items-center justify-center rounded-lg border border-line bg-surface px-5 text-sm font-semibold text-ink transition-colors duration-fast hover:bg-interactive-hover"
+                                        >
+                                            Skip — decide later
+                                        </button>
+                                    </div>
                                 </motion.div>
                             )}
 
@@ -924,9 +1211,69 @@ export default function BuildWorkspace({
                                         Save your workspace.
                                     </h1>
                                     <p className="mt-3 text-base text-ink-secondary">
-                                        {activeModules.length} modules, configured. Create a
-                                        login and it is yours.
+                                        {activeModules.length} modules, configured. Name it,
+                                        create a login, and it is yours.
                                     </p>
+
+                                    {plans.length > 0 && (
+                                        <div className="mt-4 flex items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-2.5 text-xs">
+                                            <span className="text-ink-secondary">
+                                                After the trial:{' '}
+                                                <strong className="font-semibold text-ink">
+                                                    {selectedPlan
+                                                        ? `${selectedPlan.name} · ${selectedPlan.price_monthly > 0 ? `$${selectedPlan.price_monthly}/mo` : 'Free'}`
+                                                        : 'decide later'}
+                                                </strong>
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setPhase('plan')}
+                                                className="font-semibold text-accent-text underline-offset-4 hover:underline"
+                                            >
+                                                Change
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Business details — formerly their own screen. Only the
+                                        name matters now, and even that has a default. */}
+                                    <div className="mt-6 space-y-4">
+                                        <Field label="Business name" icon={Building2}>
+                                            <input
+                                                type="text"
+                                                value={businessName}
+                                                onChange={(e) => setBusinessName(e.target.value)}
+                                                placeholder="e.g. Rahman Trading Co. (you can change it later)"
+                                                autoComplete="organization"
+                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                            />
+                                        </Field>
+
+                                        <div className={showPhone ? 'grid gap-4 sm:grid-cols-2' : ''}>
+                                            <CurrencyDropdown value={currency} onChange={setCurrency} />
+                                            {showPhone && (
+                                                <Field label="Phone (optional)" icon={Phone}>
+                                                    <input
+                                                        type="tel"
+                                                        value={phone}
+                                                        onChange={(e) => setPhone(e.target.value)}
+                                                        placeholder="For receipts"
+                                                        autoComplete="tel"
+                                                        className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                                    />
+                                                </Field>
+                                            )}
+                                        </div>
+                                        {!showPhone && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPhone(true)}
+                                                className="text-xs font-semibold text-accent-text underline-offset-4 hover:underline"
+                                            >
+                                                + Add a phone number for receipts (optional)
+                                            </button>
+                                        )}
+                                    </div>
 
                                     <div className="mt-7 space-y-4">
                                         <button
@@ -1062,7 +1409,7 @@ export default function BuildWorkspace({
                                 >
                                     <button
                                         type="button"
-                                        onClick={() => setPhase('identity')}
+                                        onClick={goToPlan}
                                         className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-all duration-normal ease-standard hover:bg-accent-fill-hover hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                                     >
                                         <Rocket size={16} />

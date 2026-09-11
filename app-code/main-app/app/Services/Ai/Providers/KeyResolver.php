@@ -4,6 +4,7 @@ namespace App\Services\Ai\Providers;
 
 use App\Models\Setting;
 use App\Models\Tenant;
+use App\Support\PlatformAiKeys;
 
 class KeyResolver
 {
@@ -62,19 +63,14 @@ class KeyResolver
         }
 
         // 2. Platform Key Resolution (Managed or Free)
+        //    Keys come from the Hashmi Dashboard (Platform → Settings → AI keys):
+        //    a FREE Gemini key for free/public usage and PAID keys per provider
+        //    for managed usage. See App\Support\PlatformAiKeys.
         $profile = config("ai_models.{$feature}") ?? config('ai_models.default', []);
-        
-        // Check if platform key was set directly in Hashmi Dashboard (global setting with tenant_id = null)
-        $globalSettings = Setting::withoutGlobalScopes()
-            ->whereNull('tenant_id')
-            ->whereIn('key', ['gemini_api_key', 'ai_api_key', 'global_ai_api_key', 'openai_api_key', 'ai_provider', 'ai_model'])
-            ->pluck('value', 'key');
+        $keys = new PlatformAiKeys();
 
-        $provider = strtolower($requestedProvider ?: ($globalSettings->get('ai_provider') ?: ($profile['provider'] ?? 'gemini')));
-        $model = $requestedModel ?: ($globalSettings->get('ai_model') ?: ($profile['model'] ?? 'gemini-3.1-flash-lite'));
-
-        $dashboardGeminiKey = $globalSettings->get('gemini_api_key') ?: $globalSettings->get('ai_api_key') ?: $globalSettings->get('global_ai_api_key');
-        $dashboardOpenAiKey = $globalSettings->get('openai_api_key');
+        $profileProvider = strtolower($profile['provider'] ?? 'gemini');
+        $profileModel = $profile['model'] ?? 'gemini-2.5-flash-lite';
 
         // Staff operations operate on real tenant data and resolve to the platform paid key.
         // Free tier is strictly reserved for trial/free allowance and public marketing tools.
@@ -82,27 +78,18 @@ class KeyResolver
             || $feature === 'public_tool';
 
         if ($isFreeTier) {
-            $apiKey = $dashboardGeminiKey
-                ?: config('smartcapture.free_api_key')
-                ?: (config('smartcapture.gemini_key') ?: config('services.gemini.key') ?: config('smartcapture.api_key'));
+            [$apiKey, $keyProvider, $fromFreePool] = $keys->freeTierKey(
+                strtolower($requestedProvider ?: ($keys->paidProvider() ?: $profileProvider))
+            );
+            $provider = $keyProvider ?: strtolower($requestedProvider ?: $profileProvider);
+            $model = $requestedModel
+                ?: ($fromFreePool ? $keys->freeModel() : null)
+                ?: $this->modelFor($provider, $profileProvider, $profileModel, $fromFreePool ? null : $keys->paidModel());
             $keyMode = 'platform_free';
         } else {
-            if ($provider === 'gemini') {
-                $apiKey = $dashboardGeminiKey
-                    ?: config('smartcapture.gemini_key')
-                    ?: config('services.gemini.key')
-                    ?: config('smartcapture.api_key');
-            } elseif ($provider === 'openai') {
-                $apiKey = $dashboardOpenAiKey
-                    ?: config('services.openai.key')
-                    ?: config('smartcapture.api_key');
-            } elseif ($provider === 'anthropic') {
-                $apiKey = config('services.anthropic.key');
-            } elseif ($provider === 'deepseek') {
-                $apiKey = config('services.deepseek.key');
-            } else {
-                $apiKey = $dashboardGeminiKey ?: config('smartcapture.gemini_key') ?: config('services.gemini.key');
-            }
+            $provider = strtolower($requestedProvider ?: ($keys->paidProvider() ?: $profileProvider));
+            $model = $requestedModel ?: $this->modelFor($provider, $profileProvider, $profileModel, $keys->paidModel());
+            $apiKey = $keys->paidKey($provider);
             $keyMode = 'platform_paid';
         }
 
@@ -112,5 +99,22 @@ class KeyResolver
             'model'    => $model,
             'key_mode' => $keyMode,
         ];
+    }
+
+    /**
+     * Pick a model that matches the provider: the dashboard model if set, the
+     * feature profile's model when the provider is the profile's provider,
+     * otherwise that provider's default model.
+     */
+    private function modelFor(string $provider, string $profileProvider, string $profileModel, ?string $dashboardModel): string
+    {
+        if ($dashboardModel) {
+            return $dashboardModel;
+        }
+        if ($provider === $profileProvider) {
+            return $profileModel;
+        }
+
+        return (string) config("smartcapture.default_models.{$provider}", $profileModel);
     }
 }

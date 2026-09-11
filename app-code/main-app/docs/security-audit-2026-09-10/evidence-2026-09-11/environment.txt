@@ -1,0 +1,24 @@
+Evidence captured: 2026-09-11T04:10:33Z (UTC) — round 6: AI-key pools, secret stripping, CSRF resync; backend, browser and crawl all re-run on this exact tree
+Source manifest: source-manifest.sha256 (2566 files), sha256 of manifest = c33ec13a04fd3dcc2daa5262680b993594ed3b4cd55a5acbc34b9efba4dbfa8c
+  Verify on your machine, from app-code/main-app:  sha256sum -c docs/security-audit-2026-09-10/evidence-2026-09-11/source-manifest.sha256
+
+Backend suite
+  Command: DB freshly created (DROP/CREATE amd_pos_test), then
+           php -d memory_limit=2G vendor/bin/pest -c tests/phpunit.xml --log-junit backend-junit.xml
+  Result:  see backend-summary.txt / backend-junit.xml / backend-console.txt
+  PHP:     8.4.21
+  DB:      10.11.14-MariaDB-0ubuntu0.24.04.1 (driver mariadb; local schema hack: uuid columns emulated as char(36) = MariaDB 10.5 behaviour)
+  Laravel: Laravel Framework 12.69.2
+  Composer packages: exactly your vendor/ for all 82 packages your 19:40 composer update changed (copied from your machine), composer.lock identical to yours.
+  NOTE: production runs PHP 8.4 / MariaDB 10.5 per CLAUDE.md; this run is PHP 8.4.21 / MariaDB 10.11. Staging on the real host is still G04/G12.
+
+Browser checks (browser-e2e-results.txt, 52 checks, re-run on this tree after the bootstrap.js CSRF change; plus browser-ai-keys-results.txt, 4 checks: platform owner login + 2FA, AI key panel save/mask, no key in dashboard or public HTML)
+  Runner: Playwright 1.56.0 (Python) + Chromium at /opt/pw-browsers
+  Server: e2e-serve.sh (php -S, APP_ENV=local, MAIL_MAILER=log, its own database amd_pos_e2e; OTP codes read from storage/logs/laravel.log; OTP budgets raised for repeated test logins)
+  Scripts: aikeys.py + seedowner.php (AI keys); runall.sh -> e2e1.py (public pages, signup/login OTP), tfa.py (2FA + contact), pos2.py (POS sale + ledger/stock), pair.py (terminal pairing), approval.py (cashier below-cost -> manager PIN)
+  Fixtures: seedprod.php / seedje.php / seedroles.php (store e2e-mart created through the real signup UI; product/stock/roles seeded)
+
+Race (race-last-unit-results.txt): race.py + race_both.sh — two concurrent POST /sales for the last unit, 2 PHP workers, both stock policies.
+Crawl (sitemap-crawl-results.txt): crawl.py — every sitemap URL: status, title, description, canonical, server-written H1, duplicates.
+
+Race (race-last-unit-results.txt) is from round 5; the sale path is unchanged in round 6.

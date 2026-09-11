@@ -59,6 +59,8 @@ class EmailOtpController extends Controller
             'ttlMinutes'   => (int) $this->otp->config('ttl_minutes', 5),
             'resendIn'     => $resendIn,
             'status'       => session('status'),
+            // Local testing only — null everywhere else, so the page shows no hint.
+            'devCode'      => $this->otp->devBypassActive($request) ? ($this->otp->devMasterCodes()[0] ?? null) : null,
         ]);
     }
 

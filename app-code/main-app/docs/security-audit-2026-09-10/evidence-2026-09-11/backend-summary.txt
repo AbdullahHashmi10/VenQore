@@ -1,0 +1,9 @@
+JUnit root suite: /home/claude/vq/main/tests/phpunit.xml
+tests: 2651
+assertions: 21742
+failures: 0
+errors: 0
+skipped: 0
+testcase elements: 2651 | with <skipped>: 0 | with <failure>/<error>: 0
+Time: 10:22.516, Memory: 459.50 MB
+Tests: 2651, Assertions: 21742, PHPUnit Deprecations: 651.

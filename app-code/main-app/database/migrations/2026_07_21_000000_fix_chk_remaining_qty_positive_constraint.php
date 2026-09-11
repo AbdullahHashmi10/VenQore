@@ -29,7 +29,8 @@ return new class extends Migration
             }
 
             // Re-create constraint with the explicit negative_stock exception
-            DB::statement("ALTER TABLE inventory_batches ADD CONSTRAINT chk_remaining_qty_positive CHECK (remaining_qty >= 0 OR batch_type = 'negative_stock')");
+            // (only when the data is clean — see App\Support\InventoryDbGuards).
+            \App\Support\InventoryDbGuards::installIfClean('chk_remaining_qty_positive');
         } elseif ($driver === 'sqlite') {
             // Drop and recreate SQLite triggers to ensure negative_stock exception is present
             DB::statement('DROP TRIGGER IF EXISTS chk_remaining_qty_positive_update');

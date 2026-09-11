@@ -1020,7 +1020,7 @@ export function PkVerificationsView({ stats = {}, pk_verifications = [] }) {
 }
 
 /* ════════════════ PLATFORM SETTINGS ════════════════ */
-export function SettingsView({ stats = {}, settings = {} }) {
+export function SettingsView({ stats = {}, settings = {}, ai_keys = null }) {
     const t = useT();
 
     // Financial forms
@@ -1135,8 +1135,130 @@ export function SettingsView({ stats = {}, settings = {} }) {
                 </Panel>
             </div>
             
+            <AiKeysPanel t={t} aiKeys={ai_keys} />
+
             <Note t={t}>Settings persist to the global <code>settings</code> table (<code>tenant_id = null</code>) — the same deploy-safe pattern VenSynQ already uses.</Note>
         </div>
+    );
+}
+
+/* ── AI keys: a FREE pool and a PAID pool, side by side ── */
+const AI_PROVIDERS = [
+    { value: 'gemini', label: 'Google Gemini' },
+    { value: 'openai', label: 'OpenAI' },
+    { value: 'anthropic', label: 'Anthropic (Claude)' },
+    { value: 'deepseek', label: 'DeepSeek' },
+];
+
+function KeyStatus({ slot }) {
+    if (slot?.saved) return <Badge color={BRAND.emerald}>Saved · ends {slot.last4}</Badge>;
+    if (slot?.env) return <Badge color={BRAND.amber}>Using server .env key</Badge>;
+    return <Badge color={BRAND.slate}>Not set</Badge>;
+}
+
+function KeyRow({ t, label, hint, field, slot, value, onChange, onRemove }) {
+    return (
+        <Field label={<span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>{label} <KeyStatus slot={slot} /></span>} hint={hint}>
+            <div style={{ display: 'flex', gap: 8 }}>
+                <Input
+                    type="password"
+                    autoComplete="off"
+                    value={value}
+                    onChange={(e) => onChange(field, e.target.value)}
+                    placeholder={slot?.saved ? 'Leave blank to keep the saved key' : 'Paste key'}
+                    style={{ flex: 1 }}
+                />
+                {slot?.saved && (
+                    <Button type="button" variant="danger" size="sm" onClick={() => onRemove(field)}>Remove</Button>
+                )}
+            </div>
+        </Field>
+    );
+}
+
+function AiKeysPanel({ t, aiKeys }) {
+    const k = aiKeys || { free: {}, paid: {} };
+    const [keys, setKeys] = useState({
+        ai_free_gemini_api_key: '',
+        ai_paid_gemini_api_key: '',
+        ai_paid_openai_api_key: '',
+        ai_paid_anthropic_api_key: '',
+        ai_paid_deepseek_api_key: '',
+    });
+    const [freeModel, setFreeModel] = useState(k.free?.model || '');
+    const [fallback, setFallback] = useState(k.free?.fallback_to_paid !== false);
+    const [paidProvider, setPaidProvider] = useState(k.paid?.provider || 'gemini');
+    const [paidModel, setPaidModel] = useState(k.paid?.model || '');
+
+    const setKey = (field, v) => setKeys((prev) => ({ ...prev, [field]: v }));
+    const clearTyped = () => setKeys((prev) => Object.fromEntries(Object.keys(prev).map((f) => [f, ''])));
+
+    const save = (e) => {
+        e.preventDefault();
+        const typed = Object.fromEntries(Object.entries(keys).filter(([, v]) => v.trim() !== ''));
+        router.post(window.route('platform.settings.save'), {
+            ...typed,
+            ai_free_model: freeModel,
+            ai_free_fallback_to_paid: fallback ? 1 : 0,
+            ai_paid_provider: paidProvider,
+            ai_paid_model: paidModel,
+        }, { preserveScroll: true, onSuccess: clearTyped });
+    };
+
+    const remove = (field) => {
+        router.post(window.route('platform.settings.save'), { clear_ai_keys: [field] }, { preserveScroll: true });
+    };
+
+    return (
+        <Panel>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <Bot size={18} color={BRAND.emerald} />
+                <span style={{ fontSize: 14, fontWeight: 800, color: t.ink }}>AI provider keys</span>
+            </div>
+            <p style={{ fontSize: 12.5, color: t.muted, margin: '0 0 16px' }}>
+                Keys are stored encrypted and never shown again. A store's own key (BYOK) always wins over these.
+                Owner only.
+            </p>
+
+            <form onSubmit={save} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,340px),1fr))', gap: 20 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: t.sub }}>Free key</span>
+                    <span style={{ fontSize: 12.5, color: t.muted }}>Public tools, the free plan, trials and staff previews.</span>
+                    <KeyRow t={t} label="Gemini free-tier key" hint="Google AI Studio key on the free tier"
+                        field="ai_free_gemini_api_key" slot={k.free} value={keys.ai_free_gemini_api_key} onChange={setKey} onRemove={remove} />
+                    <Field label="Free model (optional)" hint="Blank = each feature's default Gemini model">
+                        <Input value={freeModel} onChange={(e) => setFreeModel(e.target.value)} placeholder="gemini-2.5-flash-lite" />
+                    </Field>
+                    <ToggleRow
+                        t={t}
+                        label="Use the paid key when no free key is set"
+                        sub="Turn off once a free key is saved, so free usage can never spend the paid key"
+                        active={fallback}
+                        onChange={setFallback}
+                        last
+                    />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: t.sub }}>Paid keys</span>
+                    <span style={{ fontSize: 12.5, color: t.muted }}>Paying stores on managed AI (AI Shop / Pro / Max).</span>
+                    <Field label="Active paid provider">
+                        <Select value={paidProvider} onChange={(e) => setPaidProvider(e.target.value)} options={AI_PROVIDERS} />
+                    </Field>
+                    <Field label="Paid model (optional)" hint="Blank = each feature's default model for the provider">
+                        <Input value={paidModel} onChange={(e) => setPaidModel(e.target.value)} placeholder="e.g. claude-sonnet-4-5" />
+                    </Field>
+                    <KeyRow t={t} label="Gemini paid key" field="ai_paid_gemini_api_key" slot={k.paid?.gemini} value={keys.ai_paid_gemini_api_key} onChange={setKey} onRemove={remove} />
+                    <KeyRow t={t} label="Anthropic (Claude) key" field="ai_paid_anthropic_api_key" slot={k.paid?.anthropic} value={keys.ai_paid_anthropic_api_key} onChange={setKey} onRemove={remove} />
+                    <KeyRow t={t} label="OpenAI key" field="ai_paid_openai_api_key" slot={k.paid?.openai} value={keys.ai_paid_openai_api_key} onChange={setKey} onRemove={remove} />
+                    <KeyRow t={t} label="DeepSeek key" field="ai_paid_deepseek_api_key" slot={k.paid?.deepseek} value={keys.ai_paid_deepseek_api_key} onChange={setKey} onRemove={remove} />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                    <Button type="submit">Save AI keys</Button>
+                </div>
+            </form>
+        </Panel>
     );
 }
 
@@ -1364,7 +1486,7 @@ function ToggleRow({ t, label, sub, active, onChange, last }) {
                 <div style={{ fontSize: 13, fontWeight: 700, color: t.ink }}>{label}</div>
                 {sub && <div style={{ fontSize: 11.5, color: t.muted }}>{sub}</div>}
             </div>
-            <button onClick={() => onChange?.(!active)} className="vq-press" style={{ width: 44, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? BRAND.emerald : t.border2, position: 'relative', transition: 'background .2s' }}>
+            <button type="button" aria-pressed={!!active} aria-label={typeof label === "string" ? label : undefined} onClick={() => onChange?.(!active)} className="vq-press" style={{ width: 44, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer', background: active ? BRAND.emerald : t.border2, position: 'relative', transition: 'background .2s' }}>
                 <span style={{ position: 'absolute', top: 3, left: active ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,.3)' }} />
             </button>
         </div>

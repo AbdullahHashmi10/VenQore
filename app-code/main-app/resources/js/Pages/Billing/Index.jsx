@@ -294,7 +294,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 }
 
 // --- Main Page Component ---
-export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification, trial_credit = null }) {
+export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification, trial_credit = null, intended_plan = null }) {
  const { store, pricing } = usePage().props;
  const aiTiers = pricing?.ai_tiers || {};
  const storeSlug = store?.slug;
@@ -1022,6 +1022,25 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  <Head title="Billing & Subscription" />
 
  <div className="max-w-6xl mx-auto p-4 md:p-8">
+
+ {/* Plan picked during signup — offered first while the trial runs. */}
+ {intended_plan && isTrial && !isViewOnly && intended_plan.price_monthly > 0 && (
+ <div className="mb-8 flex flex-col gap-4 rounded-xl border border-accent bg-accent-quiet p-5 sm:flex-row sm:items-center sm:justify-between">
+ <div>
+ <div className="text-sm font-semibold text-ink">You picked {intended_plan.name} when you signed up</div>
+ <div className="mt-1 text-xs text-ink-secondary">
+ ${intended_plan.price_monthly}/mo after your trial. Activate it now or pick a different plan below — your free days carry over.
+ </div>
+ </div>
+ <button
+ onClick={() => handlePlanCheckout(intended_plan.key, 'monthly', currencyDisplay)}
+ disabled={!!checkoutBusy}
+ className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-accent-fill px-5 py-3 text-xs font-semibold text-accent-on hover:bg-accent-fill-hover disabled:opacity-60"
+ >
+ {checkoutBusy === intended_plan.key ? 'Opening secure checkout…' : <>Activate {intended_plan.name} <ArrowRight size={14} /></>}
+ </button>
+ </div>
+ )}
 
  {/* View-Only Mode Warning Banner */}
  {isViewOnly && (
@@ -1917,18 +1936,18 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  </p>
 
  <div className="grid grid-cols-2 gap-3">
- {Object.entries(aiTiers).map(([key, tier]) => (
+ {Object.entries(aiTiers).filter(([, tier]) => Number(tier.price_monthly) > 0).map(([key, tier]) => (
  <div
  key={key}
  onClick={() => handlePurchaseAddon(`ai_${key}`)}
  className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-brand-500/30 hover:bg-brand-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
  >
  <div className="flex justify-between items-center mb-1">
- <span className="text-xs font-bold text-white group-hover:text-brand-300 transition-colors">AI {tier.name || key.toUpperCase()}</span>
+ <span className="text-xs font-bold text-white group-hover:text-brand-300 transition-colors">{tier.label || `AI ${key}`}</span>
  <span className="text-xs font-bold text-brand-400">${tier.price_monthly}</span>
  </div>
  <div className="text-3xs text-ink-muted">
- {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
+ {(tier.credits || 0).toLocaleString()} AI credits / month
  </div>
  </div>
  ))}

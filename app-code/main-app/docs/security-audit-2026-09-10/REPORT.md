@@ -1,5 +1,15 @@
 # VenQore pre-launch security audit — 10 September 2026
 
+## Current decision and path to completion — 11 September
+
+**Use [ROAD-TO-100.md](ROAD-TO-100.md) as the current detailed acceptance plan.** It reconciles Claude's round-4 claims with the files and evidence, explains all 20 readiness gates, assigns responsibilities, documents costs and gives step-by-step completion criteria. The original 37 Notion and 20 image checklist rows below remain the source checklist and are explicitly covered by gate G17; their historical unchecked states are not a count of current bugs.
+
+Freshly checked: **443/443 main-app transfer hashes match; 126 frontend tests pass; web, Windows and Composer audits report zero known advisories.** Composer/QR/Electron upgrades are completed. The latest status claims 2,638 backend tests and 52 browser checks; matching raw successful round-4 evidence was not located in the searched report/transfer directories and was not independently reproduced in this update. Earlier tests with skipped/incomplete cases are historical, not proof that those cases remain skipped now.
+
+**Deployment gates remain open.** In particular, review inventory before running the new migrations: one clamps existing negative batch quantities, while another can return without installing the opening-cost CHECK constraint. Inspect resulting data and constraints, not merely the migration exit status. Production email, infrastructure, recovery and real-device acceptance still require evidence.
+
+**Scoring correction:** the previously quoted 73/100 and 94/100 were subjective estimates, not measured certification. Zero advisory counts are not “100% secure.” The new plan defines a 100-point acceptance checklist for an identified release; current release certification remains pending. No spending or production changes are authorized by the report itself.
+
 **11 September update:** [Remaining remediation completed locally](FIXES-2026-09-11.md) records patched dependencies, build/test evidence and remaining account-access/hardware launch checks. Use that update for current status; this document retains the original findings and master checklist.
 
 **Remediation update:** see [Independent recheck of Claude's changes](RECHECK.md) for current evidence, fresh dependency counts and unfinished engineering work. Findings below preserve the original audit; do not interpret their original state as a claim that no remediation has since occurred.

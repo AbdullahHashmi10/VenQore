@@ -1,0 +1,31 @@
+import sys,time,subprocess; sys.path.insert(0,'/tmp/e2e'); from common import *
+from playwright.sync_api import sync_playwright
+res=[]
+def ok(n,c,i=''): res.append(bool(c)); print(('PASS ' if c else 'FAIL ')+n+(' | '+str(i)[:300] if i else ''),flush=True)
+def q(sql): return subprocess.run(['mysql','-uroot','-N','amd_pos_e2e','-e',sql],capture_output=True,text=True).stdout.strip()
+n0=int(q("select count(*) from sales"))
+with sync_playwright() as p:
+    br=p.chromium.launch(); ctx=br.new_context(viewport={'width':1440,'height':900}); page=ctx.new_page()
+    posts=[]
+    page.on('response',lambda r: posts.append((r.status,r.url)) if r.request.method=='POST' and r.url.rstrip('/').endswith('/sales') else None)
+    login(page,'e2e.cashier@example.com','Str0ng!Passw0rd#2026')
+    page.goto(B+'/s/e2e-mart/pos',wait_until='networkidle'); time.sleep(3)
+    d=page.locator('[role=dialog][aria-label="Set up this register"]')
+    if d.count(): d.get_by_role('button',name='Skip for now').click(); time.sleep(1)
+    page.locator('input[placeholder^="Scan barcode"]').first.fill('Loss Leader'); time.sleep(3)
+    page.get_by_text('SKU: E2E-CHEAP').first.click(); time.sleep(2)
+    page.get_by_role('button',name='Exact').first.click(); time.sleep(1)
+    page.get_by_role('button',name='Complete & Print').first.click(); time.sleep(4)
+    m=page.locator('[data-testid=pos-approval-modal]')
+    ok('cashier below-cost sale is stopped with the approval modal', m.count()==1 and m.is_visible(), posts)
+    ok('nothing written before approval', int(q("select count(*) from sales"))==n0)
+    m.get_by_role('button').filter(has_text='Manager E2E').first.click(); time.sleep(0.5)
+    m.get_by_label('Approver PIN').fill('0000'); m.get_by_role('button',name='Approve & complete').click(); time.sleep(4)
+    ok('wrong manager PIN refused', int(q("select count(*) from sales"))==n0 and m.is_visible(), m.inner_text()[:200] if m.count() else '')
+    m.get_by_label('Approver PIN').fill('2468'); m.get_by_role('button',name='Approve & complete').click(); time.sleep(5)
+    ok('right manager PIN completes the sale', int(q("select count(*) from sales"))==n0+1, posts)
+    mgr=q("select id from users where email='e2e.manager@example.com'")
+    ok('approved_by recorded on the journal entry', q(f"select count(*) from journal_entries where approved_by='{mgr}'")!='0', q(f"select count(*) from journal_entries where approved_by='{mgr}'"))
+    ok('ledger balanced', q('select round(sum(debit)-sum(credit),2) from journal_items') in ('0.00','-0.00'))
+    br.close()
+print('SUMMARY',sum(res),'/',len(res))

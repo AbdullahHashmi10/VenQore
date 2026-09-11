@@ -28,8 +28,20 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
 
     public function handle(): void
     {
-        $subscriptionId = (string) ($this->data['id'] ?? '');
-        $attributes     = $this->data['attributes'] ?? [];
+        $attributes = $this->data['attributes'] ?? [];
+
+        // This job is dispatched from two different Lemon Squeezy payload
+        // shapes: a Subscription object on 'subscription_updated' (its own
+        // `id` IS the subscription id), and a Subscription Invoice object on
+        // 'subscription_payment_recovered' (its `id` is the invoice id; the
+        // subscription is named in attributes.subscription_id). Reading only
+        // $this->data['id'] made every payment-recovered event look up a
+        // non-existent tenant and silently no-op. variant_id/status below stay
+        // read from `attributes` for the subscription-object case; an invoice
+        // has neither, so $variantId resolves empty and the plan-matching
+        // below correctly falls through to the tenant's current plan instead
+        // of guessing one.
+        $subscriptionId = (string) ($attributes['subscription_id'] ?? $this->data['id'] ?? '');
         $variantId      = (string) ($attributes['variant_id'] ?? '');
         $lsStatus       = $attributes['status'] ?? 'active';
 

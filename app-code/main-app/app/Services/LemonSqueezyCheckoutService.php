@@ -409,4 +409,23 @@ class LemonSqueezyCheckoutService
             Log::info("LemonSqueezyCheckoutService: Top-up credited {$pages} pages for tenant {$tenantId}");
         }
     }
+
+    /**
+     * Reverse a top-up grant on `order_refunded` (HandleOrderRefundedJob).
+     *
+     * Exact mirror of incrementAiPages() — same default amount, opposite
+     * direction — so a refunded top-up cannot leave the tenant with
+     * unpaid-for AI page quota. Floors at zero: never punish a tenant below
+     * whatever their plan/other add-ons already grant them, even if they
+     * have since used some of the refunded pages.
+     */
+    public function reverseAiTopup(int $tenantId, int $pages = 200): void
+    {
+        $tenant = Tenant::find($tenantId);
+        if ($tenant) {
+            $remaining = max(0, (int) $tenant->ai_pages_limit - $pages);
+            $tenant->update(['ai_pages_limit' => $remaining]);
+            Log::info("LemonSqueezyCheckoutService: Refunded top-up reversed {$pages} pages for tenant {$tenantId} (limit now {$remaining})");
+        }
+    }
 }

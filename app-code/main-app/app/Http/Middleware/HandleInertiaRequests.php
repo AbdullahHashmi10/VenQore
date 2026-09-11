@@ -129,14 +129,21 @@ class HandleInertiaRequests extends Middleware
                 
                 if (app()->bound('current.tenant')) {
                     // SEC-1 (2026-07-03): the admin passcode (bcrypt hash) is server-side only.
+                    // Shared props reach every user of the store (cashiers too), so
+                    // API keys, secrets and tokens are stripped. Settings pages that
+                    // edit them load their own props.
                     $all = \App\Helpers\SettingsHelper::all();
                     unset($all['admin_passcode']);
-                    return $all;
+                    return \App\Support\PlatformAiKeys::withoutSecrets($all);
                 }
                 
-                return \Illuminate\Support\Facades\Cache::remember('settings:global', 300, function () {
-                    return \App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
-                });
+                // Outside a store these props reach public pages: never include
+                // platform AI keys or any other secret.
+                return \App\Support\PlatformAiKeys::withoutSecrets(
+                    \Illuminate\Support\Facades\Cache::remember('settings:global', 300, function () {
+                        return \App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
+                    })
+                );
             })(),
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
@@ -245,6 +252,10 @@ class HandleInertiaRequests extends Middleware
                     ->map(fn (array $tier) => \Illuminate\Support\Arr::except($tier, ['variant_id']))
                     ->all()
                 : [],
+            // The session's current CSRF token. Laravel regenerates it on login,
+            // but an Inertia visit never refreshes the <meta name="csrf-token"> tag,
+            // so bootstrap.js re-syncs axios from this prop after every visit.
+            'csrf_token' => fn () => $request->hasSession() ? csrf_token() : null,
             'turnstile_site_key' => config('services.cloudflare.turnstile_site_key', ''),
             'terms' => (function () use ($dbReady) {
                 if (!$dbReady || !$this->hasTable('tenant_terminology')) return [];

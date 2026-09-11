@@ -143,27 +143,37 @@ class AiExtractionService
         // burned the platform's dedicated Gemini key on every one of their 10
         // free scans. 'staff' also gets the free key: staff previews must
         // never spend the paid key either.
-        $provider = $this->normalizeProvider(config('smartcapture.provider', 'gemini'));
+        // Platform keys come from the Hashmi Dashboard (free pool + paid pool
+        // per provider), falling back to .env. See App\Support\PlatformAiKeys.
+        $keys = new \App\Support\PlatformAiKeys();
+        $defaultProvider = $this->normalizeProvider(config('smartcapture.provider', 'gemini'));
 
         $usesFreeKey = in_array($entitlementMode, ['free', 'staff', 'public_tool'], true)
             || $feature === 'public_tool'   // explicit public (unauthenticated) tool surfaces
             || $entitlementMode === null;   // unknown entitlement — default to the SAFE key, never the paid one
 
+        $dashboardModel = null;
         if ($usesFreeKey) {
-            $key = config('smartcapture.free_api_key') ?: (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'));
+            [$key, $keyProvider, $fromFreePool] = $keys->freeTierKey('gemini');
+            $provider = $keyProvider ?: 'gemini';
+            $dashboardModel = $fromFreePool ? $keys->freeModel() : null;
         } else {
             // 'managed' (paid usage-based) and any other explicitly-paying mode
-            $key = $provider === 'gemini'
-                ? (config('smartcapture.gemini_key') ?: config('smartcapture.api_key'))
-                : config('smartcapture.api_key');
+            $provider = $this->normalizeProvider($keys->paidProvider() ?: $defaultProvider);
+            $key = $keys->paidKey($provider);
+            $dashboardModel = $keys->paidModel();
         }
 
-        $featureModel = $feature ? config("smartcapture.feature_models.{$feature}") : null;
+        // Feature models are Gemini model names; only use them for Gemini.
+        $featureModel = ($feature && $provider === 'gemini') ? config("smartcapture.feature_models.{$feature}") : null;
+        $fallbackModel = $provider === 'gemini'
+            ? (config('smartcapture.model') ?: config("smartcapture.default_models.gemini"))
+            : config("smartcapture.default_models.{$provider}");
 
         return [
             'provider' => $provider,
             'api_key'  => $key ?: null,
-            'model'    => $featureModel ?: (config('smartcapture.model') ?: config("smartcapture.default_models.{$provider}")),
+            'model'    => $dashboardModel ?: ($featureModel ?: $fallbackModel),
             'byok'     => false,
         ];
     }

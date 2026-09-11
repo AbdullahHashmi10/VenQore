@@ -1,0 +1,4 @@
+PASS platform owner: first 2FA code after /VenQore-login accepted (no 419)
+PASS free Gemini key and paid Claude key saved side by side, shown masked
+PASS no key in the dashboard HTML
+PASS no key on the public /pricing page

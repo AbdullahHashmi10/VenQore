@@ -21,11 +21,14 @@ const HEADINGS = {
     login: { heading: 'Check your email', sub: 'Enter your sign-in code' },
 };
 
-export default function VerifyCode({ purpose = 'login', maskedEmail = '', ttlMinutes = 5, resendIn = 60, status }) {
+export default function VerifyCode({ purpose = 'login', maskedEmail = '', ttlMinutes = 5, resendIn = 60, status, devCode = null }) {
     const { data, setData, post, processing, errors, reset } = useForm({ code: '' });
     const [wait, setWait] = useState(Math.max(0, Number(resendIn) || 0));
     const [resending, setResending] = useState(false);
     const copy = HEADINGS[purpose] || HEADINGS.login;
+    /* Local testing: the server accepts a short master code (e.g. 0000), so the
+       button must not insist on six digits. Real codes are always six. */
+    const minLength = devCode ? Math.min(6, String(devCode).length) : 6;
 
     useEffect(() => {
         setWait(Math.max(0, Number(resendIn) || 0));
@@ -69,6 +72,12 @@ export default function VerifyCode({ purpose = 'login', maskedEmail = '', ttlMin
 
                 <AuthNotice tone="success">{status}</AuthNotice>
 
+                {devCode && (
+                    <p className="rounded-md border border-dashed border-line-strong bg-sunken px-3 py-2 text-xs text-ink-secondary">
+                        Local testing: enter <strong className="font-mono text-ink">{devCode}</strong> — no email needed.
+                    </p>
+                )}
+
                 <AuthForm onSubmit={submit}>
                     <AuthField
                         id="otp-code"
@@ -80,7 +89,7 @@ export default function VerifyCode({ purpose = 'login', maskedEmail = '', ttlMin
                         placeholder="000000"
                         inputMode="numeric"
                         autoComplete="one-time-code"
-                        pattern="[0-9]{6}"
+                        pattern={devCode ? undefined : '[0-9]{6}'}
                         maxLength={6}
                         className="text-center tracking-[0.5em]"
                         error={errors.code}
@@ -90,7 +99,7 @@ export default function VerifyCode({ purpose = 'login', maskedEmail = '', ttlMin
 
                     <AuthButton
                         type="submit"
-                        disabled={processing || data.code.length !== 6}
+                        disabled={processing || data.code.length < minLength}
                         iconAfter={processing ? null : <ArrowRight size={16} />}
                     >
                         {processing ? (

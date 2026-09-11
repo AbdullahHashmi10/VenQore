@@ -170,13 +170,7 @@ class EmailOtpService
 
             $challenge->attempts = $challenge->attempts + 1;
 
-            $isLocalRequest = in_array($request->getHost(), ['127.0.0.1', 'localhost', '::1'], true)
-                || in_array($request->ip(), ['127.0.0.1', '::1'], true);
-
-            $isDevMaster = app()->environment('local')
-                && $isLocalRequest
-                && ($master = (string) $this->config('dev_master_code', '000000')) !== ''
-                && $code === $master;
+            $isDevMaster = $this->isDevMasterCode($request, $code);
 
             if (!$isDevMaster && (strlen($code) !== 6 || !hash_equals($challenge->code_hash, $this->hashCode($code)))) {
                 $challenge->save();
@@ -188,6 +182,51 @@ class EmailOtpService
 
             return [self::OK, $challenge];
         });
+    }
+
+    /**
+     * Local testing shortcut: while APP_ENV=local and the request comes from a
+     * dev host, the master codes (default "0000" and "000000") pass verify()
+     * and send budgets are not charged, so the whole signup / sign-in flow can
+     * be walked without opening an inbox. Never active in any other
+     * environment — production and staging always require the real code.
+     */
+    public function devBypassActive(Request $request): bool
+    {
+        if (!app()->environment('local') || $this->devMasterCodes() === []) {
+            return false;
+        }
+
+        $host = strtolower((string) $request->getHost());
+        $ip   = (string) $request->ip();
+
+        $devHost = in_array($host, ['127.0.0.1', 'localhost', '::1'], true)
+            || str_ends_with($host, '.test')
+            || str_ends_with($host, '.local')
+            || str_ends_with($host, '.localhost');
+
+        $privateIp = $ip !== '' && filter_var($ip, FILTER_VALIDATE_IP)
+            && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+
+        return $devHost || $privateIp;
+    }
+
+    /** @return string[] */
+    public function devMasterCodes(): array
+    {
+        $raw = (string) $this->config('dev_master_code', '0000,000000');
+
+        return array_values(array_filter(array_map(
+            fn ($c) => preg_replace('/\D/', '', $c) ?? '',
+            explode(',', $raw)
+        ), fn ($c) => strlen($c) >= 4));
+    }
+
+    private function isDevMasterCode(Request $request, string $code): bool
+    {
+        return $code !== ''
+            && $this->devBypassActive($request)
+            && in_array($code, $this->devMasterCodes(), true);
     }
 
     public function find(?string $challengeId): ?EmailOtpChallenge
@@ -238,6 +277,11 @@ class EmailOtpService
      */
     private function reserveSend(Request $request, string $email): ?string
     {
+        // Local testing: do not burn (or get blocked by) the send budgets.
+        if ($this->devBypassActive($request)) {
+            return null;
+        }
+
         try {
             return Cache::lock('otp-send-budget', 10)->block(5, function () use ($request, $email) {
                 if ($error = $this->checkSendBudgets($request, $email)) {

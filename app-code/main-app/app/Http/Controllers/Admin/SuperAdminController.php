@@ -203,10 +203,14 @@ class SuperAdminController extends Controller
                 'rejection'    => $v->rejection_reason,
             ])->toArray();
 
-        $settings = \App\Models\Setting::withoutGlobalScopes()
-            ->whereNull('tenant_id')
-            ->pluck('value', 'key')
-            ->toArray();
+        // AI keys are never sent to the browser — only a masked status.
+        $settings = \App\Support\PlatformAiKeys::withoutSecrets(
+            \App\Models\Setting::withoutGlobalScopes()
+                ->whereNull('tenant_id')
+                ->pluck('value', 'key')
+                ->toArray()
+        );
+        $aiKeys = (new \App\Support\PlatformAiKeys())->status();
 
         $ticketStatus = $request->get('ticket_status', 'open');
         $ticketSource = $request->get('ticket_source', 'all');
@@ -231,6 +235,7 @@ class SuperAdminController extends Controller
             'payout_pool'       => $payoutPool,
             'pk_verifications'  => $pkVerificationsList,
             'settings'          => $settings,
+            'ai_keys'           => $aiKeys,
             'store_trend'       => $storeTrend->values(),
             'plan_distribution' => $planDist,
             'recent_stores'     => $recentStores,
@@ -843,6 +848,18 @@ class SuperAdminController extends Controller
 
     public function saveSettings(Request $request)
     {
+        $secretFields = [
+            \App\Support\PlatformAiKeys::FREE_KEY,
+            'ai_paid_gemini_api_key',
+            'ai_paid_openai_api_key',
+            'ai_paid_anthropic_api_key',
+            'ai_paid_deepseek_api_key',
+            // legacy single-key fields (still accepted, stored encrypted)
+            'gemini_api_key',
+            'ai_api_key',
+            'openai_api_key',
+        ];
+
         $validated = $request->validate([
             'usd_pkr_rate'              => 'nullable|numeric|min:0',
             'gateway_fee_pct'           => 'nullable|numeric|min:0|max:100',
@@ -851,11 +868,22 @@ class SuperAdminController extends Controller
             'maintenance_mode_enabled'  => 'nullable|boolean',
             'appsumo_enabled'           => 'nullable|boolean',
             'smartcapture_enabled'      => 'nullable|boolean',
-            'gemini_api_key'            => 'nullable|string|max:255',
-            'ai_api_key'                => 'nullable|string|max:255',
-            'ai_provider'               => 'nullable|string|max:64',
+            'gemini_api_key'            => 'nullable|string|max:500',
+            'ai_api_key'                => 'nullable|string|max:500',
+            'ai_provider'               => 'nullable|string|in:gemini,openai,anthropic,deepseek',
             'ai_model'                  => 'nullable|string|max:64',
-            'openai_api_key'            => 'nullable|string|max:255',
+            'openai_api_key'            => 'nullable|string|max:500',
+            'ai_free_gemini_api_key'    => 'nullable|string|max:500',
+            'ai_free_model'             => 'nullable|string|max:64',
+            'ai_free_fallback_to_paid'  => 'nullable|boolean',
+            'ai_paid_provider'          => 'nullable|string|in:gemini,openai,anthropic,deepseek',
+            'ai_paid_model'             => 'nullable|string|max:64',
+            'ai_paid_gemini_api_key'    => 'nullable|string|max:500',
+            'ai_paid_openai_api_key'    => 'nullable|string|max:500',
+            'ai_paid_anthropic_api_key' => 'nullable|string|max:500',
+            'ai_paid_deepseek_api_key'  => 'nullable|string|max:500',
+            'clear_ai_keys'             => 'nullable|array',
+            'clear_ai_keys.*'           => 'string|in:' . implode(',', $secretFields),
             'vensynq_enabled'           => 'nullable|boolean',
             'vensynq_platform_amazon'   => 'nullable|boolean',
             'vensynq_platform_woocommerce' => 'nullable|boolean',
@@ -863,7 +891,30 @@ class SuperAdminController extends Controller
             'vensynq_platform_tiktok'   => 'nullable|boolean',
         ]);
 
+        // Anything that changes which AI keys/providers the platform pays for
+        // is owner-only (Hashmi Dashboard owner), not every platform admin.
+        $aiFields = array_merge($secretFields, [
+            'ai_provider', 'ai_model', 'ai_free_model', 'ai_free_fallback_to_paid',
+            'ai_paid_provider', 'ai_paid_model', 'clear_ai_keys',
+        ]);
+        if (array_intersect(array_keys(array_filter($validated, fn ($v) => $v !== null)), $aiFields)) {
+            $this->gateOwner();
+        }
+
+        $audit = [];
         foreach ($validated as $key => $val) {
+            if ($key === 'clear_ai_keys') {
+                continue;
+            }
+            if (in_array($key, $secretFields, true)) {
+                // A blank key field means "leave unchanged"; removal is explicit.
+                if ($val !== null && trim((string) $val) !== '') {
+                    \App\Support\PlatformAiKeys::putSecret($key, (string) $val);
+                    $audit[$key] = 'set (…' . substr(trim((string) $val), -4) . ')';
+                }
+                continue;
+            }
+
             $strVal = $val === null ? '' : (string) $val;
             // For booleans, convert to '1' or '0'
             if (is_bool($val)) {
@@ -874,9 +925,15 @@ class SuperAdminController extends Controller
                     ['key' => $key, 'tenant_id' => null],
                     ['value' => $strVal]
                 );
+            $audit[$key] = $val;
         }
 
-        \App\Models\PlatformAuditLog::logAction('settings.updated', $validated);
+        foreach ($validated['clear_ai_keys'] ?? [] as $key) {
+            \App\Support\PlatformAiKeys::putSecret($key, null);
+            $audit[$key] = 'removed';
+        }
+
+        \App\Models\PlatformAuditLog::logAction('settings.updated', $audit);
 
         // Flush global settings cache
         \Illuminate\Support\Facades\Cache::forget('settings:global');

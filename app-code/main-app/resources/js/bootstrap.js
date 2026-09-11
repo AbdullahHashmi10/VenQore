@@ -54,9 +54,24 @@ const syncCsrfToken = () => {
 // Sync on initial load
 syncCsrfToken();
 
-// Sync on every Inertia page navigation (covers login, logout, any page change).
-// 'inertia:finish' fires after the new page's DOM is ready, so the meta tag is updated.
-document.addEventListener('inertia:finish', syncCsrfToken);
+// Sync on every Inertia visit (covers login, logout, any page change).
+// An Inertia visit does NOT replace the <meta> tag, so after login (which
+// regenerates the session token) the old meta value would be sent on the next
+// POST and fail with 419 — e.g. the first 2FA code after /VenQore-login. The
+// server shares the live token as the `csrf_token` page prop; take it from
+// there and write it back into the meta tag for fetch() callers.
+const syncCsrfFromPage = (event) => {
+    const token = event?.detail?.page?.props?.csrf_token;
+    if (typeof token === 'string' && token !== '') {
+        window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) meta.setAttribute('content', token);
+    } else {
+        syncCsrfToken();
+    }
+};
+document.addEventListener('inertia:navigate', syncCsrfFromPage);
+document.addEventListener('inertia:success', syncCsrfFromPage);
 
 
 // Global Response Handler - Dispatch toast events for all AJAX responses

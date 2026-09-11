@@ -1,6 +1,16 @@
 # VenQore pre-launch remediation — status, 10 September 2026 (round 4, final)
 
+**Independent acceptance update:** [ROAD-TO-100.md](ROAD-TO-100.md) records current direct checks, evidence still needed for the round-4 backend/browser claims, migration preflight requirements and operator tasks. The previous Composer audit/download limitation is resolved. Preserve the required OTP rule during outages; the older break-glass suggestion below is not the recommended launch response. Restrict intake or restore delivery rather than silently bypassing OTP.
+
 **11 September update (Codex):** the Composer, Electron and electron-builder upgrades were completed locally by Codex — see [FIXES-2026-09-11.md](FIXES-2026-09-11.md). Deploy from the updated lockfiles using `composer install` / `npm ci`; do not resolve fresh dependency versions on the production server. Round 4 below was built and tested on top of that work (Codex's code and test changes and your exact `vendor/` packages were pulled in before the final runs).
+
+**11 September, round 6 (Claude):** your complete personal checklist — email addresses, Lemon Squeezy catalogue (19 rename, 1 retire, 0 required new), AI keys, `.env` values — is in [OWNER-TODO.md](OWNER-TODO.md). Code changes this round:
+- **Hashmi Dashboard → Settings → AI provider keys:** a free Gemini key and paid keys (Gemini, Anthropic/Claude, OpenAI, DeepSeek) side by side. Free usage (public tools, free plan, trials, staff previews) takes the free key; paid usage takes the active paid provider. Keys are encrypted at rest, owner-only to change, never sent to the browser, and masked in the audit log. `App\Support\PlatformAiKeys`, `KeyResolver`, `AiExtractionService`.
+- **Leak fixed:** the shared Inertia `settings` prop sent every global setting — including any AI key saved in the dashboard — to public pages, and store API keys/secrets to every staff browser. Keys, secrets, tokens and passcodes are now stripped (`PlatformAiKeys::withoutSecrets`).
+- **Billing:** the free "AI Spark" tier is no longer offered as a $0 checkout; tier tiles show their real names and monthly credits.
+- **`.env` examples:** Google redirect key corrected to `GOOGLE_REDIRECT_URL` (the old `GOOGLE_REDIRECT_URI` was never read); the updated production template (Resend SMTP instead of paid Postmark, AI keys, `LEMON_SQUEEZY_TEST_MODE`) is in `env.production.example.proposed` — copy it over `.env.production.example` (remote tools may not write `.env*` files).
+- **419 after login fixed:** login regenerates the CSRF token but an Inertia visit never refreshes the `<meta name="csrf-token">` tag, and axios kept sending the stale value as `X-CSRF-TOKEN` (which Laravel checks before the fresh `XSRF-TOKEN` cookie). Result: the first 2FA code after `/VenQore-login` failed with "session expired". Every page now carries `csrf_token` and `bootstrap.js` re-syncs after each visit. Browser-verified (`evidence-2026-09-11/browser-ai-keys-results.txt`).
+- Tests: `tests/tests/Feature/Hardening/PlatformAiKeysTest.php` (7), `InertiaCsrfPropTest.php` (3). Open engineering items (AI credit grants vs. advertised credits, refund webhooks) are listed in OWNER-TODO.md §6.
 
 Companion to `REPORT.md` (the master plan) and `RECHECK.md` (the independent recheck). This file says what was changed, how it was proven, and what is left for you.
 
@@ -8,9 +18,9 @@ Companion to `REPORT.md` (the master plan) and `RECHECK.md` (the independent rec
 
 ## How it was proven
 
-- **Full backend suite, freshly created MariaDB database:** **2,638 tests, 21,670 assertions, 0 failures, 0 skipped, 0 incomplete.**
+- **Full backend suite, freshly created MariaDB database:** **2,651 tests, 0 failures, 0 skipped, 0 incomplete** (11 Sep rerun after the migration-safety change and the AI-key change below; assertion count in `evidence-2026-09-11/backend-summary.txt`). Raw evidence — JUnit XML, console output, environment versions and the source manifest it ran against — is in [`evidence-2026-09-11/`](evidence-2026-09-11/), with the browser, race and crawl scripts and their raw output so every number can be reproduced.
 - **Frontend:** `npm test` 126/126. The full `npm run build` (font, design-system, theme and Ziggy route checks, then client and SSR builds) succeeds. ESLint: no new errors in any changed file (`Pos.jsx` 14 and `PartnerSupport.jsx` 2 were there before; they are React-compiler style rules on old code).
-- **Composer:** your lock (updated at 19:40) covers every advisory from RECHECK.md: laravel/framework 12.69.2, phpspreadsheet 1.30.6, maatwebsite/excel 3.1.70, guzzle 7.15.5, commonmark 2.10.1, jmespath 2.9.2, phpseclib 4.0.1, dompdf 3.1.6, psysh 0.12.24, symfony/routing and yaml 7.4.18, plus endroid/qr-code 5.1.0. The full suite above was run on **exactly your installed packages** (copied from your `vendor/`), from an empty database: 2,638 passed.
+- **Composer:** your lock (updated at 19:40) covers every advisory from RECHECK.md: laravel/framework 12.69.2, phpspreadsheet 1.30.6, maatwebsite/excel 3.1.70, guzzle 7.15.5, commonmark 2.10.1, jmespath 2.9.2, phpseclib 4.0.1, dompdf 3.1.6, psysh 0.12.24, symfony/routing and yaml 7.4.18, plus endroid/qr-code 5.1.0. The full suite above was run on **exactly your installed packages** (copied from your `vendor/`), from an empty database: 2,641 passed.
 - **Real browser, end to end (Playwright + Chromium against `php artisan serve`, its own database): 52/52 checks passed.**
   - 14 public pages render with no JavaScript errors; an unknown URL returns a real 404.
   - Signup → emailed code → wrong code refused → right code signs in.
@@ -27,12 +37,12 @@ Companion to `REPORT.md` (the master plan) and `RECHECK.md` (the independent rec
 ## Round 4 — no skipped or placeholder tests left
 
 **Before:** 131 skipped + 44 "incomplete" placeholders + 12 "covered elsewhere" placeholders that asserted nothing.
-**After:** **2,638 tests, 0 failures, 0 skipped, 0 incomplete** on a freshly created MariaDB database (run twice from empty).
+**After:** **2,651 tests, 0 failures, 0 skipped, 0 incomplete** on a freshly created MariaDB database (raw run in `evidence-2026-09-11/`).
 
 | What | Result |
 |---|---|
 | 44 placeholder scenario tests (rulebook S-xxx) | Replaced by real tests in `V3/Scenarios/Phase2InventoryScenariosTest`, `Phase3SalesScenariosTest`, `Phase4OperationsScenariosTest`, `Phase56ReportsInfraScenariosTest` (44 tests, ~1,000 assertions: exact journal lines, FIFO batches, balances). |
-| 12 "covered elsewhere" placeholders | Now assert the covering test still exists (a rename can't orphan them). S-055 is a real test: a zero-cost opening batch is refused by the database. |
+| 12 "covered elsewhere" placeholders | 11 are now traceability links: they assert the named covering test still exists, so a rename can't orphan them — the behaviour itself is tested in that covering file, not here. S-055 is a real test: a zero-cost opening batch is refused by the database. |
 | 122 skipped Reckoner registry cases | Not skipped any more: each check only runs for the readings it applies to, plus a test that the split covers the whole registry (601 cases run). |
 | 4 skipped QR-code tests | `endroid/qr-code` 5.1 (in your lock) — the tests run, and a generated code was decoded back to the right URL. |
 | 3 "MySQL-only" tests | Run on MariaDB (production's database). They exposed that two database guards were never installed on MariaDB (see below). |
@@ -40,7 +50,7 @@ Companion to `REPORT.md` (the master plan) and `RECHECK.md` (the independent rec
 
 **Bugs the new tests found and fixed** (each has a regression test in `tests/tests/Feature/Hardening/` or the scenario files):
 
-- **Database guards missing in production:** "stock can't go negative" and "opening stock must have a cost" CHECK constraints only installed for MySQL, never MariaDB. Two migrations install them on deploy (negative remaining stock rows, if any, are set to 0 first and logged; zero-cost opening batches block the second guard and are logged for you to fix).
+- **Database guards missing in production:** "stock can't go negative" and "opening stock must have a cost" CHECK constraints only installed for MySQL, never MariaDB. Migrations install them on deploy **only if existing data already satisfies them — no stock quantity or cost is ever changed** (an earlier version of this migration clamped negative quantities to 0; that is removed). If rows block a guard, the migration logs them and leaves the guard uninstalled, and `php artisan venqore:db-guards --check` fails (exit 1) until the rows are reconciled and `--install` is run. Rehearsed in `Hardening/InventoryDbGuardsTest` on a separate schema.
 - **Sales:** full return after a partial return double-reversed revenue, cost and stock; partial returns didn't reverse sales tax; overpaid cash went to the sales-tax account; returns in cartons restored 1 piece instead of 12; the returns screen allowed returning the same units twice; deleting/cancelling a part-returned sale never reversed the rest; sales-order conversion posted revenue twice.
 - **Purchases:** returns didn't reverse the input tax; returns on freight-loaded stock cut the supplier balance by the freight; line discounts weren't in stock cost (inventory account drifted from stock value); the Payments screen over-allocated and allocated refunds to bills; supplier payments were missing from "paid"; debit notes didn't take stock out, crashed when they named a bill, and couldn't be refunded; input tax on expenses and debit notes went to Prepaid (1300) instead of 2300.
 - **Approvals (money rules):** the real POS checkout had no server-side below-cost or discount-limit check — added, with a manager-PIN pop-up on the till (tested in a real browser). "Approved by" on sales, bad-debt write-offs, sales-order conversion, fiscal close and cash shortages now needs a real manager of that store with their PIN (it accepted any user id). The cashier's own sale stays under the cashier's name.
@@ -58,9 +68,9 @@ Companion to `REPORT.md` (the master plan) and `RECHECK.md` (the independent rec
 | RECHECK 2 — Windows pairing | Station shows a pairing-code box whenever the server answers `PAIRING_REQUIRED` or `DEVICE_AUTH_FAILED`, sends the code with the first heartbeat and stores the returned secret (`amd:pair`, shell-only IPC). The server side was tested end to end; the packaged app still needs a run on a real PC. |
 | RECHECK 3 — screenshot encryption | No key comes from the device ID any more. Station encrypts its local queue with AES-256-GCM using a key derived (HKDF) from the device secret; it uploads the PNG over the authenticated HTTPS call; the server stores it encrypted with the app key. Old-format uploads and old stored files still open. Telemetry stays off by default. |
 | RECHECK 4 — dependencies | Web npm: **0 advisories** (unused `adm-zip` removed, vitest 4.1.11). Composer: your updated lock, verified by the full suite (round 4). Windows: Electron 44.3.0, electron-builder 26.15.3, electron-updater 6.8.9 — 0 advisories (Codex, FIXES-2026-09-11.md). |
-| RECHECK 5 — OTP reliability | Budget check-and-spend is one locked step. Resend runs under the challenge row lock, so it is serialised with verify and with other resends. A queued code email is dropped at send time if the code was replaced, used or expired. Tests added. |
+| RECHECK 5 — OTP reliability | Budget check-and-spend is one locked step. Resend runs under the challenge row lock, so it is serialised with verify and with other resends. A queued code email is dropped at send time if, when the worker picks it up, the code has been replaced, used or has expired (a check at send time cannot recall an email already handed to the provider). Tests added. |
 | RECHECK 6 — release verification | Full suite + browser E2E + race + crawl above. |
-| Route permission sweep ("327 unguarded routes") | About 220 store write routes now carry `permission:` middleware keyed to `config/permissions.php`. Unprotected store writes left: 118, all self-service (your own profile, appearance, notifications, layout, attendance, heartbeat). The ratchet (`permission_ratchet.yaml`) is lowered to 118, so a new unguarded route fails the build. Cashiers can still check out (`sales.create,pos.checkout`). |
+| Route permission sweep ("327 unguarded routes") | About 220 store write routes now carry `permission:` middleware keyed to `config/permissions.php`. Write routes without `permission:` middleware left: 118, each with a recorded rationale in `permission_ratchet.yaml` — self-service (own profile, appearance, notifications, layout, attendance, heartbeat), public forms and tools, authentication, signed/token links, signature-checked webhooks and legacy no-op stubs. No `permission:` middleware is not the same as unauthenticated; each route relies on its own auth/signature/ownership check, which is what G06 reviews. The ratchet (`permission_ratchet.yaml`) is lowered to 118, so a new unguarded route fails the build. Cashiers can still check out (`sales.create,pos.checkout`). |
 | WooCommerce orders | Orders now post to the ledger through one idempotent poster (no duplicates on webhook retries; skips pending/failed/cancelled/refunded; revenue, tax and FIFO cost booked). The public Woo endpoints no longer answer 402 to every call (they had no store to check the plan against). |
 | Other security | SSRF guard on user-supplied store URLs; password change/reset signs out other sessions and devices; the elevated-PIN endpoint no longer logs raw PINs or accepts the platform PIN as a store override; factory reset/delete are owner-only; dashboard edits are owner/admin-only; sort parameters are whitelisted; installer secrets are no longer logged; throttles on the remaining public forms; terminals list + disconnect in Settings. |
 | **Bugs found by the browser run** | (1) Every page navigation re-wrapped the app layout, so React remounted each page and lost form state — a failed sign-in cleared the email box. (2) The signed-in browser POS heartbeat got 403 after the pairing change, so the licence timer never reset and the browser POS would eventually lock itself. (3) A store user who turned on 2FA was never asked for it. (4) Store settings (timezone, language) could leak between users through a shared cache key, so request times flipped between UTC and the store's zone; terminal heartbeats were also written hours off for stores outside UTC. (5) Local dev on any port other than 8000 broke every request ("Invalid URL"). All fixed, each with a test. |
@@ -82,9 +92,11 @@ Companion to `REPORT.md` (the master plan) and `RECHECK.md` (the independent rec
 ```bash
 composer install                          # locally first: installs the updated lock
 composer audit                            # expect no advisories
-php artisan test                          # expect 2,638 passed, 0 skipped
+php artisan test                          # on a DISPOSABLE database only; expect 2,651 passed, 0 skipped
 composer install --no-dev --optimize-autoloader    # on the server
-php artisan migrate --force
+php artisan venqore:db-guards --check     # preflight, read-only: lists any rows that would block the guards
+php artisan migrate --force               # changes no inventory quantities or costs
+php artisan venqore:db-guards --check     # must exit 0; if not, reconcile the listed rows, then --install
 npm ci && npm run build
 php artisan optimize:clear && php artisan optimize
 php artisan venqore:manifest              # regenerates the system manifest the suite checks
@@ -99,8 +111,8 @@ Keep a queue worker (`php artisan queue:work --tries=3`) and the scheduler (`* *
 **Before any customer data:**
 
 - [ ] **Run `composer audit` once** on your machine to confirm "No security vulnerability advisories found" (the sandbox can't reach Packagist's audit feed). Then import one real spreadsheet as a smoke test.
-- [ ] **After deploy, check the migration log** for two warnings from the new database guards: if any opening-stock batch has no cost, `chk_opening_batch_cost` is not added until you give it a cost (the log lists the batch ids).
-- [ ] **Email sending:** set `MAIL_*` (Resend free tier or your host's SMTP), add SPF, DKIM and DMARC, and test a code into a real Gmail and Outlook inbox (not spam). The daily code budget is 90 (`VQ_OTP_GLOBAL_DAILY_BUDGET`); raise it when your provider allows more. If email is down, `VQ_EMAIL_OTP_REQUIRED=false` is the break-glass switch — turn it back on as soon as mail works.
+- [ ] **Inventory guard preflight (ROAD-TO-100 G07):** on a restored copy of production run `php artisan venqore:db-guards --check` before and after migrating. Any listed batch (negative quantity on a non-`negative_stock` batch, or opening stock with no cost) must be reconciled against real records by you — the tool never picks a value — then `--install`.
+- [ ] **Email sending:** set `MAIL_*` (Resend free tier or your host's SMTP), add SPF, DKIM and DMARC, and test a code into a real Gmail and Outlook inbox (not spam). The daily code budget is 90 (`VQ_OTP_GLOBAL_DAILY_BUDGET`); raise it when your provider allows more. If email is down, keep the code requirement on: restore delivery or pause sign-ups (ROAD-TO-100 G08). `VQ_EMAIL_OTP_REQUIRED=false` exists but is not a launch response.
 - [ ] **Turnstile keys** in the production `.env`. Without them the public forms refuse requests in production.
 - [ ] **Platform owner:** create it, sign in at `/VenQore-login`, set up the authenticator, keep the recovery codes offline.
 - [ ] **Cloudflare / hosting:** proxy the hostnames, lock the origin, Full (strict) TLS, serve only `public/`, confirm `/.env`, `/storage/logs/laravel.log` and `/composer.json` return 404 live, MFA on registrar/host/Cloudflare accounts.

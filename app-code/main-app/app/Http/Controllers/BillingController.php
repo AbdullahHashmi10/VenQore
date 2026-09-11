@@ -263,7 +263,19 @@ class BillingController extends Controller
                 'status'           => $pkVerification->status,
                 'rejection_reason' => $pkVerification->rejection_reason,
             ] : null,
-            'mode' => 'admin'
+            'mode' => 'admin',
+            // The plan picked on the signup builder's plan step (null if they
+            // chose "decide later"). Billing offers it first while on trial.
+            'intended_plan' => (function () use ($tenant) {
+                $key = \App\Models\Setting::withoutGlobalScopes()
+                    ->where('tenant_id', $tenant->id)->where('key', 'intended_plan')->value('value');
+                $cfg = $key ? config("pricing.plans.{$key}") : null;
+                return $cfg ? [
+                    'key'           => $key,
+                    'name'          => $cfg['name'] ?? ucfirst($key),
+                    'price_monthly' => (float) ($cfg['price_monthly'] ?? 0),
+                ] : null;
+            })(),
         ]);
     }
 
@@ -815,14 +827,14 @@ class BillingController extends Controller
         $tenant = app('current.tenant');
 
         $request->validate([
-            'addon_type' => 'required|string|in:ai_byok,ai_spark,ai_shop,ai_pro,ai_max,sync_woocommerce,sync_amazon'
+            // AI Spark is the free allowance every store already has — it is not sold.
+            'addon_type' => 'required|string|in:ai_byok,ai_shop,ai_pro,ai_max,sync_woocommerce,sync_amazon'
         ]);
 
         $addonType = $request->input('addon_type');
 
         $variantConfigPath = match ($addonType) {
             'ai_byok'          => 'pricing.add_ons.byok.variant_id',
-            'ai_spark'         => 'pricing.ai_tiers.spark.variant_id',
             'ai_shop'          => 'pricing.ai_tiers.shop.variant_id',
             'ai_pro'           => 'pricing.ai_tiers.pro.variant_id',
             'ai_max'           => 'pricing.ai_tiers.max.variant_id',

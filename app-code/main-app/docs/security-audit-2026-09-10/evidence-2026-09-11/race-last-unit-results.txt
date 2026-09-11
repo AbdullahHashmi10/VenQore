@@ -1,0 +1,14 @@
+== mode: stop_sale_negative_stock = ON (3 runs)
+[(200, '{"success":true,"sale_id":"dacb56bd-e501-4c83-b492-4e0889c2e0f8","reference":"SAL-R1-110926-0013","notifications":[]}'), (422, '{"success":false,"message":"Insufficient stock for product 967424b2-342e-482d-b065-a605e14f08cf in warehouse 01a08c8e-fac4-7049-985c-21e147f711d4. Requested: 1,')]
+sales created 1 | batch remaining 0.0000 | stocks (this product) 0.0000
+ledger diff 0.00
+[(200, '{"success":true,"sale_id":"02182857-5b03-4209-90a6-4f754f005905","reference":"SAL-R1-110926-0014","notifications":[]}'), (422, '{"success":false,"message":"Insufficient stock for product 967424b2-342e-482d-b065-a605e14f08cf in warehouse 01a08c8e-fac4-7049-985c-21e147f711d4. Requested: 1,')]
+sales created 1 | batch remaining 0.0000 | stocks (this product) 0.0000
+ledger diff 0.00
+[(200, '{"success":true,"sale_id":"81e1b2ab-dd61-4559-b569-54fd60c6edaa","reference":"SAL-R1-110926-0015","notifications":[]}'), (422, '{"success":false,"message":"Insufficient stock for product 967424b2-342e-482d-b065-a605e14f08cf in warehouse 01a08c8e-fac4-7049-985c-21e147f711d4. Requested: 1,')]
+sales created 1 | batch remaining 0.0000 | stocks (this product) 0.0000
+ledger diff 0.00
+== mode: stop_sale_negative_stock = OFF (store allows selling below zero) (1 run)
+[(200, '{"success":true,"sale_id":"c305dfa5-a86a-4656-8fa7-8a90df92b056","reference":"SAL-R1-110926-0016","notifications":[]}'), (200, '{"success":true,"sale_id":"f2659f41-1a71-4b05-960c-e9da3f8bce52","reference":"SAL-R1-110926-0017","notifications":[]}')]
+sales created 2 | batch remaining 0.0000 | stocks (this product) -1.0000
+ledger diff 0.00

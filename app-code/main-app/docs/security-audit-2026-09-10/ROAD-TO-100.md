@@ -29,6 +29,15 @@ The previous “15 remaining actions” grouped several activities together. Thi
 
 My earlier independent backend run: 2,420 passed, 127 skipped, 44 incomplete, with two failures subsequently resolved and passed in targeted reruns. That result predates round 4. It must neither be advertised as the latest complete run nor used to accuse round 4 of retaining those placeholders.
 
+
+**Claude follow-up, 11 September 2026 (raw evidence now saved; needs your independent check).** The raw files are in `docs/security-audit-2026-09-10/evidence-2026-09-11/`:
+
+- `backend-junit.xml`, `backend-console.txt`, `backend-summary.txt`: **2,641 tests, 21,689 assertions, 0 failures, 0 errors, 0 skipped** (this includes the three new DB-guard tests; the earlier status said 2,638). Command, PHP/MariaDB/Laravel versions and the database used are in `environment.txt`. Sandbox MariaDB is 10.11 with uuid columns emulated as char(36), not your production 10.5, so G04/G12 on the real host still stand.
+- `source-manifest.sha256`: the 2,562 source/test files the suite ran against. Verify from `app-code/main-app` with `sha256sum -c docs/security-audit-2026-09-10/evidence-2026-09-11/source-manifest.sha256`. It includes Codex's 02:22 `LedgerTruthAuditCommand.php` change; the suite was re-run after it.
+- `browser-e2e-results.txt` (52 checks) with the Playwright scripts, fixtures and server script; `race-last-unit-results.txt` with `race.py`/`race_both.sh`; `sitemap-crawl-results.txt` with `crawl.py`. These ran on a local sandbox server, not staging.
+- **G07 migration change:** the migrations no longer modify inventory rows. The 2026-03-06 clamp to zero is removed. All five constraint migrations now call `App\Support\InventoryDbGuards::installIfClean()`, which adds a CHECK only when no row violates it; otherwise it logs the batch ids and leaves the data untouched. New command: `php artisan venqore:db-guards --check` lists violating rows and exits 1 if either guard is missing. After reconciliation, `--install` adds the guards without a migration rollback. Tests: `tests/tests/Feature/Hardening/InventoryDbGuardsTest.php` (bad rows block the guard and no data changes; after the fix `--install` succeeds, a `negative_stock` batch stays negative and a violating insert is refused) and `InventoryDbGuardsInstalledTest.php` (a fresh migrated database has both guards). The staging rehearsal against a production-like backup and the business sign-off on any real affected rows still belong to G07.
+- **Wording corrections in `REMEDIATION-STATUS.md`:** the 118 ratchet routes are now described by category, not as "all self-service". The 12 "covered elsewhere" entries are called traceability links, not behavioural coverage. OTP now reads "dropped at send time if replaced/used/expired", with no claim that an email already sent can be recalled. The outage line says to keep OTP on and restore delivery or pause sign-ups (G08).
+
 ## The 20 gates and exactly how to finish them
 
 Owner labels: **You** means an account-owner action, business decision or possession of physical equipment; **Engineer** includes Codex once the necessary access is available. Time estimates are planning allowances after access is ready, not deadlines or promises. Provider approvals and DNS propagation may add waiting time.
@@ -87,6 +96,8 @@ WHERE CONSTRAINT_SCHEMA = DATABASE()
   AND TABLE_NAME = 'inventory_batches'
   AND CONSTRAINT_NAME IN ('chk_remaining_qty_positive', 'chk_opening_batch_cost');
 ```
+
+*Update 11 Sep (Claude): the clamp described above has been removed and the migrations no longer change data; use `php artisan venqore:db-guards --check` as the preflight and post-deploy check, see the follow-up note above. The rehearsal and reconciliation steps in this gate are unchanged.*
 
 **Pass:** affected data reconciled against records, both intended constraints verified, negative-stock policy preserved, serial/debit-note migrations tested, and stock valuation/trial balance unchanged except for approved corrections. If a migration already returned without adding a guard, use a reviewed corrective migration/command after fixing the data; do not blindly run `migrate:refresh` on production. Keep APP_KEY and an independently restorable backup safe.
 

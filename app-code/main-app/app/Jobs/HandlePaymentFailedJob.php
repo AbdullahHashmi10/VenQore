@@ -29,7 +29,19 @@ class HandlePaymentFailedJob implements ShouldQueue
 
     public function handle(): void
     {
-        $subscriptionId = (string) ($this->data['id'] ?? '');
+        // `data` here is a Subscription Invoice object (this fires on
+        // 'subscription_payment_failed'), NOT a Subscription object — its own
+        // `id` is the invoice id. The subscription is named in
+        // attributes.subscription_id. Reading $this->data['id'] directly
+        // looked up an invoice id against tenants.lemon_squeezy_subscription_id
+        // and could never match, so this job silently found no tenant and the
+        // failed-payment email never sent. Fall back to `id` only in case a
+        // caller/test ever passes a bare Subscription object instead.
+        $subscriptionId = (string) (
+            $this->data['attributes']['subscription_id']
+            ?? $this->data['id']
+            ?? ''
+        );
 
         $tenant = Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->first();
 

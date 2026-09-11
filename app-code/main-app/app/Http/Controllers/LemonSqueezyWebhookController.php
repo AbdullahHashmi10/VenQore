@@ -7,6 +7,8 @@ use App\Jobs\HandleSubscriptionUpdatedJob;
 use App\Jobs\HandleSubscriptionCancelledJob;
 use App\Jobs\HandleSubscriptionExpiredJob;
 use App\Jobs\HandlePaymentFailedJob;
+use App\Jobs\HandleOrderRefundedJob;
+use App\Jobs\HandleSubscriptionPaymentRefundedJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -57,6 +59,18 @@ class LemonSqueezyWebhookController extends Controller
 
             // Payment recovered after failure
             'subscription_payment_recovered' => HandleSubscriptionUpdatedJob::dispatch($data)->onQueue('provisioning'),
+
+            // A specific recurring charge on an otherwise-live subscription
+            // was refunded (goodwill refund, dispute or chargeback). Suspend
+            // access now rather than waiting for a separate expiry event that
+            // may be weeks away or may never come.
+            'subscription_payment_refunded' => HandleSubscriptionPaymentRefundedJob::dispatch($data)->onQueue('provisioning'),
+
+            // A one-time order (AI top-up, BYOK unlock, lifetime deal, or an
+            // add-on) was fully or partially refunded. Needs the full payload
+            // (not just `data`) because add-on purchases are only linkable to
+            // a tenant via meta.custom_data.tenant_id.
+            'order_refunded' => HandleOrderRefundedJob::dispatch($request->all())->onQueue('provisioning'),
 
             // Unknown event — log and ignore safely
             default => Log::info("Unhandled Lemon Squeezy event: {$event}"),

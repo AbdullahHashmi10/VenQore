@@ -15,10 +15,10 @@ return new class extends Migration
         // MariaDB (Laravel's separate `mariadb` driver — used in production and tests)
         // enforces CHECK constraints since 10.2, exactly like MySQL 8.0.16+.
         if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
-            // Fix any existing broken data first
-            DB::table('inventory_batches')->where('remaining_qty', '<', 0)->update(['remaining_qty' => 0]);
-            
-            DB::statement("ALTER TABLE inventory_batches ADD CONSTRAINT chk_remaining_qty_positive CHECK (remaining_qty >= 0 OR batch_type = 'negative_stock')");
+            // 2026-09-10: never rewrite stock to make the constraint fit (this
+            // used to clamp every negative quantity to 0). Installed only when
+            // the data is clean; otherwise logged and left to venqore:db-guards.
+            \App\Support\InventoryDbGuards::installIfClean('chk_remaining_qty_positive');
         } elseif (DB::connection()->getDriverName() === 'sqlite') {
             DB::statement("
                 CREATE TRIGGER chk_remaining_qty_positive_update

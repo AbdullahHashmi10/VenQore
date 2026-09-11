@@ -20,6 +20,52 @@ use Inertia\Response;
 class WorkspaceBuilderController extends Controller
 {
     /**
+     * Plans a visitor can pick during signup, in display order. Custom and the
+     * legacy growth/business aliases are sales-led or hidden, so not offered.
+     * The trial is identical whichever is picked; the choice is remembered on
+     * the store (setting `intended_plan`) and Billing offers it first.
+     */
+    public const SIGNUP_PLANS = ['solo', 'starter', 'core', 'scale'];
+
+    private function validSignupPlan(?string $plan): ?string
+    {
+        $plan = strtolower(trim((string) $plan));
+
+        return in_array($plan, self::SIGNUP_PLANS, true) && config("pricing.plans.{$plan}") ? $plan : null;
+    }
+
+    /** Plan cards for the builder's plan step, straight from config/pricing.php. */
+    private function signupPlans(): array
+    {
+        $num = fn ($v) => $v === null ? 'Unlimited' : number_format((int) $v);
+
+        return collect(self::SIGNUP_PLANS)
+            ->filter(fn ($k) => config("pricing.plans.{$k}"))
+            ->map(function ($k) use ($num) {
+                $p = config("pricing.plans.{$k}");
+                $staff = $p['staff_limit'] ?? null;
+
+                return [
+                    'key'           => $k,
+                    'name'          => $p['name'] ?? ucfirst($k),
+                    'price_monthly' => (float) ($p['price_monthly'] ?? 0),
+                    'price_annual'  => ($p['price_annual'] ?? null) !== null ? (float) $p['price_annual'] : null,
+                    'badge'         => $p['value_badge'] ?? null,
+                    'points'        => array_values(array_filter([
+                        $staff === null ? 'Unlimited users' : ($staff === 1 ? '1 user' : "{$staff} users"),
+                        $num($p['sku_limit'] ?? null) . ' products',
+                        ($p['transactions_per_month'] ?? null) === null
+                            ? 'Unlimited sales'
+                            : $num($p['transactions_per_month']) . ' sales / month',
+                        isset($p['registers']) ? ($p['registers'] === 1 ? '1 till' : "{$p['registers']} tills") : null,
+                    ])),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
      * Display the Build Workspace single-page view.
      */
     public function show(Request $request): Response
@@ -34,10 +80,11 @@ class WorkspaceBuilderController extends Controller
         // The pricing page's plan CTAs arrive as ?plan=<slug>. The 14-day trial
         // is identical whichever plan they clicked, so the choice is remembered
         // rather than applied — Billing preselects it when they come to pay.
-        $plan = (string) $request->query('plan', '');
-        if ($plan !== '' && array_key_exists($plan, config('pricing.plans', []))) {
+        $plan = $this->validSignupPlan((string) $request->query('plan', ''));
+        if ($plan) {
             $request->session()->put('intended_plan', $plan);
         }
+        $intendedPlan = $plan ?: $this->validSignupPlan((string) $request->session()->get('intended_plan', ''));
 
         // Default the currency from where the visitor actually is. The form
         // used to hard-code PKR for everyone, which is the wrong first
@@ -85,6 +132,10 @@ class WorkspaceBuilderController extends Controller
             // seventh question is a config edit and nothing else.
             'discovery'       => app(\App\Services\AiBuilder\DiscoveryResolver::class)->questionSet(),
             'recommended'     => app(\App\Services\AiBuilder\DiscoveryResolver::class)->recommendations(),
+
+            // Plan step (after the reveal). Skippable — see SIGNUP_PLANS.
+            'plans'           => $this->signupPlans(),
+            'intendedPlan'    => $intendedPlan,
         ]);
     }
 
@@ -218,7 +269,7 @@ class WorkspaceBuilderController extends Controller
             'preset_key'         => $matchedKey,
             'matched'            => $matched,
             'preset_label'       => $preset['label'] ?? 'Custom Workspace',
-            'preset_description' => $preset['description'] ?? 'Tailored workspace built for your operational needs.',
+            'preset_description' => $preset['description'] ?? $preset['blurb'] ?? 'Tailored workspace built for your operational needs.',
             'prompt'             => $request->input('prompt', ''),
             'modules'            => $modules,
             'capabilities'       => $suggestedCapabilities,
@@ -282,9 +333,11 @@ class WorkspaceBuilderController extends Controller
             'phone'         => 'nullable|string|max:30',
             'modules'       => 'nullable|array',
             'preset_key'    => 'nullable|string|max:64',
+            'plan'          => 'nullable|string|max:32',
         ]);
 
         $request->session()->put('pending_workspace_builder', [
+            'plan'          => $this->validSignupPlan($validated['plan'] ?? null),
             'business_name' => $validated['business_name'] ?? 'My Business',
             'currency'      => $validated['currency'] ?? 'USD',
             'phone'         => $validated['phone'] ?? null,
@@ -329,6 +382,13 @@ class WorkspaceBuilderController extends Controller
                 'onboarding_step' => 'completed',
                 'business_type'   => $businessType,
             ]);
+
+            if ($intended = $this->validSignupPlan($data['plan'] ?? null)) {
+                \App\Models\Setting::updateOrCreate(
+                    ['tenant_id' => $tenant->id, 'key' => 'intended_plan'],
+                    ['value' => $intended]
+                );
+            }
 
             if (!empty($data['phone'])) {
                 \App\Models\Setting::updateOrCreate(
@@ -409,9 +469,15 @@ class WorkspaceBuilderController extends Controller
             // dashboard board on. Left null it silently falls through to
             // 'default', same as an unrecognised value always has.
             'preset_key'    => 'nullable|string|max:64',
+            // Plan picked on the plan step (or null = "decide later").
+            'plan'          => 'nullable|string|max:32',
         ]);
 
         $name = $request->input('business_name');
+        $plan = $this->validSignupPlan($request->input('plan'));
+        if ($plan) {
+            $request->session()->put('intended_plan', $plan);
+        }
         $email = strtolower($request->input('email'));
         $password = $request->input('password');
 
@@ -445,6 +511,7 @@ class WorkspaceBuilderController extends Controller
                         'phone'         => $request->input('phone'),
                         'modules'       => $request->input('modules', []),
                         'preset_key'    => $request->input('preset_key'),
+                        'plan'          => $plan,
                     ],
                 ]
             );
@@ -480,6 +547,7 @@ class WorkspaceBuilderController extends Controller
                 'phone'         => $request->input('phone'),
                 'modules'       => $request->input('modules', []),
                 'preset_key'    => $request->input('preset_key'),
+                'plan'          => $plan,
             ]);
 
             if (!$tenant) {

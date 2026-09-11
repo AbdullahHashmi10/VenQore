@@ -1,0 +1,29 @@
+urls 114
+ISSUE  | desc 260ch
+ISSUE /about | desc 204ch
+ISSUE /blog/automating-double-entry-bookkeeping-retail-pos-2026 | title 87ch
+ISSUE /blog/best-pos-system-small-retail-store-2026-buyers-guide | title 93ch
+ISSUE /blog/fifo-vs-lifo-vs-weighted-average-inventory-costing-retail-2026 | title 91ch, desc 177ch
+ISSUE /blog/hidden-cost-square-shopify-credit-card-processing-fees-2026 | title 77ch, desc 172ch
+ISSUE /blog/multi-location-barcode-inventory-synchronization-omnichannel-2026 | title 80ch
+ISSUE /blog/physical-stock-take-step-by-step-without-closing-store | title 87ch
+ISSUE /blog/pos-sales-accounting-books-dont-match-how-to-fix | title 80ch, desc 171ch
+ISSUE /blog/predictive-ai-retail-demand-forecasting-reduce-overstocking-stockouts-2026 | title 84ch
+ISSUE /blog/retail-pos-hardware-checklist-receipt-printers-barcode-scanners-cash-drawers-2026 | title 89ch
+ISSUE /blog/switch-pos-systems-without-losing-data-migration-guide | title 88ch
+ISSUE /blog/why-offline-first-architecture-and-double-entry-bookkeeping-belong-together | title 81ch
+ISSUE /blog/your-business-has-been-lying-to-you-about-revenue | title 74ch
+ISSUE /features | title 77ch
+ISSUE /features/growth-engine | title 77ch, desc 175ch
+ISSUE /ledger | title 74ch
+ISSUE /pricing | desc 171ch
+ISSUE /solutions/pharmacy | title 71ch, desc 173ch
+ISSUE /tools/cash-drawer-count-sheet | desc 195ch
+ISSUE /tools/credit-note-generator | desc 174ch
+ISSUE /tools/food-cost-calculator | desc 195ch
+ISSUE /tools/inventory-health | desc 178ch
+ISSUE /tools/payment-fee-calculator | desc 212ch
+ISSUE /tools/pos-roi-calculator | desc 187ch
+ISSUE /tools/quote-generator | desc 195ch
+ISSUE /tools/stock-count-sheet | desc 173ch
+pages with issues 27 of 114

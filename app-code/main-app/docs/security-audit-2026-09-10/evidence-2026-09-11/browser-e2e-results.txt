@@ -1,0 +1,62 @@
+== public pages, signup, login (email code)
+PASS page / renders | status=200 errs=[]
+PASS page /pricing renders | status=200 errs=[]
+PASS page /features renders | status=200 errs=[]
+PASS page /contact renders | status=200 errs=[]
+PASS page /about renders | status=200 errs=[]
+PASS page /blog renders | status=200 errs=[]
+PASS page /help renders | status=200 errs=[]
+PASS page /tools renders | status=200 errs=[]
+PASS page /demo renders | status=200 errs=[]
+PASS page /login renders | status=200 errs=[]
+PASS page /register renders | status=200 errs=[]
+PASS page /terms renders | status=200 errs=[]
+PASS page /privacy renders | status=200 errs=[]
+PASS page /nope-404-page renders | status=404 errs=[('console', 'http://127.0.0.1:8010/nope-404-page', 'Failed to load resource: the server responded with a status of 404 (Not Found)')]
+PASS signup goes to code step | http://127.0.0.1:8010/verify-code VenQore
+PASS signup code emailed (log mailer) | 797140
+PASS wrong code rejected | VenQore
+PASS right code signs in | http://127.0.0.1:8010/hub Sign out
+PASS wrong password stays on login | VenQore
+PASS login asks for emailed code | http://127.0.0.1:8010/verify-code VenQore
+PASS login code emailed
+PASS login completes | http://127.0.0.1:8010/start
+SUMMARY 22 / 22
+== 2FA + contact
+PASS 2FA wrong code refused | VenQore
+PASS setup key unchanged after a wrong code | ('FMFRAZX3T5T4LH7C', 'FMFRAZX3T5T4LH7C')
+PASS 2FA enabled with authenticator code | /2fa/recovery-codes VenQore
+PASS after email code, 2FA is asked | /2fa/verify VenQore
+PASS 2FA wrong code refused at login | /2fa/verify
+PASS 2FA code completes login | /s/e2e-mart/dashboard
+PASS contact form submits and confirms | ([(201, 'http://127.0.0.1:8010/contact')], ['Thank you — your message is with us. A person answers this one.'])
+SUMMARY 7 / 7
+== POS checkout
+PASS item added to cart | Sale 1
+PASS checkout POST /sales succeeded | [('POST', 200, 'http://127.0.0.1:8010/s/e2e-mart/sales')]
+PASS sale row written | 28->29
+PASS stock decremented by 1 | (20.0, '19.0000')
+PASS FIFO batch consumed by 1 | 10.0
+PASS ledger balanced | 0.00
+PASS browser heartbeat accepted
+SUMMARY 7 / 7
+== terminal pairing
+PASS owner creates pairing code | {"success":true,"token":"F6YD-Z5UW","label":"Front till","expires_at":"2026-09-11T10:00:10+05:00"}
+PASS code format ABCD-2345 | F6YD-Z5UW
+PASS unpaired terminal refused
+PASS pairing with typed code (any case/spaces) works | {"status":"alive","terminal_id":"01a08e9f-77ed-7104-a340-aa5e4957eff3","server_time":"2026-09-11T09:00:10+05:00","has_pending_updates":true,"ack_status":"OPEN","subscription_ends_at":null,"is_view_onl
+PASS code cannot be reused / no secret → refused | 401
+PASS paired terminal heartbeat with secret | {"status":"alive","terminal_id":"01a08e9f-77ed-7104-a340-aa5e4957eff3","server_time":"2026-09-11T09:00:10+05:00","has_pe
+PASS wrong secret refused
+PASS terminal listed for owner | {"success":true,"terminals":[{"id":"01a08e9f-77ed-7104-a340-aa5e4957eff3","name":"Terminal win-719c","status":"OPEN","last_heartbeat_at":"2026-09-11T04:00:10.000000Z","paired_at":"2026-09-11T04:00:10.
+PASS owner disconnects terminal | {"success":true}
+PASS revoked terminal must re-pair | (403, '{"error":"Pairing required: a valid pairing token is needed to claim this terminal.","code":"PAIRING_REQUIRED"}')
+SUMMARY 10 / 10
+== cashier approval
+PASS cashier below-cost sale is stopped with the approval modal | [(422, 'http://127.0.0.1:8010/s/e2e-mart/sales')]
+PASS nothing written before approval
+PASS wrong manager PIN refused | Sale below cost
+PASS right manager PIN completes the sale | [(422, 'http://127.0.0.1:8010/s/e2e-mart/sales'), (422, 'http://127.0.0.1:8010/s/e2e-mart/sales')]
+PASS approved_by recorded on the journal entry | 4
+PASS ledger balanced
+SUMMARY 6 / 6
