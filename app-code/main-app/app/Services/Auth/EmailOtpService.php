@@ -170,7 +170,11 @@ class EmailOtpService
 
             $challenge->attempts = $challenge->attempts + 1;
 
+            $isLocalRequest = in_array($request->getHost(), ['127.0.0.1', 'localhost', '::1'], true)
+                || in_array($request->ip(), ['127.0.0.1', '::1'], true);
+
             $isDevMaster = app()->environment('local')
+                && $isLocalRequest
                 && ($master = (string) $this->config('dev_master_code', '000000')) !== ''
                 && $code === $master;
 
