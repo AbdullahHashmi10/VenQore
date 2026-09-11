@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 import {
  Plus,
  Search,
@@ -35,6 +36,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  const {
  store
  } = usePage().props;
+ const tt = useTermText();
 
  // Infinite Scroll State
  const [allReturns, setAllReturns] = useState(returns.data || []);
@@ -86,7 +88,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  const [tableColumns, setTableColumns] = useState([
  { key: 'date', label: 'Date', width: '12%' },
  { key: 'reference', label: 'Return #', width: '15%' },
- { key: 'customer', label: 'Customer', width: '20%' },
+ { key: 'customer', label: tt('Customer'), width: '20%' },
  { key: 'items', label: 'Items', width: '10%' },
  { key: 'amount', label: 'Refund Amount', width: '15%' },
  { key: 'method', label: 'Method', width: '10%' },
@@ -520,7 +522,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
 
  <div className="flex justify-between items-center border-t border-b border-line py-2.5">
  <div>
- <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Customer</p>
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Customer')}</p>
  <p className="text-sm font-bold text-ink mt-0.5">{row.customer?.name || 'Walk-in'}</p>
  </div>
  <div className="text-right">
@@ -581,7 +583,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <div className="p-6 overflow-auto">
  <div className="grid grid-cols-2 gap-4 mb-6">
  <div className="p-4 bg-app rounded-xl">
- <p className="text-xs font-bold text-ink-muted uppercase mb-1">Customer</p>
+ <p className="text-xs font-bold text-ink-muted uppercase mb-1">{tt('Customer')}</p>
  <p className="font-bold text-ink">{quickViewReturn.customer?.name || 'Walk-in'}</p>
  <p className="text-sm text-ink-muted">{quickViewReturn.customer?.phone}</p>
  </div>

@@ -11,8 +11,10 @@ import {
 import { formatCurrency } from '@/Utils/format';
 
 import { series, vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 export default function SupplierInsights({ data = [], stats = [], filters = {} }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
     const [range, setRange] = useState(filters.range || 'this_month');
@@ -104,8 +106,8 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
     };
 
     return (
-        <ReportsLayout title="Supplier Insights">
-            <Head title="Supplier Insights & Price History" />
+        <ReportsLayout title={tt('Supplier Insights')}>
+            <Head title={tt('Supplier Insights & Price History')} />
             <div className="flex flex-col h-full gap-5 w-full">
 
                 {/* Header */}
@@ -115,8 +117,8 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                             <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-bold text-ink tracking-tight">Supplier Insights & Price History</h1>
-                            <p className="text-xs text-ink-muted font-medium">Trace supplier sourcing performance, unit cost variance, and inflation drifts</p>
+                            <h1 className="text-xl font-bold text-ink tracking-tight">{tt('Supplier Insights & Price History')}</h1>
+                            <p className="text-xs text-ink-muted font-medium">{tt('Trace supplier sourcing performance, unit cost variance, and inflation drifts')}</p>
                         </div>
                     </div>
 
@@ -180,7 +182,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                 <Search className="absolute left-2.5 top-2.5 text-ink-muted" size={14} />
                                 <input
                                     type="text"
-                                    placeholder="Search supplier or product..."
+                                    placeholder={tt('Search supplier or product...')}
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="pl-8 pr-3 py-1.5 w-full bg-surface border border-line rounded-lg text-xs focus:ring-1 focus:ring-rose-500"
@@ -192,7 +194,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 z-10 border-b border-line">
                                     <tr>
-                                        <th className="px-6 py-3 font-bold">Supplier & Sourced Item</th>
+                                        <th className="px-6 py-3 font-bold">{tt('Supplier & Sourced Item')}</th>
                                         <th className="px-4 py-3 text-right font-bold">Purchases</th>
                                         <th className="px-4 py-3 text-right font-bold">Cost Variance</th>
                                         <th className="px-4 py-3 text-right font-bold">Cost Limits (L ➔ H)</th>
@@ -200,7 +202,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                 </thead>
                                 <tbody className="divide-y divide-line">
                                     {filtered.length === 0 ? (
-                                        <tr><td colSpan={4} className="px-6 py-12 text-center text-ink-muted italic">No supplier insights found.</td></tr>
+                                        <tr><td colSpan={4} className="px-6 py-12 text-center text-ink-muted italic">{tt('No supplier insights found.')}</td></tr>
                                     ) : filtered.map((row, idx) => (
                                         <tr 
                                             key={idx} 
@@ -262,7 +264,7 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                     <AlertTriangle size={14} /> Margin Risk Alert
                                 </h3>
                                 <div className="text-xs opacity-80 leading-relaxed space-y-2">
-                                    <p>High cost variance (over 10%) suggests volatile supplier pricing that directly eats into your profit margins. Re-negotiate contract rates or check secondary suppliers.</p>
+                                    <p>{tt('High cost variance (over 10%) suggests volatile supplier pricing that directly eats into your profit margins. Re-negotiate contract rates or check secondary suppliers.')}</p>
                                     <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1 font-bold text-amber-300">
                                         <ShieldCheck size={14} /> Price Variance Auditor
                                     </div>
@@ -324,11 +326,11 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                 <div className="relative z-10 flex justify-between items-center">
                                     <div className="space-y-1">
                                         <span className="bg-rose-500/50 text-white border border-rose-400/30 px-3 py-1 rounded-full text-2xs font-bold uppercase tracking-wider">
-                                            Supplier Sourcing Analysis
+                                            {tt('Supplier Sourcing Analysis')}
                                         </span>
                                         <h2 className="text-2xl font-bold tracking-tight mt-1">{selectedPair.supplier_name}</h2>
                                         <p className="text-rose-100 text-xs font-semibold">
-                                            Sourced Product: <span className="text-white font-bold">{selectedPair.product_name}</span>
+                                            {tt('Sourced Product:')} <span className="text-white font-bold">{selectedPair.product_name}</span>
                                         </p>
                                     </div>
                                     <button onClick={() => handleSelectPair(null)} className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-lg">
@@ -403,14 +405,14 @@ export default function SupplierInsights({ data = [], stats = [], filters = {} }
                                             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><ShoppingBag size={13} /> Other Sourced Catalog</h4>
                                             {modalDetails.other_products.length === 0 ? (
                                                 <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
-                                                    No other products sourced from this supplier.
+                                                    {tt('No other products sourced from this supplier.')}
                                                 </div>
                                             ) : (
                                                 <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm flex-1">
                                                     <table className="w-full text-xs text-left">
                                                         <thead className="bg-app text-ink-muted uppercase border-b border-line">
                                                             <tr>
-                                                                <th className="py-2.5 px-3">Product</th>
+                                                                <th className="py-2.5 px-3">{tt('Product')}</th>
                                                                 <th className="py-2.5 px-3 text-right">Qty Sourced</th>
                                                                 <th className="py-2.5 px-3 text-right">Avg Cost</th>
                                                             </tr>

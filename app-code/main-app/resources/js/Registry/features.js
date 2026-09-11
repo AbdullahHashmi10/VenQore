@@ -50,6 +50,22 @@ export const FEATURE_METADATA = {
     smart_capture:              { icon: '📸', label: 'Smart Capture Limit', plan: 'starter' },
 };
 
+/**
+ * FEATURE_METADATA.label is plain English (module keys, not display copy, are
+ * what the rest of the app keys off). A few labels contain words the store may
+ * have renamed ("Product Variants" -> "Part Variants" for a garage). This is a
+ * plain data/helper module — it can't call the useTermText() hook itself — so
+ * a component reads the label through this helper, passing the tt(text)
+ * function it already got from useTermText():
+ *
+ *   const tt = useTermText();
+ *   const label = getFeatureLabel('product_variants', tt); // -> 'Part Variants'
+ */
+export function getFeatureLabel(key, tt) {
+    const label = FEATURE_METADATA[key]?.label;
+    return typeof tt === 'function' ? tt(label) : label;
+}
+
 export const PLAN_LABELS = {
     solo:     'Solo',
     trial:    'Trial',

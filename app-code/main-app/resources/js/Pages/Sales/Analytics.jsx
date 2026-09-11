@@ -4,9 +4,11 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
 import { DollarSign, ShoppingBag, TrendingUp, Package } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
+import { useTermText } from '@/lib/terms';
 
 export default function SalesAnalytics({ revenue, counts, topProducts, chartData }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     return (
         <OneGlanceLayout title="Sales Analytics" activeMenu="Sell">
             <Head title="Sales Analytics" />
@@ -108,7 +110,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
 
                         {/* Top Products */}
                         <div className="bg-surface p-6 rounded-2xl shadow-sm border border-line">
-                            <h3 className="text-lg font-bold text-ink mb-6">Top Selling Products</h3>
+                            <h3 className="text-lg font-bold text-ink mb-6">{tt('Top Selling Products')}</h3>
                             <div className="space-y-4">
                                 {topProducts.map((item, index) => (
                                     <div key={index} className="flex items-center gap-4 p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-colors">

@@ -10,13 +10,14 @@ import {
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import PlanGate from '@/Components/PlanGate';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import axios from 'axios';
 
 export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  const { showAlert, showConfirm } = useAlert();
  const { url, store } = usePage().props;
  const { t, tp } = useTerms();
+ const tt = useTermText();
  const { url: currentUrl } = usePage();
  const params = new URLSearchParams(window.location.search);
  const type = params.get('type');
@@ -673,7 +674,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
  : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
  }`}>
- {party.type === 'customer' ? 'Customer' : 'Supplier'}
+ {party.type === 'customer' ? tt('Customer') : tt('Supplier')}
  </span>
  </td>
  <td className="p-3 text-right">
@@ -732,7 +733,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  <Users size={28} className="text-ink-muted" />
  </div>
  <p className="text-base font-bold text-ink-secondary mb-1">No parties found</p>
- <p className="text-sm text-ink-muted mb-3">Add your first customer or supplier</p>
+ <p className="text-sm text-ink-muted mb-3">{tt('Add your first customer or supplier')}</p>
  <button
  onClick={handleCreate}
  className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors font-bold text-sm"
@@ -840,7 +841,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  isOpen={isModalOpen}
  onClose={() => setIsModalOpen(false)}
  title={editingParty ? 'Edit Party' : 'Add Party'}
- subtitle={editingParty ? 'Update party details' : 'Add a new customer or supplier'}
+ subtitle={editingParty ? 'Update party details' : tt('Add a new customer or supplier')}
  size="lg"
  errors={errors}
  footer={
@@ -870,8 +871,8 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  value={formData.type}
  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
  >
- <option value="customer">Customer</option>
- <option value="supplier">Supplier</option>
+ <option value="customer">{tt('Customer')}</option>
+ <option value="supplier">{tt('Supplier')}</option>
  </FormSelect>
  </FormField>
  </div>

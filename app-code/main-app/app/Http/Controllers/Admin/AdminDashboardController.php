@@ -45,17 +45,20 @@ class AdminDashboardController extends Controller
 
         // 1. Fetch real pricing from the database Plan model (Standard Pricing)
         $plans = \App\Models\Plan::get();
-        $planPrices = [
-            'trial'        => 0.00,
-            'starter'      => 29.00, // Standard recommended pricing
-            'growth'       => 59.00,
-            'business'     => 129.00,
-            'pk_exclusive' => 3.58,  // $3.58 USD (approx 1000 PKR)
-        ];
+        // List prices from config/pricing.php; DB rows override. Legacy slugs
+        // resolve to their canonical tier so old rows price correctly.
+        $planPrices = ['trial' => 0.00, 'pk_exclusive' => 3.58]; // pk_exclusive ≈ 1000 PKR
+        foreach (\App\Support\PlanCatalog::SELF_SERVE as $slug) {
+            $planPrices[$slug] = \App\Support\PlanCatalog::monthlyUsd($slug);
+        }
         foreach ($plans as $p) {
-            if (in_array($p->slug, ['trial', 'starter', 'growth', 'business', 'pk_exclusive'])) {
-                $planPrices[$p->slug] = (float)($p->price_monthly ?? $p->price_lifetime ?? 0);
+            $slug = \App\Support\PlanCatalog::canonical($p->slug);
+            if ($slug === $p->slug && array_key_exists($slug, $planPrices)) {
+                $planPrices[$slug] = (float)($p->price_monthly ?? $p->price_lifetime ?? 0);
             }
+        }
+        foreach (['counter', 'growth', 'business'] as $legacy) {
+            $planPrices[$legacy] = $planPrices[\App\Support\PlanCatalog::canonical($legacy)] ?? 0.0;
         }
 
         // Real-only filters (excluding is_demo stores)

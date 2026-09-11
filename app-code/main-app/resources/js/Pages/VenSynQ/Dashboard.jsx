@@ -4,6 +4,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import SyncHealthPanel from './Components/SyncHealthPanel';
 import MoneyPipeline from './Components/MoneyPipeline';
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 import {
     Zap, Link2, Truck, Check, Clock, AlertTriangle,
     PackageCheck, BarChart2, RefreshCw, ChevronRight,
@@ -78,6 +79,7 @@ export default function VenSynQDashboard({
     const { props } = usePage();
     const flash = props.flash ?? {};
     const store = props.store;
+    const tt = useTermText();
 
     const [trackingEdits, setTrackingEdits] = useState({});
     const [syncing, setSyncing]             = useState(false);
@@ -160,7 +162,7 @@ export default function VenSynQDashboard({
                                 }}
                             >
                                 <RefreshCw size={14} className={fetching ? 'spin' : ''} />
-                                {fetching ? 'Syncing Orders…' : 'Fetch Live Orders'}
+                                {fetching ? tt('Syncing Orders…') : tt('Fetch Live Orders')}
                             </button>
                             {jitDraftsCount > 0 && (
                                 <a href={route('store.purchases.index', { store_slug: store?.slug })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, background: '#2d1a00', border: '1px solid #7c3d00', color: vq.orange[400], fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>

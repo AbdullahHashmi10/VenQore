@@ -5,11 +5,13 @@ import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatNumber } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function ExpiryReport({ batches = [], stats = {}, filters = {} }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     // Map Stats
     const reportStats = [
@@ -43,7 +45,7 @@ export default function ExpiryReport({ batches = [], stats = {}, filters = {} })
     const columns = [
         {
             key: 'product_name',
-            label: 'Product',
+            label: tt('Product'),
             sortable: true,
             render: (row) => (
                 <div>

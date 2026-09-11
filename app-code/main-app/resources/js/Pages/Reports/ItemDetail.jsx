@@ -3,20 +3,22 @@ import ReportPage from './Components/ReportPage';
 import { Box } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function ItemDetail({ products }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     return (
         <ReportPage
             title="Item Detail Report"
-            subtitle="Comprehensive details of all products in inventory"
+            subtitle={tt('Comprehensive details of all products in inventory')}
             icon={Box}
         >
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-app border-b border-line">
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Product</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Product')}</th>
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">SKU</th>
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Category</th>
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Avg FIFO Cost</th>

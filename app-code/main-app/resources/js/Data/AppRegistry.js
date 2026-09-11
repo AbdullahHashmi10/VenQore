@@ -835,7 +835,7 @@ const INTENT_PATTERNS = [
 // ============================================
 // SEARCH FUNCTION WITH FUZZY MATCHING + NLP
 // ============================================
-export function searchRegistry(query) {
+export function searchRegistry(query, tt = (s) => s) {
     if (!query || query.length < 1) return [];
 
     const normalizedQuery = query.toLowerCase().trim();
@@ -899,7 +899,8 @@ export function searchRegistry(query) {
     return scored
         .filter(item => item.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 10); // Limit to top 10
+        .slice(0, 10) // Limit to top 10
+        .map(item => ({ ...item, title: tt(item.title), subtitle: tt(item.subtitle) }));
 }
 
 // ============================================

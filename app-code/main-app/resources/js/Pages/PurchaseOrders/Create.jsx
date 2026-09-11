@@ -6,6 +6,7 @@ import { Field } from '@/Documents/DocumentShell';
 import VqSelect from '@/Documents/VqSelect';
 import MoneyDocument, { uid, blankLine, today } from '@/Documents/MoneyDocument';
 import { documentType } from '@/Documents/documentTypes';
+import { useTermText } from '@/lib/terms';
 
 const DOC = documentType('purchase-order');
 /* Same as the sales order: `update()` takes no advance, so an edit does not
@@ -29,6 +30,7 @@ const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0;
  */
 export default function CreatePurchaseOrder({ purchaseOrder, suppliers = [], warehouses = [], products = [] }) {
     const { store, settings } = usePage().props;
+    const tt = useTermText();
     const isEdit = !!purchaseOrder?.id;
     /* A received order has already made stock and journal entries; correcting
        one means raising another. 'partial' counts: an edit rebuilds the item
@@ -117,7 +119,7 @@ export default function CreatePurchaseOrder({ purchaseOrder, suppliers = [], war
                 : 'These goods have been received. Raise a purchase return or a debit note rather than changing the order.'}
             products={products}
             transport="axios"
-            saveLabel={isEdit ? 'Update order' : 'Place the order'}
+            saveLabel={isEdit ? tt('Update order') : tt('Place the order')}
             priceOf={(pr) => num(pr.cost_price ?? pr.cost ?? pr.price)}
             settleDefault={(d, totals) => (d.paymentMethod === 'cash' ? totals.grandTotal : 0)}
             url={({ d }) => (isEdit

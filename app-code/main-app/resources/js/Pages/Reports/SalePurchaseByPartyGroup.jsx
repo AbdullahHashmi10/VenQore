@@ -3,13 +3,15 @@ import ReportPage from './Components/ReportPage';
 import { Users2 } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function SalePurchaseByPartyGroup({ groups }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     return (
         <ReportPage
             title="Sale & Purchase by Party Group"
-            subtitle="Transaction summary grouped by party types (Customer/Supplier)"
+            subtitle={tt('Transaction summary grouped by party types (Customer/Supplier)')}
             icon={Users2}
         >
             <div className="overflow-x-auto">

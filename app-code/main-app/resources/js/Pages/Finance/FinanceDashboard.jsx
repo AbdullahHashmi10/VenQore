@@ -14,8 +14,10 @@ import {
     ChevronRight,
     DollarSign
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function FinanceIndex({ stats, topReceivables, topPayables, recentEntries }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const statCards = [
         {
@@ -145,7 +147,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-ink group-hover:text-brand-600 transition-colors">{party.name}</p>
-                                                <p className="text-xs text-ink-muted">Customer</p>
+                                                <p className="text-xs text-ink-muted">{tt('Customer')}</p>
                                             </div>
                                         </div>
                                         <p className="text-sm font-bold text-brand-600">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}</p>
@@ -176,7 +178,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                             </div>
                                             <div>
                                                 <p className="text-sm font-bold text-ink group-hover:text-rose-600 transition-colors">{party.name}</p>
-                                                <p className="text-xs text-ink-muted">Supplier</p>
+                                                <p className="text-xs text-ink-muted">{tt('Supplier')}</p>
                                             </div>
                                         </div>
                                         <p className="text-sm font-bold text-rose-600">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}</p>

@@ -9,9 +9,11 @@ import {
     Store,
     FileText
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function Show({ audit }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     if (!audit) return null;
 
     const statusColors = {
@@ -126,7 +128,7 @@ export default function Show({ audit }) {
                         <table className="w-full text-left text-sm">
                             <thead className="bg-app text-ink-muted font-bold uppercase text-xs">
                                 <tr>
-                                    <th className="px-6 py-4">Product</th>
+                                    <th className="px-6 py-4">{tt('Product')}</th>
                                     <th className="px-6 py-4 text-right">Expected</th>
                                     <th className="px-6 py-4 text-right">Counted</th>
                                     <th className="px-6 py-4 text-right">Difference</th>
@@ -142,7 +144,7 @@ export default function Show({ audit }) {
                                     return (
                                         <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                             <td className="px-6 py-4 font-medium text-ink">
-                                                {item.product?.name || 'Unknown Product'}
+                                                {item.product?.name || tt('Unknown Product')}
                                                 <span className="block text-xs text-ink-muted font-mono mt-0.5">
                                                     {item.product?.code}
                                                 </span>

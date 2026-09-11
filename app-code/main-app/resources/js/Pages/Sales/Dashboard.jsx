@@ -17,9 +17,11 @@ import {
 } from 'lucide-react';
 import MidnightNebula from '@/Components/MidnightNebula';
 import SellModuleTabs from '@/Components/SellModuleTabs';
+import { useTermText } from '@/lib/terms';
 
 export default function SalesDashboard({ stats, recentSales, salesByMethod, topSelling }) {
     const { store } = usePage().props;
+    const tt = useTermText();
 
     if (!stats) {
         return (
@@ -82,7 +84,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                 value={formatCurrency(Number(stats.sales_today || 0), store)}
                                 icon={DollarSign}
                                 color="bg-emerald-500"
-                                subValue={`${stats.orders_today || 0} Orders`}
+                                subValue={`${stats.orders_today || 0} ${tt('Orders')}`}
                                 trend={stats.sales_today_growth}
                             />
                             <StatCard
@@ -90,18 +92,18 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                 value={formatCurrency(Number(stats.sales_month || 0), store)}
                                 icon={Calendar}
                                 color="bg-brand-500"
-                                subValue={`${stats.orders_month || 0} Orders`}
+                                subValue={`${stats.orders_month || 0} ${tt('Orders')}`}
                                 trend={stats.sales_month_growth}
                             />
                             <StatCard
-                                title="Avg. Order Value"
+                                title={tt('Avg. Order Value')}
                                 value={formatCurrency(Number(stats.avg_order_value || 0), store)}
                                 icon={TrendingUp}
                                 color="bg-blue-500"
                                 trend={stats.avg_order_growth}
                             />
                             <StatCard
-                                title="Active Customers"
+                                title={tt('Active Customers')}
                                 value={(stats.active_customers || 0).toLocaleString()}
                                 icon={Users}
                                 color="bg-brand-500"
@@ -210,7 +212,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                     <thead className="bg-app text-ink-muted font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                                         <tr>
                                             <th className="px-6 py-3">Reference</th>
-                                            <th className="px-6 py-3">Customer</th>
+                                            <th className="px-6 py-3">{tt('Customer')}</th>
                                             <th className="px-6 py-3 text-right">Amount</th>
                                             <th className="px-6 py-3 text-right">Status</th>
                                         </tr>
@@ -224,7 +226,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                                     </Link>
                                                 </td>
                                                 <td className="px-6 py-3 text-ink-secondary font-medium text-xs">
-                                                    {sale.party ? sale.party.name : 'Walk-in Customer'}
+                                                    {sale.party ? sale.party.name : tt('Walk-in Customer')}
                                                 </td>
                                                 <td className="px-6 py-3 text-right font-bold text-ink text-xs">
                                                     {formatCurrency(Number(sale.total), store)}

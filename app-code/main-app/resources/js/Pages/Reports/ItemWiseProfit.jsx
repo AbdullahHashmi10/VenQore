@@ -13,10 +13,12 @@ import { // Recharts
 import { formatCurrency } from '@/Utils/format';
 
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 export default function ItemWiseProfit({ items = [], filters = {}, allProducts = [] }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     const { props } = usePage();
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -221,7 +223,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                             <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
                                 Profit <span className="text-ink-muted font-medium text-sm">By Item</span>
                             </h1>
-                            <p className="text-xs text-ink-muted font-medium">Product-level profitability analysis</p>
+                            <p className="text-xs text-ink-muted font-medium">{tt('Product-level profitability analysis')}</p>
                         </div>
                     </div>
 
@@ -327,7 +329,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 backdrop-blur-sm z-10">
                                     <tr>
-                                        <th className="px-6 py-3 font-bold">Product Name</th>
+                                        <th className="px-6 py-3 font-bold">{tt('Product Name')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-line">
@@ -614,18 +616,18 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                         {/* Customer Purchase Detail */}
                                         <div className="xl:col-span-7">
                                             <div className="flex items-center gap-2 mb-3 text-xs font-bold text-ink-muted uppercase tracking-wider">
-                                                <Users size={14} /> Customer Purchase Detail
+                                                <Users size={14} /> {tt('Customer Purchase Detail')}
                                             </div>
                                             {customers.length === 0 ? (
                                                 <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center">
-                                                    <p className="text-sm text-ink-muted italic">No customer-attributed purchases in this period.</p>
+                                                    <p className="text-sm text-ink-muted italic">{tt('No customer-attributed purchases in this period.')}</p>
                                                 </div>
                                             ) : (
                                                 <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm">
                                                     <table className="w-full text-xs sm:text-sm text-left">
                                                         <thead className="text-ink-muted uppercase bg-app border-b border-line">
                                                             <tr>
-                                                                <th className="py-3 px-4 font-bold">Customer Name</th>
+                                                                <th className="py-3 px-4 font-bold">{tt('Customer Name')}</th>
                                                                 <th className="text-right py-3 px-4 font-bold">Times Purchased</th>
                                                                 <th className="text-right py-3 px-4 font-bold">Qty Bought</th>
                                                                 <th className="text-right py-3 px-4 font-bold">Total Spent</th>
@@ -664,6 +666,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
 function ProductMultiSelect({ allProducts, selected, onToggle }) {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
+    const tt = useTermText();
 
     const filtered = query === ''
         ? allProducts.slice(0, 50)
@@ -676,7 +679,7 @@ function ProductMultiSelect({ allProducts, selected, onToggle }) {
                 className="flex items-center gap-2 px-3 py-1.5 bg-sunken rounded-xl text-xs font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
             >
                 <ShoppingBag size={14} />
-                {selected.length > 0 ? `${selected.length} Product(s)` : 'All Products'}
+                {selected.length > 0 ? `${selected.length} ${tt('Product(s)')}` : tt('All Products')}
                 <ChevronDown size={12} />
             </button>
             {isOpen && (
@@ -685,7 +688,7 @@ function ProductMultiSelect({ allProducts, selected, onToggle }) {
                         <input
                             type="text"
                             autoFocus
-                            placeholder="Search products..."
+                            placeholder={tt('Search products...')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             className="w-full px-3 py-1.5 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500"
@@ -693,7 +696,7 @@ function ProductMultiSelect({ allProducts, selected, onToggle }) {
                     </div>
                     <div className="max-h-64 overflow-y-auto p-1">
                         {filtered.length === 0 ? (
-                            <p className="text-xs text-ink-muted text-center py-4">No products found</p>
+                            <p className="text-xs text-ink-muted text-center py-4">{tt('No products found')}</p>
                         ) : filtered.map(p => (
                             <label key={p.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover cursor-pointer text-xs">
                                 <input

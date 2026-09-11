@@ -20,9 +20,11 @@ import {
     X,
     Search
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function Categories({ categories: serverCategories = [], stats, filters }) {
     const { flash, store } = usePage().props;
+    const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [formData, setFormData] = useState({ name: '', description: '', parent_id: '' });
@@ -80,7 +82,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
     const [tableColumns, setTableColumns] = useState([
         { key: 'name', label: 'Category Name', width: '30%' },
         { key: 'description', label: 'Description', width: '30%' },
-        { key: 'products_count', label: 'Products', width: '15%' },
+        { key: 'products_count', label: tt('Products'), width: '15%' },
         { key: 'created_at', label: 'Created', width: '15%' },
         { key: 'actions', label: 'Actions', width: '10%' }
     ]);
@@ -257,7 +259,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <Box size={16} />
                             </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Products Linked</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Products Linked')}</p>
                         </div>
                         <p className="text-base font-bold text-emerald-600">{stats?.total_products || 0}</p>
                     </div>
@@ -282,7 +284,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                     {/* Left: Title */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Product <span className="text-brand-600">Categories (Updated)</span>
+                            {tt('Product')} <span className="text-brand-600">Categories (Updated)</span>
                         </h1>
                         <div className="h-4 w-px bg-sunken mx-1"></div>
                         <span className="text-2xs font-bold uppercase rounded-full bg-sunken text-ink-muted px-2.5 py-1">
@@ -491,7 +493,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title={editingCategory ? 'Edit Category' : 'Create Category'}
-                subtitle={editingCategory ? 'Update category details' : 'Add a new product category'}
+                subtitle={editingCategory ? 'Update category details' : tt('Add a new product category')}
                 errors={errors}
                 footer={
                     <div className="flex justify-end gap-3">

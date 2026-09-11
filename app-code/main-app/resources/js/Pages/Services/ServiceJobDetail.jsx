@@ -23,6 +23,7 @@ import {
     Shield
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 const STATUS_META = {
     draft:          { label: 'Draft',          className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' },
@@ -67,6 +68,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
     const [busy, setBusy] = useState(false);
+    const tt = useTermText();
 
     // Modal states
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -117,7 +119,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
     // Unassign Tech
     const handleUnassign = (employeeId) => {
-        if (!confirm('Are you sure you want to unassign this technician?')) return;
+        if (!confirm(tt('Are you sure you want to unassign this technician?'))) return;
         router.delete(
             route('store.service-jobs.unassign', { store_slug: storeSlug, serviceJob: job.id, employeeId }),
             { preserveScroll: true }
@@ -180,7 +182,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-secondary hover:text-ink transition-colors"
                 >
                     <ArrowLeft size={14} />
-                    Back to Work Orders
+                    {tt('Back to Work Orders')}
                 </Link>
 
                 {/* Top Action Bar */}
@@ -226,7 +228,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                         {/* Job Details Card */}
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
                             <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-sm font-semibold text-ink">Job & Customer Details</h2>
+                                <h2 className="text-sm font-semibold text-ink">{tt('Job & Customer Details')}</h2>
                                 <button
                                     type="button"
                                     onClick={() => setIsScheduleModalOpen(true)}
@@ -239,7 +241,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div className="rounded-lg border border-line bg-app p-3">
                                     <dt className="flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                        <User size={12} /> Customer
+                                        <User size={12} /> {tt('Customer')}
                                     </dt>
                                     <dd className="mt-1 font-semibold text-ink">{job.party?.name || 'Walk-in'}</dd>
                                     {job.party?.phone && <dd className="text-xs text-ink-muted mt-0.5">{job.party.phone}</dd>}
@@ -280,12 +282,12 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                         {/* Billable Lines Table */}
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-                            <h2 className="text-sm font-semibold text-ink mb-3">Billable Scope & Services</h2>
+                            <h2 className="text-sm font-semibold text-ink mb-3">{tt('Billable Scope & Services')}</h2>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
                                     <thead>
                                         <tr className="border-b border-line text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                            <th className="py-2.5 pr-3">Item / Service</th>
+                                            <th className="py-2.5 pr-3">{tt('Item / Service')}</th>
                                             <th className="py-2.5 pr-3 text-right">Qty</th>
                                             <th className="py-2.5 pr-3 text-right">Unit Rate</th>
                                             <th className="py-2.5 pl-3 text-right">Total</th>
@@ -341,7 +343,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                                         <Wrench size={16} className="text-accent-text" />
                                         Field Tools & Equipment Custody
                                     </h2>
-                                    <p className="text-2xs text-ink-muted">Tools checked out for this job assignment.</p>
+                                    <p className="text-2xs text-ink-muted">{tt('Tools checked out for this job assignment.')}</p>
                                 </div>
                                 <button
                                     type="button"
@@ -393,7 +395,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                                 {(!job.tools || job.tools.length === 0) && (
                                     <p className="py-4 text-center text-xs text-ink-muted">
-                                        No tools checked out for this job yet.
+                                        {tt('No tools checked out for this job yet.')}
                                     </p>
                                 )}
                             </div>
@@ -405,9 +407,9 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                                 <div>
                                     <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
                                         <DollarSign size={16} className="text-rose-500" />
-                                        Direct Job Expenses & Materials
+                                        {tt('Direct Job Expenses & Materials')}
                                     </h2>
-                                    <p className="text-2xs text-ink-muted">Cost of goods, fuel, parts, and vendor expenses linked to this job.</p>
+                                    <p className="text-2xs text-ink-muted">{tt('Cost of goods, fuel, parts, and vendor expenses linked to this job.')}</p>
                                 </div>
                                 <Link
                                     href={route('store.expenses.index', { store_slug: storeSlug }) + `?service_job_id=${job.id}`}
@@ -438,7 +440,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                                 {expenses.length === 0 && (
                                     <p className="py-4 text-center text-xs text-ink-muted">
-                                        No direct expenses linked to this job.
+                                        {tt('No direct expenses linked to this job.')}
                                     </p>
                                 )}
                             </div>
@@ -446,7 +448,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                         {/* Activity Audit Trail */}
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-                            <h2 className="text-sm font-semibold text-ink mb-3">Job Audit Log & History</h2>
+                            <h2 className="text-sm font-semibold text-ink mb-3">{tt('Job Audit Log & History')}</h2>
                             <ul className="space-y-3">
                                 {(job.events || []).map((event) => {
                                     const Icon = EVENT_ICON[event.type] || AlertCircle;
@@ -475,7 +477,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
                             <h2 className="text-sm font-semibold text-ink flex items-center gap-2 mb-3">
                                 <TrendingUp size={16} className="text-accent-text" />
-                                Job Financials & Margin
+                                {tt('Job Financials & Margin')}
                             </h2>
 
                             <div className="space-y-3">
@@ -491,7 +493,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                                 </div>
                                 <div className="border-t border-line pt-2.5 flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs font-bold text-ink">Net Job Margin</p>
+                                        <p className="text-xs font-bold text-ink">{tt('Net Job Margin')}</p>
                                         <p className="text-3xs text-ink-muted">{marginPercentage}% profit margin</p>
                                     </div>
                                     <span
@@ -512,7 +514,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                             <h2 className="text-sm font-semibold text-ink mb-3">Status Lifecycle</h2>
                             {nextOptions.length === 0 ? (
                                 <p className="text-xs text-ink-muted">
-                                    Job is {STATUS_META[job.status]?.label.toLowerCase() || job.status}. No forward transitions.
+                                    {tt('Job')} is {STATUS_META[job.status]?.label.toLowerCase() || job.status}. {tt('No forward transitions.')}
                                 </p>
                             ) : (
                                 <div className="flex flex-col gap-2">
@@ -536,7 +538,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
                                     <User size={16} className="text-accent-text" />
-                                    Assigned Staff
+                                    {tt('Assigned Staff')}
                                 </h2>
                                 <button
                                     type="button"
@@ -558,7 +560,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                                                 {a.employee?.name?.charAt(0) || 'E'}
                                             </div>
                                             <div>
-                                                <p className="font-semibold text-ink">{a.employee?.name || 'Staff'}</p>
+                                                <p className="font-semibold text-ink">{a.employee?.name || tt('Staff')}</p>
                                                 <span className="text-3xs uppercase tracking-wider text-ink-muted">
                                                     {a.role || 'Primary'}
                                                 </span>
@@ -578,7 +580,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                                 {(!job.assignments || job.assignments.length === 0) && (
                                     <p className="py-2 text-center text-xs text-ink-muted">
-                                        No technician assigned yet.
+                                        {tt('No technician assigned yet.')}
                                     </p>
                                 )}
                             </div>
@@ -591,10 +593,10 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
             {isAssignModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
                     <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 shadow-2xl animate-in fade-in zoom-in-95">
-                        <h3 className="text-sm font-semibold text-ink mb-3">Assign Technician to Job</h3>
+                        <h3 className="text-sm font-semibold text-ink mb-3">{tt('Assign Technician to Job')}</h3>
                         <form onSubmit={handleAssign} className="space-y-3">
                             <div>
-                                <label className="mb-1 block text-2xs font-semibold uppercase text-ink-muted">Technician</label>
+                                <label className="mb-1 block text-2xs font-semibold uppercase text-ink-muted">{tt('Technician')}</label>
                                 <select
                                     required
                                     value={assignForm.employee_id}
@@ -643,7 +645,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
             {isCheckoutToolModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
                     <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 shadow-2xl animate-in fade-in zoom-in-95">
-                        <h3 className="text-sm font-semibold text-ink mb-3">Check Out Tool for Job</h3>
+                        <h3 className="text-sm font-semibold text-ink mb-3">{tt('Check Out Tool for Job')}</h3>
                         <form onSubmit={handleCheckoutTool} className="space-y-3">
                             <div>
                                 <label className="mb-1 block text-2xs font-semibold uppercase text-ink-muted">Select Tool</label>
@@ -693,7 +695,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
             {isScheduleModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
                     <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 shadow-2xl animate-in fade-in zoom-in-95">
-                        <h3 className="text-sm font-semibold text-ink mb-3">Update Job Schedule</h3>
+                        <h3 className="text-sm font-semibold text-ink mb-3">{tt('Update Job Schedule')}</h3>
                         <form onSubmit={handleUpdateSchedule} className="space-y-3">
                             <div>
                                 <label className="mb-1 block text-2xs font-semibold uppercase text-ink-muted">Scheduled Date</label>

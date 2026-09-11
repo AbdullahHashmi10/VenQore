@@ -5,6 +5,7 @@ import {
     ArrowLeft, Search, Filter, Calendar, PackageMinus, Printer, FileText, ArrowUpRight
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 import {
     BarChart,
     Bar,
@@ -17,6 +18,7 @@ import {
 
 export default function PurchaseReturnsReport({ returns = [], filters = {}, suppliers = [] }) {
     const { store } = usePage().props;
+    const tt = useTermText();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [dateRange, setDateRange] = useState(filters.range || 'this_month');
@@ -85,7 +87,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                                 <PackageMinus className="text-red-500 w-6 h-6" />
                                 Purchase Returns
                             </h1>
-                            <p className="text-xs text-ink-muted">Track and analyze stock returns and debit notes sent to suppliers.</p>
+                            <p className="text-xs text-ink-muted">{tt('Track and analyze stock returns and debit notes sent to suppliers.')}</p>
                         </div>
                     </div>
 
@@ -114,7 +116,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                                 onChange={(e) => handleFilterChange(dateRange, e.target.value)}
                                 className="border-0 bg-transparent text-xs font-bold text-ink-secondary p-0 focus:ring-0 focus:outline-none cursor-pointer"
                             >
-                                <option value="">All Suppliers</option>
+                                <option value="">{tt('All Suppliers')}</option>
                                 {suppliers.map(s => (
                                     <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
@@ -163,7 +165,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4" />
                             <input
                                 type="text"
-                                placeholder="Search by Supplier name or ID..."
+                                placeholder={tt('Search by Supplier name or ID...')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 text-xs md:text-sm bg-app border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:text-white"
@@ -177,7 +179,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                                 <tr>
                                     <th className="px-6 py-4">Ref Number</th>
                                     <th className="px-6 py-4">Date</th>
-                                    <th className="px-6 py-4">Supplier</th>
+                                    <th className="px-6 py-4">{tt('Supplier')}</th>
                                     <th className="px-6 py-4">Reason</th>
                                     <th className="px-6 py-4 text-right">Amount</th>
                                     <th className="px-6 py-4 text-center">Status</th>

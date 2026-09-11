@@ -4,6 +4,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ServiceNavTabs from '@/Pages/Services/ServiceNavTabs';
 import { Plus, Search, Wrench, Calendar, User, Clock, CheckCircle2 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 const STATUS_META = {
     draft:           { label: 'Draft',          className: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' },
@@ -29,6 +30,7 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
     const [search, setSearch] = useState(filters.search || '');
+    const tt = useTermText();
 
     const runSearch = (e) => {
         if (e.key !== 'Enter') return;
@@ -46,8 +48,8 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
     };
 
     return (
-        <OneGlanceLayout title="Service Jobs" activeMenu="Sell">
-            <Head title="Service Jobs" />
+        <OneGlanceLayout title={tt('Service Jobs')} activeMenu="Sell">
+            <Head title={tt('Service Jobs')} />
 
             <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
                 {/* Unified Services Tabs */}
@@ -56,10 +58,10 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                            Work Orders & Service Jobs
+                            {tt('Work Orders & Service Jobs')}
                         </h1>
                         <p className="mt-1 text-sm text-ink-secondary">
-                            Track client work orders, technician dispatches, and billing status.
+                            {tt('Track client work orders, technician dispatches, and billing status.')}
                         </p>
                     </div>
                     <Link
@@ -67,13 +69,13 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
                         className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent-fill px-4 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-fast ease-standard hover:bg-accent-fill-hover"
                     >
                         <Plus size={16} />
-                        New Work Order
+                        {tt('New Work Order')}
                     </Link>
                 </div>
 
                 <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
-                        <p className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">Active Work Orders</p>
+                        <p className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">{tt('Active Work Orders')}</p>
                         <p className="mt-1 text-2xl font-bold text-ink">{stats.open ?? 0}</p>
                     </div>
                     <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
@@ -94,7 +96,7 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onKeyDown={runSearch}
-                            placeholder="Search by job #, service title, customer name or phone..."
+                            placeholder={tt('Search by job #, service title, customer name or phone...')}
                             className="h-10 w-full rounded-lg border border-line bg-app pl-9 pr-3 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
                         />
                     </div>
@@ -118,8 +120,8 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="border-b border-line bg-sunken/40 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                <th className="px-4 py-3">Job / Order</th>
-                                <th className="px-4 py-3">Customer</th>
+                                <th className="px-4 py-3">{tt('Job / Order')}</th>
+                                <th className="px-4 py-3">{tt('Customer')}</th>
                                 <th className="px-4 py-3">Assigned Tech</th>
                                 <th className="px-4 py-3">Status</th>
                                 <th className="px-4 py-3">Schedule</th>
@@ -172,13 +174,13 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
                                 <tr>
                                     <td colSpan={6} className="px-4 py-12 text-center">
                                         <Wrench size={26} className="mx-auto text-ink-muted/50 mb-2" />
-                                        <p className="text-sm font-semibold text-ink">No service work orders found</p>
-                                        <p className="mt-1 text-xs text-ink-secondary">Create a new work order or book via the Dispatch Calendar.</p>
+                                        <p className="text-sm font-semibold text-ink">{tt('No service work orders found')}</p>
+                                        <p className="mt-1 text-xs text-ink-secondary">{tt('Create a new work order or book via the Dispatch Calendar.')}</p>
                                         <Link
                                             href={route('store.service-jobs.create', { store_slug: storeSlug })}
                                             className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-accent-text hover:underline"
                                         >
-                                            <Plus size={14} /> Create Work Order
+                                            <Plus size={14} /> {tt('Create Work Order')}
                                         </Link>
                                     </td>
                                 </tr>

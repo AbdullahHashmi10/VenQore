@@ -13,9 +13,11 @@ import {
     XCircle
 } from 'lucide-react';
 import axios from 'axios';
+import { useTermText } from '@/lib/terms';
 
 const ManufacturingRules = () => {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [rules, setRules] = useState([]);
     const [products, setProducts] = useState([]);
     const [warehouses, setWarehouses] = useState([]);
@@ -169,7 +171,7 @@ const ManufacturingRules = () => {
                             <Beaker className="text-brand-500" size={32} />
                             Auto-Manufacturing Rules
                         </h1>
-                        <p className="text-sm text-ink-muted mt-1">Define composite products & ingredient auto-deduction</p>
+                        <p className="text-sm text-ink-muted mt-1">{tt('Define composite products & ingredient auto-deduction')}</p>
                     </div>
                     <button
                         onClick={() => setShowCreateModal(true)}
@@ -243,7 +245,7 @@ const ManufacturingRules = () => {
                                         <div key={i} className="flex items-center gap-2 text-sm">
                                             <span className="w-16 text-right font-bold text-brand-600">{ing.quantity_per_unit}{ing.unit}</span>
                                             <ArrowRight size={14} className="text-ink-muted" />
-                                            <span className="text-ink-secondary">{ing.ingredient_name || `Product #${ing.ingredient_product_id}`}</span>
+                                            <span className="text-ink-secondary">{ing.ingredient_name || `${tt('Product')} #${ing.ingredient_product_id}`}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -258,19 +260,19 @@ const ManufacturingRules = () => {
                         <div className="bg-surface rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                             <div className="p-6 border-b border-line">
                                 <h2 className="text-2xl font-bold text-ink">Create Manufacturing Rule</h2>
-                                <p className="text-sm text-ink-muted mt-1">Define a composite product and its ingredients</p>
+                                <p className="text-sm text-ink-muted mt-1">{tt('Define a composite product and its ingredients')}</p>
                             </div>
 
                             <div className="p-6 space-y-6">
                                 {/* Product Selection */}
                                 <div>
-                                    <label className="block text-sm font-bold text-ink-secondary mb-2">Finished Product *</label>
+                                    <label className="block text-sm font-bold text-ink-secondary mb-2">{tt('Finished Product')} *</label>
                                     <select
                                         value={newRule.product_id}
                                         onChange={(e) => setNewRule({ ...newRule, product_id: e.target.value })}
                                         className="w-full px-4 py-2 rounded-lg border border-line dark:border-line bg-surface outline-none focus:ring-2 ring-brand-500"
                                     >
-                                        <option value="">Select product...</option>
+                                        <option value="">{tt('Select product...')}</option>
                                         {products.map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}

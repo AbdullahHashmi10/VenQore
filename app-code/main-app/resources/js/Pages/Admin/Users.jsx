@@ -13,6 +13,7 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine
 } from 'recharts';
 import { getCurrencySymbol } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 // ─── Role definitions ──────────────────────────────────────────────────────
@@ -173,6 +174,8 @@ const PERMISSION_CATEGORIES = [
 ];
 
 const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = false }) => {
+    const tt = useTermText();
+
     const handleToggle = (permId) => {
         if (disabled) return;
         const isSelected = selectedPermissions.includes(permId);
@@ -212,8 +215,8 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                     <CatIcon size={16} />
                                 </div>
                                 <div>
-                                    <h4 className="text-xs font-bold text-white leading-tight">{cat.name}</h4>
-                                    <p className="text-3xs text-ink-muted leading-tight mt-0.5">{cat.desc}</p>
+                                    <h4 className="text-xs font-bold text-white leading-tight">{tt(cat.name)}</h4>
+                                    <p className="text-3xs text-ink-muted leading-tight mt-0.5">{tt(cat.desc)}</p>
                                 </div>
                             </div>
 
@@ -257,8 +260,8 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                             {isActive && <Check size={8} strokeWidth={3} />}
                                         </div>
                                         <div className="flex flex-col justify-center min-w-0">
-                                            <div className={`text-2xs font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-ink-muted group-hover/mod:text-neutral-300'}`}>{perm.name}</div>
-                                            <div className="text-4xs text-ink-muted leading-tight mt-0.5 truncate">{perm.desc}</div>
+                                            <div className={`text-2xs font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-ink-muted group-hover/mod:text-neutral-300'}`}>{tt(perm.name)}</div>
+                                            <div className="text-4xs text-ink-muted leading-tight mt-0.5 truncate">{tt(perm.desc)}</div>
                                         </div>
                                     </button>
                                 );
@@ -301,6 +304,7 @@ function copyToClipboard(text) {
 // ─── Main Component ────────────────────────────────────────────────────────
 export default function AdminUsers({ users = [], invitations = [], attendance = [], staffData = [] }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [activeTab,    setActiveTab]    = useState('members');
     const [showAddModal, setShowAddModal] = useState(false);
     const [searchQuery,  setSearchQuery]  = useState('');
@@ -325,7 +329,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             icon: Clock,
             items: [
                 { id: 'attendance', label: 'Attendance Logs', icon: Clock },
-                { id: 'summaries', label: 'Staff Summaries', icon: BarChart2 },
+                { id: 'summaries', label: tt('Staff Summaries'), icon: BarChart2 },
             ]
         }
     ];
@@ -572,13 +576,13 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                         <StatCard title="On Duty Now" value={attendanceStats.activeNow}    icon={<Clock size={16} />}         color="bg-emerald-500" />
                         <StatCard title="Present Today" value={attendanceStats.totalPresent} icon={<UserCheck size={16} />}     color="bg-brand-500" />
                         <StatCard title="Total Time Logged" value={attendanceStats.totalHours} icon={<Timer size={16} />}         color="bg-blue-500" />
-                        <StatCard title="Total Staff" value={attendanceStats.totalStaff}   icon={<Users size={16} />}         color="bg-neutral-500" />
+                        <StatCard title={tt('Total Staff')} value={attendanceStats.totalStaff}   icon={<Users size={16} />}         color="bg-neutral-500" />
                     </div>
                 )}
 
                 {activeTab === 'summaries' && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-                        <StatCard title="Active Staff" value={stats.totalStaff}             icon={<Users size={16} />}         color="bg-brand-500" />
+                        <StatCard title={tt('Active Staff')} value={stats.totalStaff}             icon={<Users size={16} />}         color="bg-brand-500" />
                         <StatCard title="Total Sales" value={formatCurrency(stats.totalSales)} icon={<DollarSign size={16} />}   color="bg-emerald-500" />
                         <StatCard title="Transactions" value={stats.totalTransactions}      icon={<Package size={16} />}       color="bg-blue-500" />
                         <StatCard title="Top Performer" value={stats.topPerformer.name || '-'} icon={<Award size={16} />} color="bg-amber-500" subtext={stats.topPerformer.totalSales ? formatCurrency(stats.topPerformer.totalSales) : ''} />
@@ -746,7 +750,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                         <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-4">
                                             <Users size={32} className="text-ink-muted" />
                                         </div>
-                                        <h3 className="text-lg font-bold text-ink-secondary dark:text-white">No staff performance data</h3>
+                                        <h3 className="text-lg font-bold text-ink-secondary dark:text-white">{tt('No staff performance data')}</h3>
                                         <p className="text-ink-muted">Try adjusting your search criteria</p>
                                     </div>
                                 )}
@@ -822,7 +826,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                             <Crown size={14} /> ASSIGN ROLE
                                         </h4>
                                         <span className="text-2xs font-bold text-brand-400 tracking-wider">
-                                            {data.roles.length > 0 ? ROLES[data.roles[0]]?.name?.toUpperCase() : 'NONE'}
+                                            {data.roles.length > 0 ? tt(ROLES[data.roles[0]]?.name || '')?.toUpperCase() : 'NONE'}
                                         </span>
                                     </div>
 
@@ -840,8 +844,8 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                                         <role.icon size={16} />
                                                     </div>
                                                     <div>
-                                                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{role.name}</div>
-                                                        <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{role.description}</div>
+                                                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{tt(role.name)}</div>
+                                                        <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{tt(role.description)}</div>
                                                     </div>
                                                 </button>
                                             );
@@ -912,6 +916,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
 
 // ─── Invitations Table ─────────────────────────────────────────────────────
 function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy, onWhatsApp, onApprove, onDecline, onRevoke, onResend }) {
+    const tt = useTermText();
     if (invitations.length === 0) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center text-neutral-300 dark:text-ink-secondary gap-4 bg-surface rounded-2xl border border-line">
@@ -973,7 +978,7 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                                 const ri = getRoleInfo(r);
                                                 return (
                                                     <span key={r} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${ri.badge}`}>
-                                                        <ri.icon size={9} />{ri.name}
+                                                        <ri.icon size={9} />{tt(ri.name)}
                                                     </span>
                                                 );
                                             })}
@@ -1077,6 +1082,7 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
 
 // ─── Attendance Table ──────────────────────────────────────────────────────
 function AttendanceTable({ attendance, users, onDetail }) {
+    const tt = useTermText();
     const todayData = attendance.today || {};
     const staff = users.filter(u => u.role !== 'platform_admin');
 
@@ -1086,7 +1092,7 @@ function AttendanceTable({ attendance, users, onDetail }) {
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-app sticky top-0 z-10">
                         <tr className="text-xs font-semibold text-ink-muted uppercase tracking-wider border-b border-line">
-                            <th className="px-6 py-4">Staff Member</th>
+                            <th className="px-6 py-4">{tt('Staff Member')}</th>
                             <th className="px-6 py-4">Today's First In</th>
                             <th className="px-6 py-4">Current Status</th>
                             <th className="px-6 py-4">Total Time Today</th>
@@ -1326,6 +1332,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
 // ─── Edit Member Modal ──────────────────────────────────────────────────────
 function EditMemberModal({ member, onClose }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const { data, setData, patch, processing, errors } = useForm({
         role: member.role || 'custom',
         custom_role_name: member.custom_role_name ?? '',
@@ -1415,7 +1422,7 @@ function EditMemberModal({ member, onClose }) {
                                     <Crown size={14} /> ASSIGN ROLE
                                 </h4>
                                 <span className="text-2xs font-bold text-brand-400 tracking-wider">
-                                    {data.role ? ROLES[data.role]?.name?.toUpperCase() : 'NONE'}
+                                    {data.role ? tt(ROLES[data.role]?.name || '')?.toUpperCase() : 'NONE'}
                                 </span>
                             </div>
 
@@ -1436,8 +1443,8 @@ function EditMemberModal({ member, onClose }) {
                                                 <role.icon size={16} />
                                             </div>
                                             <div>
-                                                <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{role.name}</div>
-                                                <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{role.description}</div>
+                                                <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{tt(role.name)}</div>
+                                                <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{tt(role.description)}</div>
                                             </div>
                                         </button>
                                     );
@@ -1523,6 +1530,7 @@ function EditMemberModal({ member, onClose }) {
 // ─── Members Table ─────────────────────────────────────────────────────────
 function MembersTable({ users, store }) {
     const { my_role } = usePage().props;
+    const tt = useTermText();
     const canManage = ['owner', 'admin'].includes(my_role);
     const [openMenu, setOpenMenu] = useState(null);
     const [editingMember, setEditingMember] = useState(null);
@@ -1587,7 +1595,7 @@ function MembersTable({ users, store }) {
                                 const RoleIcon = role.icon;
                                 const badgeLabel = user.role === 'custom' && user.custom_role_name
                                     ? user.custom_role_name
-                                    : role.name;
+                                    : tt(role.name);
                                 const st = getStatusCfg(user.status);
                                 const isOwner = user.role === 'owner';
 

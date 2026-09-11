@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { usePage, Head, router, Link } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { ArrowLeft, CheckCircle2, AlertTriangle, Play, XCircle } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function DataMapping({ file_path, type, file_headers, preview_data, expected_fields }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [mapping, setMapping] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
@@ -123,7 +125,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
             { key: 'address', label: 'Address' }
         ],
         products: [
-            { key: 'name', label: 'Product Name' },
+            { key: 'name', label: tt('Product Name') },
             { key: 'sku', label: 'SKU / Barcode' },
             { key: 'price', label: 'Selling Price' },
             { key: 'cost_price', label: 'Cost Price' },
@@ -131,15 +133,15 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
         ],
         sales: [
             { key: 'invoice_number', label: 'Invoice #' },
-            { key: 'customer_name', label: 'Customer' },
-            { key: 'product_name', label: 'Product' },
+            { key: 'customer_name', label: tt('Customer') },
+            { key: 'product_name', label: tt('Product') },
             { key: 'quantity', label: 'Qty' },
             { key: 'unit_price', label: 'Price' }
         ],
         purchases: [
             { key: 'invoice_number', label: 'Ref / Invoice #' },
-            { key: 'supplier_name', label: 'Supplier' },
-            { key: 'product_name', label: 'Product' },
+            { key: 'supplier_name', label: tt('Supplier') },
+            { key: 'product_name', label: tt('Product') },
             { key: 'quantity', label: 'Qty' },
             { key: 'cost_price', label: 'Cost' }
         ],

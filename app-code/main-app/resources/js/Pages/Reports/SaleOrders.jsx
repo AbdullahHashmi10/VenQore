@@ -9,12 +9,14 @@ import {
     PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 export default function SaleOrders({ orders = [], filters = {} }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState({ key: 'date', direction: 'desc' });
@@ -135,7 +137,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
 
     return (
         <ReportsLayout title="Sales Orders Report">
-            <Head title="Order Management" />
+            <Head title={tt('Order Management')} />
             <div className="flex flex-col h-full gap-4 w-full">
 
                 {/* 1. HEADER */}
@@ -149,9 +151,9 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                         <div>
                             <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
                                 <ShoppingCart className="text-sky-500" size={20} />
-                                Sales Orders
+                                {tt('Sales Orders')}
                             </h1>
-                            <p className="text-xs text-ink-muted font-medium">Tracking order pipeline & status</p>
+                            <p className="text-xs text-ink-muted font-medium">{tt('Tracking order pipeline & status')}</p>
                         </div>
                     </div>
 
@@ -160,7 +162,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-sky-500 transition-colors" size={14} />
                             <input
                                 type="text"
-                                placeholder="Search Orders..."
+                                placeholder={tt('Search Orders...')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-sky-500/20 w-48 transition-all"
@@ -218,7 +220,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                 {/* 2. KPI CARDS */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
                     <StatCard
-                        title="Total Orders"
+                        title={tt('Total Orders')}
                         value={stats.total}
                         icon={<Package size={18} />}
                         color="sky"
@@ -253,7 +255,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                     <div className="lg:col-span-2 bg-surface border border-line rounded-2xl shadow-sm flex flex-col overflow-hidden">
                         <div className="p-4 border-b border-line bg-sunken/50 dark:bg-surface flex justify-between items-center">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-sm font-bold text-ink-secondary dark:text-ink uppercase tracking-wide">Order List</h3>
+                                <h3 className="text-sm font-bold text-ink-secondary dark:text-ink uppercase tracking-wide">{tt('Order List')}</h3>
                                 {/* Status Toggle */}
                                 <div className="flex bg-sunken p-0.5 rounded-lg">
                                     {['all', 'pending', 'completed'].map(s => (
@@ -276,9 +278,9 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-app sticky top-0 z-10 backdrop-blur-sm">
                                     <tr>
-                                        <SortableHeader label="Order #" colKey="order_number" currentSort={sortBy} onSort={handleSort} />
+                                        <SortableHeader label={tt('Order #')} colKey="order_number" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Date" colKey="date" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Customer" colKey="customer" currentSort={sortBy} onSort={handleSort} />
+                                        <SortableHeader label={tt('Customer')} colKey="customer" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Amount" colKey="amount" align="right" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Status" colKey="status" align="center" currentSort={sortBy} onSort={handleSort} />
                                     </tr>
@@ -291,7 +293,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                                                     <div className="bg-sunken p-4 rounded-full">
                                                         <Box size={32} className="text-neutral-300 opacity-50" />
                                                     </div>
-                                                    <p className="font-medium text-sm">No orders found</p>
+                                                    <p className="font-medium text-sm">{tt('No orders found')}</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -303,7 +305,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                                                     {new Date(order.created_at).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-3 text-sm font-medium text-ink-secondary dark:text-ink">
-                                                    {order.party?.name || 'Walk-in Customer'}
+                                                    {order.party?.name || tt('Walk-in Customer')}
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-sm font-bold text-ink-secondary font-mono">
                                                     {formatCurrency(order.total_amount)}
@@ -325,7 +327,7 @@ export default function SaleOrders({ orders = [], filters = {} }) {
 
                         {/* 1. Status Overview */}
                         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Order Status</h3>
+                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">{tt('Order Status')}</h3>
                             <div className="flex-1 w-full h-full min-h-0 relative">
                                 {statusData.length > 0 ? (
                                     <>

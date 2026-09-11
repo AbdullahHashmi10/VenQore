@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import AuthLayout from '@/Layouts/AuthLayout';
 import { AuthButton, AuthField, AuthForm, AuthLink, AuthStack } from '@/Components/Auth';
+import { useTermText } from '@/lib/terms';
 
 /**
  * Auth/AcceptInvite.jsx — staff invite acceptance, at /invite/{token}.
@@ -49,6 +50,7 @@ const ROLE_INFO = {
 
 export default function AcceptInvite({ token, invite_email, store_name, role }) {
     const [showPass, setShowPass] = useState(false);
+    const tt = useTermText();
     const roleInfo = ROLE_INFO[role] ?? ROLE_INFO.viewer;
     const RoleIcon = roleInfo.icon;
 
@@ -79,7 +81,7 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
             footer={
                 <>
                     By joining, you agree to VenQore&apos;s{' '}
-                    <AuthLink href="/terms">Terms of Service</AuthLink>. If you weren&apos;t
+                    <AuthLink href="/terms">{tt('Terms of Service')}</AuthLink>. If you weren&apos;t
                     expecting this invite, you can safely close this page.
                 </>
             }

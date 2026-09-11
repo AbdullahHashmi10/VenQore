@@ -14,6 +14,7 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 import { LaserFlow } from '@/Components/ReactBits/LaserFlow';
+import { useTermText } from '@/lib/terms';
 import {
     BklitAreaChart, BklitDonut, BklitBarChart,
     RingChart, Ring, RingCenter,
@@ -220,6 +221,7 @@ export default function AdminDashboard({
     currencySymbol = '$'
 }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     if (!store?.slug) return null;
 
     /* VQ chart series — read from CSS at runtime */
@@ -562,7 +564,7 @@ export default function AdminDashboard({
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <IconBadge icon={Users} color="var(--vq-mod-staff-accent, var(--vq-accent))" />
-                                    <Eyebrow>Active Staff</Eyebrow>
+                                    <Eyebrow>{tt('Active Staff')}</Eyebrow>
                                 </div>
                                 <div style={{ fontFamily: 'var(--vq-font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: '20px', fontWeight: 600, color: 'var(--vq-text)', letterSpacing: '-0.02em' }}>
                                     <CountUp value={stats.active_staff} /> / {stats.total_staff}

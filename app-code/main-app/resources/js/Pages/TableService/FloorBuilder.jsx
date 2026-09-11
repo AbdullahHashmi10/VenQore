@@ -31,8 +31,10 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import Toast from '@/Components/Toast';
 import ConfirmModal from '@/Components/ConfirmModal';
 import '@/Pos/Table/floorbuilder.css';
+import { useTermText } from '@/lib/terms';
 
 export default function FloorBuilder({ zones: initialZones = [], positions: initialPositions = [], settings = {}, storeSlug }) {
+    const tt = useTermText();
     const [zones, setZones] = useState(initialZones);
     const [positions, setPositions] = useState(initialPositions);
     const [lanes, setLanes] = useState({
@@ -266,8 +268,7 @@ export default function FloorBuilder({ zones: initialZones = [], positions: init
                         {/* ── LANES ────────────────────────────────────── */}
                         <h2 className="vqfb-h2 vqfb-h2-gap">Beyond the tables</h2>
                         <p className="vqfb-hint">
-                            Orders that never sit down. They get their own tab on the floor and their own
-                            ticket numbers — not made-up tables.
+                            {tt('Orders that never sit down. They get their own tab on the floor and their own ticket numbers — not made-up tables.')}
                         </p>
                         <LaneToggle
                             icon={ShoppingBag} label="Takeaway"

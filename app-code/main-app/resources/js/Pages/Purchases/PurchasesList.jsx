@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import {
     Plus,
     Search,
@@ -36,6 +36,7 @@ import PrintButton from '@/Components/PrintButton';
 
 export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {} }) {
     const { t, tp } = useTerms();
+    const tt = useTermText();
     const { store, vensynq_enabled } = usePage().props;
     // Infinite Scroll State
     const [allPurchases, setAllPurchases] = useState(purchases.data || []);
@@ -77,7 +78,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
     const [tableColumns, setTableColumns] = useState([
         { key: 'date', label: 'Date', width: '12%' },
         { key: 'invoice_number', label: 'Invoice No', width: '15%' },
-        { key: 'supplier_name', label: 'Supplier Name', width: '20%' },
+        { key: 'supplier_name', label: tt('Supplier Name'), width: '20%' },
         { key: 'transaction', label: 'Type', width: '10%' },
         { key: 'payment_method', label: 'Payment Type', width: '10%' },
         { key: 'total', label: 'Amount', width: '10%' },
@@ -386,7 +387,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                 value={searchTerm}
                                 onChange={handleSearch}
                                 onKeyDown={handleServerSearch}
-                                placeholder="Search purchase #, supplier..."
+                                placeholder={tt('Search purchase #, supplier...')}
                                 className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink placeholder:text-ink-muted"
                             />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
@@ -440,7 +441,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                 value={searchTerm}
                                 onChange={handleSearch}
                                 onKeyDown={handleServerSearch}
-                                placeholder="Search purchase #, supplier..."
+                                placeholder={tt('Search purchase #, supplier...')}
                                 className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink placeholder:text-ink-muted"
                             />
                             <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
@@ -546,7 +547,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                         case 'supplier_name':
                                                             return (
                                                                 <div>
-                                                                    <p className="font-semibold text-ink">{row.supplier?.name || 'Unknown Supplier'}</p>
+                                                                    <p className="font-semibold text-ink">{row.supplier?.name || tt('Unknown Supplier')}</p>
                                                                     {row.supplier?.phone && <p className="text-xs text-ink-muted">{row.supplier.phone}</p>}
                                                                 </div>
                                                             );
@@ -685,7 +686,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <h3 className="font-bold text-ink text-sm">
-                                                    {row.supplier?.name || 'Unknown Supplier'}
+                                                    {row.supplier?.name || tt('Unknown Supplier')}
                                                 </h3>
                                                 {row.supplier?.phone && (
                                                     <p className="text-2xs text-ink-muted font-semibold">{row.supplier.phone}</p>
@@ -869,7 +870,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             {/* Top Info Row */}
                             <div className="grid grid-cols-4 gap-3 mb-4">
                                 <div className="bg-sunken p-3 rounded-xl border border-line">
-                                    <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Supplier</p>
+                                    <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Supplier')}</p>
                                     <p className="font-bold text-ink text-sm">{quickViewItem.supplier?.name || 'Unknown'}</p>
                                     {quickViewItem.supplier?.phone && (
                                         <p className="text-xs text-ink-muted">{quickViewItem.supplier.phone}</p>

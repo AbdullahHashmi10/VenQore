@@ -3,6 +3,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatCurrency, formatDate } from '@/Utils/format';
 import { ArrowLeft, Beaker, Package, Layers, Wallet } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 const statusColors = {
     in_progress: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
@@ -12,6 +13,7 @@ const statusColors = {
 };
 
 export default function ProductionRunShow({ run, materials = [], outputBatch = null }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const totalMaterialCost = materials.reduce((sum, m) => sum + parseFloat(m.total_cost || 0), 0);
 
@@ -34,7 +36,7 @@ export default function ProductionRunShow({ run, materials = [], outputBatch = n
                 <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                     <div className="flex items-start justify-between mb-6">
                         <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Product</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{tt('Product')}</p>
                             <p className="text-lg font-bold text-ink">{run?.product?.name || 'N/A'}</p>
                         </div>
                         <div className="text-right">

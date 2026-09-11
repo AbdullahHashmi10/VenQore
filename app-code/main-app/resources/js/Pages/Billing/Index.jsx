@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import Modal from '@/Components/Modal';
+import { useTermText } from '@/lib/terms';
 import { openLemonCheckout, closeLemonCheckout, preloadLemonCheckout } from '@/lib/lemonCheckout';
 import { vq } from '@/theme/runtime';
+import { normalizePlan, planRank, SELF_SERVE_PLANS, PLAN_PRICE_USD } from '@/lib/plans';
 import {
  Zap, Crown, Shield, CheckCircle2, XCircle, AlertTriangle,
  ArrowRight, Calendar, Users, Package, BarChart2, Globe2,
  Cpu, GitBranch, ExternalLink, Sparkles, Lock, Infinity,
  Receipt, Download, Info, HelpCircle, MessageSquare, Monitor,
- BadgeCheck, ScanFace, RefreshCw, History, CreditCard, FileText, Clock
+ BadgeCheck, ScanFace, RefreshCw, History, CreditCard, FileText, Clock, Loader2
 } from 'lucide-react';
 
 // ── PKR MASTER SWITCH (see Pricing.jsx) — OFF for USD-only launch ──────
@@ -124,6 +126,7 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
 
 // --- Plan Card ----------------------------------------------------------------
 function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, onCheckout, checkoutBusy = null, plans, billingCycle = 'monthly', currencyDisplay = 'USD' }) {
+ const tt = useTermText();
  const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
  const isPK = PKR_ENABLED && geo.currency === 'PKR';
  const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
@@ -190,9 +193,9 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
  }
 
  if (isLtd && !isCurrent) return null;
- const planOrder = ['counter', 'starter', 'growth', 'business'];
- const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
- const thisIdx = planOrder.indexOf(planKey);
+ // Canonical ranks (lib/plans) — legacy slugs on old rows rank as their tier.
+ const currentIdx = planRank(tenant?.plan ?? 'starter');
+ const thisIdx = planRank(planKey);
 
  const checkoutCycle = isAnnual ? 'annual' : 'monthly';
  const isCheckingOut = checkoutBusy === planKey;
@@ -250,7 +253,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
  ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
  : <XCircle size={14} className="text-ink-secondary shrink-0" />}
  <span className={`font-medium ${enabled ? 'text-neutral-300' : 'text-ink-muted line-through opacity-50'}`}>
- {f.label}
+ {tt(f.label)}
  {typeof val === 'number' ? `: ${val}` : ''}
  {val === null ? ': Unlimited' : ''}
  </span>
@@ -294,7 +297,8 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 }
 
 // --- Main Page Component ---
-export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification, trial_credit = null, intended_plan = null }) {
+export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification, trial_credit = null, intended_plan = null, current_plan = null }) {
+ const tt = useTermText();
  const { store, pricing } = usePage().props;
  const aiTiers = pricing?.ai_tiers || {};
  const storeSlug = store?.slug;
@@ -405,7 +409,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  if (justUpgraded === 'true' && upgradedToPlan) {
  sessionStorage.removeItem('vq_just_upgraded');
  sessionStorage.removeItem('vq_upgraded_to_plan');
- setCongratsPlanSlug(upgradedToPlan);
+ setCongratsPlanSlug(normalizePlan(upgradedToPlan));
  setCongratsModalOpen(true);
  }
  }, [tenant.plan, tenant.status]);
@@ -571,7 +575,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  const [selectedPlan, setSelectedPlan] = useState(null);
  const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
 
- const currentPlanKey = tenant?.plan ?? 'starter';
+ const currentPlanKey = normalizePlan(current_plan ?? tenant?.plan ?? 'starter');
  const currentMeta = PLAN_META[currentPlanKey] ?? PLAN_META.starter;
  const isLtd = currentPlanKey.startsWith('ltd');
 
@@ -890,11 +894,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  const targetPlanModel = plans?.find(p => p.slug === selectedPlan);
  const currentPlanModel = plans?.find(p => p.slug === currentPlanKey);
 
- // Fallbacks must mirror config/pricing.php values (starter: 36, growth: 63, business: 129)
- const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'counter' ? 18 : selectedPlan === 'starter' ? 36 : selectedPlan === 'growth' ? 63 : selectedPlan === 'business' ? 129 : 0);
+ // Fallbacks mirror config/pricing.php via lib/plans.
+ const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (PLAN_PRICE_USD[normalizePlan(selectedPlan)] ?? 0);
  const targetPricePKR = targetPlanModel ? parseFloat(targetPlanModel.price_monthly) : Math.round(targetPriceUSD * 280);
 
- const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'counter' ? 18 : currentPlanKey === 'starter' ? 36 : currentPlanKey === 'growth' ? 63 : currentPlanKey === 'business' ? 129 : 0);
+ const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (PLAN_PRICE_USD[currentPlanKey] ?? 0);
  const currentPricePKR = currentPlanModel ? parseFloat(currentPlanModel.price_monthly) : Math.round(currentPriceUSD * 280);
 
  const diffUSD = targetPriceUSD - currentPriceUSD;
@@ -905,9 +909,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  let remainingDays = 0;
  let nextBillingDateStr = "";
 
- const planOrder = ['counter', 'starter', 'growth', 'business'];
- const currentIdx = planOrder.indexOf(currentPlanKey);
- const targetIdx = planOrder.indexOf(selectedPlan);
+ const currentIdx = planRank(currentPlanKey);
+ const targetIdx = planRank(selectedPlan);
  const isUpgrade = targetIdx > currentIdx;
 
  if (tenant?.subscription_ends_at) {
@@ -937,7 +940,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
  // Modal features comparison listing
  const FEATURES_GAIN_LOSS = {
- growth: {
+ core: {
  gained: [
  'WooCommerce Sync (Unlimited)',
  'AI Chatbot & Retention engine',
@@ -956,7 +959,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  'Advanced reporting modules'
  ]
  },
- business: {
+ scale: {
  gained: [
  'Full Public REST API Access',
  'Unlimited warehouse locations (Growth: 3)',
@@ -995,24 +998,25 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  };
 
  let modalFeatures = [];
+ const selectedKey = normalizePlan(selectedPlan);
  if (isUpgrade) {
- if (selectedPlan === 'growth') {
- modalFeatures = FEATURES_GAIN_LOSS.growth.gained;
- } else if (selectedPlan === 'business') {
- if (currentPlanKey === 'starter') {
- modalFeatures = [...FEATURES_GAIN_LOSS.growth.gained, ...FEATURES_GAIN_LOSS.business.gained];
+ if (selectedKey === 'core') {
+ modalFeatures = FEATURES_GAIN_LOSS.core.gained;
+ } else if (selectedKey === 'scale') {
+ if (planRank(currentPlanKey) <= planRank('starter')) {
+ modalFeatures = [...FEATURES_GAIN_LOSS.core.gained, ...FEATURES_GAIN_LOSS.scale.gained];
  } else {
- modalFeatures = FEATURES_GAIN_LOSS.business.gained;
+ modalFeatures = FEATURES_GAIN_LOSS.scale.gained;
  }
  }
  } else {
- if (selectedPlan === 'growth') {
- modalFeatures = FEATURES_GAIN_LOSS.business.lost;
- } else if (selectedPlan === 'starter') {
- if (currentPlanKey === 'business') {
+ if (selectedKey === 'core') {
+ modalFeatures = FEATURES_GAIN_LOSS.scale.lost;
+ } else if (selectedKey === 'starter' || selectedKey === 'solo') {
+ if (currentPlanKey === 'scale') {
  modalFeatures = FEATURES_GAIN_LOSS.starter.lost;
  } else {
- modalFeatures = FEATURES_GAIN_LOSS.growth.lost;
+ modalFeatures = FEATURES_GAIN_LOSS.core.lost;
  }
  }
  }
@@ -1067,7 +1071,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  <Download size={14} /> Full System Backup & Restore
  </button>
  <button
- onClick={() => handleSelectPlan('growth')}
+ onClick={() => handleSelectPlan('core')}
  className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap"
  >
  Activate Store Now
@@ -1303,7 +1307,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  : 'border-transparent text-ink-muted hover:text-neutral-300'
  }`}
  >
- <TabIcon size={14} /> {tab.label}
+ <TabIcon size={14} /> {tt(tab.label)}
  {showWarningDot && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
  </button>
  );
@@ -1328,12 +1332,12 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  </div>
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  <UsageMeter
- icon={Users} label="Staff Members" color={vq.indigo[500]}
+ icon={Users} label={tt('Staff Members')} color={vq.indigo[500]}
  used={usageData.staff_count ?? 0}
  limit={usageData.staff_limit}
  />
  <UsageMeter
- icon={Package} label="Products (SKUs)" color={vq.emerald[500]}
+ icon={Package} label={tt('Products (SKUs)')} color={vq.emerald[500]}
  used={usageData.product_count ?? 0}
  limit={usageData.sku_limit}
  />
@@ -1436,7 +1440,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
  {isTrial || isViewOnly ? (
- ['counter', 'starter', 'growth', 'business'].map(key => (
+ SELF_SERVE_PLANS.map(key => (
  <PlanCard
  key={key}
  planKey={key}
@@ -1750,7 +1754,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
  <div className="space-y-4">
  {feature_status?.map((feat) => {
- const targetPlan = FEATURE_UPGRADE_TARGET[feat.key] || 'growth';
+ const targetPlan = FEATURE_UPGRADE_TARGET[feat.key] || 'core';
  return (
  <div
  key={feat.key}
@@ -2044,10 +2048,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-b from-neutral-950 to-black border border-white/[0.06]">
  <div className="flex items-center gap-3 mb-2">
  <Calendar className="text-brand-400" size={24} />
- <h3 className="text-lg font-bold text-white">Professional Product Upload Service</h3>
+ <h3 className="text-lg font-bold text-white">{tt('Professional Product Upload Service')}</h3>
  </div>
  <p className="text-xs text-ink-muted leading-relaxed mb-8 max-w-xl">
- Let our catalog engineering team structure and upload your inventory. Use the calculator below to estimate the dynamic cost of importing your products.
+ Let our catalog engineering team structure and upload your inventory. Use the calculator below to estimate the dynamic cost of importing your {tt('products')}.
  </p>
 
  {/* Service Tiers Selection */}
@@ -2078,7 +2082,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pt-6 border-t border-white/[0.06]">
  <div className="space-y-4">
  <div>
- <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">How many products?</label>
+ <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">{tt('How many products?')}</label>
  <input
  type="number"
  placeholder="e.g. 100"
@@ -2113,7 +2117,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  <span className="text-white font-bold">+{fmt(extraBlocks * serviceTier.extraUSD, extraBlocks * serviceTier.extraPKR)}</span>
  </div>
  <div className="flex justify-between text-xs text-ink-muted">
- <span>Final Price Per Product:</span>
+ <span>{tt('Final Price Per Product:')}</span>
  <span className="text-white font-bold">{fmt(usdPricePerProduct, pkrPricePerProduct)}</span>
  </div>
  </div>
@@ -2139,7 +2143,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  Redirecting...
  </>
  ) : (
- `Order Setup Service (${fmt(usdTotalSetupCost, pkrTotalSetupCost)})`
+ `${tt('Order Setup Service')} (${fmt(usdTotalSetupCost, pkrTotalSetupCost)})`
  )}
  </button>
  </div>
@@ -2497,11 +2501,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  </div>
  <div className="grid grid-cols-2 gap-3">
  <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
- <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Staff Limit</span>
+ <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">{tt('Staff Limit')}</span>
  <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.staff_limit)}</span>
  </div>
  <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
- <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">Product (SKU) Limit</span>
+ <span className="text-3xs text-ink-muted font-bold uppercase tracking-wider">{tt('Product (SKU) Limit')}</span>
  <span className="text-sm font-bold text-white mt-0.5">{formatLimit(congratsPlan.limits?.sku_limit)}</span>
  </div>
  <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
@@ -2521,7 +2525,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  Premium Upgrades Activated:
  </div>
  <div className="space-y-2">
- {congratsPlanSlug === 'business' && (
+ {congratsPlanSlug === 'scale' && (
  <>
  <div className="flex items-center gap-2 text-xs text-neutral-300">
  <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
@@ -2537,7 +2541,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
  </div>
  </>
  )}
- {congratsPlanSlug === 'growth' && (
+ {congratsPlanSlug === 'core' && (
  <>
  <div className="flex items-center gap-2 text-xs text-neutral-300">
  <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />

@@ -3,6 +3,7 @@ import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { useDebounce } from 'use-debounce';
 import SmartCombobox from '@/Components/SmartCombobox';
+import { useTermText } from '@/lib/terms';
 
 /**
  * AsyncProductCombobox
@@ -23,6 +24,7 @@ export default function AsyncProductCombobox({
     ...props
 }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const isControlled = props.value !== undefined;
     const [internalQuery, setInternalQuery] = useState('');
     const query = isControlled ? props.value : internalQuery;
@@ -110,7 +112,7 @@ export default function AsyncProductCombobox({
                 if (onQueryChange) onQueryChange(val);
             }}
             loading={loading}
-            placeholder={placeholder}
+            placeholder={tt(placeholder)}
             displayKey="name"
             filterKey="name"
             disableLocalFiltering={true}

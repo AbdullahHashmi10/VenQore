@@ -3,9 +3,11 @@ import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
 import { ShoppingCart, ArrowLeft, CheckCircle, Printer, Calendar, MapPin, Truck, Play } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function PurchaseOrdersShow({ order }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [isIntaking, setIsIntaking] = useState(false);
     const [intakeQuantities, setIntakeQuantities] = useState(
         order.items.reduce((acc, item) => {
@@ -67,7 +69,7 @@ export default function PurchaseOrdersShow({ order }) {
                                     href={route('store.purchase-orders.edit', order.id)}
                                     className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-lg font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
                                 >
-                                    Edit Order
+                                    {tt('Edit Order')}
                                 </Link>
                             )}
                             {order.status !== 'received' && !isIntaking && (
@@ -106,7 +108,7 @@ export default function PurchaseOrdersShow({ order }) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="bg-surface p-6 rounded-xl border border-line">
                         <div className="flex items-center gap-3 mb-4 text-ink-muted font-bold text-sm uppercase tracking-wider">
-                            <Truck size={16} /> Supplier
+                            <Truck size={16} /> {tt('Supplier')}
                         </div>
                         <p className="text-lg font-bold text-ink">{order.supplier?.name}</p>
                         <p className="text-ink-muted text-sm mt-1">{order.supplier?.contact_person}</p>
@@ -145,7 +147,7 @@ export default function PurchaseOrdersShow({ order }) {
                     <table className="w-full">
                         <thead className="bg-app border-b border-line">
                             <tr>
-                                <th className="p-4 text-left text-xs font-bold text-ink-muted uppercase tracking-wider">Product</th>
+                                <th className="p-4 text-left text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Product')}</th>
                                 <th className="p-4 text-center text-xs font-bold text-ink-muted uppercase tracking-wider">Ordered Qty</th>
                                 <th className="p-4 text-center text-xs font-bold text-ink-muted uppercase tracking-wider">Received Qty</th>
                                 {isIntaking && <th className="p-4 text-center text-xs font-bold text-brand-500 uppercase tracking-wider w-36">This Intake</th>}

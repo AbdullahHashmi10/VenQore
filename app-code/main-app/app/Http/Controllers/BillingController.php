@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Plan;
 use App\Services\LemonSqueezyCheckoutService;
 use App\Services\PlanGate;
+use App\Support\PlanCatalog;
 use App\Support\Pricing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -228,7 +229,7 @@ class BillingController extends Controller
             'tenant' => [
                 'id'                   => $tenant->id,
                 'name'                 => $tenant->name,
-                'plan'                 => $tenant->plan,
+                'plan'                 => PlanCatalog::canonical($tenant->plan),
                 'status'               => $tenant->status,
                 'trial_ends_at'        => $tenant->trial_ends_at?->toIso8601String(),
                 'subscription_ends_at' => $tenant->subscription_ends_at?->toIso8601String(),
@@ -266,16 +267,19 @@ class BillingController extends Controller
             'mode' => 'admin',
             // The plan picked on the signup builder's plan step (null if they
             // chose "decide later"). Billing offers it first while on trial.
+            // Read from plan_limits.billing_intent — written by both the builder
+            // and the licensed store flow, so there is one source.
             'intended_plan' => (function () use ($tenant) {
-                $key = \App\Models\Setting::withoutGlobalScopes()
-                    ->where('tenant_id', $tenant->id)->where('key', 'intended_plan')->value('value');
-                $cfg = $key ? config("pricing.plans.{$key}") : null;
-                return $cfg ? [
+                $key = PlanCatalog::canonical($tenant->plan_limits['billing_intent']['plan'] ?? null);
+                return PlanCatalog::isSelfServe($key) ? [
                     'key'           => $key,
-                    'name'          => $cfg['name'] ?? ucfirst($key),
-                    'price_monthly' => (float) ($cfg['price_monthly'] ?? 0),
+                    'name'          => PlanCatalog::label($key),
+                    'price_monthly' => PlanCatalog::monthlyUsd($key),
                 ] : null;
             })(),
+            // Canonical slug of the current plan (legacy rows normalised), so the
+            // page never compares 'growth' against 'core'.
+            'current_plan'  => PlanCatalog::canonical($tenant->plan),
         ]);
     }
 
@@ -338,14 +342,15 @@ class BillingController extends Controller
         $checkoutService = app(LemonSqueezyCheckoutService::class);
 
         // Determine the target plan (default: next tier up)
-        $targetPlan = strtolower($request->get('plan', match($tenant->plan) {
-            'starter' => 'growth',
-            'growth'  => 'business',
-            default   => 'growth',
-        }));
+        // Canonical slugs only (PlanCatalog). A legacy slug in the request
+        // (growth/business/counter) is normalised, never trusted as-is.
+        $requested  = strtolower(trim((string) $request->get('plan', '')));
+        $targetPlan = $requested !== ''
+            ? PlanCatalog::canonical($requested)
+            : (PlanCatalog::isSelfServe($tenant->plan) ? (PlanCatalog::next($tenant->plan) ?? 'scale') : 'core');
 
         if ($targetPlan === 'enterprise') {
-            $targetPlan = 'business';
+            $targetPlan = 'scale';
         }
 
         // Read the billing cycle: 'monthly' (default) or 'annual'
@@ -413,7 +418,7 @@ class BillingController extends Controller
                 // Annual PKR: try annual_pkr_url → annual_url → fallback to monthly PKR
                 $url = ($planModel && $planModel->checkout_url_annual_pkr)
                     ? $planModel->checkout_url_annual_pkr
-                    : match ($targetPlan) {
+                    : match (PlanCatalog::legacyConfigKey($targetPlan)) {
                         'starter'  => config('services.lemon_squeezy.starter_annual_pkr_url') ?: config('services.lemon_squeezy.starter_pkr_url') ?: config('services.lemon_squeezy.starter_checkout_url'),
                         'growth'   => config('services.lemon_squeezy.growth_annual_pkr_url') ?: config('services.lemon_squeezy.growth_pkr_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
                         'business' => config('services.lemon_squeezy.business_annual_pkr_url') ?: config('services.lemon_squeezy.business_pkr_url') ?: config('services.lemon_squeezy.business_checkout_url'),
@@ -422,7 +427,7 @@ class BillingController extends Controller
             } else {
                 $url = ($planModel && $planModel->checkout_url_pkr)
                     ? $planModel->checkout_url_pkr
-                    : match ($targetPlan) {
+                    : match (PlanCatalog::legacyConfigKey($targetPlan)) {
                         'starter'  => config('services.lemon_squeezy.starter_pkr_url') ?: config('services.lemon_squeezy.starter_checkout_url'),
                         'growth'   => config('services.lemon_squeezy.growth_pkr_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
                         'business' => config('services.lemon_squeezy.business_pkr_url') ?: config('services.lemon_squeezy.business_checkout_url'),
@@ -434,7 +439,7 @@ class BillingController extends Controller
                 // Annual USD: try annual_checkout_url → fallback to monthly
                 $url = ($planModel && $planModel->checkout_url_annual)
                     ? $planModel->checkout_url_annual
-                    : match ($targetPlan) {
+                    : match (PlanCatalog::legacyConfigKey($targetPlan)) {
                         'starter'  => config('services.lemon_squeezy.starter_annual_checkout_url') ?: config('services.lemon_squeezy.starter_checkout_url'),
                         'growth'   => config('services.lemon_squeezy.growth_annual_checkout_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
                         'business' => config('services.lemon_squeezy.business_annual_checkout_url') ?: config('services.lemon_squeezy.business_checkout_url'),
@@ -443,7 +448,7 @@ class BillingController extends Controller
             } else {
                 $url = ($planModel && $planModel->checkout_url_usd)
                     ? $planModel->checkout_url_usd
-                    : match ($targetPlan) {
+                    : match (PlanCatalog::legacyConfigKey($targetPlan)) {
                         'starter'  => config('services.lemon_squeezy.starter_checkout_url'),
                         'growth'   => config('services.lemon_squeezy.growth_checkout_url'),
                         'business' => config('services.lemon_squeezy.business_checkout_url'),
@@ -901,11 +906,13 @@ class BillingController extends Controller
         }
 
         $request->validate([
-            'plan' => 'required|string|in:counter,starter,growth,business',
+            'plan' => 'required|string|in:solo,starter,core,scale,counter,growth,business',
         ]);
 
-        $targetPlan = $request->input('plan');
-        $currentPlan = $tenant->plan;
+        // Compare canonical slugs only — a store still holding a legacy slug
+        // (growth/business) must be recognised as the same tier.
+        $targetPlan = PlanCatalog::canonical($request->input('plan'));
+        $currentPlan = PlanCatalog::canonical($tenant->plan);
 
         if ($targetPlan === $currentPlan) {
             if ($request->expectsJson()) {
@@ -914,9 +921,9 @@ class BillingController extends Controller
             return back()->with('error', 'You are already on the ' . ucfirst($targetPlan) . ' plan.');
         }
 
-        $planOrder = ['trial', 'counter', 'starter', 'growth', 'business'];
-        $currentIdx = array_search($currentPlan, $planOrder);
-        $targetIdx = array_search($targetPlan, $planOrder);
+        $planOrder = array_merge(['trial'], PlanCatalog::SELF_SERVE);
+        $currentIdx = array_search($currentPlan, $planOrder, true);
+        $targetIdx = array_search($targetPlan, $planOrder, true);
 
         if ($currentIdx === false || $targetIdx === false) {
             if ($request->expectsJson()) {
@@ -950,12 +957,11 @@ class BillingController extends Controller
         $targetPlanModel = Plan::where('slug', $targetPlan)->first();
         $currentPlanModel = Plan::where('slug', $currentPlan)->first();
 
-        $fallbackPrices = [
-            'trial'    => 0.00,
-            'starter'  => 36.00,
-            'growth'   => 63.00,
-            'business' => 129.00,
-        ];
+        // List prices from config/pricing.php (the same source as the pricing page).
+        $fallbackPrices = ['trial' => 0.00];
+        foreach (PlanCatalog::SELF_SERVE as $slug) {
+            $fallbackPrices[$slug] = PlanCatalog::monthlyUsd($slug);
+        }
 
         $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);
         if ($targetPlanModel && $currentPlanModel) {

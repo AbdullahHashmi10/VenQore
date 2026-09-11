@@ -9,6 +9,7 @@ import {
 import Toggle from '@/Components/Toggle';
 import SectionHeader from '@/Components/SectionHeader';
 import TerminalPairingSection from '@/Components/Settings/TerminalPairingSection';
+import { useTermText } from '@/lib/terms';
 
 const SETTINGS_CATEGORIES = [
  {
@@ -47,6 +48,7 @@ export default function SettingsPanel({ settings }) {
  const { auth } = usePage().props;
  // Check if user is admin. matches original logic
  const isAdmin = auth.user.role === 'admin' || auth.user.role === 'owner' || auth.user.role === 'platform_admin';
+ const tt = useTermText();
 
  const [activeSection, setActiveSection] = useState('general');
  const [saved, setSaved] = useState(false);
@@ -285,7 +287,7 @@ export default function SettingsPanel({ settings }) {
  />
  </div>
  <div className="space-y-2">
- <label className="block text-sm font-bold text-ink-secondary mb-2">Auto-Update Product Cost</label>
+ <label className="block text-sm font-bold text-ink-secondary mb-2">{tt('Auto-Update Product Cost')}</label>
  <select
  value={data.product_cost_update_policy}
  onChange={(e) => setData('product_cost_update_policy', e.target.value)}
@@ -395,7 +397,7 @@ export default function SettingsPanel({ settings }) {
  className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  >
  <option value="reference">Reference Number Required</option>
- <option value="customer_or_reference">Customer or Reference</option>
+ <option value="customer_or_reference">{tt('Customer or Reference')}</option>
  <option value="open">Open Return — No Reference Needed</option>
  </select>
  </div>
@@ -547,7 +549,7 @@ export default function SettingsPanel({ settings }) {
  />
  </div>
  <div>
- <label className="block text-sm font-bold text-ink-secondary mb-2">Single Sign-On Service URL</label>
+ <label className="block text-sm font-bold text-ink-secondary mb-2">{tt('Single Sign-On Service URL')}</label>
  <input
  type="text"
  value={data.sso_url}

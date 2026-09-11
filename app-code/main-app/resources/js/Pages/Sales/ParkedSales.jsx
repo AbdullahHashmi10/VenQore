@@ -8,9 +8,11 @@ import StatCard, { StatCardGrid } from '@/Components/StatCard';
 import { PauseCircle, Play, Trash2, ShoppingCart, Clock, DollarSign, Users } from 'lucide-react';
 import axios from 'axios';
 import SellModuleTabs from '@/Components/SellModuleTabs';
+import { useTermText } from '@/lib/terms';
 
 export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     // Format currency
 
 
@@ -46,7 +48,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
         },
         {
             key: 'customer',
-            label: 'Customer',
+            label: tt('Customer'),
             render: (value) => (
                 <div>
                     <p className="font-semibold text-ink">{value?.name || 'Walk-in'}</p>
@@ -147,11 +149,11 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
                             subtitle="Parked today"
                         />
                         <StatCard
-                            title="With Customers"
+                            title={tt('With Customers')}
                             value={stats.with_customer || 0}
                             icon={Users}
                             iconColor="purple"
-                            subtitle="Has customer info"
+                            subtitle={tt('Has customer info')}
                         />
                     </StatCardGrid>
 

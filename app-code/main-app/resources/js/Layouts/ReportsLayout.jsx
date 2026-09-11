@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { useTermText } from '@/lib/terms';
 import {
  BarChart2, PieChart, TrendingUp, Activity, FileText, Calendar,
  AlertTriangle, Package, DollarSign, BookOpen, Scale, Users,
@@ -88,6 +89,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
  } = usePage().props;
 
  const { url } = usePage();
+ const tt = useTermText();
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
  const [expandedGroups, setExpandedGroups] = useState(REPORT_GROUPS.map((_, i) => i)); // All expanded by default
 
@@ -154,7 +156,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
  >
  <div className="flex items-center gap-2">
  <GroupIcon size={10} />
- {group.title}
+ {tt(group.title)}
  </div>
  <ChevronRight size={10} className={`transition-transform duration-normal ${isExpanded ? 'rotate-90' : ''}`} />
  </button>
@@ -170,7 +172,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
  <Link
  key={rIdx}
  href={report.route.startsWith('platform.') ? route(report.route) : (store?.slug ? route(report.route, { store_slug: store.slug }) : '#')}
- title={sidebarCollapsed ? report.title : undefined}
+ title={sidebarCollapsed ? tt(report.title) : undefined}
  className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2 px-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
  ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
  : 'text-ink-muted hover:bg-white/5 hover:text-white border-transparent'
@@ -186,7 +188,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
 
  {!sidebarCollapsed && (
  <div className="relative z-10 flex-1 min-w-0">
- <p className={`text-1xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-300'}`}>{report.title}</p>
+ <p className={`text-1xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-300'}`}>{tt(report.title)}</p>
  </div>
  )}
  </Link>

@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import axios from 'axios';
 import { usePage } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
 
 export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'customer', initialName = '', editingParty = null }) {
     const {
         store
     } = usePage().props;
 
+    const tt = useTermText();
     const [submitting, setSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
 
@@ -98,8 +100,8 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
     };
 
     const typeLabel = type === 'all'
-        ? (formData.type === 'customer' ? 'Customer' : 'Supplier')
-        : (type === 'customer' ? 'Customer' : 'Supplier');
+        ? (formData.type === 'customer' ? tt('Customer') : tt('Supplier'))
+        : (type === 'customer' ? tt('Customer') : tt('Supplier'));
 
     return (
         <FormModal
@@ -116,8 +118,8 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                             value={formData.type}
                             onChange={e => setFormData({ ...formData, type: e.target.value })}
                         >
-                            <option value="customer">Customer</option>
-                            <option value="supplier">Supplier</option>
+                            <option value="customer">{tt('Customer')}</option>
+                            <option value="supplier">{tt('Supplier')}</option>
                         </FormSelect>
                     </FormField>
                 )}

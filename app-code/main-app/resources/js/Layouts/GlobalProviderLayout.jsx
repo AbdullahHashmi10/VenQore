@@ -180,6 +180,7 @@ function InnerGlobalLayout({ children, settings }) {
  '/create',
  '/edit',
  '/new-store',
+ '/build-workspace',
  '/setup',
  '/purchase-orders',
  '/sales-orders',

@@ -83,7 +83,7 @@ class SuperAdminController extends Controller
         $pricing = app(\App\Services\Platform\PlanPricingService::class);
         $planSlugs = \App\Models\Plan::orderBy('sort_order')->pluck('slug')->all();
         if (empty($planSlugs)) {
-            $planSlugs = ['trial', 'starter', 'growth', 'business', 'ltd'];
+            $planSlugs = array_merge(['trial'], \App\Support\PlanCatalog::ORDER, ['ltd']);
         }
         $planDist = collect($planSlugs)->map(function ($plan) use ($realTenants, $pricing) {
             $group = $realTenants->where('plan', $plan);

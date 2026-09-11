@@ -24,11 +24,13 @@ import {
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import SellModuleTabs from '@/Components/SellModuleTabs';
+import { useTermText } from '@/lib/terms';
 
 export default function InvoiceReminders({ reminders = { data: [], links: [] }, stats = {}, filters = {} }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
@@ -187,7 +189,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                         <div className="w-64 relative">
                             <input
                                 type="text"
-                                placeholder="Search by invoice or customer..."
+                                placeholder={tt('Search by invoice or customer...')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
@@ -244,7 +246,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                         <div className="w-full relative mt-1 border-t border-line pt-2">
                             <input
                                 type="text"
-                                placeholder="Search by invoice or customer..."
+                                placeholder={tt('Search by invoice or customer...')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
@@ -280,7 +282,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                             <thead className="bg-app text-ink-muted font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                                 <tr className="border-b border-line">
                                     <th className="px-6 py-3 text-left">Invoice</th>
-                                    <th className="px-6 py-3 text-left">Customer</th>
+                                    <th className="px-6 py-3 text-left">{tt('Customer')}</th>
                                     <th className="px-6 py-3 text-left">Scheduled For</th>
                                     <th className="px-6 py-3 text-center">Type</th>
                                     <th className="px-6 py-3 text-center">Status</th>
@@ -293,7 +295,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                                         <td colSpan="6" className="px-6 py-12 text-center">
                                             <Bell size={48} className="mx-auto text-neutral-300 dark:text-ink-secondary mb-4" />
                                             <p className="text-ink-muted font-medium">No scheduled reminders found</p>
-                                            <p className="text-ink-muted text-sm mt-1">Schedule a reminder to notify customers</p>
+                                            <p className="text-ink-muted text-sm mt-1">{tt('Schedule a reminder to notify customers')}</p>
                                             <Link
                                                 href={route('store.invoice-reminders.create', { store_slug: store.slug })}
                                                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors font-medium"
@@ -396,7 +398,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
 
                                     <div className="flex justify-between items-center border-t border-b border-line py-2.5">
                                         <div>
-                                            <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">Customer</p>
+                                            <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{tt('Customer')}</p>
                                             <div className="flex items-center gap-1 mt-0.5">
                                                 <User size={12} className="text-ink-muted" />
                                                 <span className="text-xs font-bold text-ink">{reminder.customer?.name || 'Unknown'}</span>

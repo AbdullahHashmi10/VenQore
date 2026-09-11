@@ -46,13 +46,15 @@ class MigrateTenantsToV4PlansCommand extends Command
             }
 
             // Mapping legacy slugs to V4 matrix
-            $newPlan = match ($oldPlan) {
-                'lite'       => 'counter',
-                'core'       => 'starter',
-                'pro'        => 'growth',
-                'ultimate'   => 'business',
-                default      => $oldPlan, // 'counter', 'starter', 'growth', 'business'
-            };
+            // 11 Sep 2026: 'core' is a live V11 tier now — the old pre-V4
+            // 'core' → 'starter' mapping would DOWNGRADE every Core store, so it
+            // is gone. Output is canonical (App\Support\PlanCatalog).
+            $newPlan = \App\Support\PlanCatalog::canonical(match ($oldPlan) {
+                'lite'       => 'solo',
+                'pro'        => 'core',
+                'ultimate'   => 'scale',
+                default      => $oldPlan,
+            });
 
             if ($oldPlan !== $newPlan) {
                 if (!$dryRun) {

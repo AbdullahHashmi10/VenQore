@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, usePage, router, Link } from '@inertiajs/react';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import '@/NewPos/newpos.css';
@@ -108,6 +108,7 @@ const POSInterface = ({
     const tableMode = terminal === 'table';
     const { auth, store, modules = [] } = usePage().props;
     const { t, tp } = useTerms();
+    const tt = useTermText();
     // Module-gated surface features. Unlisted modules never hide anything
     // here — same fail-open default EnsureModule and the nav filter use —
     // this only ever REMOVES a control whose owning module the tenant
@@ -3242,7 +3243,7 @@ const POSInterface = ({
                     <div>
                         <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Type</span>
                         <span className="vq-num text-xs font-bold leading-none text-brand-600 dark:text-brand-400">
-                            Service
+                            {tt('Service')}
                         </span>
                     </div>
                 ) : (
@@ -3357,7 +3358,7 @@ const POSInterface = ({
 
                 <span className="vq-tile-foot">
                     <span className={`vq-tile-stock${out ? ' is-out' : ''}`}>
-                        {isService ? 'Service' : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
+                        {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
                     </span>
                     <span className="vq-num vq-tile-price">
                         {money(product.price || product.selling_price || 0)}
@@ -5595,7 +5596,7 @@ const POSInterface = ({
                             {formatCurrency(overpaymentDetails.amount, store || settings)}
                         </div>
                         <p className="text-xs text-ink-muted">
-                            Customer paid extra. Choose action:
+                            {tt('Customer paid extra. Choose action:')}
                         </p>
                     </div>
 

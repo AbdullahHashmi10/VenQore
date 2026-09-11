@@ -3,9 +3,11 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { formatCurrency, formatDate } from '@/Utils/format';
 import { ArrowLeft, Printer, PackageMinus, FileWarning, BadgeCheck } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function DebitNoteShow({ note, stockMovements = [], bankAccounts = [] }) {
     const { store } = usePage().props;
+    const tt = useTermText();
 
     const [showRefundForm, setShowRefundForm] = useState(false);
     const [refundData, setRefundData] = useState({
@@ -80,7 +82,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
 
                 {showRefundForm && (
                     <div className="bg-surface rounded-2xl p-6 shadow-sm border border-brand-200 dark:border-brand-900 no-print">
-                        <h3 className="text-sm font-bold text-ink mb-4">Record Cash/Bank Refund from Supplier</h3>
+                        <h3 className="text-sm font-bold text-ink mb-4">{tt('Record Cash/Bank Refund from Supplier')}</h3>
                         <form onSubmit={handleRefundSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                             <div>
                                 <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Refund Method</label>
@@ -144,7 +146,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
                 <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                     <div className="flex items-start justify-between mb-6">
                         <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Supplier</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{tt('Supplier')}</p>
                             <p className="text-lg font-bold text-ink">{note?.supplier?.name || 'N/A'}</p>
                         </div>
                         <div className="text-right">
@@ -162,7 +164,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
                             <p className="text-sm font-medium text-ink">{note?.reason || '—'}</p>
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Linked Purchase Order</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{tt('Linked Purchase Order')}</p>
                             {note?.purchase ? (
                                 <Link
                                     href={route('store.purchase-orders.show', { store_slug: store?.slug, purchase_order: note.purchase_id })}
@@ -171,7 +173,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
                                     {note.purchase.reference_number || `PO #${note.purchase_id}`} →
                                 </Link>
                             ) : (
-                                <p className="text-sm text-ink-muted">Not linked to a purchase order</p>
+                                <p className="text-sm text-ink-muted">{tt('Not linked to a purchase order')}</p>
                             )}
                         </div>
                     </div>
@@ -186,7 +188,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-line text-xs font-bold text-ink-muted uppercase tracking-wider">
-                                    <th className="py-2">Product</th>
+                                    <th className="py-2">{tt('Product')}</th>
                                     <th className="py-2 text-center">Qty</th>
                                     <th className="py-2 text-right">Unit Price</th>
                                     <th className="py-2 text-right">Subtotal</th>
@@ -209,7 +211,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
                 {/* Stock Returned */}
                 <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                     <h3 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <PackageMinus size={16} /> Stock Returned to Supplier
+                        <PackageMinus size={16} /> {tt('Stock Returned to Supplier')}
                     </h3>
                     {stockMovements.length === 0 ? (
                         <p className="text-sm text-ink-muted">No stock was deducted for this note (pending approval, or a flat financial adjustment with no inventory impact).</p>
@@ -217,7 +219,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-line text-xs font-bold text-ink-muted uppercase tracking-wider">
-                                    <th className="py-2">Product</th>
+                                    <th className="py-2">{tt('Product')}</th>
                                     <th className="py-2 text-right">Qty Removed</th>
                                 </tr>
                             </thead>

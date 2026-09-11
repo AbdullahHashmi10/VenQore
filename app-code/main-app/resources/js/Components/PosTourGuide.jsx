@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Trophy } from 'lucide-react';
 import axios from 'axios';
+import { useTermText } from '@/lib/terms';
 
 export default function PosTourGuide({ store }) {
+ const tt = useTermText();
  const [hasCustomers, setHasCustomers] = useState(true);
  const [isCustomerCreationPath, setIsCustomerCreationPath] = useState(null);
  const [currentStep, setCurrentStep] = useState(0);
@@ -345,12 +347,12 @@ export default function PosTourGuide({ store }) {
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- You don't have any customers yet! Click on the Customer block.
+ {tt("You don't have any customers yet! Click on the Customer block.")}
  </p>
  )}
  {currentStep === 1 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Now click <span className="text-white font-bold">+ Add New Customer</span> in the search dropdown.
+ Now click <span className="text-white font-bold">{tt('+ Add New Customer')}</span> in the search dropdown.
  </p>
  )}
  {currentStep === 2 && (
@@ -370,12 +372,12 @@ export default function PosTourGuide({ store }) {
  )}
  {currentStep === 5 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">Create Customer</span> to save the customer.
+ Click <span className="text-white font-bold">{tt('Create Customer')}</span> to save the customer.
  </p>
  )}
  {currentStep === 6 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Great! Now move toward the <span className="text-white font-bold">Search Product</span> option and select the previously created product.
+ Great! Now move toward the <span className="text-white font-bold">{tt('Search Product')}</span> option and select the previously created product.
  </p>
  )}
  {currentStep === 7 && (
@@ -393,12 +395,12 @@ export default function PosTourGuide({ store }) {
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- First, select a <span className="text-white font-bold">Customer</span> for the POS transaction (default/walk-in customer is pre-selected).
+ First, select a <span className="text-white font-bold">{tt('Customer')}</span> for the POS transaction (default/walk-in customer is pre-selected).
  </p>
  )}
  {currentStep === 1 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Search and select a <span className="text-white font-bold">Product</span> to add to the shopping cart.
+ Search and select a <span className="text-white font-bold">{tt('Product')}</span> to add to the shopping cart.
  </p>
  )}
  {currentStep === 2 && (

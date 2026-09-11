@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Upload, FileSpreadsheet, Play, CheckCircle } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function ImportTourGuide({ store }) {
     // Detect page type from elements in DOM or window path
@@ -19,6 +20,7 @@ export default function ImportTourGuide({ store }) {
 
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
+    const tt = useTermText();
 
     // Save step to sessionStorage
     useEffect(() => {
@@ -150,7 +152,7 @@ export default function ImportTourGuide({ store }) {
                             </div>
 
                             <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
-                                Import Products in Bulk 📤
+                                {tt('Import Products in Bulk')} 📤
                             </h2>
 
                             <p className="text-ink-muted text-sm font-semibold mb-2">
@@ -158,7 +160,7 @@ export default function ImportTourGuide({ store }) {
                             </p>
 
                             <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
-                                Welcome to the bulk import wizard. If you have an Excel or CSV file containing your products, you can import them all at once. Let's walk you through the process!
+                                {tt("Welcome to the bulk import wizard. If you have an Excel or CSV file containing your products, you can import them all at once. Let's walk you through the process!")}
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-3 w-full">

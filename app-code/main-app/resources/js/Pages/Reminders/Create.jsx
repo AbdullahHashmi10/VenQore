@@ -14,9 +14,11 @@ import {
     CheckCircle
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function Create({ invoices = [] }) {
     const { store, settings } = usePage().props;
+    const tt = useTermText();
 
     const { data, setData, post, processing, errors } = useForm({
         invoice_id: '',
@@ -110,7 +112,7 @@ export default function Create({ invoices = [] }) {
                             {selectedInvoice && (
                                 <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-xl border border-orange-100 dark:border-orange-900/30 grid grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-xs text-ink-muted block">Customer</span>
+                                        <span className="text-xs text-ink-muted block">{tt('Customer')}</span>
                                         <span className="font-bold text-ink flex items-center gap-1.5 mt-0.5">
                                             <User size={14} className="text-ink-muted" />
                                             {selectedInvoice.party?.name || 'Unknown'}

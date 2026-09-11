@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Head, router, Link, usePage } from '@inertiajs/react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import ProductModal from '@/Components/ProductModal';
 import ProductTourGuide from '@/Components/ProductTourGuide';
@@ -35,6 +35,7 @@ import PasscodeModal from '@/Components/PasscodeModal';
 
 export default function Inventory({ products: serverProducts, filters, stats, warehouses, categories, attributes, tools }) {
     const { t, tp } = useTerms();
+    const tt = useTermText();
     const { flash, store } = usePage().props;
 
     // Infinite Scroll State
@@ -102,7 +103,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
     // Columns Configuration
     const [tableColumns, setTableColumns] = useState([
-        { key: 'name', label: 'Product / Service Name', width: '25%' },
+        { key: 'name', label: tt('Product / Service Name'), width: '25%' },
         { key: 'sku', label: 'SKU', width: '10%' },
         { key: 'category', label: 'Category', width: '15%' },
         { key: 'available_stock', label: 'Stock / Duration', width: '10%' },
@@ -318,7 +319,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     </button>
                     {!isStatsExpanded && (
                         <div className="flex items-center gap-3 text-xs font-bold">
-                            <span className="text-brand-600">{stats?.total_products?.toLocaleString() || 0} Products</span>
+                            <span className="text-brand-600">{stats?.total_products?.toLocaleString() || 0} {tt('Products')}</span>
                             <span className="text-amber-600">{stats?.low_stock_count?.toLocaleString() || 0} Low</span>
                         </div>
                     )}
@@ -331,7 +332,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Package size={16} />
                             </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Products</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Products')}</p>
                         </div>
                         <p className="text-base font-bold text-ink">{stats?.total_products?.toLocaleString() || 0}</p>
                     </div>
@@ -376,7 +377,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 onClick={() => handleTypeChange('standard')}
                                 className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${activeType === 'standard' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
                             >
-                                Products
+                                {tt('Products')}
                             </button>
                             <button
                                 type="button"
@@ -384,7 +385,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors flex items-center gap-1 ${activeType === 'service' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
                             >
                                 <Wrench size={11} />
-                                Services
+                                {tt('Services')}
                             </button>
                         </div>
 
@@ -440,16 +441,16 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             <button
                                 onClick={handleAddService}
                                 className="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95 font-bold text-xs"
-                                title="Add Service"
+                                title={tt('Add Service')}
                             >
-                                <Wrench size={13} /> Service
+                                <Wrench size={13} /> {tt('Service')}
                             </button>
                             <button
                                 id="tour-add-product"
                                 onClick={handleAddProduct}
                                 className="ml-1 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
                             >
-                                <Plus size={14} /> Product
+                                <Plus size={14} /> {tt('Product')}
                             </button>
                         </div>
                     </div>
@@ -463,7 +464,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         onKeyDown={handleServerSearch}
-                                        placeholder="Search products & services..."
+                                        placeholder={tt('Search products & services...')}
                                         className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
                                     />
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
@@ -509,10 +510,10 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                         <div className="flex items-center gap-1.5 border-l border-line pl-2">
                             <Link href={route('store.admin.data', { store_slug: store?.slug })} className="p-1.5 text-ink-muted hover:text-brand-600 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"><Upload size={16} /></Link>
                             <button onClick={handleAddService} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm ">
-                                <Wrench size={13} /> Add Service
+                                <Wrench size={13} /> {tt('Add Service')}
                             </button>
                             <button id="tour-add-product" onClick={handleAddProduct} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm ">
-                                <Plus size={14} /> Add Product
+                                <Plus size={14} /> {tt('Add Product')}
                             </button>
                         </div>
                     </div>
@@ -554,7 +555,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 <tr><td colSpan={tableColumns.length + 1} className="p-12 text-center text-ink-muted">
                                     <div className="flex flex-col items-center justify-center">
                                         <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-4"><Package size={32} className="text-ink-muted" /></div>
-                                        <p className="text-lg font-bold text-ink-secondary">No products or services found</p>
+                                        <p className="text-lg font-bold text-ink-secondary">{tt('No products or services found')}</p>
                                     </div>
                                 </td></tr>
                             ) : (
@@ -578,7 +579,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                                         <p className="font-semibold text-ink">{row.name}</p>
                                                                         {isService && (
                                                                             <span className="px-1.5 py-0.2 rounded text-3xs font-black uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
-                                                                                Service
+                                                                                {tt('Service')}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -660,7 +661,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     {sortedProducts.length === 0 ? (
                         <div className="bg-surface rounded-xl p-8 text-center border border-line">
                             <Package size={32} className="mx-auto text-ink-muted mb-2" />
-                            <p className="text-sm font-bold text-ink-secondary">No products or services found</p>
+                            <p className="text-sm font-bold text-ink-secondary">{tt('No products or services found')}</p>
                             <p className="text-xs text-ink-muted mt-1">Try adjusting your search or add a new item.</p>
                         </div>
                     ) : (
@@ -683,7 +684,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                     <h3 className="font-bold text-ink text-sm leading-tight">{row.name}</h3>
                                                     {isService && (
                                                         <span className="px-1.5 py-0.2 rounded text-3xs font-black uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
-                                                            Service
+                                                            {tt('Service')}
                                                         </span>
                                                     )}
                                                 </div>

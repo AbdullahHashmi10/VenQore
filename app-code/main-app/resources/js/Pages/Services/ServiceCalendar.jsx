@@ -19,6 +19,7 @@ import {
     Briefcase
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 const STATUS_META = {
     draft:          { label: 'Draft',          badge: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700' },
@@ -41,6 +42,7 @@ export default function ServiceCalendar({
 }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
+    const tt = useTermText();
 
     const [currentDate, setCurrentDate] = useState(() => new Date());
     const [viewMode, setViewMode] = useState('lanes'); // 'lanes' (Technician Swimlanes), 'week', 'agenda'
@@ -217,7 +219,7 @@ export default function ServiceCalendar({
                             Dispatch & Scheduling
                         </h1>
                         <p className="mt-1 text-xs text-ink-secondary">
-                            Allocate technician lanes, time slots, and track field appointments.
+                            {tt('Allocate technician lanes, time slots, and track field appointments.')}
                         </p>
                     </div>
 
@@ -306,7 +308,7 @@ export default function ServiceCalendar({
                                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
                                 className="border-0 bg-transparent py-0.5 text-xs font-medium text-ink focus:outline-none focus:ring-0"
                             >
-                                <option value="all">All Technicians</option>
+                                <option value="all">{tt('All Technicians')}</option>
                                 {employees.map((emp) => (
                                     <option key={emp.id} value={emp.id}>
                                         {emp.name}
@@ -358,7 +360,7 @@ export default function ServiceCalendar({
                                                     </div>
                                                     <div className="truncate">
                                                         <p className="truncate text-xs font-semibold text-ink">{emp.name}</p>
-                                                        <p className="text-2xs text-ink-muted">Technician</p>
+                                                        <p className="text-2xs text-ink-muted">{tt('Technician')}</p>
                                                     </div>
                                                 </div>
                                                 <button
@@ -549,7 +551,7 @@ export default function ServiceCalendar({
                                 <div className="p-12 text-center">
                                     <Briefcase size={36} className="mx-auto text-ink-muted/50 mb-3" />
                                     <p className="text-sm font-semibold text-ink">No scheduled appointments found</p>
-                                    <p className="mt-1 text-xs text-ink-secondary">Schedule a new job using Quick Book or Work Orders.</p>
+                                    <p className="mt-1 text-xs text-ink-secondary">{tt('Schedule a new job using Quick Book or Work Orders.')}</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-line">
@@ -586,7 +588,7 @@ export default function ServiceCalendar({
                                                         <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-ink-secondary">
                                                             <span className="flex items-center gap-1">
                                                                 <User size={12} className="text-ink-muted" />
-                                                                {job.party?.name || 'Walk-in Customer'}
+                                                                {job.party?.name || tt('Walk-in Customer')}
                                                             </span>
                                                             {tech && (
                                                                 <span className="flex items-center gap-1 font-medium text-accent-text">
@@ -636,10 +638,10 @@ export default function ServiceCalendar({
                             <div>
                                 <h3 className="font-display text-lg font-semibold text-ink flex items-center gap-2">
                                     <Sparkles size={18} className="text-accent-text" />
-                                    Quick Book Service Appointment
+                                    {tt('Quick Book Service Appointment')}
                                 </h3>
                                 <p className="mt-0.5 text-xs text-ink-secondary">
-                                    Schedule a service job with auto-pricing and lane dispatching.
+                                    {tt('Schedule a service job with auto-pricing and lane dispatching.')}
                                 </p>
                             </div>
                             <button
@@ -655,7 +657,7 @@ export default function ServiceCalendar({
                             {/* Catalog Service Quick Picker */}
                             <div>
                                 <label className="mb-1.5 block text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                    Select Catalog Service (Optional)
+                                    {tt('Select Catalog Service (Optional)')}
                                 </label>
                                 <select
                                     value={quickBookForm.service_product_id}
@@ -674,7 +676,7 @@ export default function ServiceCalendar({
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <div>
                                     <label className="mb-1.5 block text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                        Job Title / Summary *
+                                        {tt('Job Title / Summary *')}
                                     </label>
                                     <input
                                         type="text"
@@ -688,7 +690,7 @@ export default function ServiceCalendar({
 
                                 <div>
                                     <label className="mb-1.5 block text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                        Assign Technician
+                                        {tt('Assign Technician')}
                                     </label>
                                     <select
                                         value={quickBookForm.technician_id}
@@ -836,7 +838,7 @@ export default function ServiceCalendar({
                                 </div>
 
                                 <div className="rounded-lg border border-line bg-app p-3">
-                                    <p className="text-2xs font-semibold uppercase tracking-wider text-ink-muted">Technician & Schedule</p>
+                                    <p className="text-2xs font-semibold uppercase tracking-wider text-ink-muted">{tt('Technician & Schedule')}</p>
                                     <p className="mt-1 font-semibold text-ink">
                                         {selectedJob.assignments?.[0]?.employee?.name || 'Unassigned'}
                                     </p>
@@ -878,7 +880,7 @@ export default function ServiceCalendar({
                                 href={route('store.service-jobs.show', { store_slug: storeSlug, serviceJob: selectedJob.id })}
                                 className="inline-flex items-center gap-1.5 rounded-lg bg-accent-fill px-4 py-2 text-xs font-semibold text-accent-on shadow-glow hover:bg-accent-fill-hover"
                             >
-                                <span>Open Full Job</span>
+                                <span>{tt('Open Full Job')}</span>
                                 <ExternalLink size={13} />
                             </Link>
                         </div>

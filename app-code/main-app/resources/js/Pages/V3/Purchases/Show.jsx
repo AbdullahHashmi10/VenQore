@@ -1,6 +1,7 @@
 import { usePage, Link, router } from '@inertiajs/react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { purchaseStanding } from '@/Domain/purchase/settlement';
+import { useTermText } from '@/lib/terms';
 
 /**
  * V3 CONSOLIDATION Phase 2 — parity with the legacy Purchases/Show screen.
@@ -36,6 +37,7 @@ export default function PurchaseShow({
     settlement = null,
 }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const isCancelled = purchase.workflow_status === 'cancelled';
     const canReceive = ['pending', 'partial'].includes(purchase.workflow_status);
     /* From the server's settlement summary — the badge's own reading — so a
@@ -118,7 +120,7 @@ export default function PurchaseShow({
             {/* Header info */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-sunken rounded border">
                 <div>
-                    <p className="text-sm text-ink-muted">Supplier</p>
+                    <p className="text-sm text-ink-muted">{tt('Supplier')}</p>
                     <p className="font-medium">{purchase.supplier_name}</p>
                 </div>
                 <div>
@@ -176,7 +178,7 @@ export default function PurchaseShow({
             <table className="w-full border-collapse border border-line mb-6">
                 <thead className="bg-sunken">
                     <tr>
-                        <th className="border border-line px-4 py-2 text-left">Product</th>
+                        <th className="border border-line px-4 py-2 text-left">{tt('Product')}</th>
                         <th className="border border-line px-4 py-2 text-right">Qty</th>
                         <th className="border border-line px-4 py-2 text-right">Received</th>
                         <th className="border border-line px-4 py-2 text-right">Unit Cost</th>

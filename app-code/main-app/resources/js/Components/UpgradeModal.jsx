@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Zap, X, Check, ArrowRight, Crown, Sparkles, Lock } from 'lucide-react';
 import Modal from '@/Components/Modal';
 import { usePage } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
+import { normalizePlan, nextPlan, planLabel, planRank, SELF_SERVE_PLANS, PLAN_PERKS } from '@/lib/plans';
 
 /**
  * UpgradeModal — V6 Global Lock Modal
@@ -21,9 +23,10 @@ export default function UpgradeModal() {
     const [portalUrl, setPortalUrl] = useState('#');
     const [currentCount, setCurrentCount] = useState(null);
     const [limit, setLimit] = useState(null);
-    const [upgradeTarget, setUpgradeTarget] = useState('growth');
+    const [upgradeTarget, setUpgradeTarget] = useState('core');
 
     const { flash, limit_grace_status, store } = usePage().props;
+    const tt = useTermText();
 
     // Listen for custom event from Axios interceptor & UI triggers
     useEffect(() => {
@@ -31,13 +34,13 @@ export default function UpgradeModal() {
             const data = e.detail || {};
             setFeature(data.feature || null);
             setMessage(data.message || 'You have reached a limit on your current plan.');
-            setCurrentPlan(data.current_plan || store?.plan || 'starter');
+            setCurrentPlan(normalizePlan(data.current_plan || store?.plan || 'starter'));
             setUpgradeUrl(data.upgrade_url || (store?.slug ? `/stores/${store.slug}/billing` : '/billing'));
             setBillingUrl(data.billing_url || (store?.slug ? `/stores/${store.slug}/billing` : '/billing'));
             setPortalUrl(data.portal_url || '#');
             setCurrentCount(data.current_count ?? null);
             setLimit(data.limit ?? null);
-            setUpgradeTarget(data.upgrade_target || 'growth');
+            setUpgradeTarget(normalizePlan(data.upgrade_target || ''));
             setIsOpen(true);
         };
 
@@ -51,50 +54,31 @@ export default function UpgradeModal() {
             const data = flash.plan_limit;
             setFeature(data.feature || null);
             setMessage(data.message || 'You have reached a limit on your current plan.');
-            setCurrentPlan(data.current_plan || store?.plan || 'starter');
+            setCurrentPlan(normalizePlan(data.current_plan || store?.plan || 'starter'));
             setUpgradeUrl(data.upgrade_url || (store?.slug ? `/stores/${store.slug}/billing` : '/billing'));
             setBillingUrl(data.billing_url || (store?.slug ? `/stores/${store.slug}/billing` : '/billing'));
             setPortalUrl(data.portal_url || '#');
             setCurrentCount(data.current_count ?? null);
             setLimit(data.limit ?? null);
-            setUpgradeTarget(data.upgrade_target || 'growth');
+            setUpgradeTarget(normalizePlan(data.upgrade_target || ''));
             setIsOpen(true);
         }
     }, [flash, store]);
 
-    const planPerks = {
-        growth: [
-            '50,000 product SKUs',
-            'Up to 3 full staff seats (till logins unlimited)',
-            'Up to 3 store locations',
-            'Multi-branch operations & stock transfers',
-            'Manufacturing, BOM & production runs',
-            'Growth signals & owner’s daily pulse',
-            'Customer loyalty & digital gift cards',
-            'Recurring invoices, bank rec & e-invoicing',
-            '4,000 monthly AI credits',
-        ],
-        business: [
-            '250,000 product SKUs',
-            'Up to 10 full staff seats',
-            'Up to 10 store locations',
-            'Public REST API & Webhooks',
-            'White-label customization',
-            'Security activity log & audit trail',
-            'Custom role permissions',
-            'Serial / IMEI tracking',
-            '9,000 monthly AI credits',
-        ],
-    };
-
-    const upgradeTo = upgradeTarget || ((currentPlan === 'starter' || currentPlan === 'ltd_1') ? 'growth' : 'business');
-    const isHighestTier = currentPlan === 'business' || currentPlan === 'custom';
-    const upgradeLabel = isHighestTier ? 'Enterprise Support' : (upgradeTo === 'business' ? 'Scale' : 'Growth');
-    const upgradePerks = planPerks[upgradeTo] || planPerks.growth;
+    /* Canonical tiers only (lib/plans). The server's upgrade_target wins when it
+       names a higher self-serve tier; otherwise the next tier up. */
+    const upgradeTo =
+        SELF_SERVE_PLANS.includes(upgradeTarget) && planRank(upgradeTarget) > planRank(currentPlan)
+            ? upgradeTarget
+            : nextPlan(currentPlan) || 'custom';
+    const isHighestTier = upgradeTo === 'custom';
+    const isTopTierStyle = upgradeTo === 'scale';
+    const upgradeLabel = isHighestTier ? 'Enterprise Support' : planLabel(upgradeTo);
+    const upgradePerks = PLAN_PERKS[upgradeTo] || PLAN_PERKS.core;
 
     const featureLabels = {
-        sku_limit: { icon: '📦', label: 'Product SKU Limit' },
-        staff_limit: { icon: '👤', label: 'Full Staff Seat Limit' },
+        sku_limit: { icon: '📦', label: tt('Product SKU Limit') },
+        staff_limit: { icon: '👤', label: tt('Full Staff Seat Limit') },
         locations: { icon: '🏪', label: 'Store Location Limit' },
         location_limit: { icon: '🏪', label: 'Store Location Limit' },
         multi_branch: { icon: '🌐', label: 'Multi-Branch Operations' },
@@ -131,16 +115,17 @@ export default function UpgradeModal() {
     const featureMeta = getFeatureMeta(feature);
 
     const planColors = {
+        solo: 'text-ink-muted',
         starter: 'text-ink-muted',
-        growth: 'text-brand-400',
-        business: 'text-amber-400',
+        core: 'text-brand-400',
+        scale: 'text-amber-400',
     };
 
     const displayCount = currentCount || (limit_grace_status?.is_over_limit && limit_grace_status?.exceeded_feature === feature ? limit_grace_status.current_count : null);
     const displayLimit = limit || (limit_grace_status?.is_over_limit && limit_grace_status?.exceeded_feature === feature ? limit_grace_status.limit : null);
 
     let unitName = 'items';
-    if (feature === 'sku_limit') unitName = 'Products';
+    if (feature === 'sku_limit') unitName = tt('Products');
     else if (feature === 'staff_limit') unitName = 'Full Seats';
     else if (feature === 'locations' || feature === 'location_limit') unitName = 'Locations';
 
@@ -177,7 +162,7 @@ export default function UpgradeModal() {
                                     </span>
                                 )}
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-neutral-800 border border-neutral-700 ${planColors[currentPlan] || 'text-white'}`}>
-                                    {currentPlan === 'business' ? 'Scale' : currentPlan} plan
+                                    {planLabel(currentPlan)} plan
                                 </span>
                             </div>
 
@@ -187,7 +172,7 @@ export default function UpgradeModal() {
                                 ) : (
                                     <>
                                         Available in{' '}
-                                        <span className={upgradeTo === 'business' ? 'text-amber-400' : 'text-brand-400'}>
+                                        <span className={isTopTierStyle ? 'text-amber-400' : 'text-brand-400'}>
                                             {upgradeLabel}
                                         </span>
                                     </>
@@ -202,13 +187,13 @@ export default function UpgradeModal() {
                     {/* Perks Grid */}
                     <div className="bg-neutral-800/60 backdrop-blur-sm border border-neutral-700/50 rounded-xl p-5 mb-6">
                         <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <Crown size={12} className={upgradeTo === 'business' ? 'text-amber-400' : 'text-brand-400'} />
+                            <Crown size={12} className={isTopTierStyle ? 'text-amber-400' : 'text-brand-400'} />
                             Included in {upgradeLabel}
                         </p>
                         <div className="grid grid-cols-1 gap-2.5">
                             {upgradePerks.map((perk, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${upgradeTo === 'business' ? 'bg-amber-500/15 text-amber-400' : 'bg-brand-500/15 text-brand-400'}`}>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${isTopTierStyle ? 'bg-amber-500/15 text-amber-400' : 'bg-brand-500/15 text-brand-400'}`}>
                                         <Check size={11} strokeWidth={3} />
                                     </div>
                                     <span className="text-sm text-neutral-300">{perk}</span>
@@ -222,7 +207,7 @@ export default function UpgradeModal() {
                         <a
                             href={upgradeUrl}
                             className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all shadow-lg ${
-                                upgradeTo === 'business'
+                                isTopTierStyle
                                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400'
                                     : 'bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500'
                             }`}

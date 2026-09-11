@@ -1,8 +1,10 @@
 import { usePage } from '@inertiajs/react';
 import React from 'react';
 import { Sparkles, Check, AlertTriangle, Globe } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function AiSettingsSection({ data, setData, handleVerifyKey, verifyingKey, verificationResult }) {
+ const tt = useTermText();
  return (
  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
  {/* Compact Banner */}
@@ -186,7 +188,7 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
  <div className="space-y-4 pt-2 border-t border-line">
  <div className="flex items-center justify-between py-2">
  <div>
- <span className="text-sm font-bold text-ink block">Opt out of Shared Product Catalog</span>
+ <span className="text-sm font-bold text-ink block">{tt('Opt out of Shared Product Catalog')}</span>
  <span className="text-xs text-ink-muted">Do not contribute anonymized SKU names/barcodes to global catalog matching</span>
  </div>
  <input

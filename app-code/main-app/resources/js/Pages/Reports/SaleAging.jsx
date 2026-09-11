@@ -11,7 +11,9 @@ import {
 import { formatCurrency } from '@/Utils/format';
 
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 export default function SaleAging({ invoices = [], filters = {} }) {
+    const tt = useTermText();
     const {
         store
     } = usePage().props;
@@ -218,7 +220,7 @@ export default function SaleAging({ invoices = [], filters = {} }) {
                                 <thead className="bg-app sticky top-0 z-10 backdrop-blur-sm">
                                     <tr>
                                         <SortableHeader label="Invoice" colKey="invoice_number" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Customer" colKey="party" currentSort={sortBy} onSort={handleSort} />
+                                        <SortableHeader label={tt('Customer')} colKey="party" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Owed Amount" colKey="amount" align="right" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Days Old" colKey="days" align="center" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Status" colKey="category" align="center" currentSort={sortBy} onSort={handleSort} />

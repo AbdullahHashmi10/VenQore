@@ -35,8 +35,10 @@ import {
  Cell,
  Legend
 } from 'recharts';
+import { useTermText } from '@/lib/terms';
 
 export default function PurchasesReport({ purchases = [], stats = {}, filters = {}, suppliers = [] }) {
+ const tt = useTermText();
  const {
  store
  } = usePage().props;
@@ -202,7 +204,7 @@ export default function PurchasesReport({ purchases = [], stats = {}, filters = 
  <Wallet className="text-brand-500" />
  Purchases & Expenses
  </h1>
- <p className="text-sm text-ink-muted">Track spending, manage suppliers, and analyze costs</p>
+ <p className="text-sm text-ink-muted">{tt('Track spending, manage suppliers, and analyze costs')}</p>
  </div>
 
  <div className="flex flex-wrap items-center gap-3">
@@ -210,7 +212,7 @@ export default function PurchasesReport({ purchases = [], stats = {}, filters = 
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
  <input
  type="text"
- placeholder="Search bills or suppliers..."
+ placeholder={tt('Search bills or suppliers...')}
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  className="pl-9 pr-4 py-2 text-sm border border-line rounded-lg bg-surface text-ink focus:ring-2 focus:ring-brand-500 w-64"
@@ -310,7 +312,7 @@ export default function PurchasesReport({ purchases = [], stats = {}, filters = 
  <tr>
  <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">Date</th>
  <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">Invoice #</th>
- <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">Supplier</th>
+ <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider">{tt('Supplier')}</th>
  <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider text-right">Total</th>
  <th className="p-3 text-xs font-semibold text-ink-muted uppercase tracking-wider text-right">Status</th>
  </tr>
@@ -390,7 +392,7 @@ export default function PurchasesReport({ purchases = [], stats = {}, filters = 
 
  {/* Chart: Top Suppliers (Flex to fill remaining space) */}
  <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
- <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Top Spending (Suppliers)</h3>
+ <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">{tt('Top Spending (Suppliers)')}</h3>
  <div className="flex-1 w-full min-h-0">
  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
  <BarChart data={chartData.suppliers} layout="vertical" margin={{ left: 0, right: 30 }}>

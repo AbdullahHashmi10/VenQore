@@ -8,6 +8,7 @@ import {
     Clock, AlertTriangle, Mail, Key, X, ChevronDown,
     Send, RotateCcw, UserCheck, UserMinus, Zap
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 // ─── Role Config ─────────────────────────────────────────────────────────────
 const ROLES = {
@@ -355,6 +356,7 @@ function MemberRow({ member, storeId, canManage, myRole }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function StaffIndex({ members, join_code, store_id }) {
     const { my_role, auth, flash } = usePage().props;
+    const tt = useTermText();
     const [showInvite, setShowInvite] = useState(false);
     const [codeCopied, setCodeCopied] = useState(false);
     const [search, setSearch] = useState('');
@@ -380,7 +382,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
 
     return (
         <OneGlanceLayout mode="admin" activeMenu="Staff Management">
-            <Head title="Staff Management" />
+            <Head title={tt('Staff Management')} />
             {showInvite && <InviteModal storeId={store_id} onClose={() => setShowInvite(false)} />}
 
             <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px 64px' }}>
@@ -409,7 +411,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(99,102,241,0.4)'; }}
                             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(99,102,241,0.3)'; }}
                         >
-                            <UserPlus size={15} /> Invite Staff
+                            <UserPlus size={15} /> {tt('Invite Staff')}
                         </button>
                     )}
                 </div>
@@ -438,7 +440,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                                 {codeCopied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
                                 {codeCopied ? 'Copied!' : 'Copy'}
                             </button>
-                            <div style={{ fontSize: 11, color: vq.slate[400], maxWidth: 120 }}>Staff can join instantly at the Join page</div>
+                            <div style={{ fontSize: 11, color: vq.slate[400], maxWidth: 120 }}>{tt('Staff can join instantly at the Join page')}</div>
                         </div>
                     )}
                 </div>
@@ -461,7 +463,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                                     <td colSpan={6} style={{ padding: '48px', textAlign: 'center' }}>
                                         <Users size={32} color={vq.slate[200]} style={{ margin: '0 auto 12px' }} />
                                         <div style={{ color: vq.slate[400], fontSize: 14 }}>
-                                            {search ? 'No members match your search.' : 'No team members yet. Invite your first staff member!'}
+                                            {search ? 'No members match your search.' : tt('No team members yet. Invite your first staff member!')}
                                         </div>
                                     </td>
                                 </tr>

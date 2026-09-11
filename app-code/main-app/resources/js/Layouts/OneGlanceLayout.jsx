@@ -81,11 +81,13 @@ import { useAppearance } from '@/Contexts/AppearanceContext';
 import LimitGraceBanner from '@/Components/LimitGraceBanner';
 import ActivityHubModal from '@/Components/ActivityHubModal';
 import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
+import { useTermText } from '@/lib/terms';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
  const {
  store
  } = usePage().props;
+ const tt = useTermText();
 
  const isStarterOrLtd1 = store?.plan === 'starter' || store?.plan === 'ltd_1';
 
@@ -350,7 +352,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const isEditFlow = path.includes('/edit');
  const isReturnFlow = path.includes('/return') && !path.includes('/returns-history');
  const isRefundFlow = path.includes('/refund');
- const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start');
+ const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start') || path.includes('/build-workspace');
 
  if (isCreateFlow || isEditFlow || isReturnFlow || isRefundFlow || isSetupFlow) {
  return false;
@@ -410,7 +412,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  return [
  { label: 'Invoices List', href: 'store.sales.index', icon: <FileText size={14} /> },
  { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
- { label: 'Sales Orders', href: 'store.pre-sales.index', icon: <ShoppingCart size={14} /> },
+ { label: tt('Sales Orders'), href: 'store.pre-sales.index', icon: <ShoppingCart size={14} /> },
  { label: 'Proposals', href: 'store.proposals.index', icon: <FileText size={14} /> },
  { label: 'Return History', href: 'store.returns-history.index', icon: <History size={14} /> },
  { label: 'Invoice Reminders', href: 'store.invoice-reminders.index', icon: <Clock size={14} /> },
@@ -420,7 +422,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  return [
  { label: 'Purchases List', href: 'store.purchases.index', icon: <ShoppingBag size={14} /> },
  { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
- { label: 'Purchase Orders', href: 'store.purchase-orders.index', icon: <FileText size={14} /> },
+ { label: tt('Purchase Orders'), href: 'store.purchase-orders.index', icon: <FileText size={14} /> },
  { label: 'Debit Notes', href: 'store.debit-notes.index', icon: <CreditCard size={14} /> },
  ];
  case 'dashboard':
@@ -432,7 +434,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  entry it can never use is the kind of noise that makes people
  stop reading a menu. */
  ...(['tables', 'both'].includes(serviceMode)
- ? [{ label: 'Tables', href: 'store.tables.index', icon: <Armchair size={14} /> }]
+ ? [{ label: tt('Tables'), href: 'store.tables.index', icon: <Armchair size={14} /> }]
  : []),
  { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
  { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
@@ -447,7 +449,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  ];
  case 'stock':
  return [
- { label: 'Products List', href: 'store.inventory.index', icon: <Box size={14} /> },
+ { label: tt('Products List'), href: 'store.inventory.index', icon: <Box size={14} /> },
  { label: 'Categories', href: 'store.categories.index', icon: <Layers size={14} /> },
  { label: 'Attributes', href: 'store.attributes.index', icon: <Settings size={14} /> },
  { label: 'Stock Levels', href: 'store.inventory.stock-levels', icon: <BarChart2 size={14} /> },
@@ -1261,7 +1263,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <SidebarItem
  key={item.name}
  id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
- name={item.name}
+ name={tt(item.name)}
  icon={item.icon}
  subItems={item.subs}
  route={item.route}

@@ -3,9 +3,11 @@ import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Plus, Search, Edit, Trash2, X, Save, User, Phone, Mail, MapPin } from 'lucide-react';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import { useTermText } from '@/lib/terms';
 
 export default function CustomersIndex({ customers, filters }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
@@ -82,7 +84,7 @@ export default function CustomersIndex({ customers, filters }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm('Are you sure you want to delete this customer?')) {
+        if (confirm(tt('Are you sure you want to delete this customer?'))) {
             destroy(route('store.customers.destroy', { store_slug: store?.slug, customer: id }));
         }
     };
@@ -93,8 +95,8 @@ export default function CustomersIndex({ customers, filters }) {
     };
 
     return (
-        <OneGlanceLayout title="Customers" activeMenu="Contacts">
-            <Head title="Customers" />
+        <OneGlanceLayout title={tt('Customers')} activeMenu="Contacts">
+            <Head title={tt('Customers')} />
 
             <div className="flex flex-col h-full">
                 <ContactsModuleTabs activeTab="customers" />
@@ -105,7 +107,7 @@ export default function CustomersIndex({ customers, filters }) {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={20} />
                             <input
                                 type="text"
-                                placeholder="Search customers..."
+                                placeholder={tt('Search customers...')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-surface text-ink-secondary dark:text-ink focus:ring-2 ring-brand-500/20 outline-none"
@@ -115,7 +117,7 @@ export default function CustomersIndex({ customers, filters }) {
                             onClick={() => openModal()}
                             className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg active:scale-95"
                         >
-                            <Plus size={20} /> Add Customer
+                            <Plus size={20} /> {tt('Add Customer')}
                         </button>
                     </div>
 
@@ -187,7 +189,7 @@ export default function CustomersIndex({ customers, filters }) {
                                 ) : (
                                     <tr>
                                         <td colSpan="5" className="p-8 text-center text-ink-muted">
-                                            No customers found.
+                                            {tt('No customers found.')}
                                         </td>
                                     </tr>
                                 )}
@@ -201,7 +203,7 @@ export default function CustomersIndex({ customers, filters }) {
                     <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-normal">
                         <div className="p-6 border-b border-line flex justify-between items-center">
                             <h3 className="text-lg font-bold text-ink">
-                                {editingCustomer ? 'Edit Customer' : 'Add Customer'}
+                                {editingCustomer ? tt('Edit Customer') : tt('Add Customer')}
                             </h3>
                             <button onClick={closeModal} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200">
                                 <X size={20} />
@@ -399,7 +401,7 @@ export default function CustomersIndex({ customers, filters }) {
                                     className="px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg "
                                 >
                                     <Save size={16} />
-                                    {processing ? 'Saving...' : 'Save Customer'}
+                                    {processing ? 'Saving...' : tt('Save Customer')}
                                 </button>
                             </div>
                         </form>

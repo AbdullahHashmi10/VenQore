@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 // ==========================================
 // PHASE 1: TOP NAVIGATION & ACTIONS
@@ -148,6 +149,7 @@ export const CustomerSearchWidget = ({
  customerResults,
  setIsPartyModalOpen
 }) => {
+ const tt = useTermText();
  return (
  <div className="relative flex-1 max-w-xl">
  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted">
@@ -155,7 +157,7 @@ export const CustomerSearchWidget = ({
  </div>
  <input
  type="text"
- placeholder="Search Customer (Name/Phone)..."
+ placeholder={tt('Search Customer (Name/Phone)...')}
  value={currentInvoice.customer ? currentInvoice.customer.name : customerSearch}
  onChange={(e) => {
  const val = e.target.value;
@@ -183,7 +185,7 @@ export const CustomerSearchWidget = ({
  />
  {customerError && (
  <p className="absolute -bottom-5 left-2 text-2xs font-bold text-red-500 animate-pulse">
- Please select a registered customer
+ {tt('Please select a registered customer')}
  </p>
  )}
  {currentInvoice.customer && (
@@ -218,7 +220,7 @@ export const CustomerSearchWidget = ({
  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
  <Plus size={16} />
  </div>
- <span>Create New Customer</span>
+ <span>{tt('Create New Customer')}</span>
  </div>
  </div>
  )}
@@ -444,6 +446,7 @@ export const QuickEntryRow = ({
  setProductModalMode,
  setIsProductModalOpen
 }) => {
+ const tt = useTermText();
  return (
  <tr className="bg-brand-50/50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800/50 rounded-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-normal">
  <td className="py-3"></td>
@@ -458,7 +461,7 @@ export const QuickEntryRow = ({
  <input
  id="quick-entry-input"
  type="text"
- placeholder="Quick Add Product..."
+ placeholder={tt('Quick Add Product...')}
  value={quickEntry.name}
  onChange={(e) => handleQuickSearch(e.target.value)}
  onKeyDown={handleQuickKeyDown}
@@ -489,7 +492,7 @@ export const QuickEntryRow = ({
  setIsProductModalOpen(true);
  }}
  className={`p-1.5 rounded-lg transition-all ${quickSelectedIndex === pIdx ? 'bg-brand-500 text-white' : 'hover:bg-brand-100 text-brand-600'}`}
- title="Edit Product"
+ title={tt('Edit Product')}
  >
  <Edit size={14} />
  </button>
@@ -617,6 +620,7 @@ export const ItemRow = ({
  currentInvoice,
  calculateLineTotal
 }) => {
+ const tt = useTermText();
  return (
  <tr
  key={item.id}
@@ -646,7 +650,7 @@ export const ItemRow = ({
  <td className="bg-app py-3 relative">
  <input
  type="text"
- placeholder="Search product..."
+ placeholder={tt('Search product...')}
  value={item.product ? item.product.name : (item.name || '')}
  onChange={(e) => {
  const newValue = e.target.value;
@@ -688,7 +692,7 @@ export const ItemRow = ({
  setIsProductModalOpen(true);
  }}
  className="absolute right-2 top-1/2 -translate-y-1/2 text-2xs text-red-500 font-bold bg-surface px-2 py-1 rounded-lg shadow-sm border border-red-100 hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors flex items-center gap-1 z-10"
- title="Click to create this product"
+ title={tt('Click to create this product')}
  >
  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
  Unregistered
@@ -721,7 +725,7 @@ export const ItemRow = ({
  setIsProductModalOpen(true);
  }}
  className="p-1.5 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/30 text-brand-600 transition-all"
- title="Edit Product"
+ title={tt('Edit Product')}
  >
  <Edit size={14} />
  </button>
@@ -888,12 +892,13 @@ export const CustomerSummaryCard = ({ customer, patchInvoice, setCustomerSearch,
 };
 
 export const NoCustomerPlaceholder = ({ textSize }) => {
+ const tt = useTermText();
  return (
  <div className="text-center py-4 border border-dashed border-neutral-700 rounded-xl">
  <div className="w-10 h-10 rounded-full bg-neutral-800/50 flex items-center justify-center mx-auto mb-2 text-ink-muted">
  <User size={20} />
  </div>
- <p className={`text-ink-muted font-bold ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>No Customer Selected</p>
+ <p className={`text-ink-muted font-bold ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>{tt('No Customer Selected')}</p>
  </div>
  );
 };
@@ -1444,6 +1449,7 @@ export const ProfitAnalysisModal = ({
  grandTotal,
  profit
 }) => {
+ const tt = useTermText();
  if (!showProfitModal) return null;
 
  return (
@@ -1474,7 +1480,7 @@ export const ProfitAnalysisModal = ({
  <thead>
  <tr className="text-left text-2xs font-bold text-ink-muted uppercase border-b border-line">
  <th className="pb-2 pl-2">#</th>
- <th className="pb-2">Product</th>
+ <th className="pb-2">{tt('Product')}</th>
  <th className="pb-2 text-center">Qty</th>
  <th className="pb-2 text-right">Cost</th>
  <th className="pb-2 text-right">Price</th>
@@ -1518,7 +1524,7 @@ export const ProfitAnalysisModal = ({
 
  {currentInvoice.items.filter(item => item.product).length === 0 && (
  <div className="text-center py-8 text-ink-muted">
- <p className="text-sm">No products added yet</p>
+ <p className="text-sm">{tt('No products added yet')}</p>
  </div>
  )}
  </div>
@@ -1594,6 +1600,7 @@ export const SettingsDrawer = ({
  currentInvoice,
  patchInvoice
 }) => {
+ const tt = useTermText();
  if (!showSettingsDrawer) return null;
 
  return (
@@ -1657,7 +1664,7 @@ export const SettingsDrawer = ({
  icon={Zap}
  iconColor="text-brand-500"
  label="Quick Entry"
- sublabel="Fast product entry row"
+ sublabel={tt('Fast product entry row')}
  isActive={showQuickEntry}
  onToggle={() => setShowQuickEntry(!showQuickEntry)}
  />
@@ -1691,7 +1698,7 @@ export const SettingsDrawer = ({
  value={defaultExtraLabel}
  onChange={(e) => setDefaultExtraLabel(e.target.value)}
  className="w-full bg-surface border border-line rounded-lg px-2 py-1.5 text-xs font-bold text-ink-secondary dark:text-white"
- placeholder="Field Name (e.g. Service)"
+ placeholder={tt('Field Name (e.g. Service)')}
  />
  <div className="flex items-center gap-2">
  <span className="text-ink-muted text-xs font-bold">Rs</span>
@@ -1836,6 +1843,7 @@ export const OverpaymentModal = ({
  processSale,
  tempPrintIntent
 }) => {
+ const tt = useTermText();
  if (!showOverpaymentModal) return null;
 
  return (
@@ -1862,7 +1870,7 @@ export const OverpaymentModal = ({
  </div>
  <div>
  <h3 className="text-xl font-bold text-white drop-shadow-sm">Overpayment Detected</h3>
- <p className="text-white/80 text-sm font-medium">Customer paid extra</p>
+ <p className="text-white/80 text-sm font-medium">{tt('Customer paid extra')}</p>
  </div>
  </div>
  </div>
@@ -1901,7 +1909,7 @@ export const OverpaymentModal = ({
  <div className="flex-1">
  <p className="font-bold text-ink">Give Change</p>
  <p className="text-sm text-ink-muted">
- Return {getCurrencySymbol()} {overpaymentDetails.amount.toLocaleString()} to customer
+ {tt('Return')} {getCurrencySymbol()} {overpaymentDetails.amount.toLocaleString()} {tt('to customer')}
  </p>
  </div>
  </button>

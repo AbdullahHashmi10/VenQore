@@ -28,8 +28,10 @@ import {
 } from 'lucide-react';
 import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
 import SmartCombobox from '@/Components/SmartCombobox';
+import { useTermText } from '@/lib/terms';
 
 export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats = {} }) {
+    const tt = useTermText();
     // State for Infinite Scroll
     const [allNotes, setAllNotes] = useState(() => {
         if (Array.isArray(debitNotes)) return debitNotes;
@@ -122,7 +124,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
     const [tableColumns, setTableColumns] = useState([
         { key: 'date', label: 'Date', width: '15%' },
         { key: 'reference', label: 'Debit Note #', width: '15%' },
-        { key: 'supplier', label: 'Supplier', width: '20%' },
+        { key: 'supplier', label: tt('Supplier'), width: '20%' },
         { key: 'amount', label: 'Amount', width: '15%' },
         { key: 'reason', label: 'Reason', width: '20%' },
         { key: 'status', label: 'Status', width: '10%' },
@@ -574,7 +576,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <h3 className="font-bold text-ink text-sm">
-                                                    {row.supplier?.name || 'Unknown Supplier'}
+                                                    {row.supplier?.name || tt('Unknown Supplier')}
                                                 </h3>
                                                 {row.supplier?.phone && (
                                                     <p className="text-2xs text-ink-muted font-semibold">{row.supplier.phone}</p>
@@ -660,7 +662,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         <div className="p-6 overflow-auto">
                             <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div className="p-4 bg-app rounded-xl">
-                                    <p className="text-xs font-bold text-ink-muted uppercase mb-1">Supplier</p>
+                                    <p className="text-xs font-bold text-ink-muted uppercase mb-1">{tt('Supplier')}</p>
                                     <p className="font-bold text-ink">{quickViewItem.supplier?.name || 'Unknown'}</p>
                                     <p className="text-sm text-ink-muted">{quickViewItem.supplier?.phone}</p>
                                 </div>

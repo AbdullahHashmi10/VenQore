@@ -58,6 +58,7 @@
  */
 
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useTermText } from '@/lib/terms';
 import {
     X, LayoutGrid, Monitor, Receipt, Printer, Keyboard, RotateCcw,
     Check, Info, MoveHorizontal, Minus, Plus, Pause, History, Unlock,
@@ -353,6 +354,7 @@ export default function RegisterSettings({
     const [deviceId, setDeviceId] = useState('desktop');
     const panelRef = useRef(null);
     const titleId = useId();
+    const tt = useTermText();
 
     /* The caller may open the drawer AT a tab — the '?' key opens it on Keys,
        and the dock's "why is this a button?" affordance opens it on Layout. */
@@ -448,7 +450,7 @@ export default function RegisterSettings({
                             Register settings
                         </h2>
                         <p className="vq-clip text-2xs font-semibold text-ink-muted">
-                            Saved on this device · {TABS.find(t => t.id === tab)?.blurb}
+                            Saved on this device · {tt(TABS.find(t => t.id === tab)?.blurb || '')}
                         </p>
                     </div>
                     <button
@@ -492,7 +494,7 @@ export default function RegisterSettings({
                                                     : 'text-ink-muted hover:text-ink hover:bg-interactive-hover border border-transparent'}`}
                                 >
                                     <Icon size={15} className="shrink-0" />
-                                    <span>{t.label}</span>
+                                    <span>{tt(t.label)}</span>
                                 </button>
                             );
                         })}
@@ -937,21 +939,17 @@ export default function RegisterSettings({
                         <section className="space-y-2.5">
                             <Eyebrow>How this business serves</Eyebrow>
                             <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch]">
-                                This is the one switch that changes what the register IS, rather than how it
-                                looks. A counter till sells to whoever is standing there. A table service
-                                register makes the TABLE the unit of work &mdash; the floor becomes the pane
-                                the shift starts from, an order belongs to a table rather than to a queue,
-                                and Hold disappears, because a table already is a held sale.
+                                {tt('This is the one switch that changes what the register IS, rather than how it looks. A counter till sells to whoever is standing there. A table service register makes the TABLE the unit of work — the floor becomes the pane the shift starts from, an order belongs to a table rather than to a queue, and Hold disappears, because a table already is a held sale.')}
                             </p>
 
-                            <Field title="Service style" hint="Both keeps the counter register and adds the floor beside it, for a cafe that does takeaway and tables." stacked>
+                            <Field title={tt('Service style')} hint={tt('Both keeps the counter register and adds the floor beside it, for a cafe that does takeaway and tables.')} stacked>
                                 <Segmented
-                                    label="Service style"
+                                    label={tt('Service style')}
                                     value={serviceMode}
                                     onChange={setServiceMode}
                                     options={[
                                         { value: 'counter', label: 'Counter' },
-                                        { value: 'tables',  label: 'Table service' },
+                                        { value: 'tables',  label: tt('Table service') },
                                         { value: 'both',    label: 'Both' },
                                     ]}
                                 />
@@ -959,11 +957,11 @@ export default function RegisterSettings({
 
                             {serviceMode !== 'counter' && (
                                 <Field
-                                    title="Service charge"
-                                    hint="Added to every table bill as a percentage of the food after discounts. It is the house's income and it is posted as such — a tip is not, and is typed per bill instead."
+                                    title={tt('Service charge')}
+                                    hint={tt("Added to every table bill as a percentage of the food after discounts. It is the house's income and it is posted as such — a tip is not, and is typed per bill instead.")}
                                 >
                                     <Stepper
-                                        label="Service charge percent"
+                                        label={tt('Service charge percent')}
                                         value={Number(serviceCharge) || 0}
                                         min={0}
                                         max={25}
@@ -976,7 +974,7 @@ export default function RegisterSettings({
                             {serviceMode !== 'counter' && (
                                 <Field
                                     title="Your floor"
-                                    hint="Areas and tables. Nothing appears on the floor screen until it exists here — this is the only place tables come from."
+                                    hint={tt('Areas and tables. Nothing appears on the floor screen until it exists here — this is the only place tables come from.')}
                                 >
                                     <button
                                         type="button"
@@ -993,8 +991,8 @@ export default function RegisterSettings({
 
                             {serviceMode !== 'counter' && terminal === 'counter' && (
                                 <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch] pt-1">
-                                    You are on the counter register. The floor is at
-                                    <b className="text-ink"> Tables</b> in the sidebar.
+                                    {tt('You are on the counter register. The floor is at')}
+                                    <b className="text-ink"> {tt('Tables')}</b> {tt('in the sidebar.')}
                                 </p>
                             )}
                         </section>

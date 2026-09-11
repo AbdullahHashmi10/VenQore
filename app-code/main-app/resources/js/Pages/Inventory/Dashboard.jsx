@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
 import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
@@ -18,6 +19,7 @@ import {
 export default function InventoryDashboard({ stats, topMoving, expiringBatches = [] }) {
     const { props } = usePage();
     const store = props.store || {};
+    const tt = useTermText();
     
     const StatCard = ({ title, value, icon: Icon, color, subValue }) => (
         <div className="bg-surface p-4 md:p-6 rounded-2xl border border-line shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
@@ -51,7 +53,7 @@ export default function InventoryDashboard({ stats, topMoving, expiringBatches =
                     {/* Stats Grid - Responsive 2 Columns on Mobile */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
                         <StatCard
-                            title="Total Products"
+                            title={tt('Total Products')}
                             value={stats.total_products}
                             icon={Package}
                             color="bg-brand-500"
@@ -93,7 +95,7 @@ export default function InventoryDashboard({ stats, topMoving, expiringBatches =
                                 <table className="w-full text-left text-xs md:text-sm">
                                     <thead className="bg-app text-ink-muted uppercase font-bold tracking-wider text-2xs">
                                         <tr>
-                                            <th className="px-4 py-3 md:px-6 md:py-4 font-bold">Product Name</th>
+                                            <th className="px-4 py-3 md:px-6 md:py-4 font-bold">{tt('Product Name')}</th>
                                             <th className="px-4 py-3 md:px-6 md:py-4 font-bold text-right">Total Sold</th>
                                             <th className="px-4 py-3 md:px-6 md:py-4 font-bold text-right">Status</th>
                                         </tr>
@@ -156,7 +158,7 @@ export default function InventoryDashboard({ stats, topMoving, expiringBatches =
  
                                 <div className="space-y-2 md:space-y-3">
                                     <Link href={route('store.inventory.index', { store_slug: store?.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
-                                        <span>View All Products</span>
+                                        <span>{tt('View All Products')}</span>
                                         <ArrowRight size={16} />
                                     </Link>
                                     <Link href={route('store.stock-operations', { store_slug: store?.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
@@ -164,7 +166,7 @@ export default function InventoryDashboard({ stats, topMoving, expiringBatches =
                                         <ArrowRight size={16} />
                                     </Link>
                                     <Link href={route('store.purchase-orders.create', { store_slug: store?.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
-                                        <span>Create Purchase Order</span>
+                                        <span>{tt('Create Purchase Order')}</span>
                                         <ArrowRight size={16} />
                                     </Link>
                                 </div>

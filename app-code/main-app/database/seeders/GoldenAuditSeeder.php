@@ -59,7 +59,7 @@ class GoldenAuditSeeder extends Seeder
                 'id' => self::TENANT_ID,
                 'name' => 'Golden Audit Store',
                 'slug' => 'golden-audit',
-                'plan' => 'business',
+                'plan' => 'scale',
                 'status' => 'active',
                 'currency_code' => 'PKR',
                 'currency_symbol' => 'Rs.',

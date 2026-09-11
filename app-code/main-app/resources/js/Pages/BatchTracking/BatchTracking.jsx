@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import { usePage, Head, Link, useForm, router } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
 import {
     Package,
     Search,
@@ -19,6 +20,7 @@ import Pagination from '@/Components/Pagination';
 
 export default function BatchTracking({ batches, stats, filters }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortConfig, setSortConfig] = useState({ key: 'batch', direction: 'asc' });
@@ -190,7 +192,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                                     </div>
                                 </th>
                                 <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
-                                    Product
+                                    {tt('Product')}
                                 </th>
                                 <th
                                     onClick={() => handleSort('quantity')}

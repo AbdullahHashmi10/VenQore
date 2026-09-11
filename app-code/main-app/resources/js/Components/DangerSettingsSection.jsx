@@ -5,7 +5,9 @@ import Swal from 'sweetalert2';
 import { usePage } from '@inertiajs/react';
 
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 export default function DangerSettingsSection({ data, setData }) {
+    const tt = useTermText();
     const [resetting, setResetting] = useState(false);
 
     const { store, auth } = usePage().props;
@@ -24,7 +26,7 @@ export default function DangerSettingsSection({ data, setData }) {
 
         if (type === 'all') {
             title = 'FACTORY RESET';
-            text = 'WARNING: This will delete ALL sales, products, customers, and transactions. Only your admin account will remain. This process is IRREVERSIBLE.';
+            text = tt('WARNING: This will delete ALL sales, products, customers, and transactions. Only your admin account will remain. This process is IRREVERSIBLE.');
             confirmText = 'I UNDERSTAND, WIPE EVERYTHING';
             // url remains /s/{storeSlug}/api/system/reset
         } else {
@@ -261,7 +263,7 @@ export default function DangerSettingsSection({ data, setData }) {
                             <span className="p-2 bg-sunken rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
                                 <Trash2 size={20} />
                             </span>
-                            Delete All Products
+                            {tt('Delete All Products')}
                         </button>
                         <button
                             type="button"

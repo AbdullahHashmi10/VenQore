@@ -3,13 +3,14 @@ import { usePage, Head, useForm, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import { Truck, Plus, Search, Phone, Mail, MapPin, Edit, Trash2 } from 'lucide-react';
 import axios from 'axios';
 
 export default function SuppliersIndex({ suppliers }) {
     const { store } = usePage().props;
     const { tp } = useTerms();
+    const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -124,7 +125,7 @@ export default function SuppliersIndex({ suppliers }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm('Are you sure you want to delete this supplier?')) {
+        if (confirm(tt('Are you sure you want to delete this supplier?'))) {
             router.delete(route('store.suppliers.destroy', { store_slug: store.slug, supplier: id }));
         }
     };
@@ -132,8 +133,8 @@ export default function SuppliersIndex({ suppliers }) {
 
 
     return (
-        <OneGlanceLayout title="Suppliers" activeMenu="Contacts">
-            <Head title="Suppliers" />
+        <OneGlanceLayout title={tt('Suppliers')} activeMenu="Contacts">
+            <Head title={tt('Suppliers')} />
 
             <div className="h-full flex flex-col">
                 <ContactsModuleTabs activeTab="suppliers" />
@@ -151,7 +152,7 @@ export default function SuppliersIndex({ suppliers }) {
                         </div>
                         <PremiumButton onClick={() => openModal()}>
                             <Plus size={18} />
-                            Add Supplier
+                            {tt('Add Supplier')}
                         </PremiumButton>
                     </div>
 
@@ -160,7 +161,7 @@ export default function SuppliersIndex({ suppliers }) {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" size={20} />
                         <input
                             type="text"
-                            placeholder="Search suppliers..."
+                            placeholder={tt('Search suppliers...')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onKeyDown={handleServerSearch}
@@ -233,7 +234,7 @@ export default function SuppliersIndex({ suppliers }) {
                             <div className="bg-surface rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
                                 <div className="p-6 border-b border-line">
                                     <h3 className="text-xl font-bold text-ink">
-                                        {editingSupplier ? 'Edit Supplier' : 'Add New Supplier'}
+                                        {editingSupplier ? tt('Edit Supplier') : tt('Add New Supplier')}
                                     </h3>
                                 </div>
                                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -346,7 +347,7 @@ export default function SuppliersIndex({ suppliers }) {
                                             Cancel
                                         </button>
                                         <PremiumButton type="submit" disabled={processing}>
-                                            {editingSupplier ? 'Update Supplier' : 'Create Supplier'}
+                                            {editingSupplier ? tt('Update Supplier') : tt('Create Supplier')}
                                         </PremiumButton>
                                     </div>
                                 </form>

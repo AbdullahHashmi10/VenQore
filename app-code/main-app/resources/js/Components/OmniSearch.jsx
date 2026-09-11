@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { searchRegistry, getCategoryLabel, getCategoryColor, CATEGORIES } from '@/Data/AppRegistry';
 import SmartCapturePanel from './SmartCapturePanel';
+import { useTermText } from '@/lib/terms';
 
 /**
  * ─── AI Feature Flag ──────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ const AI_FEATURES_ENABLED = true;
  * - Midnight Nebula theme
  */
 export default function OmniSearch({ onAskAi, isAiLoading = false }) {
+ const tt = useTermText();
  const [isOpen, setIsOpen] = useState(false);
  const [query, setQuery] = useState('');
  const [results, setResults] = useState([]);
@@ -416,7 +418,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  <div className="grid grid-cols-2 gap-2">
  {[
  { label: 'New Sale', keys: ['N', 'S'], action: () => router.visit(route('store.pos', { store_slug: store?.slug })), perms: ['pos'] },
- { label: 'Add Product', keys: ['N', 'P'], action: () => router.visit(route('store.inventory.index', { store_slug: store?.slug })), perms: ['inventory'] },
+ { label: tt('Add Product'), keys: ['N', 'P'], action: () => router.visit(route('store.inventory.index', { store_slug: store?.slug })), perms: ['inventory'] },
  { label: 'Profit & Loss', keys: ['P', 'L'], action: () => router.visit(route('store.reports.profit-loss', { store_slug: store?.slug })), perms: ['reports', 'finance'] },
  { label: 'Settings', keys: ['S', 'T'], action: () => router.visit(route('store.admin.settings', { store_slug: store?.slug })), perms: ['settings'] },
  ].filter(link => checkPerm(link.perms)).map((shortcut, idx) => (
@@ -445,7 +447,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  <div className="space-y-1">
  {[
  "How much profit did we make this week?",
- "What's our best selling product?",
+ tt("What's our best selling product?"),
  ].map((suggestion, idx) => (
  <button
  key={idx}

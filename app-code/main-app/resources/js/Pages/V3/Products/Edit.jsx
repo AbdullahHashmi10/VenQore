@@ -1,8 +1,10 @@
 import { useForm, Link, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function ProductEdit({ product, uomConversions, priceTiers }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const { data, setData, put, processing, errors } = useForm({
         name: product.name,
         sku: product.sku,
@@ -24,7 +26,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
         <div className="p-6 max-w-2xl">
             <div className="flex items-center gap-4 mb-6">
                 <Link href={route('store.v3.products.index', { store_slug: store?.slug })} className="text-ink-muted hover:text-ink">
-                    ← Products
+                    ← {tt('Products')}
                 </Link>
                 <h1 className="text-2xl font-bold">Edit: {product.name}</h1>
             </div>
@@ -32,7 +34,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
             <form onSubmit={submit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Product Name *</label>
+                        <label className="block text-sm font-medium mb-1">{tt('Product Name')} *</label>
                         <input
                             type="text"
                             value={data.name}
@@ -87,13 +89,13 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Supplier SKU Mapping</label>
+                        <label className="block text-sm font-medium mb-1">{tt('Supplier SKU Mapping')}</label>
                         <input
                             type="text"
                             value={data.supplier_sku}
                             onChange={e => setData('supplier_sku', e.target.value)}
                             className="w-full border rounded px-3 py-2"
-                            placeholder="Supplier SKU"
+                            placeholder={tt('Supplier SKU')}
                         />
                     </div>
                 </div>

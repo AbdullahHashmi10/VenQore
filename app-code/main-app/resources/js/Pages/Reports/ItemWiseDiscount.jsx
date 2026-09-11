@@ -3,20 +3,22 @@ import ReportPage from './Components/ReportPage';
 import { Tag } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function ItemWiseDiscount({ items }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     return (
         <ReportPage
             title="Item-wise Discount Report"
-            subtitle="Total discounts given on each product"
+            subtitle={tt('Total discounts given on each product')}
             icon={Tag}
         >
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-app border-b border-line">
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Product Name</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Product Name')}</th>
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">SKU</th>
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Total Discount Given</th>
                         </tr>

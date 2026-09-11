@@ -7,6 +7,7 @@ import VqSelect from '@/Documents/VqSelect';
 import MoneyDocument, { uid, blankLine, today } from '@/Documents/MoneyDocument';
 import { documentType } from '@/Documents/documentTypes';
 import { useAlert } from '@/Contexts/AlertContext';
+import { useTermText } from '@/lib/terms';
 
 const DOC = documentType('sales-order');
 /* Money already received is not re-decided by editing the paperwork, and the
@@ -27,6 +28,7 @@ const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0;
 export default function CreatePreSale({ sale, customers = [], products = [] }) {
     const { store, settings } = usePage().props;
     const { showAlert } = useAlert();
+    const tt = useTermText();
     const isEdit = !!sale?.id;
     const [converting, setConverting] = useState(false);
 
@@ -89,13 +91,13 @@ export default function CreatePreSale({ sale, customers = [], products = [] }) {
 
     const convert = async () => {
         if (!isEdit) {
-            showAlert({ title: 'Save it first', message: 'An order has to be saved before it can become a sale.', type: 'warning' });
+            showAlert({ title: 'Save it first', message: tt('An order has to be saved before it can become a sale.'), type: 'warning' });
             return;
         }
         setConverting(true);
         try {
             const res = await window.axios.post(route(DOC.api.convert, { store_slug: store?.slug, salesOrder: sale.id }));
-            showAlert({ title: 'Converted', message: 'The order is now a sale and the reserved stock has left the shelf.', type: 'success' });
+            showAlert({ title: 'Converted', message: tt('The order is now a sale and the reserved stock has left the shelf.'), type: 'success' });
             /* Print the SALE, with the sale's own id. The old screen printed
                the sales-invoice route with an order id on it. */
             const madeId = res?.data?.sale_id;
@@ -115,11 +117,11 @@ export default function CreatePreSale({ sale, customers = [], products = [] }) {
             editSeed={editSeed}
             isEdit={isEdit}
             locked={locked}
-            lockNote="This order has been converted to a sale and can no longer be changed."
+            lockNote={tt('This order has been converted to a sale and can no longer be changed.')}
             products={products}
             parties={customers}
             transport="axios"
-            saveLabel={isEdit ? 'Update order' : 'Take the order'}
+            saveLabel={isEdit ? tt('Update order') : tt('Take the order')}
             /* A deposit is optional on an order — nothing down is the normal
                case — so "paid now" fills the whole thing in and "on account"
                leaves it at nothing, rather than assuming either. */
@@ -150,13 +152,13 @@ export default function CreatePreSale({ sale, customers = [], products = [] }) {
                         </Field>
                     )}
                     {chrome.field('docno') && (
-                        <Field label="Order no." span={3}>
+                        <Field label={tt('Order no.')} span={3}>
                             <input type="text" className="vqdoc-in" value={d.reference}
                                 placeholder="Auto" onChange={(e) => patch({ reference: e.target.value })} />
                         </Field>
                     )}
                     {chrome.field('date') && (
-                        <Field label="Order date" span={3}>
+                        <Field label={tt('Order date')} span={3}>
                             <input type="date" className="vqdoc-in" value={d.date}
                                 onChange={(e) => patch({ date: e.target.value })} />
                         </Field>
@@ -185,7 +187,7 @@ export default function CreatePreSale({ sale, customers = [], products = [] }) {
                         </Field>
                     )}
                     {chrome.field('notes') && (
-                        <Field label="Note on the order" span={12}>
+                        <Field label={tt('Note on the order')} span={12}>
                             <textarea className="vqdoc-in" rows={2} value={d.notes}
                                 placeholder="Delivery instructions, who to call on arrival…"
                                 onChange={(e) => patch({ notes: e.target.value })} />

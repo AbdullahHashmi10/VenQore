@@ -3,6 +3,7 @@ import { Head, router, Link } from '@inertiajs/react';
 import axios from 'axios';
 import './NewDashboard.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { useTermText } from '@/lib/terms';
 
 /* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
    lucide icon NAMES — the same contract QoreShell consumes. */
@@ -3698,6 +3699,7 @@ const RAIL_DEFS = [
 
 /** One rail, rendered with real props from the database. */
 function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = {} }) {
+  const tt = useTermText();
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
   
   if (id === 'charity') {
@@ -3844,10 +3846,10 @@ function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = 
 
     const alertsList = [];
     if (lowStockItems.length > 0 && modOk(['inventory'])) {
-      alertsList.push({ k: 'warn', msg: <><strong>{lowStockItems.length} product{lowStockItems.length === 1 ? '' : 's'}</strong> reached reorder limit</>, href: '/inventory' });
+      alertsList.push({ k: 'warn', msg: <><strong>{lowStockItems.length} {tt(lowStockItems.length === 1 ? 'product' : 'products')}</strong> reached reorder limit</>, href: '/inventory' });
     }
     if (overdueReceivables > 0 && modOk(['khata_credit', 'payments'])) {
-      alertsList.push({ k: 'bad', msg: <><strong>Rs {overdueReceivables.toLocaleString()}</strong> customer dues overdue</>, href: '/finance' });
+      alertsList.push({ k: 'bad', msg: <><strong>Rs {overdueReceivables.toLocaleString()}</strong> {tt('customer dues overdue')}</>, href: '/finance' });
     }
     aiRecs.forEach(r => {
       alertsList.push({
@@ -3932,7 +3934,7 @@ function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = 
     return (
       <section className="vq-rail-card">
         <header className="vq-rail-h"><span>Top performers</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
-        <span className="vq-rail-sub">Products</span>
+        <span className="vq-rail-sub">{tt('Products')}</span>
         <ul className="vq-rail-list">
           {topProducts.length > 0 ? (
             topProducts.slice(0, 5).map((t, idx) => {
@@ -3964,7 +3966,7 @@ function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = 
           {overdueAmt > 0 ? (
             <li className="vq-rail-row">
               <span className="vq-rail-dot is-bad" aria-hidden="true" />
-              <span className="vq-rail-row-n">Outstanding Receivables<em>Pending customer dues</em></span>
+              <span className="vq-rail-row-n">Outstanding Receivables<em>{tt('Pending customer dues')}</em></span>
               <span className="vq-rail-row-v">Rs {overdueAmt.toLocaleString()}</span>
             </li>
           ) : (
@@ -4020,6 +4022,7 @@ function PresetThumb({ cards }) {
 }
 
 export default function NewDashboard(props) {
+  const tt = useTermText();
   const containerRef = useRef(null);
   const previewRef = useRef(null);
   const previewFrameRef = useRef(null);
@@ -4981,7 +4984,7 @@ export default function NewDashboard(props) {
       ),
     },
     {
-      label: 'Add Product',
+      label: tt('Add Product'),
       color: 'orange',
       href: storePath('/inventory?action=add'),
       icon: (
@@ -5278,7 +5281,7 @@ export default function NewDashboard(props) {
                     }}>
                     <span className="vq-dest-glyph" style={{ background: t.color }}
                           dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(t.icon, 16) || '' }} />
-                    <span className="vq-dest-name">{t.label}</span>
+                    <span className="vq-dest-name">{tt(t.label)}</span>
                   </button>
                 );
               })}
@@ -5456,7 +5459,7 @@ export default function NewDashboard(props) {
             <div className="vq-preset-grid">
               {Object.entries(engine()?.getPresets?.() || {}).map(([id, p]) => {
                 const railNames = (p.rails || [])
-                  .map(rid => RAIL_DEFS.find(d => d.id === rid)?.name)
+                  .map(rid => tt(RAIL_DEFS.find(d => d.id === rid)?.name || ''))
                   .filter(Boolean);
                 return (
                   <button key={id} type="button" className="vq-item-card vq-preset-card"
@@ -5465,10 +5468,10 @@ export default function NewDashboard(props) {
                       <PresetThumb cards={p.cards} />
                       <span className="vq-preset-text">
                         <span className="vq-item-card-top">
-                          <span className="vq-item-card-title">{p.name}</span>
+                          <span className="vq-item-card-title">{tt(p.name)}</span>
                           <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                         </span>
-                        <span className="vq-item-card-desc">{p.desc}</span>
+                        <span className="vq-item-card-desc">{tt(p.desc)}</span>
                         {railNames.length > 0 && (
                           <span className="vq-preset-rails">Side panel: {railNames.join(' · ')}</span>
                         )}
@@ -5548,10 +5551,10 @@ export default function NewDashboard(props) {
                           <button type="button" key={r.key} className="vq-item-card"
                                   onClick={() => selectMetricForStep2(r)}>
                             <span className="vq-item-card-top">
-                              <span className="vq-item-card-title">{r.label}</span>
+                              <span className="vq-item-card-title">{tt(r.label)}</span>
                               <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                             </span>
-                            <span className="vq-item-card-desc">{r.desc || ''}</span>
+                            <span className="vq-item-card-desc">{tt(r.desc || '')}</span>
                           </button>
                         ))}
                       </div>
@@ -5565,10 +5568,10 @@ export default function NewDashboard(props) {
                         <button type="button" key={tmpl.type} className="vq-item-card"
                                 onClick={() => selectTemplateForStep2(tmpl)}>
                           <span className="vq-item-card-top">
-                            <span className="vq-item-card-title">{tmpl.title}</span>
+                            <span className="vq-item-card-title">{tt(tmpl.title)}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </span>
-                          <span className="vq-item-card-desc">{tmpl.desc}</span>
+                          <span className="vq-item-card-desc">{tt(tmpl.desc)}</span>
                         </button>
                       ))}
                     </div>
@@ -5583,7 +5586,7 @@ export default function NewDashboard(props) {
                           <span className="vq-item-card-top">
                             <span className="vq-item-glyph" style={{ background: target.color }}
                                   dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(target.icon, 15) || '' }} />
-                            <span className="vq-item-card-title">{target.label}</span>
+                            <span className="vq-item-card-title">{tt(target.label)}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </span>
                           <span className="vq-item-card-desc">One click takes you straight there.</span>
@@ -5700,8 +5703,8 @@ export default function NewDashboard(props) {
                           className={`vq-rail-option ${railPrefs.design === d.id ? 'is-on' : ''}`}
                           onClick={() => setRailOpt({ design: d.id, collapsed: false })}>
                     <span className="vq-rail-option-text">
-                      <span className="vq-rail-option-name">{d.name}</span>
-                      <span className="vq-rail-option-desc">{d.desc}</span>
+                      <span className="vq-rail-option-name">{tt(d.name)}</span>
+                      <span className="vq-rail-option-desc">{tt(d.desc)}</span>
                     </span>
                   </button>
                 );

@@ -36,11 +36,13 @@ import {
 import { useAlert } from '@/Contexts/AlertContext';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import SmartCombobox from '@/Components/SmartCombobox';
+import { useTermText } from '@/lib/terms';
 
 export default function PreOrders({ orders, filters: rawFilters, stats }) {
  const { store, flash } = usePage().props;
  const filters = (rawFilters && !Array.isArray(rawFilters)) ? rawFilters : {};
- 
+ const tt = useTermText();
+
  // Conversion Success modal state
  const [conversionSuccessModal, setConversionSuccessModal] = useState({ show: false, saleId: null });
 
@@ -116,7 +118,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  // Columns Configuration
  const [tableColumns, setTableColumns] = useState([
  { key: 'date', label: 'Date', width: '12%' },
- { key: 'order_number', label: 'Order No', width: '15%' },
+ { key: 'order_number', label: tt('Order No'), width: '15%' },
  { key: 'party_name', label: 'Party Name', width: '15%' },
  { key: 'transaction', label: 'Transaction', width: '10%' },
  { key: 'total_amount', label: 'Amount', width: '10%' },
@@ -265,8 +267,8 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
  return (
- <OneGlanceLayout title="Pre-Orders" activeMenu="Sell">
- <Head title="Pre-Orders" />
+ <OneGlanceLayout title={tt('Pre-Orders')} activeMenu="Sell">
+ <Head title={tt('Pre-Orders')} />
  <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
  <SellModuleTabs activeTab="pre-sales" />
 
@@ -303,7 +305,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
  <ShoppingBag size={16} />
  </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Total Orders</p>
+ <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Orders')}</p>
  </div>
  <p className="text-base font-bold text-ink">{stats?.order_count || 0}</p>
  </div>
@@ -340,7 +342,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
  <div className="flex items-center gap-2 flex-wrap">
  <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- Pre-<span className="text-brand-600">Orders</span>
+ Pre-<span className="text-brand-600">{tt('Orders')}</span>
  </h1>
  <div className="h-4 w-px bg-sunken mx-1"></div>
  <button
@@ -364,14 +366,14 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  value={searchTerm}
  onChange={handleSearch}
  onKeyDown={handleServerSearch}
- placeholder="Search orders..."
+ placeholder={tt('Search orders...')}
  className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
  />
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
  </div>
  <div className="flex items-center gap-0.5 border-l border-line pl-2">
  <Link href={route('store.pre-sales.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
- <Plus size={14} /> New Pre-Order
+ <Plus size={14} /> {tt('New Pre-Order')}
  </Link>
  </div>
  </div>
@@ -381,7 +383,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
  <div className="flex items-center justify-between w-full">
  <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
- Pre-<span className="text-brand-600">Orders</span>
+ Pre-<span className="text-brand-600">{tt('Orders')}</span>
  </h1>
  <div className="flex items-center gap-1">
  <button
@@ -401,7 +403,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <Link
  href={route('store.pre-sales.create', { store_slug: store?.slug })}
  className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
- title="New Pre-Order"
+ title={tt('New Pre-Order')}
  >
  <Plus size={16} />
  </Link>
@@ -415,7 +417,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  value={searchTerm}
  onChange={handleSearch}
  onKeyDown={handleServerSearch}
- placeholder="Search orders..."
+ placeholder={tt('Search orders...')}
  className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
  />
  <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
@@ -480,13 +482,13 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
  <ShoppingBag size={32} className="text-ink-muted" />
  </div>
- <p className="text-lg font-bold text-ink-secondary mb-1">No pre-orders found</p>
- <p className="text-sm text-ink-muted mb-4">Create your first pre-order to get started</p>
+ <p className="text-lg font-bold text-ink-secondary mb-1">{tt('No pre-orders found')}</p>
+ <p className="text-sm text-ink-muted mb-4">{tt('Create your first pre-order to get started')}</p>
  <Link
  href={route('store.pre-sales.create', { store_slug: store?.slug })}
  className="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition-colors flex items-center gap-2"
  >
- <Plus size={16} /> Create Pre-Order
+ <Plus size={16} /> {tt('Create Pre-Order')}
  </Link>
  </div>
  </td>
@@ -515,7 +517,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  {row.customer?.phone && <p className="text-xs text-ink-muted">{row.customer.phone}</p>}
  </div>
  );
- case 'transaction': return <span className="text-xs font-bold uppercase bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400 px-2 py-1 rounded-md">Pre-Order</span>;
+ case 'transaction': return <span className="text-xs font-bold uppercase bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400 px-2 py-1 rounded-md">{tt('Pre-Order')}</span>;
  case 'total_amount': return <span className="font-bold">{formatCurrency(row.total_amount, store)}</span>;
  case 'balance':
  const paid = parseFloat(row.paid_amount || 0);
@@ -569,7 +571,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  if (isStockAvailable) {
  showConfirm?.({
  title: 'Convert Sale?',
- message: 'Convert this pre-order to a sale? Stock will be deducted.',
+ message: tt('Convert this pre-order to a sale? Stock will be deducted.'),
  type: 'warning',
  confirmLabel: 'Convert',
  onConfirm: () => router.post(route('store.pre-sales.convert', { store_slug: store?.slug, order: row.id }))
@@ -597,19 +599,19 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  })}
  className="w-full text-left px-3 py-2 hover:bg-blue-50 rounded dark:hover:bg-blue-900/20 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-semibold"
  >
- <Wrench size={14} /> Book as Service Job
+ <Wrench size={14} /> {tt('Book as Service Job')}
  </Link>
  <div className="h-px bg-sunken my-1"></div>
  <button onClick={() => {
  showConfirm?.({
- title: 'Cancel Order?',
- message: 'Are you sure you want to cancel this order?',
+ title: tt('Cancel Order?'),
+ message: tt('Are you sure you want to cancel this order?'),
  type: 'error',
- confirmLabel: 'Cancel Order',
+ confirmLabel: tt('Cancel Order'),
  onConfirm: () => router.post(route('store.sales-orders.cancel', { store_slug: store?.slug, salesOrder: row.id }))
  });
- }} className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"><XCircle size={14} /> Cancel Order</button>
- <button onClick={() => { showConfirm?.({ title: 'Delete Pre-Sale?', message: 'Are you sure you want to delete this order? It will be moved to the Recycle Bin.', type: 'error', confirmLabel: 'Delete', onConfirm: () => router.delete(route('store.pre-sales.destroy', { store_slug: store?.slug, order: row.id }), { onSuccess: () => setAllOrders(prev => prev.filter(o => o.id !== row.id)) }) }); }} className="w-full text-left px-3 py-2 hover:bg-red-100 rounded dark:hover:bg-red-900/30 flex items-center gap-2 text-sm text-red-700 dark:text-red-400 font-bold"><Trash2 size={14} /> Delete</button>
+ }} className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"><XCircle size={14} /> {tt('Cancel Order')}</button>
+ <button onClick={() => { showConfirm?.({ title: 'Delete Pre-Sale?', message: tt('Are you sure you want to delete this order? It will be moved to the Recycle Bin.'), type: 'error', confirmLabel: 'Delete', onConfirm: () => router.delete(route('store.pre-sales.destroy', { store_slug: store?.slug, order: row.id }), { onSuccess: () => setAllOrders(prev => prev.filter(o => o.id !== row.id)) }) }); }} className="w-full text-left px-3 py-2 hover:bg-red-100 rounded dark:hover:bg-red-900/30 flex items-center gap-2 text-sm text-red-700 dark:text-red-400 font-bold"><Trash2 size={14} /> Delete</button>
  </>
  )}
  </div>
@@ -640,7 +642,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  {sortedData.length === 0 ? (
  <div className="bg-surface rounded-xl p-8 text-center border border-line">
  <ShoppingBag size={32} className="mx-auto text-ink-muted mb-2" />
- <p className="text-sm font-bold text-ink-secondary">No pre-orders found</p>
+ <p className="text-sm font-bold text-ink-secondary">{tt('No pre-orders found')}</p>
  </div>
  ) : (
  sortedData.map((row) => {
@@ -670,7 +672,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
 
  <div className="flex justify-between items-center border-t border-b border-line py-2.5">
  <div>
- <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Customer</p>
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Customer')}</p>
  <p className="text-sm font-bold text-ink mt-0.5">{row.customer?.name || 'Walk-in'}</p>
  </div>
  <div className="text-right">
@@ -727,7 +729,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
  <div className="flex items-center gap-4">
  <div>
- <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Pre-Order Preview</p>
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Pre-Order Preview')}</p>
  <h3 className="text-xl font-bold text-brand-600">{quickViewItem.order_number}</h3>
  </div>
  {(() => {
@@ -756,7 +758,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  href={route('store.sales.orders.show', { store_slug: store?.slug, order: quickViewItem.id })}
  className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition-colors flex items-center gap-1"
  >
- <Edit size={14} /> Edit Order
+ <Edit size={14} /> {tt('Edit Order')}
  </Link>
  <button
  onClick={() => setQuickViewItem(null)}
@@ -772,14 +774,14 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  {/* Top Info Row */}
  <div className="grid grid-cols-4 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
- <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Customer</p>
+ <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Customer')}</p>
  <p className="font-bold text-ink text-sm">{quickViewItem.customer?.name || 'Walk-in'}</p>
  {quickViewItem.customer?.phone && (
  <p className="text-xs text-ink-muted">{quickViewItem.customer.phone}</p>
  )}
  </div>
  <div className="bg-app p-3 rounded-xl">
- <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Order Date</p>
+ <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Order Date')}</p>
  <p className="font-bold text-ink text-sm">{formatDate(quickViewItem.created_at)}</p>
  </div>
  <div className="bg-app p-3 rounded-xl">
@@ -796,7 +798,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <div className="border border-line rounded-xl overflow-hidden">
  <div className="bg-app px-4 py-2 border-b border-line">
  <p className="text-xs font-bold text-ink-secondary uppercase">
- Items in this Order ({quickViewItem.items?.length || 0})
+ {tt('Items in this Order')} ({quickViewItem.items?.length || 0})
  </p>
  </div>
  <div className="max-h-[300px] overflow-auto">
@@ -878,7 +880,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  if (isStockAvailable) {
  showConfirm?.({
  title: 'Convert to Sale?',
- message: 'Convert this pre-order to a sale? Stock will be deducted.',
+ message: tt('Convert this pre-order to a sale? Stock will be deducted.'),
  type: 'warning',
  confirmLabel: 'Convert',
  onConfirm: () => router.post(route('store.pre-sales.convert', { store_slug: store?.slug, order: quickViewItem.id }))
@@ -922,8 +924,8 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/30 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-500">
  <CheckCircle2 size={32} />
  </div>
- <h3 className="text-lg font-bold text-ink mb-2">Pre-Order Converted to Sale!</h3>
- <p className="text-sm text-ink-muted mb-6">The Pre-Order has been successfully converted into a tax invoice.</p>
+ <h3 className="text-lg font-bold text-ink mb-2">{tt('Pre-Order Converted to Sale!')}</h3>
+ <p className="text-sm text-ink-muted mb-6">{tt('The Pre-Order has been successfully converted into a tax invoice.')}</p>
  <div className="flex gap-3 justify-center">
  <button
  onClick={() => setConversionSuccessModal({ show: false, saleId: null })}

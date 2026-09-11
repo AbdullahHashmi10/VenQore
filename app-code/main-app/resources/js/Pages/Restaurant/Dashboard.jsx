@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
 
 export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQueueCount = 0 }) {
+  const tt = useTermText();
   const [filter, setFilter] = useState('all');
   const [loadingId, setLoadingId] = useState(null);
 
@@ -96,7 +98,7 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg font-bold text-white">
-                  {table.name || `Table ${table.table_number}`}
+                  {table.name || `${tt('Table')} ${table.table_number}`}
                 </span>
                 <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border capitalize ${statusBadge(table.status)}`}>
                   {table.status}

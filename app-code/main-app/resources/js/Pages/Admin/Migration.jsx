@@ -6,11 +6,13 @@ import {
     Database, Upload, Check, AlertTriangle, ArrowRight,
     FileSpreadsheet, Users, Package, Loader2, HardDrive, RefreshCw
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function Migration() {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     const [file, setFile] = useState(null);
     const [step, setStep] = useState('upload'); // upload, analyzing, review, importing, results
@@ -84,7 +86,7 @@ export default function Migration() {
                     <h1 className="text-3xl font-bold text-ink mb-2">System Migration Tool</h1>
                     <p className="text-ink-muted max-w-lg mx-auto">
                         Seamlessly import your data from Vyapar backups (.vyp).
-                        We'll analyze your file and map Customers, Items, and Stock automatically.
+                        {tt("We'll analyze your file and map Customers, Items, and Stock automatically.")}
                     </p>
                 </div>
 
@@ -231,7 +233,7 @@ export default function Migration() {
                             </div>
                             <h3 className="font-bold text-3xl mb-4 text-ink">Migration Successful!</h3>
                             <p className="text-ink-muted mb-8 max-w-md">
-                                Your external data has been successfully imported. You can now view your new customers and products in the system.
+                                {tt('Your external data has been successfully imported. You can now view your new customers and products in the system.')}
                             </p>
 
                             <div className="bg-app p-4 rounded-xl w-full max-w-lg mb-8 text-left max-h-48 overflow-y-auto">
@@ -251,7 +253,7 @@ export default function Migration() {
                                 <button onClick={() => router.visit(route("store.inventory.index", {
                                     store_slug: store.slug
                                 }))} className="px-6 py-2.5 bg-brand-600 text-white hover:bg-brand-700 rounded-xl font-bold shadow-lg transition-colors">
-                                    View Products
+                                    {tt('View Products')}
                                 </button>
                             </div>
                         </div>

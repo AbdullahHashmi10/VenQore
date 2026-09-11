@@ -24,9 +24,11 @@ import {
 } from 'lucide-react';
 import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
 import axios from 'axios';
+import { useTermText } from '@/lib/terms';
 
 export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  const { store } = usePage().props;
+ const tt = useTermText();
  // Infinite Scroll State
  const [allOrders, setAllOrders] = useState(orders.data || []);
  const [nextPageUrl, setNextPageUrl] = useState(orders.next_page_url);
@@ -83,7 +85,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  const tableColumns = [
  { key: 'date', label: 'Date', width: '15%' },
  { key: 'reference', label: 'Reference No', width: '18%' },
- { key: 'supplier', label: 'Supplier', width: '22%' },
+ { key: 'supplier', label: tt('Supplier'), width: '22%' },
  { key: 'items', label: 'Items', width: '8%' },
  { key: 'total', label: 'Total', width: '12%' },
  { key: 'status', label: 'Status', width: '12%' },
@@ -226,7 +228,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
  <ShoppingCart size={16} />
  </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Total Orders</p>
+ <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Orders')}</p>
  </div>
  <p className="text-base font-bold text-ink">{totalOrders}</p>
  </div>
@@ -264,7 +266,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  {/* Left: Title + Filter Pills */}
  <div className="flex items-center gap-2 flex-wrap">
  <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- Purchase <span className="text-brand-600">Orders</span>
+ {tt('Purchase Orders')}
  </h1>
  <div className="h-4 w-px bg-sunken mx-1"></div>
  <button
@@ -293,7 +295,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  value={searchTerm}
  onChange={(e) => setSearchTerm(e.target.value)}
  onKeyDown={handleServerSearch}
- placeholder="Search purchase orders..."
+ placeholder={tt('Search purchase orders...')}
  className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
  />
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
@@ -333,7 +335,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <Link
  href={route('store.purchase-orders.create', { store_slug: store.slug })}
  className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
- title="New Purchase Order"
+ title={tt('New Purchase Order')}
  >
  <Plus size={16} />
  </Link>
@@ -347,7 +349,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  value={searchTerm}
  onChange={(e) => setSearchTerm(e.target.value)}
  onKeyDown={handleServerSearch}
- placeholder="Search purchase orders..."
+ placeholder={tt('Search purchase orders...')}
  className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
  />
  <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
@@ -408,13 +410,13 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
  <ShoppingCart size={32} className="text-ink-muted" />
  </div>
- <p className="text-lg font-bold text-ink-secondary mb-1">No purchase orders found</p>
- <p className="text-sm text-ink-muted mb-4">Create your first purchase order to get started</p>
+ <p className="text-lg font-bold text-ink-secondary mb-1">{tt('No purchase orders found')}</p>
+ <p className="text-sm text-ink-muted mb-4">{tt('Create your first purchase order to get started')}</p>
  <Link
  href={route('store.purchase-orders.create', { store_slug: store.slug })}
  className="px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold hover:bg-brand-700 transition-colors flex items-center gap-2"
  >
- <Plus size={16} /> Create Purchase Order
+ <Plus size={16} /> {tt('Create Purchase Order')}
  </Link>
  </div>
  </td>
@@ -437,7 +439,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <span className="font-mono text-brand-600 dark:text-brand-400 font-semibold">{row.reference_number}</span>
  </td>
  <td className="p-4 text-sm text-ink-secondary">
- <p className="font-semibold">{row.supplier?.name || 'Unknown Supplier'}</p>
+ <p className="font-semibold">{row.supplier?.name || tt('Unknown Supplier')}</p>
  </td>
  <td className="p-4 text-sm text-ink-secondary">
  <span className="font-bold">{row.items?.length || 0}</span>
@@ -485,7 +487,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  {sortedOrders.length === 0 ? (
  <div className="bg-surface rounded-xl p-8 text-center border border-line">
  <ShoppingCart size={32} className="mx-auto text-ink-muted mb-2" />
- <p className="text-sm font-bold text-ink-secondary">No purchase orders found</p>
+ <p className="text-sm font-bold text-ink-secondary">{tt('No purchase orders found')}</p>
  </div>
  ) : (
  sortedOrders.map((row) => {
@@ -508,7 +510,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <div className="flex items-start justify-between">
  <div>
  <h3 className="font-bold text-ink text-sm">
- {row.supplier?.name || 'Unknown Supplier'}
+ {row.supplier?.name || tt('Unknown Supplier')}
  </h3>
  {row.supplier?.phone && (
  <p className="text-2xs text-ink-muted font-semibold">{row.supplier.phone}</p>
@@ -595,7 +597,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
  <div className="flex items-center gap-4">
  <div>
- <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Purchase Order</p>
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Purchase Order')}</p>
  <h3 className="text-xl font-bold text-brand-600">{quickViewItem.reference_number}</h3>
  </div>
  {(() => {
@@ -635,14 +637,14 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  {/* Top Info Row */}
  <div className="grid grid-cols-3 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
- <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Supplier</p>
+ <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Supplier')}</p>
  <p className="font-bold text-ink text-sm">{quickViewItem.supplier?.name || 'Unknown'}</p>
  {quickViewItem.supplier?.phone && (
  <p className="text-xs text-ink-muted">{quickViewItem.supplier.phone}</p>
  )}
  </div>
  <div className="bg-app p-3 rounded-xl">
- <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Order Date</p>
+ <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Order Date')}</p>
  <p className="font-bold text-ink text-sm">{formatDate(quickViewItem.order_date)}</p>
  </div>
  <div className="bg-brand-100 dark:bg-brand-900/30 p-3 rounded-xl border border-brand-200 dark:border-brand-800">
@@ -655,7 +657,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <div className="border border-line rounded-xl overflow-hidden">
  <div className="bg-app px-4 py-2 border-b border-line">
  <p className="text-xs font-bold text-ink-secondary uppercase">
- Items in this Order ({quickViewItem.items?.length || 0})
+ {tt('Items in this Order')} ({quickViewItem.items?.length || 0})
  </p>
  </div>
  <div className="max-h-[300px] overflow-auto">

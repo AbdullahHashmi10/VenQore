@@ -29,9 +29,11 @@ import {
 } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import SmartCombobox from '@/Components/SmartCombobox';
+import { useTermText } from '@/lib/terms';
 
 export default function ProposalsList({ proposals = [], filters = {}, stats = {} }) {
  const { store } = usePage().props;
+ const tt = useTermText();
  // Strictly ensure defaultData is an array
  const resolveData = () => {
  if (!proposals) return [];
@@ -57,7 +59,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  const [tableColumns, setTableColumns] = useState([
  { key: 'date', label: 'Date', width: '12%' },
  { key: 'reference', label: 'Proposal No', width: '15%' },
- { key: 'party_name', label: 'Customer', width: '18%' },
+ { key: 'party_name', label: tt('Customer'), width: '18%' },
  { key: 'items', label: 'Items', width: '8%' },
  { key: 'amount', label: 'Amount', width: '12%' },
  { key: 'valid_until', label: 'Valid Until', width: '10%' },
@@ -568,7 +570,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
   })}
   className="w-full text-left px-3 py-2 hover:bg-amber-50 rounded dark:hover:bg-amber-900/20 flex items-center gap-2 text-sm text-amber-600 font-medium"
   >
-  <Wrench size={14} /> Book as Service Job
+  <Wrench size={14} /> {tt('Book as Service Job')}
   </Link>
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Copy size={14} /> Duplicate</button>
  <div className="h-px bg-sunken my-1"></div>
@@ -624,7 +626,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
 
  <div className="flex justify-between items-center border-t border-b border-line py-2.5">
  <div>
- <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Customer</p>
+ <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Customer')}</p>
  <p className="text-sm font-bold text-ink mt-0.5">{row.customer?.name || 'Walk-in'}</p>
  </div>
  <div className="text-right">
@@ -716,7 +718,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  {/* Top Info Row */}
  <div className="grid grid-cols-4 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
- <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Customer</p>
+ <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Customer')}</p>
  <p className="font-bold text-ink text-sm">{quickViewItem.customer?.name || 'Walk-in'}</p>
  {quickViewItem.customer?.phone && (
  <p className="text-xs text-ink-muted">{quickViewItem.customer.phone}</p>

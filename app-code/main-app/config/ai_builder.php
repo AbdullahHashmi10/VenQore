@@ -1271,36 +1271,124 @@ TXT,
             'blocked_by' => [],
             'note'       => 'This preset is Park & Recall wearing a third hat: the same built feature that gives restaurants tables gives a workshop its job queue.',
         ],
+
+        /*
+        | Added 11 Sep 2026 so every one of the 85 business types in
+        | config/business_types.php lands on a preset built for its trade —
+        | a plumber is not a retail shop.
+        */
+
+        'field_service' => [
+            'label'   => 'Field Service & Trades',
+            'blurb'   => 'Jobs, technicians, parts and an invoice at the end.',
+            'modules' => ['services', 'products', 'inventory', 'customers', 'invoicing', 'purchases', 'suppliers', 'staff_attendance', 'payments', 'expenses', 'reports'],
+            'terms'   => ['job' => ['singular' => 'Job', 'plural' => 'Jobs'], 'customer' => ['singular' => 'Client', 'plural' => 'Clients']],
+            'cards'   => ['revenue_trend', 'receivables', 'open_orders', 'expenses'],
+        ],
+
+        'professional_services' => [
+            'label'   => 'Professional Services',
+            'blurb'   => 'Clients, invoices and retainers. No stock.',
+            'modules' => ['services', 'customers', 'invoicing', 'recurring_invoices', 'payments', 'expenses', 'reports'],
+            'terms'   => ['customer' => ['singular' => 'Client', 'plural' => 'Clients']],
+            'cards'   => ['revenue_trend', 'receivables', 'expenses', 'net_profit'],
+        ],
+
+        'membership_studio' => [
+            'label'   => 'Memberships & Classes',
+            'blurb'   => 'Members, recurring fees and staff schedules.',
+            'modules' => ['services', 'customers', 'invoicing', 'recurring_invoices', 'staff_attendance', 'payments', 'expenses', 'reports'],
+            'terms'   => ['customer' => ['singular' => 'Member', 'plural' => 'Members']],
+            'cards'   => ['revenue_trend', 'receivables', 'active_staff', 'expenses'],
+        ],
+
+        'rental_hire' => [
+            'label'   => 'Rental & Hire',
+            'blurb'   => 'Items out, items back, and a bill for the days between.',
+            'modules' => ['products', 'services', 'inventory', 'pre_sales', 'customers', 'invoicing', 'payments', 'expenses', 'reports'],
+            'terms'   => ['order' => ['singular' => 'Booking', 'plural' => 'Bookings']],
+            'cards'   => ['revenue_trend', 'receivables', 'inventory_value', 'expenses'],
+        ],
+
+        'food_counter' => [
+            'label'   => 'Quick-Service Food',
+            'blurb'   => 'A fast counter, recipes and daily cash.',
+            'modules' => ['products', 'pos', 'inventory', 'cookbook', 'cash_register', 'expenses', 'reports'],
+            'terms'   => ['sale' => ['singular' => 'Order', 'plural' => 'Orders']],
+            'cards'   => ['revenue_today', 'top_products', 'expenses', 'revenue_trend'],
+        ],
+
+        'catering' => [
+            'label'   => 'Catering',
+            'blurb'   => 'Event orders, bulk recipes and supplier bills.',
+            'modules' => ['products', 'inventory', 'cookbook', 'sales_orders', 'customers', 'invoicing', 'purchases', 'suppliers', 'payments', 'expenses', 'reports'],
+            'terms'   => ['order' => ['singular' => 'Event Order', 'plural' => 'Event Orders']],
+            'cards'   => ['revenue_trend', 'open_orders', 'receivables', 'payables'],
+        ],
+
+        'light_manufacturing' => [
+            'label'   => 'Light Manufacturing',
+            'blurb'   => 'Materials in, finished goods out, at real cost.',
+            'modules' => ['products', 'inventory', 'cookbook', 'production_runs', 'purchases', 'suppliers', 'purchase_orders', 'sales_orders', 'customers', 'invoicing', 'payments', 'expenses', 'reports'],
+            'terms'   => [],
+            'cards'   => ['production_output', 'inventory_value', 'open_orders', 'payables'],
+        ],
+
+        'tailoring' => [
+            'label'   => 'Tailoring & Stitching',
+            'blurb'   => 'Measurements, stitching orders and fabric stock.',
+            'modules' => ['products', 'inventory', 'services', 'sales_orders', 'customers', 'khata_credit', 'payments', 'staff_attendance', 'expenses', 'reports'],
+            'terms'   => ['order' => ['singular' => 'Stitching Order', 'plural' => 'Stitching Orders']],
+            'cards'   => ['revenue_trend', 'open_orders', 'receivables', 'expenses'],
+        ],
     ],
 
     /*
     |--------------------------------------------------------------------------
     | 10. FIXTURES — the accuracy test
     |--------------------------------------------------------------------------
-    | Twelve real business descriptions with the preset they must land on.
-    | Acceptance from the build plan: at least 9 of 12. Run with a MOCKED model
-    | in CI and against the real model manually before launch.
+    | Real business descriptions with the BUSINESS TYPE (config/business_types.php)
+    | they must land on. Every one must pass — BusinessTypeMatchTest runs them,
+    | plus every type's own label and aliases.
     |
-    | When one fails, the fix is almost always an ALIAS in config/modules.php,
-    | not a prompt tweak. Aliases are how the model's vocabulary meets your
-    | customers' vocabulary — a bakery that says "I need to track ingredients"
-    | must land on inventory + cookbook because 'ingredients' is an alias of
-    | both. Prompt-tweaking to fix a vocabulary gap is treating the symptom.
+    | When one fails, the fix is almost always an ALIAS in
+    | config/business_types.php, not a prompt tweak. Aliases are how the
+    | product's vocabulary meets your customers' vocabulary.
     */
 
     'fixtures' => [
-        ['text' => 'I run a small tea shop, we sell chai and snacks over the counter',                     'expect' => 'cafe'],
-        ['text' => 'Bakery, we bake our own bread and cakes and take wedding orders',                      'expect' => 'bakery'],
-        ['text' => 'Medical store, we sell medicines, need to watch expiry dates',                          'expect' => 'pharmacy'],
-        ['text' => 'Kiryana store, sell by kilo, most regulars buy on udhaar',                              'expect' => 'grocery'],
-        ['text' => 'Mobile shop, we sell phones and accessories and track IMEI',                            'expect' => 'mobile_electronics'],
-        ['text' => 'Garments shop, same design in different sizes and colours',                             'expect' => 'clothing'],
-        ['text' => 'Restaurant with 12 tables and a kitchen',                                               'expect' => 'restaurant'],
-        ['text' => 'I do graphic design for clients and send them invoices every month',                    'expect' => 'freelancer'],
-        ['text' => 'Hair salon, four stylists, customers come back every few weeks',                        'expect' => 'salon'],
-        ['text' => 'We repair air conditioners, customers drop them off and collect later',                 'expect' => 'repair_workshop'],
-        ['text' => 'We supply goods to shops around the city, they pay us later',                           'expect' => 'wholesale'],
-        ['text' => 'Hardware shop, we sell pipe by the foot and cement by the bag',                         'expect' => 'hardware_store'],
+        ['text' => 'I run a small tea shop, we sell chai and snacks over the counter', 'expect_type' => 'tea_shop'],
+        ['text' => 'Bakery, we bake our own bread and cakes and take wedding orders', 'expect_type' => 'bakery'],
+        ['text' => 'Medical store, we sell medicines, need to watch expiry dates', 'expect_type' => 'pharmacy'],
+        ['text' => 'Kiryana store, sell by kilo, most regulars buy on udhaar', 'expect_type' => 'grocery'],
+        ['text' => 'Mobile shop, we sell phones and accessories and track IMEI', 'expect_type' => 'mobile_retail'],
+        ['text' => 'Garments shop, same design in different sizes and colours', 'expect_type' => 'fashion'],
+        ['text' => 'Restaurant with 12 tables and a kitchen', 'expect_type' => 'restaurant'],
+        ['text' => 'I do graphic design for clients and send them invoices every month', 'expect_type' => 'freelance_creative'],
+        ['text' => 'Hair salon, four stylists, customers come back every few weeks', 'expect_type' => 'salon_barber'],
+        ['text' => 'We repair air conditioners, customers drop them off and collect later', 'expect_type' => 'appliance_repair'],
+        ['text' => 'We supply goods to shops around the city, they pay us later', 'expect_type' => 'fmcg_wholesale'],
+        ['text' => 'Hardware shop, we sell pipe by the foot and cement by the bag', 'expect_type' => 'hardware'],
+        ['text' => 'I have a plumbing service job and I run it alone', 'expect_type' => 'plumber'],
+        ['text' => 'plumber', 'expect_type' => 'plumber'],
+        ['text' => 'I am an electrician, I do house wiring jobs', 'expect_type' => 'electrician'],
+        ['text' => 'We run a car workshop, mechanics fix engines and we sell parts', 'expect_type' => 'auto_repair'],
+        ['text' => 'Gym with monthly memberships and personal trainers', 'expect_type' => 'gym_fitness'],
+        ['text' => 'Tuition academy for O level students', 'expect_type' => 'tuition_academy'],
+        ['text' => 'Law firm, we bill clients by the hour', 'expect_type' => 'law_firm'],
+        ['text' => 'Darzi shop, we stitch suits on order', 'expect_type' => 'tailoring'],
+        ['text' => 'Mithai shop selling sweets by the kilo', 'expect_type' => 'sweets'],
+        ['text' => 'Pizza and burger takeaway', 'expect_type' => 'fast_food'],
+        ['text' => 'We roast coffee and sell beans to cafes', 'expect_type' => 'coffee_spice'],
+        ['text' => 'Pharma distributor supplying medical stores', 'expect_type' => 'pharma_wholesale'],
+        ['text' => 'Cleaning company, we send cleaners to offices', 'expect_type' => 'cleaning'],
+        ['text' => 'Pest control and fumigation services', 'expect_type' => 'pest_control'],
+        ['text' => 'Aluminium windows and glass fabrication', 'expect_type' => 'aluminium_glass'],
+        ['text' => 'Flex printing and sign boards', 'expect_type' => 'signage_print'],
+        ['text' => 'Tyre shop, we also sell batteries', 'expect_type' => 'tyre_battery'],
+        ['text' => 'Optical shop, glasses and contact lenses', 'expect_type' => 'optical'],
+        ['text' => 'resturant', 'expect_type' => 'restaurant'],
+        ['text' => 'pharmcy', 'expect_type' => 'pharmacy'],
     ],
 
     /*

@@ -8,6 +8,7 @@ import VqSelect from '@/Documents/VqSelect';
 import MoneyDocument, { uid, blankLine, today } from '@/Documents/MoneyDocument';
 import { documentType } from '@/Documents/documentTypes';
 import { linePayload } from '@/Documents/documentMoney';
+import { useTermText } from '@/lib/terms';
 
 const DOC = documentType('purchase-invoice');
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
@@ -43,6 +44,7 @@ export default function PurchaseForm({
     warehouses,
     expenseCategories,
 }) {
+    const tt = useTermText();
     const { store, settings } = usePage().props;
     const isEdit = mode === 'edit';
 
@@ -263,7 +265,7 @@ export default function PurchaseForm({
                     )}
 
                     {chrome.field('supplierRef') && (
-                        <Field label="Supplier's bill no." span={3}
+                        <Field label={tt("Supplier's bill no.")} span={3}
                             hint="The number on THEIR document, so you can find it when they call.">
                             <input type="text" className="vqdoc-in" value={d.supplier_invoice}
                                 placeholder="The number on their document"

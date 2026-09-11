@@ -6,6 +6,7 @@ import {
     AuthButton, AuthField, AuthForm, AuthNotice, AuthStack,
 } from '@/Components/Auth';
 import { Button } from '@/Components/ds/core/Button';
+import { useTermText } from '@/lib/terms';
 
 /**
  * Store/Join.jsx — join an existing store, at /join.
@@ -57,6 +58,7 @@ import { Button } from '@/Components/ds/core/Button';
  * same two `id` hooks on the field and the submit button.
  */
 export default function JoinStore({ pending_invites = [] }) {
+    const tt = useTermText();
     const { data, setData, post, processing, errors } = useForm({
         join_code: '',
     });
@@ -171,7 +173,7 @@ export default function JoinStore({ pending_invites = [] }) {
                             <Key size={12} className="mt-0.5 shrink-0 text-accent-text" />
                             <span>
                                 The code can be found in the store&apos;s{' '}
-                                <strong className="font-semibold text-ink-secondary">Staff Settings</strong> page.
+                                <strong className="font-semibold text-ink-secondary">{tt('Staff Settings')}</strong> page.
                             </span>
                         </p>
                     </div>

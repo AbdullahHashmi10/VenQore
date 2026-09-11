@@ -3,6 +3,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 import {
     ShoppingBag, Truck, AlertTriangle, DollarSign,
     CheckCircle2, Clock, Package, ArrowRight, RefreshCw, Plus
@@ -50,6 +51,7 @@ export default function PurchasingDashboard({
     recentOrders,
 }) {
     const { store, my_display_name, auth } = usePage().props;
+    const tt = useTermText();
     const storeSlug = store?.slug;
     const sym = store?.currency_symbol ?? '$ ';
 
@@ -84,7 +86,7 @@ export default function PurchasingDashboard({
                         }))}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)' }}
                     >
-                        <Plus size={15} /> New Purchase Order
+                        <Plus size={15} /> {tt('New Purchase Order')}
                     </button>
                 </div>
 
@@ -92,7 +94,7 @@ export default function PurchasingDashboard({
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
                     <KpiCard
                         icon={ShoppingBag} color="#6366f1"
-                        label="Open Purchase Orders"
+                        label={tt('Open Purchase Orders')}
                         value={openCount}
                         sub="Not yet fully received"
                     />
@@ -120,7 +122,7 @@ export default function PurchasingDashboard({
                     {/* Recent Purchase Orders Table */}
                     <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-100)))', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                         <div style={{ padding: '18px 24px', borderBottom: '1px solid rgb(var(--vq-slate-100))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>Purchase Orders</div>
+                            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>{tt('Purchase Orders')}</div>
                             <button onClick={() => router.visit(route("store.purchases.index", {
                                 store_slug: store.slug
                             }))}
@@ -131,14 +133,14 @@ export default function PurchasingDashboard({
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ borderBottom: '1px solid rgb(var(--vq-slate-100))' }}>
-                                    {['Order #', 'Supplier', 'Amount', 'Status', 'Expected'].map(h => (
+                                    {[tt('Order #'), tt('Supplier'), 'Amount', 'Status', 'Expected'].map(h => (
                                         <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'rgb(var(--vq-slate-400))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {orders.length === 0 && (
-                                    <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'rgb(var(--vq-slate-400))', fontSize: 13 }}>No purchase orders yet.</td></tr>
+                                    <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'rgb(var(--vq-slate-400))', fontSize: 13 }}>{tt('No purchase orders yet.')}</td></tr>
                                 )}
                                 {orders.map((po, i) => (
                                     <tr key={i} style={{ borderBottom: '1px solid rgb(var(--vq-slate-50))', transition: 'background 0.12s' }}
@@ -186,7 +188,7 @@ export default function PurchasingDashboard({
                                                     product_id: item.id
                                                 }))}
                                                 style={{ padding: '5px 10px', borderRadius: 8, background: '#fff', border: '1px solid rgb(var(--vq-slate-200))', fontSize: 11, fontWeight: 700, color: 'rgb(var(--vq-indigo-500))', cursor: 'pointer', flexShrink: 0 }}>
-                                                Order
+                                                {tt('Order')}
                                             </button>
                                         </div>
                                     ))}

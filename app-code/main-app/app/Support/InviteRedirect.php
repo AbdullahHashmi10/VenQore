@@ -51,6 +51,12 @@ class InviteRedirect
      * If an invite is pending, return a redirect to accept it and clear the
      * stored token. Returns null when there is no pending invite.
      */
+    /** Whether a token is waiting, without consuming it. */
+    public static function has(): bool
+    {
+        return session()->has(self::KEY);
+    }
+
     public static function pending(): ?RedirectResponse
     {
         $token = session(self::KEY);

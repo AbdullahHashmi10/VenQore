@@ -25,9 +25,11 @@ import {
     Shield
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
+import { useTermText } from '@/lib/terms';
 
 export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps = [], terminalActivities = [], filters = {} }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [searchTerm, setSearchTerm] = useState('');
     const [dateFilter, setDateFilter] = useState(filters.date || new Date().toISOString().split('T')[0]);
     const [activeSubTab, setActiveSubTab] = useState('attendance'); // 'attendance' or 'security'
@@ -102,8 +104,8 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
     };
 
     return (
-        <OneGlanceLayout title="Staff Attendance" activeMenu="Staff Attendance" mode="admin">
-            <Head title="Staff Attendance" />
+        <OneGlanceLayout title={tt('Staff Attendance')} activeMenu="Staff Attendance" mode="admin">
+            <Head title={tt('Staff Attendance')} />
 
             <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
                 <ContactsModuleTabs activeTab="attendance" />
@@ -115,7 +117,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <UserCheck size={16} />
                             </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Staff</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Staff')}</p>
                         </div>
                         <p className="text-lg font-bold text-ink">{stats.totalStaff}</p>
                     </div>
@@ -162,7 +164,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                     {/* Left: Title + Sub-Tabs + Date Filter */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Staff <span className="text-brand-600">Attendance</span>
+                            {tt('Staff')} <span className="text-brand-600">Attendance</span>
                         </h1>
                         
                         <div className="h-4 w-px bg-sunken mx-1"></div>
@@ -172,7 +174,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                 onClick={() => setActiveSubTab('attendance')}
                                 className={`px-2.5 py-1 rounded-md transition-all ${activeSubTab === 'attendance' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
                             >
-                                📋 Staff Log
+                                📋 {tt('Staff Log')}
                             </button>
                             <button 
                                 onClick={() => setActiveSubTab('security')}
@@ -208,7 +210,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Search staff..."
+                                    placeholder={tt('Search staff...')}
                                     className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
                                 />
                             </div>
@@ -261,7 +263,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Staff Member</th>
+                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">{tt('Staff Member')}</th>
                                     <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Status</th>
                                     <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check In</th>
                                     <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check Out</th>
@@ -288,7 +290,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-sm text-ink">{member.name}</p>
-                                                            <p className="text-2xs text-ink-muted">{member.role || 'Staff'}</p>
+                                                            <p className="text-2xs text-ink-muted">{member.role || tt('Staff')}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -344,8 +346,8 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                                 <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
                                                     <UserCheck size={28} className="text-ink-muted" />
                                                 </div>
-                                                <p className="text-base font-bold text-ink-secondary mb-1">No staff members found</p>
-                                                <p className="text-sm text-ink-muted">Add staff members to start tracking attendance</p>
+                                                <p className="text-base font-bold text-ink-secondary mb-1">{tt('No staff members found')}</p>
+                                                <p className="text-sm text-ink-muted">{tt('Add staff members to start tracking attendance')}</p>
                                             </div>
                                         </td>
                                     </tr>

@@ -4,10 +4,12 @@ import axios from 'axios';
 import { X, Sparkles, TrendingUp, RefreshCcw, AlertTriangle, Clock, DollarSign, Package, Calendar, History, BarChart2, MessageSquare, Info, User, FileText, CheckCircle, ArrowRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 export default function OpportunityIntelligencePanel({ isOpen, onClose, recommendation, stats }) {
     const { store, settings } = usePage().props;
+    const tt = useTermText();
     if (!isOpen || !recommendation) return null;
 
     const tabs = [
@@ -467,7 +469,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                 {/* FULL WIDTH REVENUE CHART */}
                 <div>
                     <h4 className="text-sm font-bold text-ink mb-6 flex items-center gap-3 uppercase tracking-widest">
-                        <TrendingUp size={20} className="text-brand-500" /> Revenue & Order Pattern
+                        <TrendingUp size={20} className="text-brand-500" /> {tt('Revenue & Order Pattern')}
                     </h4>
                     <div className="h-[350px] w-full bg-surface rounded-2xl relative border border-line shadow-inner overflow-hidden">
                         <div className="absolute inset-10">
@@ -512,17 +514,17 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="bg-app p-6 rounded-2xl border border-line">
-                            <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-2">Likely Order Value</p>
+                            <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-2">{tt('Likely Order Value')}</p>
                             <p className="text-2xl font-bold dark:text-white">{formatCurrency(recommendation.potential_revenue, store || settings)}</p>
                         </div>
                         <div className="bg-app p-6 rounded-2xl border border-line">
-                            <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-2">Order Frequency</p>
+                            <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-2">{tt('Order Frequency')}</p>
                             <p className="text-2xl font-bold dark:text-white">Every {data.adbo || '8'} Days</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-2 ml-2">Mostly Purchased Products</p>
+                        <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-2 ml-2">{tt('Mostly Purchased Products')}</p>
                         {realProducts.map((prod, i) => (
                             <div key={i} className="flex items-center justify-between p-4 bg-surface border border-line rounded-2xl group">
                                 <div className="flex items-center gap-4">
@@ -557,7 +559,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                             </div>
                             <div>
                                 <h2 className="text-3xl font-bold dark:text-white tracking-tight uppercase leading-none mb-1">
-                                    {recommendation.party?.name || 'Unknown Customer'}
+                                    {recommendation.party?.name || tt('Unknown Customer')}
                                 </h2>
                                 <div className="flex items-center gap-3">
                                     <div className="px-3 py-1 bg-brand-100 dark:bg-brand-900/40 text-brand-600 rounded-full text-2xs font-bold border border-brand-200 dark:border-brand-800 uppercase tracking-widest">

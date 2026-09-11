@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Trophy } from 'lucide-react';
 import axios from 'axios';
+import { useTermText } from '@/lib/terms';
 
 export default function InvoiceTourGuide({ store }) {
+ const tt = useTermText();
  const [hasCustomers, setHasCustomers] = useState(true);
  const [isCustomerCreationPath, setIsCustomerCreationPath] = useState(null);
  const [currentStep, setCurrentStep] = useState(0);
@@ -343,7 +345,7 @@ export default function InvoiceTourGuide({ store }) {
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- You don't have any customers yet! Click on the <span className="text-white font-bold">Search Party</span> input.
+ {tt("You don't have any customers yet!")} Click on the <span className="text-white font-bold">Search Party</span> input.
  </p>
  )}
  {currentStep === 1 && (
@@ -353,7 +355,7 @@ export default function InvoiceTourGuide({ store }) {
  )}
  {currentStep === 2 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Put in the customer's <span className="text-white font-bold">Name</span> inside the modal.
+ {tt("Put in the customer's")} <span className="text-white font-bold">Name</span> inside the modal.
  </p>
  )}
  {currentStep === 3 && (
@@ -368,17 +370,17 @@ export default function InvoiceTourGuide({ store }) {
  )}
  {currentStep === 5 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">Create Customer</span> to save the customer.
+ Click <span className="text-white font-bold">{tt('Create Customer')}</span> {tt('to save the customer.')}
  </p>
  )}
  {currentStep === 6 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Great! Now move toward the <span className="text-white font-bold">Search Product</span> option and select the previously created product.
+ Great! Now move toward the <span className="text-white font-bold">{tt('Search Product')}</span> {tt('option and select the previously created product.')}
  </p>
  )}
  {currentStep === 7 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Enter the <span className="text-white font-bold">Amount Paid</span> by the customer (leave as 0 if on credit).
+ Enter the <span className="text-white font-bold">Amount Paid</span> {tt('by the customer (leave as 0 if on credit).')}
  </p>
  )}
  {currentStep === 8 && (
@@ -396,17 +398,17 @@ export default function InvoiceTourGuide({ store }) {
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Select a <span className="text-white font-bold">Customer</span> for the invoice.
+ Select a <span className="text-white font-bold">{tt('Customer')}</span> for the invoice.
  </p>
  )}
  {currentStep === 1 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Search and select a <span className="text-white font-bold">Product</span> to add to the invoice list.
+ Search and select a <span className="text-white font-bold">{tt('Product')}</span> to add to the invoice list.
  </p>
  )}
  {currentStep === 2 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Enter the <span className="text-white font-bold">Amount Paid</span> by the customer (leave as 0 if on credit).
+ Enter the <span className="text-white font-bold">Amount Paid</span> {tt('by the customer (leave as 0 if on credit).')}
  </p>
  )}
  {currentStep === 3 && (

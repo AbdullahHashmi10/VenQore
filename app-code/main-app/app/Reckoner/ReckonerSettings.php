@@ -42,6 +42,22 @@ final class ReckonerSettings
         'generic' => 90,
     ];
 
+    /**
+     * tenants.business_type holds a catalogue key (config/business_types.php)
+     * or a preset key; both resolve to a preset, and the preset to a bucket.
+     */
+    private const PRESET_BUCKET = [
+        'restaurant' => 'restaurant', 'cafe' => 'restaurant', 'food_counter' => 'restaurant', 'catering' => 'restaurant',
+        'grocery' => 'grocery', 'pharmacy' => 'pharmacy',
+        'salon' => 'salon', 'membership_studio' => 'salon',
+        'repair_workshop' => 'automotive',
+        'wholesale' => 'wholesale',
+        'field_service' => 'services', 'professional_services' => 'services', 'freelancer' => 'services', 'rental_hire' => 'services',
+        'bakery' => 'manufacturing', 'light_manufacturing' => 'manufacturing', 'tailoring' => 'manufacturing',
+        'pos_only' => 'retail', 'retail_shop' => 'retail', 'clothing' => 'retail', 'mobile_electronics' => 'retail',
+        'hardware_store' => 'retail', 'multi_branch_retail' => 'retail',
+    ];
+
     public static function get(string $key, ?Tenant $tenant): mixed
     {
         if ($key === 'reckoner.dormant_days') {
@@ -94,7 +110,10 @@ final class ReckonerSettings
         // owner sets it, so null degrades to 'generic' exactly like an
         // unrecognised value would.
         $businessType = $tenant?->getAttribute('business_type') ?? 'generic';
-        $default = self::DORMANT_DAYS_BY_TYPE[$businessType] ?? self::DORMANT_DAYS_BY_TYPE['generic'];
+        $bucket = isset(self::DORMANT_DAYS_BY_TYPE[$businessType])
+            ? $businessType
+            : (self::PRESET_BUCKET[\App\Support\BusinessTypes::presetFor($businessType) ?? ''] ?? 'generic');
+        $default = self::DORMANT_DAYS_BY_TYPE[$bucket] ?? self::DORMANT_DAYS_BY_TYPE['generic'];
 
         if (! $tenant) {
             return $default;

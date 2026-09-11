@@ -764,8 +764,11 @@ class DashboardController extends Controller
         $business = config('dashboard_presets.business', []);
         $aliases = config('dashboard_presets.aliases', []);
 
+        // business_type is a catalogue key (config/business_types.php) or a
+        // preset key — resolve to the preset, then to its board.
         $type = strtolower((string) ($tenant->business_type ?? ''));
-        $key = $aliases[$type] ?? $type;
+        $key = \App\Support\BusinessTypes::presetFor($type) ?? $type;
+        $key = isset($business[$key]) ? $key : ($aliases[$key] ?? $key);
 
         return $business[$key] ?? $business['default'] ?? [];
     }

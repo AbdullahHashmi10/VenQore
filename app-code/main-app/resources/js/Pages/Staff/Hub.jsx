@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import axios from 'axios';
+import { useTermText } from '@/lib/terms';
 
 
 import { vq } from '@/theme/runtime';
@@ -27,16 +28,18 @@ const PLATFORM_ROLES = {
 };
 
 function RoleBadge({ role }) {
+    const tt = useTermText();
     const cfg = PLATFORM_ROLES[role] ?? { label: 'Platform Staff', icon: Users, color: 'text-ink-muted', bg: 'bg-neutral-400/10', border: 'border-line-strong' };
     const Icon = cfg.icon;
     return (
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
-            <Icon size={12} /> {cfg.label}
+            <Icon size={12} /> {tt(cfg.label)}
         </span>
     );
 }
 
 export default function StaffHub({ employee, referred_chats = [], tasks = [], stats = { unassigned: 0, active: 0, resolved: 0 } }) {
+    const tt = useTermText();
     const [activeTasks, setActiveTasks] = useState(tasks);
     const [autonomyStats, setAutonomyStats] = useState([]);
     const [categoryStats, setCategoryStats] = useState([]);
@@ -134,7 +137,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                     <div className="relative rounded-xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-8 overflow-hidden shadow-2xl">
                         <div className="absolute top-0 right-0 p-8 w-48 h-48 bg-brand-600/10 rounded-full blur-[50px] -mt-16 -mr-16 pointer-events-none" />
 
-                        <span className="text-3xs font-bold text-brand-400 uppercase tracking-[0.2em] block mb-2">VenQore Platform Staff</span>
+                        <span className="text-3xs font-bold text-brand-400 uppercase tracking-[0.2em] block mb-2">{tt('VenQore Platform Staff')}</span>
                         <h1 className="text-3xl font-bold tracking-tight text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                             {employee.name}
                         </h1>

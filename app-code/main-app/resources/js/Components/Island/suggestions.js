@@ -70,8 +70,14 @@ export const ALL_SUGGESTIONS = SUGGESTION_GROUPS.flatMap(g =>
   g.items.map(i => ({ ...i, group: g.label, groupId: g.id }))
 );
 
-/** Recent searches first, then everything else, de-duplicated by prompt. */
-export const buildSuggestionFeed = (recent = []) => {
+/**
+ * Recent searches first, then everything else, de-duplicated by prompt.
+ * Pass the caller's `tt` (from useTermText()) to rewrite each suggestion's
+ * visible label/group into the store's own words — this module has no
+ * component of its own to call the hook from, so the already-computed
+ * tt function is threaded in here instead. Omitting it leaves labels as-is.
+ */
+export const buildSuggestionFeed = (recent = [], tt = (s) => s) => {
   const seen = new Set();
   const feed = [];
   recent.forEach((r) => {
@@ -84,7 +90,7 @@ export const buildSuggestionFeed = (recent = []) => {
     const key = s.prompt.toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
-    feed.push(s);
+    feed.push({ ...s, label: tt(s.label), group: tt(s.group) });
   });
   return feed;
 };

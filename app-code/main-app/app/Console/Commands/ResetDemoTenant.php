@@ -89,7 +89,7 @@ class ResetDemoTenant extends Command
             $demo->update([
                 'setup_completed' => true,
                 'status'          => 'active',
-                'plan'            => 'growth', // Demo shows Growth features
+                'plan'            => 'core', // Demo shows Core features
             ]);
 
             // ── 3. Seed demo admin user ────────────────────────────────

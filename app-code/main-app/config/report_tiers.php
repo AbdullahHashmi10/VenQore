@@ -15,7 +15,7 @@ return [
         'reports.transactions',
         'reports.all-parties',
     ],
-    'growth' => [
+    'core' => [
         'reports.analytics',
         'reports.sale-order-items',
         'reports.item-wise-profit',
@@ -35,7 +35,7 @@ return [
         'reports.customer-insights',
         'reports.supplier-insights',
     ],
-    'business' => [
+    'scale' => [
         'reports.sale-aging',
         'reports.stock-summary-by-category',
         'reports.stock-aging',

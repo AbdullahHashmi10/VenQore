@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Trophy, Home } from 'lucide-react';
 import axios from 'axios';
+import { useTermText } from '@/lib/terms';
 
 export default function PurchaseTourGuide({ store }) {
+ const tt = useTermText();
  const [hasSuppliers, setHasSuppliers] = useState(true);
  const [isSupplierCreationPath, setIsSupplierCreationPath] = useState(null);
  const [currentStep, setCurrentStep] = useState(0);
@@ -333,7 +335,7 @@ export default function PurchaseTourGuide({ store }) {
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- You don't have any suppliers yet! Click on the <span className="text-white font-bold">Search Party</span> input.
+ {tt("You don't have any suppliers yet! Click on the")} <span className="text-white font-bold">Search Party</span> input.
  </p>
  )}
  {currentStep === 1 && (
@@ -343,7 +345,7 @@ export default function PurchaseTourGuide({ store }) {
  )}
  {currentStep === 2 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Put in the supplier's <span className="text-white font-bold">Name</span> inside the modal.
+ {tt("Put in the supplier's")} <span className="text-white font-bold">Name</span> inside the modal.
  </p>
  )}
  {currentStep === 3 && (
@@ -358,12 +360,12 @@ export default function PurchaseTourGuide({ store }) {
  )}
  {currentStep === 5 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">Create Supplier</span> to save the supplier.
+ {tt('Click')} <span className="text-white font-bold">{tt('Create Supplier')}</span> {tt('to save the supplier.')}
  </p>
  )}
  {currentStep === 6 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Great! Now move toward the <span className="text-white font-bold">Search Product</span> option and select the previously created product.
+ {tt('Great! Now move toward the')} <span className="text-white font-bold">{tt('Search Product')}</span> {tt('option and select the previously created product.')}
  </p>
  )}
  {currentStep === 7 && (
@@ -396,12 +398,12 @@ export default function PurchaseTourGuide({ store }) {
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Select a <span className="text-white font-bold">Supplier</span> you are purchasing from.
+ {tt('Select a')} <span className="text-white font-bold">{tt('Supplier')}</span> you are purchasing from.
  </p>
  )}
  {currentStep === 1 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Search and select the <span className="text-white font-bold">Product</span> you created.
+ {tt('Search and select the')} <span className="text-white font-bold">{tt('Product')}</span> {tt('you created.')}
  </p>
  )}
  {currentStep === 2 && (

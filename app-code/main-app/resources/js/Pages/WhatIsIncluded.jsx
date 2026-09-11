@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { Check, X, Zap, Package, BarChart3, Users, Globe, Brain,
  TrendingUp, Layers, Shield, Clock, ArrowRight, Tag } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 /**
  * WhatIsIncluded.jsx — Phase 7
@@ -43,6 +44,7 @@ const Section = ({ title, children }) => (
 );
 
 export default function WhatIsIncluded() {
+ const tt = useTermText();
  return (
  <div className="min-h-screen bg-void-950 text-white font-sans">
  <Head>
@@ -114,8 +116,8 @@ export default function WhatIsIncluded() {
  <table className="w-full">
  <tbody>
  <Section title="Limits">
- <Feature label="Products (SKUs)" starter="1,000" growth="Unlimited" business="Unlimited" />
- <Feature label="Staff Accounts" starter="3" growth="10" business="Unlimited" />
+ <Feature label={tt("Products (SKUs)")} starter="1,000" growth="Unlimited" business="Unlimited" />
+ <Feature label={tt("Staff Accounts")} starter="3" growth="10" business="Unlimited" />
  <Feature label="Warehouse Locations" starter="1" growth="3" business="Unlimited" />
  </Section>
  <Section title="Point of Sale">
@@ -128,7 +130,7 @@ export default function WhatIsIncluded() {
  <Feature label="POS Receipts (Thermal/A4)" starter={true} growth={true} business={true} />
  </Section>
  <Section title="Inventory">
- <Feature label="Product Catalog" starter={true} growth={true} business={true} />
+ <Feature label={tt("Product Catalog")} starter={true} growth={true} business={true} />
  <Feature label="Variants & Attributes" starter={true} growth={true} business={true} />
  <Feature label="FIFO Costing Engine" starter={true} growth={true} business={true} />
  <Feature label="Stock Transfers" starter={true} growth={true} business={true} />
@@ -139,7 +141,7 @@ export default function WhatIsIncluded() {
  </Section>
  <Section title="Sales & Purchasing">
  <Feature label="Invoices & Quotations" starter={true} growth={true} business={true} />
- <Feature label="Purchase Orders" starter={true} growth={true} business={true} />
+ <Feature label={tt("Purchase Orders")} starter={true} growth={true} business={true} />
  <Feature label="Sales & Purchase Returns" starter={true} growth={true} business={true} />
  <Feature label="Party Ledgers (A/R & A/P)" starter={true} growth={true} business={true} />
  <Feature label="Discount Management" starter={true} growth={true} business={true} />
@@ -160,7 +162,7 @@ export default function WhatIsIncluded() {
  </Section>
  <Section title="Intelligence & Growth">
  <Feature label="Growth Engine (AI Retention)" starter={false} growth={true} business={true} />
- <Feature label="AI Customer Insights" starter={false} growth={true} business={true} />
+ <Feature label={tt("AI Customer Insights")} starter={false} growth={true} business={true} />
  <Feature label="WooCommerce Sync" starter="Add-on" growth="Add-on" business="Add-on" />
  <Feature label="Public REST API" starter={false} growth={false} business={true} />
  </Section>

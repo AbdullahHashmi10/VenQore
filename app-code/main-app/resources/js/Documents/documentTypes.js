@@ -619,7 +619,29 @@ export const DOCUMENTS = {
     }),
 };
 
-export const documentType = (id) => DOCUMENTS[id] || DOCUMENTS['sales-invoice'];
+/* `tt` is optional and, when passed, must be the function returned by
+   `useTermText()` in the calling component — this file has no component of
+   its own and must never call that hook itself. When provided, the party
+   role label ('Customer' / 'Supplier') and the document-number label
+   ('Order no.', etc.) are rewritten to the store's own words. */
+export const documentType = (id, tt) => {
+    const doc = DOCUMENTS[id] || DOCUMENTS['sales-invoice'];
+    if (!tt) return doc;
+    return {
+        ...doc,
+        party: doc.party ? { ...doc.party, label: tt(doc.party.label) } : doc.party,
+        ref: doc.ref ? { ...doc.ref, label: tt(doc.ref.label) } : doc.ref,
+    };
+};
+
+/* Same idea for a single FIELD_LIBRARY entry's label — for callers that look
+   up e.g. FIELD_LIBRARY.supplierRef directly rather than through a document.
+   `tt` is optional for the same reason as above. */
+export const fieldLabel = (key, tt) => {
+    const f = FIELD_LIBRARY[key];
+    if (!f) return undefined;
+    return tt ? tt(f.label) : f.label;
+};
 
 /* Convenience predicates, so screens ask questions rather than compare
    strings — `hasMoney(doc)` reads better than `doc.money.lines !== 'count'`

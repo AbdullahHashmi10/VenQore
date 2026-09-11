@@ -238,11 +238,24 @@ class ConfigurationAIService
      * SHIPPABLE score actually beats the best BLOCKED one fixes all three
      * with zero change to the five fixtures that already hit correctly.
      *
-     * @return array{preset: string, matched: bool}
+     * @return array{preset: string, matched: bool, business_type: ?string, candidates: string[]}
      */
     public function guessPresetDetailed(array $answers): array
     {
         $text = strtolower(($answers['what'] ?? '').' '.implode(' ', array_map('strval', $answers)));
+
+        // 1. The 85-type catalogue first (config/business_types.php). A named
+        //    trade — "plumber", "darzi", "pharma distributor" — decides the
+        //    preset outright; module-alias scoring below is only the fallback
+        //    for descriptions that name no trade at all.
+        $type = \App\Support\BusinessTypes::match($text);
+        if ($type['key'] && $type['confident']) {
+            $preset = \App\Support\BusinessTypes::presetFor($type['key']);
+            $shippable = $preset && empty(config("ai_builder.presets.{$preset}.blocked_by"));
+            if ($shippable) {
+                return ['preset' => $preset, 'matched' => true, 'business_type' => $type['key'], 'candidates' => $type['candidates']];
+            }
+        }
 
         // Alias matching, best score wins. The aliases in config/modules.php are
         // doing the work here — which is why they are the highest-return field
@@ -284,8 +297,10 @@ class ConfigurationAIService
         $matched = $bestShippable > 0 && $bestShippable > $bestBlocked;
 
         return [
-            'preset'  => $matched ? $bestShippableKey : 'retail_shop',
-            'matched' => $matched,
+            'preset'        => $matched ? $bestShippableKey : 'retail_shop',
+            'matched'       => $matched,
+            'business_type' => null,
+            'candidates'    => $type['candidates'] ?? [],
         ];
     }
 

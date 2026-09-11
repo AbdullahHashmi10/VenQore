@@ -3,6 +3,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, usePage } from '@inertiajs/react';
 import { MessageSquare, User, Clock, CheckCircle2, RefreshCw, Send, AlertCircle, ShieldAlert, Sparkles, LogOut, Loader2, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import VenaLogo from '@/Components/VenaLogo';
+import { useTermText } from '@/lib/terms';
 import axios from 'axios';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
@@ -11,6 +12,7 @@ import Pusher from 'pusher-js';
 window.Pusher = Pusher;
 
 export default function AgentInbox() {
+    const tt = useTermText();
     const { store, auth, my_role } = usePage().props;
     const currentUser = auth.user;
     const isOwner = my_role === 'owner' || auth.user.is_platform_admin;
@@ -762,7 +764,7 @@ export default function AgentInbox() {
                                                     onChange={(e) => handleRefer(selectedSession.session_uuid, e.target.value || null)}
                                                     className="px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold text-ink-secondary focus:outline-none outline-none cursor-pointer"
                                                 >
-                                                    <option value="">Refer to Staff...</option>
+                                                    <option value="">{tt('Refer to Staff...')}</option>
                                                     {staffMembers.map(member => (
                                                         <option key={member.id} value={member.id}>
                                                             {member.name} ({member.role.toUpperCase()})
@@ -1159,8 +1161,8 @@ export default function AgentInbox() {
                                 >
                                     <option value="general">General Support / FAQ</option>
                                     <option value="billing">Billing & Subscriptions</option>
-                                    <option value="checkout">Checkout & Orders</option>
-                                    <option value="features">Feature Requests & Products</option>
+                                    <option value="checkout">{tt('Checkout & Orders')}</option>
+                                    <option value="features">{tt('Feature Requests & Products')}</option>
                                     <option value="bug">Technical Bug / Issue</option>
                                 </select>
                             </div>

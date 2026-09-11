@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
 
 /**
  * Single-screen Overview Dashboard — Working, interactive build of UI Mockup 1a
@@ -172,6 +173,7 @@ const RAIL_ITEMS = [
 ];
 
 export default function FullyFunctionalNextDashboard(props) {
+    const tt = useTermText();
     const pageProps = usePage()?.props || {};
     const store = props.store || pageProps.store || {};
     const auth = props.auth || pageProps.auth || {};
@@ -338,7 +340,7 @@ export default function FullyFunctionalNextDashboard(props) {
                         <path d="M9.4 9.4L12.5 12.5" />
                     </svg>
                     <span style={{ font: "400 13px 'Instrument Sans',sans-serif", color: '#9a9689' }}>
-                        Search invoices, products, people
+                        {tt('Search invoices, products, people')}
                     </span>
                     <span style={{ marginLeft: 'auto', font: "400 10.5px ui-monospace,monospace", color: '#b3af9f' }}>
                         ⌘K
@@ -656,7 +658,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                         <span className="flex-1 truncate" style={{ font: "400 13px 'Instrument Sans',sans-serif", color: '#3c3a33' }}>
                                             BMC out of stock
                                         </span>
-                                        <Link href={safeRoute('store.products.index', '/products')} style={{ font: "500 12px 'Instrument Sans',sans-serif", color: '#0e6b4f' }} className="no-underline hover:underline">Order</Link>
+                                        <Link href={safeRoute('store.products.index', '/products')} style={{ font: "500 12px 'Instrument Sans',sans-serif", color: '#0e6b4f' }} className="no-underline hover:underline">{tt('Order')}</Link>
                                     </div>
                                     <div className="flex items-center gap-2.5">
                                         <span style={{ width: 6, height: 6, borderRadius: 99, background: '#b4600a', flex: 'none' }} />
@@ -682,7 +684,7 @@ export default function FullyFunctionalNextDashboard(props) {
                         <StatCard
                             label="To receive"
                             value={money(toReceiveVal)}
-                            footnote="4 customers · 2 overdue"
+                            footnote={tt('4 customers · 2 overdue')}
                             tone="warn"
                             href={safeRoute('store.customers.index', '/customers')}
                         />
@@ -723,7 +725,7 @@ export default function FullyFunctionalNextDashboard(props) {
                     </div>
 
                     <div id="vq-more-grid" className="grid gap-3" style={{ gridTemplateColumns: 'repeat(2,minmax(0,1fr))' }}>
-                        <Panel title="Top products" action="This month" actionHref={safeRoute('store.products.index', '/products')}>
+                        <Panel title={tt('Top products')} action="This month" actionHref={safeRoute('store.products.index', '/products')}>
                             {[
                                 { name: 'Cumfrey', val: 14382 },
                                 { name: 'BMC', val: 3120 },
@@ -777,7 +779,7 @@ export default function FullyFunctionalNextDashboard(props) {
                     >
                         <span style={{ font: "400 20px 'Instrument Sans',sans-serif", color: '#8b877a', lineHeight: 1 }}>+</span>
                         <span style={{ font: "500 13.5px 'Instrument Sans',sans-serif", color: '#6f6c61' }}>
-                            Add a card — cash flow, GST, staff, AI opportunities and 12 more
+                            {tt('Add a card — cash flow, GST, staff, AI opportunities and 12 more')}
                         </span>
                     </button>
                 </div>
@@ -795,7 +797,7 @@ export default function FullyFunctionalNextDashboard(props) {
                             <input
                                 autoFocus
                                 type="text"
-                                placeholder="Search invoices, products, customers..."
+                                placeholder={tt('Search invoices, products, customers...')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-transparent outline-none text-ink placeholder:text-ink-faint font-sans text-sm"
@@ -814,7 +816,7 @@ export default function FullyFunctionalNextDashboard(props) {
                             </Link>
                             <Link href={safeRoute('store.products.index', '/products')} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-interactive-hover text-ink no-underline">
                                 <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                                Manage Products & Inventory
+                                {tt('Manage Products & Inventory')}
                             </Link>
                         </div>
                     </div>
@@ -883,7 +885,7 @@ export default function FullyFunctionalNextDashboard(props) {
                             {[
                                 { title: 'Cash Flow Projection', desc: 'Upcoming 30-day forecasted inflows & outflows' },
                                 { title: 'GST & Tax Summary', desc: 'Output vs Input Tax liability for active period' },
-                                { title: 'Staff Performance', desc: 'Daily sales per cashier and shift breakdown' },
+                                { title: tt('Staff Performance'), desc: 'Daily sales per cashier and shift breakdown' },
                                 { title: 'AI Opportunities', desc: 'Smart re-order points and slow-moving items' }
                             ].map((card, i) => (
                                 <div key={i} className="bg-white p-4 rounded-xl border border-line flex items-center justify-between">

@@ -257,11 +257,11 @@ class TenantDefaultSeeder
     {
         $defaults = [
             'store_name'           => $tenant->name,
-            'currency_symbol'      => $tenant->currency_symbol ?: 'Rs.',
-            'currency_code'        => $tenant->currency_code ?: 'PKR',
+            'currency_symbol'      => $tenant->currency_symbol ?: '$',
+            'currency_code'        => $tenant->currency_code ?: 'USD',
             'decimal_places'       => '2',
             'tax_rate'             => '0',
-            'timezone'             => $tenant->timezone ?: 'Asia/Karachi',
+            'timezone'             => $tenant->timezone ?: 'UTC',
             'invoice_prefix'       => 'INV-',
             'receipt_footer'       => 'Thank you for your business!',
             'setup_completed'      => '0',
@@ -373,8 +373,11 @@ class TenantDefaultSeeder
             );
         }
 
-        // 2. Seed terminology into tenant_terminology
-        foreach ($selectedTemplate['terminology'] as $termKey => $terms) {
+        // 2. Seed terminology into tenant_terminology — only for stores that
+        // are NOT one of the 85 catalogue types. Those get their words from
+        // config/business_types.php via StoreProvisioner (one source).
+        $isCatalogueType = \App\Support\BusinessTypes::exists((string) ($tenant->business_type ?? ''));
+        foreach ($isCatalogueType ? [] : $selectedTemplate['terminology'] as $termKey => $terms) {
             DB::table('tenant_terminology')->updateOrInsert(
                 ['tenant_id' => $tenant->id, 'term_key' => $termKey],
                 [

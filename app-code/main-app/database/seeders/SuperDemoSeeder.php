@@ -31,7 +31,7 @@ class SuperDemoSeeder extends Seeder
             $demo = Tenant::create([
                 'name' => 'VenQore Demo Store',
                 'slug' => 'demo',
-                'plan' => 'business',
+                'plan' => 'scale',
                 'status' => 'active',
                 'currency_symbol' => '$',
                 'currency_code' => 'USD',

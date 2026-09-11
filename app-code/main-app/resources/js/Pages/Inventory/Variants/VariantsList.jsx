@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react'; // usePage added
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Plus, Edit, Trash2, ArrowLeft, Save, X } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function VariantsIndex({ product, variants, globalAttributes = [] }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingVariant, setEditingVariant] = useState(null);
 
@@ -96,7 +98,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                     href={route('store.inventory.index', { store_slug: store?.slug })}
                     className="flex items-center gap-2 text-ink-muted hover:text-brand-600 transition-colors"
                 >
-                    <ArrowLeft size={20} /> Back to Products
+                    <ArrowLeft size={20} /> {tt('Back to Products')}
                 </Link>
                 <button
                     onClick={() => openModal()}

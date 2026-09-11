@@ -3,6 +3,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { getCurrencySymbol } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 import {
  Sparkles, AlertTriangle, RefreshCcw, ArrowRight,
  CheckCircle2, Clock, Package, Users, Wallet, Percent, ShieldCheck,
@@ -66,6 +67,7 @@ export default function GrowthDashboard({
  trend,
  filters = {},
 }) {
+ const tt = useTermText();
  const cur = getCurrencySymbol();
  const { store } = usePage().props;
 
@@ -209,7 +211,7 @@ export default function GrowthDashboard({
  <div className="flex items-center gap-2 mb-1">
  <Icon size={15} className={active ? 'text-brand-700' : 'text-brand-200'} />
  <span className={`text-xs font-bold uppercase tracking-wide ${active ? 'text-brand-700' : 'text-brand-200'}`}>
- {meta.label}
+ {tt(meta.label)}
  </span>
  </div>
  <div className="flex items-baseline gap-2">

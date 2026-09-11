@@ -20,8 +20,10 @@ import {
  Type,
  Shield
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function Edit({ mustVerifyEmail, status }) {
+ const tt = useTermText();
  const {
  store
  } = usePage().props;
@@ -334,7 +336,7 @@ export default function Edit({ mustVerifyEmail, status }) {
  {/* Checklist of steps */}
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {[
- { key: 'inventory', label: 'Catalog First Product', isDone: usePage().props.onboarding_metrics?.has_products, desc: 'Add at least one product to your store inventory.', route: 'store.inventory.index' },
+ { key: 'inventory', label: tt('Catalog First Product'), isDone: usePage().props.onboarding_metrics?.has_products, desc: tt('Add at least one product to your store inventory.'), route: 'store.inventory.index' },
  { key: 'purchase', label: 'Record First Purchase', isDone: usePage().props.onboarding_metrics?.has_purchases, desc: 'Add stock to your inventory by recording a purchase.', route: 'store.purchases.create' },
  { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: usePage().props.onboarding_metrics?.has_sales, desc: 'Make a POS sale or generate a customer invoice.', route: 'store.sales.invoice.create' },
  { key: 'expense', label: 'Record Store Expense', isDone: usePage().props.onboarding_metrics?.has_expenses, desc: 'Keep track of daily business costs by adding an expense.', route: 'store.expenses.index' },

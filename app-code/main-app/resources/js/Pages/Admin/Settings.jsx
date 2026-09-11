@@ -24,6 +24,7 @@ import Toggle from '@/Components/Toggle';
 import SectionHeader from '@/Components/SectionHeader';
 
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 // ── Settings IA (restructured) ──────────────────────────────────────────
 // This used to be 18 flat sections (several of them rendered by the exact
 // same shared component split across two unrelated categories, plus a
@@ -85,6 +86,7 @@ const SETTINGS_SECTIONS = [
 ];
 
 export default function AdminSettings({ settings = {} }) {
+ const tt = useTermText();
  const { store } = usePage().props;
  const [activeSection, setActiveSection] = useState(() => {
  // NOTE: this used to check against a hardcoded array of section ids
@@ -503,7 +505,7 @@ export default function AdminSettings({ settings = {} }) {
  className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  >
  <option value="reference">Reference Number Required</option>
- <option value="customer_or_reference">Customer or Reference</option>
+ <option value="customer_or_reference">{tt('Customer or Reference')}</option>
  <option value="open">Open Return — No Reference Needed</option>
  </select>
  </div>
@@ -582,7 +584,7 @@ export default function AdminSettings({ settings = {} }) {
  </div>
  <div>
  <h4 className="font-bold text-emerald-900 dark:text-emerald-400 text-lg">WhatsApp Integration</h4>
- <p className="text-sm text-emerald-700 dark:text-emerald-500/80">Send invoices directly to customer's WhatsApp</p>
+ <p className="text-sm text-emerald-700 dark:text-emerald-500/80">{tt("Send invoices directly to customer's WhatsApp")}</p>
  </div>
  </div>
  <button type="button" className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all">Connect Account</button>
@@ -590,7 +592,7 @@ export default function AdminSettings({ settings = {} }) {
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
  <SectionHeader title="SMS Settings" description="Automated text notifications" />
- <Toggle enabled={data.sms_to_party} onChange={v => setData('sms_to_party', v)} label="Send SMS to Party" description="Notify customers on every transaction" />
+ <Toggle enabled={data.sms_to_party} onChange={v => setData('sms_to_party', v)} label="Send SMS to Party" description={tt('Notify customers on every transaction')} />
  <Toggle enabled={data.auto_send_sales} onChange={v => setData('auto_send_sales', v)} label="Auto-send for Sales" />
  </div>
  <div className="p-6 bg-sunken rounded-2xl border border-line">
@@ -658,15 +660,15 @@ export default function AdminSettings({ settings = {} }) {
  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="space-y-4">
- <SectionHeader title="Customer Preferences" description="Manage how you interact with parties" />
- <Toggle enabled={data.party_grouping} onChange={v => setData('party_grouping', v)} label="Enable Party Grouping" description="Categorize customers by region or type" />
- <Toggle enabled={data.loyalty_enabled} onChange={v => setData('loyalty_enabled', v)} label="Loyalty Points Program" description="Reward frequent customers with points" />
- <Toggle enabled={data.enable_credit_limit} onChange={v => setData('enable_credit_limit', v)} label="Enable Credit Limit" description="Set maximum credit limits for customers" />
+ <SectionHeader title={tt('Customer Preferences')} description="Manage how you interact with parties" />
+ <Toggle enabled={data.party_grouping} onChange={v => setData('party_grouping', v)} label="Enable Party Grouping" description={tt('Categorize customers by region or type')} />
+ <Toggle enabled={data.loyalty_enabled} onChange={v => setData('loyalty_enabled', v)} label="Loyalty Points Program" description={tt('Reward frequent customers with points')} />
+ <Toggle enabled={data.enable_credit_limit} onChange={v => setData('enable_credit_limit', v)} label="Enable Credit Limit" description={tt('Set maximum credit limits for customers')} />
  </div>
  <div className="p-6 bg-brand-50 dark:bg-brand-500/10 rounded-2xl border border-brand-100 dark:border-brand-500/20">
  <h4 className="font-bold text-brand-900 dark:text-brand-400 flex items-center gap-2 mb-4"><Clock size={18} /> Payment Reminders</h4>
  <div className="space-y-4">
- <Toggle enabled={data.payment_reminders} onChange={v => setData('payment_reminders', v)} label="Enable Payment Reminders" description="Automatically email customers with outstanding invoices" />
+ <Toggle enabled={data.payment_reminders} onChange={v => setData('payment_reminders', v)} label="Enable Payment Reminders" description={tt('Automatically email customers with outstanding invoices')} />
  <div className="space-y-2">
  <label className="text-sm text-brand-700 dark:text-brand-300/80">Send reminder after (days) past invoice date</label>
  <input type="number" value={data.payment_reminder_days} onChange={e => setData('payment_reminder_days', e.target.value)} className="w-full px-4 py-3 bg-surface border border-brand-200 dark:border-brand-500/30 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" />
@@ -764,14 +766,14 @@ export default function AdminSettings({ settings = {} }) {
  <div className="p-4 bg-sunken border-b border-line flex items-center justify-between">
  <div className="relative flex-1 max-w-md">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
- <input type="text" placeholder="Search services for reminder..." className="w-full pl-10 pr-4 py-2 bg-surface border border-line dark:border-line rounded-xl text-sm outline-none" />
+ <input type="text" placeholder={tt('Search services for reminder...')} className="w-full pl-10 pr-4 py-2 bg-surface border border-line dark:border-line rounded-xl text-sm outline-none" />
  </div>
  <button
  type="button"
  onClick={() => {
  const newReminder = {
  id: Date.now(),
- name: 'New Service',
+ name: tt('New Service'),
  interval: 30,
  unit: 'days',
  };
@@ -800,7 +802,7 @@ export default function AdminSettings({ settings = {} }) {
  }}
  className="w-full bg-transparent border-none p-0 text-sm font-bold text-ink focus:ring-0"
  />
- <p className="text-2xs text-ink-muted uppercase font-bold tracking-widest mt-0.5">Recurring Service</p>
+ <p className="text-2xs text-ink-muted uppercase font-bold tracking-widest mt-0.5">{tt('Recurring Service')}</p>
  </div>
  <div className="flex items-center gap-2 bg-sunken px-3 py-1.5 rounded-xl">
  <span className="text-2xs font-bold text-ink-muted uppercase tracking-tighter">Every</span>
@@ -842,8 +844,8 @@ export default function AdminSettings({ settings = {} }) {
  )) : (
  <div className="flex-1 flex flex-col items-center justify-center text-ink-muted py-12">
  <Clock size={48} className="mb-4 opacity-20" />
- <p className="font-bold text-sm tracking-tight mb-1">No Service Reminders Yet</p>
- <p className="text-xs text-center max-w-xs">Click "Add New Reminder" above to schedule automatic recurring service notifications.</p>
+ <p className="font-bold text-sm tracking-tight mb-1">{tt('No Service Reminders Yet')}</p>
+ <p className="text-xs text-center max-w-xs">{tt('Click "Add New Reminder" above to schedule automatic recurring service notifications.')}</p>
  </div>
  )}
  </div>
@@ -953,7 +955,7 @@ export default function AdminSettings({ settings = {} }) {
  <div className="relative z-10 flex-1 min-w-0">
  <p className={`text-xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-200'}`}>{section.name}</p>
  <p className={`text-3xs leading-tight ${isActive ? 'text-brand-200' : 'text-ink-muted'} line-clamp-1`}>
- {section.description}
+ {tt(section.description)}
  </p>
  </div>
  )}
@@ -989,7 +991,7 @@ export default function AdminSettings({ settings = {} }) {
  </h2>
  </div>
  <p className="text-base text-ink-muted font-medium">
- {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.description}
+ {tt(SETTINGS_SECTIONS.find(s => s.id === activeSection)?.description || '')}
  </p>
  </div>
 

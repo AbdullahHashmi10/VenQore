@@ -276,5 +276,18 @@ return [
         'supermarket' => 'grocery',
         'cafe_bakery' => 'cafe',
         'distribution' => 'wholesale',
+
+        // Presets added with the 85-type catalogue (config/business_types.php)
+        // borrow the closest existing board until they get their own.
+        // Business-type keys resolve through their preset first — see
+        // DashboardController::defaultBoardFor().
+        'field_service' => 'repair_workshop',
+        'professional_services' => 'freelancer',
+        'membership_studio' => 'salon',
+        'rental_hire' => 'repair_workshop',
+        'food_counter' => 'cafe',
+        'catering' => 'bakery',
+        'light_manufacturing' => 'manufacturing',
+        'tailoring' => 'manufacturing',
     ],
 ];

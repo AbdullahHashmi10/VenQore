@@ -17,9 +17,11 @@ import {
     Package
 } from 'lucide-react';
 import Pagination from '@/Components/Pagination';
+import { useTermText } from '@/lib/terms';
 
 export default function SerialTracking({ serials, stats, filters }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const [statusFilter, setStatusFilter] = useState(filters?.status || 'all');
     const [sortConfig, setSortConfig] = useState({ key: 'serial', direction: 'asc' });
@@ -189,7 +191,7 @@ export default function SerialTracking({ serials, stats, filters }) {
                                     </div>
                                 </th>
                                 <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
-                                    Product
+                                    {tt('Product')}
                                 </th>
                                 <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Status

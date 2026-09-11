@@ -24,6 +24,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import ServiceNavTabs from '@/Pages/Services/ServiceNavTabs';
 
@@ -38,6 +39,7 @@ const STATUS_CONFIG = {
 export default function Tools({ tools, filters = {}, stats = {}, employees = [], categories = [] }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
+    const tt = useTermText();
 
     const [search, setSearch] = useState(filters.search || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
@@ -205,7 +207,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                                     Tools & Field Equipment
                                 </h1>
                                 <p className="text-xs text-ink-muted">
-                                    Track workshop tools, vehicle kits, staff checkouts, and maintenance cadences.
+                                    {tt('Track workshop tools, vehicle kits, staff checkouts, and maintenance cadences.')}
                                 </p>
                             </div>
                         </div>
@@ -241,7 +243,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                     </div>
 
                     <div className="p-4 rounded-xl border border-line bg-surface shadow-xs">
-                        <span className="text-3xs font-bold uppercase tracking-wider text-blue-600 block">Checked Out to Staff</span>
+                        <span className="text-3xs font-bold uppercase tracking-wider text-blue-600 block">{tt('Checked Out to Staff')}</span>
                         <div className="mt-1 flex items-baseline justify-between">
                             <span className="text-2xl font-black text-blue-600">{stats.with_staff ?? 0}</span>
                             <User size={16} className="text-blue-500" />
@@ -263,7 +265,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                         {[
                             { key: 'all', label: 'All Equipment' },
                             { key: 'available', label: 'Available' },
-                            { key: 'with_staff', label: 'With Staff' },
+                            { key: 'with_staff', label: tt('With Staff') },
                             { key: 'due_maintenance', label: 'Maintenance Due (7d)' },
                             { key: 'in_maintenance', label: 'In Repair' },
                         ].map(tab => (
@@ -287,7 +289,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onKeyDown={handleSearch}
-                            placeholder="Search tools, staff, category..."
+                            placeholder={tt('Search tools, staff, category...')}
                             className="w-full pl-9 pr-3 py-1.5 bg-app border border-line rounded-lg text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
                         />
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
@@ -480,7 +482,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                                         className="w-full px-3 py-2 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                                     >
                                         <option value="available">Available in Shop</option>
-                                        <option value="with_staff">With Staff / In Field</option>
+                                        <option value="with_staff">{tt('With Staff / In Field')}</option>
                                         <option value="in_maintenance">In Maintenance</option>
                                         <option value="lost">Lost / Missing</option>
                                         <option value="retired">Retired</option>
@@ -587,7 +589,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
 
                         <form onSubmit={handleCheckout} className="space-y-3">
                             <div>
-                                <label className="font-bold text-ink block mb-1">Assign to Staff Member *</label>
+                                <label className="font-bold text-ink block mb-1">{tt('Assign to Staff Member *')}</label>
                                 <select
                                     required
                                     value={checkoutForm.employee_id}
@@ -607,7 +609,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                                     type="text"
                                     value={checkoutForm.location}
                                     onChange={(e) => setCheckoutForm({ ...checkoutForm, location: e.target.value })}
-                                    placeholder="e.g. Service Van #1, Client Site"
+                                    placeholder={tt('e.g. Service Van #1, Client Site')}
                                     className="w-full px-3 py-2 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                                 />
                             </div>
@@ -641,7 +643,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
 
                         <form onSubmit={handleLogMaintenance} className="space-y-3">
                             <div>
-                                <label className="font-bold text-ink block mb-1">Service / Inspection Date</label>
+                                <label className="font-bold text-ink block mb-1">{tt('Service / Inspection Date')}</label>
                                 <input
                                     type="date"
                                     required
@@ -652,7 +654,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                             </div>
 
                             <div>
-                                <label className="font-bold text-ink block mb-1">Service Cost (If Any)</label>
+                                <label className="font-bold text-ink block mb-1">{tt('Service Cost (If Any)')}</label>
                                 <input
                                     type="number"
                                     step="0.01"

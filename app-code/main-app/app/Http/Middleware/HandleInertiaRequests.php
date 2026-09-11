@@ -194,7 +194,7 @@ class HandleInertiaRequests extends Middleware
                 $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
                 if (!$tenant) return null;
                 return [
-                    'slug'     => $tenant->plan,
+                    'slug'     => \App\Support\PlanCatalog::canonical($tenant->plan),
                     'features' => \App\Services\PlanRepository::featuresFor($tenant),
                     'limits'   => \App\Services\PlanRepository::limitsFor($tenant),
                     'usage'    => [

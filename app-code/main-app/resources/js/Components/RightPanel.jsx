@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import PaymentModal from '@/Components/PaymentModal';
+import { useTermText } from '@/lib/terms';
 import {
  Wallet,
  MoreHorizontal,
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
+ const tt = useTermText();
  if (!isOpen) return null;
 
  const actions = [
@@ -66,7 +68,7 @@ const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
  <div className={`p-2 rounded-lg mb-1 transition-transform ${action.bg} ${action.color}`}>
  <action.icon size={18} />
  </div>
- <span className="text-2xs font-medium text-ink-secondary text-center leading-tight">{action.label}</span>
+ <span className="text-2xs font-medium text-ink-secondary text-center leading-tight">{tt(action.label)}</span>
  </button>
  ))}
  </div>

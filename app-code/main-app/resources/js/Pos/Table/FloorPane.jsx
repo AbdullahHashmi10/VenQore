@@ -27,6 +27,7 @@ import {
     Users, Clock, CircleDot, Plus, ShoppingBag, Bike, AlertTriangle, Phone,
 } from 'lucide-react';
 import { STATES, alertAge } from './useTableService';
+import { useTermText } from '@/lib/terms';
 
 /* Minutes since something happened, said the way a person says it. A waiter
    glancing at a floor needs "over an hour" to be instantly different from
@@ -213,6 +214,7 @@ export default function FloorPane({
        what time it is, and so a parent tick re-sorts the whole floor at once. */
     now = Date.now(),
 }) {
+    const tt = useTermText();
     const ordered = useMemo(() => {
         /* SORT ORDER IS THE FEATURE.
 
@@ -248,7 +250,7 @@ export default function FloorPane({
                     <Users size={15} className="text-brand-500 dark:text-brand-400" />
                     <span>Floor</span>
                     {counts?.alerts > 0 && (
-                        <span className="vqt-h-alert" title="Tables waiting on someone">
+                        <span className="vqt-h-alert" title={tt('Tables waiting on someone')}>
                             <AlertTriangle size={11} aria-hidden="true" />
                             {counts.alerts}
                         </span>
@@ -313,14 +315,14 @@ export default function FloorPane({
                             <Plus size={26} strokeWidth={1.75} />
                         </div>
                         <p className="font-bold text-ink">
-                            {laneTab ? `No ${laneTab.label.toLowerCase()} tickets open` : 'No tables in this area'}
+                            {laneTab ? `No ${laneTab.label.toLowerCase()} tickets open` : tt('No tables in this area')}
                         </p>
                         {laneTab ? (
                             <p className="text-xs text-ink-muted mt-1">Start one above.</p>
                         ) : (
                             <>
                                 <p className="text-xs text-ink-muted mt-1 mb-3">
-                                    Tables come from the floor plan. Build it once and this fills in.
+                                    {tt('Tables come from the floor plan. Build it once and this fills in.')}
                                 </p>
                                 {/* This empty state used to say "add tables in
                                     Settings" and point at a screen that did not

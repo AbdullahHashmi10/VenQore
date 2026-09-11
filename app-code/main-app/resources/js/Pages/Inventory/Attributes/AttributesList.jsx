@@ -5,9 +5,11 @@ import PageHeader from '@/Components/PageHeader'; // Added
 import StockModuleTabs from '@/Components/StockModuleTabs';
 
 import { Plus, Edit, Trash2, Save, X, Tag, Settings, List } from 'lucide-react'; // Icons added
+import { useTermText } from '@/lib/terms';
 
 export default function AttributesIndex({ attributes }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAttribute, setEditingAttribute] = useState(null);
 
@@ -72,7 +74,7 @@ export default function AttributesIndex({ attributes }) {
     };
 
     return (
-        <OneGlanceLayout title="Product Attributes" activeMenu="Stock">
+        <OneGlanceLayout title={tt('Product Attributes')} activeMenu="Stock">
             <Head title="Attributes" />
 
             <div className="flex flex-col h-full">
@@ -83,8 +85,8 @@ export default function AttributesIndex({ attributes }) {
 
                 <div className="flex-1 flex flex-col gap-6 overflow-auto pb-6">
                     <PageHeader
-                        title="Product Attributes"
-                        subtitle="Manage custom product attributes (Size, Color, etc.)"
+                        title={tt('Product Attributes')}
+                        subtitle={tt('Manage custom product attributes (Size, Color, etc.)')}
                         icon={List}
                         breadcrumbs={[
                             { label: 'Inventory' },

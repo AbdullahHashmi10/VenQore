@@ -45,6 +45,12 @@ class GiftRedirect
         }
     }
 
+    /** Whether a token is waiting, without consuming it. */
+    public static function has(): bool
+    {
+        return session()->has(self::KEY);
+    }
+
     public static function pending(): ?RedirectResponse
     {
         $token = session(self::KEY);

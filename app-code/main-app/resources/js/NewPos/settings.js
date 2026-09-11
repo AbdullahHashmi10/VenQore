@@ -29,38 +29,52 @@
 import { presetComposition } from '@/LayoutLaw/engine';
 import { LAW } from '@/LayoutLaw/law';
 
-export const PROFILES = [
-    {
-        id: 'scan',
-        name: 'Scanner-driven',
-        note: 'Large inventory, barcode-first. Pharmacy, hardware, distribution.',
-        family: { desk: 'scan', short: 'scan', tablet: 'scan', phone: 'counter' },
-    },
-    {
-        id: 'retail',
-        name: 'General retail',
-        note: 'Staff both scan and browse. 200–2,000 SKUs.',
-        family: { desk: 'column', short: 'stack', tablet: 'row', phone: 'counter' },
-    },
-    {
-        id: 'visual',
-        name: 'Browse-led',
-        note: 'The product is the interface. Café, QSR, boutique.',
-        family: { desk: 'grid', short: 'stack', tablet: 'row', phone: 'counter' },
-    },
-    {
-        id: 'table',
-        name: 'Table service',
-        note: 'The unit of work is the table, not the sale.',
-        family: { desk: 'table', short: 'table', tablet: 'table', phone: 'counter' },
-    },
-];
+// buildProfiles()/buildReturnPolicies() take the store's useTermText() `tt`
+// so a consuming component can render these with the store's own words (e.g.
+// "table" becomes "position" in reverse — a store that renamed "table" still
+// sees its own word here). Called with no argument, they return the same
+// English defaults as before, so PROFILES/RETURN_POLICIES below stay
+// backward compatible for anything that doesn't need renamed text.
+export function buildProfiles(tt = (s) => s) {
+    return [
+        {
+            id: 'scan',
+            name: 'Scanner-driven',
+            note: 'Large inventory, barcode-first. Pharmacy, hardware, distribution.',
+            family: { desk: 'scan', short: 'scan', tablet: 'scan', phone: 'counter' },
+        },
+        {
+            id: 'retail',
+            name: 'General retail',
+            note: 'Staff both scan and browse. 200–2,000 SKUs.',
+            family: { desk: 'column', short: 'stack', tablet: 'row', phone: 'counter' },
+        },
+        {
+            id: 'visual',
+            name: 'Browse-led',
+            note: 'The product is the interface. Café, QSR, boutique.',
+            family: { desk: 'grid', short: 'stack', tablet: 'row', phone: 'counter' },
+        },
+        {
+            id: 'table',
+            name: tt('Table service'),
+            note: tt('The unit of work is the table, not the sale.'),
+            family: { desk: 'table', short: 'table', tablet: 'table', phone: 'counter' },
+        },
+    ];
+}
 
-export const RETURN_POLICIES = [
-    { id: 'reference', label: 'Reference required', note: 'A return must load an original invoice.' },
-    { id: 'party_or_ref', label: 'Customer or reference', note: 'Either identifies the original sale.' },
-    { id: 'open', label: 'Open returns', note: 'Any item may be returned without a reference.' },
-];
+export const PROFILES = buildProfiles();
+
+export function buildReturnPolicies(tt = (s) => s) {
+    return [
+        { id: 'reference', label: 'Reference required', note: 'A return must load an original invoice.' },
+        { id: 'party_or_ref', label: tt('Customer or reference'), note: 'Either identifies the original sale.' },
+        { id: 'open', label: 'Open returns', note: 'Any item may be returned without a reference.' },
+    ];
+}
+
+export const RETURN_POLICIES = buildReturnPolicies();
 
 export const DEFAULT_OPS = {
     senior: false,          // large text mode

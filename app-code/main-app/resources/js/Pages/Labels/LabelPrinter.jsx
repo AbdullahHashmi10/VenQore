@@ -5,9 +5,11 @@ import PremiumButton from '@/Components/PremiumButton';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import { Tag, Printer, Search, Plus, Trash2, Settings } from 'lucide-react';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
+import { useTermText } from '@/lib/terms';
 
 export default function LabelsIndex({ products }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [selectedItems, setSelectedItems] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [settings, setSettings] = useState({
@@ -111,7 +113,7 @@ export default function LabelsIndex({ products }) {
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-ink">Barcode Labels</h2>
-                                <p className="text-ink-muted">Generate and print product labels.</p>
+                                <p className="text-ink-muted">{tt('Generate and print product labels.')}</p>
                             </div>
                         </div>
                         <PremiumButton onClick={handlePrint} disabled={selectedItems.length === 0}>
@@ -128,20 +130,20 @@ export default function LabelsIndex({ products }) {
                                 <AsyncProductCombobox
                                     onSelect={addToSelection}
                                     defaultOptions={products}
-                                    placeholder="Search products to add..."
+                                    placeholder={tt('Search products to add...')}
                                 />
                             </div>
 
                             {/* Selected Items Table */}
                             <div className="bg-surface rounded-xl border border-line overflow-hidden">
                                 <div className="p-4 border-b border-line font-bold text-ink-secondary">
-                                    Selected Products ({selectedItems.length})
+                                    {tt('Selected Products')} ({selectedItems.length})
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead className="bg-app">
                                             <tr>
-                                                <th className="p-3 text-left text-xs font-bold text-ink-muted uppercase">Product</th>
+                                                <th className="p-3 text-left text-xs font-bold text-ink-muted uppercase">{tt('Product')}</th>
                                                 <th className="p-3 text-center text-xs font-bold text-ink-muted uppercase w-32">Quantity</th>
                                                 <th className="p-3 text-right text-xs font-bold text-ink-muted uppercase w-16"></th>
                                             </tr>
@@ -150,7 +152,7 @@ export default function LabelsIndex({ products }) {
                                             {selectedItems.length === 0 ? (
                                                 <tr>
                                                     <td colSpan="3" className="p-8 text-center text-ink-muted">
-                                                        No items selected. Search and add products above.
+                                                        {tt('No items selected. Search and add products above.')}
                                                     </td>
                                                 </tr>
                                             ) : (
@@ -235,7 +237,7 @@ export default function LabelsIndex({ products }) {
                                                 onChange={(e) => setSettings({ ...settings, show_name: e.target.checked })}
                                                 className="rounded text-brand-600 focus:ring-brand-500"
                                             />
-                                            <span className="text-sm text-ink-secondary">Show Product Name</span>
+                                            <span className="text-sm text-ink-secondary">{tt('Show Product Name')}</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
@@ -279,7 +281,7 @@ export default function LabelsIndex({ products }) {
                                             height: `${settings.height * 2}px`
                                         }}
                                     >
-                                        {settings.show_name && <div className="font-bold text-2xs leading-tight mb-1">Sample Product</div>}
+                                        {settings.show_name && <div className="font-bold text-2xs leading-tight mb-1">{tt('Sample Product')}</div>}
                                         {settings.show_barcode && (
                                             <div className="w-full flex flex-col items-center">
                                                 <div className="h-4 w-3/4 bg-neutral-800 mb-0.5"></div>

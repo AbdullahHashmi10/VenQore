@@ -5,11 +5,13 @@ import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function StockValuation({ products = [], stats = {}, filters = {}, categories = [], warehouses = [] }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     // Map Stats
     const reportStats = [
@@ -43,7 +45,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
     const columns = [
         {
             key: 'name',
-            label: 'Product',
+            label: tt('Product'),
             sortable: true,
             render: (row) => (
                 <div>
@@ -199,7 +201,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b-2 border-neutral-900">
-                            <th className="py-2 text-xs font-bold uppercase">Product / SKU</th>
+                            <th className="py-2 text-xs font-bold uppercase">{tt('Product / SKU')}</th>
                             <th className="py-2 text-xs font-bold uppercase text-right">Qty</th>
                             <th className="py-2 text-xs font-bold uppercase text-right">Cost</th>
                             <th className="py-2 text-xs font-bold uppercase text-right">Valuation</th>

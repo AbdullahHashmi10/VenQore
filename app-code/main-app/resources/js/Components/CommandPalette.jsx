@@ -18,9 +18,11 @@ import {
     ArrowRight,
     Command
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 const CommandPalette = () => {
     const { auth, store } = usePage().props;
+    const tt = useTermText();
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -67,8 +69,8 @@ const CommandPalette = () => {
         // Quick Actions
         { id: 'new-sale', name: 'New Sale Invoice', keywords: 'new sale invoice create', icon: Plus, action: () => router.visit(route('store.sales.create', { store_slug: store?.slug })), category: 'Quick Actions' },
         { id: 'new-purchase', name: 'New Purchase', keywords: 'new purchase buy', icon: Truck, action: () => router.visit(route('store.purchases.create', { store_slug: store?.slug })), category: 'Quick Actions' },
-        { id: 'new-product', name: 'Add Product', keywords: 'new product item add create', icon: Package, action: () => router.visit(route('store.inventory.dashboard', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
-        { id: 'new-customer', name: 'Add Customer', keywords: 'new customer party add create', icon: Users, action: () => router.visit(route('store.parties.index', { store_slug: store?.slug }) + '?action=add&type=customer'), category: 'Quick Actions' },
+        { id: 'new-product', name: tt('Add Product'), keywords: 'new product item add create', icon: Package, action: () => router.visit(route('store.inventory.dashboard', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
+        { id: 'new-customer', name: tt('Add Customer'), keywords: 'new customer party add create', icon: Users, action: () => router.visit(route('store.parties.index', { store_slug: store?.slug }) + '?action=add&type=customer'), category: 'Quick Actions' },
         { id: 'new-expense', name: 'Add Expense', keywords: 'new expense add create', icon: CreditCard, action: () => router.visit(route('store.expenses.index', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
         { id: 'payment-in', name: 'Record Payment In', keywords: 'payment receive in money', icon: DollarSign, action: () => router.visit(route('store.payment-in.create', { store_slug: store?.slug })), category: 'Quick Actions' },
         { id: 'payment-out', name: 'Record Payment Out', keywords: 'payment out pay money', icon: DollarSign, action: () => router.visit(route('store.payment-out.create', { store_slug: store?.slug })), category: 'Quick Actions' },

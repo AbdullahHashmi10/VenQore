@@ -5,12 +5,14 @@ import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 export default function LowStock({ products = [], stats = {}, filters = {}, categories = [], warehouses = [] }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     // Derived Calculations (Safety Checks)
     const totalShortage = products.reduce((acc, p) => acc + Math.max(0, (p.effective_threshold || p.alert_quantity || 0) - (p.stock_quantity || 0)), 0);
@@ -74,7 +76,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
     const columns = [
         {
             key: 'name',
-            label: 'Product Details',
+            label: tt('Product Details'),
             sortable: true,
             width: '320px',
             render: (row) => (
@@ -135,7 +137,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
         },
         {
             key: 'shortage',
-            label: 'To Order',
+            label: tt('To Order'),
             align: 'center',
             sortable: true,
             render: (row) => {
@@ -168,7 +170,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
         },
         {
             key: 'supplier',
-            label: 'Supplier',
+            label: tt('Supplier'),
             render: (row) => (
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-ink-secondary bg-sunken px-2 py-1 rounded-md border border-line">
@@ -182,7 +184,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
             label: 'Action',
             align: 'right',
             render: (row) => (
-                <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-brand-600 hover:text-brand-700 transition-all border border-transparent hover:border-line dark:hover:border-line-strong group" title="Create Purchase Order">
+                <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-brand-600 hover:text-brand-700 transition-all border border-transparent hover:border-line dark:hover:border-line-strong group" title={tt('Create Purchase Order')}>
                     <ShoppingCart size={16} className="transition-transform" />
                 </button>
             )

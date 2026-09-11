@@ -13,6 +13,7 @@ import {
 import { formatCurrency, formatNumber } from '@/Utils/format';
 
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 export default function SalesReport({ sales = [], stats = {}, chartData = [], filters = {} }) {
  const {
  store
@@ -21,6 +22,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  // Guard: Prevent rendering until store context is derived
  if (!store?.slug) return null;
 
+ const tt = useTermText();
  const { props } = usePage();
  const [startDate, setStartDate] = useState(filters.start_date || '');
  const [endDate, setEndDate] = useState(filters.end_date || '');
@@ -81,7 +83,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  if (stats.avg_ticket < 1000) { // Arbitrary threshold, adjust as needed
  insights.push({ type: 'opportunity', title: 'Upsell Potential', text: `Avg ticket is ${formatCurrency(stats.avg_ticket, store)}. Bundling products could boost this by 15%.` });
  } else {
- insights.push({ type: 'success', title: 'Strong Basket Size', text: 'Customers are buying multiple items. Maintain this momentum.' });
+ insights.push({ type: 'success', title: 'Strong Basket Size', text: tt('Customers are buying multiple items. Maintain this momentum.') });
  }
 
  setAnalysisResult({
@@ -163,7 +165,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 backdrop-blur-sm z-10">
  <tr>
  <th className="px-6 py-3 font-bold">Ref #</th>
- <th className="px-6 py-3 font-bold">Customer</th>
+ <th className="px-6 py-3 font-bold">{tt('Customer')}</th>
  <th className="px-6 py-3 text-right font-bold">Total</th>
  <th className="px-6 py-3 text-right font-bold">Status</th>
  </tr>
@@ -176,7 +178,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  return (
  <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors cursor-pointer" onClick={() => setQuickViewSale(sale)}>
  <td className="px-6 py-3 font-mono font-bold text-brand-600 dark:text-brand-400">#{sale.invoice_number || sale.reference_number}</td>
- <td className="px-6 py-3 font-medium text-ink-secondary dark:text-ink">{sale.party?.name || 'Walk-in Customer'}</td>
+ <td className="px-6 py-3 font-medium text-ink-secondary dark:text-ink">{sale.party?.name || tt('Walk-in Customer')}</td>
  <td className="px-6 py-3 text-right font-bold font-mono text-ink">{formatCurrency(total, store)}</td>
  <td className="px-6 py-3 text-right">
  {due > 5 ? (
@@ -228,7 +230,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  <HelpCircle size={14} /> Sales Tip
  </h3>
  <div className="text-xs opacity-80 leading-relaxed space-y-2">
- <p>Focus on converting <strong>Walk-in</strong> customers into registered profiles to track repeat business.</p>
+ <p>Focus on converting <strong>Walk-in</strong> {tt('customers into registered profiles to track repeat business.')}</p>
  <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1 font-bold text-emerald-300">
  <Target size={14} /> Boost Retention
  </div>
@@ -347,7 +349,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  {/* Top Info Row */}
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
- <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Customer</p>
+ <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Customer')}</p>
  <p className="font-bold text-ink text-sm">{quickViewSale.party?.name || quickViewSale.customer?.name || 'Walk-in'}</p>
  {quickViewSale.party?.phone && (
  <p className="text-xs text-ink-muted">{quickViewSale.party.phone}</p>

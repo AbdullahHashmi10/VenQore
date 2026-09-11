@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { usePage, Link } from '@inertiajs/react';
 import { usePlan } from '@/Hooks/usePlan';
 import { FEATURE_METADATA, PLAN_LABELS } from '@/Registry/features';
+import { normalizePlan } from '@/lib/plans';
 import { Lock, Zap, ArrowRight, Sparkles } from 'lucide-react';
 import { vq } from '@/theme/runtime';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 
 const PLAN_COLORS = {
-    growth:   { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', accent: vq.indigo[400] },
-    business: { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', accent: vq.purple[400] },
+    core:     { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', accent: vq.indigo[400] },
+    scale:    { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', accent: vq.purple[400] },
     addon:    { bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)', accent: vq.purple[400] },
     default:  { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.25)', accent: vq.indigo[400] },
 };
@@ -40,7 +41,8 @@ export default function LockedFeature({
     // Resolve metadata
     const metadata = FEATURE_METADATA[feature] || {};
     const label = customLabel || metadata.label || 'This Feature';
-    const planRequired = customPlanRequired || metadata.plan || 'growth';
+    // Canonical slug (lib/plans) — a legacy 'growth'/'business' prop still resolves.
+    const planRequired = normalizePlan(customPlanRequired || metadata.plan || 'core');
     const planLabel = PLAN_LABELS[planRequired] || planRequired;
     const currentPlan = store?.plan || 'starter';
     const colors = PLAN_COLORS[planRequired] || PLAN_COLORS.default;

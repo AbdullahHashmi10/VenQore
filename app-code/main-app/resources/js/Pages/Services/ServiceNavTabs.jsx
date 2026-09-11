@@ -1,15 +1,17 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { ClipboardList, Calendar, Wrench, Sparkles, Plus } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function ServiceNavTabs({ active = 'jobs' }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
 
     const tabs = [
         {
             key: 'jobs',
-            label: 'Work Orders',
+            label: tt('Work Orders'),
             icon: ClipboardList,
             href: route('store.service-jobs.index', { store_slug: storeSlug }),
             description: 'Field jobs, work orders & statuses'
@@ -30,7 +32,7 @@ export default function ServiceNavTabs({ active = 'jobs' }) {
         },
         {
             key: 'catalog',
-            label: 'Services Catalog',
+            label: tt('Services Catalog'),
             icon: Sparkles,
             href: route('store.inventory.index', { store_slug: storeSlug }) + '?type=service',
             description: 'Standard services, pricing & add-ons'
@@ -66,7 +68,7 @@ export default function ServiceNavTabs({ active = 'jobs' }) {
                     className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-surface border border-line px-3 text-xs font-semibold text-ink hover:bg-sunken transition-colors"
                 >
                     <Plus size={14} className="text-accent-text" />
-                    <span>New Work Order</span>
+                    <span>{tt('New Work Order')}</span>
                 </Link>
             </div>
         </div>

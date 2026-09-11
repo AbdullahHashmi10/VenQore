@@ -13,6 +13,7 @@ import axios from 'axios';
 import { Flag, Kbd, Money, RowButton, Sheet, n0, n2 } from '@/LayoutLaw/ui';
 import { keymap } from '@/LayoutLaw/engine';
 import PrintService from '@/Utils/PrintService';
+import { useTermText } from '@/lib/terms';
 
 export const PAY_METHODS = ['Cash', 'Card', 'Bank', 'UPI', 'Credit'];
 
@@ -156,13 +157,14 @@ export function lineDiscount(line) {
 
 /* ── Customer / Parties Sheet (Live Database Connected) ──────────────────── */
 export function PartySheet({ open, onClose, onPick, current, storeSlug, defaultCustomer, narrow }) {
+    const tt = useTermText();
     const [q, setQ] = useState('');
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [creating, setCreating] = useState(null);
     const searchTimeout = useRef(null);
 
-    const walkInCustomer = defaultCustomer || { id: 0, name: 'Walk-in customer', phone: '', balance: 0, discount: 0, walkin: true };
+    const walkInCustomer = defaultCustomer || { id: 0, name: tt('Walk-in customer'), phone: '', balance: 0, discount: 0, walkin: true };
 
     const fetchCustomers = useCallback((query = '') => {
         setLoading(true);
@@ -244,7 +246,7 @@ export function PartySheet({ open, onClose, onPick, current, storeSlug, defaultC
     if (creating) {
         return (
             <Sheet
-                open={open} onClose={() => setCreating(null)} title={creating.id ? 'Edit customer' : 'New customer'}
+                open={open} onClose={() => setCreating(null)} title={creating.id ? tt('Edit customer') : tt('New customer')}
                 size={narrow ? 'bottom' : 'side'}
                 footer={(
                     <div className="nqp-actions">
@@ -269,11 +271,11 @@ export function PartySheet({ open, onClose, onPick, current, storeSlug, defaultC
 
     return (
         <Sheet
-            open={open} onClose={onClose} title="Customer" size={narrow ? 'bottom' : 'side'}
+            open={open} onClose={onClose} title={tt('Customer')} size={narrow ? 'bottom' : 'side'}
             footer={(
                 <div className="nqp-actions">
                     <button type="button" className="nqp-cta" data-ghost="true" onClick={() => setCreating({ name: '', phone: '', discount: 0, credit: 0, balance: 0 })}>
-                        New customer <Kbd>Ctrl+D</Kbd>
+                        {tt('New customer')} <Kbd>Ctrl+D</Kbd>
                     </button>
                 </div>
             )}
@@ -285,20 +287,21 @@ export function PartySheet({ open, onClose, onPick, current, storeSlug, defaultC
                     <span className="nqp-rowmain">
                         <span className="nqp-rowtitle">{p.name}</span>
                         <span className="nqp-line-sub">
-                            {p.walkin ? 'Walk-in cash customer' : `${p.phone || 'No phone'} · Balance: ${n0(p.balance)}${p.discount ? ` · ${p.discount}% discount` : ''}`}
+                            {p.walkin ? tt('Walk-in cash customer') : `${p.phone || 'No phone'} · Balance: ${n0(p.balance)}${p.discount ? ` · ${p.discount}% discount` : ''}`}
                         </span>
                     </span>
                     {current && current.id === p.id ? <Flag>Selected</Flag> : null}
                 </RowButton>
             ))}
-            {!list.length && !loading ? <div className="nqp-empty">No matching customers found.</div> : null}
-            {loading ? <div className="nqp-empty">Loading customers…</div> : null}
+            {!list.length && !loading ? <div className="nqp-empty">{tt('No matching customers found.')}</div> : null}
+            {loading ? <div className="nqp-empty">{tt('Loading customers…')}</div> : null}
         </Sheet>
     );
 }
 
 /* ── Parked sales (Live Database Connected) ──────────────────────────────── */
 export function ParkedSheet({ open, onClose, onRecall, onDelete, storeSlug, narrow }) {
+    const tt = useTermText();
     const [parked, setParked] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -327,7 +330,7 @@ export function ParkedSheet({ open, onClose, onRecall, onDelete, storeSlug, narr
                 return (
                     <div key={h.id} className="nqp-row" data-static="true">
                         <span className="nqp-rowmain">
-                            <span className="nqp-rowtitle">{h.customer?.name || h.customer_name || 'Walk-in Customer'}</span>
+                            <span className="nqp-rowtitle">{h.customer?.name || h.customer_name || tt('Walk-in Customer')}</span>
                             <span className="nqp-line-sub">Ref: {h.reference_number || h.id} · {linesCount} items · {h.created_at ? new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                         </span>
                         <Money value={total} font={15} avail={110} />
@@ -346,6 +349,7 @@ export function ParkedSheet({ open, onClose, onRecall, onDelete, storeSlug, narr
 
 /* ── Recent invoices (Live Database Connected) ─────────────────────────────── */
 export function RecentSheet({ open, onClose, onReprint, onReturn, perms, narrow, storeSlug, settings }) {
+    const tt = useTermText();
     const [recent, setRecent] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -368,7 +372,7 @@ export function RecentSheet({ open, onClose, onReprint, onReturn, perms, narrow,
             {recent.map((r) => (
                 <div key={r.id} className="nqp-row" data-static="true">
                     <span className="nqp-rowmain">
-                        <span className="nqp-rowtitle">{r.customer?.name || r.customer_name || 'Walk-in Customer'}</span>
+                        <span className="nqp-rowtitle">{r.customer?.name || r.customer_name || tt('Walk-in Customer')}</span>
                         <span className="nqp-line-sub">
                             {r.invoice_number || r.reference_number || `INV-${r.id}`} · {r.created_at ? new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} · {r.payment_method || 'Cash'}{r.status === 'returned' ? ' · Returned' : ''}
                         </span>
@@ -469,6 +473,7 @@ export function ReturnSheet({ open, onClose, onLoad, policy, windowDays, party, 
 
 /* ── Quick create product ─────────────────────────────────────────────────── */
 export function QuickProductSheet({ open, onClose, onCreate, categories = [], narrow }) {
+    const tt = useTermText();
     const [f, setF] = useState({ name: '', sku: '', price: '', stock: '', category_id: categories[1]?.id || categories[0]?.id || '' });
     useEffect(() => {
         if (open) setF({ name: '', sku: '', price: '', stock: '', category_id: categories[1]?.id || categories[0]?.id || '' });
@@ -477,7 +482,7 @@ export function QuickProductSheet({ open, onClose, onCreate, categories = [], na
     const ok = f.name.trim() && Number(f.price) > 0;
     return (
         <Sheet
-            open={open} onClose={onClose} title="New product" size={narrow ? 'bottom' : 'side'}
+            open={open} onClose={onClose} title={tt('New product')} size={narrow ? 'bottom' : 'side'}
             footer={(
                 <div className="nqp-actions">
                     <button type="button" className="nqp-cta" data-ghost="true" onClick={onClose}>Cancel</button>
@@ -490,7 +495,7 @@ export function QuickProductSheet({ open, onClose, onCreate, categories = [], na
                 </div>
             )}
         >
-            <div className="nqp-field"><label htmlFor="nqp-q-n">Product name *</label><input id="nqp-q-n" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
+            <div className="nqp-field"><label htmlFor="nqp-q-n">{tt('Product name')} *</label><input id="nqp-q-n" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
             <div className="nqp-field"><label htmlFor="nqp-q-s">SKU or Barcode</label><input id="nqp-q-s" value={f.sku} onChange={(e) => setF({ ...f, sku: e.target.value })} /></div>
             <div className="nqp-field"><label htmlFor="nqp-q-p">Selling price *</label><input id="nqp-q-p" className="num" inputMode="decimal" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value.replace(/[^\d.]/g, '') })} /></div>
             <div className="nqp-field"><label htmlFor="nqp-q-st">Opening stock</label><input id="nqp-q-st" className="num" inputMode="decimal" value={f.stock} onChange={(e) => setF({ ...f, stock: e.target.value.replace(/[^\d.]/g, '') })} /></div>
@@ -589,6 +594,7 @@ export function KeysSheet({ open, onClose, narrow }) {
 
 /* ── Bill breakup ────────────────────────────────────────────────────────── */
 export function BreakupSheet({ open, onClose, m, tab, narrow }) {
+    const tt = useTermText();
     const rows = [
         ['Gross total', m.gross],
         ['Item discounts', -m.lineDisc],
@@ -611,7 +617,7 @@ export function BreakupSheet({ open, onClose, m, tab, narrow }) {
                 <Money value={m.total} font={28} avail={200} ccy="PKR" className="v" />
             </div>
             <div className="nqp-tot"><span className="k">Items</span><span className="v num">{m.count}</span></div>
-            <div className="nqp-tot"><span className="k">Customer</span><span className="v">{tab.party?.name || 'Walk-in'}</span></div>
+            <div className="nqp-tot"><span className="k">{tt('Customer')}</span><span className="v">{tab.party?.name || 'Walk-in'}</span></div>
         </Sheet>
     );
 }
@@ -687,6 +693,7 @@ export function ChargesSheet({ open, onClose, tab, setTab, narrow }) {
 
 /* ── Notes sheet ─────────────────────────────────────────────────────────── */
 export function NotesSheet({ open, onClose, tab, setTab, narrow }) {
+    const tt = useTermText();
     return (
         <Sheet
             open={open} onClose={onClose} title="Sale remarks" size={narrow ? 'bottom' : 'side'}
@@ -694,7 +701,7 @@ export function NotesSheet({ open, onClose, tab, setTab, narrow }) {
         >
             <div className="nqp-field" style={{ paddingBottom: 20 }}>
                 <label htmlFor="nqp-n">Invoice remarks</label>
-                <textarea id="nqp-n" data-sheet-focus value={tab.notes || ''} placeholder="Add invoice notes or customer remarks…" onChange={(e) => setTab({ notes: e.target.value })} />
+                <textarea id="nqp-n" data-sheet-focus value={tab.notes || ''} placeholder={tt('Add invoice notes or customer remarks…')} onChange={(e) => setTab({ notes: e.target.value })} />
             </div>
         </Sheet>
     );
@@ -741,6 +748,7 @@ export function SplitSheet({ open, onClose, tab, setTab, total, banks = [], onNe
 
 /* ── Overpayment sheet ───────────────────────────────────────────────────── */
 export function OverpaySheet({ open, onClose, amount, party, onChoose, narrow }) {
+    const tt = useTermText();
     return (
         <Sheet open={open} onClose={onClose} title="Overpayment" size={narrow ? 'bottom' : 'side'}>
             <div className="nqp-tot nqp-grand"><span className="k">Change / Excess</span><Money value={amount} font={30} avail={200} ccy="PKR" className="v" /></div>
@@ -753,8 +761,8 @@ export function OverpaySheet({ open, onClose, amount, party, onChoose, narrow })
                 onClick={() => { onChoose('ledger'); onClose(); }}
             >
                 <span className="nqp-rowmain">
-                    <span className="nqp-rowtitle">Credit to {party && !party.walkin ? party.name : 'Customer'}&apos;s Ledger</span>
-                    <span className="nqp-line-sub">{party && !party.walkin ? 'Records as advance customer deposit on ledger balance.' : 'Walk-in customer has no ledger account.'}</span>
+                    <span className="nqp-rowtitle">{tt('Credit to')} {party && !party.walkin ? party.name : tt('Customer')}&apos;s Ledger</span>
+                    <span className="nqp-line-sub">{party && !party.walkin ? tt('Records as advance customer deposit on ledger balance.') : tt('Walk-in customer has no ledger account.')}</span>
                 </span>
             </button>
         </Sheet>
@@ -763,6 +771,7 @@ export function OverpaySheet({ open, onClose, amount, party, onChoose, narrow })
 
 /* ── Receipt modal / Printable summary ───────────────────────────────────── */
 export function ReceiptSheet({ open, onClose, sale, settings, store }) {
+    const tt = useTermText();
     if (!sale) return null;
 
     const total = Number(sale.total || sale.final_total || sale.amount_paid || 0);
@@ -795,7 +804,7 @@ export function ReceiptSheet({ open, onClose, sale, settings, store }) {
                     PKR {n0(total)}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--vq-text-3)', marginTop: 2 }}>
-                    {sale.customer?.name || sale.customer_name || 'Walk-in Customer'} · {new Date().toLocaleTimeString()}
+                    {sale.customer?.name || sale.customer_name || tt('Walk-in Customer')} · {new Date().toLocaleTimeString()}
                 </div>
             </div>
 

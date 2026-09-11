@@ -2,6 +2,7 @@ import React from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatDate } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 import { ArrowLeft, Warehouse, CheckCircle2, ShoppingCart, RotateCcw, AlertTriangle, ArrowRightLeft, History } from 'lucide-react';
 
 const statusConfig = {
@@ -14,6 +15,7 @@ const statusConfig = {
 
 export default function SerialShow({ serial }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const status = statusConfig[serial?.status] || statusConfig.available;
     const StatusIcon = status.icon;
 
@@ -50,7 +52,7 @@ export default function SerialShow({ serial }) {
                 <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                     <div className="flex items-start justify-between mb-6">
                         <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Product</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{tt('Product')}</p>
                             <p className="text-lg font-bold text-ink">{serial?.product?.name || 'N/A'}</p>
                         </div>
                         <span className={`flex items-center gap-1.5 text-xs font-bold uppercase px-3 py-1.5 rounded-full ${status.color}`}>

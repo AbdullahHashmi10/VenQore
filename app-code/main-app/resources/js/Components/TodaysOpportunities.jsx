@@ -17,9 +17,11 @@ import {
 import axios from 'axios';
 import { usePage, Link } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 const TodaysOpportunities = ({ className = '' }) => {
  const { store } = usePage().props;
+ const tt = useTermText();
  const [data, setData] = useState(null);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState(null);
@@ -143,7 +145,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  switch (type) {
  case 'retention': return 'Sales Growth';
  case 'forecast': return 'Stock Alert';
- case 'churn': return 'Customer Risk';
+ case 'churn': return tt('Customer Risk');
  case 'recovery': return 'Cash Recovery';
  default: return 'Action Tip';
  }
@@ -194,7 +196,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  <div className="grid grid-cols-2 gap-2 mt-3.5">
  <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex items-center justify-between">
  <div className="min-w-0 pr-1">
- <p className="text-3xs font-bold uppercase tracking-wider text-ink-muted truncate">Customers Due</p>
+ <p className="text-3xs font-bold uppercase tracking-wider text-ink-muted truncate">{tt('Customers Due')}</p>
  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{stats.customers_due || 0}</p>
  </div>
  <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
@@ -243,7 +245,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  </div>
  <h4 className="font-bold text-ink-secondary dark:text-ink-faint text-xs tracking-tight">All clear for today!</h4>
  <p className="text-3xs text-ink-muted mt-1 max-w-[220px] leading-relaxed">
- No critical alerts or pending customer opportunities detected.
+ {tt('No critical alerts or pending customer opportunities detected.')}
  </p>
  <button
  onClick={() => fetchData(true)}

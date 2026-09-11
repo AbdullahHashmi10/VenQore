@@ -12,7 +12,9 @@ import {
 import { formatCurrency } from '@/Utils/format';
 
 import { series, vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 export default function PointInTimeInventory({ data = [], stats = [], meta = {} }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const [asOfDate, setAsOfDate] = useState(meta.as_of_date || new Date().toISOString().split('T')[0]);
     const [asOfTime, setAsOfTime] = useState(meta.as_of_time || '');
@@ -273,7 +275,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                         {/* Status Filter Pills */}
                         <div className="px-4 py-2 border-b border-line bg-sunken/20 flex gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
                             {[
-                                { id: 'all', label: 'All Products', styles: 'hover:bg-interactive-hover dark:hover:bg-interactive-hover' },
+                                { id: 'all', label: tt('All Products'), styles: 'hover:bg-interactive-hover dark:hover:bg-interactive-hover' },
                                 { id: 'out', label: 'Out of Stock', styles: 'hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20' },
                                 { id: 'low', label: 'Low Stock (≤15)', styles: 'hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/20' },
                                 { id: 'healthy', label: 'Healthy (16-200)', styles: 'hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/20' },
@@ -306,7 +308,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                 <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 backdrop-blur-sm z-10 border-b border-line">
                                     <tr>
                                         {[
-                                            { key: 'name', label: 'Product' },
+                                            { key: 'name', label: tt('Product') },
                                             { key: 'quantity', label: 'Qty', align: 'right' },
                                             { key: 'stock_value', label: 'Value', align: 'right' }
                                         ].map(col => (

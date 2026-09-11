@@ -12,6 +12,7 @@ import PremiumSelect from '@/Components/PremiumSelect';
 import PasscodeModal from '@/Components/PasscodeModal';
 import { Lock as LockIcon, Unlock } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 const StatCard = ({ title, value, icon }) => (
     <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex items-center justify-between">
@@ -53,6 +54,7 @@ export default function ProductModal({
     const [isNewCategory, setIsNewCategory] = useState(false);
     const isEditable = mode === 'create' || mode === 'edit';
     const { settings, store } = usePage().props;
+    const tt = useTermText();
 
     const { data, setData, post, processing, errors, reset } = useForm({
         type: product?.type || initialType || 'standard',
@@ -677,8 +679,8 @@ export default function ProductModal({
  <thead className="bg-app text-xs uppercase font-bold text-ink-muted">
  <tr>
  <th className="p-4 pl-6">Date</th>
- <th className="p-4">Order #</th>
- <th className="p-4">Customer</th>
+ <th className="p-4">{tt('Order #')}</th>
+ <th className="p-4">{tt('Customer')}</th>
  <th className="p-4 text-right pr-6">Qty Held</th>
  </tr>
  </thead>
@@ -698,7 +700,7 @@ export default function ProductModal({
  <div className="p-12 text-center bg-app rounded-xl border border-dashed border-line">
  <Box className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
  <p className="text-ink-muted font-medium">No active reservations.</p>
- <p className="text-xs text-ink-muted mt-1">This product is not currently held in any pre-sales.</p>
+ <p className="text-xs text-ink-muted mt-1">{tt('This product is not currently held in any pre-sales.')}</p>
  </div>
  )}
  </div>
@@ -775,21 +777,21 @@ export default function ProductModal({
  <div>
  <div className="flex items-center gap-2">
  <h2 className="text-xl font-bold text-ink">
- {mode === 'create' ? (data.type === 'service' ? 'Add New Service' : 'Add New Product') : data.name}
+ {mode === 'create' ? (data.type === 'service' ? tt('Add New Service') : tt('Add New Product')) : data.name}
  </h2>
  {data.type === 'service' ? (
  <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 uppercase tracking-tight">
- Service
+ {tt('Service')}
  </span>
  ) : (
  <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800 uppercase tracking-tight">
- Product
+ {tt('Product')}
  </span>
  )}
  </div>
  <p className="text-sm text-ink-muted font-medium">
  {mode === 'create' 
- ? (data.type === 'service' ? 'Configure service catalog item, pricing & packing list' : 'Enter product details') 
+ ? (data.type === 'service' ? tt('Configure service catalog item, pricing & packing list') : tt('Enter product details'))
  : `SKU: ${data.sku || 'N/A'}`}
  </p>
  </div>
@@ -805,7 +807,7 @@ export default function ProductModal({
  }}
  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${data.type !== 'service' ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'}`}
  >
- <Box size={14} className="text-amber-500" /> Product
+ <Box size={14} className="text-amber-500" /> {tt('Product')}
  </button>
  <button
  type="button"
@@ -814,7 +816,7 @@ export default function ProductModal({
  }}
  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${data.type === 'service' ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'}`}
  >
- <Wrench size={14} className="text-brand-500" /> Service
+ <Wrench size={14} className="text-brand-500" /> {tt('Service')}
  </button>
  </div>
  )}
@@ -890,7 +892,7 @@ export default function ProductModal({
  </h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="col-span-2">
- <label className="block text-xs font-bold text-ink-muted mb-1.5">Service Name</label>
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">{tt('Service Name')}</label>
  <input
  id="tour-product-name"
  type="text"
@@ -904,7 +906,7 @@ export default function ProductModal({
  </div>
 
  <div>
- <label className="block text-xs font-bold text-ink-muted mb-1.5">Service SKU / Code</label>
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">{tt('Service SKU / Code')}</label>
  <div className="flex gap-2" id="tour-product-sku-gen">
  <input
  type="text"
@@ -958,7 +960,7 @@ export default function ProductModal({
  value={data.new_category_name}
  onChange={e => setData('new_category_name', e.target.value)}
  className="w-full px-4 py-3 rounded-xl bg-surface border border-brand-200 dark:border-brand-900 text-ink font-bold focus:ring-2 ring-brand-500/20 outline-none"
- placeholder="e.g. Maintenance Services"
+ placeholder={tt('e.g. Maintenance Services')}
  />
  </div>
  </div>
@@ -1078,7 +1080,7 @@ export default function ProductModal({
  <div className="mt-6 pt-6 border-t border-line">
  <div className="flex items-center justify-between mb-2">
  <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
- <Clock size={14} className="text-brand-500" /> Estimated Service Duration
+ <Clock size={14} className="text-brand-500" /> {tt('Estimated Service Duration')}
  </label>
  <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
  {data.default_duration >= 60 
@@ -1124,9 +1126,9 @@ export default function ProductModal({
  <MapPin size={20} />
  </div>
  <div>
- <h4 className="text-sm font-bold text-ink">Requires On-Site Customer Visit / Dispatch</h4>
+ <h4 className="text-sm font-bold text-ink">{tt('Requires On-Site Customer Visit / Dispatch')}</h4>
  <p className="text-xs text-ink-muted mt-0.5 max-w-xl">
- Enable if this service requires field dispatch (assigning technicians, packing equipment, and recording customer address/location) instead of counter checkout.
+ {tt('Enable if this service requires field dispatch (assigning technicians, packing equipment, and recording customer address/location) instead of counter checkout.')}
  </p>
  </div>
  </div>
@@ -1173,7 +1175,7 @@ export default function ProductModal({
  </h3>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div className="col-span-2">
- <label className="block text-xs font-bold text-ink-muted mb-1.5">Product Name</label>
+ <label className="block text-xs font-bold text-ink-muted mb-1.5">{tt('Product Name')}</label>
  <input
  id="tour-product-name"
  type="text"
@@ -1439,7 +1441,7 @@ export default function ProductModal({
  <label className="block text-xs font-bold text-ink-muted mb-1.5">Full Description</label>
  <textarea
  rows="4"
- placeholder="Detailed product description..."
+ placeholder={tt('Detailed product description...')}
  value={data.description}
  onChange={e => setData('description', e.target.value)}
  disabled={!isEditable}
@@ -1491,7 +1493,7 @@ export default function ProductModal({
  </div>
  <div className="flex-1 text-xs text-ink-muted leading-relaxed pt-2">
  <p className="font-bold text-ink-secondary mb-1">Primary Thumbnail</p>
- <p>This image will be displayed on the product list and will be optimized for fast loading.</p>
+ <p>{tt('This image will be displayed on the product list and will be optimized for fast loading.')}</p>
  <p className="mt-1 text-amber-500">Supported: JPG, PNG, WEBP</p>
  {errors.main_image && <p className="text-red-500 text-xs mt-2 font-bold animate-pulse">{errors.main_image}</p>}
  </div>
@@ -1572,8 +1574,8 @@ export default function ProductModal({
  <div className="p-4 sm:p-8 space-y-6">
  <div className="flex items-center justify-between mb-6">
  <div>
- <h3 className="text-lg font-bold text-ink">Product Variants</h3>
- <p className="text-sm text-ink-muted mt-1">Manage different variations of this product (e.g., Size, Color)</p>
+ <h3 className="text-lg font-bold text-ink">{tt('Product Variants')}</h3>
+ <p className="text-sm text-ink-muted mt-1">{tt('Manage different variations of this product (e.g., Size, Color)')}</p>
  </div>
  {isEditable && (
  <PremiumButton onClick={handleAddVariant} className="px-4 py-2">
@@ -1658,7 +1660,7 @@ export default function ProductModal({
  <div className="text-center py-12 bg-app rounded-xl border-2 border-dashed border-line">
  <Box size={48} className="mx-auto text-neutral-300 dark:text-ink-secondary mb-3" />
  <p className="text-ink-muted font-medium">No variants yet</p>
- <p className="text-sm text-ink-muted mt-1">Click "Add Variant" to create product variations</p>
+ <p className="text-sm text-ink-muted mt-1">{tt('Click "Add Variant" to create product variations')}</p>
  </div>
  )}
  </div>
@@ -1674,7 +1676,7 @@ export default function ProductModal({
  Add-ons & Option Groups
  </h3>
  <p className="text-sm text-ink-muted mt-0.5">
- Define optional extras, parts, or choices offered when selling this service.
+ {tt('Define optional extras, parts, or choices offered when selling this service.')}
  </p>
  </div>
  {isEditable && (
@@ -1800,7 +1802,7 @@ export default function ProductModal({
  <Sparkles className="w-12 h-12 text-amber-400 mx-auto mb-3 opacity-60" />
  <h4 className="text-sm font-bold text-ink">No add-ons or options configured</h4>
  <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
- Add optional upgrades, replacement parts, or extras that staff can select when invoicing or booking this service.
+ {tt('Add optional upgrades, replacement parts, or extras that staff can select when invoicing or booking this service.')}
  </p>
  {isEditable && (
  <button
@@ -1826,7 +1828,7 @@ export default function ProductModal({
  Standard Packing List & Equipment
  </h3>
  <p className="text-sm text-ink-muted mt-0.5">
- Select tools and equipment that technicians must check out whenever dispatched for this service.
+ {tt('Select tools and equipment that technicians must check out whenever dispatched for this service.')}
  </p>
  </div>
  <div className="px-3 py-1.5 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-bold text-xs">
@@ -1922,7 +1924,7 @@ export default function ProductModal({
  <tr className="text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
  <th className="p-4 pl-8">Type</th>
  <th className="p-4">Ref #</th>
- <th className="p-4">Party / Customer</th>
+ <th className="p-4">{tt('Party / Customer')}</th>
  <th className="p-4">Date</th>
  <th className="p-4 text-center">Qty</th>
  <th className="p-4 text-right">Price/Unit</th>
@@ -2069,7 +2071,7 @@ export default function ProductModal({
  <div className="grid grid-cols-3 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
  <p className="text-2xs font-bold text-ink-muted uppercase mb-1">
- {quickViewHistory.type === 'Sale' ? 'Customer' : 'Supplier'}
+ {quickViewHistory.type === 'Sale' ? tt('Customer') : tt('Supplier')}
  </p>
  <p className="font-bold text-ink text-sm">
  {quickViewHistory.party?.name || quickViewHistory.customer?.name || quickViewHistory.party || 'N/A'}

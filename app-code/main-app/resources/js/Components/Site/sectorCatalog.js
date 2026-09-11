@@ -1,12 +1,22 @@
 /**
  * sectorCatalog — the 85 business types VenQore can be assembled for, in five
- * sectors. Single source for the landing section, the Solutions directory, the
- * header mega-menu line and any "85+" claim. The count shown anywhere on the
- * site is COMPUTED from this list (BUSINESS_TYPE_COUNT) — never typed.
+ * sectors. The TYPES come from config/business_types.php (exported to
+ * resources/js/Data/businessTypes.json by `php artisan vq:business-types:export`)
+ * — the same catalogue the builder's search and matcher use, so the site can
+ * never list a business the builder does not understand. Only the sector pitch
+ * and module proof live here. The count shown anywhere on the site is COMPUTED
+ * (BUSINESS_TYPE_COUNT) — never typed.
  *
  * `modules` are the registry keys (config/modules.php) that unlock each
  * sector; they are shown as proof, so keep them in step with the registry.
  */
+
+import catalogue from '@/Data/businessTypes.json';
+
+const typesFor = (sector) =>
+    catalogue.types
+        .filter((t) => t.sector === sector)
+        .map((t) => (t.note ? { key: t.key, name: t.name, note: t.note } : { key: t.key, name: t.name }));
 
 export const SECTORS = [
     {
@@ -15,34 +25,7 @@ export const SECTORS = [
         short: 'Services & trades',
         pitch: 'Job cards, quotations, recurring invoices, staff time and tool checkout — for businesses that sell hours and expertise, with or without stock.',
         modules: ['services', 'invoicing', 'quotations', 'recurring_invoices', 'staff_attendance', 'service jobs & calendar', 'tool checkout'],
-        types: [
-            { name: 'Gadget & phone repair shops', note: 'Job cards, IMEI intake, parts deduction, repair warranty' },
-            { name: 'Computer & laptop repair centres' },
-            { name: 'Auto repair & mechanic garages', note: 'Parts and technician labour on one invoice' },
-            { name: 'Appliance repair (AC, fridges, washers)' },
-            { name: 'Bicycle & motorcycle service centres' },
-            { name: 'Hair salons & barber shops', note: 'Staff commission, appointments, repeat-client khata' },
-            { name: 'Nail salons & spas' },
-            { name: 'Pet grooming & veterinary clinics' },
-            { name: 'Freelance designers & developers', note: 'Milestone invoices, zero-inventory ledger' },
-            { name: 'Digital marketing & SEO agencies', note: 'Monthly retainers on recurring invoices' },
-            { name: 'Consultants & business coaches', note: 'Hourly and session billing' },
-            { name: 'Accountants, tax consultants & auditors' },
-            { name: 'Lawyers & legal practices' },
-            { name: 'Architects & interior designers', note: 'Quotation to final bill' },
-            { name: 'Photographers & videographers', note: 'Equipment hire and shoot booking' },
-            { name: 'Electricians & electrical contractors', note: 'Tool management and technician dispatch' },
-            { name: 'Plumbing & sanitary contractors' },
-            { name: 'Carpentry & woodwork services' },
-            { name: 'Painters & renovation contractors' },
-            { name: 'Cleaning & janitorial companies' },
-            { name: 'HVAC installation & maintenance' },
-            { name: 'Pest control services' },
-            { name: 'Equipment & tool rental', note: 'Tool check-out and check-in' },
-            { name: 'Event decorators & sound hire' },
-            { name: 'Gyms, fitness studios & trainers', note: 'Recurring memberships' },
-            { name: 'Tuition centres & music/art academies' },
-        ],
+        types: typesFor('services'),
     },
     {
         key: 'retail',
@@ -50,33 +33,7 @@ export const SECTORS = [
         short: 'Retail',
         pitch: 'A fast barcode till with variants, batches and expiry, serials, units of measure and marketplace sync — counted properly at closing time.',
         modules: ['pos', 'inventory', 'barcodes & labels', 'variants', 'batches & expiry', 'serials', 'units of measure', 'marketplace sync'],
-        types: [
-            { name: 'Grocery & kiryana stores', note: 'Loose weights, pack units, quick-pick' },
-            { name: 'Supermarkets & minimarts', note: 'High-speed scanning, scale barcodes' },
-            { name: 'Pharmacies & medical stores', note: 'Batches, expiry alerts, FEFO, drug registers' },
-            { name: 'Surgical & medical equipment suppliers' },
-            { name: 'Mobile phone & gadget retailers', note: 'IMEI serials, instant warranty cards' },
-            { name: 'Consumer electronics & home appliances' },
-            { name: 'Fashion & garment boutiques', note: 'Size/colour matrix, WooCommerce sync' },
-            { name: 'Shoe & footwear stores' },
-            { name: 'Jewellery & watch shops' },
-            { name: 'Cosmetics & perfume stores' },
-            { name: 'Hardware & paint stores', note: 'Sold by length, weight or piece' },
-            { name: 'Sanitary & plumbing supply stores' },
-            { name: 'Building materials, cement & steel' },
-            { name: 'Furniture & home décor stores' },
-            { name: 'Bookstores & stationery shops' },
-            { name: 'Toy & hobby stores' },
-            { name: 'Pet supply stores' },
-            { name: 'Auto spare parts & accessories' },
-            { name: 'Tyre & battery dealers', note: 'Serial and warranty tracking' },
-            { name: 'Eyewear & optical boutiques' },
-            { name: 'Gift, flower & craft shops' },
-            { name: 'Vape & tobacco stores' },
-            { name: 'Sports & outdoor equipment' },
-            { name: 'Electrical & lighting stores' },
-            { name: 'Kitchenware & crockery stores' },
-        ],
+        types: typesFor('retail'),
     },
     {
         key: 'food',
@@ -84,20 +41,7 @@ export const SECTORS = [
         short: 'Food & hospitality',
         pitch: 'Table service, park-and-recall orders, kitchen tickets and recipes that draw ingredients out of stock, so food cost is a real number.',
         modules: ['pos', 'table service', 'park & recall', 'cookbook (recipes)', 'production runs'],
-        types: [
-            { name: 'Dine-in restaurants', note: 'Floor plan, table service, split bills, kitchen tickets' },
-            { name: 'Cafés & coffee houses', note: 'Rapid counter POS, ingredient deduction' },
-            { name: 'Chai & tea shops' },
-            { name: 'Artisan bakeries & cake shops', note: 'Advance orders, batch recipes' },
-            { name: 'Fast food, burger & pizza outlets' },
-            { name: 'Ice cream & dessert parlours' },
-            { name: 'Juice, shake & smoothie bars' },
-            { name: 'Food trucks & kiosks', note: 'Offline-first operation' },
-            { name: 'Sweet & mithai shops', note: 'Weighing scale and box packs' },
-            { name: 'Catering businesses', note: 'Event quotes, bulk recipes' },
-            { name: 'Cloud & dark kitchens' },
-            { name: 'Pubs, bistros & lounges' },
-        ],
+        types: typesFor('food'),
     },
     {
         key: 'wholesale',
@@ -105,20 +49,7 @@ export const SECTORS = [
         short: 'Wholesale & B2B',
         pitch: 'Sales orders, proposals, price tiers, khata credit and multi-location stock with transfers — for businesses that sell to other businesses on terms.',
         modules: ['sales orders', 'B2B proposals', 'pricing tiers', 'khata credit', 'multi-location', 'stock transfers', 'accounting workspace'],
-        types: [
-            { name: 'FMCG & packaged-goods wholesalers', note: 'Tiered prices, cartons to pieces' },
-            { name: 'Grain, flour & bulk commodities' },
-            { name: 'Garment & fabric stockists' },
-            { name: 'Hardware & tools wholesalers' },
-            { name: 'Electrical supplies wholesalers' },
-            { name: 'Pharmaceutical wholesalers & stockists' },
-            { name: 'Mobile & tech distributors' },
-            { name: 'Auto parts distributors' },
-            { name: 'Packaging & box suppliers' },
-            { name: 'Stationery & office supplies' },
-            { name: 'Chemical & industrial cleaning' },
-            { name: 'Import / export trading firms' },
-        ],
+        types: typesFor('wholesale'),
     },
     {
         key: 'manufacturing',
@@ -126,18 +57,7 @@ export const SECTORS = [
         short: 'Light manufacturing',
         pitch: 'Recipes and bills of materials, production runs, composite items, landed cost and purchase orders — raw material in, finished goods out, at real cost.',
         modules: ['cookbook', 'production runs', 'composite items', 'landed cost', 'purchase orders'],
-        types: [
-            { name: 'Commercial bakeries & confectioneries', note: 'Flour and sugar to bread, deducted automatically' },
-            { name: 'Tailoring & custom stitching workshops' },
-            { name: 'Furniture makers & woodworking', note: 'Wood and hardware into a finished table' },
-            { name: 'Coffee roasters, spice blenders & craft drinks' },
-            { name: 'Signage & custom print shops' },
-            { name: 'Soap & candle makers' },
-            { name: 'Hardware assembly & kit packing' },
-            { name: 'Aluminium & glass fabrication' },
-            { name: 'Leather goods & bag makers' },
-            { name: 'Custom gift & merchandise assembly' },
-        ],
+        types: typesFor('manufacturing'),
     },
 ];
 

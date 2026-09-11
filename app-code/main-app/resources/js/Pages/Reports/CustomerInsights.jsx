@@ -9,9 +9,11 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { series, vq } from '@/theme/runtime';
 export default function CustomerInsights({ data = [], stats = [], filters = {} }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
@@ -104,8 +106,8 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
     };
 
     return (
-        <ReportsLayout title="Customer Insights">
-            <Head title="Customer Insights" />
+        <ReportsLayout title={tt('Customer Insights')}>
+            <Head title={tt('Customer Insights')} />
             <div className="flex flex-col h-full gap-5 w-full">
 
                 {/* Header */}
@@ -115,7 +117,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-bold text-ink tracking-tight">Customer Insights</h1>
+                            <h1 className="text-xl font-bold text-ink tracking-tight">{tt('Customer Insights')}</h1>
                             <p className="text-xs text-ink-muted font-medium">Real-time cohort spend tracking and favorite category patterns</p>
                         </div>
                     </div>
@@ -178,12 +180,12 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                     {/* LEFT COLUMN: Customer Insights Table list */}
                     <div className="xl:col-span-2 bg-surface rounded-2xl border border-line shadow-sm flex flex-col overflow-hidden min-h-0">
                         <div className="p-4 border-b border-line flex flex-col sm:flex-row justify-between items-start sm:items-center bg-sunken/50 dark:bg-surface gap-4 shrink-0">
-                            <h2 className="text-sm font-bold text-ink uppercase tracking-wider">Customer Loyalty Registry</h2>
+                            <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{tt('Customer Loyalty Registry')}</h2>
                             <div className="relative w-full sm:w-64">
                                 <Search className="absolute left-2.5 top-2.5 text-ink-muted" size={14} />
                                 <input
                                     type="text"
-                                    placeholder="Search customer patterns..."
+                                    placeholder={tt('Search customer patterns...')}
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="pl-8 pr-3 py-1.5 w-full bg-surface border border-line rounded-lg text-xs focus:ring-1 focus:ring-brand-500"
@@ -195,7 +197,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 z-10 border-b border-line">
                                     <tr>
-                                        <th className="px-6 py-3 font-bold">Customer</th>
+                                        <th className="px-6 py-3 font-bold">{tt('Customer')}</th>
                                         <th className="px-4 py-3 text-right font-bold">Invoices</th>
                                         <th className="px-4 py-3 text-right font-bold">Total Spent</th>
                                         <th className="px-4 py-3 font-bold">Preferences</th>
@@ -203,7 +205,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                 </thead>
                                 <tbody className="divide-y divide-line">
                                     {filtered.length === 0 ? (
-                                        <tr><td colSpan={4} className="px-6 py-12 text-center text-ink-muted italic">No customer insights found.</td></tr>
+                                        <tr><td colSpan={4} className="px-6 py-12 text-center text-ink-muted italic">{tt('No customer insights found.')}</td></tr>
                                     ) : filtered.map((row, idx) => (
                                         <tr 
                                             key={row.party_id || idx} 
@@ -236,7 +238,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                     <div className="xl:col-span-1 flex flex-col gap-4">
                         <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm flex flex-col min-h-[300px]">
                             <h3 className="text-xs font-bold text-ink-muted uppercase mb-4 flex items-center gap-2">
-                                <BarChart2 size={14} /> Top Customer Contribution
+                                <BarChart2 size={14} /> {tt('Top Customer Contribution')}
                             </h3>
                             <div className="flex-1 relative">
                                 <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
@@ -262,7 +264,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                     <HelpCircle size={14} /> Strategy Tip
                                 </h3>
                                 <div className="text-xs opacity-80 leading-relaxed space-y-2">
-                                    <p>Identify your top spenders to create targeted customer rewards or discounts to drive catalog engagement.</p>
+                                    <p>{tt('Identify your top spenders to create targeted customer rewards or discounts to drive catalog engagement.')}</p>
                                     <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1 font-bold text-emerald-300">
                                         <ShieldCheck size={14} /> Retention Focused
                                     </div>
@@ -396,17 +398,17 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
 
                                         {/* Top purchased products breakdown */}
                                         <div className="md:col-span-6 flex flex-col">
-                                            <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><ShoppingBag size={13} /> Product Buying Preferences</h4>
+                                            <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><ShoppingBag size={13} /> {tt('Product Buying Preferences')}</h4>
                                             {modalDetails.top_items.length === 0 ? (
                                                 <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
-                                                    No products purchases found.
+                                                    {tt('No products purchases found.')}
                                                 </div>
                                             ) : (
                                                 <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm flex-1">
                                                     <table className="w-full text-xs text-left">
                                                         <thead className="bg-app text-ink-muted uppercase border-b border-line">
                                                             <tr>
-                                                                <th className="py-2.5 px-3">Product</th>
+                                                                <th className="py-2.5 px-3">{tt('Product')}</th>
                                                                 <th className="py-2.5 px-3 text-right">Qty Bought</th>
                                                                 <th className="py-2.5 px-3 text-right">Total Spent</th>
                                                             </tr>

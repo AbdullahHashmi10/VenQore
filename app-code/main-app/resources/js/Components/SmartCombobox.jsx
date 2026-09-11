@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 const SmartCombobox = ({
  items = [],
@@ -43,6 +44,7 @@ const SmartCombobox = ({
  id
 }) => {
  const { store, settings } = usePage().props;
+ const tt = useTermText();
  const [isOpen, setIsOpen] = useState(false);
  const [internalQuery, setInternalQuery] = useState('');
  const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -224,7 +226,7 @@ const SmartCombobox = ({
             return (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                     <ShoppingBag size={10} />
-                    Customer
+                    {tt('Customer')}
                 </span>
             );
         }
@@ -232,7 +234,7 @@ const SmartCombobox = ({
             return (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-200 dark:border-brand-500/30">
                     <Truck size={10} />
-                    Supplier
+                    {tt('Supplier')}
                 </span>
             );
         }
@@ -240,7 +242,7 @@ const SmartCombobox = ({
             return (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase bg-teal-100 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30">
                     <Sparkles size={10} />
-                    Service
+                    {tt('Service')}
                 </span>
             );
         }
@@ -344,7 +346,7 @@ const SmartCombobox = ({
             const duration = item.service_duration_minutes || item.default_duration;
             return (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-bold bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20">
-                    <Sparkles size={10} /> {duration ? `${duration} min` : 'Service'}
+                    <Sparkles size={10} /> {duration ? `${duration} min` : tt('Service')}
                 </span>
             );
         }

@@ -36,6 +36,7 @@ import {
 import MidnightNebula from '@/Components/MidnightNebula';
 import PremiumSelect from '@/Components/PremiumSelect';
 import { useAlert } from '@/Contexts/AlertContext';
+import { useTermText } from '@/lib/terms';
 
 // NOTE: This page absorbed three things that used to live elsewhere:
 // - The "Backups" tab below replaces the old Settings > "Backup & Data" tab
@@ -50,6 +51,7 @@ import { useAlert } from '@/Contexts/AlertContext';
 export default function DataManagement() {
  const { store, googleBackups = [], backups: initialBackupsList = [], autoBackupEnabled = true } = usePage().props;
  const { showConfirm, showAlert } = useAlert();
+ const tt = useTermText();
  const csrfToken = typeof document !== 'undefined' ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : '';
  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
  const [activeTab, setActiveTab] = useState(urlParams?.get('tab') || 'drive_sync');
@@ -154,8 +156,8 @@ export default function DataManagement() {
  });
 
  const exportOptions = [
- { id: 'products', label: 'Products & Stock', description: 'Inventory, prices, levels', icon: Archive, color: 'text-blue-500' },
- { id: 'parties', label: 'Contacts', description: 'Customers & Suppliers', icon: FileText, color: 'text-emerald-500' },
+ { id: 'products', label: tt('Products & Stock'), description: 'Inventory, prices, levels', icon: Archive, color: 'text-blue-500' },
+ { id: 'parties', label: 'Contacts', description: tt('Customers & Suppliers'), icon: FileText, color: 'text-emerald-500' },
  { id: 'sales', label: 'Sales History', description: 'Invoices & Transactions', icon: FileSpreadsheet, color: 'text-brand-500' },
  { id: 'purchases', label: 'Purchases', description: 'Orders & Bills', icon: Grid, color: 'text-orange-500' },
  { id: 'expenses', label: 'Expenses', description: 'Records & Categories', icon: FileText, color: 'text-rose-500' },
@@ -232,7 +234,7 @@ export default function DataManagement() {
 
  showConfirm({
  title: "Confirm",
- message: "WARNING: Restoring a full system backup (.vq) will COMPLETELY OVERWRITE all products, transactions, stock, cash in hand, and configuration settings in this store. This cannot be undone. Are you sure you want to proceed?",
+ message: tt("WARNING: Restoring a full system backup (.vq) will COMPLETELY OVERWRITE all products, transactions, stock, cash in hand, and configuration settings in this store. This cannot be undone. Are you sure you want to proceed?"),
  type: "warning",
  confirmLabel: "Yes, Continue",
  cancelLabel: "Cancel",

@@ -7,6 +7,7 @@ import VqSelect from '@/Documents/VqSelect';
 import MoneyDocument, { uid, blankLine, today } from '@/Documents/MoneyDocument';
 import { documentType } from '@/Documents/documentTypes';
 import { linePayload } from '@/Documents/documentMoney';
+import { useTermText } from '@/lib/terms';
 
 const DOC = documentType('recurring-invoice');
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
@@ -36,6 +37,7 @@ const nextAfter = (dateStr, frequency) => {
 export default function RecurringForm({ invoice, customers = [], warehouses = [], products = [] }) {
     const { store, settings } = usePage().props;
     const isEdit = !!invoice?.id;
+    const tt = useTermText();
 
     const seed = useCallback(() => ({
         id: uid(),
@@ -121,7 +123,7 @@ export default function RecurringForm({ invoice, customers = [], warehouses = []
                 <>
                     <Field label="Template name" span={4} hint="What this schedule is called in the list.">
                         <input type="text" className="vqdoc-in" value={d.name}
-                            placeholder="Monthly service charge"
+                            placeholder={tt('Monthly service charge')}
                             onChange={(e) => patch({ name: e.target.value })} />
                     </Field>
 
@@ -190,7 +192,7 @@ export default function RecurringForm({ invoice, customers = [], warehouses = []
                     {chrome.field('notes') && (
                         <Field label="Note that prints on every invoice" span={12}>
                             <textarea className="vqdoc-in" rows={2} value={d.notes}
-                                placeholder="Service period, contract reference…"
+                                placeholder={tt('Service period, contract reference…')}
                                 onChange={(e) => patch({ notes: e.target.value })} />
                         </Field>
                     )}

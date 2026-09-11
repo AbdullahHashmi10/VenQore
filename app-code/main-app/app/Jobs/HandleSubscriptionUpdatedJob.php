@@ -86,13 +86,13 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
         ];
 
         if (in_array($variantId, array_filter($counterVariants))) {
-            $plan = 'counter';
+            $plan = 'solo';
         } elseif (in_array($variantId, array_filter($starterVariants))) {
             $plan = 'starter';
         } elseif (in_array($variantId, array_filter($growthVariants))) {
-            $plan = 'growth';
+            $plan = 'core';
         } elseif (in_array($variantId, array_filter($businessVariants))) {
-            $plan = 'business';
+            $plan = 'scale';
         } elseif (in_array($variantId, array_filter($ltd1Variants))) {
             $plan = 'ltd_1';
         } elseif (in_array($variantId, array_filter($ltd2Variants))) {

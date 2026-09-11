@@ -34,6 +34,15 @@ Rank 3 never overrides rank 1 or 2 on a value.
 
 **Before deleting any page:** check `routes/web.php`. Inertia resolves pages by string name, so "zero imports" does not mean dead.
 
+## Single sources — do not create a second list (11 Sep 2026)
+
+| What | The one place | Readers must |
+|---|---|---|
+| Plans | `app/Support/PlanCatalog.php` (JS mirror `resources/js/lib/plans.js`) — solo → starter → core → scale → custom | Normalise with `PlanCatalog::canonical()` / `normalizePlan()`; never write growth/business/counter |
+| Business types (85, 5 sectors) | `config/business_types.php` via `app/Support/BusinessTypes.php` | Resolve `tenants.business_type` with `BusinessTypes::presetFor()`; site JSON is exported by `php artisan vq:business-types:export` |
+| Creating a store | `app/Services/StoreProvisioner.php` | Builder and `POST /new-store` both call it; `/register` and `/new-store` redirect to `/build-workspace` |
+| Store words (Clients, Jobs…) | `tenant_terminology`, shared as `props.terms` | Wrap visible text with `useTermText()` — see `app-code/main-app/docs/TERMINOLOGY_SWEEP.md` |
+
 ## Deliverable Format Preference
 
 - **Default to Markdown (`.md`) for written deliverables** (reports, plans, findings, summaries, audits, etc.). Do **not** produce `.docx` files by default.

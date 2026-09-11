@@ -3,6 +3,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import AuthLayout from '@/Layouts/AuthLayout';
 import { AuthButton, AuthCheckbox, AuthField, AuthForm, AuthNotice, AuthStack } from '@/Components/Auth';
+import { useTermText } from '@/lib/terms';
 
 /**
  * Staff sign-in — the platform-staff door, at /staff-login.
@@ -35,6 +36,7 @@ import { AuthButton, AuthCheckbox, AuthField, AuthForm, AuthNotice, AuthStack } 
  * same password reveal, same link back to the store login.
  */
 export default function StaffLogin({ status, flash }) {
+    const tt = useTermText();
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -55,8 +57,8 @@ export default function StaffLogin({ status, flash }) {
 
     return (
         <AuthLayout
-            title="Staff sign-in"
-            heading="Staff sign-in"
+            title={tt('Staff sign-in')}
+            heading={tt('Staff sign-in')}
             subheading="Please authenticate using your credentials to enter the cockpit."
             footer={
                 <Link
@@ -114,7 +116,7 @@ export default function StaffLogin({ status, flash }) {
                                 <Loader2 size={16} className="animate-spin" /> Authorizing…
                             </>
                         ) : (
-                            'Enter Staff Hub'
+                            tt('Enter Staff Hub')
                         )}
                     </AuthButton>
                 </AuthForm>

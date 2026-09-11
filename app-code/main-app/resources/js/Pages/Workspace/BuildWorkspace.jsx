@@ -51,13 +51,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
-    ArrowRight, Briefcase, Building2, Check, ChevronDown, Coffee, Compass, Croissant,
-    FastForward, Globe, Hammer, LayoutGrid, Lock, Mail, MessageSquareText, Phone, Pill,
-    Rocket, ScanBarcode, Scissors, Send, Shirt, ShieldCheck, ShoppingBasket,
-    Smartphone, Sparkles, Store, Truck, UtensilsCrossed, Wrench,
+    ArrowRight, Building2, Check, ChevronDown, Compass, FastForward, Lock, Mail,
+    MessageSquareText, Phone, Rocket, Send, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import useTurnstile from '@/Components/Builder/useTurnstile';
+import BusinessTypePicker from '@/Components/Builder/BusinessTypePicker';
+import { rankBusinessTypes } from '@/Components/Builder/matchBusinessTypes';
 import {
     BuilderShell,
     ConversationalDiscovery,
@@ -80,15 +80,17 @@ import {
    useSessionState and useDiscovery's storageKey for the mechanism. */
 const STORAGE_KEY = 'vq-build-workspace';
 
+/* Symbols match App\\Services\\StoreProvisioner::CURRENCY_SYMBOLS — what
+   actually prints on receipts. */
 const CURRENCY_LIST = [
     { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
-    { code: 'PKR', symbol: '₨', name: 'Pakistani Rupee', flag: '🇵🇰' },
-    { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
+    { code: 'PKR', symbol: 'Rs.', name: 'Pakistani Rupee', flag: '🇵🇰' },
+    { code: 'AED', symbol: 'AED', name: 'UAE Dirham', flag: '🇦🇪' },
     { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
     { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
-    { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal', flag: '🇸🇦' },
-    { code: 'CAD', symbol: '$', name: 'Canadian Dollar', flag: '🇨🇦' },
-    { code: 'AUD', symbol: '$', name: 'Australian Dollar', flag: '🇦🇺' },
+    { code: 'SAR', symbol: 'SAR', name: 'Saudi Riyal', flag: '🇸🇦' },
+    { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' },
+    { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
     { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
 ];
 
@@ -105,32 +107,42 @@ const EXAMPLES = [
     'Phone repair shop — parts, jobs and walk-in sales.',
 ];
 
-/* One glyph per ready-made setup (config/ai_builder.php presets). A preset
-   missing here falls back to a neutral grid glyph — never a broken tile. */
-const PRESET_ICONS = {
-    pos_only: ScanBarcode,
-    retail_shop: Store,
-    grocery: ShoppingBasket,
-    pharmacy: Pill,
-    cafe: Coffee,
-    restaurant: UtensilsCrossed,
-    bakery: Croissant,
-    mobile_electronics: Smartphone,
-    clothing: Shirt,
-    hardware_store: Hammer,
-    wholesale: Truck,
-    multi_branch_retail: Building2,
-    freelancer: Briefcase,
-    salon: Scissors,
-    repair_workshop: Wrench,
-};
-
 /* Smaller setups are pointed at the smaller plan by default; everything else
    at the plan the pricing page badges. Only a default — one tap changes it. */
-const LIGHT_PRESETS = ['pos_only', 'cafe', 'freelancer', 'salon'];
+const LIGHT_PRESETS = [
+    'pos_only', 'cafe', 'freelancer', 'salon', 'professional_services', 'membership_studio',
+    'food_counter', 'field_service', 'rental_hire', 'tailoring',
+];
+
+/* Words a store will use, shown before signup: "Clients · Jobs · Plumbers". */
+function TermsPreview({ terms, className = '' }) {
+    const words = Object.values(terms || {}).map((w) => w?.plural).filter(Boolean);
+    if (!words.length) return null;
+    return (
+        <p className={`text-xs text-ink-secondary ${className}`}>
+            Your workspace will say{' '}
+            {words.map((w, i) => (
+                <React.Fragment key={w}>
+                    {i > 0 && ' · '}
+                    <strong className="font-semibold text-ink">{w}</strong>
+                </React.Fragment>
+            ))}
+            {' '}— you can rename anything later.
+        </p>
+    );
+}
 
 const isShippablePreset = (presets, key) =>
     !!key && !!presets?.[key] && !(presets[key].blocked_by || []).length;
+
+/* The owner's real timezone, so a store opened in Dubai is not on Karachi time. */
+const browserTimezone = () => {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+    } catch (e) {
+        return null;
+    }
+};
 
 const csrf = () =>
     document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -151,6 +163,7 @@ const postJson = async (url, body) => {
 export default function BuildWorkspace({
     initialPrompt = '',
     initialPreset = '',
+    initialType = '',
     initialEmail = '',
     initialCurrency = 'USD',
     allModules = [],
@@ -159,8 +172,15 @@ export default function BuildWorkspace({
     presets = {},
     plans = [],
     intendedPlan = null,
+    authUser = null,
+    license = null,
+    businessTypes = [],
+    sectors = {},
 }) {
     const getTurnstileToken = useTurnstile();
+
+    /* A held license (AppSumo / pre-paid / gift) decides the plan — no plan step. */
+    plans = license ? [] : plans;
 
     /* ── Phase machine ─────────────────────────────────────────────────────
        'intent' is skipped when the landing hero already captured a sentence,
@@ -175,18 +195,24 @@ export default function BuildWorkspace({
        a template picked on the site (?preset=) goes straight to its reveal —
        asking someone who already chose "Pharmacy" to describe their business
        again is exactly the friction this flow must not have. */
-    const entryPhase = initialPrompt
-        ? 'questions'
-        : isShippablePreset(presets, initialPreset)
-          ? 'reveal'
-          : 'intent';
+    const typeByKey = useMemo(() => Object.fromEntries(businessTypes.map((t) => [t.key, t])), [businessTypes]);
+    const entryType = !initialPrompt && initialType ? typeByKey[initialType] || null : null;
+    const directEntry = !initialPrompt && (!!entryType || isShippablePreset(presets, initialPreset));
+    const entryPhase = initialPrompt ? 'questions' : directEntry ? 'reveal' : 'intent';
     const [rawPhase, setPhase] = useSessionState(`${STORAGE_KEY}:phase`, entryPhase);
     /* How this attempt reached the reveal: 'preset' (one-click setup, no
        questions) or 'questions'. Drives Back and the progress rail. */
     const [path, setPath] = useSessionState(
         `${STORAGE_KEY}:path`,
-        !initialPrompt && isShippablePreset(presets, initialPreset) ? 'preset' : 'questions',
+        directEntry ? 'preset' : 'questions',
     );
+    /* The business type (config/business_types.php) this attempt is for —
+       picked from the list, or read from the sentence by the server. It
+       decides the modules AND the words the store uses. */
+    const [businessType, setBusinessType] = useSessionState(`${STORAGE_KEY}:businessType`, entryType?.key || '');
+    const [businessLabel, setBusinessLabel] = useSessionState(`${STORAGE_KEY}:businessLabel`, entryType?.label || '');
+    const [terms, setTerms] = useSessionState(`${STORAGE_KEY}:terms`, entryType?.terms || {});
+    const [candidates, setCandidates] = useSessionState(`${STORAGE_KEY}:candidates`, []);
     /* Plan picked on the plan step. null = "decide after the trial". */
     const [planKey, setPlanKey] = useSessionState(`${STORAGE_KEY}:planKey`, intendedPlan || '');
     const [planTouched, setPlanTouched] = useSessionState(`${STORAGE_KEY}:planTouched`, !!intendedPlan);
@@ -194,8 +220,10 @@ export default function BuildWorkspace({
     const [qIndex, setQIndex] = useSessionState(`${STORAGE_KEY}:qIndex`, 0);
 
     const [prompt, setPrompt] = useSessionState(`${STORAGE_KEY}:prompt`, initialPrompt);
-    const [presetKey, setPresetKey] = useSessionState(`${STORAGE_KEY}:presetKey`, initialPreset);
-    const entryPreset = !initialPrompt && isShippablePreset(presets, initialPreset) ? presets[initialPreset] : null;
+    const [presetKey, setPresetKey] = useSessionState(`${STORAGE_KEY}:presetKey`, entryType?.preset || initialPreset);
+    const entryPreset = entryType
+        ? presets[entryType.preset] || null
+        : !initialPrompt && isShippablePreset(presets, initialPreset) ? presets[initialPreset] : null;
     const [presetLabel, setPresetLabel] = useSessionState(`${STORAGE_KEY}:presetLabel`, entryPreset?.label || '');
     const [presetDesc, setPresetDesc] = useSessionState(
         `${STORAGE_KEY}:presetDesc`,
@@ -284,6 +312,7 @@ export default function BuildWorkspace({
             'phase', 'qIndex', 'prompt', 'presetKey', 'presetLabel',
             'presetDesc', 'baseModules', 'capabilities', 'edited', 'matched',
             'converse', 'discoveryMode', 'path', 'planKey', 'planTouched',
+            'businessType', 'businessLabel', 'terms', 'candidates',
         ].forEach((slot) => {
             try {
                 window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
@@ -329,11 +358,12 @@ export default function BuildWorkspace({
        Runs once, as soon as there is a sentence to run it on. It resolves the
        preset in the background WHILE the visitor answers questions, so the
        reveal has nothing to wait for. */
-    const analyse = async (text, preset, answersOverride) => {
+    const analyse = async (text, preset, answersOverride, typeKey = null) => {
         try {
             const data = await postJson(route('workspace.analyze'), {
                 prompt: text,
                 preset,
+                business_type: typeKey || null,
                 // A caller starting a brand-new attempt (see the mount effect
                 // below) passes {} here explicitly — otherwise this closes
                 // over whatever `answers` happens to be at call time, which
@@ -349,6 +379,10 @@ export default function BuildWorkspace({
             setBaseModules(data.modules || []);
             setCapabilities(data.capabilities || []);
             setMatched(data.matched !== false);
+            setBusinessType(data.business_type || '');
+            setBusinessLabel(data.business_label || '');
+            setTerms(data.terms || {});
+            setCandidates(data.candidates || []);
             return data;
         } catch (e) {
             /* A failed match is not a dead end — the questions still build a
@@ -378,9 +412,11 @@ export default function BuildWorkspace({
            below exactly as before. */
         const incomingPrompt = initialPrompt || '';
         const incomingPreset = initialPreset || '';
+        const incomingType = entryType ? entryType.key : '';
         const isFreshAttempt =
             (incomingPrompt && incomingPrompt !== prompt) ||
-            (incomingPreset && incomingPreset !== presetKey);
+            (incomingType && incomingType !== businessType) ||
+            (!incomingType && incomingPreset && incomingPreset !== presetKey);
         if (!isFreshAttempt) setAttemptResolved(true);
 
         if (isFreshAttempt) {
@@ -395,7 +431,9 @@ export default function BuildWorkspace({
             setMatched(true);
             setEdited(null);
             setQIndex(0);
-            if (!incomingPrompt && isShippablePreset(presets, incomingPreset)) {
+            if (!incomingPrompt && incomingType) {
+                pickBusinessType(incomingType);
+            } else if (!incomingPrompt && isShippablePreset(presets, incomingPreset)) {
                 // Template picked on the site: straight to its reveal.
                 const p = presets[incomingPreset];
                 setPresetLabel(p.label || incomingPreset);
@@ -425,7 +463,7 @@ export default function BuildWorkspace({
                resolved server-side yet (no capabilities) — resolve it once so
                the house recommendations are merged in, as provisioning will. */
             if (path === 'preset' && presetKey && !capabilities.length) {
-                analyse('', presetKey, {});
+                analyse('', presetKey, {}, businessType || null);
                 return;
             }
             setAnalysed(true);
@@ -543,7 +581,10 @@ export default function BuildWorkspace({
             setPrompt(text);
             setEdited(null);
             setAiProgress(0);
-            analyse(text, initialPreset || '', {});
+            setBusinessType('');
+            setBusinessLabel('');
+            setTerms({});
+            analyse(text, '', {});
         }
         setDiscoveryMode('ai');
         setPath('questions');
@@ -551,24 +592,30 @@ export default function BuildWorkspace({
     };
 
     /* ── One-click setups ─────────────────────────────────────────────────
-       The standard module set for a business type, applied without a single
-       question. The preset's modules are shown instantly from the page props;
-       analyse() then re-resolves on the server (adds the house recommendations)
-       so the reveal matches exactly what provisioning will switch on. */
-    const pickPreset = (key) => {
-        const p = presets?.[key];
-        if (!p) return;
+       A business type from the catalogue, applied without a single question.
+       Its preset's modules show instantly from the page props; analyse()
+       then re-resolves on the server (type extras, dependencies, house
+       recommendations, terminology) so the reveal matches exactly what
+       provisioning will switch on. */
+    function pickBusinessType(key) {
+        const t = typeByKey[key];
+        if (!t) return;
+        const p = presets?.[t.preset] || {};
         resetAnswers();
         setEdited(null);
-        setPresetKey(key);
-        setPresetLabel(p.label || key);
-        setPresetDesc(p.description || p.blurb || '');
+        setBusinessType(key);
+        setBusinessLabel(t.label);
+        setTerms(t.terms || {});
+        setCandidates([]);
+        setPresetKey(t.preset);
+        setPresetLabel(p.label || t.preset);
+        setPresetDesc(t.note || p.blurb || p.description || '');
         setBaseModules(p.modules || []);
         setMatched(true);
         setPath('preset');
         setPhase('reveal');
-        analyse('', key, {});
-    };
+        analyse('', t.preset, {}, key);
+    }
 
     /* Skip the rest of the questions: keep whatever was answered, use the
        standard setup for the business type matched so far, go to the reveal. */
@@ -598,13 +645,17 @@ export default function BuildWorkspace({
 
     const selectedPlan = plans.find((p) => p.key === planKey) || null;
 
-    const shippablePresets = useMemo(
-        () =>
-            Object.entries(presets || {})
-                .filter(([key]) => isShippablePreset(presets, key))
-                .map(([key, p]) => ({ key, ...p })),
-        [presets],
+
+    /* Instant suggestions under the sentence box — the business types the
+       words so far point at. One click on one skips the questions. */
+    const suggestions = useMemo(
+        () => (draft.trim().length >= 3 ? rankBusinessTypes(draft, businessTypes, 3) : []),
+        [draft, businessTypes],
     );
+
+    /* What this business is called on screen: the type, else the preset when
+       it was a real match — never a defaulted "Retail Shop" for a plumber. */
+    const displayLabel = businessLabel || (matched ? presetLabel : '');
 
     const editPrompt = () => {
         setDraft(prompt || '');
@@ -646,13 +697,15 @@ export default function BuildWorkspace({
             const turnstileToken = await getTurnstileToken();
             const data = await postJson(route('workspace.provision'), {
                 ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
-                business_name: businessName || 'My Business',
+                business_name: businessName.trim(),
                 currency,
+                timezone: browserTimezone(),
                 phone,
-                email,
-                password,
+                // Signed-in users are identified by their session, not the form.
+                ...(authUser ? {} : { email, password }),
                 modules: activeModules,
                 preset_key: presetKey || null,
+                business_type: businessType || null,
                 plan: planKey || null,
             });
             if (data?.success && data.redirect) {
@@ -678,13 +731,20 @@ export default function BuildWorkspace({
         setProvisionError('');
         try {
             const data = await postJson(route('workspace.prepare-google'), {
-                business_name: businessName || 'My Business',
+                business_name: businessName.trim(),
                 currency,
+                timezone: browserTimezone(),
                 phone,
                 modules: activeModules,
                 preset_key: presetKey || null,
+                business_type: businessType || null,
                 plan: planKey || null,
             });
+            if (data && data.success === false) {
+                setProvisionError(data.message || 'Please check the details above.');
+                setGoogleBusy(false);
+                return;
+            }
             if (data?.auth_url) {
                 forgetAttempt();
                 window.location.href = data.auth_url;
@@ -766,7 +826,7 @@ export default function BuildWorkspace({
                 siteChrome
                 step={stepNow}
                 total={phase === 'building' ? 0 : totalSteps}
-                eyebrow={presetLabel || 'Your ERP, built by AI'}
+                eyebrow={displayLabel || 'Your ERP, built by AI'}
                 orbState={orbState}
                 onBack={phase === 'building' ? null : backTarget()}
                 wide={showStack}
@@ -801,7 +861,7 @@ export default function BuildWorkspace({
                                 <p className="text-xs leading-relaxed text-ink-secondary">
                                     <span className="font-semibold text-ink">In a hurry?</span>{' '}
                                     Skip the questions and use the standard setup
-                                    {presetLabel ? <> for <strong className="font-semibold text-ink">{presetLabel}</strong></> : ' for your business'}.
+                                    {displayLabel ? <> for <strong className="font-semibold text-ink">{displayLabel}</strong></> : ' for your business'}.
                                     Answering them gets you a closer fit.
                                 </p>
                                 <button
@@ -864,6 +924,26 @@ export default function BuildWorkspace({
                                             }
                                         />
 
+                                        {suggestions.length > 0 && (
+                                            <div className="mt-3 flex flex-wrap items-center gap-2" aria-live="polite">
+                                                <span className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+                                                    Looks like
+                                                </span>
+                                                {suggestions.map((t) => (
+                                                    <button
+                                                        key={t.key}
+                                                        type="button"
+                                                        onClick={() => pickBusinessType(t.key)}
+                                                        className="inline-flex items-center gap-1.5 rounded-full border border-accent bg-accent-quiet px-3 py-1 text-xs font-semibold text-accent-text transition-colors duration-fast hover:bg-accent-fill hover:text-accent-on"
+                                                        title="Use this setup — no questions"
+                                                    >
+                                                        {t.label}
+                                                        <ArrowRight size={12} />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         <div className="vq-intent__examples" role="group" aria-label="Examples">
                                             {EXAMPLES.map((ex) => (
                                                 <button
@@ -881,51 +961,29 @@ export default function BuildWorkspace({
                                         </div>
                                     </div>
 
-                                    {shippablePresets.length > 0 && (
-                                        <section className="mt-10" aria-labelledby="vq-presets-title">
+                                    {businessTypes.length > 0 && (
+                                        <section className="mt-10" aria-labelledby="vq-types-title">
                                             <div className="relative flex items-center py-2">
                                                 <div className="w-full border-t border-line" />
                                                 <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap bg-app px-3 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
                                                     or skip the questions
                                                 </span>
                                             </div>
-                                            <h2 id="vq-presets-title" className="mt-4 text-base font-semibold text-ink">
-                                                Start from a ready-made setup
+                                            <h2 id="vq-types-title" className="mt-4 text-base font-semibold text-ink">
+                                                Pick your business — {businessTypes.length} ready-made setups
                                             </h2>
                                             <p className="mt-1 text-sm text-ink-secondary">
-                                                The standard setup for your type of business, in one
-                                                click. You can add or remove anything before and after
+                                                One click sets up the modules and the words your trade
+                                                uses. You can add or remove anything before and after
                                                 you sign up.
                                             </p>
-                                            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                                                {shippablePresets.map((p) => {
-                                                    const Icon = PRESET_ICONS[p.key] || LayoutGrid;
-                                                    return (
-                                                        <button
-                                                            key={p.key}
-                                                            type="button"
-                                                            onClick={() => pickPreset(p.key)}
-                                                            className="group flex items-start gap-3 rounded-lg border border-line bg-surface p-3.5 text-left transition-colors duration-fast ease-standard hover:border-accent hover:bg-accent-quiet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                                                        >
-                                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sunken text-ink-secondary group-hover:text-accent-text">
-                                                                <Icon size={18} />
-                                                            </span>
-                                                            <span className="min-w-0 flex-1">
-                                                                <span className="flex items-center justify-between gap-2">
-                                                                    <span className="truncate text-sm font-semibold text-ink">{p.label}</span>
-                                                                    <span className="shrink-0 text-3xs font-semibold text-ink-muted">
-                                                                        {(p.modules || []).length} modules
-                                                                    </span>
-                                                                </span>
-                                                                <span className="mt-0.5 block text-xs leading-snug text-ink-secondary">
-                                                                    {p.blurb || p.description}
-                                                                </span>
-                                                            </span>
-                                                            <ArrowRight size={15} className="mt-2.5 shrink-0 text-ink-faint group-hover:text-accent-text" />
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
+                                            <BusinessTypePicker
+                                                className="mt-4"
+                                                types={businessTypes}
+                                                sectors={sectors}
+                                                selectedKey={businessType || null}
+                                                onPick={pickBusinessType}
+                                            />
                                         </section>
                                     )}
                                 </motion.div>
@@ -970,7 +1028,7 @@ export default function BuildWorkspace({
                                 >
                                     <span className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent-quiet px-3 py-1 text-3xs font-bold uppercase tracking-widest text-accent-text">
                                         <Sparkles size={12} />
-                                        {presetLabel || 'Your workspace'}
+                                        {displayLabel || 'Your workspace'}
                                     </span>
 
                                     <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
@@ -987,7 +1045,34 @@ export default function BuildWorkspace({
                                         request has already been logged automatically; this just says
                                         so, instead of presenting a defaulted Retail Shop as if it were
                                         a considered recommendation. */}
-                                    {!matched && (
+                                    <TermsPreview terms={terms} className="mt-3" />
+
+                                    {!matched && candidates.length > 0 && (
+                                        <div className="mt-4 rounded-lg border border-accent bg-accent-quiet p-4">
+                                            <p className="text-sm font-semibold text-ink">Did you mean one of these?</p>
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {candidates.map((c) => (
+                                                    <button
+                                                        key={c.key}
+                                                        type="button"
+                                                        onClick={() => pickBusinessType(c.key)}
+                                                        className="rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-ink hover:border-accent"
+                                                    >
+                                                        {c.label}
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPhase('intent')}
+                                                    className="rounded-full px-3 py-1 text-xs font-semibold text-accent-text underline-offset-4 hover:underline"
+                                                >
+                                                    See all {businessTypes.length}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!matched && !candidates.length && (
                                         <div className="mt-4 flex items-start gap-3 rounded-lg border border-line bg-surface p-4">
                                             <Compass size={16} className="mt-0.5 shrink-0 text-ink-muted" />
                                             <p className="text-sm leading-relaxed text-ink-secondary">
@@ -995,7 +1080,14 @@ export default function BuildWorkspace({
                                                 described yet, so this is a general starting point you
                                                 can fully customise below — nothing here is final.
                                                 We&rsquo;ve noted what you told us for what to build
-                                                next.
+                                                next.{' '}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPhase('intent')}
+                                                    className="font-semibold text-accent-text underline-offset-4 hover:underline"
+                                                >
+                                                    Pick from all {businessTypes.length} business types
+                                                </button>
                                             </p>
                                         </div>
                                     )}
@@ -1211,9 +1303,16 @@ export default function BuildWorkspace({
                                         Save your workspace.
                                     </h1>
                                     <p className="mt-3 text-base text-ink-secondary">
-                                        {activeModules.length} modules, configured. Name it,
-                                        create a login, and it is yours.
+                                        {activeModules.length} modules, configured.{' '}
+                                        {authUser ? 'Name it and it is ready.' : 'Name it, create a login, and it is yours.'}
                                     </p>
+
+                                    {license && (
+                                        <p className="mt-4 flex items-center gap-2 rounded-md border border-accent bg-accent-quiet px-4 py-2.5 text-xs text-ink">
+                                            <ShieldCheck size={14} className="shrink-0 text-accent-text" />
+                                            This workspace runs on your <strong className="font-semibold">{license.label}</strong> license.
+                                        </p>
+                                    )}
 
                                     {plans.length > 0 && (
                                         <div className="mt-4 flex items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-2.5 text-xs">
@@ -1275,46 +1374,53 @@ export default function BuildWorkspace({
                                         )}
                                     </div>
 
-                                    <div className="mt-7 space-y-4">
-                                        <button
-                                            type="button"
-                                            disabled={googleBusy}
-                                            onClick={handleGoogleSignUp}
-                                            className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition-all duration-fast hover:bg-interactive-hover hover:border-line-strong active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                                        >
-                                            <GoogleMark />
-                                            <span>{googleBusy ? 'Connecting to Google…' : 'Continue with Google'}</span>
-                                        </button>
-
-                                        <div className="relative flex items-center py-2">
-                                            <div className="w-full border-t border-line" />
-                                            <span className="absolute left-1/2 -translate-x-1/2 bg-app px-3 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                                or continue with email
-                                            </span>
+                                    {authUser ? (
+                                        <p className="mt-7 flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-3 text-sm text-ink-secondary">
+                                            <ShieldCheck size={15} className="shrink-0 text-accent-text" />
+                                            Signed in as <strong className="font-semibold text-ink">{authUser.email}</strong> — this workspace will be added to your account.
+                                        </p>
+                                    ) : (
+                                        <div className="mt-7 space-y-4">
+                                            <button
+                                                type="button"
+                                                disabled={googleBusy}
+                                                onClick={handleGoogleSignUp}
+                                                className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition-all duration-fast hover:bg-interactive-hover hover:border-line-strong active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                            >
+                                                <GoogleMark />
+                                                <span>{googleBusy ? 'Connecting to Google…' : 'Continue with Google'}</span>
+                                            </button>
+    
+                                            <div className="relative flex items-center py-2">
+                                                <div className="w-full border-t border-line" />
+                                                <span className="absolute left-1/2 -translate-x-1/2 bg-app px-3 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+                                                    or continue with email
+                                                </span>
+                                            </div>
+    
+                                            <Field label="Email" icon={Mail}>
+                                                <input
+                                                    type="email"
+                                                    required
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    autoComplete="email"
+                                                    className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                                />
+                                            </Field>
+                                            <Field label="Password" icon={Lock}>
+                                                <input
+                                                    type="password"
+                                                    required
+                                                    minLength={8}
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                    autoComplete="new-password"
+                                                    className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                                />
+                                            </Field>
                                         </div>
-
-                                        <Field label="Email" icon={Mail}>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                autoComplete="email"
-                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                                            />
-                                        </Field>
-                                        <Field label="Password" icon={Lock}>
-                                            <input
-                                                type="password"
-                                                required
-                                                minLength={8}
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                autoComplete="new-password"
-                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                                            />
-                                        </Field>
-                                    </div>
+                                    )}
 
                                     {provisionError && (
                                         <p className="mt-4 rounded-md border border-danger-300 bg-danger-50 px-4 py-3 text-xs text-danger-700">
@@ -1327,7 +1433,7 @@ export default function BuildWorkspace({
                                         className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                                     >
                                         <Rocket size={16} />
-                                        Create my workspace
+                                        {authUser ? 'Create workspace' : 'Create my workspace'}
                                     </button>
                                 </motion.form>
                             )}

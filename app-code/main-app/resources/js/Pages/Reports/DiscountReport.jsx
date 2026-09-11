@@ -11,7 +11,9 @@ import {
 import { formatCurrency } from '@/Utils/format';
 
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 export default function DiscountReport({ invoices = [], filters = {} }) {
+    const tt = useTermText();
     const {
         store
     } = usePage().props;
@@ -172,7 +174,7 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-rose-500 transition-colors" size={14} />
                             <input
                                 type="text"
-                                placeholder="Search Customer..."
+                                placeholder={tt('Search Customer...')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-rose-500/20 w-48 transition-all"
@@ -276,7 +278,7 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
                                     <tr>
                                         <SortableHeader label="Invoice" colKey="invoice_number" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Date" colKey="created_at" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Customer" colKey="party_name" currentSort={sortBy} onSort={handleSort} />
+                                        <SortableHeader label={tt('Customer')} colKey="party_name" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Bill Total" colKey="total_amount" align="right" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Amount Off" colKey="discount" align="right" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="%" colKey="percentage" align="right" currentSort={sortBy} onSort={handleSort} />
@@ -373,7 +375,7 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
 
                         {/* 2. Top Customers */}
                         <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Top Discounted Customers</h3>
+                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">{tt('Top Discounted Customers')}</h3>
                             <div className="flex-1 w-full h-full min-h-0">
                                 {topCustomers.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>

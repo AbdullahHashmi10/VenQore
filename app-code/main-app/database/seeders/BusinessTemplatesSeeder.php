@@ -148,9 +148,30 @@ class BusinessTemplatesSeeder extends Seeder
         ];
     }
 
+    /** Preset (config/ai_builder.php) → template, for the 85 catalogue types. */
+    private const PRESET_TEMPLATE = [
+        'pos_only' => 'retail_store', 'retail_shop' => 'retail_store', 'grocery' => 'retail_store',
+        'multi_branch_retail' => 'retail_store', 'clothing' => 'fashion_variants',
+        'mobile_electronics' => 'electronics_serials', 'hardware_store' => 'hardware_materials',
+        'restaurant' => 'restaurant_cafe', 'cafe' => 'restaurant_cafe', 'food_counter' => 'restaurant_cafe',
+        'catering' => 'restaurant_cafe', 'bakery' => 'bakery_production', 'pharmacy' => 'pharmacy',
+        'wholesale' => 'wholesale_distribution', 'field_service' => 'field_service',
+        'repair_workshop' => 'repair_shop', 'light_manufacturing' => 'workshop_manufacturing',
+        'tailoring' => 'workshop_manufacturing', 'professional_services' => 'services_contracts',
+        'freelancer' => 'services_contracts', 'membership_studio' => 'services_contracts',
+        'salon' => 'services_contracts', 'rental_hire' => 'services_contracts',
+    ];
+
     public static function mapToTemplateKey(string $industry): string
     {
         $normalized = strtolower(trim($industry));
+
+        // A business-type key from config/business_types.php (or a preset key)
+        // resolves through its preset — one catalogue, no second list to keep.
+        $preset = \App\Support\BusinessTypes::presetFor($normalized);
+        if ($preset && isset(self::PRESET_TEMPLATE[$preset])) {
+            return self::PRESET_TEMPLATE[$preset];
+        }
         
         $map = [
             // Retail Store group

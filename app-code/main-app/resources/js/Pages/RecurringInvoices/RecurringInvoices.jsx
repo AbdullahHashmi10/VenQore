@@ -23,8 +23,10 @@ import {
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import SellModuleTabs from '@/Components/SellModuleTabs';
+import { useTermText } from '@/lib/terms';
 
 export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
+    const tt = useTermText();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -198,7 +200,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         <div className="w-64 relative">
                             <input
                                 type="text"
-                                placeholder="Search by title or customer..."
+                                placeholder={tt('Search by title or customer...')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
@@ -255,7 +257,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         <div className="w-full relative mt-1 border-t border-line pt-2">
                             <input
                                 type="text"
-                                placeholder="Search by title or customer..."
+                                placeholder={tt('Search by title or customer...')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
@@ -290,7 +292,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         <thead className="bg-app text-ink-muted font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                             <tr className="border-b border-line">
                                 <th className="px-6 py-3">Title</th>
-                                <th className="px-6 py-3">Customer</th>
+                                <th className="px-6 py-3">{tt('Customer')}</th>
                                 <th className="px-6 py-3 text-right">Amount</th>
                                 <th className="px-6 py-3 text-center">Frequency</th>
                                 <th className="px-6 py-3">Next Invoice</th>
@@ -421,7 +423,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
 
                                     <div className="flex justify-between items-center border-t border-b border-line py-2.5">
                                         <div>
-                                            <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">Customer</p>
+                                            <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{tt('Customer')}</p>
                                             <p className="text-xs font-bold text-ink mt-0.5">{invoice.customer?.name || 'Unknown'}</p>
                                         </div>
                                         <div className="text-right">

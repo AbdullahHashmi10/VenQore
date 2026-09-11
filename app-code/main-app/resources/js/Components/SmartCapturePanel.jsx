@@ -11,6 +11,7 @@ import axios from 'axios';
 import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
 import { preprocessImage } from '@/lib/imagePreprocess';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
+import { useTermText } from '@/lib/terms';
 
 /**
  * SmartCapturePanel — the "AI Scan" intake panel.
@@ -22,6 +23,7 @@ import { ThinkingOrb } from '@/Components/ThinkingOrbs';
  */
 export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image', embedded = false }) {
     const { store, ai_tiers: aiTiers = {} } = usePage().props;
+    const tt = useTermText();
     const [activeTab, setActiveTab] = useState(initialTab);
 
     useEffect(() => {
@@ -796,8 +798,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 value={appendDocType}
                                 onChange={e => { setAppendDocType(e.target.value); setAppendDocId(''); }}
                                 options={[
-                                    { value: 'pre_invoice', label: 'Sales Order (Pre-Invoice)' },
-                                    { value: 'pre_purchase', label: 'Purchase Order (Pre-Purchase)' },
+                                    { value: 'pre_invoice', label: tt('Sales Order (Pre-Invoice)') },
+                                    { value: 'pre_purchase', label: tt('Purchase Order (Pre-Purchase)') },
                                     { value: 'proposal', label: 'Proposal / Quote' },
                                     { value: 'recurring_invoice', label: 'Recurring Invoice' }
                                 ]}
@@ -840,8 +842,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     onChange={e => { setCapturePartySide(e.target.value); setCapturePartyId(''); }}
                                     className="w-36 shrink-0"
                                     options={[
-                                        { value: 'customer', label: 'Customer' },
-                                        { value: 'supplier', label: 'Supplier' }
+                                        { value: 'customer', label: tt('Customer') },
+                                        { value: 'supplier', label: tt('Supplier') }
                                     ]}
                                 />
                                 <CustomSelect
@@ -873,8 +875,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     {
                                         groupLabel: 'Editable afterwards — safest',
                                         options: [
-                                            { value: 'pre_invoice', label: 'Pre-Sale (Sales Order)' },
-                                            { value: 'pre_purchase', label: 'Purchase Order' },
+                                            { value: 'pre_invoice', label: tt('Pre-Sale (Sales Order)') },
+                                            { value: 'pre_purchase', label: tt('Purchase Order') },
                                             { value: 'proposal', label: 'Proposal / Quote' },
                                             { value: 'recurring_invoice', label: 'Recurring Invoice' }
                                         ]
@@ -1362,7 +1364,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <div className="mt-5 max-w-sm w-full text-left bg-white/[0.03] border border-[#23C4A6]/25 rounded-2xl p-4">
                                     <p className="text-2xs font-bold uppercase tracking-wider text-[#23C4A6] mb-2 flex items-center gap-1.5">
                                         <Plus size={11} />
-                                        {successData.createdProducts.length} new product{successData.createdProducts.length > 1 ? 's' : ''} added to your catalogue
+                                        {successData.createdProducts.length} {tt(successData.createdProducts.length > 1 ? 'new products' : 'new product')} added to your catalogue
                                     </p>
                                     <ul className="space-y-1">
                                         {successData.createdProducts.map(p => (
@@ -1373,7 +1375,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     </ul>
                                     <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-2 leading-relaxed">
                                         Check the spelling — a misread name creates a near-duplicate that splits your reports.
-                                        You can find these under Products, filtered by "created by AI Scan".
+                                        You can find these under {tt('Products')}, filtered by "created by AI Scan".
                                     </p>
                                 </div>
                             )}
@@ -1420,8 +1422,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 { value: 'expense', label: 'Operating Expense' },
                                                 { value: 'return', label: 'Sales Return' },
                                                 { value: 'proposal', label: 'Proposal' },
-                                                { value: 'pre_invoice', label: 'Pre-Invoice (Sales Order)' },
-                                                { value: 'pre_purchase', label: 'Pre-Purchase (Purchase Order)' },
+                                                { value: 'pre_invoice', label: tt('Pre-Invoice (Sales Order)') },
+                                                { value: 'pre_purchase', label: tt('Pre-Purchase (Purchase Order)') },
                                                 { value: 'recurring_invoice', label: 'Recurring Invoice' },
                                                 { value: 'purchase_return', label: 'Purchase Return (Debit Note)' }
                                             ]}
@@ -1455,7 +1457,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     ) : (
                                         <div>
                                             <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">
-                                                {partyType === 'supplier' ? 'Supplier' : 'Customer'} <span className="text-rose-400">*</span>
+                                                {partyType === 'supplier' ? tt('Supplier') : tt('Customer')} <span className="text-rose-400">*</span>
                                             </label>
                                             <div className="flex items-center gap-1.5 font-sans">
                                                 <User size={12} className="text-[rgba(241,245,242,0.45)]" />
@@ -1622,9 +1624,9 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                 <CustomSelect
                                                                     value={isNew ? '__create_new__' : (item.product_id || '')}
                                                                     onChange={(e) => handleProductPick(idx, e.target.value)}
-                                                                    placeholder="-- Match a store product --"
+                                                                    placeholder={tt('-- Match a store product --')}
                                                                     options={[
-                                                                        { value: '', label: '-- Match a store product --', disabled: true },
+                                                                        { value: '', label: tt('-- Match a store product --'), disabled: true },
                                                                         ...(item.candidates || []).map(c => ({
                                                                             value: c.id,
                                                                             label: c.name,
@@ -1632,14 +1634,14 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                             confidence: c.confidence,
                                                                             sku: c.sku
                                                                         })),
-                                                                        { value: '__create_new__', label: '＋ Create as NEW product…' }
+                                                                        { value: '__create_new__', label: tt('＋ Create as NEW product…') }
                                                                     ]}
                                                                 />
 
                                                                 {isNew && (
                                                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 bg-black/30 rounded-xl border border-white/10">
                                                                         <div className="sm:col-span-3">
-                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">New Product Name</label>
+                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">{tt('New Product Name')}</label>
                                                                             <input
                                                                                 type="text"
                                                                                 value={item.create_new.name}
@@ -1671,7 +1673,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                 {!isNew && (!item.candidates || item.candidates.length === 0) && (
                                                                     <span className="text-rose-400 text-xs font-bold flex items-center gap-1 mt-1">
                                                                         <AlertTriangle size={12} />
-                                                                        No matches found — use "Create as NEW product".
+                                                                        {tt('No matches found — use "Create as NEW product".')}
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -1709,7 +1711,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                     isHigh ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
                                                                         isMedium ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' :
                                                                             'bg-rose-500/15 text-rose-300 border-rose-500/30'}`}>
-                                                                {isLearned ? 'Learned' : isNew ? 'New Product' : `${item.confidence}% Match`}
+                                                                {isLearned ? 'Learned' : isNew ? tt('New Product') : `${item.confidence}% Match`}
                                                             </span>
                                                             <button
                                                                 onClick={() => removeItem(idx)}

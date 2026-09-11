@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import ConfirmModal from '@/Components/ConfirmModal';
@@ -234,6 +234,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
 }
 export default function ExpensesIndex({ expenses = [], categories = [], stats = {}, bankAccounts = [], cashBalance = 0, filters = {}, serviceJobs = [] }) {
  const { t, tp } = useTerms();
+ const tt = useTermText();
  const {
  store
  } = usePage().props;
@@ -1457,13 +1458,13 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  </div>
 
  <div className="group">
-  <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Linked Work Order / Job (Optional)</label>
+  <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">{tt('Linked Work Order / Job (Optional)')}</label>
   <select
   value={formData.service_job_id}
   onChange={(e) => setFormData({ ...formData, service_job_id: e.target.value })}
   className="w-full h-12 px-4 rounded-xl text-sm font-bold bg-surface border border-line text-ink focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none shadow-sm"
   >
-  <option value="">— Not linked to a service job —</option>
+  <option value="">— {tt('Not linked to a service job')} —</option>
   {serviceJobs.map(job => (
   <option key={job.id} value={job.id}>
   {job.number} — {job.title} {job.party?.name ? `(${job.party.name})` : ''}

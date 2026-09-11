@@ -19,6 +19,7 @@ import {
     X, Check, Minus, Plus, ChevronLeft, Utensils, ShoppingBag, Bike,
 } from 'lucide-react';
 import { ORDER_TYPES } from './useTableService';
+import { useTermText } from '@/lib/terms';
 
 const TYPE_ICON = { dine_in: Utensils, takeaway: ShoppingBag, delivery: Bike };
 const TYPE_LABEL = { dine_in: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delivery' };
@@ -28,6 +29,7 @@ const TYPE_LABEL = { dine_in: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delive
    that is right more often than any other guess, and a stepper is faster
    than a keyboard for a number that is almost always between one and eight. */
 export function SeatDialog({ position, onCancel, onConfirm, busy }) {
+    const tt = useTermText();
     const [covers, setCovers] = useState(Math.max(1, Number(position?.capacity) || 2));
     const [orderType, setOrderType] = useState('dine_in');
     if (!position) return null;
@@ -73,8 +75,8 @@ export function SeatDialog({ position, onCancel, onConfirm, busy }) {
                     </label>
 
                     <div className="vqt-field vqt-field-stacked">
-                        <span className="vqt-field-l">Order type</span>
-                        <div className="vqt-seg" role="radiogroup" aria-label="Order type">
+                        <span className="vqt-field-l">{tt('Order type')}</span>
+                        <div className="vqt-seg" role="radiogroup" aria-label={tt('Order type')}>
                             {ORDER_TYPES.map(t => {
                                 const Icon = TYPE_ICON[t.value];
                                 return (
@@ -104,7 +106,7 @@ export function SeatDialog({ position, onCancel, onConfirm, busy }) {
                         onClick={() => onConfirm({ covers, orderType })}
                     >
                         <Check size={16} />
-                        Open table
+                        {tt('Open table')}
                     </button>
                 </footer>
             </div>
@@ -210,6 +212,7 @@ export function NewTicketDialog({ orderType, onCancel, onConfirm, busy }) {
    the destination's own state decides which verb applies -- so a waiter
    cannot pick "merge" and then be told the table is empty. */
 export function MoveSheet({ from, positions, onCancel, onTransfer, onMerge, busy }) {
+    const tt = useTermText();
     if (!from) return null;
     const targets = positions.filter(p => p.id !== from.id && p.status !== 'cleaning');
 
@@ -232,8 +235,7 @@ export function MoveSheet({ from, positions, onCancel, onTransfer, onMerge, busy
                 </header>
 
                 <p className="vqt-modal-note">
-                    Pick where this order goes. An empty table moves the party across;
-                    an occupied one joins the two bills into one.
+                    {tt('Pick where this order goes. An empty table moves the party across; an occupied one joins the two bills into one.')}
                 </p>
 
                 <div className="vqt-modal-b vqt-move-grid">
@@ -257,7 +259,7 @@ export function MoveSheet({ from, positions, onCancel, onTransfer, onMerge, busy
                         );
                     })}
                     {targets.length === 0 && (
-                        <p className="text-sm text-ink-muted p-4">There is nowhere else to put this order.</p>
+                        <p className="text-sm text-ink-muted p-4">{tt('There is nowhere else to put this order.')}</p>
                     )}
                 </div>
             </div>
@@ -287,6 +289,7 @@ export default function TableBar({
     compact = false,
     elapsedLabel,
 }) {
+    const tt = useTermText();
     if (!table) return null;
     const Icon = TYPE_ICON[orderType] || Utensils;
 
@@ -316,7 +319,7 @@ export default function TableBar({
                         const i = ORDER_TYPES.findIndex(t => t.value === orderType);
                         onOrderType(ORDER_TYPES[(i + 1) % ORDER_TYPES.length].value);
                     }}
-                    title="Change the order type"
+                    title={tt('Change the order type')}
                 >
                     <Icon size={12} aria-hidden="true" />
                     {TYPE_LABEL[orderType] || 'Dine-in'}

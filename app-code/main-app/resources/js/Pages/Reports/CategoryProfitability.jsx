@@ -10,10 +10,12 @@ import {
     PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 export default function CategoryProfitability({ data = [], filters = {} }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
     const [range, setRange] = useState(filters.range || 'this_month');
@@ -582,7 +584,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                                             : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200'
                                                     }`}
                                                 >
-                                                    <span className="flex items-center gap-1.5"><Users size={14} /> Customer Detail</span>
+                                                    <span className="flex items-center gap-1.5"><Users size={14} /> {tt('Customer Detail')}</span>
                                                 </button>
                                                 <button
                                                     onClick={() => setActiveTab('products')}
@@ -592,7 +594,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                                             : 'border-transparent text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200'
                                                     }`}
                                                 >
-                                                    <span className="flex items-center gap-1.5"><Package size={14} /> Products ({activeCategory.products?.length || 0})</span>
+                                                    <span className="flex items-center gap-1.5"><Package size={14} /> {tt('Products')} ({activeCategory.products?.length || 0})</span>
                                                 </button>
                                             </div>
 
@@ -600,14 +602,14 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                             {activeTab === 'customers' ? (
                                                 customers.length === 0 ? (
                                                     <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center flex-1">
-                                                        <p className="text-sm text-ink-muted italic">No customer-attributed purchases in this period.</p>
+                                                        <p className="text-sm text-ink-muted italic">{tt('No customer-attributed purchases in this period.')}</p>
                                                     </div>
                                                 ) : (
                                                     <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm flex-1">
                                                         <table className="w-full text-xs sm:text-sm text-left">
                                                             <thead className="text-ink-muted uppercase bg-app border-b border-line">
                                                                 <tr>
-                                                                    <th className="py-3 px-4 font-bold">Customer Name</th>
+                                                                    <th className="py-3 px-4 font-bold">{tt('Customer Name')}</th>
                                                                     <th className="text-right py-3 px-4 font-bold">Times Purchased</th>
                                                                     <th className="text-right py-3 px-4 font-bold">Qty Bought</th>
                                                                     <th className="text-right py-3 px-4 font-bold">Total Spent</th>
@@ -629,14 +631,14 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                             ) : (
                                                 !(activeCategory.products && activeCategory.products.length > 0) ? (
                                                     <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center flex-1">
-                                                        <p className="text-sm text-ink-muted italic">No products found with sales in this category during the period.</p>
+                                                        <p className="text-sm text-ink-muted italic">{tt('No products found with sales in this category during the period.')}</p>
                                                     </div>
                                                 ) : (
                                                     <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm flex-1">
                                                         <table className="w-full text-xs sm:text-sm text-left">
                                                             <thead className="text-ink-muted uppercase bg-app border-b border-line">
                                                                 <tr>
-                                                                    <th className="py-3 px-4 font-bold">Product Name</th>
+                                                                    <th className="py-3 px-4 font-bold">{tt('Product Name')}</th>
                                                                     <th className="text-right py-3 px-4 font-bold">Qty Sold</th>
                                                                     <th className="text-right py-3 px-4 font-bold">Revenue</th>
                                                                     <th className="text-right py-3 px-4 font-bold">Profit</th>
@@ -773,18 +775,18 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                         {/* Customer Purchase Detail */}
                                         <div className="xl:col-span-7">
                                             <div className="flex items-center gap-2 mb-3 text-xs font-bold text-ink-muted uppercase tracking-wider">
-                                                <Users size={14} /> Customer Purchase Detail
+                                                <Users size={14} /> {tt('Customer Purchase Detail')}
                                             </div>
                                             {customers.length === 0 ? (
                                                 <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center">
-                                                    <p className="text-sm text-ink-muted italic">No customer-attributed purchases in this period.</p>
+                                                    <p className="text-sm text-ink-muted italic">{tt('No customer-attributed purchases in this period.')}</p>
                                                 </div>
                                             ) : (
                                                 <div className="border border-line rounded-xl overflow-hidden bg-surface shadow-sm flex-1">
                                                     <table className="w-full text-xs sm:text-sm text-left">
                                                         <thead className="text-ink-muted uppercase bg-app border-b border-line">
                                                             <tr>
-                                                                <th className="py-3 px-4 font-bold">Customer Name</th>
+                                                                <th className="py-3 px-4 font-bold">{tt('Customer Name')}</th>
                                                                 <th className="text-right py-3 px-4 font-bold">Times Purchased</th>
                                                                 <th className="text-right py-3 px-4 font-bold">Qty Bought</th>
                                                                 <th className="text-right py-3 px-4 font-bold">Total Spent</th>

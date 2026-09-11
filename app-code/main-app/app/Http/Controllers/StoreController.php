@@ -21,24 +21,20 @@ use Inertia\Response;
  * Handles creating new stores and the "create or join" landing page
  * shown to new users (0 stores) after registration/login.
  *
- * New-store creation is PLAN-GATED. A user can no longer spin up a store
- * without first choosing the plan they want to trial:
+ *   /new-store        → redirect to /build-workspace (11 Sep 2026)
+ *   POST /new-store   → programmatic create (tests, old clients); goes through
+ *                       the same StoreProvisioner as the builder
  *
- *   1. /new-store                       → plan picker (Store/SelectPlan)
- *   2. /new-store?plan=growth&interval=monthly → name + configure (Store/Create)
- *   3. POST /new-store                  → start the trial on the chosen plan
+ * Plan slugs are canonical (App\Support\PlanCatalog: solo/starter/core/scale).
  *
- * Users who already hold an available license (AppSumo / pre-paid) skip the
- * picker entirely — their plan is predetermined by the license.
- *
- * The plan + billing interval chosen at step 1 is persisted as a
- * `billing_intent` on the tenant so the platform knows exactly what to charge
- * once the free trial ends.
+ * A plan chosen in the builder is persisted as `plan_limits.billing_intent`
+ * on the tenant (WorkspaceBuilderController::provisionForUser) so Billing
+ * knows what to offer when the trial ends.
  */
 class StoreController extends Controller
 {
-    /** Subscription plans that can be trialled or created from the create-store flow. */
-    private const TRIAL_PLAN_SLUGS = ['solo', 'starter', 'growth', 'business'];
+    /** Subscription plans that can be trialled — the canonical list (PlanCatalog). */
+    private const TRIAL_PLAN_SLUGS = \App\Support\PlanCatalog::SELF_SERVE;
 
     /**
      * Page shown to users with no stores yet.
@@ -60,72 +56,17 @@ class StoreController extends Controller
         ]);
     }
 
-    /**
-     * Entry point for creating a store. Behaves as a small two-step wizard
-     * driven entirely off the query string so no extra routes (and therefore
-     * no Ziggy regeneration) are required:
-     *
-     *   • Available license          → straight to the naming form (plan fixed)
-     *   • ?plan=<slug>&interval=<..>  → naming form for the chosen plan
-     *   • (nothing)                  → the plan picker
-     */
-    public function create(Request $request): Response
+    /** Entry point for creating a store → the builder (?plan= carried through). */
+    public function create(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        // Every store is created in ONE place — /build-workspace — so it gets
+        // the same modules, defaults and trial whether it is someone's first
+        // store or their fifth, licensed or not. The builder recognises a
+        // signed-in user (skips the account step) and a held license (skips
+        // the plan step; StoreProvisioner claims it).
+        $chosen = \App\Support\PlanCatalog::canonical((string) $request->query('plan', ''));
 
-        $license = StoreLicense::withoutTenantScope()
-            ->where('user_id', $user->id)
-            ->where('status', 'available')
-            ->first();
-
-        // ── Path A: pre-paid / AppSumo license — plan is already decided ──────
-        if ($license) {
-            return Inertia::render('Store/Create', [
-                'available_license' => [
-                    'plan'   => $license->plan,
-                    'type'   => $license->type,
-                    'source' => $license->source,
-                ],
-                'selected_plan' => null,
-                'trial_days'    => 14,
-            ]);
-        }
-
-        $country = (new GeoPricingService())->resolveCountry($request);
-
-        // ── Path B: a plan has been chosen — show the naming / details form ───
-        $chosen   = strtolower((string) $request->query('plan', ''));
-        $interval = $this->normalizeInterval($request->query('interval'));
-
-        if (in_array($chosen, self::TRIAL_PLAN_SLUGS, true)) {
-            $planModel = Plan::where('slug', $chosen)->first();
-            $pricing   = $this->resolvePricing($planModel, $chosen, $country);
-            $amount    = $interval === 'annual' ? $pricing['annual_total'] : $pricing['monthly'];
-
-            return Inertia::render('Store/Create', [
-                'available_license' => null,
-                'selected_plan'     => [
-                    'slug'     => $chosen,
-                    'name'     => $this->planDisplayName($chosen),
-                    'interval' => $interval,
-                    'amount'   => $amount,
-                    'cadence'  => $interval === 'annual' ? 'year' : 'month',
-                    'currency' => $country === 'PK' ? 'PKR' : 'USD',
-                    'symbol'   => $country === 'PK' ? 'Rs' : '$',
-                ],
-                'trial_days' => $planModel?->trial_days ?? 14,
-            ]);
-        }
-
-        // ── Path C: no plan yet — show the plan picker ────────────────────────
-        return Inertia::render('Store/SelectPlan', [
-            'plans'      => $this->planCatalog($country),
-            'currency'   => [
-                'code'   => $country === 'PK' ? 'PKR' : 'USD',
-                'symbol' => $country === 'PK' ? 'Rs' : '$',
-            ],
-            'trial_days' => 14,
-        ]);
+        return redirect()->route('workspace.build', in_array($chosen, self::TRIAL_PLAN_SLUGS, true) ? ['plan' => $chosen] : []);
     }
 
     /**
@@ -144,7 +85,7 @@ class StoreController extends Controller
 
         $request->validate([
             'name'          => 'required|string|max:100',
-            'plan'          => 'nullable|string|in:solo,counter,starter,growth,business',
+            'plan'          => 'nullable|string|in:solo,starter,core,scale,counter,growth,business',
             'interval'      => 'nullable|string|in:monthly,annual',
             'terms_consent' => 'required|accepted',
         ], [
@@ -172,7 +113,7 @@ class StoreController extends Controller
             })
             ->exists();
 
-        $chosenPlan = strtolower((string) $request->input('plan', ''));
+        $chosenPlan = \App\Support\PlanCatalog::canonical((string) $request->input('plan', ''));
 
 
 
@@ -194,190 +135,26 @@ class StoreController extends Controller
         }
 
         try {
-            // ── Unique Store Name & Soft-Delete Re-activation Check ───────────
-            $baseSlug = \Illuminate\Support\Str::slug($request->name);
-            if (empty($baseSlug)) {
-                $baseSlug = 'store';
+            // Same name rule, store-count ceiling and creation path as the
+            // builder — see App\Services\StoreProvisioner.
+            if ($error = \App\Services\StoreProvisioner::nameError($user, $request->name)) {
+                return back()->withErrors(['name' => $error]);
             }
-            if (strlen($baseSlug) < 3) {
-                $baseSlug = $baseSlug . '-store';
-            }
-
-            $existingTenant = \App\Models\Tenant::withTrashed()->where('slug', $baseSlug)->first();
-
-            if ($existingTenant) {
-                // Check if the current user was or is the owner of this store
-                $wasOwner = \App\Models\TenantUser::where('tenant_id', $existingTenant->id)
-                    ->where('user_id', $user->id)
-                    ->where('role', 'owner')
-                    ->exists();
-
-                if ($existingTenant->trashed()) {
-                    if ($wasOwner) {
-                        return back()->withErrors([
-                            'name' => 'This store was previously deleted by you. Please contact support to reopen it.',
-                        ]);
-                    } else {
-                        return back()->withErrors([
-                            'name' => 'This store name is already taken. Please choose a unique store name.',
-                        ]);
-                    }
-                } else {
-                    if ($wasOwner) {
-                        return back()->withErrors([
-                            'name' => 'You already have an active store with this name.',
-                        ]);
-                    } else {
-                        return back()->withErrors([
-                            'name' => 'This store name is already in use by another account. Please choose a unique store name.',
-                        ]);
-                    }
-                }
+            if ($error = \App\Services\StoreProvisioner::storeLimitError($user)) {
+                return back()->withErrors(['name' => $error]);
             }
 
-            // ── LTD Store Limit Check ─────────────────────────────────────────
-            // Count how many stores this user already owns (any status).
-            $ownedStoreCount = TenantUser::where('user_id', $user->id)
-                ->where('role', 'owner')
-                ->count();
-
-            // Check their AppSumo license plan for a store count ceiling.
-            $appsumoLicense = StoreLicense::withoutTenantScope()
-                ->where('user_id', $user->id)
-                ->whereIn('status', ['available', 'consumed'])
-                ->where('source', 'appsumo')
-                ->orderByDesc('created_at')
-                ->first();
-
-            if ($appsumoLicense) {
-                $storeLimits = [
-                    'ltd_1'    => 1,
-                    'ltd_2'    => 2,
-                    'ltd_3'    => 5,
-                    // legacy keys (pre-fix) — keep for backward compat
-                    'starter'  => 1,
-                    'growth'   => 2,
-                    'business' => 5,
-                ];
-                $storeLimit = $storeLimits[$appsumoLicense->plan] ?? 1;
-
-                if ($ownedStoreCount >= $storeLimit) {
-                    return back()->withErrors([
-                        'name' => "Your AppSumo plan allows a maximum of {$storeLimit} store(s). Stack another code to unlock more stores.",
-                    ]);
-                }
-            }
-            // ─────────────────────────────────────────────────────────────────
-
-            $tenant = DB::transaction(function () use ($request, $user, $chosenPlan, $interval, $country) {
-                // Claim available license or create a trial license
-                $license = StoreLicense::withoutTenantScope()
-                    ->where('user_id', $user->id)
-                    ->where('status', 'available')
-                    ->lockForUpdate()
-                    ->first();
-
-                // The plan we activate the store on: a held license always wins,
-                // otherwise the plan the user selected on the pricing step.
-                if ($license) {
-                    $plan = $license->plan;
-                } else {
-                    $plan = in_array($chosenPlan, self::TRIAL_PLAN_SLUGS, true) ? $chosenPlan : 'starter';
-                }
-
-                // Trial length comes from the plan definition (fallback: 14 days).
-                $trialDays    = optional(Plan::where('slug', $plan)->first())->trial_days ?? 14;
-                $trialEndsAt  = now()->addDays($trialDays);
-
-                // Base tenant attributes
-                $attributes = [
-                    'name'            => $request->name,
-                    'slug'            => \App\Services\SubdomainGenerator::generate($request->name),
-                    'plan'            => $plan,
-                    'status'          => 'trial',
-                    'trial_ends_at'   => $trialEndsAt,
-                    'join_code'       => $this->generateJoinCode(),
-                    'currency_code'   => 'PKR', // Default till setup wizard
-                    'currency_symbol' => 'Rs.',
-                    'timezone'        => 'Asia/Karachi',
-                    'industry'        => 'retail',
-                    'terms_accepted_at' => now(),
-                    'terms_version'     => 'v4.0',
-                ];
-
-                // ── Gift Access Links ───────────────────────────────────────
-                // A license issued by GiftRedemptionController (source =
-                // 'gift') carries a real expiry the owner chose (1 month to
-                // 5 years) in valid_until. It is not a trial — the recipient
-                // gets full active access for that window, not a 14-day
-                // trial that would silently shorten what was promised.
-                if ($license && $license->source === 'gift' && $license->valid_until) {
-                    $attributes['status']               = 'active';
-                    $attributes['trial_ends_at']         = null;
-                    $attributes['subscription_ends_at']  = $license->valid_until;
-                }
-
-                // ── Billing intent ────────────────────────────────────────────
-                // Only relevant for self-serve trials (no pre-paid license). This
-                // records what the platform should charge once the trial ends.
-                if (!$license) {
-                    $planModel    = Plan::where('slug', $plan)->first();
-                    $pricing      = $this->resolvePricing($planModel, $plan, $country);
-                    $chargeAmount = $interval === 'annual' ? $pricing['annual_total'] : $pricing['monthly'];
-
-                    $attributes['plan_limits'] = [
-                        'billing_intent' => [
-                            'plan'        => $plan,
-                            'interval'    => $interval,
-                            'amount'      => $chargeAmount,
-                            'currency'    => $country === 'PK' ? 'PKR' : 'USD',
-                            'cadence'     => $interval === 'annual' ? 'year' : 'month',
-                            'charge_on'   => $trialEndsAt->toIso8601String(),
-                            'selected_at' => now()->toIso8601String(),
-                        ],
-                    ];
-                }
-
-                // Create the store
-                $tenant = Tenant::create($attributes);
-
-                // Make the user the owner
-                TenantUser::create([
-                    'tenant_id' => $tenant->id,
-                    'user_id'   => $user->id,
-                    'role'      => 'owner',
-                    'status'    => 'active',
-                    'joined_at' => now(),
-                ]);
-
-                // Consume or create the license record
-                if ($license) {
-                    $license->update([
-                        'tenant_id'   => $tenant->id,
-                        'status'      => 'consumed',
-                        'consumed_at' => now(),
-                    ]);
-                } else {
-                    StoreLicense::create([
-                        'user_id'     => $user->id,
-                        'tenant_id'   => $tenant->id,
-                        'type'        => 'trial',
-                        'status'      => 'consumed',
-                        'plan'        => $plan,
-                        'source'      => 'registration',
-                        'consumed_at' => now(),
-                        'valid_until' => $trialEndsAt,
-                    ]);
-                }
-
-                // Set as their active store
-                $user->update(['last_store_id' => $tenant->id]);
-
-                // Seed chart of accounts and default settings
-                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
-
-                return $tenant;
-            });
+            app(\App\Services\StoreProvisioner::class)->create($user, [
+                'name'           => $request->name,
+                'country'        => $country,
+                'timezone'       => $request->input('timezone'),
+                'currency'       => $request->input('currency'),
+                'plan'           => $chosenPlan,
+                'interval'       => $interval,
+                // No module choice on this form: the setup wizard runs next.
+                'setup_completed'=> false,
+                'license_source' => 'registration',
+            ]);
 
             $user->refresh();
 
@@ -391,118 +168,11 @@ class StoreController extends Controller
     // Helpers
     // ──────────────────────────────────────────────────────────────────
 
-    private function generateJoinCode(): string
-    {
-        // SEC-11: single high-entropy generator.
-        return Tenant::generateJoinCode();
-    }
-
     /** Normalise an arbitrary interval input to one we support. */
     private function normalizeInterval(mixed $interval): string
     {
         $interval = strtolower((string) $interval);
         return in_array($interval, ['monthly', 'annual'], true) ? $interval : 'monthly';
-    }
-
-    /** Friendly tier name shown in the UI (Enterprise == business slug). */
-    private function planDisplayName(string $slug): string
-    {
-        return match ($slug) {
-            'starter'  => 'Starter',
-            'growth'   => 'Growth',
-            'business' => 'Scale',
-            default    => ucfirst($slug),
-        };
-    }
-
-    /**
-     * Build the list of trial-able subscription plans for the picker, with
-     * geo-resolved pricing and display metadata.
-     */
-    private function planCatalog(string $country): array
-    {
-        $meta = [
-            'solo' => [
-                'tagline'  => 'One person, one register. Free forever with structural limits.',
-                'features' => [
-                    '1 Store Location',
-                    '1 Full Staff Seat (2 Till Logins)',
-                    '1 POS Register',
-                    '500 Product SKUs',
-                    '100 Sales / Month',
-                    '30 Days History Retention',
-                    '100 Monthly AI Credits',
-                ],
-                'popular'  => false,
-            ],
-            'starter' => [
-                'tagline'  => 'Single-location shops getting off paper, spreadsheets, or slow legacy POS.',
-                'features' => [
-                    '1 Store Location',
-                    '1 Full Staff Seat (Till logins unlimited)',
-                    '2 POS Registers',
-                    '5,000 Product SKUs',
-                    '500 Monthly AI Credits',
-                    'Smart Invoicing & Double-Entry Ledger',
-                    'All 43 Financial Reports Included',
-                ],
-                'popular'  => false,
-            ],
-            'growth' => [
-                'tagline'  => 'Multi-branch control, API access, audit logs, custom roles and signals.',
-                'features' => [
-                    '1 Store Location (Multi-Branch ready)',
-                    '5 Full Staff Seats',
-                    '6 POS Registers',
-                    '25,000 Product SKUs',
-                    '2,000 Monthly AI Credits',
-                    'Full API Access & Webhooks',
-                    'Audit Trail & Custom Granular Roles',
-                    'Manufacturing & BOM Assemblies',
-                ],
-                'popular'  => true,
-            ],
-            'business' => [
-                'tagline'  => 'Large operations demanding full-scale ERP, white-label, and channel sync.',
-                'features' => [
-                    '1 Store Location (Expandable)',
-                    '25 Full Staff Seats',
-                    '20 POS Registers',
-                    '250,000 Product SKUs',
-                    '10,000 Monthly AI Credits',
-                    'White-Label Branding',
-                    '2 Channel Syncs Included (Woo/Amazon)',
-                    'Named Contact (4hr SLA)',
-                ],
-                'popular'  => false,
-            ],
-        ];
-
-        $plans = Plan::whereIn('slug', self::TRIAL_PLAN_SLUGS)
-            ->whereNull('archived_at')
-            ->where('is_active', true)
-            ->get()
-            ->keyBy('slug');
-
-        $catalog = [];
-        foreach (self::TRIAL_PLAN_SLUGS as $slug) {
-            $planModel = $plans->get($slug);
-            $pricing   = $this->resolvePricing($planModel, $slug, $country);
-
-            $catalog[] = [
-                'slug'          => $slug,
-                'name'          => $this->planDisplayName($slug),
-                'tagline'       => $meta[$slug]['tagline'] ?? '',
-                'features'      => $meta[$slug]['features'] ?? [],
-                'popular'       => $meta[$slug]['popular'] ?? false,
-                'price_monthly' => $pricing['monthly'],
-                'price_annual'  => $pricing['annual'],        // per-month equivalent
-                'annual_total'  => $pricing['annual_total'],  // full yearly charge
-                'trial_days'    => $planModel?->trial_days ?? 14,
-            ];
-        }
-
-        return $catalog;
     }
 
     /**
@@ -511,10 +181,9 @@ class StoreController extends Controller
      *
      * @return array{monthly: float, annual: float, annual_total: float}
      */
-    private function resolvePricing(?Plan $plan, string $slug, string $country): array
+    public static function resolvePricing(?Plan $plan, string $slug, string $country): array
     {
-        $fallbackMonthly = ['solo' => 0, 'starter' => 49, 'growth' => 99, 'business' => 299];
-        $base = $fallbackMonthly[$slug] ?? 49;
+        $base = \App\Support\PlanCatalog::monthlyUsd($slug) ?: 49.0;
         $isPK = $country === 'PK';
         $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);
 

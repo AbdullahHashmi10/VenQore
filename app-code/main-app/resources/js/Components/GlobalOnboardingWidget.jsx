@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Sparkles, ArrowRight, Minimize2, Check } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function GlobalOnboardingWidget({ store }) {
+ const tt = useTermText();
  const [isMinimized, setIsMinimized] = useState(() => {
  return sessionStorage.getItem('amd_global_onboarding_minimized') === 'true';
  });
@@ -116,7 +118,7 @@ export default function GlobalOnboardingWidget({ store }) {
  };
 
  const checklist = [
- { key: 'inventory', label: 'Catalog First Product', isDone: metrics.has_products },
+ { key: 'inventory', label: tt('Catalog First Product'), isDone: metrics.has_products },
  { key: 'purchase', label: 'Record First Purchase', isDone: metrics.has_purchases },
  { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: metrics.has_sales },
  { key: 'expense', label: 'Record Store Expense', isDone: metrics.has_expenses },
@@ -158,7 +160,7 @@ export default function GlobalOnboardingWidget({ store }) {
  const isEditFlow = path.includes('/edit');
  const isReturnFlow = path.includes('/return') && !path.includes('/returns-history');
  const isRefundFlow = path.includes('/refund');
- const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start');
+ const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start') || path.includes('/build-workspace');
 
  if (isCreateFlow || isEditFlow || isReturnFlow || isRefundFlow || isSetupFlow) {
  return false;
@@ -227,6 +229,7 @@ export default function GlobalOnboardingWidget({ store }) {
  '/create',
  '/edit',
  '/new-store',
+ '/build-workspace',
  '/setup',
  '/refund',
  '/return',

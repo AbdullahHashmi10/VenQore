@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { router } from '@inertiajs/react';
 import { ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function DashboardTourGuide({ store }) {
+    const tt = useTermText();
     const [currentStep, setCurrentStep] = useState(0);
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
@@ -225,7 +227,7 @@ export default function DashboardTourGuide({ store }) {
                         {currentStep === 4 && (
                             <p className="text-xs text-neutral-300 leading-relaxed font-medium">
                                 The <span className="text-white font-bold">Admin Panel</span>. You can configure advanced settings, manage users, and more! <br/><br/>
-                                <span className="text-brand-400">Need a training session for you or your staff?</span> Check the <span className="text-white font-bold">Billing Page &gt; Services</span> to arrange a meeting!
+                                <span className="text-brand-400">{tt('Need a training session for you or your staff?')}</span> Check the <span className="text-white font-bold">{tt('Billing Page > Services')}</span> to arrange a meeting!
                             </p>
                         )}
                         {currentStep === 5 && (

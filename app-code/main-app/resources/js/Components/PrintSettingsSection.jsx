@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 import { createPortal } from 'react-dom';
 
 import { vq } from '@/theme/runtime';
+import { useTermText } from '@/lib/terms';
 // ... (imports remain the same, ensuring createPortal is added)
 
 export default function PrintSettingsSection({ data, setData, saveSettings }) {
@@ -324,7 +325,9 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
 // SUB-COMPONENTS
 // ----------------------------------------------------------------------
 
-const RegularSettings = ({ data, setData }) => (
+const RegularSettings = ({ data, setData }) => {
+ const tt = useTermText();
+ return (
  <>
  <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-800/30 mb-6">
  <Toggle
@@ -425,11 +428,11 @@ const RegularSettings = ({ data, setData }) => (
  <Toggle label="Show Original/Duplicate Copy" checked={data.print_original_copy} onChange={v => setData('print_original_copy', v)} />
  </Section>
 
- <Section title="Table Columns" icon={Layout}>
+ <Section title={tt('Table Columns')} icon={Layout}>
  <div className="space-y-2">
  <ToggleBtn label="Serial No." checked={data.print_show_sno} onChange={v => setData('print_show_sno', v)} />
  <ToggleBtn label="HSN/SAC Code" checked={data.print_show_hsn} onChange={v => setData('print_show_hsn', v)} />
- <ToggleBtn label="Product Description" checked={data.print_show_description} onChange={v => setData('print_show_description', v)} />
+ <ToggleBtn label={tt('Product Description')} checked={data.print_show_description} onChange={v => setData('print_show_description', v)} />
  <ToggleBtn label="Units/Qty" checked={data.print_show_units} onChange={v => setData('print_show_units', v)} />
  <ToggleBtn label="MRP Column" checked={data.print_show_mrp} onChange={v => setData('print_show_mrp', v)} />
  <ToggleBtn label="Discount Column" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} />
@@ -469,7 +472,8 @@ const RegularSettings = ({ data, setData }) => (
  </div>
  </Section>
  </>
-);
+ );
+};
 
 const ThermalSettings = ({ data, setData }) => (
  <>

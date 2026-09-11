@@ -13,6 +13,7 @@ import {
     size as rowSize,
 } from '../layoutLaw';
 import { X, ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 /**
  * DashboardBuilderSheet — VenQore Design System v2.0
@@ -73,6 +74,7 @@ export default function DashboardBuilderSheet({
 }) {
     if (!isOpen) return null;
 
+    const tt = useTermText();
     const [step, setStep] = useState(1);
     const [selectedDomain, setSelectedDomain] = useState('sales');
     const [selectedMetric, setSelectedMetric] = useState(null);
@@ -381,7 +383,7 @@ export default function DashboardBuilderSheet({
                                         textTransform: 'capitalize',
                                         display: 'block',
                                     }}>
-                                        {d.label}
+                                        {tt(d.label)}
                                     </span>
                                     <span style={{
                                         fontSize: 'var(--vq-fs-caption)',
@@ -389,7 +391,7 @@ export default function DashboardBuilderSheet({
                                         lineHeight: 'var(--vq-lh-caption)',
                                         display: 'block',
                                     }}>
-                                        {d.desc}
+                                        {tt(d.desc)}
                                     </span>
                                 </button>
                             ))}

@@ -164,7 +164,7 @@ class CapabilitiesRegistrySeeder extends Seeder
                 'provides_nav'  => null,
                 'provides_cards'=> json_encode(['expiring_contracts']),
                 'provides_terms'=> json_encode(['contract']),
-                'min_plan'      => 'business',
+                'min_plan'      => 'scale',
                 'status'        => 'live',
                 'sort_order'    => 9031,
             ],

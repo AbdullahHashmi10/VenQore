@@ -9,6 +9,7 @@ import {
     ArrowRight, CheckCheck, Globe, ShoppingCart
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
+import { useTermText } from '@/lib/terms';
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
@@ -290,6 +291,7 @@ export default function SyncPage({
     search: initialSearch,
     store_slug,
 }) {
+    const tt = useTermText();
     const [search, setSearch]   = useState(initialSearch ?? '');
     const [bulking, setBulking] = useState(false);
     const [scanning, setScanning] = useState(false);
@@ -384,7 +386,7 @@ export default function SyncPage({
                             className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
                         >
                             <RefreshCw size={14} className={scanning ? 'animate-spin' : ''} />
-                            {scanning ? 'Scanning...' : 'Scan & Map Products'}
+                            {scanning ? 'Scanning...' : tt('Scan & Map Products')}
                         </button>
 
                         {totalStaged > 0 && (
@@ -483,7 +485,7 @@ export default function SyncPage({
                     {links.data?.length === 0 && (
                         <div className="text-center py-16 text-ink-muted">
                             <Package size={28} className="mx-auto mb-3 opacity-40" />
-                            <p className="text-sm">No products found{filter !== 'all' ? ` with status "${filter}"` : ''}.</p>
+                            <p className="text-sm">{tt('No products found')}{filter !== 'all' ? ` with status "${filter}"` : ''}.</p>
                             {filter !== 'all' && (
                                 <button
                                     onClick={() => handleFilterChange('all')}

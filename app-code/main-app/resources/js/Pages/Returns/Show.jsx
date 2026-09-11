@@ -3,8 +3,10 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatCurrency, formatDate } from '@/Utils/format';
 import { ArrowLeft, Printer, PackageCheck, Receipt } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function ReturnShow({ return: returnData, restockMovements = [] }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const creditNotePayment = (returnData?.payments || []).find(p => p.method === 'store_credit');
     const cashRefundPayment = (returnData?.payments || []).find(p => p.method === 'cash');
@@ -42,8 +44,8 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                 <div className="bg-surface rounded-2xl p-6 shadow-sm border border-line">
                     <div className="flex items-start justify-between mb-6">
                         <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Customer</p>
-                            <p className="text-lg font-bold text-ink">{returnData?.customer?.name || 'Walk-in Customer'}</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{tt('Customer')}</p>
+                            <p className="text-lg font-bold text-ink">{returnData?.customer?.name || tt('Walk-in Customer')}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Net Amount</p>
@@ -82,7 +84,7 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                             {(returnData?.items || []).map((item, index) => (
                                 <tr key={item.id || index}>
                                     <td className="py-3">
-                                        <p className="font-bold text-ink">{item.product?.name || 'Unknown Product'}</p>
+                                        <p className="font-bold text-ink">{item.product?.name || tt('Unknown Product')}</p>
                                         {item.variant && <p className="text-xs text-ink-muted">Variant: {item.variant.sku}</p>}
                                     </td>
                                     <td className="py-3 text-center text-ink-secondary">{Math.abs(item.quantity)}</td>

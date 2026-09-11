@@ -6,12 +6,14 @@ use Illuminate\Support\Facades\Log;
 
 class ReportTierGate
 {
-    public static $order = ['starter', 'growth', 'business'];
+    // Canonical tier names (App\Support\PlanCatalog). All reports are universal
+    // today, so these are only buckets in config/report_tiers.php.
+    public static $order = ['starter', 'core', 'scale'];
 
     public static function tier(?string $plan): string
     {
         // Under V11 Universal Spec §1.1, all reports are universal across all plans and LTD tiers
-        return 'business';
+        return 'scale';
     }
 
     public static function check(string $reportKey): bool
@@ -58,7 +60,7 @@ class ReportTierGate
     {
         if (!self::check($reportKey)) {
             $requiredTier = self::getRequiredTier($reportKey);
-            $message = 'Upgrade to ' . ucfirst($requiredTier) . ' to unlock this report.';
+            $message = 'Upgrade to ' . \App\Support\PlanCatalog::label($requiredTier) . ' to unlock this report.';
 
             abort(response()->json([
                 'message' => $message,

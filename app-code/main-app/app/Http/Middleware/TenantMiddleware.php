@@ -149,7 +149,7 @@ class TenantMiddleware
                 unset($newLimits['pending_downgrade']);
                 
                 $tenant->update([
-                    'plan' => $pd['plan'],
+                    'plan' => \App\Support\PlanCatalog::canonical($pd['plan']),
                     'plan_limits' => $newLimits
                 ]);
                 
@@ -232,7 +232,7 @@ class TenantMiddleware
                 'id'              => $tenant->id,
                 'slug'            => $tenant->slug,
                 'name'            => $tenant->name,
-                'plan'            => $tenant->plan,
+                'plan'            => \App\Support\PlanCatalog::canonical($tenant->plan),
                 'status'          => $tenant->status,
                 'currency_symbol' => $tenant->currency_symbol,
                 'currency_code'   => $tenant->currency_code,

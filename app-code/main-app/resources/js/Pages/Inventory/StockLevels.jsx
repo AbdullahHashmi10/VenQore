@@ -5,6 +5,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import { Package, Warehouse, AlertTriangle as AlertTriangleIcon, TrendingUp, TrendingDown, Search, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
+import { useTermText } from '@/lib/terms';
 
 export default function StockLevels({ products = [], warehouses = [], stats = {} }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,6 +16,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
     // Format currency
     const { props } = usePage();
     const store = props.store || {};
+    const tt = useTermText();
 
 
     // Filter and search products
@@ -106,7 +108,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Package size={16} />
                             </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Products</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Products')}</p>
                         </div>
                         <p className="text-lg font-bold text-ink">{stats.total_products || products.length}</p>
                     </div>
@@ -202,7 +204,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                     if (!product) { setSearchTerm(''); return; }
                                     setSearchTerm(product.name);
                                 }}
-                                placeholder="Search products..."
+                                placeholder={tt('Search products...')}
                             />
                         </div>
                     </div>
@@ -218,7 +220,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                     className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
                                 >
                                     <div className="flex items-center gap-1">
-                                        Product <SortIcon columnKey="name" />
+                                        {tt('Product')} <SortIcon columnKey="name" />
                                     </div>
                                 </th>
                                 <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
@@ -256,7 +258,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                             <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
                                                 <Package size={28} className="text-ink-muted" />
                                             </div>
-                                            <p className="text-base font-bold text-ink-secondary mb-1">No products found</p>
+                                            <p className="text-base font-bold text-ink-secondary mb-1">{tt('No products found')}</p>
                                             <p className="text-sm text-ink-muted">Try adjusting your filters or search term</p>
                                         </div>
                                     </td>

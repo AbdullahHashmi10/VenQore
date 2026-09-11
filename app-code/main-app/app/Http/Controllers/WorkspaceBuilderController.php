@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
-use App\Models\TenantUser;
 use App\Models\User;
 use App\Services\AiBuilder\ConversationalBuilderService;
 use App\Services\AiBuilder\DiscoverySession;
@@ -12,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,13 +21,13 @@ class WorkspaceBuilderController extends Controller
      * Plans a visitor can pick during signup, in display order. Custom and the
      * legacy growth/business aliases are sales-led or hidden, so not offered.
      * The trial is identical whichever is picked; the choice is remembered on
-     * the store (setting `intended_plan`) and Billing offers it first.
+     * the store (plan_limits.billing_intent) and Billing offers it first.
      */
-    public const SIGNUP_PLANS = ['solo', 'starter', 'core', 'scale'];
+    public const SIGNUP_PLANS = \App\Support\PlanCatalog::SELF_SERVE;
 
     private function validSignupPlan(?string $plan): ?string
     {
-        $plan = strtolower(trim((string) $plan));
+        $plan = \App\Support\PlanCatalog::canonical(strtolower(trim((string) $plan)));
 
         return in_array($plan, self::SIGNUP_PLANS, true) && config("pricing.plans.{$plan}") ? $plan : null;
     }
@@ -73,6 +71,12 @@ class WorkspaceBuilderController extends Controller
         $initialPrompt = $request->query('prompt', '');
         $initialPreset = $request->query('preset', '');
 
+        // ?type=<business type key> — from a Solutions page or a direct link.
+        // Opens straight on that type's setup, like ?preset= does.
+        $initialType = \App\Support\BusinessTypes::exists((string) $request->query('type', ''))
+            ? (string) $request->query('type')
+            : '';
+
         // The marketing site's "Start building" email capture arrives as
         // ?email=, so the visitor does not retype what they just gave us.
         $initialEmail = (string) $request->query('email', '');
@@ -90,8 +94,9 @@ class WorkspaceBuilderController extends Controller
         // used to hard-code PKR for everyone, which is the wrong first
         // impression for an international launch — and the tenant row defaults
         // to USD anyway, so the two disagreed.
-        $geo             = app(\App\Services\GeoPricingService::class);
-        $initialCurrency = $geo->getCurrencyInfo($geo->resolveCountry($request))['currency'] ?? 'USD';
+        $initialCurrency = \App\Services\StoreProvisioner::defaultCurrencyFor(
+            app(\App\Services\GeoPricingService::class)->resolveCountry($request)
+        );
 
         $aiBuilderConfig = config('ai_builder', []);
         $presets = $aiBuilderConfig['presets'] ?? [];
@@ -121,6 +126,13 @@ class WorkspaceBuilderController extends Controller
         return Inertia::render('Workspace/BuildWorkspace', [
             'initialPrompt'   => $initialPrompt,
             'initialPreset'   => $initialPreset,
+            'initialType'     => $initialType,
+
+            // The 85 business types (config/business_types.php) for the search
+            // box and the one-click list — labels, sector, aliases, the preset
+            // each builds on and the words the store will use.
+            'businessTypes'   => \App\Support\BusinessTypes::forClient(),
+            'sectors'         => \App\Support\BusinessTypes::sectors(),
             'initialEmail'    => $initialEmail,
             'initialCurrency' => $initialCurrency,
             'presets'         => $presets,
@@ -136,6 +148,21 @@ class WorkspaceBuilderController extends Controller
             // Plan step (after the reveal). Skippable — see SIGNUP_PLANS.
             'plans'           => $this->signupPlans(),
             'intendedPlan'    => $intendedPlan,
+
+            // Signed in already (e.g. adding a second store from /start)? The
+            // account step becomes a single "Create workspace" button.
+            'authUser'        => Auth::check() ? ['name' => Auth::user()->name, 'email' => Auth::user()->email] : null,
+
+            // A signed-in owner holding a license (AppSumo / pre-paid / gift):
+            // the store runs on that license, so the plan step is skipped.
+            'license'         => (function () {
+                $l = Auth::check() ? \App\Services\StoreProvisioner::availableLicense(Auth::user()) : null;
+                return $l ? [
+                    'plan'   => $l->plan,
+                    'label'  => \App\Support\PlanCatalog::label($l->plan),
+                    'source' => $l->source,
+                ] : null;
+            })(),
         ]);
     }
 
@@ -147,6 +174,8 @@ class WorkspaceBuilderController extends Controller
         $validated = $request->validate([
             'prompt'   => 'nullable|string|max:1000',
             'preset'   => 'nullable|string',
+            // A business type the visitor picked (config/business_types.php).
+            'business_type' => 'nullable|string|max:64',
             'industry' => 'nullable|string',
 
             // Discovery answers: question key => option key, or an ARRAY of
@@ -185,13 +214,24 @@ class WorkspaceBuilderController extends Controller
         // so the reveal can be honest about the difference instead of
         // presenting a shrug as a confident recommendation.
         $matched = true;
+        $candidates = [];
 
-        if ($presetKey && $isShippable($presetKey)) {
+        // An explicitly picked business type wins; then an explicit preset;
+        // then whatever the visitor's sentence names (catalogue first — see
+        // ConfigurationAIService::guessPresetDetailed()).
+        $businessType = \App\Support\BusinessTypes::exists($request->input('business_type')) ? (string) $request->input('business_type') : null;
+
+        if ($businessType && $isShippable((string) \App\Support\BusinessTypes::presetFor($businessType))) {
+            $matchedKey = \App\Support\BusinessTypes::presetFor($businessType);
+        } elseif ($presetKey && $isShippable($presetKey)) {
             $matchedKey = $presetKey;
+            $businessType = null;
         } else {
             $guess = app(\App\Services\AiBuilder\ConfigurationAIService::class)->guessPresetDetailed(['what' => $prompt]);
             $matchedKey = $isShippable($guess['preset']) ? $guess['preset'] : 'retail_shop';
             $matched = $guess['matched'];
+            $businessType = $guess['business_type'] ?? null;
+            $candidates = $guess['candidates'] ?? [];
         }
 
         // No real signal from a free-text description is exactly what the
@@ -229,7 +269,8 @@ class WorkspaceBuilderController extends Controller
         // watched being built is the stack that arrives here.
         $answers  = (array) ($validated['answers'] ?? []);
         $resolver = app(\App\Services\AiBuilder\DiscoveryResolver::class);
-        $modules  = $resolver->merge($preset['modules'] ?? [], $answers, true, $matchedKey);
+        $baseModules = $businessType ? \App\Support\BusinessTypes::modulesFor($businessType) : ($preset['modules'] ?? []);
+        $modules  = $resolver->merge($baseModules, $answers, true, $matchedKey);
 
         // Map technical module keys into friendly user capabilities
         $capabilitiesMap = [
@@ -268,6 +309,17 @@ class WorkspaceBuilderController extends Controller
             'success'            => true,
             'preset_key'         => $matchedKey,
             'matched'            => $matched,
+
+            // The business type read from the sentence (or picked), its label,
+            // and the words the store will use. When the sentence was
+            // ambiguous, `candidates` feeds a "Did you mean…" row.
+            'business_type'      => $businessType,
+            'business_label'     => $businessType ? \App\Support\BusinessTypes::get($businessType)['label'] : null,
+            'terms'              => \App\Support\BusinessTypes::termsFor($businessType ?: $matchedKey),
+            'candidates'         => array_values(array_map(
+                fn ($k) => ['key' => $k, 'label' => \App\Support\BusinessTypes::get($k)['label'] ?? $k],
+                $matched ? [] : $candidates
+            )),
             'preset_label'       => $preset['label'] ?? 'Custom Workspace',
             'preset_description' => $preset['description'] ?? $preset['blurb'] ?? 'Tailored workspace built for your operational needs.',
             'prompt'             => $request->input('prompt', ''),
@@ -333,16 +385,25 @@ class WorkspaceBuilderController extends Controller
             'phone'         => 'nullable|string|max:30',
             'modules'       => 'nullable|array',
             'preset_key'    => 'nullable|string|max:64',
+            'business_type' => 'nullable|string|max:64',
             'plan'          => 'nullable|string|max:32',
+            'timezone'      => 'nullable|string|max:64',
         ]);
 
+        if ($nameError = \App\Services\StoreProvisioner::nameError(Auth::user(), $validated['business_name'] ?? null)) {
+            return response()->json(['success' => false, 'message' => $nameError], 422);
+        }
+
         $request->session()->put('pending_workspace_builder', [
+            'timezone'      => $validated['timezone'] ?? null,
             'plan'          => $this->validSignupPlan($validated['plan'] ?? null),
-            'business_name' => $validated['business_name'] ?? 'My Business',
+            'country'       => app(\App\Services\GeoPricingService::class)->resolveCountry($request),
+            'business_name' => $validated['business_name'] ?? null,
             'currency'      => $validated['currency'] ?? 'USD',
             'phone'         => $validated['phone'] ?? null,
             'modules'       => $validated['modules'] ?? [],
             'preset_key'    => $validated['preset_key'] ?? null,
+            'business_type' => $validated['business_type'] ?? null,
         ]);
 
         return response()->json([
@@ -352,96 +413,31 @@ class WorkspaceBuilderController extends Controller
     }
 
     /**
-     * Internal helper to provision a tenant workspace for a given user.
+     * Provision a workspace for a user — delegates to StoreProvisioner, the
+     * one place stores are created (same defaults as every other path).
      */
     public function provisionForUser(User $user, array $data): ?Tenant
     {
-        $name = !empty($data['business_name']) ? (string) $data['business_name'] : 'My Business';
-        $slug = Str::slug($name) . '-' . Str::random(4);
-
-        DB::beginTransaction();
         try {
-            $presetKey = $data['preset_key'] ?? null;
-            $presets = config('ai_builder.presets', []);
-            $businessType = ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by']))
-                ? $presetKey
-                : null;
+            if (\App\Services\StoreProvisioner::storeLimitError($user)) {
+                \Illuminate\Support\Facades\Log::info('Builder provisioning blocked by store limit', ['user_id' => $user->id]);
+                return null;
+            }
 
-            $currencyCode   = strtoupper((string) ($data['currency'] ?? 'USD')) ?: 'USD';
-            $currencySymbol = $currencyCode === 'PKR' ? 'Rs' : '$';
-
-            $tenant = Tenant::create([
-                'name'            => $name,
-                'slug'            => $slug,
-                'currency_code'   => $currencyCode,
-                'currency_symbol' => $currencySymbol,
-                'plan'            => 'trial',
-                'status'          => 'trial',
-                'trial_ends_at'   => now()->addDays(14),
+            return app(\App\Services\StoreProvisioner::class)->create($user, [
+                'name'            => $data['business_name'] ?? null,
+                'currency'        => $data['currency'] ?? null,
+                'timezone'        => $data['timezone'] ?? null,
+                'country'         => $data['country'] ?? null,
+                'phone'           => $data['phone'] ?? null,
+                'preset_key'      => $data['preset_key'] ?? null,
+                'business_type'   => $data['business_type'] ?? null,
+                'modules'         => (array) ($data['modules'] ?? []),
+                'plan'            => $this->validSignupPlan($data['plan'] ?? null),
                 'setup_completed' => true,
-                'onboarding_step' => 'completed',
-                'business_type'   => $businessType,
+                'license_source'  => 'registration',
             ]);
-
-            if ($intended = $this->validSignupPlan($data['plan'] ?? null)) {
-                \App\Models\Setting::updateOrCreate(
-                    ['tenant_id' => $tenant->id, 'key' => 'intended_plan'],
-                    ['value' => $intended]
-                );
-            }
-
-            if (!empty($data['phone'])) {
-                \App\Models\Setting::updateOrCreate(
-                    ['tenant_id' => $tenant->id, 'key' => 'store_phone'],
-                    ['value' => (string) $data['phone']]
-                );
-            }
-
-            try {
-                \App\Services\PlanAiAllowance::applyTo($tenant, 'trial');
-            } catch (\Throwable $e) {
-                report($e);
-            }
-
-            TenantUser::create([
-                'tenant_id'    => $tenant->id,
-                'user_id'      => $user->id,
-                'role'         => 'owner',
-                'status'       => 'active',
-                'display_name' => $user->name,
-            ]);
-
-            $user->update(['last_store_id' => $tenant->id]);
-
-            $requestedModules = array_values(array_intersect(
-                $data['modules'] ?? [],
-                array_keys(config('modules', []))
-            ));
-
-            if ($requestedModules === []) {
-                $requestedModules = ['products', 'pos', 'inventory', 'expenses', 'reports'];
-            }
-
-            app(\App\Services\AiBuilder\ApplyConfigurationService::class)->apply(
-                $tenant,
-                ['modules' => $requestedModules],
-                'preset',
-                'Selected during workspace provisioning.'
-            );
-
-            try {
-                app()->instance('current.tenant', $tenant);
-                app(\App\Http\Controllers\Api\DashboardController::class)
-                    ->createDefaultDashboard($user, $tenant);
-            } catch (\Throwable $e) {
-                report($e);
-            }
-
-            DB::commit();
-            return $tenant;
-
         } catch (\Throwable $e) {
-            DB::rollBack();
             report($e);
             return null;
         }
@@ -453,14 +449,17 @@ class WorkspaceBuilderController extends Controller
     public function provision(Request $request): JsonResponse
     {
         $request->validate([
-            'business_name' => 'required|string|max:255',
+            // Optional: blank becomes "My Business" with an auto-suffixed address.
+            'business_name' => 'nullable|string|max:255',
             'currency'      => 'nullable|string|max:10',
             'phone'         => 'nullable|string|max:30',
-            'email'         => 'required|email|max:255',
-            // Password is now required. A nullable password used to fall back to
-            // Str::random(12) — a string never shown or emailed to anyone, which
-            // permanently locked the owner out of their own account.
-            'password'      => ['required', 'string', Password::defaults()],
+            // Signed-in users (a second store, or arriving from /start) are not
+            // asked for credentials again — the session already proves who they are.
+            'email'         => Auth::check() ? 'nullable|email|max:255' : 'required|email|max:255',
+            // Password is required for a new account. A nullable password used to
+            // fall back to Str::random(12) — a string never shown or emailed to
+            // anyone, which permanently locked the owner out of their own account.
+            'password'      => Auth::check() ? ['nullable', 'string'] : ['required', 'string', Password::defaults()],
             'modules'       => 'required|array',
             // The matched preset key from analyze(). Never trusted blindly —
             // only written as business_type when it names a real, shippable
@@ -469,8 +468,11 @@ class WorkspaceBuilderController extends Controller
             // dashboard board on. Left null it silently falls through to
             // 'default', same as an unrecognised value always has.
             'preset_key'    => 'nullable|string|max:64',
+            'business_type' => 'nullable|string|max:64',
             // Plan picked on the plan step (or null = "decide later").
             'plan'          => 'nullable|string|max:32',
+            // Browser IANA zone — StoreProvisioner validates it.
+            'timezone'      => 'nullable|string|max:64',
         ]);
 
         $name = $request->input('business_name');
@@ -478,8 +480,9 @@ class WorkspaceBuilderController extends Controller
         if ($plan) {
             $request->session()->put('intended_plan', $plan);
         }
-        $email = strtolower($request->input('email'));
+        $email = Auth::check() ? strtolower((string) Auth::user()->email) : strtolower($request->input('email'));
         $password = $request->input('password');
+        $country = app(\App\Services\GeoPricingService::class)->resolveCountry($request);
 
         // An email that already belongs to an account must not silently attach
         // a brand-new tenant to it — that is an account-takeover primitive.
@@ -490,6 +493,11 @@ class WorkspaceBuilderController extends Controller
                 'success' => false,
                 'message' => 'An account with this email already exists. Please log in first to add a new workspace.',
             ], 409);
+        }
+
+        // Same unique-name rule as every other way a store is created.
+        if ($nameError = \App\Services\StoreProvisioner::nameError(Auth::user(), $name)) {
+            return response()->json(['success' => false, 'message' => $nameError], 422);
         }
 
         // AUTH-01 (2026-09-10): a brand-new account must prove its email with
@@ -503,7 +511,7 @@ class WorkspaceBuilderController extends Controller
                 $email,
                 null,
                 [
-                    'name'              => $name . ' Owner',
+                    'name'              => ($name ?: 'Store') . ' Owner',
                     'password_hash'     => Hash::make($password),
                     'workspace_builder' => [
                         'business_name' => $name,
@@ -511,7 +519,10 @@ class WorkspaceBuilderController extends Controller
                         'phone'         => $request->input('phone'),
                         'modules'       => $request->input('modules', []),
                         'preset_key'    => $request->input('preset_key'),
+                        'business_type' => $request->input('business_type'),
                         'plan'          => $plan,
+                        'country'       => $country,
+                        'timezone'      => $request->input('timezone'),
                     ],
                 ]
             );
@@ -533,7 +544,7 @@ class WorkspaceBuilderController extends Controller
             $user = $existingUser;
             if (!$user) {
                 $user = User::create([
-                    'name'     => $name . ' Owner',
+                    'name'     => ($name ?: 'Store') . ' Owner',
                     'email'    => $email,
                     'password' => Hash::make($password),
                 ]);
@@ -547,10 +558,16 @@ class WorkspaceBuilderController extends Controller
                 'phone'         => $request->input('phone'),
                 'modules'       => $request->input('modules', []),
                 'preset_key'    => $request->input('preset_key'),
+                'business_type' => $request->input('business_type'),
                 'plan'          => $plan,
+                'country'       => $country,
+                'timezone'      => $request->input('timezone'),
             ]);
 
             if (!$tenant) {
+                if ($limit = \App\Services\StoreProvisioner::storeLimitError($user)) {
+                    return response()->json(['success' => false, 'message' => $limit], 422);
+                }
                 return response()->json([
                     'success' => false,
                     'message' => 'Workspace provisioning failed. Please try again.',

@@ -12,9 +12,11 @@ import {
     CheckCircle,
     Clock
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function Show({ transfer }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     if (!transfer) return null;
 
     const statusColors = {
@@ -154,7 +156,7 @@ export default function Show({ transfer }) {
                         <table className="w-full text-left text-sm">
                             <thead className="bg-app text-ink-muted font-bold uppercase text-xs">
                                 <tr>
-                                    <th className="px-6 py-4">Product</th>
+                                    <th className="px-6 py-4">{tt('Product')}</th>
                                     <th className="px-6 py-4 text-left">SKU / Code</th>
                                     <th className="px-6 py-4 text-right">Quantity</th>
                                 </tr>
@@ -163,7 +165,7 @@ export default function Show({ transfer }) {
                                 {transfer.items?.map((item) => (
                                     <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                         <td className="px-6 py-4 font-bold text-ink">
-                                            {item.product?.name || 'Unknown Product'}
+                                            {item.product?.name || tt('Unknown Product')}
                                         </td>
                                         <td className="px-6 py-4 text-ink-muted font-mono text-xs">
                                             {item.product?.code || '-'}

@@ -4,6 +4,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import SmartCombobox from '@/Components/SmartCombobox';
 import {
@@ -27,6 +28,7 @@ import {
 
 export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, filters = {} }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     // Infinite Scroll State
     const [allRuns, setAllRuns] = useState(productionRuns.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(productionRuns.next_page_url);
@@ -280,7 +282,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                         style={{ width: col.width }}
                                     >
                                         <div className="flex items-center gap-2">
-                                            {col.label}
+                                            {tt(col.label)}
                                             {col.key !== 'actions' && sortConfig.key === col.key && (
                                                 sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-brand-500" /> : <ChevronDown size={14} className="text-brand-500" />
                                             )}

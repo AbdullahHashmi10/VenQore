@@ -45,7 +45,7 @@ class PlanUsageController extends Controller
         $data = $reckonerResult->data;
 
         return response()->json([
-            'plan' => $tenant->plan,
+            'plan' => \App\Support\PlanCatalog::canonical($tenant->plan),
             'status' => $tenant->status,
             'trial_ends_at' => $tenant->trial_ends_at?->toIso8601String(),
             'subscription_ends_at' => $tenant->subscription_ends_at?->toIso8601String(),
@@ -53,12 +53,7 @@ class PlanUsageController extends Controller
             'usage' => $data['details']['usage'],
             'features' => $data['details']['features'],
 
-            'upgrade_to' => match($tenant->effectivePlan()) {
-                'starter', 'ltd_1' => 'growth',
-                'growth', 'ltd_2'  => 'business',
-                'business', 'ltd_3' => null,   // already on top tier
-                default             => 'starter',
-            },
+            'upgrade_to' => \App\Support\PlanCatalog::next($tenant->effectivePlan()),
         ]);
     }
 }

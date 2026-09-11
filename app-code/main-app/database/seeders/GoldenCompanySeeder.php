@@ -178,7 +178,7 @@ class GoldenCompanySeeder extends Seeder
             'id'                  => self::T1,
             'name'                => 'Golden Electronics Co.',
             'slug'                => 'golden-co',
-            'plan'                => 'business',
+            'plan'                => 'scale',
             'status'              => 'active',
             'currency_code'       => 'PKR',
             'currency_symbol'     => 'Rs.',

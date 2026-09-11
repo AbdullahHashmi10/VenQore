@@ -11,9 +11,11 @@ import {
  ToggleLeft,
  ToggleRight
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function OnlineStoreIndex() {
  const [storeEnabled, setStoreEnabled] = useState(false);
+ const tt = useTermText();
 
  return (
  <OneGlanceLayout title="Online Store" activeMenu="Marketing">
@@ -63,10 +65,10 @@ export default function OnlineStoreIndex() {
  <div className="w-12 h-12 bg-brand-100 dark:bg-brand-900/30 rounded-xl flex items-center justify-center mb-4">
  <Package className="text-brand-600 dark:text-brand-400" size={24} />
  </div>
- <h3 className="text-lg font-bold text-ink mb-2">Store Products</h3>
- <p className="text-ink-muted text-sm mb-4">Select which products to display on your online store.</p>
+ <h3 className="text-lg font-bold text-ink mb-2">{tt('Store Products')}</h3>
+ <p className="text-ink-muted text-sm mb-4">{tt('Select which products to display on your online store.')}</p>
  <button className="px-4 py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors font-medium w-full">
- Manage Products
+ {tt('Manage Products')}
  </button>
  </div>
 

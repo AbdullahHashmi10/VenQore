@@ -7,6 +7,7 @@ import { BookOpen, Plus, Trash2, Save, Package, Calculator, Percent, DollarSign,
 import SmartCombobox from '@/Components/SmartCombobox';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import ProductModal from '@/Components/ProductModal';
+import { useTermText } from '@/lib/terms';
 const UNIT_FAMILIES = {
  weight: ['g', 'kg', 'mg', 'gram', 'grams', 'kilogram', 'kilograms'],
  volume: ['ml', 'l', 'liter', 'liters', 'litre', 'litres', 'milliliter'],
@@ -51,6 +52,7 @@ const formatQuantity = (qty, unit) => {
 };
 
 export default function CookbookCreate({ products = [], recipe = null, warehouses = [], categories = [], attributes = [] }) {
+ const tt = useTermText();
  const {
  store
  } = usePage().props;
@@ -368,7 +370,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  </div>
 
  <div className="space-y-1.5">
- <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide">Output Product</label>
+ <label className="text-xs font-semibold text-ink-muted uppercase tracking-wide">{tt('Output Product')}</label>
  <AsyncProductCombobox
  selectedItem={localProducts.find(p => p.id == data.product_id)}
  onSelect={(item) => {
@@ -388,7 +390,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  setEditingProduct(item);
  setIsProductModalOpen(true);
  }}
- placeholder="Search Output Product..."
+ placeholder={tt('Search Output Product...')}
  inputClassName="py-2.5 text-sm"
  />
  {errors.product_id && <p className="text-xs text-red-500">{errors.product_id}</p>}
@@ -735,7 +737,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  {/* Current Product Price Comparison */}
  {selectedProduct && (
  <div className="mt-4 p-3 bg-white/10 rounded-xl">
- <p className="text-xs text-brand-200">Current Product Price</p>
+ <p className="text-xs text-brand-200">{tt('Current Product Price')}</p>
  <div className="flex items-center justify-between">
  <p className="text-lg font-bold">{getCurrencySymbol()} {parseFloat(selectedProduct.price).toLocaleString()}</p>
  {parseFloat(selectedProduct.price) < calculations.suggestedPrice && (

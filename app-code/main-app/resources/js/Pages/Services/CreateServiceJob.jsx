@@ -17,6 +17,7 @@ import {
     Shield
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 const PRIORITIES = [
     { key: 'low', label: 'Low' },
@@ -28,6 +29,7 @@ const PRIORITIES = [
 const emptyLine = () => ({ kind: 'service', product_id: '', description: '', quantity: 1, unit_price: 0 });
 
 export default function CreateServiceJob({ parties = [], services = [], employees = [], tools = [] }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
 
@@ -142,8 +144,8 @@ export default function CreateServiceJob({ parties = [], services = [], employee
     const subtotal = data.lines.reduce((sum, l) => sum + (Number(l.quantity) || 0) * (Number(l.unit_price) || 0), 0);
 
     return (
-        <OneGlanceLayout title="New Service Job" activeMenu="Sell">
-            <Head title="New Service Job & Work Order" />
+        <OneGlanceLayout title={tt('New Service Job')} activeMenu="Sell">
+            <Head title={tt('New Service Job & Work Order')} />
 
             <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
                 <Link
@@ -151,16 +153,16 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-secondary hover:text-ink transition-colors"
                 >
                     <ArrowLeft size={14} />
-                    Back to Work Orders
+                    {tt('Back to Work Orders')}
                 </Link>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                            Create Service Work Order
+                            {tt('Create Service Work Order')}
                         </h1>
                         <p className="mt-1 text-xs text-ink-secondary">
-                            Define the customer scope, dispatch a technician, and assign required equipment.
+                            {tt('Define the customer scope, dispatch a technician, and assign required equipment.')}
                         </p>
                     </div>
 
@@ -174,7 +176,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                                 onChange={(e) => handlePickService(e.target.value)}
                                 className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink focus:border-accent focus:outline-none"
                             >
-                                <option value="">+ Choose Catalog Service...</option>
+                                <option value="">{tt('+ Choose Catalog Service...')}</option>
                                 {services.map((s) => (
                                     <option key={s.id} value={s.id}>
                                         {s.name} ({formatCurrency(s.price || 0)})
@@ -190,12 +192,12 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                     <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
                         <h2 className="text-sm font-semibold text-ink flex items-center gap-2 mb-4">
                             <User size={16} className="text-accent-text" />
-                            Customer & Order Details
+                            {tt('Customer & Order Details')}
                         </h2>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className={labelClass}>Customer *</label>
+                                <label className={labelClass}>{tt('Customer')} *</label>
                                 <select
                                     required
                                     value={data.party_id}
@@ -208,7 +210,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                                     }}
                                     className={inputClass}
                                 >
-                                    <option value="">Select a customer...</option>
+                                    <option value="">{tt('Select a customer...')}</option>
                                     {parties.map((p) => (
                                         <option key={p.id} value={p.id}>
                                             {p.name} {p.phone ? `(${p.phone})` : ''}
@@ -232,7 +234,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                             </div>
 
                             <div className="sm:col-span-2">
-                                <label className={labelClass}>Job Title / Scope Summary *</label>
+                                <label className={labelClass}>{tt('Job Title / Scope Summary')} *</label>
                                 <input
                                     type="text"
                                     required
@@ -250,13 +252,13 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                                     value={data.description}
                                     onChange={(e) => setData('description', e.target.value)}
                                     rows={3}
-                                    placeholder="Add any specific instructions, gate codes, or customer requests..."
+                                    placeholder={tt('Add any specific instructions, gate codes, or customer requests...')}
                                     className={inputClass}
                                 />
                             </div>
 
                             <div className="sm:col-span-2">
-                                <label className={labelClass}>Site / Service Location Address</label>
+                                <label className={labelClass}>{tt('Site / Service Location Address')}</label>
                                 <div className="relative">
                                     <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
                                     <input
@@ -280,7 +282,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
-                                <label className={labelClass}>Assigned Technician</label>
+                                <label className={labelClass}>{tt('Assigned Technician')}</label>
                                 <select
                                     value={data.technician_id}
                                     onChange={(e) => setData('technician_id', e.target.value)}
@@ -330,7 +332,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                                     <DollarSign size={16} className="text-accent-text" />
                                     Billable Items & Labor
                                 </h2>
-                                <p className="text-2xs text-ink-muted">Services, replacement parts, or hourly labor fees.</p>
+                                <p className="text-2xs text-ink-muted">{tt('Services, replacement parts, or hourly labor fees.')}</p>
                             </div>
                             <button
                                 type="button"
@@ -350,7 +352,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                                         onChange={(e) => updateLine(i, { kind: e.target.value })}
                                         className="h-9 rounded-md border border-line bg-surface px-2.5 text-xs font-semibold text-ink"
                                     >
-                                        <option value="service">Service</option>
+                                        <option value="service">{tt('Service')}</option>
                                         <option value="part">Part</option>
                                         <option value="ad_hoc">Ad hoc</option>
                                     </select>
@@ -359,7 +361,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                                         type="text"
                                         value={line.description}
                                         onChange={(e) => updateLine(i, { description: e.target.value })}
-                                        placeholder="Service item / Part description..."
+                                        placeholder={tt('Service item / Part description...')}
                                         className="h-9 flex-1 min-w-[160px] rounded-md border border-line bg-surface px-3 text-xs text-ink placeholder:text-ink-faint"
                                     />
 
@@ -405,7 +407,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
 
                         {/* Subtotal Banner */}
                         <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm">
-                            <span className="font-semibold text-ink-secondary">Estimated Work Order Total</span>
+                            <span className="font-semibold text-ink-secondary">{tt('Estimated Work Order Total')}</span>
                             <span className="font-mono text-lg font-bold text-ink">{formatCurrency(subtotal)}</span>
                         </div>
                     </div>
@@ -471,7 +473,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover disabled:opacity-60"
                         >
                             <CheckCircle2 size={16} />
-                            <span>Create Work Order</span>
+                            <span>{tt('Create Work Order')}</span>
                         </button>
                     </div>
                 </form>

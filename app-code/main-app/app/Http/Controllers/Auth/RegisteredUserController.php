@@ -24,10 +24,20 @@ class RegisteredUserController extends Controller
      * from an invite magic-link, remember the invite so we can send them to
      * accept it after sign-up (instead of the create-store / plan flow).
      */
-    public function create(Request $request): Response
+    public function create(Request $request): Response|RedirectResponse
     {
         InviteRedirect::captureFromIntended();
         GiftRedirect::captureFromIntended();
+
+        // One signup path: a new business is created in the builder (modules,
+        // defaults, plan, account — in that order). This plain form stays only
+        // for people JOINING someone else's store via an invite or gift link.
+        if (!InviteRedirect::has() && !GiftRedirect::has()) {
+            return redirect()->route('workspace.build', array_filter([
+                'email' => (string) $request->query('email', ''),
+                'plan'  => (string) $request->query('plan', ''),
+            ]));
+        }
 
         return Inertia::render('Auth/Register');
     }

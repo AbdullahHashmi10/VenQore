@@ -8,6 +8,7 @@ import { ArrowRightLeft, Settings, ClipboardCheck, Plus, Search, Download, Box, 
 import axios from 'axios';
 import PremiumSelect from '@/Components/PremiumSelect';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
+import { useTermText } from '@/lib/terms';
 
 export default function StockOperations({ products, warehouses, reasons }) {
     const {
@@ -228,6 +229,7 @@ function WarehouseManagement({ warehouses }) {
 
 function StockTransfers({ products, warehouses }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const { data, setData, post, processing, errors, reset } = useForm({
         product_id: '',
         from_warehouse_id: '',
@@ -250,10 +252,10 @@ function StockTransfers({ products, warehouses }) {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-ink-secondary mb-2">Product</label>
+                        <label className="block text-sm font-bold text-ink-secondary mb-2">{tt('Product')}</label>
                         <AsyncProductCombobox
                             onSelect={(p) => p && setData('product_id', p.id)}
-                            placeholder="Search product..."
+                            placeholder={tt('Search product...')}
                         />
                         {errors.product_id && <p className="text-red-500 text-xs mt-1">{errors.product_id}</p>}
                     </div>
@@ -316,6 +318,7 @@ function StockTransfers({ products, warehouses }) {
 
 function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, hasMultipleWarehouses }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const defaultReasons = reasons || ['Damaged', 'Stolen', 'Found', 'Expired', 'Lost', 'Return', 'Other'];
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -367,7 +370,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                         <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                             <Box size={16} />
                         </div>
-                        <p className="text-xs font-bold text-ink-muted uppercase">Products</p>
+                        <p className="text-xs font-bold text-ink-muted uppercase">{tt('Products')}</p>
                     </div>
                     <p className="text-base font-bold text-ink">{totalProducts}</p>
                 </div>
@@ -452,11 +455,11 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                 <div className="grid grid-cols-12 gap-3">
                                     <div className={hasMultipleWarehouses ? "col-span-8" : "col-span-12"}>
                                         <label className="block text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1">
-                                            Select Product <span className="text-red-500">*</span>
+                                            {tt('Select Product')} <span className="text-red-500">*</span>
                                         </label>
                                         <AsyncProductCombobox
                                             onSelect={(p) => p && setData('product_id', p.id)}
-                                            placeholder="Search products..."
+                                            placeholder={tt('Search products...')}
                                         />
                                         {errors.product_id && <p className="text-red-500 text-xs mt-1">{errors.product_id}</p>}
                                     </div>
@@ -594,7 +597,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                             ) : (
                                 <div className="flex-1 flex flex-col items-center justify-center text-ink-muted">
                                     <Box size={36} className="mb-2 opacity-30" />
-                                    <p className="text-xs text-center">Select a product<br />to preview changes</p>
+                                    <p className="text-xs text-center">{tt('Select a product')}<br />to preview changes</p>
                                 </div>
                             )}
                         </div>
@@ -607,6 +610,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
 
 function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehouses, reasons }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [selectedWarehouse, setSelectedWarehouse] = useState(defaultWarehouse?.id || '');
     const [searchTerm, setSearchTerm] = useState('');
     const [auditItems, setAuditItems] = useState([]);
@@ -697,7 +701,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
     };
 
     const handleBulkZero = () => {
-        if (!confirm(`Set physical count to 0 for ${selectedIds.size} products?`)) return;
+        if (!confirm(tt(`Set physical count to 0 for ${selectedIds.size} products?`))) return;
 
         setAuditItems(prev => {
             const newItems = [...prev];
@@ -732,7 +736,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
                         </button>
                     </th>
                     <th className="p-4 text-center w-12">#</th>
-                    <th className="p-4 text-left">Product</th>
+                    <th className="p-4 text-left">{tt('Product')}</th>
                     <th className="p-4 text-left">SKU</th>
                     <th className="p-4 text-center">System Count</th>
                     <th className="p-4 text-center">Physical Count</th>
@@ -926,7 +930,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
 
                                     <div className="space-y-6">
                                         <div>
-                                            <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">Search Products</label>
+                                            <label className="block text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">{tt('Search Products')}</label>
                                             <div className="relative">
                                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" size={20} />
                                                 <input
@@ -1047,7 +1051,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" size={20} />
                                     <input
                                         type="text"
-                                        placeholder="Search products..."
+                                        placeholder={tt('Search products...')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-12 pr-4 py-3 rounded-xl bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"

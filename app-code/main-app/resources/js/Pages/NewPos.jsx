@@ -35,6 +35,7 @@ import LayoutPickerModal from '@/NewPos/LayoutPickerModal';
 import PrintService from '@/Utils/PrintService';
 import ApprovalSheet from '@/NewPos/ApprovalSheet';
 import { parseApprovalRequired, withApproval } from '@/Domain/pos/approval';
+import { useTermText } from '@/lib/terms';
 
 export const HUES = ['teal', 'sky', 'lime', 'coral', 'butter', 'plum'];
 
@@ -126,6 +127,7 @@ export default function NewPos({
     store = null,
     auth = {},
 }) {
+    const tt = useTermText();
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '') || '';
     const userId = auth?.user?.id ? `u_${auth.user.id}` : 'default';
 
@@ -162,7 +164,7 @@ export default function NewPos({
                 { id: 0, label: 'No tax', rate: 0 },
                 { id: 1, label: 'GST 18%', rate: 18 },
                 { id: 2, label: 'GST 5%', rate: 5 },
-                { id: 3, label: 'Services 15%', rate: 15 },
+                { id: 3, label: `${tt('Services')} 15%`, rate: 15 },
             ];
         }
         if (!list.some((t) => t.rate === 0)) list.unshift({ id: 0, label: 'No tax', rate: 0 });
@@ -1196,7 +1198,7 @@ export default function NewPos({
         }
         if (key === 'floor') {
             return (
-                <Pane key="floor" title="Tables" width={px} extra={<span className="mono">{TABLES.filter((t) => t.status !== 'free').length} active</span>}>
+                <Pane key="floor" title={tt('Tables')} width={px} extra={<span className="mono">{TABLES.filter((t) => t.status !== 'free').length} active</span>}>
                     {renderFloorBody(T.floor.fit === 'map' ? 2 : 1)}
                 </Pane>
             );

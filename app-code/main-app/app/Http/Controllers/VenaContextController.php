@@ -32,13 +32,10 @@ class VenaContextController extends Controller
         }
 
         // ── Plan label mapping ─────────────────────────────────────────────────
-        $planLabels = [
-            'trial'    => 'Free Trial',
-            'starter'  => 'Starter Plan',
-            'growth'   => 'Growth Plan',
-            'business' => 'Business Plan',
-            'ltd'      => 'Lifetime Deal',
-        ];
+        $planLabels = [];
+        foreach (\App\Support\PlanCatalog::LABELS as $slug => $label) {
+            $planLabels[$slug] = in_array($slug, ['trial', 'ltd'], true) || str_starts_with($slug, 'ltd_') ? $label : "{$label} Plan";
+        }
 
         // ── Feature flags from tenant record ──────────────────────────────────
         // base_features are always available; advanced features depend on plan.

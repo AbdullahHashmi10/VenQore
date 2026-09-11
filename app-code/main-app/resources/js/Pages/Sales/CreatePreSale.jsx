@@ -40,6 +40,7 @@ import ProductModal from '@/Components/ProductModal';
 import QuickPartyModal from '@/Components/QuickPartyModal';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
+import { useTermText } from '@/lib/terms';
 
 const CreatePreSale = ({ sale }) => {
  const {
@@ -51,6 +52,7 @@ const CreatePreSale = ({ sale }) => {
  updateInvoice
  } = useWorkspace();
 
+ const tt = useTermText();
  const { settings, auth, store } = usePage().props;
  const isSeniorMode = settings?.senior_mode === '1';
  const showMarginPercent = settings?.show_margin_percentage === '1';
@@ -207,7 +209,7 @@ const CreatePreSale = ({ sale }) => {
  setIsProductModalOpen(false);
  showAlert({
  title: 'Success',
- message: `Product ${productModalMode === 'create' ? 'created' : 'updated'} successfully.`,
+ message: `${tt('Product')} ${productModalMode === 'create' ? 'created' : 'updated'} successfully.`,
  type: 'success'
  });
 
@@ -225,7 +227,7 @@ const CreatePreSale = ({ sale }) => {
  } else {
  showAlert({
  title: 'Error',
- message: 'Failed to save product.',
+ message: tt('Failed to save product.'),
  type: 'error'
  });
  }
@@ -684,7 +686,7 @@ const CreatePreSale = ({ sale }) => {
  if (!isInputValid) {
  showAlert({
  title: 'Validation Error',
- message: 'Please resolve the highlighted errors before processing (Unregistered Customer or Products).',
+ message: tt('Please resolve the highlighted errors before processing (Unregistered Customer or Products).'),
  type: 'error'
  });
  return;
@@ -692,8 +694,8 @@ const CreatePreSale = ({ sale }) => {
 
  if (!currentInvoice.customer) {
  showAlert({
- title: 'Customer Required',
- message: 'Please select a customer before processing the sale.',
+ title: tt('Customer Required'),
+ message: tt('Please select a customer before processing the sale.'),
  type: 'warning'
  });
  return;
@@ -1037,7 +1039,7 @@ const CreatePreSale = ({ sale }) => {
  {/* Error Message */}
  {customerError && (
  <p className="absolute -bottom-5 left-2 text-2xs font-bold text-red-500 animate-pulse">
- Please select a registered customer
+ {tt('Please select a registered customer')}
  </p>
  )}
  </div>
@@ -1201,8 +1203,8 @@ const CreatePreSale = ({ sale }) => {
  setProductModalMode('edit');
  setIsProductModalOpen(true);
  }}
- placeholder="Quick Add Product..."
- addNewLabel="Add New Product"
+ placeholder={tt('Quick Add Product...')}
+ addNewLabel={tt('Add New Product')}
  hideCostAndMargin={!isAdmin}
  />
  </td>
@@ -1325,7 +1327,7 @@ const CreatePreSale = ({ sale }) => {
  setIsProductModalOpen(true);
  }}
  placeholder="Search item..."
- addNewLabel="Create New Product"
+ addNewLabel={tt('Create New Product')}
  hideCostAndMargin={!isAdmin}
  />
  </td>
@@ -1475,7 +1477,7 @@ const CreatePreSale = ({ sale }) => {
  <div className="w-10 h-10 rounded-full bg-neutral-800/50 flex items-center justify-center mx-auto mb-2 text-ink-muted">
  <User size={20} />
  </div>
- <p className={`text-ink-muted font-bold ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>No Customer Selected</p>
+ <p className={`text-ink-muted font-bold ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>{tt('No Customer Selected')}</p>
  </div>
  )}
  </div>
@@ -1961,7 +1963,7 @@ const CreatePreSale = ({ sale }) => {
  <thead>
  <tr className="text-left text-2xs font-bold text-ink-muted uppercase border-b border-line">
  <th className="pb-2 pl-2">#</th>
- <th className="pb-2">Product</th>
+ <th className="pb-2">{tt('Product')}</th>
  <th className="pb-2 text-center">Qty</th>
  <th className="pb-2 text-right">Cost</th>
  <th className="pb-2 text-right">Price</th>
@@ -2005,7 +2007,7 @@ const CreatePreSale = ({ sale }) => {
 
  {currentInvoice.items.filter(item => item.product).length === 0 && (
  <div className="text-center py-8 text-ink-muted">
- <p className="text-sm">No products added yet</p>
+ <p className="text-sm">{tt('No products added yet')}</p>
  </div>
  )}
  </div>
@@ -2101,7 +2103,7 @@ const CreatePreSale = ({ sale }) => {
  <Zap size={18} className="text-brand-500" />
  <div>
  <p className="text-sm font-bold text-ink-secondary dark:text-white">Quick Entry</p>
- <p className="text-xs text-ink-muted">Fast product entry row</p>
+ <p className="text-xs text-ink-muted">{tt('Fast product entry row')}</p>
  </div>
  </div>
  <button
@@ -2141,7 +2143,7 @@ const CreatePreSale = ({ sale }) => {
  value={defaultExtraLabel}
  onChange={(e) => setDefaultExtraLabel(e.target.value)}
  className="w-full bg-surface border border-line rounded-lg px-2 py-1.5 text-xs font-bold text-ink-secondary dark:text-white"
- placeholder="Field Name (e.g. Service)"
+ placeholder={tt('Field Name (e.g. Service)')}
  />
  <div className="flex items-center gap-2">
  <span className="text-ink-muted text-xs font-bold">{window.amdSettings?.currency_symbol || 'Rs'}</span>
@@ -2341,7 +2343,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
  <div>
  <h3 className="text-xl font-bold text-white drop-shadow-sm">Overpayment Detected</h3>
- <p className="text-white/80 text-sm font-medium">Customer paid extra</p>
+ <p className="text-white/80 text-sm font-medium">{tt('Customer paid extra')}</p>
  </div>
  </div>
  </div>
@@ -2380,7 +2382,7 @@ const CreatePreSale = ({ sale }) => {
  <div className="flex-1">
  <p className="font-bold text-ink">Give Change</p>
  <p className="text-sm text-ink-muted">
- Return {formatCurrency(overpaymentDetails.amount, store || settings)} to customer
+ {tt('Return')} {formatCurrency(overpaymentDetails.amount, store || settings)} {tt('to customer')}
  </p>
  </div>
  </button>

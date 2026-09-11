@@ -506,7 +506,18 @@ class ProvisionTenantJob implements ShouldQueue
         });
     }
 
+    /**
+     * Canonical plan slug for a purchased variant (App\Support\PlanCatalog).
+     * The variant/env names below predate the V11 rename (counter/growth/
+     * business); whatever they return is normalised so no legacy slug is
+     * ever written to a tenant.
+     */
     private function resolvePlan(mixed $variantId, ?string $productName = null): string
+    {
+        return \App\Support\PlanCatalog::canonical($this->resolvePlanRaw($variantId, $productName));
+    }
+
+    private function resolvePlanRaw(mixed $variantId, ?string $productName = null): string
     {
         $variantIdStr = $variantId !== null ? (string)$variantId : '';
 
@@ -570,6 +581,16 @@ class ProvisionTenantJob implements ShouldQueue
             }
             if (str_contains($normalizedName, 'ltd pro') || str_contains($normalizedName, 'enterprise engine - ltd')) {
                 return 'ltd_3';
+            }
+            // Current (renamed) product names.
+            if (str_contains($normalizedName, 'scale')) {
+                return 'scale';
+            }
+            if (str_contains($normalizedName, 'core')) {
+                return 'core';
+            }
+            if (str_contains($normalizedName, 'solo')) {
+                return 'solo';
             }
             if (str_contains($normalizedName, 'pro')) {
                 return 'business';

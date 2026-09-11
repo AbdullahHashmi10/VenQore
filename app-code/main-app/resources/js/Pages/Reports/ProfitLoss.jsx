@@ -11,12 +11,14 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 export default function ProfitLoss({ stats = {}, filters = {} }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     const { props } = usePage();
     const [startDate, setStartDate] = useState(filters.start_date || '');
@@ -76,7 +78,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 
             // Logic derived from actual stats
             if (grossMargin < 20) {
-                insights.push({ type: 'danger', title: 'Low Gross Margin', text: 'Your production costs (COGS) are eating most of your revenue. Negotiate better rates with suppliers.' });
+                insights.push({ type: 'danger', title: 'Low Gross Margin', text: tt('Your production costs (COGS) are eating most of your revenue. Negotiate better rates with suppliers.') });
             } else {
                 insights.push({ type: 'success', title: 'Healthy Gross Margin', text: 'Your core product pricing is solid. You have good room for overheads.' });
             }
@@ -379,7 +381,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     <ul className="text-2xs text-neutral-300 space-y-1.5 mt-2">
                                         <li className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                            Review Supplier Costs
+                                            {tt('Review Supplier Costs')}
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>

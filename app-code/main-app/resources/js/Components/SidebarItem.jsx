@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import FeatureLockBadge from '@/Components/FeatureLockBadge';
 import VenaLogo from '@/Components/VenaLogo';
+import { useNavLabel } from '@/lib/terms';
 
 export default function SidebarItem({
     icon: Icon,
@@ -25,6 +26,8 @@ export default function SidebarItem({
 }) {
     // Priority: use 'name' if provided, then 'label'
     const displayName = name || label;
+    // Store terminology on screen ("Clients", "Jobs", "Parts") — keys unchanged.
+    const navLabel = useNavLabel();
     const finalRoute = targetRoute || routeName;
     const hoverTimerRef = useRef(null);
 
@@ -336,7 +339,7 @@ export default function SidebarItem({
                                     if (!baseRoute) {
                                         return (
                                             <span key={sIdx} className="block pl-4 py-1.5 text-xs text-ink-muted cursor-not-allowed">
-                                                {itemName}
+                                                {navLabel(itemName)}
                                             </span>
                                         );
                                     }
@@ -351,7 +354,7 @@ export default function SidebarItem({
                                         <FeatureLockBadge key={sIdx} isLocked={false} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
                                             {isComingSoon ? (
                                                 <span className="block pl-4 py-1.5 text-xs font-medium text-ink-muted dark:text-ink-secondary cursor-pointer">
-                                                    {itemName}
+                                                    {navLabel(itemName)}
                                                 </span>
                                             ) : (
                                                 window.route().has(activeRouteName) && (
@@ -364,7 +367,7 @@ export default function SidebarItem({
                                                             {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
                                                                 <VenaLogo size={13} className="shrink-0" />
                                                             )}
-                                                            {itemName}
+                                                            {navLabel(itemName)}
                                                         </span>
                                                     </Link>
                                                 )
@@ -388,7 +391,7 @@ export default function SidebarItem({
                                 key={idx}
                                 className="block pl-4 py-2 text-xs font-medium text-ink-muted dark:text-ink-secondary cursor-not-allowed relative"
                             >
-                                {itemName}
+                                {navLabel(itemName)}
                             </span>
                         );
                     }
@@ -408,7 +411,7 @@ export default function SidebarItem({
                                         {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
                                             <VenaLogo size={13} className="shrink-0" />
                                         )}
-                                        {itemName}
+                                        {navLabel(itemName)}
                                     </span>
                                 </Link>
                             )}

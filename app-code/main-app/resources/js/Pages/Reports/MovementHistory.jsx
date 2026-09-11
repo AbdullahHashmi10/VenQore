@@ -17,12 +17,14 @@ import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatNumber } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 export default function MovementHistory({ movements = [], filters = {}, products = [], warehouses = [] }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     // Derived Statistics
     const stats = useMemo(() => {
@@ -147,7 +149,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
         },
         {
             key: 'product',
-            label: 'Product Info',
+            label: tt('Product Info'),
             sortable: true,
             width: '280px',
             render: (row) => (
@@ -237,7 +239,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
         {
             key: 'product_id',
             type: 'select',
-            label: 'Product',
+            label: tt('Product'),
             options: products.map(p => ({ value: p.id, label: p.name }))
         },
         {

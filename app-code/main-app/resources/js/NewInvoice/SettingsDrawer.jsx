@@ -22,6 +22,7 @@ import { docPresets, docDensities, docTableWidth } from '@/LayoutLaw/engine';
 import { PROFILES, screenBand } from './settings';
 import { columnsFor } from './fields';
 import { ACCOUNTS, LOCATIONS, TAX_RATES, TERMS } from './mock';
+import { useTermText } from '@/lib/terms';
 
 const PCT = (v) => `${Math.round(v * 100)}%`;
 
@@ -60,6 +61,7 @@ export default function SettingsDrawer({
     setComp, setPreset, setProfile, setAuto, setOps, setPerm, setRail, setType,
     rankMode, setRankMode, tab, setTab, onReset,
 }) {
+    const tt = useTermText();
     const c = prefs.comp;
     const band = screenBand(vp.w, vp.h);
     const geo = (fn) => (...args) => { setAuto(false); fn(...args); };
@@ -155,7 +157,7 @@ export default function SettingsDrawer({
                     <div className="nqd-setgroup">
                         <h3>Arrangement</h3>
                         <Seg
-                            label="Customer &amp; details"
+                            label={tt("Customer &amp; details")}
                             value={c.details}
                             options={[['open', 'Open'], ['collapsed', 'Collapsed']]}
                             onPick={(v) => set({ details: v })}

@@ -20,7 +20,7 @@ class DemoMasterSeeder extends Seeder
             ['slug' => 'demo-master'],
             [
                 'name' => 'VenQore Golden Master',
-                'plan' => 'business',
+                'plan' => 'scale',
                 'status' => 'active',
                 'currency_symbol' => '$',
                 'currency_code' => 'USD',

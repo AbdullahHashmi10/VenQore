@@ -52,7 +52,7 @@ class TenantZeroSeeder extends Seeder
                 $tenantId = DB::table('tenants')->insertGetId([
                     'name'                => 'AMD Outlets',
                     'slug'                => 'amd-outlets',
-                    'plan'                => 'business',
+                    'plan'                => 'scale',
                     'status'              => 'active',
                     'trial_ends_at'       => null,
                     'timezone'            => 'Asia/Karachi',
@@ -133,7 +133,7 @@ class TenantZeroSeeder extends Seeder
                             'tenant_id'   => $tenantId,
                             'type'        => 'ltd',
                             'status'      => 'consumed',
-                            'plan'        => 'business',
+                            'plan'        => 'business', // license tier namespace, not a subscription slug
                             'source'      => 'manual',
                             'consumed_at' => now(),
                             'valid_until' => null,

@@ -2,6 +2,7 @@ import React from 'react';
 import { Scissors } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { formatCurrency, formatNumber, numberToWords } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
 const getExtraChargesList = (calculations) => {
@@ -29,6 +30,7 @@ const getExtraChargesList = (calculations) => {
  * Supports: Custom Dimensions, Variable Margins, 20+ Themes, Dark Mode Container
  */
 export default function PrintPreview({ data, sale = null, type = 'regular', mode = 'light', forPrint = false }) {
+    const tt = useTermText();
     // Standard Paper Sizes in mm mapping to screen pixels (approx 3.78 px/mm)
     const MM_TO_PX = 3; // slightly scaled down for screen fit
     const paperSizes = {
@@ -224,7 +226,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         };
     }
 
-    let entityLabel = 'Customer';
+    let entityLabel = tt('Customer');
     let entityName = 'John Doe';
     let showEntity = false;
 
@@ -241,8 +243,8 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             entityName = sale.supplier?.name || sale.contact?.name || sale.supplier_name || sale.party?.name || 'Supplier';
             showEntity = !!(sale.supplier || sale.contact || sale.supplier_name || sale.party);
         } else {
-            entityLabel = 'Customer';
-            entityName = sale.customer?.name || sale.contact?.name || sale.customer_name || sale.party?.name || 'Walk-in Customer';
+            entityLabel = tt('Customer');
+            entityName = sale.customer?.name || sale.contact?.name || sale.customer_name || sale.party?.name || tt('Walk-in Customer');
             showEntity = !!(sale.customer || sale.contact || sale.customer_name || sale.party);
         }
     } else {
@@ -332,6 +334,7 @@ const RegularRenderer = (props) => {
 
 // --- Theme 1: Modern (Default) ---
 const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entityLabel, entityName, showEntity }) => {
+    const tt = useTermText();
     const showDiscount = data.print_show_discount && items.some(i => i.discount_percent > 0 || i.discount_amount > 0);
     const formatAmount = (amount) => formatCurrency(amount, data);
     const formatNum = (num) => formatNumber(num, null, data);
@@ -578,7 +581,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                             {data.print_acknowledgement && (
                                 <div className="text-center">
                                     <div className="w-36 border-b border-line h-6"></div>
-                                    <div className="text-2xs text-ink-muted mt-1">Customer Acknowledgement</div>
+                                    <div className="text-2xs text-ink-muted mt-1">{tt('Customer Acknowledgement')}</div>
                                 </div>
                             )}
                         </div>
@@ -641,6 +644,7 @@ const itemsBodySize = (val) => {
 
 // --- Theme 2: Classic/Official ---
 const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, entityLabel, entityName, showEntity }) => {
+    const tt = useTermText();
     const formatAmount = (amount) => formatCurrency(amount, data);
 
     const headerContent = (
@@ -781,7 +785,7 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                         {data.print_acknowledgement && (
                             <div className="text-center">
                                 <div className="w-36 border-b border-neutral-800 h-6"></div>
-                                <div className="text-2xs mt-1">Customer Acknowledgement</div>
+                                <div className="text-2xs mt-1">{tt('Customer Acknowledgement')}</div>
                             </div>
                         )}
                     </div>
@@ -844,6 +848,7 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
 
 // --- Theme 3: Bold Header ---
 const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityLabel, entityName, showEntity }) => {
+    const tt = useTermText();
     const formatAmount = (amount) => formatCurrency(amount, data);
 
     const headerContent = (
@@ -982,7 +987,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                         {data.print_acknowledgement && (
                             <div className="text-center">
                                 <div className="w-36 border-b-2 border-neutral-900 h-6"></div>
-                                <div className="text-2xs mt-1">Customer Acknowledgement</div>
+                                <div className="text-2xs mt-1">{tt('Customer Acknowledgement')}</div>
                             </div>
                         )}
                     </div>
@@ -1061,6 +1066,7 @@ const ThermalRenderer = (props) => {
 };
 
 const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entityLabel, entityName, showEntity }) => {
+    const tt = useTermText();
     // Dynamic Styles based on settings
     const fontSize = (data.thermal_font_size || 12) + 'px';
     const fontWeight = data.thermal_use_bold ? 'bold' : 'normal';
@@ -1352,7 +1358,7 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                             )}
                             {data.print_acknowledgement && (
                                 <div className="flex justify-between">
-                                    <span>Customer Sign:</span>
+                                    <span>{tt('Customer Sign:')}</span>
                                     <span>_________________</span>
                                 </div>
                             )}

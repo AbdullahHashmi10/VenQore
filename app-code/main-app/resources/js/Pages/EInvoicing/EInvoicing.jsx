@@ -14,9 +14,11 @@ import {
     QrCode,
     Printer
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled = false }) {
     const { store, errors } = usePage().props;
+    const tt = useTermText();
     const [activeTab, setActiveTab] = useState('e-invoice'); // 'e-invoice' or 'e-way-bill'
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -237,7 +239,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                 <tr className="bg-app text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
                                     <th className="px-6 py-4 text-left">Date</th>
                                     <th className="px-6 py-4 text-left">Doc Number</th>
-                                    <th className="px-6 py-4 text-left">Customer</th>
+                                    <th className="px-6 py-4 text-left">{tt('Customer')}</th>
                                     <th className="px-6 py-4 text-right">Amount</th>
                                     <th className="px-6 py-4 text-center">{activeTab === 'e-invoice' ? 'Ack No / Bill No' : 'Waybill Reference'}</th>
                                     {activeTab === 'e-way-bill' && <th className="px-6 py-4 text-left">Transporter / Vehicle</th>}
@@ -266,7 +268,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                                     {invoice.reference_number}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-ink-muted">
-                                                    {invoice.customer?.name || 'Walk-in Customer'}
+                                                    {invoice.customer?.name || tt('Walk-in Customer')}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-ink">
                                                     Rs {new Intl.NumberFormat().format(invoice.total)}
@@ -449,7 +451,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                         <input
                                             type="text"
-                                            placeholder="Search by invoice number or customer name..."
+                                            placeholder={tt('Search by invoice number or customer name...')}
                                             value={modalSearch}
                                             onChange={(e) => setModalSearch(e.target.value)}
                                             className="w-full pl-9 pr-4 py-2.5 bg-app border border-line rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-sm text-ink font-medium"
@@ -467,7 +469,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                                                     <div>
                                                         <p className="font-bold text-ink text-sm">{sale.reference_number}</p>
                                                         <p className="text-xs text-ink-muted mt-0.5">
-                                                            {sale.customer?.name || 'Walk-in Customer'} • {new Date(sale.posted_at || sale.created_at).toLocaleDateString()}
+                                                            {sale.customer?.name || tt('Walk-in Customer')} • {new Date(sale.posted_at || sale.created_at).toLocaleDateString()}
                                                         </p>
                                                     </div>
                                                     <div className="flex items-center gap-4">

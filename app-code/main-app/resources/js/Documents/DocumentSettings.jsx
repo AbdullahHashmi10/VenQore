@@ -5,6 +5,7 @@ import {
     RAIL_PUSH_FROM, RAIL_W, composeDocument, matchLayout,
 } from '@/Documents/documentLaw';
 import { FIELD_LIBRARY } from '@/Documents/documentTypes';
+import { useTermText } from '@/lib/terms';
 
 /**
  * Document settings.
@@ -365,6 +366,7 @@ export default function DocumentSettings({
     setShowMargin = setShowMargin || noop('setShowMargin');
     setShowStock = setShowStock || noop('setShowStock');
     onReset = onReset || noop('onReset');
+    const tt = useTermText();
     const [section, setSection] = useState('layout');
     /* Only the fields this document actually carries, in the document's own
        order, described once in FIELD_LIBRARY. */
@@ -431,7 +433,7 @@ export default function DocumentSettings({
                             <>
                                 <div className="vqdoc-group">
                                     <h4>Arrangement</h4>
-                                    <p>Pick where the customer block, the items and the totals sit. You can fine-tune any of it below.</p>
+                                    <p>{tt('Pick where the customer block, the items and the totals sit. You can fine-tune any of it below.')}</p>
                                     <div className="vqdoc-layouts">
                                         {LAYOUTS.map(l => (
                                             <button
@@ -451,7 +453,7 @@ export default function DocumentSettings({
 
                                 <div className="vqdoc-group">
                                     <h4>Fine tuning</h4>
-                                    <Opt title="Customer &amp; details" hint="Folded away leaves one line — name, number, date and running total — and gives the height to the items.">
+                                    <Opt title={tt('Customer &amp; details')} hint="Folded away leaves one line — name, number, date and running total — and gives the height to the items.">
                                         <Seg value={comp.details} options={CHOICES.details} onChange={(v) => setComp({ details: v })} />
                                     </Opt>
                                     <Opt stack title="Totals" hint="Automatic keeps them beside the items while there is room, and moves them underneath when there is not.">
@@ -542,7 +544,7 @@ export default function DocumentSettings({
 
                                 <div className="vqdoc-group">
                                     <h4>Always there</h4>
-                                    <p>The customer, the items and the money are the invoice. They have no switch, because a sale without them is not a sale.</p>
+                                    <p>{tt('The customer, the items and the money are the invoice. They have no switch, because a sale without them is not a sale.')}</p>
                                 </div>
                             </>
                         )}
@@ -554,7 +556,7 @@ export default function DocumentSettings({
                                     <Opt title="Delivery" hint="A delivery line in the totals.">
                                         <Switch checked={showDeliveryCharges} onChange={setShowDeliveryCharges} label="Delivery" />
                                     </Opt>
-                                    <Opt title="Extra charge" hint="One named charge — packing, service, anything. The name is editable on the invoice.">
+                                    <Opt title="Extra charge" hint={tt('One named charge — packing, service, anything. The name is editable on the invoice.')}>
                                         <Switch checked={showExtraField} onChange={setShowExtraField} label="Extra charge" />
                                     </Opt>
                                     <Opt title="Several extra charges" hint="Up to ten named charges instead of one.">
@@ -566,7 +568,7 @@ export default function DocumentSettings({
                                     <h4>Standing charges</h4>
                                     <Opt
                                         title="Put these on every new invoice"
-                                        hint="A delivery fee or a service charge you always add, filled in the moment a sale starts. It never touches an invoice you have already begun pricing."
+                                        hint={tt('A delivery fee or a service charge you always add, filled in the moment a sale starts. It never touches an invoice you have already begun pricing.')}
                                     >
                                         <Switch checked={applyDefaults} onChange={setApplyDefaults} label="Put these on every new invoice" />
                                     </Opt>
@@ -582,7 +584,7 @@ export default function DocumentSettings({
                                         </label>
                                         <label style={{ display: 'flex', flexDirection: 'column', gap: 7, minWidth: 0 }}>
                                             <span className="vqdoc-lbl">Charge name</span>
-                                            <input type="text" className="vqdoc-in" value={defaultExtraLabel} placeholder="Service" onChange={(e) => setDefaultExtraLabel(e.target.value)} />
+                                            <input type="text" className="vqdoc-in" value={defaultExtraLabel} placeholder={tt('Service')} onChange={(e) => setDefaultExtraLabel(e.target.value)} />
                                         </label>
                                         <label style={{ display: 'flex', flexDirection: 'column', gap: 7, minWidth: 0 }}>
                                             <span className="vqdoc-lbl">Amount ({currency})</span>
@@ -611,7 +613,7 @@ export default function DocumentSettings({
                                     <div className="vqdoc-opt" style={{ display: 'block' }}>
                                         {[
                                             ['Alt + L', 'Show or hide the navigation rail'],
-                                            ['Alt + D', 'Fold the customer block away'],
+                                            ['Alt + D', tt('Fold the customer block away')],
                                             ['Alt + Q', 'Jump to the quick add row'],
                                             ['Esc', 'Close whatever is on top'],
                                         ].map(([k, v]) => (

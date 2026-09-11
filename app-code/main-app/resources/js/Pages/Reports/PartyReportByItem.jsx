@@ -5,21 +5,23 @@ import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { formatCurrency } from '@/Utils/format';
 import { PackageSearch } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function PartyReportByItem({ data = [], stats = [], filters = {} }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     const columns = [
         {
             key: 'product_name',
-            label: 'Product',
+            label: tt('Product'),
             sortable: true,
         },
         {
             key: 'party_name',
-            label: 'Customer',
+            label: tt('Customer'),
             sortable: true,
         },
         {
@@ -53,11 +55,11 @@ export default function PartyReportByItem({ data = [], stats = [], filters = {} 
     };
 
     return (
-        <ReportsLayout title="Customer Report by Item">
-            <Head title="Customer Report by Item" />
+        <ReportsLayout title={tt('Customer Report by Item')}>
+            <Head title={tt('Customer Report by Item')} />
             <MasterReport
-                title="Customer Report by Item"
-                subTitle="Net revenue per customer, grouped by product — FIFO reconciled"
+                title={tt('Customer Report by Item')}
+                subTitle={tt('Net revenue per customer, grouped by product — FIFO reconciled')}
                 stats={stats}
                 columns={columns}
                 data={data}

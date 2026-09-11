@@ -75,7 +75,7 @@ class DemoStoreService
         return Tenant::create([
             'name'                 => 'VenQore Demo Store',
             'slug'                 => self::DEFAULT_SLUG,
-            'plan'                 => 'business',
+            'plan'                 => 'scale',
             'status'               => 'active',
             'currency_symbol'      => '$',
             'currency_code'        => 'USD',

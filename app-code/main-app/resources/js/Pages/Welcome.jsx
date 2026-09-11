@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 // --- COMPATIBILITY LAYER ---
 import { Head, Link } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
 
 // --- HELPER: Safe Route ---
 const safeRoute = (name) => {
@@ -220,6 +221,7 @@ const AnimatedHeader = ({ text, subtitle, trigger }) => {
 };
 
 export default function Welcome() {
+    const tt = useTermText();
     // Reduced Section List
     const [activeSection, setActiveSection] = useState('hero');
     const sections = ['hero', 'intelligence', 'operations', 'resilience', 'final'];
@@ -426,8 +428,8 @@ export default function Welcome() {
                     <div className={`grid grid-cols-1 md:grid-cols-2 gap-10 transition-all duration-slower delay-300 ease-out ${activeSection === 'resilience' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}>
                         <FeatureCard
                             icon={Users}
-                            title="Customer Intel"
-                            description="Know your customers better than they know themselves. Build loyalty that lasts."
+                            title={tt('Customer Intel')}
+                            description={tt('Know your customers better than they know themselves. Build loyalty that lasts.')}
                             colorClass="bg-brand-600"
                             glowColor="text-brand-400 shadow-brand-500/20"
                         />

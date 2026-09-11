@@ -4,16 +4,18 @@ import { Layers } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import OfflineWarningBanner from '@/Components/OfflineWarningBanner';
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function StockSummaryByCategory({ categories }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const totalValue = categories.reduce((sum, cat) => sum + cat.value, 0);
     const totalProducts = categories.reduce((sum, cat) => sum + cat.products, 0);
 
     return (
         <ReportPage
             title="Stock Summary by Category"
-            subtitle="Inventory valuation breakdown by product categories"
+            subtitle={tt('Inventory valuation breakdown by product categories')}
             icon={Layers}
             stats={
                 <>
@@ -22,7 +24,7 @@ export default function StockSummaryByCategory({ categories }) {
                         <p className="text-lg font-bold text-ink">{categories.length}</p>
                     </div>
                     <div className="bg-surface p-4 rounded-xl border border-line">
-                        <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-1">Total Products</p>
+                        <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-1">{tt('Total Products')}</p>
                         <p className="text-lg font-bold text-ink">{totalProducts}</p>
                     </div>
                     <div className="col-span-2 bg-brand-600 p-4 rounded-xl shadow-lg ">
@@ -38,7 +40,7 @@ export default function StockSummaryByCategory({ categories }) {
                     <thead>
                         <tr className="bg-app border-b border-line">
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Category Name</th>
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-center">Product Count</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-center">{tt('Product Count')}</th>
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Total Value (Retail)</th>
                             <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Value Share</th>
                         </tr>

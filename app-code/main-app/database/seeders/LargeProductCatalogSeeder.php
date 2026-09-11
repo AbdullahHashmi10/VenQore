@@ -47,7 +47,7 @@ class LargeProductCatalogSeeder extends Seeder
 
         if (!$tenant) {
             $this->command->error("Tenant '{$slug}' not found. Create it first.");
-            $this->command->line("CREATE: php artisan tinker --execute=\"App\\Models\\Tenant::create(['id'=>Str::uuid(),'name'=>'Test Store','slug'=>'test-store','plan'=>'business','status'=>'active','setup_completed'=>true,'currency_symbol'=>'Rs.','currency_code'=>'PKR','timezone'=>'UTC'])\"");
+            $this->command->line("CREATE: php artisan tinker --execute=\"App\\Models\\Tenant::create(['id'=>Str::uuid(),'name'=>'Test Store','slug'=>'test-store','plan'=>'scale','status'=>'active','setup_completed'=>true,'currency_symbol'=>'Rs.','currency_code'=>'PKR','timezone'=>'UTC'])\"");
             return;
         }
 

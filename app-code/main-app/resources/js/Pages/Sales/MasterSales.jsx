@@ -113,6 +113,7 @@ import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useAlert } from '@/Contexts/AlertContext';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
+import { useTermText } from '@/lib/terms';
 
 // --- ATOMIC SUB-COMPONENTS ---
 
@@ -307,6 +308,7 @@ const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => 
 
 export default function MasterSales() {
     // SYSTEM STATE
+    const tt = useTermText();
     const { store } = usePage().props;
     const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, addInvoice, removeInvoice, updateInvoice } = useWorkspace();
     const currentInvoice = activeInvoices.find(i => i.id === currentInvoiceId) || activeInvoices[0]; // Active Tab logic
@@ -443,7 +445,7 @@ export default function MasterSales() {
                                 <User className="w-5 h-5" />
                             </div>
                             <div className="flex-1">
-                                <label className="text-2xs uppercase font-bold text-ink-muted tracking-wider">Customer / Client</label>
+                                <label className="text-2xs uppercase font-bold text-ink-muted tracking-wider">{tt('Customer / Client')}</label>
                                 <AsyncPartyCombobox
                                     partyType="all"
                                     onSelect={(party) => {

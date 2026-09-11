@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { router } from '@inertiajs/react';
 import { Sparkles, Compass, Rocket, ArrowRight, X, ArrowLeft, Box, HelpCircle } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function WelcomeTourModal({ store }) {
+ const tt = useTermText();
  const [currentStep, setCurrentStep] = useState(() => {
  return store?.onboarding_step || 'welcome';
  });
@@ -316,7 +318,7 @@ export default function WelcomeTourModal({ store }) {
  </p>
 
  <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
- To help you get the most out of VenQore, we have prepared a quick, interactive tour of the platform. We will show you how to add your first product and manage stock.
+ {tt('To help you get the most out of VenQore, we have prepared a quick, interactive tour of the platform. We will show you how to add your first product and manage stock.')}
  </p>
 
  <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -375,11 +377,11 @@ export default function WelcomeTourModal({ store }) {
  </h2>
 
  <p className="text-ink-muted text-sm font-semibold mb-2">
- Your first product is cataloged, but your stock is still 0.
+ {tt('Your first product is cataloged, but your stock is still 0.')}
  </p>
 
  <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
- To sell products and print invoices, you must first add stock to your inventory. Let's record a purchase transaction to buy inventory from a supplier!
+ {tt("To sell products and print invoices, you must first add stock to your inventory. Let's record a purchase transaction to buy inventory from a supplier!")}
  </p>
 
  <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -717,13 +719,13 @@ export default function WelcomeTourModal({ store }) {
  {currentStep === 'sidebar_stock' && (
  <>
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Let's add your first product. Click on the highlighted <span className="text-white font-bold">Products</span> menu link in the sidebar to open the catalog.
+ Let's add your first product. Click on the highlighted <span className="text-white font-bold">{tt('Products')}</span> menu link in the sidebar to open the catalog.
  </p>
 
  {!isMobile && (
  <div className="flex items-center gap-1 text-brand-400 text-xs font-bold animate-bounce mt-1">
  <ArrowLeft size={14} className="animate-pulse" />
- <span>Click on the highlighted Products link</span>
+ <span>{tt('Click on the highlighted Products link')}</span>
  </div>
  )}
 
@@ -741,7 +743,7 @@ export default function WelcomeTourModal({ store }) {
  disabled={isSubmitting}
  className="px-4 py-1.5 bg-gradient-brand text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg active:scale-95 transition-all disabled:opacity-50"
  >
- <span>Let's Add Product</span>
+ <span>{tt("Let's Add Product")}</span>
  <ArrowRight size={12} />
  </button>
  </div>

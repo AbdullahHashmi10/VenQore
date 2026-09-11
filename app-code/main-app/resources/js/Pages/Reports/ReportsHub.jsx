@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { planLabel } from '@/lib/plans';
 import { Head, Link, usePage } from '@inertiajs/react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import PageHeader from '@/Components/PageHeader';
+import { useTermText } from '@/lib/terms';
 import {
     FileText, TrendingUp, ShoppingCart, CreditCard, Users, Package, Calendar,
     BarChart2, ArrowRight, History, Landmark, AlertTriangle, Clock, Percent,
@@ -116,7 +118,7 @@ const Card3D = ({ report }) => {
                         <Lock size={16} />
                     </div>
                     <span className="text-1xs font-bold uppercase tracking-wider text-ink-secondary px-2.5 py-1 bg-white/95 dark:bg-surface rounded-full shadow-sm border border-line">
-                        Upgrade to {requiredTier === 'growth' ? 'Growth' : 'Business'}
+                        Upgrade to {planLabel(requiredTier)}
                     </span>
                 </div>
             </div>
@@ -179,6 +181,7 @@ const Card3D = ({ report }) => {
 };
 
 export default function ReportsHub() {
+    const tt = useTermText();
     const {
         store,
         hiddenReports = []
@@ -272,8 +275,8 @@ export default function ReportsHub() {
                     })
                 },
                 {
-                    title: 'Sales Orders',
-                    description: 'Open order tracking',
+                    title: tt('Sales Orders'),
+                    description: tt('Open order tracking'),
                     longDescription: 'Monitor all open sales orders that are currently pending. Track orders that are yet to be converted into final invoices or delivered, ensuring no customer request falls through the cracks.',
                     icon: ShoppingCart,
                     color: 'text-cyan-500',
@@ -565,7 +568,7 @@ export default function ReportsHub() {
         },
         {
             title: 'Parties & Relationships',
-            description: 'Customer and supplier analytics',
+            description: tt('Customer and supplier analytics'),
             reports: [
                 {
                     title: 'All Parties',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import {
     Users,
     UserCheck,
@@ -16,6 +16,7 @@ import {
 export default function ContactsModuleTabs({ activeTab }) {
     const { store } = usePage().props;
     const { tp } = useTerms();
+    const tt = useTermText();
     // Helper to safely get route
     const getRoute = (name, params = {}) => {
         try {
@@ -43,8 +44,8 @@ export default function ContactsModuleTabs({ activeTab }) {
             label: 'Team',
             icon: Users,
             items: [
-                { id: 'attendance', label: 'Staff Attendance', href: getRoute('admin.attendance', { tab: 'attendance' }), icon: Clock },
-                { id: 'summaries', label: 'Staff Summaries', href: getRoute('admin.attendance', { tab: 'summaries' }), icon: FileText },
+                { id: 'attendance', label: tt('Staff Attendance'), href: getRoute('admin.attendance', { tab: 'attendance' }), icon: Clock },
+                { id: 'summaries', label: tt('Staff Summaries'), href: getRoute('admin.attendance', { tab: 'summaries' }), icon: FileText },
                 { id: 'members', label: 'Members', href: getRoute('admin.attendance', { tab: 'members' }), icon: Users },
                 { id: 'invitations', label: 'Invitations', href: getRoute('admin.attendance', { tab: 'invitations' }), icon: Send }
             ]

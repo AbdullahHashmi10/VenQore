@@ -14,17 +14,19 @@ import {
     Users
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
+import { useTermText } from '@/lib/terms';
 
 export default function WooCommerceSyncIndex({ settings = {}, lastSync = null }) {
     const [isSyncing, setIsSyncing] = useState(false);
     const { showAlert } = useAlert();
+    const tt = useTermText();
 
     const handleSync = (type) => {
         setIsSyncing(true);
         // Simulate sync
         setTimeout(() => {
             setIsSyncing(false);
-            showAlert({ title: 'Sync Completed', message: `${type} synced successfully with WooCommerce`, type: 'success' });
+            showAlert({ title: 'Sync Completed', message: tt(`${type} synced successfully with WooCommerce`), type: 'success' });
         }, 2000);
     };
 
@@ -42,7 +44,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                             </div>
                             WooCommerce Integration
                         </h1>
-                        <p className="text-ink-muted text-sm mt-1">Sync products, orders, and customers with your WooCommerce store</p>
+                        <p className="text-ink-muted text-sm mt-1">{tt('Sync products, orders, and customers with your WooCommerce store')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className={`flex items-center gap-1 text-sm font-medium ${settings.connected ? 'text-emerald-600' : 'text-ink-muted'}`}>
@@ -83,8 +85,8 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                         <div className="w-12 h-12 bg-violet-50 dark:bg-violet-900/20 rounded-xl flex items-center justify-center mb-4 transition-transform">
                             <Package className="text-violet-600 dark:text-violet-400" size={24} />
                         </div>
-                        <h3 className="text-lg font-bold text-ink mb-2">Products</h3>
-                        <p className="text-ink-muted text-sm mb-6">Sync inventory levels, prices, and product details.</p>
+                        <h3 className="text-lg font-bold text-ink mb-2">{tt('Products')}</h3>
+                        <p className="text-ink-muted text-sm mb-6">{tt('Sync inventory levels, prices, and product details.')}</p>
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={() => handleSync('Products Export')}
@@ -110,15 +112,15 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                         <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center mb-4 transition-transform">
                             <ShoppingCart className="text-blue-600 dark:text-blue-400" size={24} />
                         </div>
-                        <h3 className="text-lg font-bold text-ink mb-2">Orders</h3>
-                        <p className="text-ink-muted text-sm mb-6">Import new orders and update order statuses.</p>
+                        <h3 className="text-lg font-bold text-ink mb-2">{tt('Orders')}</h3>
+                        <p className="text-ink-muted text-sm mb-6">{tt('Import new orders and update order statuses.')}</p>
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={() => handleSync('Orders Import')}
                                 disabled={isSyncing}
                                 className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-ink-secondary"
                             >
-                                <span>Import New Orders</span>
+                                <span>{tt('Import New Orders')}</span>
                                 <Download size={16} />
                             </button>
                             <button
@@ -137,15 +139,15 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                         <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center mb-4 transition-transform">
                             <Users className="text-emerald-600 dark:text-emerald-400" size={24} />
                         </div>
-                        <h3 className="text-lg font-bold text-ink mb-2">Customers</h3>
-                        <p className="text-ink-muted text-sm mb-6">Sync customer data and loyalty points.</p>
+                        <h3 className="text-lg font-bold text-ink mb-2">{tt('Customers')}</h3>
+                        <p className="text-ink-muted text-sm mb-6">{tt('Sync customer data and loyalty points.')}</p>
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={() => handleSync('Customers Import')}
                                 disabled={isSyncing}
                                 className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors text-ink-secondary"
                             >
-                                <span>Import Customers</span>
+                                <span>{tt('Import Customers')}</span>
                                 <Download size={16} />
                             </button>
                             <button
@@ -153,7 +155,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                                 disabled={isSyncing}
                                 className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors text-ink-secondary"
                             >
-                                <span>Export Customers</span>
+                                <span>{tt('Export Customers')}</span>
                                 <Upload size={16} />
                             </button>
                         </div>

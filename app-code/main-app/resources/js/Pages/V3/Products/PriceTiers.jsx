@@ -1,7 +1,9 @@
 import { useForm, Link, router, usePage } from '@inertiajs/react'
 import { formatCurrency } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 export default function PriceTiers({ product, tiers }) {
+    const tt = useTermText();
     const { store } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         min_qty: '',
@@ -79,7 +81,7 @@ export default function PriceTiers({ product, tiers }) {
                 </table>
             ) : (
                 <p className="text-ink-muted text-sm mb-6">
-                    No price tiers configured. Product uses flat sale price.
+                    {tt('No price tiers configured. Product uses flat sale price.')}
                 </p>
             )}
 

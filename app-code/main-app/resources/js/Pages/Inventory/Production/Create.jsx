@@ -7,6 +7,7 @@ import { Factory, Package } from 'lucide-react';
 import axios from 'axios';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import { bomRequirements, bomsForProduct, buildProductionRunPayload, localIsoDate } from '@/Domain/production/runPayload';
+import { useTermText } from '@/lib/terms';
 
 /*
  * New Production Run.
@@ -19,6 +20,7 @@ import { bomRequirements, bomsForProduct, buildProductionRunPayload, localIsoDat
  */
 export default function CreateProductionRun({ products = [], warehouses = [] }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [loading, setLoading] = useState(false);
     const [boms, setBoms] = useState([]);
     const [bomsLoading, setBomsLoading] = useState(true);
@@ -107,7 +109,7 @@ export default function CreateProductionRun({ products = [], warehouses = [] }) 
 
                         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                             {/* Product Selection */}
-                            <FormField label="Product to Manufacture" required>
+                            <FormField label={tt('Product to Manufacture')} required>
                                 <AsyncProductCombobox
                                     selectedItem={selectedProduct || products.find(p => p.id === formData.product_id)}
                                     onSelect={(product) => {

@@ -7,8 +7,10 @@ import axios from 'axios';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import { useAlert } from '@/Contexts/AlertContext';
 import PrintButton from '@/Components/PrintButton';
+import { useTermText } from '@/lib/terms';
 
 export default function SalesShow({ sale, bankAccounts = [] }) {
+    const tt = useTermText();
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
     const [refundMethod, setRefundMethod] = useState('cash'); // 'cash' or 'ledger'
     const [refundSource, setRefundSource] = useState('cash_drawer'); // 'cash_drawer', 'bank_account', 'online'
@@ -85,7 +87,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
     };
 
     const handleSendEmail = async () => {
-        const email = prompt("Enter customer email:", sale.customer?.email || "");
+        const email = prompt(tt("Enter customer email:"), sale.customer?.email || "");
         if (!email) return;
 
         try {
@@ -99,7 +101,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
     };
 
     const handleSendWhatsApp = async () => {
-        const phone = prompt("Enter customer phone number:", sale.customer?.phone || "");
+        const phone = prompt(tt("Enter customer phone number:"), sale.customer?.phone || "");
         if (!phone) return;
 
         try {
@@ -244,7 +246,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                             )}
                                         </div>
                                     ) : (
-                                        <p className="font-bold text-ink text-lg">Walk-in Customer</p>
+                                        <p className="font-bold text-ink text-lg">{tt('Walk-in Customer')}</p>
                                     )}
                                 </div>
                                 <div className="text-right">
@@ -344,7 +346,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                 </button>
                             </div>
                             {sale.customer && (
-                                <p className="text-white/80 mt-2 text-sm">Customer: <span className="font-bold text-white">{sale.customer.name}</span></p>
+                                <p className="text-white/80 mt-2 text-sm">{tt('Customer')}: <span className="font-bold text-white">{sale.customer.name}</span></p>
                             )}
                         </div>
 
@@ -467,7 +469,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             {refundTotal > 0 && !hasRegisteredCustomer && (
                                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
                                     <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">
-                                        <strong>Walk-in Customer:</strong> Refund will be given as cash only.
+                                        <strong>{tt('Walk-in Customer')}:</strong> Refund will be given as cash only.
                                     </p>
                                 </div>
                             )}

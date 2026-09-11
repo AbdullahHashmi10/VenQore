@@ -35,6 +35,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
+import { useTermText } from '@/lib/terms';
 
 import '@/NewInvoice/newinvoice.css';
 import { LAW, composeDocument, marginAt, presetDocument, docMetrics } from '@/LayoutLaw/engine';
@@ -142,6 +143,7 @@ function newDoc(type, ops, seq = 148) {
 export default function NewInvoice({ auth }) {
     const userId = auth?.user?.id ?? 'demo';
     const vp = useViewport();
+    const tt = useTermText();
 
     const [prefs, setPrefs] = useState(() => loadPrefs(userId));
     const [rankMode, setRankMode] = useState(false);
@@ -1013,7 +1015,7 @@ export default function NewInvoice({ auth }) {
                     id — every `htmlFor`, every `#nqd-h-…` and every screen
                     reader then has a choice to make about which one is meant. */}
                 <Sheet
-                    open={sheet === 'details'} onClose={() => setSheet(null)} title="Customer &amp; details"
+                    open={sheet === 'details'} onClose={() => setSheet(null)} title={tt("Customer &amp; details")}
                     size={narrow ? 'bottom' : 'wide'} ns="nqd"
                     footer={<button type="button" className="nqd-btn" data-pri="true" onClick={() => setSheet(null)}>Done</button>}
                 >

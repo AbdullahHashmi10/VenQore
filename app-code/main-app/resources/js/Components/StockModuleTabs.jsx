@@ -14,9 +14,11 @@ import {
     ChevronRight,
     Box
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function StockModuleTabs({ activeTab }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     // Define the structure
     const groups = [
         {
@@ -24,7 +26,7 @@ export default function StockModuleTabs({ activeTab }) {
             label: 'Catalog',
             icon: Layers,
             items: [
-                { id: 'products', label: 'Products', href: route('store.inventory.index', { store_slug: store?.slug }), icon: Package },
+                { id: 'products', label: tt('Products'), href: route('store.inventory.index', { store_slug: store?.slug }), icon: Package },
                 { id: 'categories', label: 'Categories', href: route('store.categories.index', { store_slug: store?.slug }), icon: Settings },
                 { id: 'attributes', label: 'Attributes', href: route('store.attributes.index', { store_slug: store?.slug }), icon: Settings },
                 { id: 'labels', label: 'Labels', href: route('store.labels.index', { store_slug: store?.slug }), icon: FileText },

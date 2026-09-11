@@ -117,7 +117,7 @@ export default function ChatWidget({ embedded = false }) {
  const isEditFlow = path.includes('/edit');
  const isReturnFlow = path.includes('/return') && !path.includes('/returns-history');
  const isRefundFlow = path.includes('/refund');
- const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start');
+ const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start') || path.includes('/build-workspace');
 
  if (isCreateFlow || isEditFlow || isReturnFlow || isRefundFlow || isSetupFlow) {
  return false;

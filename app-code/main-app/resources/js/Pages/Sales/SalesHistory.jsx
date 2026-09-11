@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { useTerms } from '@/lib/terms';
+import { useTerms, useTermText } from '@/lib/terms';
 import { formatCurrency, formatDate, formatTime } from '@/Utils/format';
 import {
  Plus,
@@ -68,6 +68,7 @@ const EbayLogo = ({ size = 12 }) => {
 
 export default function SalesIndex({ sales, filters, stats }) {
  const { t, tp } = useTerms();
+ const tt = useTermText();
  const { auth, flash, store, vensynq_enabled } = usePage().props;
  const isSuperAdmin = auth.user?.role === 'platform_admin' || auth.user?.role === 'admin' || auth.user?.role === 'owner';
 
@@ -1067,7 +1068,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  {/* Top Info Row */}
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
- <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Customer</p>
+ <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Customer')}</p>
  <p className="font-bold text-ink text-sm">{quickViewSale.customer?.name || 'Walk-in'}</p>
  {quickViewSale.customer?.phone && (
  <p className="text-xs text-ink-muted">{quickViewSale.customer.phone}</p>

@@ -9,12 +9,14 @@ import {
     PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { formatCurrency, formatNumber } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 
 import { sequential, vq } from '@/theme/runtime';
 export default function SaleOrderItems({ items = [], filters = {} }) {
     const {
         store
     } = usePage().props;
+    const tt = useTermText();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState({ key: 'subtotal', direction: 'desc' });
@@ -150,7 +152,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
 
 
     return (
-        <ReportsLayout title="Order Items Report">
+        <ReportsLayout title={tt('Order Items Report')}>
             <Head title="Item Analysis" />
             <div className="flex flex-col h-full gap-4 w-full">
 
@@ -165,9 +167,9 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                         <div>
                             <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
                                 <Layers className="text-brand-500" size={20} />
-                                Order Items
+                                {tt('Order Items')}
                             </h1>
-                            <p className="text-xs text-ink-muted font-medium">Product performance in sales orders</p>
+                            <p className="text-xs text-ink-muted font-medium">{tt('Product performance in sales orders')}</p>
                         </div>
                     </div>
 
@@ -176,7 +178,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-500 transition-colors" size={14} />
                             <input
                                 type="text"
-                                placeholder="Search Item or Order #..."
+                                placeholder={tt('Search Item or Order #...')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 w-52 transition-all"
@@ -278,8 +280,8 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-app sticky top-0 z-10 backdrop-blur-sm">
                                     <tr>
-                                        <SortableHeader label="Order #" colKey="order_number" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Product Name" colKey="product" currentSort={sortBy} onSort={handleSort} />
+                                        <SortableHeader label={tt('Order #')} colKey="order_number" currentSort={sortBy} onSort={handleSort} />
+                                        <SortableHeader label={tt('Product Name')} colKey="product" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Qty" colKey="quantity" align="center" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Price" colKey="price" align="right" currentSort={sortBy} onSort={handleSort} />
                                         <SortableHeader label="Total" colKey="subtotal" align="right" currentSort={sortBy} onSort={handleSort} />
@@ -304,11 +306,11 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                                     #{item.sales_order?.order_number}
                                                 </td>
                                                 <td className="px-6 py-3 text-sm font-medium text-ink-secondary dark:text-ink">
-                                                    {item.product?.name || 'Unknown Product'}
+                                                    {item.product?.name || tt('Unknown Product')}
                                                     {/* Optional: Add status dot from sales order */}
                                                     {item.sales_order?.status && (
                                                         <span className={`ml-2 w-1.5 h-1.5 inline-block rounded-full ${item.sales_order.status === 'pending' ? 'bg-amber-500' : 'bg-emerald-500'
-                                                            }`} title={`Order is ${item.sales_order.status}`} />
+                                                            }`} title={tt(`Order is ${item.sales_order.status}`)} />
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-3 text-center text-sm text-ink-muted">

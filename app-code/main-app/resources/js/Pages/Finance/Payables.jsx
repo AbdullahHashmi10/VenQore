@@ -18,9 +18,11 @@ import {
     DollarSign,
     Mail
 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function Payables({ parties = [] }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState({ key: 'balance', direction: 'desc' });
 
@@ -163,7 +165,7 @@ export default function Payables({ parties = [] }) {
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search suppliers..."
+                                placeholder={tt('Search suppliers...')}
                                 className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-56"
                             />
                         </div>
@@ -212,7 +214,7 @@ export default function Payables({ parties = [] }) {
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Search suppliers..."
+                                    placeholder={tt('Search suppliers...')}
                                     className="w-full pl-8 pr-3 py-1 text-xs bg-app border border-line rounded-lg outline-none"
                                 />
                                 <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted" />
@@ -231,7 +233,7 @@ export default function Payables({ parties = [] }) {
                                     onClick={() => handleSort('name')}
                                 >
                                     <div className="flex items-center gap-1">
-                                        Supplier {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
+                                        {tt('Supplier')} {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                                     </div>
                                 </th>
                                 <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Contact</th>
@@ -258,7 +260,7 @@ export default function Payables({ parties = [] }) {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-sm text-ink">{party.name}</p>
-                                                    <p className="text-2xs text-ink-muted">Supplier</p>
+                                                    <p className="text-2xs text-ink-muted">{tt('Supplier')}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -306,7 +308,7 @@ export default function Payables({ parties = [] }) {
                                         <div className="flex flex-col items-center gap-2">
                                             <TrendingDown size={32} className="opacity-20" />
                                             <p className="text-sm font-medium">No pending payables found</p>
-                                            <p className="text-xs text-ink-muted">Excellent! All suppliers are paid.</p>
+                                            <p className="text-xs text-ink-muted">{tt('Excellent! All suppliers are paid.')}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -364,7 +366,7 @@ export default function Payables({ parties = [] }) {
                             <div className="flex flex-col items-center gap-2">
                                 <TrendingDown size={32} className="opacity-20" />
                                 <p className="text-sm font-medium">No pending payables found</p>
-                                <p className="text-xs text-ink-muted">Excellent! All suppliers are paid.</p>
+                                <p className="text-xs text-ink-muted">{tt('Excellent! All suppliers are paid.')}</p>
                             </div>
                         </div>
                     )}

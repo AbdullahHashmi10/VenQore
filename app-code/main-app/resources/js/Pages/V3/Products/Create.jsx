@@ -1,7 +1,9 @@
 import { useForm, Link, usePage } from '@inertiajs/react'
+import { useTermText } from '@/lib/terms'
 
 export default function ProductCreate() {
     const { store } = usePage().props;
+    const tt = useTermText();
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         sku: '',
@@ -23,15 +25,15 @@ export default function ProductCreate() {
         <div className="p-6 max-w-2xl">
             <div className="flex items-center gap-4 mb-6">
                 <Link href={route('store.v3.products.index', { store_slug: store?.slug })} className="text-ink-muted hover:text-ink">
-                    ← Products
+                    ← {tt('Products')}
                 </Link>
-                <h1 className="text-2xl font-bold">New Product</h1>
+                <h1 className="text-2xl font-bold">{tt('New Product')}</h1>
             </div>
 
             <form onSubmit={submit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Product Name *</label>
+                        <label className="block text-sm font-medium mb-1">{tt('Product Name')} *</label>
                         <input
                             type="text"
                             value={data.name}
@@ -87,13 +89,13 @@ export default function ProductCreate() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Supplier SKU Mapping</label>
+                        <label className="block text-sm font-medium mb-1">{tt('Supplier SKU Mapping')}</label>
                         <input
                             type="text"
                             value={data.supplier_sku}
                             onChange={e => setData('supplier_sku', e.target.value)}
                             className="w-full border rounded px-3 py-2"
-                            placeholder="Supplier SKU"
+                            placeholder={tt('Supplier SKU')}
                         />
                     </div>
                 </div>
@@ -113,7 +115,7 @@ export default function ProductCreate() {
                             checked={data.is_manufactured}
                             onChange={e => setData('is_manufactured', e.target.checked)}
                         />
-                        <span className="text-sm">Has BOM (manufactured product)</span>
+                        <span className="text-sm">{tt('Has BOM (manufactured product)')}</span>
                     </label>
                 </div>
 
@@ -123,7 +125,7 @@ export default function ProductCreate() {
                         disabled={processing}
                         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                     >
-                        {processing ? 'Saving...' : 'Create Product'}
+                        {processing ? 'Saving...' : tt('Create Product')}
                     </button>
                     <Link
                         href={route('store.v3.products.index', { store_slug: store?.slug })}

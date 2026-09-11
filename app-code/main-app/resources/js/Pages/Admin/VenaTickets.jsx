@@ -6,6 +6,7 @@ import {
     ChevronRight, RefreshCw, Filter, Inbox, Bot, Zap, User, Plus
 } from 'lucide-react';
 import VenaLogo from '@/Components/VenaLogo';
+import { useTermText } from '@/lib/terms';
 
 // ── Escalation type badge config ─────────────────────────────────────────────
 const ESCALATION_CONFIG = {
@@ -89,6 +90,7 @@ function formatTime(dateStr) {
 
 export default function VenaTickets({ tickets, context, filters, open_count }) {
     const { store } = usePage().props;
+    const tt = useTermText();
     const [statusFilter, setStatusFilter] = useState(filters?.status || 'all');
     const [escalationFilter, setEscalationFilter] = useState(filters?.escalation_type || 'all');
 
@@ -175,7 +177,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                             <p className="text-xs text-ink-muted">
                                 {isPlatform
                                     ? 'Auto-generated tickets from Vena chat escalations across all stores'
-                                    : 'Customer support tickets raised through your store\'s Vena chat widget'}
+                                    : tt('Customer support tickets raised through your store\'s Vena chat widget')}
                             </p>
                         </div>
                     </div>
@@ -381,8 +383,8 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                     <div className="w-full max-w-lg bg-surface border border-line rounded-2xl overflow-hidden shadow-2xl animate-scale-up" style={{ animation: 'scaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
                         <div className="px-6 py-5 border-b border-line flex items-center justify-between bg-sunken/50 dark:bg-surface">
                             <div>
-                                <h3 className="text-base font-bold text-ink tracking-tight">Log New Customer Ticket</h3>
-                                <p className="text-xs text-ink-muted mt-0.5">Record customer issues manually while on the call or in-store</p>
+                                <h3 className="text-base font-bold text-ink tracking-tight">{tt('Log New Customer Ticket')}</h3>
+                                <p className="text-xs text-ink-muted mt-0.5">{tt('Record customer issues manually while on the call or in-store')}</p>
                             </div>
                             <button onClick={() => setOpenModal(false)} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors text-lg p-1">✕</button>
                         </div>
@@ -390,7 +392,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Customer Name</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">{tt('Customer Name')}</label>
                                     <input
                                         type="text" required placeholder="e.g. John Doe"
                                         value={formName} onChange={e => setFormName(e.target.value)}
@@ -398,7 +400,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Customer Email</label>
+                                    <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">{tt('Customer Email')}</label>
                                     <input
                                         type="email" required placeholder="e.g. john@example.com"
                                         value={formEmail} onChange={e => setFormEmail(e.target.value)}
@@ -432,7 +434,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                             <div>
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Issue details / notes</label>
                                 <textarea
-                                    required rows={4} placeholder="Describe the customer inquiry or ticket details..."
+                                    required rows={4} placeholder={tt("Describe the customer inquiry or ticket details...")}
                                     value={formMessage} onChange={e => setFormMessage(e.target.value)}
                                     className="w-full px-3.5 py-2 text-sm bg-app border border-line focus:border-brand-500 rounded-xl outline-none text-ink transition-all font-semibold resize-none"
                                 />

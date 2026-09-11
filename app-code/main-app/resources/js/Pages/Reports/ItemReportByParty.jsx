@@ -5,8 +5,10 @@ import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { formatCurrency } from '@/Utils/format';
 import { UserPlus } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function ItemReportByParty({ data = [], stats = [], filters = {} }) {
+    const tt = useTermText();
     const {
         store
     } = usePage().props;
@@ -14,12 +16,12 @@ export default function ItemReportByParty({ data = [], stats = [], filters = {} 
     const columns = [
         {
             key: 'party_name',
-            label: 'Customer',
+            label: tt('Customer'),
             sortable: true,
         },
         {
             key: 'product_name',
-            label: 'Product',
+            label: tt('Product'),
             sortable: true,
         },
         {
@@ -53,11 +55,11 @@ export default function ItemReportByParty({ data = [], stats = [], filters = {} 
     };
 
     return (
-        <ReportsLayout title="Item Report by Customer">
-            <Head title="Item Report by Customer" />
+        <ReportsLayout title={tt('Item Report by Customer')}>
+            <Head title={tt('Item Report by Customer')} />
             <MasterReport
-                title="Item Report by Customer"
-                subTitle="Net revenue per product, grouped by customer — FIFO reconciled"
+                title={tt('Item Report by Customer')}
+                subTitle={tt('Net revenue per product, grouped by customer — FIFO reconciled')}
                 stats={stats}
                 columns={columns}
                 data={data}

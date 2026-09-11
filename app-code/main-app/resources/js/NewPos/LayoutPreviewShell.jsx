@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import { useTermText } from '@/lib/terms';
 
 export default function LayoutPreviewShell({
     preset = 'column',
@@ -17,6 +18,7 @@ export default function LayoutPreviewShell({
     className = '',
     style = {},
 }) {
+    const tt = useTermText();
     // Determine composition traits
     const isScan = preset === 'scan';
     const isColumn = preset === 'column';
@@ -75,7 +77,7 @@ export default function LayoutPreviewShell({
                         {/* 1. TABLE PRESET: Table floor plan column */}
                         {isTable ? (
                             <div className="nqp-prev-pane pane-floor">
-                                <div className="nqp-prev-pane-hdr">🍽️ Table Floor Plan</div>
+                                <div className="nqp-prev-pane-hdr">🍽️ {tt('Table Floor Plan')}</div>
                                 <div className="nqp-prev-floor-grid">
                                     <div className="nqp-prev-table-card seated">
                                         <b>T-1</b>
@@ -118,7 +120,7 @@ export default function LayoutPreviewShell({
                         {(isColumn || isGrid) ? (
                             <div className={`nqp-prev-pane pane-catalog ${isGrid ? 'pane-grid-dominant' : ''}`}>
                                 <div className="nqp-prev-pane-hdr">
-                                    <span>📦 Product Catalog</span>
+                                    <span>📦 {tt('Product Catalog')}</span>
                                     <span className="tag-pill">{isGrid ? 'Touch Grid 40%' : 'Reference 20%'}</span>
                                 </div>
                                 <div className="nqp-prev-cats">
@@ -257,7 +259,7 @@ export default function LayoutPreviewShell({
                 </div>
                 {isTable ? (
                     <div className="legend-item">
-                        <span className="legend-dot dot-amber" /> <b>Table Management</b> (Dine-in Floor)
+                        <span className="legend-dot dot-amber" /> <b>{tt('Table Management')}</b> (Dine-in Floor)
                     </div>
                 ) : null}
             </div>

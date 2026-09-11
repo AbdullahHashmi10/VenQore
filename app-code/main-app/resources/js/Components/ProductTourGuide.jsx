@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Box, HelpCircle, Trophy, Home, Plus, Upload, Minimize2 } from 'lucide-react';
+import { useTermText } from '@/lib/terms';
 
 export default function ProductTourGuide({ isModalOpen, store, categories = [] }) {
+ const tt = useTermText();
  const [isCategoryCreationPath, setIsCategoryCreationPath] = useState(() => categories.length === 0);
  const [currentStep, setCurrentStep] = useState(0);
  const [isMinimized, setIsMinimized] = useState(() => {
@@ -342,7 +344,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  </h2>
 
  <p className="text-ink-muted text-sm font-semibold mb-2">
- You have successfully created your first product!
+ {tt('You have successfully created your first product!')}
  </p>
 
  <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
@@ -363,7 +365,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  className="w-full py-3 px-5 bg-neutral-800/80 hover:bg-interactive-hover text-neutral-300 hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal flex items-center justify-center gap-2 cursor-pointer"
  >
  <Plus size={18} />
- <span>Make More Products</span>
+ <span>{tt('Make More Products')}</span>
  </button>
  </div>
  </div>
@@ -462,7 +464,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  </div>
  <div>
  <h4 className="text-sm font-bold text-white uppercase tracking-wider">
- {currentStep === 0 ? 'Create Product' : 'Product Guide'}
+ {currentStep === 0 ? tt('Create Product') : tt('Product Guide')}
  </h4>
  <span className="text-2xs font-semibold text-brand-400">
  Step {currentStep + 1} of {isCategoryCreationPath ? 12 : 10}
@@ -475,7 +477,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Let's add your first product. Click on the highlighted <span className="text-white font-bold">Add Product</span> button to open the product creator form.
+ Let's add your first product. Click on the highlighted <span className="text-white font-bold">{tt('Add Product')}</span> button to open the product creator form.
  </p>
  )}
  {currentStep === 1 && (
@@ -548,7 +550,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  <>
  {currentStep === 0 && (
  <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Let's add your first product. Click on the highlighted <span className="text-white font-bold">Add Product</span> button to open the product creator form.
+ Let's add your first product. Click on the highlighted <span className="text-white font-bold">{tt('Add Product')}</span> button to open the product creator form.
  </p>
  )}
  {currentStep === 1 && (

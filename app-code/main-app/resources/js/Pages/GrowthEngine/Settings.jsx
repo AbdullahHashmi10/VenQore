@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { getCurrencySymbol } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
 import {
     Settings as SettingsIcon, Sliders, Gift, Save, Info,
     Users, Package, Percent, Wallet, BellOff, Bell, Ruler,
@@ -23,6 +24,7 @@ import {
  */
 export default function GrowthSettings({ settings, scorecard, catalog, learned }) {
     const cur = getCurrencySymbol();
+    const tt = useTermText();
     const [tab, setTab] = useState('engine');
 
     const { data, setData, post, processing, recentlySuccessful, errors } = useForm({
@@ -100,7 +102,7 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                         matter of preference.
                     </Callout>
 
-                    <Card title="Customer analysis">
+                    <Card title={tt('Customer analysis')}>
                         <Field label="Minimum orders before a customer is analysed"
                             hint="Below this we don't have enough of a pattern to make an honest prediction. Two is usually right; three or more will miss your newer customers."
                             error={errors.regular_customer_min_orders}>
@@ -159,7 +161,7 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                         <LearnedCard icon={Users} label="Typical reorder gap"
                             value={`${learned?.median_reorder_gap ?? '—'} days`}
                             note="How long your customers normally take to come back. Used to judge new customers who have no rhythm of their own yet." />
-                        <LearnedCard icon={Package} label="Supplier lead time"
+                        <LearnedCard icon={Package} label={tt('Supplier lead time')}
                             value={`${learned?.supplier_lead_time ?? '—'} days`}
                             note="Learned from the gap between your repeat purchases. Stock warnings are timed to arrive before this window closes." />
                         <LearnedCard icon={Percent} label="Your payment terms"
