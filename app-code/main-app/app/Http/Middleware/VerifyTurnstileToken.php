@@ -19,8 +19,17 @@ class VerifyTurnstileToken
     {
         $secretKey = config('services.cloudflare.turnstile_secret_key');
 
-        // Fail open when not configured (local development, testing, staging without keys)
+        // Fail open when not configured (local development, testing, staging without keys).
+        // N25 (2026-09-10): in PRODUCTION a missing key fails CLOSED — a silently
+        // disabled bot check on public, email-sending and AI-spending routes is
+        // worse than a visible error. Set TURNSTILE keys before launch.
         if (empty($secretKey) || $secretKey === 'REPLACE_ME_TURNSTILE_SECRET_KEY') {
+            if (app()->environment('production') && !config('services.cloudflare.turnstile_allow_missing_in_production', false)) {
+                Log::critical('[Turnstile] Secret key missing in production — refusing protected request', ['path' => $request->path()]);
+                return $request->expectsJson()
+                    ? response()->json(['success' => false, 'message' => 'This form is temporarily unavailable. Please email us directly.'], 503)
+                    : back()->withErrors(['turnstile' => 'This form is temporarily unavailable. Please try again later.']);
+            }
             return $next($request);
         }
 

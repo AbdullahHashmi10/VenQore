@@ -260,11 +260,16 @@ class StaffController extends Controller
      */
     public function joinWithCode(Request $request): RedirectResponse
     {
-        $request->validate(['join_code' => 'required|string|size:7']);
+        $request->validate(['join_code' => ['required', 'string', 'min:7', 'max:16', 'regex:/^[A-Za-z0-9-]+$/']]);
 
-        $tenant = \App\Models\Tenant::where('join_code', strtoupper($request->join_code))
+        $tenant = \App\Models\Tenant::where('join_code', strtoupper(trim($request->join_code)))
             ->whereIn('status', ['trial', 'active'])
-            ->firstOrFail();
+            ->first();
+
+        if (! $tenant) {
+            // Same response for every miss — do not reveal which codes exist.
+            return back()->withErrors(['join_code' => 'That code is not valid. Check it with the store owner.']);
+        }
 
         $user = Auth::user();
 
@@ -277,10 +282,19 @@ class StaffController extends Controller
                              ->with('info', 'You are already a member of this store.');
         }
 
-        TenantUser::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'user_id' => $user->id],
-            ['role' => 'cashier', 'status' => 'active', 'joined_at' => now()]
-        );
+        // SEC-11 (2026-09-10): a suspended/removed/pending membership must NOT be
+        // reactivated by the shared join code. Only the owner/admin can restore it.
+        if ($existing) {
+            abort(403, 'Your access to this store was changed by the owner. Ask them to restore it.');
+        }
+
+        TenantUser::create([
+            'tenant_id' => $tenant->id,
+            'user_id'   => $user->id,
+            'role'      => 'cashier',
+            'status'    => 'active',
+            'joined_at' => now(),
+        ]);
 
         $user->update(['last_store_id' => $tenant->id]);
 

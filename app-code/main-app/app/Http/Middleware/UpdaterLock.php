@@ -11,6 +11,12 @@ class UpdaterLock
 {
     public function handle(Request $request, Closure $next)
     {
+        // SEC-08 (2026-09-10): the in-browser ZIP updater is OFF unless
+        // explicitly enabled. Production deploys should use the CLI/CI.
+        if (!config('venqore.web_updater_enabled', false)) {
+            abort(404);
+        }
+
         // ── 0. Token-based bypass (session-independent) ────────────
         // After the extract step writes new PHP files to disk, the old
         // bootstrap/cache/*.php may conflict with new code and cause
@@ -29,7 +35,9 @@ class UpdaterLock
                     strlen($lockData['update_token']) >= 32 &&
                     hash_equals($lockData['update_token'], $requestToken)
                 ) {
-                    // Valid secure token — allow this step through
+                    // Valid secure token — allow this step through. The token is a
+                    // 32+ char secret returned only to the uploading session, so
+                    // it also serves as this step's CSRF proof.
                     return $next($request);
                 }
             }
@@ -58,6 +66,27 @@ class UpdaterLock
             }
             // Regular users get redirected to dashboard with a message
             return redirect()->route('dashboard')->with('error', 'You do not have permission to access the System Updater.');
+        }
+
+        // SEC-08: api/updater/* is excluded from the global CSRF middleware (so
+        // token-authenticated steps survive a session reset mid-update). Any
+        // state-changing request WITHOUT a valid update token must therefore
+        // carry the session's CSRF token.
+        if (!$request->isMethodSafe()) {
+            $sessionToken = $request->hasSession() ? $request->session()->token() : null;
+            $sent = $request->input('_token') ?: $request->header('X-CSRF-TOKEN');
+            if (!$sent && $request->header('X-XSRF-TOKEN')) {
+                try {
+                    $sent = \Illuminate\Cookie\CookieValuePrefix::remove(
+                        app('encrypter')->decrypt($request->header('X-XSRF-TOKEN'), false)
+                    );
+                } catch (\Throwable $e) {
+                    $sent = null;
+                }
+            }
+            if (!$sessionToken || !is_string($sent) || !hash_equals($sessionToken, $sent)) {
+                return response()->json(['error' => 'CSRF token mismatch.'], 419);
+            }
         }
 
         return $next($request);

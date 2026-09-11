@@ -17,12 +17,20 @@ class SyncController extends Controller
      */
     private function getStoreId(): ?int
     {
-        $user = auth()->user();
-        return $user ? (int) $user->last_store_id : null;
+        // SEC-02: the store comes ONLY from the EnsureActiveStoreMembership
+        // middleware (active membership proven). Never trust last_store_id here.
+        return app()->bound('current.tenant') && app()->bound('current.membership')
+            ? (int) app('current.tenant')->id
+            : null;
     }
 
     /**
-     * Returns staff list with hashed PINs for offline authentication.
+     * Returns the active staff list (id, name, role).
+     *
+     * SEC-10 (2026-09-10): this used to return tenant_users.pos_pin (the PIN
+     * hash) for every staff member to any authenticated caller, enabling offline
+     * guessing of short PINs. PIN verifiers are no longer distributed. Offline
+     * staff unlock must be redesigned around device enrollment (see audit).
      */
     public function users(Request $request)
     {
@@ -41,7 +49,6 @@ class SyncController extends Controller
                 'users.id',
                 'users.name',
                 'tenant_users.role',
-                'tenant_users.pos_pin as passcode' 
             ])
             ->get();
 
@@ -173,7 +180,18 @@ class SyncController extends Controller
 
         $storeId = $this->getStoreId();
         if (!$storeId) {
-            return response()->json(['message' => 'Unauthorized: no active store context'], 401);
+            return response()->json(['message' => 'Unauthorized: no active store context'], 403);
+        }
+
+        // SEC-02: batch sync creates sales — require the same permission as the
+        // POS/sales routes instead of bypassing route-level checks.
+        $perms = (array) (auth()->user()->permissions ?? []);
+        if (! in_array('*', $perms, true) && ! in_array('sales.create', $perms, true) && ! in_array('pos', $perms, true)) {
+            return response()->json(['message' => 'You do not have permission to record sales.'], 403);
+        }
+
+        if (is_array($orders) && count($orders) > 200) {
+            return response()->json(['message' => 'Too many orders in one batch (max 200).'], 422);
         }
 
         $tenant = \App\Models\Tenant::withoutGlobalScopes()->find($storeId);

@@ -24,6 +24,9 @@ class LoanController extends Controller
 
         $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
 
+        // 2500 is not in a new store's default chart — provision it.
+        $this->ensureLoanAccounts($cashAccount);
+
         $this->accounting->createEntry([
             'date'     => $validated['drawdown_date'],
             'reference_type' => 'loan_drawdown',
@@ -72,6 +75,9 @@ class LoanController extends Controller
             ];
         }
 
+        // 2500 / 6500 are not in a new store's default chart — provision them.
+        $this->ensureLoanAccounts($cashAccount);
+
         $this->accounting->createEntry([
             'date'     => $validated['repayment_date'],
             'reference_type' => 'loan_repayment',
@@ -80,5 +86,12 @@ class LoanController extends Controller
         ], $journalLines);
 
         return redirect()->back()->with('success', 'Loan repayment posted.');
+    }
+
+    private function ensureLoanAccounts(string $cashAccount): void
+    {
+        $this->accounting->getAccountByCode('2500', 'Loan Payable', 'liability');
+        $this->accounting->getAccountByCode('6500', 'Loan Interest Expense', 'expense');
+        $this->accounting->getAccountByCode($cashAccount, $cashAccount === '1010' ? 'Bank Account' : 'Cash in Hand', 'asset');
     }
 }

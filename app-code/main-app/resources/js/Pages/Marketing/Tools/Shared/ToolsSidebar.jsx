@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { Menu, X, Lock } from 'lucide-react';
+import { Menu, X, Sparkles } from 'lucide-react';
 
 /**
  * ToolsSidebar — left navigation across the whole free-tools surface.
@@ -19,18 +19,12 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
 
     const Item = ({ tool }) => {
         const isCurrent = tool.slug === currentSlug;
-        const base = 'flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors';
 
         if (tool.status !== 'live' || !tool.href) {
             return (
-                <div
-                    className={`${base} text-ink-muted cursor-default select-none`}
-                    title="Coming soon"
-                >
-                    <span className="truncate">{tool.short}</span>
-                    <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-sunken dark:bg-white/[0.06] text-ink-muted shrink-0">
-                        Soon
-                    </span>
+                <div className="vq-tools-nav__item vq-tools-nav__item--soon" title="Coming soon">
+                    <span className="vq-tools-nav__label">{tool.short}</span>
+                    <span className="vq-badge vq-badge--soon">Soon</span>
                 </div>
             );
         }
@@ -39,13 +33,10 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
             <Link
                 href={tool.href}
                 onClick={() => setOpen(false)}
-                className={`${base} ${
-                    isCurrent
-                        ? 'bg-brand-500/10 text-brand-600 dark:text-brand-300 font-bold border border-brand-500/20'
-                        : 'text-ink-secondary hover:text-ink dark:hover:text-white hover:bg-interactive-hover/[0.04] dark:hover:bg-white/[0.05]'
-                }`}
+                aria-current={isCurrent ? 'page' : undefined}
+                className="vq-tools-nav__item"
             >
-                <span className="truncate">{tool.short}</span>
+                <span className="vq-tools-nav__label">{tool.short}</span>
             </Link>
         );
     };
@@ -64,40 +55,29 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
         }).filter(group => group.tools.length > 0);
 
         return (
-            <nav className="space-y-6">
+            <nav className="vq-tools-nav" aria-label="Free tools">
                 {smartCaptureTool && (
                     <div>
-                        <p className="text-2xs font-bold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 mb-2 px-3 flex items-center gap-1">
-                            <span>Premium AI Feature</span>
-                        </p>
-                        <div className="space-y-0.5">
-                            <Link
-                                href={smartCaptureTool.href}
-                                onClick={() => setOpen(false)}
-                                className={`flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-all duration-slow border ${
-                                    currentSlug === 'smart-capture'
-                                        ? 'bg-gradient-to-r from-brand-600/20 to-brand-600/10 text-brand-700 dark:text-brand-300 font-bold border-brand-500/40 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
-                                        : 'bg-gradient-to-r from-brand-500/[0.04] to-brand-500/[0.01] hover:from-brand-500/[0.08] hover:to-brand-500/[0.05] border-brand-500/15 hover:border-brand-500/30 text-ink dark:text-ink-secondary hover:text-brand-600 dark:hover:text-brand-400 font-bold'
-                                }`}
-                            >
-                                <span className="flex items-center gap-2 truncate">
-                                    <span className="animate-pulse">✨</span>
-                                    <span className="truncate">{smartCaptureTool.short}</span>
-                                </span>
-                                <span className="px-1.5 py-0.5 rounded bg-brand-500/15 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-wider shrink-0 scale-90">
-                                    PRO
-                                </span>
-                            </Link>
-                        </div>
+                        <p className="vq-tools-nav__group-label vq-tools-nav__group-label--accent">AI feature</p>
+                        <Link
+                            href={smartCaptureTool.href}
+                            onClick={() => setOpen(false)}
+                            aria-current={currentSlug === 'smart-capture' ? 'page' : undefined}
+                            className="vq-tools-nav__item vq-tools-nav__item--feature"
+                        >
+                            <span className="vq-tools-nav__label">
+                                <Sparkles size={15} aria-hidden="true" />
+                                {smartCaptureTool.short}
+                            </span>
+                            <span className="vq-badge vq-badge--accent">Pro</span>
+                        </Link>
                     </div>
                 )}
 
                 {filteredGroups.map((group) => (
                     <div key={group.key}>
-                        <p className="text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted mb-2 px-3">
-                            {group.label}
-                        </p>
-                        <div className="space-y-0.5">
+                        <p className="vq-tools-nav__group-label">{group.label}</p>
+                        <div className="vq-tools-nav__list">
                             {group.tools.map((tool) => (
                                 <Item key={tool.slug} tool={tool} />
                             ))}
@@ -111,23 +91,26 @@ export default function ToolsSidebar({ groups = [], currentSlug = null }) {
     return (
         <>
             {/* Mobile toggle */}
-            <div className="lg:hidden mb-6">
+            <div className="vq-tools-nav__toggle">
                 <button
+                    type="button"
                     onClick={() => setOpen((v) => !v)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-sm font-bold text-ink-secondary"
+                    aria-expanded={open}
+                    className="vq-btn vq-btn--secondary"
+                    style={{ alignSelf: 'flex-start' }}
                 >
                     {open ? <X size={16} /> : <Menu size={16} />}
-                    All tools
+                    All free tools
                 </button>
                 {open && (
-                    <div className="mt-4 p-4 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                    <div className="vq-tools-nav__drawer">
                         <Nav />
                     </div>
                 )}
             </div>
 
             {/* Desktop rail */}
-            <aside className="hidden lg:block w-56 shrink-0 sticky top-36 self-start">
+            <aside className="vq-tools-nav__rail">
                 <Nav />
             </aside>
         </>

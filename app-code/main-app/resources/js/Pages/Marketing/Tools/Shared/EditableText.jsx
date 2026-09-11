@@ -100,7 +100,7 @@ export default function EditableText({
             onBlur: commit,
             onKeyDown,
             placeholder,
-            className: `bg-brand-50 dark:bg-brand-500/10 outline-none ring-2 ring-brand-400/60 rounded px-1 -mx-1 ${className} ${editClassName}`,
+            className: `vq-raw bg-brand-50 dark:bg-brand-500/10 outline-none ring-2 ring-brand-400/60 rounded px-1 -mx-1 ${className} ${editClassName}`,
         };
 
         if (as === 'textarea' || multiline) {

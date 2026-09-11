@@ -209,8 +209,8 @@ export default function SkuGenerator({ toolGroups = [] }) {
         URL.revokeObjectURL(url);
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-[14px] text-ink focus:outline-none';
+    const labelCls = 'block text-sm font-semibold text-ink mb-2';
 
     const segmentTypeOptions = SEGMENT_TYPES;
     const separatorOptions = SEPARATORS;
@@ -234,7 +234,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Product CSV Cleaner', href: '/tools/product-csv-cleaner' }]}
         >
             {/* ── Category / variant code maps ─────────────────────────── */}
-            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <ListPlus size={17} className="text-brand-500 dark:text-brand-300" />
@@ -257,7 +257,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 </div>
                             ))}
                         </div>
-                        <button type="button" onClick={() => addMapRow(setCategories)} className="mt-3 px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
+                        <button type="button" onClick={() => addMapRow(setCategories)} className="mt-3 px-3 py-1.5 rounded-lg vq-tool-inset text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
                             <Plus size={13} /> Add category
                         </button>
                     </div>
@@ -273,7 +273,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 </div>
                             ))}
                         </div>
-                        <button type="button" onClick={() => addMapRow(setVariants)} className="mt-3 px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
+                        <button type="button" onClick={() => addMapRow(setVariants)} className="mt-3 px-3 py-1.5 rounded-lg vq-tool-inset text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
                             <Plus size={13} /> Add variant
                         </button>
                     </div>
@@ -281,7 +281,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
             </div>
 
             {/* ── Scheme builder ────────────────────────────────────────── */}
-            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <Layers size={17} className="text-brand-500 dark:text-brand-300" />
@@ -299,7 +299,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
 
                 <div className="space-y-3">
                     {segments.map((seg, i) => (
-                        <div key={seg.id} className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
+                        <div key={seg.id} className="p-4 rounded-2xl vq-tool-inset">
                             <div className="flex items-center gap-3 flex-wrap">
                                 <GripVertical size={15} className="text-ink-secondary dark:text-ink-secondary shrink-0" />
                                 <div className="w-full sm:w-48">
@@ -329,8 +329,8 @@ export default function SkuGenerator({ toolGroups = [] }) {
                                 )}
 
                                 <div className="ml-auto flex items-center gap-1 shrink-0">
-                                    <button type="button" onClick={() => moveSegment(seg.id, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowUp size={14} /></button>
-                                    <button type="button" onClick={() => moveSegment(seg.id, 1)} disabled={i === segments.length - 1} className="p-1.5 rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-white disabled:opacity-30 transition-colors"><ArrowDown size={14} /></button>
+                                    <button type="button" onClick={() => moveSegment(seg.id, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-ink-muted hover:text-ink-secondary disabled:opacity-30 transition-colors"><ArrowUp size={14} /></button>
+                                    <button type="button" onClick={() => moveSegment(seg.id, 1)} disabled={i === segments.length - 1} className="p-1.5 rounded-lg text-ink-muted hover:text-ink-secondary disabled:opacity-30 transition-colors"><ArrowDown size={14} /></button>
                                     <button type="button" onClick={() => removeSegment(seg.id)} className="p-1.5 rounded-lg text-ink-muted hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
                                 </div>
                             </div>
@@ -340,7 +340,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
 
                 <div className="flex flex-wrap gap-2 mt-4">
                     {SEGMENT_TYPES.map((t) => (
-                        <button key={t.value} type="button" onClick={() => addSegment(t.value)} className="px-3.5 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
+                        <button key={t.value} type="button" onClick={() => addSegment(t.value)} className="px-3.5 py-2 rounded-xl vq-tool-inset text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5">
                             <Plus size={13} /> {t.label}
                         </button>
                     ))}
@@ -360,7 +360,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
             </div>
 
             {/* ── Product rows / bulk generation ───────────────────────── */}
-            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <TableIcon size={17} className="text-brand-500 dark:text-brand-300" />
@@ -385,17 +385,17 @@ export default function SkuGenerator({ toolGroups = [] }) {
                         <button
                             type="button"
                             onClick={parseBulk}
-                            className="px-4 py-2 rounded-xl bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300 text-xs font-bold uppercase tracking-wide hover:bg-brand-500/25 transition-colors inline-flex items-center gap-1.5 shrink-0"
+                            className="vq-btn vq-btn--quiet shrink-0"
                         >
                             <ClipboardPaste size={14} /> Add rows
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
+                <div className="overflow-x-auto rounded-2xl border border-line">
                     <table className="w-full text-sm min-w-[720px]">
                         <thead>
-                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken text-left">
                                 {['Product Name', 'Category', 'Variant', 'Generated SKU', ''].map((h) => (
                                     <th key={h} className="px-3 py-2.5 font-bold text-ink-secondary text-xs uppercase tracking-wide">{h}</th>
                                 ))}
@@ -403,7 +403,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                         </thead>
                         <tbody>
                             {results.map((r, i) => (
-                                <tr key={i} className="border-t border-line dark:border-white/[0.06]">
+                                <tr key={i} className="border-t border-line">
                                     <td className="px-3 py-2">
                                         <input value={r.name} onChange={(e) => updateRow(i, 'name', e.target.value)} className={`${inputCls} py-1.5`} placeholder="Product name" />
                                     </td>
@@ -439,14 +439,14 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     <button
                         type="button"
                         onClick={addRow}
-                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl vq-tool-inset text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
                     >
                         <Plus size={14} /> Add row
                     </button>
                     <button
                         type="button"
                         onClick={copyToClipboard}
-                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl vq-tool-inset text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
                     >
                         {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                         {copied ? 'Copied SKUs!' : 'Copy SKUs'}
@@ -454,7 +454,7 @@ export default function SkuGenerator({ toolGroups = [] }) {
                     <button
                         type="button"
                         onClick={exportCsv}
-                        className="px-4 py-2.5 rounded-xl bg-accent-fill text-accent-on text-xs font-bold uppercase tracking-wide transition-transform inline-flex items-center gap-1.5"
+                        className="vq-btn vq-btn--primary"
                     >
                         <Download size={14} /> Export CSV
                     </button>

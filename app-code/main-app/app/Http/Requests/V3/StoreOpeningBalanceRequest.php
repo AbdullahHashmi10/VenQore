@@ -3,6 +3,7 @@
 namespace App\Http\Requests\V3;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOpeningBalanceRequest extends FormRequest
 {
@@ -10,22 +11,26 @@ class StoreOpeningBalanceRequest extends FormRequest
 
     public function rules(): array
     {
+        // Accounts, parties, products and warehouses must all be this store's
+        // (bare exists: rules accepted another store's ids / any store's code).
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+
         return [
             'entry_date'   => ['required', 'date', 'before_or_equal:today'],
             'entries'      => ['required', 'array', 'min:1'],
             'entries.*.account_code' => ['required', 'string',
-                                         'exists:accounts,code'],
+                                         Rule::exists('accounts', 'code')->where('tenant_id', $tenantId)],
             'entries.*.amount'       => ['required', 'numeric'],
             'entries.*.side'         => ['required', 'in:debit,credit'],
             'entries.*.party_id'     => ['nullable', 'string',
-                                         'exists:parties,id'],
+                                         Rule::exists('parties', 'id')->where('tenant_id', $tenantId)],
 
             // Inventory opening stock entries
             'stock_entries'                      => ['nullable', 'array'],
             'stock_entries.*.product_id'         => ['required', 'string',
-                                                     'exists:products,id'],
+                                                     Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'stock_entries.*.warehouse_id'       => ['required', 'string',
-                                                     'exists:warehouses,id'],
+                                                     Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
             'stock_entries.*.qty'                => ['required', 'numeric',
                                                      'min:0.0001'],
             'stock_entries.*.unit_cost'          => ['required', 'numeric',

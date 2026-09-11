@@ -17,6 +17,11 @@ class Account extends Model
         'name',
         'code',
         'type',
+        // Must be fillable: AccountingService::getAccountByCode() sets it when it
+        // provisions an account, and getBalance() signs balances by it. Without it
+        // every auto-created liability/income/equity account silently became
+        // debit-normal (the column default).
+        'normal_balance',
         'parent_id',
         'balance',
         'depreciation_rate',

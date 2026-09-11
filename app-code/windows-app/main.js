@@ -33,6 +33,110 @@ const CLOUD_URL = process.argv.includes('--dev')
 const APP_NAME  = 'VenQore Station';
 const APP_VER   = app.getVersion();
 
+// ─── SEC-06 (2026-09-10): ORIGIN BOUNDARY ─────────────────────────────────────
+// The hardware bridge (printer, cash drawer, serial ports, prefs) must only be
+// reachable from the sealed VenQore origin, and only from the top-level frame.
+// Any other page — a redirect, a popup, an injected iframe — gets nothing.
+const TRUSTED_ORIGIN = new URL(CLOUD_URL).origin;
+
+function originOf(url) {
+    try { return new URL(url).origin; } catch { return null; }
+}
+
+function isTrustedUrl(url) {
+    return originOf(url) === TRUSTED_ORIGIN;
+}
+
+/** True when the IPC comes from the local shell (shell.html in mainWindow). */
+function isShellSender(event) {
+    return !!(mainWindow && event.sender && event.sender.id === mainWindow.webContents.id
+        && event.senderFrame && String(event.senderFrame.url || '').startsWith('file://'));
+}
+
+/** True when the IPC comes from the trusted cloud page's top-level frame. */
+function isTrustedGuestSender(event) {
+    const frame = event.senderFrame;
+    if (!frame || !event.sender) return false;
+    if (frame !== event.sender.mainFrame) return false; // no iframes
+    return isTrustedUrl(frame.url);
+}
+
+function isAllowedSender(event) {
+    return isShellSender(event) || isTrustedGuestSender(event);
+}
+
+/** ipcMain.handle with sender validation. */
+function secureHandle(channel, handler) {
+    ipcMain.handle(channel, (event, ...args) => {
+        if (!isAllowedSender(event)) {
+            console.warn(`[Security] Blocked ${channel} from ${event.senderFrame && event.senderFrame.url}`);
+            return { success: false, error: 'Blocked: untrusted sender' };
+        }
+        return handler(event, ...args);
+    });
+}
+
+/** ipcMain.on with sender validation. */
+function secureOn(channel, handler) {
+    ipcMain.on(channel, (event, ...args) => {
+        if (!isAllowedSender(event)) {
+            console.warn(`[Security] Blocked ${channel} from ${event.senderFrame && event.senderFrame.url}`);
+            return;
+        }
+        handler(event, ...args);
+    });
+}
+
+// Pref keys each kind of sender may write. Identity/credential keys are never writable over IPC.
+const GUEST_WRITABLE_PREFS = ['defaultPrinter', 'scannerPort', 'scannerBaudRate', 'scalePort', 'scaleBaudRate'];
+const NEVER_WRITABLE_PREFS = ['cloudUrl', 'deviceId', 'deviceSecret', 'terminalId', 'lastOnlineSyncAt'];
+
+// Lock every webContents (webview guests, dual-screen window) to the trusted origin.
+app.on('web-contents-created', (_event, contents) => {
+    contents.setWindowOpenHandler(({ url }) => {
+        // Never open new Electron windows from web content. Plain https links
+        // (help pages, payment portals) go to the system browser.
+        if (/^https:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
+        return { action: 'deny' };
+    });
+
+    contents.on('will-navigate', (event, url) => {
+        if (contents.getType() === 'webview' || contents.getType() === 'window') {
+            if (url.startsWith('file://') && mainWindow && contents.id === mainWindow.webContents.id) return; // shell reload
+            if (url === 'about:blank') return;
+            if (!isTrustedUrl(url)) {
+                event.preventDefault();
+                console.warn(`[Security] Blocked navigation to ${url}`);
+                if (/^https:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
+            }
+        }
+    });
+
+    contents.on('will-redirect', (event, url) => {
+        if (contents.getType() === 'webview' && url !== 'about:blank' && !isTrustedUrl(url)) {
+            event.preventDefault();
+            console.warn(`[Security] Blocked redirect to ${url}`);
+        }
+    });
+
+    // Enforce safe settings on any <webview> the shell attaches.
+    contents.on('will-attach-webview', (event, webPreferences, params) => {
+        webPreferences.nodeIntegration = false;
+        webPreferences.nodeIntegrationInSubFrames = false;
+        webPreferences.contextIsolation = true;
+        webPreferences.webSecurity = true;
+        webPreferences.allowRunningInsecureContent = false;
+        const expectedPreload = path.join(__dirname, 'preload.js');
+        if (webPreferences.preload && path.resolve(String(webPreferences.preload).replace(/^file:\/\//, '')) !== path.resolve(expectedPreload)) {
+            delete webPreferences.preload;
+        }
+        if (params.src && params.src !== 'about:blank' && !isTrustedUrl(params.src)) {
+            console.warn(`[Security] Refused to attach webview for ${params.src}`);
+            event.preventDefault();
+        }
+    });
+});
+
 // ─── GLOBALS ──────────────────────────────────────────────────────────────────
 let mainWindow;
 let tray;
@@ -226,28 +330,47 @@ function buildMenu() {
 }
 
 // ─── HEARTBEAT ────────────────────────────────────────────────────────────────
+/** SEC-04: attach this terminal's device credential when we have one. */
+function deviceHeaders(base = {}) {
+    return prefs.deviceSecret ? { ...base, 'X-Device-Secret': prefs.deviceSecret } : base;
+}
+
 function startHeartbeat() {
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     sendHeartbeat();
     heartbeatInterval = setInterval(sendHeartbeat, 60000);
 }
 
-async function sendHeartbeat() {
-    if (!prefs.connectedStore) return; // Not yet linked to a store
+async function sendHeartbeat(pairingCode = null) {
+    if (!prefs.connectedStore) return { ok: false, error: 'No store linked.' }; // Not yet linked to a store
     try {
+        const payload = {
+            terminal_id: prefs.terminalId,
+            device_id: prefs.deviceId,
+            store_slug: prefs.connectedStore,
+            version: APP_VER,
+            status: 'OPEN'
+        };
+        if (pairingCode) payload.pairing_token = pairingCode;
         const res = await fetch(`${CLOUD_URL}/api/heartbeat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({
-                terminal_id: prefs.terminalId,
-                device_id: prefs.deviceId,
-                store_slug: prefs.connectedStore,
-                version: APP_VER,
-                status: 'OPEN'
-            })
+            headers: deviceHeaders({ 'Content-Type': 'application/json', 'Accept': 'application/json' }),
+            body: JSON.stringify(payload)
         });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            if (mainWindow && (err.code === 'PAIRING_REQUIRED' || err.code === 'DEVICE_AUTH_FAILED')) {
+                mainWindow.webContents.send('status:pairing-required', { code: err.code });
+            }
+            return { ok: false, status: res.status, code: err.code, error: err.error || `Server answered ${res.status}` };
+        }
         if (res.ok) {
             const data = await res.json().catch(() => ({}));
+            // SEC-04: the server returns a device secret exactly once (pairing,
+            // or first heartbeat after upgrade). Keep it; send it on every call.
+            if (typeof data.device_secret === 'string' && data.device_secret.length >= 32) {
+                savePrefs({ deviceSecret: data.device_secret });
+            }
             if (data.terminal_id && data.terminal_id !== prefs.terminalId) {
                 savePrefs({ terminalId: data.terminal_id });
                 console.log(`[Station] Registered terminal ID from server: ${data.terminal_id}`);
@@ -255,11 +378,37 @@ async function sendHeartbeat() {
             const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             if (mainWindow) mainWindow.webContents.send('status:sync', now);
             savePrefs({ lastOnlineSyncAt: new Date().toISOString() });
+            return { ok: true };
         }
     } catch (e) {
-        // Silently fail — internet may be down
+        // Internet may be down
+        return { ok: false, error: 'Could not reach VenQore. Check the internet connection.' };
     }
 }
+
+// ─── IPC: PAIRING (shell only) ────────────────────────────────────────────────
+// The local shell sends the store slug + one-time pairing code; we link the
+// store and send the first heartbeat carrying the code. An already-paired
+// terminal (it holds a device secret) can re-link without a code.
+ipcMain.handle('amd:pair', async (event, { slug, code } = {}) => {
+    if (!isShellSender(event)) return { ok: false, error: 'Blocked: untrusted sender' };
+    if (typeof slug !== 'string' || !/^[a-z0-9-]{1,63}$/i.test(slug)) return { ok: false, error: 'That store slug is not valid.' };
+    const cleanCode = typeof code === 'string' ? code.trim().toUpperCase().replace(/\s+/g, '') : '';
+    if (!prefs.deviceSecret && !cleanCode) return { ok: false, error: 'Enter the pairing code from Settings → Terminals.' };
+
+    const previousStore = prefs.connectedStore;
+    savePrefs({ connectedStore: slug.toLowerCase() });
+    const result = await sendHeartbeat(cleanCode || null);
+    if (!result || !result.ok) {
+        savePrefs({ connectedStore: previousStore || null });
+        const msg = result && result.code === 'PAIRING_REQUIRED'
+            ? 'That pairing code is not valid for this store, or it has expired. Create a new one in Settings → Terminals.'
+            : (result && result.status === 403 ? 'This terminal belongs to a different store.' : (result && result.error) || 'Pairing failed.');
+        return { ok: false, error: msg };
+    }
+    startHeartbeat();
+    return { ok: true };
+});
 
 // ─── CONNECTION MONITOR ───────────────────────────────────────────────────────
 function startConnectionMonitor() {
@@ -306,11 +455,11 @@ function startConnectionMonitor() {
 }
 
 // ─── IPC: SHELL CONTROLS ──────────────────────────────────────────────────────
-ipcMain.on('amd:window-close',  () => {
+secureOn('amd:window-close',  () => {
     if (mainWindow) mainWindow.close();
 });
-ipcMain.on('amd:force-close',   () => quitApp());
-ipcMain.on('amd:confirm-close', () => {
+secureOn('amd:force-close',   () => quitApp());
+secureOn('amd:confirm-close', () => {
     const choice = dialog.showMessageBoxSync(mainWindow, {
         type: 'question',
         buttons: ['Cancel', 'Exit Station'],
@@ -323,27 +472,36 @@ ipcMain.on('amd:confirm-close', () => {
         quitApp();
     }
 });
-ipcMain.on('amd:window-reload', () => mainWindow.webContents.send('amd:reload-app'));
+secureOn('amd:window-reload', () => mainWindow.webContents.send('amd:reload-app'));
 
 // ─── IPC: CLOUD URL (Read-Only) ───────────────────────────────────────────────
-ipcMain.handle('amd:get-cloud-url', () => CLOUD_URL);
+secureHandle('amd:get-cloud-url', () => CLOUD_URL);
 
 // ─── IPC: PREFS (User preferences, NOT the cloud URL) ─────────────────────────
-ipcMain.handle('amd:get-prefs', () => ({
-    ...prefs,
-    cloudUrl: CLOUD_URL,    // Read-only, informational only
-    appVersion: APP_VER
-}));
+secureHandle('amd:get-prefs', (event) => {
+    // SEC-06: never hand credentials to web content.
+    const { deviceSecret, exitPasscode, ...safe } = prefs;
+    const out = { ...safe, cloudUrl: CLOUD_URL, appVersion: APP_VER };
+    if (isShellSender(event)) out.exitPasscode = exitPasscode; // local shell only (exit gate)
+    out.hasDeviceSecret = !!deviceSecret;
+    return out;
+});
 
-ipcMain.handle('amd:save-prefs', (event, updates) => {
-    // SECURITY: Prevent overwriting the cloud URL via IPC
-    delete updates.cloudUrl;
-    delete updates.deviceId;  // Device ID is immutable
-    return { success: savePrefs(updates) };
+secureHandle('amd:save-prefs', (event, updates) => {
+    if (!updates || typeof updates !== 'object') return { success: false };
+    const fromShell = isShellSender(event);
+    const clean = {};
+    for (const [k, v] of Object.entries(updates)) {
+        if (NEVER_WRITABLE_PREFS.includes(k)) continue;
+        if (!fromShell && !GUEST_WRITABLE_PREFS.includes(k)) continue; // cloud page: hardware prefs only
+        if (k === 'connectedStore' && v !== null && !/^[a-z0-9-]{1,63}$/i.test(String(v))) continue;
+        clean[k] = v;
+    }
+    return { success: savePrefs(clean) };
 });
 
 // Store terminal ID assigned by cloud (sent via the web page postMessage → IPC)
-ipcMain.on('amd:register-terminal', (event, { terminalId }) => {
+secureOn('amd:register-terminal', (event, { terminalId }) => {
     if (terminalId && !isNaN(terminalId)) {
         savePrefs({ terminalId: parseInt(terminalId) });
         startHeartbeat();
@@ -352,7 +510,7 @@ ipcMain.on('amd:register-terminal', (event, { terminalId }) => {
 });
 
 // ─── IPC: IDENTITY (for the web app to identify this device) ──────────────────
-ipcMain.handle('amd:check', () => ({
+secureHandle('amd:check', () => ({
     isAMDStation: true,
     version: APP_VER,
     deviceId: prefs.deviceId,
@@ -415,15 +573,23 @@ async function testPrint() {
     });
 }
 
-ipcMain.handle('amd:print',       async (e, d) => printReceipt(d));
-ipcMain.handle('amd:drawer',      async (e, p) => kickDrawer(p));
-ipcMain.handle('amd:printers',    async ()    => getPrinters());
-ipcMain.handle('amd:set-printer', async (e, name) => { savePrefs({ defaultPrinter: name }); return { success: true }; });
-ipcMain.handle('amd:test-print',  async ()    => testPrint());
+secureHandle('amd:print',       async (e, d) => {
+    if (!d || !Array.isArray(d.content) || d.content.length > 500) return { success: false, error: 'Invalid print payload' };
+    if (d.copies && (!Number.isInteger(d.copies) || d.copies < 1 || d.copies > 5)) return { success: false, error: 'Invalid copies' };
+    return printReceipt(d);
+});
+secureHandle('amd:drawer',      async (e, p) => kickDrawer(p));
+secureHandle('amd:printers',    async ()    => getPrinters());
+secureHandle('amd:set-printer', async (e, name) => { savePrefs({ defaultPrinter: name }); return { success: true }; });
+secureHandle('amd:test-print',  async ()    => testPrint());
 
 // ─── IPC: OPEN EXTERNAL LINK ──────────────────────────────────────────────────
-ipcMain.handle('amd:open-external', async (event, url) => {
+secureHandle('amd:open-external', async (event, url) => {
     try {
+        // SEC-06: only web links — never file:, smb:, ms-*: or custom schemes.
+        if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+            return { success: false, error: 'Only http(s) links can be opened.' };
+        }
         await shell.openExternal(url);
         return { success: true };
     } catch (e) {
@@ -432,7 +598,7 @@ ipcMain.handle('amd:open-external', async (event, url) => {
 });
 
 // ─── IPC: FILE BROWSER (for printer/COM port setup only) ──────────────────────
-ipcMain.handle('amd:browse-file', async (event, opts = {}) => {
+secureHandle('amd:browse-file', async (event, opts = {}) => {
     const result = await dialog.showOpenDialog(mainWindow, {
         title: opts.title || 'Select File',
         defaultPath: opts.defaultPath || 'C:\\',
@@ -443,7 +609,7 @@ ipcMain.handle('amd:browse-file', async (event, opts = {}) => {
 });
 
 // ─── IPC: SERIAL / COM PORT ───────────────────────────────────────────────────
-ipcMain.handle('amd:serial-list', async () => {
+secureHandle('amd:serial-list', async () => {
     try {
         const { SerialPort } = require('serialport');
         return { success: true, ports: await SerialPort.list() };
@@ -452,7 +618,13 @@ ipcMain.handle('amd:serial-list', async () => {
     }
 });
 
-ipcMain.handle('amd:serial-open-scanner', async (event, { portPath, baudRate = 9600 }) => {
+const VALID_BAUD = [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200];
+function validSerial(portPath, baudRate) {
+    return typeof portPath === 'string' && /^(COM\d{1,3}|\/dev\/tty[A-Za-z0-9._-]+)$/.test(portPath) && VALID_BAUD.includes(Number(baudRate));
+}
+
+secureHandle('amd:serial-open-scanner', async (event, { portPath, baudRate = 9600 } = {}) => {
+    if (!validSerial(portPath, baudRate)) return { success: false, error: 'Invalid port or baud rate' };
     try {
         const { SerialPort } = require('serialport');
         const { ReadlineParser } = require('@serialport/parser-readline');
@@ -467,7 +639,8 @@ ipcMain.handle('amd:serial-open-scanner', async (event, { portPath, baudRate = 9
     } catch (e) { return { success: false, error: e.message }; }
 });
 
-ipcMain.handle('amd:serial-open-scale', async (event, { portPath, baudRate = 9600 }) => {
+secureHandle('amd:serial-open-scale', async (event, { portPath, baudRate = 9600 } = {}) => {
+    if (!validSerial(portPath, baudRate)) return { success: false, error: 'Invalid port or baud rate' };
     try {
         const { SerialPort } = require('serialport');
         const { ReadlineParser } = require('@serialport/parser-readline');
@@ -485,7 +658,8 @@ ipcMain.handle('amd:serial-open-scale', async (event, { portPath, baudRate = 960
     } catch (e) { return { success: false, error: e.message }; }
 });
 
-ipcMain.handle('amd:serial-close', async (event, device) => {
+secureHandle('amd:serial-close', async (event, device) => {
+    if (device !== 'scanner' && device !== 'scale') return { success: false, error: 'Unknown device' };
     if (activeSerialPorts[device]) {
         try { activeSerialPorts[device].close(); delete activeSerialPorts[device]; return { success: true }; }
         catch (e) { return { success: false, error: e.message }; }
@@ -494,7 +668,7 @@ ipcMain.handle('amd:serial-close', async (event, device) => {
 });
 
 // ─── IPC: DUAL SCREEN ─────────────────────────────────────────────────────────
-ipcMain.on('amd:launch-dual-pos', () => {
+secureOn('amd:launch-dual-pos', () => {
     const { screen } = require('electron');
     const external = screen.getAllDisplays().find(d => d.bounds.x !== 0 || d.bounds.y !== 0);
     if (!external) {
@@ -509,14 +683,19 @@ ipcMain.on('amd:launch-dual-pos', () => {
         x: external.bounds.x, y: external.bounds.y,
         width: external.bounds.width, height: external.bounds.height,
         fullscreen: true, frame: false,
-        webPreferences: { partition: 'persist:venqore_cloud' }
+        webPreferences: {
+            partition: 'persist:venqore_cloud',
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true,
+        }
     });
     win.loadURL(`${CLOUD_URL}/pos/display`);
 });
 
 // ─── IPC: UPDATER TRIGGERS ────────────────────────────────────────────────────
-ipcMain.on('amd:download-update', () => autoUpdater.downloadUpdate());
-ipcMain.on('amd:install-update',  () => { app.isQuitting = true; autoUpdater.quitAndInstall(false, true); });
+secureOn('amd:download-update', () => autoUpdater.downloadUpdate());
+secureOn('amd:install-update',  () => { app.isQuitting = true; autoUpdater.quitAndInstall(false, true); });
 
 // ─── AUTO-UPDATER ─────────────────────────────────────────────────────────────
 function setupAutoUpdater() {
@@ -540,7 +719,7 @@ async function quitApp() {
         if (prefs.terminalId) {
             await fetch(`${CLOUD_URL}/api/heartbeat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: deviceHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ terminal_id: prefs.terminalId, device_id: prefs.deviceId, status: 'CLOSED_NORMALLY' })
             });
         }
@@ -595,6 +774,28 @@ function initTrackingListeners() {
     setTimeout(syncActivityLogsToServer, 5000);
 }
 
+// Screenshot queue format v2: 'VQS2' | 12-byte IV | 16-byte tag | ciphertext.
+const SHOT_MAGIC = Buffer.from('VQS2');
+function screenshotKey() {
+    if (!prefs.deviceSecret) return null;
+    const crypto = require('crypto');
+    return Buffer.from(crypto.hkdfSync('sha256', Buffer.from(prefs.deviceSecret), Buffer.from('venqore-screenshot-v2'), Buffer.from(prefs.deviceId || ''), 32));
+}
+// Returns the PNG for a v2 queue file, or the raw bytes for an old-format
+// file (the server still accepts the old format and re-encrypts it).
+function screenshotUploadBytes(fileBuffer) {
+    if (fileBuffer.length > 32 && fileBuffer.subarray(0, 4).equals(SHOT_MAGIC)) {
+        const key = screenshotKey();
+        if (!key) return null;
+        const crypto = require('crypto');
+        const iv = fileBuffer.subarray(4, 16), tag = fileBuffer.subarray(16, 32);
+        const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+        decipher.setAuthTag(tag);
+        return Buffer.concat([decipher.update(fileBuffer.subarray(32)), decipher.final()]);
+    }
+    return fileBuffer;
+}
+
 async function captureAndEncryptScreen() {
     if (!prefs.activityTrackingEnabled) return null;
     try {
@@ -607,12 +808,16 @@ async function captureAndEncryptScreen() {
         if (primarySource && primarySource.thumbnail) {
             const imgBuffer = primarySource.thumbnail.toPNG();
             
-            // Encrypt screen buffer using AES-256-CBC with Device ID key
+            // Local queue encryption (recheck SEC-04): AES-256-GCM with a key
+            // derived from the server-issued device secret — not from the
+            // device ID, which is not secret. Unpaired stations capture nothing.
             const crypto = require('crypto');
-            const key = crypto.createHash('sha256').update(prefs.deviceId || 'venqore_fallback').digest();
-            const iv = crypto.randomBytes(16);
-            const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-            const encrypted = Buffer.concat([iv, cipher.update(imgBuffer), cipher.final()]);
+            const key = screenshotKey();
+            if (!key) return null;
+            const iv = crypto.randomBytes(12);
+            const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+            const body = Buffer.concat([cipher.update(imgBuffer), cipher.final()]);
+            const encrypted = Buffer.concat([SHOT_MAGIC, iv, cipher.getAuthTag(), body]);
             
             // Write encrypted buffer to hidden folder
             const logsDir = path.join(app.getPath('userData'), 'station-logs', 'sys_data');
@@ -650,7 +855,7 @@ function logActivity(awayAt, backAt, duration) {
 }
 
 // ─── IPC: TRACKING LOGS INTERFACE ────────────────────────────────────────────
-ipcMain.handle('amd:get-activity-logs', async () => {
+secureHandle('amd:get-activity-logs', async () => {
     try {
         const logFile = path.join(app.getPath('userData'), 'station-logs', 'activity.json');
         if (fs.existsSync(logFile)) {
@@ -660,7 +865,7 @@ ipcMain.handle('amd:get-activity-logs', async () => {
     return { success: true, logs: [] };
 });
 
-ipcMain.handle('amd:clear-activity-logs', async () => {
+secureHandle('amd:clear-activity-logs', async () => {
     try {
         const logFile = path.join(app.getPath('userData'), 'station-logs', 'activity.json');
         if (fs.existsSync(logFile)) {
@@ -696,7 +901,7 @@ async function syncActivityLogsToServer() {
         
         const res = await fetch(`${CLOUD_URL}/api/terminal/activities`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: deviceHeaders({ 'Content-Type': 'application/json', 'Accept': 'application/json' }),
             body: JSON.stringify({
                 device_id: prefs.deviceId,
                 terminal_id: prefs.terminalId,
@@ -726,10 +931,18 @@ async function syncScreenshotsToServer() {
         const files = fs.readdirSync(sysDataDir).filter(f => f.endsWith('.bin'));
         for (const file of files) {
             const filePath = path.join(sysDataDir, file);
-            const fileBuffer = fs.readFileSync(filePath);
-            
-            // Native Blob is available globally in newer Node.js/Electron versions
-            const fileBlob = new Blob([fileBuffer], { type: 'application/octet-stream' });
+            let uploadBytes;
+            try {
+                uploadBytes = screenshotUploadBytes(fs.readFileSync(filePath));
+            } catch (e) {
+                // Unreadable (e.g. the station was re-paired and the key changed): drop it.
+                fs.unlinkSync(filePath);
+                continue;
+            }
+            if (!uploadBytes) continue; // not paired yet — keep it for later
+
+            // Sent as PNG over TLS on an authenticated call; the server encrypts it at rest.
+            const fileBlob = new Blob([uploadBytes], { type: 'application/octet-stream' });
             
             const formData = new FormData();
             formData.append('device_id', prefs.deviceId);
@@ -738,6 +951,7 @@ async function syncScreenshotsToServer() {
             
             const res = await fetch(`${CLOUD_URL}/api/terminal/screenshot`, {
                 method: 'POST',
+                headers: deviceHeaders({ 'Accept': 'application/json' }),
                 body: formData
             });
             

@@ -71,6 +71,7 @@ foreach ($liveFiles as $fullPath) {
                 break;
             }
         }
+        unset($m); // drop the by-reference loop variable (it otherwise aliases the last member)
         if (!$already) {
             $members[] = [
                 'file' => $rel,
@@ -78,6 +79,7 @@ foreach ($liveFiles as $fullPath) {
                 'oracle_tier' => 'T1'
             ];
         }
+        unset($members);
     }
 }
 

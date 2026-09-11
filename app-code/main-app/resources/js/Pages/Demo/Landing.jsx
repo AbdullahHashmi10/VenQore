@@ -1,17 +1,21 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
-import { ArrowLeft, User, Shield, Briefcase, Calculator, ShoppingCart, Eye } from 'lucide-react';
+import { ArrowLeft, ArrowRight, User, Shield, Briefcase, Calculator, ShoppingCart, Eye, RefreshCw } from 'lucide-react';
+import SiteChrome from '@/Components/Site/SiteChrome';
 
+/* Live demo role picker — now inside the shared site chrome (header, footer,
+   cookie consent) and on V6 tokens, so it reads in both themes. The role
+   login is unchanged: a full-page navigation to route('demo.login', {role}). */
 export default function DemoLanding() {
     const { post, processing } = useForm();
 
     const roles = [
-        { id: 'owner', name: 'Store Owner', icon: Shield, desc: 'Full access to all features', color: 'text-brand-500', bg: 'bg-brand-500/10' },
-        { id: 'admin', name: 'Store Admin', icon: Briefcase, desc: 'Operations & staff management', color: 'text-brand-500', bg: 'bg-brand-500/10' },
-        { id: 'manager', name: 'Manager', icon: User, desc: 'Reports and floor supervision', color: 'text-blue-500', bg: 'bg-blue-500/10' },
-        { id: 'cashier', name: 'Cashier', icon: ShoppingCart, desc: 'POS checkout only', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-        { id: 'accountant', name: 'Accountant', icon: Calculator, desc: 'Finance and journals', color: 'text-rose-500', bg: 'bg-rose-500/10' },
-        { id: 'viewer', name: 'Viewer', icon: Eye, desc: 'Read-only reports', color: 'text-ink-muted', bg: 'bg-neutral-500/10' },
+        { id: 'owner', name: 'Store Owner', icon: Shield, desc: 'Full access to all features', tone: 'var(--vq-accent-text)' },
+        { id: 'admin', name: 'Store Admin', icon: Briefcase, desc: 'Operations & staff management', tone: 'var(--vq-accent-text)' },
+        { id: 'manager', name: 'Manager', icon: User, desc: 'Reports and floor supervision', tone: 'var(--vq-info)' },
+        { id: 'cashier', name: 'Cashier', icon: ShoppingCart, desc: 'POS checkout only', tone: 'var(--vq-success)' },
+        { id: 'accountant', name: 'Accountant', icon: Calculator, desc: 'Finance and journals', tone: 'var(--vq-danger)' },
+        { id: 'viewer', name: 'Viewer', icon: Eye, desc: 'Read-only reports', tone: 'var(--vq-text-2)' },
     ];
 
     const loginAs = (roleId) => {
@@ -19,50 +23,66 @@ export default function DemoLanding() {
     };
 
     return (
-        <div className="min-h-screen bg-void-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <SiteChrome underHeader>
             <Head title="VenQore Live Demo" />
 
-            <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-900/20 rounded-full blur-[120px] pointer-events-none" />
+            <section className="vq-section vq-mc-top">
+                <div className="vq-amb" aria-hidden="true"><span className="vq-amb__aurora" style={{ opacity: 0.26 }} /></div>
+                <div className="vq-container" style={{ position: 'relative' }}>
+                    <div className="vq-mc-back">
+                        <a href="/" className="vq-link">
+                            <ArrowLeft size={16} aria-hidden="true" /> Back to VenQore
+                        </a>
+                    </div>
 
-            <div className="relative z-10 w-full max-w-4xl">
-                <a href="/" className="inline-flex items-center gap-2 text-brand-400 hover:text-white mb-12 transition-colors font-bold tracking-widest uppercase text-xs">
-                    <ArrowLeft size={16} /> Back to VenQore
-                </a>
-
-                <div className="text-center mb-16">
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 uppercase leading-none">
-                        Live Demo <span className="text-brand-500">Store.</span>
-                    </h1>
-                    <p className="text-xl text-ink-muted max-w-2xl mx-auto">
-                        A real, shared environment with sample data. No sign-up required. Choose a role below to see exactly what that staff member sees.
-                    </p>
+                    <div className="vq-mc-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Live demo · no sign-up</span>
+                        <h1 className="vq-display vq-mt-4">Live demo <em className="vq-italic">store.</em></h1>
+                        <p className="vq-lede vq-mt-6">
+                            A real, shared environment with sample data. No sign-up required. Choose a role below to see exactly what that staff member sees.
+                        </p>
+                    </div>
                 </div>
+            </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {roles.map((role) => {
-                        const Icon = role.icon;
-                        return (
-                            <button
-                                key={role.id}
-                                onClick={() => loginAs(role.id)}
-                                disabled={processing}
-                                className="group p-6 text-left rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-brand-500/50 transition-all active:scale-95"
-                            >
-                                <div className={`w-12 h-12 rounded-2xl ${role.bg} ${role.color} flex items-center justify-center mb-6 transition-transform`}>
-                                    <Icon size={24} />
-                                </div>
-                                <h3 className="text-xl font-bold mb-2">{role.name}</h3>
-                                <p className="text-sm text-ink-muted">{role.desc}</p>
-                            </button>
-                        );
-                    })}
-                </div>
+            <section className="vq-section vq-mc-body">
+                <div className="vq-container">
+                    <div className="vq-mc-rowhead">
+                        <h2 className="vq-h2">Choose a role</h2>
+                    </div>
 
-                <div className="mt-20 text-center text-ink-muted text-sm">
-                    ⚠️ The demo store resets automatically every 24 hours. Data is shared among all active demo visitors.
+                    <div className="vq-grid vq-grid--3">
+                        {roles.map((role) => {
+                            const Icon = role.icon;
+                            return (
+                                <button
+                                    key={role.id}
+                                    type="button"
+                                    onClick={() => loginAs(role.id)}
+                                    disabled={processing}
+                                    className="vq-card vq-card--interactive vq-mc-role"
+                                >
+                                    <span className="vq-mc-icon" style={{ '--tone': role.tone }}>
+                                        <Icon size={22} aria-hidden="true" />
+                                    </span>
+                                    <span className="vq-mc-lcard__title">{role.name}</span>
+                                    <span className="vq-body vq-text-2">{role.desc}</span>
+                                    <span className="vq-mc-lcard__cta vq-mc-role__go">
+                                        Enter as {role.name} <ArrowRight size={15} aria-hidden="true" />
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="vq-mc-callout vq-mc-callout--warning vq-mt-12" role="note">
+                        <RefreshCw size={20} aria-hidden="true" />
+                        <p style={{ color: 'var(--vq-text)', maxWidth: 'none' }}>
+                            The demo store resets automatically every 24 hours. Data is shared among all active demo visitors.
+                        </p>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </SiteChrome>
     );
 }

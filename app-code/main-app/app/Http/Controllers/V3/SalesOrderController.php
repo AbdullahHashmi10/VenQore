@@ -8,19 +8,24 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SalesOrderController extends Controller
 {
     public function store(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
+
+        // Customer, warehouse and products must all belong to the current store.
         $validated = $request->validate([
-            'customer_id'   => ['required', 'string', 'exists:parties,id'],
-            'warehouse_id'  => ['required', 'string', 'exists:warehouses,id'],
+            'customer_id'   => ['required', 'string', Rule::exists('parties', 'id')->where('tenant_id', $tenantId)],
+            'warehouse_id'  => ['required', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
             'order_date'    => ['required', 'date'],
             'delivery_date' => ['nullable', 'date', 'after_or_equal:order_date'],
             'notes'         => ['nullable', 'string', 'max:1000'],
             'items'         => ['required', 'array', 'min:1'],
-            'items.*.product_id'       => ['required', 'string', 'exists:products,id'],
+            'items.*.product_id'       => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'items.*.qty'              => ['required', 'numeric', 'min:0.0001'],
             'items.*.sale_uom'         => ['required', 'string', 'max:20'],
             'items.*.unit_price'       => ['required', 'numeric', 'min:0'],
@@ -106,7 +111,8 @@ class SalesOrderController extends Controller
             'payment_method'  => ['required', 'in:cash,bank,credit,split'],
             'amount_received' => ['nullable', 'numeric', 'min:0'],
             'sale_date'       => ['required', 'date', 'before_or_equal:today'],
-            'approved_by'     => ['nullable', 'string', 'exists:users,id'],
+            'approved_by'     => ['nullable', 'string'],
+            'approval_pin'    => ['nullable', 'string', 'max:20'],
         ]);
 
         $order = SalesOrder::findOrFail($id);
@@ -115,6 +121,23 @@ class SalesOrderController extends Controller
             return back()->withErrors([
                 'order' => "Sales order is {$order->status} and cannot be converted.",
             ]);
+        }
+
+        // S-011: approved_by unlocks below-cost lines in SaleService, so it must
+        // be a VERIFIED manager approval (active owner/admin/manager of this
+        // store, plus their PIN when they are not the logged-in user) — exactly
+        // what the V3 checkout (StoreSaleRequest) enforces. Previously any
+        // existing user id was passed straight through.
+        if (!empty($validated['approved_by'])) {
+            $problem = \App\Support\ManagerApproval::check(
+                $validated['approved_by'],
+                $validated['approval_pin'] ?? null,
+                app('current.tenant')->id,
+                auth()->id()
+            );
+            if ($problem !== null) {
+                throw ValidationException::withMessages(['approved_by' => $problem]);
+            }
         }
 
         $orderItems = $order->items;
@@ -139,7 +162,12 @@ class SalesOrderController extends Controller
             ])->toArray(),
         ];
 
-        $sale = app(\App\Engines\SaleService::class)->post($saleData);
+        try {
+            $sale = app(\App\Engines\SaleService::class)->post($saleData);
+        } catch (\App\Exceptions\BelowCostSaleException $e) {
+            // Surface as a validation error on approved_by (not a 500), as V3 checkout does.
+            throw ValidationException::withMessages(['approved_by' => $e->getMessage()]);
+        }
 
         // Mark order as converted — cannot be converted again
         $order->update([

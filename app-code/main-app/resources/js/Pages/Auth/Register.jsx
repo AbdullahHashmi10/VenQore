@@ -102,7 +102,7 @@ export default function Register() {
                         required
                         prefix={<Mail size={16} />}
                         error={errors.email}
-                        hint="We'll send the login link here."
+                        hint="We'll email your sign-in code here."
                     />
 
                     {/* The reference says ten characters; the controller and the

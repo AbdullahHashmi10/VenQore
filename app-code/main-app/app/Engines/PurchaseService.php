@@ -60,6 +60,8 @@ class PurchaseService
     private const ACC_PAYABLE         = '2000';
     private const ACC_INPUT_TAX       = '2300';
     private const ACC_NONRECOVER_TAX  = '6000';
+    /** Landed cost stranded on goods sent back to the supplier. */
+    private const ACC_LANDED_COST_WRITEOFF = '6000';
     private const ACC_ROUNDOFF_INCOME = '4900';
     private const ACC_ROUNDOFF_EXPENSE = '5900';
 
@@ -214,6 +216,22 @@ class PurchaseService
             $amountPaid = array_key_exists('amount_paid', $validated)
                 ? $this->paidNow($validated, $grandTotal)
                 : $this->paidNow(['payment_method' => $validated['payment_method'] ?? $purchase->payment_method], $grandTotal);
+
+            /* The edit screen's paid figure is everything settled on this bill
+               (PurchaseController::paidAmount — counter payment + allocated
+               payments), and the form sends it straight back. Payments made
+               since the purchase was posted are not reversed by an edit: their
+               journal entries and allocations stay. So only what is NOT already
+               covered by them was handed over at the counter; re-posting the
+               whole figure as a counter payment paid the supplier twice (Cash
+               credited again, AP left debited by the supplier payment). Nor can
+               the counter take more than is still owed after those payments and
+               any debit notes. */
+            $settled = app(PaymentService::class)->purchaseSettlementSummary($purchaseId);
+            $amountPaid = round(max(0.0, min(
+                $amountPaid - $settled['allocated'],
+                $grandTotal - $settled['returned'] - $settled['allocated']
+            )), 2);
             if ($isReceived) {
                 $journalEntry = $this->postPurchaseJournal(
                     purchaseId:    $purchaseId,
@@ -350,6 +368,11 @@ class PurchaseService
                     }
                 }
 
+                /* Priced exactly as store() prices an immediate receipt: net of
+                   line and header discounts, plus the landed-cost share — the
+                   same value the purchase journal debits to 1100. */
+                $lineCosts = $this->storedLineCosts($purchaseId);
+
                 foreach ($lines as $line) {
                     $item = $items[$line['purchase_item_id']] ?? null;
                     $recv = (float) ($line['receiving_qty'] ?? 0);
@@ -363,7 +386,7 @@ class PurchaseService
                         productId:    $item->product_id,
                         variantId:    $item->variant_id ?? null,
                         qty:          $recv,
-                        unitCost:     (float) $item->unit_cost,
+                        unitCost:     (float) ($lineCosts[$item->id]['effective'] ?? $item->unit_cost),
                         reference:    $purchase->invoice_number,
                         purchaseItemId: $item->id,
                         batchNumber:  $line['batch_number'] ?? null,
@@ -439,6 +462,14 @@ class PurchaseService
         return DB::transaction(function () use ($data, $purchase, $purchaseId) {
             $tenantId        = $this->tenantId();
             $totalReturnCost = 0.00;
+            // Input tax claimed on the returned goods goes back with them: the
+            // supplier's debit note is for the goods AND the tax on them.
+            $totalReturnItc  = 0.00;
+            $totalReturnExp  = 0.00;
+            /* What the supplier actually billed for the returned goods, and the
+               landed cost (freight, customs …) that rode along in the batch. */
+            $totalLandedCost    = 0.00;
+            $lineCosts          = $this->storedLineCosts($purchaseId);
 
             foreach ($data['items'] as $item) {
                 $pi = DB::table('purchase_items')
@@ -470,6 +501,38 @@ class PurchaseService
 
                 $lineCost         = round($returnQty * (float) $batch->unit_cost, 2);
                 $totalReturnCost += $lineCost;
+
+                /* The batch cost includes the landed-cost share, which the
+                   purchase journal credited to Accounts Payable with NO party —
+                   it is owed to the carrier / customs, not to this supplier. The
+                   supplier's debit note only covers their own (discounted)
+                   price, so only that comes off their payable. The landed cost
+                   on the returned units was spent and cannot be sent back with
+                   them: it is expensed (6000) and the carrier's accrual is left
+                   alone. Stock still leaves 1100 at the full batch cost, so the
+                   ledger keeps agreeing with the FIFO layers. */
+                $supplierUnit  = $lineCosts[$pi->id]['net'] ?? (float) $batch->unit_cost;
+                $supplierGoods = min($lineCost, round($returnQty * $supplierUnit, 2));
+                $totalLandedCost += round($lineCost - $supplierGoods, 2);
+
+                /* The purchase posted this line's tax as DR 2300 (recoverable
+                   share) and DR 6000 (non-recoverable share), all owed to the
+                   supplier. Returning part of the line must take back the same
+                   proportion of each — otherwise 2300 keeps an input-tax claim
+                   on goods we no longer have and the supplier's payable stays
+                   overstated by the tax on them. */
+                $lineQty = (float) $pi->qty;
+                if ($lineQty > 0 && (float) $pi->tax_rate > 0) {
+                    $lineTax = $this->tax->calculateLineTax(
+                        amount:           (float) $pi->line_total,
+                        taxRate:          (float) $pi->tax_rate,
+                        priceIncludesTax: false
+                    )['tax'];
+                    $returnedTax     = round($lineTax * ($returnQty / $lineQty), 2);
+                    $recoverable     = round($returnedTax * ((float) ($pi->business_pct ?? 100) / 100), 2);
+                    $totalReturnItc += $recoverable;
+                    $totalReturnExp += round($returnedTax - $recoverable, 2);
+                }
 
                 DB::table('inventory_batches')->where('tenant_id', $tenantId)
                     ->where('id', $batch->id)->decrement('remaining_qty', $returnQty);
@@ -512,10 +575,18 @@ class PurchaseService
             $isCashPurchase    = ($purchase->payment_method ?? null) === 'cash';
             $offsetAccountCode = $isCashPurchase ? self::ACC_CASH : self::ACC_PAYABLE;
 
+            $totalReturnCost  = round($totalReturnCost, 2);
+            $totalReturnItc   = round($totalReturnItc, 2);
+            $totalReturnExp   = round($totalReturnExp, 2);
+            $totalLandedCost  = round($totalLandedCost, 2);
+            $totalSupplierGoods = round($totalReturnCost - $totalLandedCost, 2);
+            // The debit note: the supplier's price for the goods plus the tax on it.
+            $totalReturnValue = round($totalSupplierGoods + $totalReturnItc + $totalReturnExp, 2);
+
             $journalLines = [
                 [
                     'account_code' => $offsetAccountCode,
-                    'debit'        => $totalReturnCost,
+                    'debit'        => $totalReturnValue,
                     'credit'       => 0,
                     'party_id'     => $purchase->party_id,
                 ],
@@ -525,6 +596,19 @@ class PurchaseService
                     'credit'       => $totalReturnCost,
                 ],
             ];
+            if ($totalLandedCost > 0) {
+                $journalLines[] = [
+                    'account_code' => self::ACC_LANDED_COST_WRITEOFF,
+                    'debit'        => $totalLandedCost,
+                    'credit'       => 0,
+                ];
+            }
+            if ($totalReturnItc > 0) {
+                $journalLines[] = ['account_code' => self::ACC_INPUT_TAX, 'debit' => 0, 'credit' => $totalReturnItc];
+            }
+            if ($totalReturnExp > 0) {
+                $journalLines[] = ['account_code' => self::ACC_NONRECOVER_TAX, 'debit' => 0, 'credit' => $totalReturnExp];
+            }
 
             $returnId = Str::uuid()->toString();
 
@@ -542,7 +626,7 @@ class PurchaseService
                 'purchase_id'      => $purchaseId,
                 'return_date'      => $data['return_date'],
                 'reason'           => $data['reason'],
-                'total_amount'     => $totalReturnCost,
+                'total_amount'     => $totalReturnValue,
                 'journal_entry_id' => $journalEntry->id,
                 'created_by'       => auth()->id() ?? 1,
                 'created_at'       => now(),
@@ -552,6 +636,135 @@ class PurchaseService
             $this->refreshPaymentStatus($purchaseId);
 
             return $returnId;
+        });
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // GOODS SENT BACK ON A DEBIT NOTE
+    // ═════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Take goods going back to the supplier off the shelf — the stock half of
+     * a debit note that returns stock (DebitNoteController::store).
+     *
+     * Consistent with createReturn(): when the note names the bill the goods
+     * came in on and that bill raised a batch for the product, the units leave
+     * THAT bill's batch, and no more can leave it than it still holds (the
+     * rest was sold). A note that names no bill — or a bill that never carried
+     * the product — takes them oldest-first through FifoService, the one FIFO
+     * deduction every other stock-out uses.
+     *
+     * Batches, `stocks`, products.stock_quantity and a stock_movements row all
+     * move together. Returns the cost the units left the batches at — exactly
+     * what must come off 1100 for the ledger to keep agreeing with the FIFO
+     * valuation.
+     *
+     * @return array{cost: float, deductions: array<int, array{batch_id: string, warehouse_id: ?string, qty_taken: float, unit_cost: float, total_cost: float}>}
+     * @throws \InvalidArgumentException when the named bill's batch holds too little
+     * @throws \App\Exceptions\InsufficientStockException  FIFO, when negative stock is barred
+     */
+    public function returnStockToSupplier(
+        string  $productId,
+        string  $warehouseId,
+        float   $qty,
+        ?string $purchaseId,
+        string  $reference,
+        string  $description
+    ): array {
+        return DB::transaction(function () use ($productId, $warehouseId, $qty, $purchaseId, $reference, $description) {
+            $tenantId   = $this->tenantId();
+            $deductions = [];
+
+            $batches = $purchaseId === null ? collect() : DB::table('inventory_batches')
+                ->where('tenant_id', $tenantId)
+                ->where('purchase_invoice_id', $purchaseId)
+                ->where('product_id', $productId)
+                ->whereNull('deleted_at')
+                ->orderBy('created_at')
+                ->orderBy('seq')
+                ->lockForUpdate()
+                ->get();
+
+            if ($batches->isNotEmpty()) {
+                $available = (float) $batches->sum('remaining_qty');
+                if ($qty > $available + 0.00005) {
+                    $bill = DB::table('purchases')->where('tenant_id', $tenantId)->where('id', $purchaseId)->value('invoice_number');
+                    throw new \InvalidArgumentException(
+                        "Only {$available} of this item from purchase {$bill} is still in stock; {$qty} cannot go back on it. " .
+                        'Cannot return stock that has already been sold.'
+                    );
+                }
+
+                $left = $qty;
+                foreach ($batches as $batch) {
+                    if ($left <= 0.00005) break;
+                    $take = min($left, (float) $batch->remaining_qty);
+                    if ($take <= 0) continue;
+
+                    DB::table('inventory_batches')->where('tenant_id', $tenantId)
+                        ->where('id', $batch->id)->decrement('remaining_qty', $take);
+
+                    $deductions[] = [
+                        'batch_id'     => $batch->id,
+                        'warehouse_id' => $batch->warehouse_id,
+                        'qty_taken'    => $take,
+                        'unit_cost'    => (float) $batch->unit_cost,
+                        'total_cost'   => round($take * (float) $batch->unit_cost, 2),
+                    ];
+                    $left -= $take;
+                }
+            } else {
+                foreach ($this->inventory->fifo->deductStock($productId, $warehouseId, $qty) as $d) {
+                    $deductions[] = $d + ['warehouse_id' => $warehouseId];
+                }
+            }
+
+            // Aggregates move by what actually left the batches, per warehouse.
+            $byWarehouse = [];
+            foreach ($deductions as $d) {
+                $wh = $d['warehouse_id'] ?? $warehouseId;
+                $byWarehouse[$wh] = ($byWarehouse[$wh] ?? 0) + (float) $d['qty_taken'];
+            }
+
+            foreach ($byWarehouse as $wh => $moved) {
+                $stock = DB::table('stocks')->where('tenant_id', $tenantId)
+                    ->where('product_id', $productId)->where('warehouse_id', $wh)->first();
+                if ($stock) {
+                    DB::table('stocks')->where('id', $stock->id)->decrement('quantity', $moved);
+                } else {
+                    DB::table('stocks')->insert([
+                        'id'           => Str::uuid()->toString(),
+                        'tenant_id'    => $tenantId,
+                        'product_id'   => $productId,
+                        'warehouse_id' => $wh,
+                        'quantity'     => -$moved,
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
+
+                DB::table('products')->where('tenant_id', $tenantId)
+                    ->where('id', $productId)->decrement('stock_quantity', $moved);
+
+                DB::table('stock_movements')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tenantId,
+                    'product_id'   => $productId,
+                    'warehouse_id' => $wh,
+                    'quantity'     => -$moved,
+                    'type'         => 'purchase_return',
+                    'reference_id' => $reference,
+                    'description'  => $description,
+                    'user_id'      => auth()->id(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+            }
+
+            return [
+                'cost'       => round(array_sum(array_column($deductions, 'total_cost')), 2),
+                'deductions' => $deductions,
+            ];
         });
     }
 
@@ -726,8 +939,90 @@ class PurchaseService
             'expTotal'  => round($expTotal, 2),
             'discount'  => $discount,
             'roundOff'  => $roundOff,
-            'lineItems' => $lineItems,
+            'lineItems' => $this->withNetUnitCosts($lineItems, $discount),
         ];
+    }
+
+    /**
+     * What each unit actually cost the shop from the supplier: the line after
+     * its own discount, less its pro-rata share (by net line value) of the
+     * header discount, per unit. Tax is not in it — recoverable tax sits in
+     * 2300 and non-recoverable tax is expensed to 6000 by the purchase journal,
+     * so neither is in the 1100 debit either.
+     *
+     * The FIFO batch used to be priced at the LIST unit cost, while 1100 was
+     * debited with the discounted value, so every discounted purchase left
+     * the inventory ledger below the batch valuation — and COGS, returns and
+     * stock reports priced the goods at money that was never paid.
+     *
+     * Each line's share is worked out on its own (no "last line takes the
+     * rounding"), so the same stored purchase always gives the same costs —
+     * store(), receive() and createReturn() all rely on that.
+     *
+     * @param array $lineItems each with 'qty' and 'line_total'
+     */
+    private function withNetUnitCosts(array $lineItems, float $headerDiscount): array
+    {
+        $netGoods = 0.0;
+        foreach ($lineItems as $item) {
+            $netGoods += (float) $item['line_total'];
+        }
+
+        foreach ($lineItems as &$item) {
+            $qty       = (float) $item['qty'];
+            $lineTotal = (float) $item['line_total'];
+            $share     = ($netGoods > 0 && $headerDiscount > 0)
+                ? min($lineTotal, $headerDiscount * ($lineTotal / $netGoods))
+                : 0.0;
+
+            $item['net_unit_cost'] = $qty > 0 ? round(max(0.0, $lineTotal - $share) / $qty, 4) : 0.0;
+        }
+        unset($item);
+
+        return $lineItems;
+    }
+
+    /**
+     * Supplier net unit cost (see withNetUnitCosts) and FIFO unit cost
+     * (net + landed cost share) for every stored line of a purchase, keyed by
+     * purchase_items.id. Rebuilt from the stored rows so that receiving goods
+     * later, or returning them, prices them exactly as store() did.
+     *
+     * @return array<string, array{net: float, effective: float}>
+     */
+    private function storedLineCosts(string $purchaseId): array
+    {
+        $tenantId = $this->tenantId();
+
+        $purchase = DB::table('purchases')->where('tenant_id', $tenantId)->where('id', $purchaseId)->first();
+        $items    = DB::table('purchase_items')->where('tenant_id', $tenantId)->where('purchase_id', $purchaseId)->get();
+
+        $lineItems = $items->map(fn ($i) => [
+            'id'         => $i->id,
+            'qty'        => (float) $i->qty,
+            'unit_cost'  => (float) $i->unit_cost,
+            'line_total' => (float) $i->line_total,
+        ])->all();
+
+        $lineItems = $this->withNetUnitCosts($lineItems, (float) ($purchase->discount ?? 0));
+
+        $extras = DB::table('expenses')
+            ->where('tenant_id', $tenantId)
+            ->where('purchase_id', $purchaseId)
+            ->where('is_landed_cost', true)
+            ->get(['amount', 'allocation_method'])
+            ->map(fn ($e) => ['amount' => (float) $e->amount, 'method' => $e->allocation_method ?: 'value'])
+            ->all();
+
+        $costs = [];
+        foreach ($this->allocateLandedCosts($lineItems, $extras)['lineItems'] as $line) {
+            $costs[$line['id']] = [
+                'net'       => (float) $line['net_unit_cost'],
+                'effective' => (float) $line['effective_unit_cost'],
+            ];
+        }
+
+        return $costs;
     }
 
     /**
@@ -745,16 +1040,21 @@ class PurchaseService
             $total += (float) ($extra['amount'] ?? 0);
         }
 
+        /* The base is what the goods cost from the supplier AFTER discounts
+           (withNetUnitCosts), both for the batch price and for spreading the
+           landed cost by value. */
+        $baseOf = fn (array $item) => (float) ($item['net_unit_cost'] ?? $item['unit_cost']);
+
         $totalValue = 0.0;
         $totalQty   = 0.0;
         foreach ($lineItems as $item) {
-            $totalValue += (float) $item['qty'] * (float) $item['unit_cost'];
+            $totalValue += (float) $item['qty'] * $baseOf($item);
             $totalQty   += (float) $item['qty'];
         }
 
         foreach ($lineItems as &$item) {
             $qty      = (float) $item['qty'];
-            $baseCost = (float) $item['unit_cost'];
+            $baseCost = $baseOf($item);
             $perUnit  = 0.0;
 
             foreach ($extras as $extra) {
@@ -948,6 +1248,19 @@ class PurchaseService
 
         foreach ($entries as $entry) {
             $entry->update(['is_reversed' => 1]);
+
+            /* A reversed legacy payment entry no longer pays anything, so the
+               allocation backfilled for it goes with it (the same thing
+               AccountingService::reverseEntry() does through voidAllocations).
+               Left active, the payment was counted once in the reposted bill's
+               paid figure and again as an allocation. */
+            if ($entry->reference_type === 'purchase_payment') {
+                DB::table('allocations')
+                    ->where('tenant_id', $this->tenantId())
+                    ->where('payment_journal_entry_id', $entry->id)
+                    ->where('status', 'active')
+                    ->update(['status' => 'reversed', 'updated_at' => now()]);
+            }
 
             $reversalLines = $entry->items->map(fn ($item) => [
                 'account_id' => $item->account_id,

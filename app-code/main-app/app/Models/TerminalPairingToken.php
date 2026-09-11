@@ -31,7 +31,18 @@ class TerminalPairingToken extends Model
 
     public static function generateToken(): string
     {
-        return 'pair_' . Str::random(40);
+        // Short enough to type on a POS keyboard: "ABCD-2345" (32^8 ≈ 1.1e12),
+        // single-use, 60-minute expiry, and the heartbeat endpoint is throttled.
+        $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        do {
+            $c = '';
+            for ($i = 0; $i < 8; $i++) {
+                $c .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+            $code = substr($c, 0, 4) . '-' . substr($c, 4, 4);
+        } while (static::withoutGlobalScopes()->where('token', $code)->exists());
+
+        return $code;
     }
 
     public function isUsable(): bool

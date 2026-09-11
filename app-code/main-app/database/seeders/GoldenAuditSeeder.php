@@ -290,7 +290,9 @@ class GoldenAuditSeeder extends Seeder
                 'tenant_id' => self::TENANT_ID,
                 'reference_number' => 'DN-202501-001',
                 'supplier_id' => $supplierId,
-                'purchase_id' => $poId,
+                // A debit note answers a received bill (purchases), not an open PO;
+                // this fixture note is standalone (the FK now points at purchases).
+                'purchase_id' => null,
                 'date' => '2025-01-22',
                 'amount' => 500.00,
                 'reason' => 'Damaged goods',

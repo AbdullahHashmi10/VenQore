@@ -100,6 +100,11 @@ class SystemResetController extends Controller
      */
     public function factoryReset(Request $request)
     {
+        // Route-gap sweep (2026-09-10): destructive — store OWNER only (plus
+        // platform admins). Previously any member could wipe the store with
+        // their own password.
+        $this->ensureOwner();
+
         // Increase limits for large deletions
         set_time_limit(600); // 10 minutes
         $this->ensureMinimumMemoryLimit('512M');
@@ -231,6 +236,11 @@ class SystemResetController extends Controller
      */
     public function deleteEntity(Request $request, $entity)
     {
+        // Route-gap sweep (2026-09-10): destructive — store OWNER only (plus
+        // platform admins). Previously any member could wipe the store with
+        // their own password.
+        $this->ensureOwner();
+
         set_time_limit(600);
         $this->ensureMinimumMemoryLimit('512M');
 
@@ -396,5 +406,16 @@ class SystemResetController extends Controller
         if ($parseBytes($current) < $parseBytes($minimum)) {
             ini_set('memory_limit', $minimum);
         }
+    }
+
+    private function ensureOwner(): void
+    {
+        $user = auth()->user();
+        if ($user && $user->isPlatformAdmin()) {
+            return;
+        }
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $role = ($tenant && $user) ? $user->roleIn($tenant->id) : null;
+        abort_unless($role === 'owner', 403, 'Only the store owner can reset or wipe store data.');
     }
 }

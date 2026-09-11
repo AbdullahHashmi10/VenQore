@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import MarketingLayout, {
-    RevealOnScroll,
-    MagneticButton,
-    SectionLabel,
-    GlassCard,
-    RelatedPages,
-} from '../Shared/MarketingLayout';
+import MarketingLayout, { RelatedPages } from '../Shared/MarketingLayout';
 import { featurePagesData } from '../../../Data/featurePages';
 import {
     DemoStyles, ProfitLossDemo, PosInvoiceDemo,
@@ -31,9 +25,9 @@ const iconMap = {
 };
 
 const statusColors = {
-    shipped: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    building: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    planned: 'bg-neutral-100 text-ink-secondary dark:bg-surface dark:text-ink-muted',
+    shipped: 'vq-badge--success',
+    building: 'vq-badge--warning',
+    planned: 'vq-badge--soon',
 };
 
 const statusLabel = {
@@ -96,31 +90,31 @@ const DEMO_BY_FEATURE = {
     'point-of-sale': {
         Component: PosInvoiceDemo,
         eyebrow: 'Try it now',
-        title: <>Ring up a sale <span className="text-brand-600 dark:text-brand-400">right here.</span></>,
+        title: <>Ring up a sale <span className="vq-accent-text">right here.</span></>,
         lead: 'This is the real checkout. Add products, change quantities, pick a payment method and complete the sale. Nothing is saved — it is yours to play with.',
     },
     'offline-pos': {
         Component: PosInvoiceDemo,
         eyebrow: 'Try it now',
-        title: <>The same terminal, <span className="text-brand-600 dark:text-brand-400">with or without a line.</span></>,
+        title: <>The same terminal, <span className="vq-accent-text">with or without a line.</span></>,
         lead: 'Offline mode is not a stripped-down fallback screen — it is this exact terminal, running from local storage and syncing the moment you are back online.',
     },
     accounting: {
         Component: ProfitLossDemo,
         eyebrow: 'Try it now',
-        title: <>A Profit &amp; Loss that <span className="text-emerald-600 dark:text-emerald-400">reconciles.</span></>,
+        title: <>A Profit &amp; Loss that <span className="vq-accent-text">reconciles.</span></>,
         lead: 'Switch periods and watch every figure recompute from the same verified ledger. This is the real report, drawn from real double-entry journals.',
     },
     'inventory-management': {
         Component: CookbookDemo,
         eyebrow: 'Try it now',
-        title: <>Watch FIFO costing <span className="text-amber-600 dark:text-amber-400">actually happen.</span></>,
+        title: <>Watch FIFO costing <span className="vq-accent-text">actually happen.</span></>,
         lead: 'Define a Bill of Materials, produce a batch, and see raw stock deduct at its real per-batch cost — not an average that quietly overwrote itself.',
     },
     'growth-engine': {
         Component: GrowthEngineDemo,
         eyebrow: 'Try it now',
-        title: <>Every insight <span className="text-brand-400">shows its working.</span></>,
+        title: <>Every insight <span className="vq-accent-text">shows its working.</span></>,
         lead: 'Four brains read your customers, stock, margin and cash. Each one exposes the numbers behind its call, and each prediction is scored afterwards against what actually happened.',
     },
 };
@@ -141,62 +135,46 @@ export default function FeatureShow({ slug }) {
             </Head>
 
             {/* ── HERO ───────────────────────────────────────────────── */}
-            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
-                <RevealOnScroll direction="up">
-                    <SectionLabel icon={ShieldCheck} text={data.heroBadge} />
-
-                    <div className="inline-flex items-center gap-2 mt-4 mb-3">
-                        <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full ${statusColors[data.status]}`}>
-                            {statusLabel[data.status]}
-                        </span>
-                        <span className="text-xs text-ink-muted font-medium">{data.category}</span>
+            <section className="vq-section vq-mkt-hero">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 0, maxWidth: 900 }}>
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">{data.heroBadge}</span>
+                        <div className="vq-row vq-gap-3 vq-wrap vq-mt-4" style={{ justifyContent: 'center' }}>
+                            <span className={`vq-badge ${statusColors[data.status] || ''}`}>{statusLabel[data.status]}</span>
+                            <span className="vq-caption">{data.category}</span>
+                        </div>
+                        <h1 className="vq-display vq-mt-5">{data.headline}</h1>
+                        <p className="vq-lede">{data.subhead}</p>
+                        <div className="vq-row vq-wrap vq-gap-3 vq-mt-8" style={{ justifyContent: 'center' }}>
+                            <Link href="/demo" className="vq-btn vq-btn--primary vq-btn--lg">
+                                Try the live demo — no signup <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                            </Link>
+                            <Link href="/pricing" className="vq-btn vq-btn--secondary vq-btn--lg">
+                                See pricing — from $49/month or free
+                            </Link>
+                        </div>
                     </div>
 
-                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 max-w-4xl mx-auto leading-tight">
-                        {data.headline}
-                    </h1>
-                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed">
-                        {data.subhead}
-                    </p>
-
-                    <div className="flex flex-wrap justify-center gap-4 mb-14">
-                        <MagneticButton href="/demo" variant="primary">
-                            Try Live Demo — No Signup <ArrowRight className="w-4 h-4 ml-2 inline" />
-                        </MagneticButton>
-                        <MagneticButton href="/pricing" variant="secondary">
-                            See Pricing — From $49/month or Free
-                        </MagneticButton>
-                    </div>
-
-                    {/* Stats strip */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto p-6 rounded-2xl bg-app border border-line">
+                    <div className="vq-grid vq-grid--4 vq-mt-16 vq-mkt-stats">
                         {data.stats.map((stat, i) => (
-                            <div key={i} className="text-center p-3">
-                                <div className="text-2xl md:text-3xl font-bold text-brand-600 dark:text-brand-400">
-                                    {stat.value}
-                                </div>
-                                <div className="text-2xs font-bold uppercase tracking-wider text-ink-muted mt-1">
-                                    {stat.label}
-                                </div>
+                            <div key={i} className="vq-card vq-stat">
+                                <span className="vq-stat__label">{stat.label}</span>
+                                <span className="vq-stat__value vq-stat__value--sm">{stat.value}</span>
                             </div>
                         ))}
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
             {/* ── ANSWER BLOCK (GEO-optimised extractable answer) ───── */}
-            <section className="py-12 px-6 max-w-4xl mx-auto">
-                <RevealOnScroll direction="up">
-                    <div className="rounded-2xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 p-8 md:p-10">
-                        <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-3">Quick Answer</p>
-                        <h2 className="text-xl md:text-2xl font-bold text-ink mb-4">
-                            {data.answerBlock.question}
-                        </h2>
-                        <p className="text-ink-secondary leading-relaxed text-base md:text-lg">
-                            {data.answerBlock.answer}
-                        </p>
+            <section className="vq-section" style={{ paddingTop: 0 }}>
+                <div className="vq-container vq-container--narrow">
+                    <div className="vq-card vq-card--xl vq-mkt-answer">
+                        <span className="vq-eyebrow vq-eyebrow--accent">Quick answer</span>
+                        <h2 className="vq-h2 vq-mt-3">{data.answerBlock.question}</h2>
+                        <p className="vq-mt-4">{data.answerBlock.answer}</p>
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
             {/* ── LIVE DEMO ──────────────────────────────────────────────
@@ -204,27 +182,17 @@ export default function FeatureShow({ slug }) {
                 been told what this does, so this is the moment to show it
                 rather than make them scroll past three sections of claims. */}
             {demo && (
-                <section className="py-16 md:py-20 px-6">
-                    <div className="max-w-6xl mx-auto">
-                        <RevealOnScroll direction="up">
-                            <div className="text-center mb-10 max-w-3xl mx-auto">
-                                <SectionLabel icon={Zap}>{demo.eyebrow}</SectionLabel>
-                                <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight leading-tight mb-4 mt-4">
-                                    {demo.title}
-                                </h2>
-                                <p className="text-ink-secondary text-base md:text-lg leading-relaxed">
-                                    {demo.lead}
-                                </p>
-                            </div>
-                        </RevealOnScroll>
-                        <RevealOnScroll direction="up" delay={0.1}>
-                            <demo.Component />
-                        </RevealOnScroll>
-                        <p className="text-center text-xs text-ink-muted mt-6">
-                            Simulated with sample data — nothing you do here is saved.{''}
-                            <Link href="/demo" className="font-bold text-brand-600 dark:text-brand-400 hover:underline">
-                                Want the full store? Launch the live demo →
-                            </Link>
+                <section className="vq-section vq-section--alt">
+                    <div className="vq-container">
+                        <div className="vq-section-head vq-section-head--center">
+                            <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">{demo.eyebrow}</span>
+                            <h2 className="vq-h1 vq-mt-4">{demo.title}</h2>
+                            <p className="vq-lede">{demo.lead}</p>
+                        </div>
+                        <demo.Component />
+                        <p className="vq-small vq-text-2 vq-center vq-mt-6" style={{ marginInline: 'auto' }}>
+                            Simulated with sample data — nothing you do here is saved.{' '}
+                            <Link href="/demo">Want the full store? Launch the live demo →</Link>
                         </p>
                     </div>
                     <DemoStyles />
@@ -232,224 +200,161 @@ export default function FeatureShow({ slug }) {
             )}
 
             {/* ── PAIN POINTS ────────────────────────────────────────── */}
-            <section className="py-20 px-6 max-w-7xl mx-auto">
-                <RevealOnScroll direction="up">
-                    <div className="text-center mb-16 max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
-                            Where Generic Software Falls Short
-                        </h2>
-                        <p className="text-ink-secondary">
-                            The gaps that cost retailers money every day — and how VenQore closes them.
-                        </p>
+            <section className="vq-section">
+                <div className="vq-container">
+                    <div className="vq-section-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">The gaps</span>
+                        <h2 className="vq-h1 vq-mt-4">Where generic software falls short</h2>
+                        <p className="vq-lede">The gaps that cost retailers money every day — and how VenQore closes them.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="vq-grid vq-grid--2">
                         {data.painPoints.map((item, i) => (
-                            <GlassCard key={i} className="p-6">
-                                <div className="flex items-start gap-4">
-                                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                                        <X className="w-5 h-5 text-rose-500" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-rose-600 dark:text-rose-400 mb-2">
-                                            Without VenQore
-                                        </p>
-                                        <p className="text-ink-secondary text-sm mb-4">
-                                            {item.pain}
-                                        </p>
-                                        <div className="flex items-start gap-3">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                                            <p className="text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                                                {item.fix}
-                                            </p>
-                                        </div>
-                                    </div>
+                            <article key={i} className="vq-card vq-card--xl vq-mkt-pain">
+                                <div className="vq-mkt-pain__row vq-mkt-pain__row--problem">
+                                    <span className="vq-mkt-pain__label"><X size={16} aria-hidden="true" /> Without VenQore</span>
+                                    <p>{item.pain}</p>
                                 </div>
-                            </GlassCard>
+                                <div className="vq-mkt-pain__row vq-mkt-pain__row--fix vq-mt-3">
+                                    <span className="vq-mkt-pain__label"><CheckCircle2 size={16} aria-hidden="true" /> With VenQore</span>
+                                    <p>{item.fix}</p>
+                                </div>
+                            </article>
                         ))}
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
             {/* ── FEATURE DEEP-DIVE CARDS ────────────────────────────── */}
-            <section className="py-20 px-6 max-w-7xl mx-auto">
-                <RevealOnScroll direction="up">
-                    <div className="text-center mb-16 max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
-                            What's Included
-                        </h2>
-                        <p className="text-ink-secondary">
-                            Every capability below is shipped and live in VenQore today. No plugins, no add-ons.
-                        </p>
+            <section className="vq-section vq-section--alt">
+                <div className="vq-container">
+                    <div className="vq-section-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">What's included</span>
+                        <h2 className="vq-h1 vq-mt-4">Every capability, shipped</h2>
+                        <p className="vq-lede">Every capability below is shipped and live in VenQore today. No plugins, no add-ons.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="vq-grid vq-grid--3">
                         {data.features.map((feat, i) => {
                             const Icon = iconMap[feat.icon] || CheckCircle2;
                             return (
-                                <GlassCard key={i} className="p-6 flex flex-col gap-4">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="w-11 h-11 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0">
-                                            <Icon className="w-5 h-5 text-brand-600 dark:text-brand-400" />
-                                        </div>
-                                        {feat.tag && (
-                                            <span className="text-2xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full whitespace-nowrap">
-                                                {feat.tag}
-                                            </span>
-                                        )}
+                                <div key={i} className="vq-card vq-card--xl vq-tile">
+                                    <div className="vq-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                                        <span className="vq-tile__icon"><Icon aria-hidden="true" /></span>
+                                        {feat.tag && <span className="vq-badge vq-badge--success">{feat.tag}</span>}
                                     </div>
-                                    <div>
-                                        <h3 className="text-base font-bold text-ink mb-2">
-                                            {feat.title}
-                                        </h3>
-                                        <p className="text-ink-secondary text-sm leading-relaxed">
-                                            {feat.description}
-                                        </p>
-                                    </div>
-                                </GlassCard>
+                                    <h3 className="vq-tile__title" style={{ fontSize: 20 }}>{feat.title}</h3>
+                                    <p className="vq-tile__body">{feat.description}</p>
+                                </div>
                             );
                         })}
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
             {/* ── COMPARISON TABLE ───────────────────────────────────── */}
-            <section className="py-20 px-6 max-w-5xl mx-auto">
-                <RevealOnScroll direction="up">
-                    <div className="text-center mb-12 max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
-                            {data.comparisonTable.title}
-                        </h2>
+            <section className="vq-section">
+                <div className="vq-container">
+                    <div className="vq-section-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Side by side</span>
+                        <h2 className="vq-h1 vq-mt-4">{data.comparisonTable.title}</h2>
                     </div>
 
-                    <div className="rounded-2xl overflow-hidden border border-line">
-                        <table className="w-full text-sm">
+                    <div className="vq-mkt-table-wrap">
+                        <table className="vq-mkt-table">
                             <thead>
-                                <tr className="bg-app border-b border-line">
-                                    <th className="py-4 px-6 text-left font-bold text-ink-secondary text-xs uppercase tracking-wider">
-                                        Feature
-                                    </th>
-                                    <th className="py-4 px-6 text-left font-bold text-brand-600 dark:text-brand-400 text-xs uppercase tracking-wider">
-                                        VenQore
-                                    </th>
-                                    <th className="py-4 px-6 text-left font-bold text-ink-muted text-xs uppercase tracking-wider">
-                                        Typical Alternative
-                                    </th>
+                                <tr>
+                                    <th scope="col" style={{ width: '34%' }}>Feature</th>
+                                    <th scope="col" className="is-us">VenQore</th>
+                                    <th scope="col">Typical alternative</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-line bg-surface">
+                            <tbody>
                                 {data.comparisonTable.rows.map((row, i) => (
-                                    <tr key={i} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                        <td className="py-4 px-6 font-semibold text-ink-secondary">
-                                            {row.feature}
-                                        </td>
-                                        <td className="py-4 px-6 text-emerald-700 dark:text-emerald-400 font-medium">
-                                            <span className="flex items-center gap-2">
-                                                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                                                {row.venqore}
+                                    <tr key={i}>
+                                        <th scope="row">{row.feature}</th>
+                                        <td className="is-us">
+                                            <span className="vq-row vq-gap-2" style={{ alignItems: 'flex-start' }}>
+                                                <CheckCircle2 size={16} className="vq-cmp-tick" aria-hidden="true" />
+                                                <span>{row.venqore}</span>
                                             </span>
                                         </td>
-                                        <td className="py-4 px-6 text-ink-muted">
-                                            {row.competitor}
-                                        </td>
+                                        <td>{row.competitor}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
             {/* ── FAQ ────────────────────────────────────────────────── */}
-            <section className="py-20 px-6 max-w-3xl mx-auto">
-                <RevealOnScroll direction="up">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
-                            Frequently Asked Questions
-                        </h2>
+            <section className="vq-section vq-section--alt">
+                <div className="vq-container vq-container--narrow">
+                    <div className="vq-section-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">FAQ</span>
+                        <h2 className="vq-h1 vq-mt-4">Frequently asked questions</h2>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="vq-tools__faq">
                         {data.faqs.map((faq, i) => (
-                            <div
-                                key={i}
-                                className="rounded-2xl border border-line overflow-hidden"
-                            >
+                            <div key={i} className="vq-tools__faq-item" data-open={openFaq === i ? 'true' : 'false'}>
                                 <button
+                                    type="button"
                                     id={`faq-${slug}-${i}`}
                                     onClick={() => toggleFaq(i)}
-                                    className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left bg-surface hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
+                                    className="vq-tools__faq-q"
                                     aria-expanded={openFaq === i}
                                 >
-                                    <span className="font-bold text-ink text-sm">
-                                        {faq.q}
-                                    </span>
-                                    {openFaq === i
-                                        ? <ChevronUp className="w-4 h-4 text-ink-muted flex-shrink-0" />
-                                        : <ChevronDown className="w-4 h-4 text-ink-muted flex-shrink-0" />}
+                                    <span>{faq.q}</span>
+                                    <ChevronDown size={20} aria-hidden="true" />
                                 </button>
-                                {openFaq === i && (
-                                    <div className="px-6 pb-5 bg-surface text-sm text-ink-secondary leading-relaxed">
-                                        {faq.a}
-                                    </div>
-                                )}
+                                {openFaq === i && <p className="vq-tools__faq-a">{faq.a}</p>}
                             </div>
                         ))}
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
             {/* ── CROSS-LINKS ────────────────────────────────────────── */}
-            <section className="py-16 px-6 max-w-5xl mx-auto">
-                <RevealOnScroll direction="up">
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-ink mb-2">
-                            Explore Related Pages
-                        </h2>
+            <section className="vq-section vq-section--tight">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 'var(--vq-space-8)' }}>
+                        <h2 className="vq-h2">Explore related pages</h2>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-3">
+                    <div className="vq-row vq-wrap vq-gap-3" style={{ justifyContent: 'center' }}>
                         {data.crossLinks.map((link, i) => (
-                            <Link
-                                key={i}
-                                href={link.href}
-                                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sunken hover:bg-brand-50 dark:hover:bg-brand-900/30 text-ink-secondary hover:text-brand-600 dark:hover:text-brand-400 font-semibold text-sm transition-all duration-normal"
-                            >
-                                {link.label}
-                                <ArrowRight className="w-3 h-3" />
+                            <Link key={i} href={link.href} className="vq-chip">
+                                {link.label} <ArrowRight size={14} aria-hidden="true" />
                             </Link>
                         ))}
-                        <Link
-                            href="/features"
-                            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition-all duration-normal"
-                        >
-                            All Features <ArrowRight className="w-3 h-3" />
+                        <Link href="/features" className="vq-chip vq-chip--on">
+                            All features <ArrowRight size={14} aria-hidden="true" />
                         </Link>
                     </div>
-                </RevealOnScroll>
+                </div>
             </section>
 
             {/* ── FINAL CTA ──────────────────────────────────────────── */}
-            <section className="py-24 px-6 max-w-4xl mx-auto text-center">
-                <RevealOnScroll direction="up">
-                    <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6 tracking-tight">
-                        Ready to see it for yourself?
-                    </h2>
-                    <p className="text-lg text-ink-secondary mb-10 max-w-2xl mx-auto">
-                        Walk into a fully loaded VenQore store — ring up sales, open the P&L, check inventory.
-                        No signup. Resets daily.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-4">
-                        <MagneticButton href="/demo" variant="primary">
-                            Try Live Demo — No Signup <ArrowRight className="w-4 h-4 ml-2 inline" />
-                        </MagneticButton>
-                        <MagneticButton href="/build-workspace" variant="secondary">
-                            Start building
-                        </MagneticButton>
+            <section className="vq-section" style={{ paddingTop: 0 }}>
+                <div className="vq-container">
+                    <div className="vq-card vq-card--xl vq-mkt-cta">
+                        <h2 className="vq-h1">Ready to see it for yourself?</h2>
+                        <p className="vq-lede">
+                            Walk into a fully loaded VenQore store — ring up sales, open the P&amp;L, check inventory.
+                            No signup. Resets daily.
+                        </p>
+                        <div className="vq-row vq-wrap vq-gap-3 vq-mkt-cta__actions">
+                            <Link href="/demo" className="vq-btn vq-btn--primary vq-btn--lg">
+                                Try the live demo — no signup <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                            </Link>
+                            <Link href="/build-workspace" className="vq-btn vq-btn--secondary vq-btn--lg">Start building</Link>
+                        </div>
+                        <p className="vq-caption vq-mt-6" style={{ marginInline: 'auto' }}>
+                            Plans from $49/month (Starter) · $99/mo (Core) · $299/mo (Scale) · Free forever (Solo) · 14-day trial · Cancel anytime
+                        </p>
                     </div>
-                    <p className="text-xs text-ink-muted mt-6">
-                        Plans from $49/month (Starter) · $99/mo (Core) · $299/mo (Scale) · Free forever (Solo) · 14-day trial · Cancel anytime
-                    </p>
-                </RevealOnScroll>
+                </div>
             </section>
 
             <RelatedPages title="Related reading" items={related} />

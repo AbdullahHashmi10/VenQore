@@ -95,23 +95,41 @@ class PresetSmokeTest extends VenQoreTestCase
     #[Test]
     public function provisioning_through_the_real_signup_endpoint_works_end_to_end(): void
     {
+        \Illuminate\Support\Facades\Mail::fake();
+        $email = 'smoke-test-' . Str::random(8) . '@example.test';
+
         $response = $this->postJson('/workspace/provision', [
             'business_name' => 'Smoke Test Cafe',
-            'email'         => 'smoke-test-' . Str::random(8) . '@example.test',
+            'email'         => $email,
             'password'      => 'password123',
             'modules'       => config('ai_builder.presets.cafe.modules'),
             'preset_key'    => 'cafe',
         ]);
 
+        // AUTH-01 (2026-09-10): a new account proves its email first. provision()
+        // now answers with the code page; nothing is created until the code.
         $response->assertOk();
         $response->assertJsonPath('success', true);
+        $response->assertJsonPath('pending_verification', true);
+        $this->assertDatabaseMissing('users', ['email' => $email]);
 
-        $slug = $response->json('tenant_slug');
-        $this->assertNotEmpty($slug, 'provision() did not return a tenant_slug.');
+        $code = null;
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\EmailOtpCodeMail::class, function ($m) use (&$code) {
+            $code = $m->code;
+            return true;
+        });
 
-        // provision() already called Auth::login() — the session from that
-        // response carries over to this next request in the same test,
-        // exactly as it does for a real signed-up owner's next page load.
+        $verify = $this->post('/verify-code', ['code' => $code]);
+        $this->assertAuthenticated();
+
+        $location = $verify->headers->get('Location');
+        $this->assertMatchesRegularExpression('#/s/([^/]+)/dashboard#', (string) $location, 'Signup did not land on the new workspace dashboard.');
+        preg_match('#/s/([^/]+)/dashboard#', $location, $m);
+        $slug = $m[1];
+        $this->assertNotEmpty($slug, 'provision() did not create a tenant.');
+
+        // The session from the verify step carries over, exactly as it does for
+        // a real signed-up owner's next page load.
         $this->get("/s/{$slug}/dashboard")->assertOk();
     }
 }

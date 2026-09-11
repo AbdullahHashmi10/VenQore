@@ -1,0 +1,14 @@
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\GoldenAuditTestsTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenAuditTestsTest::test_ledger_truth_audit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenAuditTestsTest::test_data_integrity_audit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+﻿﻿﻿﻿
+   PASS  Tests\Feature\Golden\GoldenAuditTestsTest
+  ✓ ledger truth audit                                                                                          62.97s  
+  ✓ data integrity audit                                                                                         5.56s  
+
+  Tests:    2 passed (4 assertions)
+  Duration: 68.75s
+

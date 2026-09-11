@@ -1,8 +1,7 @@
 import React from 'react';
 import { useForm } from '@inertiajs/react';
-import MarketingLayout, {
- RevealOnScroll, MagneticButton, SectionLabel, GlassCard
-} from './Shared/MarketingLayout';
+import useTurnstile from '@/Components/Builder/useTurnstile';
+import MarketingLayout from './Shared/MarketingLayout';
 import {
  ArrowRight, Send, Briefcase, Mail, ShieldAlert,
  CheckCircle2, Users, FileText, Globe, Code, Key, ChevronDown
@@ -16,7 +15,7 @@ import {
  ═══════════════════════════════════════════════════════════════════════ */
 
 export default function Partners() {
- const { data, setData, post, processing, wasSuccessful, reset, errors } = useForm({
+ const { data, setData, post, processing, wasSuccessful, reset, errors, transform } = useForm({
  name: '',
  email: '',
  company: '',
@@ -24,8 +23,14 @@ export default function Partners() {
  message: ''
  });
 
- const handleSubmit = (e) => {
+ // Bot check (2026-09-10): /partners-submit is guarded by the `turnstile`
+ // middleware; the token rides along with the form fields.
+ const getTurnstileToken = useTurnstile();
+
+ const handleSubmit = async (e) => {
  e.preventDefault();
+ const token = await getTurnstileToken();
+ transform((d) => ({ ...d, turnstile_token: token || '' }));
  post(route('marketing.partners.store'), {
  onSuccess: () => reset(),
  });
@@ -62,14 +67,11 @@ export default function Partners() {
  }
  ];
 
- const getTheme = (color) => {
- switch (color) {
- case 'emerald': return { text: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' };
- case 'indigo': return { text: 'text-brand-400', bg: 'bg-brand-500/10 border-brand-500/20' };
- case 'violet': return { text: 'text-brand-400', bg: 'bg-brand-500/10 border-brand-500/20' };
- case 'rose': return { text: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/20' };
- default: return { text: 'text-ink-muted', bg: 'bg-neutral-500/10 border-line-strong' };
- }
+ const toneBadge = {
+ emerald: 'vq-badge--success',
+ indigo: 'vq-badge--accent',
+ violet: 'vq-badge--accent',
+ rose: 'vq-badge--warning',
  };
 
  return (
@@ -78,211 +80,115 @@ export default function Partners() {
  description="Explore white-label reseller opportunities, non-exclusive source-code licensing, and regional exclusive partnerships for our offline-first Business OS."
  >
  {/* ── 1. HERO ─────────────────────────────────────── */}
- <section className="relative pt-40 pb-16 px-6">
- <div className="max-w-4xl mx-auto text-center">
- <RevealOnScroll>
- <SectionLabel icon={Briefcase}>Licensing & Partnerships</SectionLabel>
- </RevealOnScroll>
- <RevealOnScroll delay={0.1}>
- <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter leading-[0.9] mb-8 font-display text-ink">
- The Licensing <br />
- <span className="bg-gradient-brand bg-clip-text text-transparent">Ladder Program</span>
- </h1>
- </RevealOnScroll>
- <RevealOnScroll delay={0.2}>
- <p className="text-ink-muted text-lg md:text-xl font-medium leading-relaxed max-w-2xl mx-auto">
+ <section className="vq-section vq-mkt-hero">
+ <div className="vq-container">
+ <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 0 }}>
+ <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Licensing &amp; partnerships</span>
+ <h1 className="vq-display vq-mt-4">The licensing ladder program</h1>
+ <p className="vq-lede">
  VenQore licenses its double-entry retail operating system. The company is not for sale; serious partnership and licensing conversations are welcome.
  </p>
- </RevealOnScroll>
+ </div>
  </div>
  </section>
 
  {/* ── 2. LICENSING LADDER GRID ────────────────────── */}
- <section className="relative py-16 px-6">
- <div className="max-w-7xl mx-auto">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <section className="vq-section" style={{ paddingTop: 0 }}>
+ <div className="vq-container">
+ <div className="vq-grid vq-grid--2">
  {Tiers.map((t, idx) => {
- const theme = getTheme(t.color);
  const Icon = t.icon;
  return (
- <RevealOnScroll key={idx} delay={idx * 0.1}>
- <GlassCard className="p-8 h-full flex flex-col justify-between group hover:border-line-strong transition-all duration-slower">
- <div>
- <div className={`w-12 h-12 rounded-2xl ${theme.bg} flex items-center justify-center mb-6 transition-transform duration-slower`}>
- <Icon className={`w-6 h-6 ${theme.text}`} />
+ <article key={idx} className="vq-card vq-card--xl vq-tile">
+ <div className="vq-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+ <span className="vq-tile__icon"><Icon aria-hidden="true" /></span>
+ <span className={`vq-badge ${toneBadge[t.color] || ''}`}>{t.type}</span>
  </div>
- <span className={`text-2xs font-bold uppercase tracking-[0.2em] ${theme.text}`}>
- {t.type}
- </span>
- <h3 className="text-2xl font-bold text-ink tracking-tight mt-2 mb-4 font-display">
- {t.title}
- </h3>
- <p className="text-ink-muted text-sm leading-relaxed">
- {t.desc}
- </p>
- </div>
- </GlassCard>
- </RevealOnScroll>
+ <h2 className="vq-tile__title">{t.title}</h2>
+ <p className="vq-tile__body">{t.desc}</p>
+ </article>
  );
  })}
  </div>
- </div>
- </section>
 
- {/* ── 3. ACQUISITION Moat / 48-HOUR KIT STATS ─────── */}
- <section className="relative py-16 px-6">
- <div className="max-w-4xl mx-auto">
- <RevealOnScroll>
- <GlassCard className="p-8 border-yellow-500/10 bg-yellow-500/[0.01]">
- <div className="flex items-start gap-4">
- <div className="w-10 h-10 rounded-xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center shrink-0">
- <ShieldAlert size={20} />
- </div>
+ {/* ── 3. IP note ── */}
+ <div className="vq-card vq-card--xl vq-mt-8 vq-mkt-note">
+ <span className="vq-tile__icon vq-mkt-note__icon"><ShieldAlert aria-hidden="true" /></span>
  <div>
- <h4 className="text-base font-bold text-ink tracking-tight font-display mb-1">
- IP & Technical Moat Integrity
- </h4>
- <p className="text-ink-muted text-xs leading-relaxed">
+ <h2 className="vq-h3">IP &amp; technical moat integrity</h2>
+ <p className="vq-small vq-text-2 vq-mt-2" style={{ lineHeight: 1.65 }}>
  VenQore is governed by strict developer-owner copyrights, no third-party contested intellectual property, and contains a locked database integrity engine tested under <strong>eight correctness laws run on every release</strong>. All partnership inquiries route directly to our founding team.
  </p>
  </div>
  </div>
- </GlassCard>
- </RevealOnScroll>
  </div>
  </section>
 
  {/* ── 4. PARTNERSHIP CONTACT FORM ─────────────────── */}
- <section className="relative py-16 px-6 pb-32">
- <div className="max-w-3xl mx-auto">
- <RevealOnScroll>
- <div className="text-center mb-12">
- <h2 className="text-3xl md:text-5xl font-bold text-ink tracking-tight font-display mb-4">
- Partnership Inquiry
- </h2>
- <p className="text-ink-muted text-sm leading-relaxed max-w-md mx-auto">
+ <section className="vq-section vq-section--alt">
+ <div className="vq-container vq-container--narrow">
+ <div className="vq-section-head vq-section-head--center">
+ <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Talk to the founders</span>
+ <h2 className="vq-h1 vq-mt-4">Partnership inquiry</h2>
+ <p className="vq-lede">
  Select your licensing tier below. Qualified inquiries receive a response within one business day from our founders.
  </p>
  </div>
- </RevealOnScroll>
 
- <RevealOnScroll delay={0.1}>
- <GlassCard className="p-8 md:p-12 relative overflow-hidden">
+ <div className="vq-card vq-card--xl vq-mkt-form">
  {wasSuccessful ? (
- <div className="text-center py-12">
- <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6">
- <CheckCircle2 size={32} />
- </div>
- <h3 className="text-2xl font-bold text-ink font-display mb-2">
- Inquiry Submitted
- </h3>
- <p className="text-ink-muted text-sm max-w-md mx-auto leading-relaxed">
+ <div className="vq-center" style={{ paddingBlock: 'var(--vq-space-8)' }}>
+ <span className="vq-lead__icon vq-lead__icon--ok"><CheckCircle2 size={28} aria-hidden="true" /></span>
+ <h3 className="vq-h2 vq-mt-6">Inquiry submitted</h3>
+ <p className="vq-body vq-text-2 vq-mt-3" style={{ marginInline: 'auto' }}>
  Thank you! Your partnership inquiry has been securely stored and routed to the founding team. We will review your company profile and respond shortly.
  </p>
  </div>
  ) : (
- <form onSubmit={handleSubmit} className="space-y-6">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div>
- <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-secondary">
- Your Name <span className="text-brand-500">*</span>
- </label>
- <input
- type="text"
- required
- value={data.name}
- onChange={e => setData('name', e.target.value)}
- className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-white text-sm placeholder:text-ink-secondary outline-none hover:border-white/10 focus:border-brand-500/40 focus:bg-brand-500/[0.03]"
- placeholder="e.g. Alexander Wright"
- />
- {errors.name && <span className="text-xs text-rose-500 mt-1">{errors.name}</span>}
+ <form onSubmit={handleSubmit} className="vq-mkt-form__grid">
+ <div className="vq-field">
+ <label htmlFor="pt-name" className="vq-label">Your name <span className="vq-accent-text">*</span></label>
+ <input id="pt-name" type="text" required value={data.name} onChange={e => setData('name', e.target.value)} className="vq-input" placeholder="e.g. Alexander Wright" />
+ {errors.name && <span className="vq-mkt-form__error">{errors.name}</span>}
  </div>
 
- <div>
- <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-secondary">
- Business Email <span className="text-brand-500">*</span>
- </label>
- <input
- type="email"
- required
- value={data.email}
- onChange={e => setData('email', e.target.value)}
- className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-white text-sm placeholder:text-ink-secondary outline-none hover:border-white/10 focus:border-brand-500/40 focus:bg-brand-500/[0.03]"
- placeholder="e.g. alex@distributor.com"
- />
- {errors.email && <span className="text-xs text-rose-500 mt-1">{errors.email}</span>}
- </div>
+ <div className="vq-field">
+ <label htmlFor="pt-email" className="vq-label">Business email <span className="vq-accent-text">*</span></label>
+ <input id="pt-email" type="email" required value={data.email} onChange={e => setData('email', e.target.value)} className="vq-input" placeholder="e.g. alex@distributor.com" />
+ {errors.email && <span className="vq-mkt-form__error">{errors.email}</span>}
  </div>
 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div>
- <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-secondary">
- Company Name <span className="text-brand-500">*</span>
- </label>
- <input
- type="text"
- required
- value={data.company}
- onChange={e => setData('company', e.target.value)}
- className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-white text-sm placeholder:text-ink-secondary outline-none hover:border-white/10 focus:border-brand-500/40 focus:bg-brand-500/[0.03]"
- placeholder="e.g. Wright Retail Group"
- />
- {errors.company && <span className="text-xs text-rose-500 mt-1">{errors.company}</span>}
+ <div className="vq-field">
+ <label htmlFor="pt-company" className="vq-label">Company name <span className="vq-accent-text">*</span></label>
+ <input id="pt-company" type="text" required value={data.company} onChange={e => setData('company', e.target.value)} className="vq-input" placeholder="e.g. Wright Retail Group" />
+ {errors.company && <span className="vq-mkt-form__error">{errors.company}</span>}
  </div>
 
- <div>
- <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-secondary">
- Licensing Program <span className="text-brand-500">*</span>
- </label>
- <div className="relative">
- <select
- value={data.partnership_type}
- onChange={e => setData('partnership_type', e.target.value)}
- className="w-full px-5 py-4 bg-void-950 border border-white/[0.06] rounded-2xl text-white text-sm outline-none hover:border-white/10 focus:border-brand-500/40 focus:bg-brand-500/[0.03] appearance-none cursor-pointer"
- >
+ <div className="vq-field">
+ <label htmlFor="pt-type" className="vq-label">Licensing program <span className="vq-accent-text">*</span></label>
+ <select id="pt-type" value={data.partnership_type} onChange={e => setData('partnership_type', e.target.value)} className="vq-select">
  <option>White-Label Reseller</option>
  <option>Source-Code License</option>
  <option>Vertical/Region Exclusivity</option>
  <option>Strategic Acquisition</option>
  </select>
- <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-ink-muted">
- <ChevronDown size={16} />
- </div>
- </div>
- </div>
  </div>
 
- <div>
- <label className="block text-2xs font-bold uppercase tracking-[0.25em] mb-3 text-ink-secondary">
- Inquiry & Use Case Description <span className="text-brand-500">*</span>
- </label>
- <textarea
- required
- rows={5}
- value={data.message}
- onChange={e => setData('message', e.target.value)}
- className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-white text-sm placeholder:text-ink-secondary outline-none hover:border-white/10 focus:border-brand-500/40 focus:bg-brand-500/[0.03] resize-none"
- placeholder="Detail your target market, operating region, and why you are interested in licensing VenQore..."
- />
- {errors.message && <span className="text-xs text-rose-500 mt-1">{errors.message}</span>}
+ <div className="vq-field vq-mkt-form__full">
+ <label htmlFor="pt-message" className="vq-label">Inquiry &amp; use case description <span className="vq-accent-text">*</span></label>
+ <textarea id="pt-message" required rows={5} value={data.message} onChange={e => setData('message', e.target.value)} className="vq-textarea" placeholder="Detail your target market, operating region, and why you are interested in licensing VenQore..." />
+ {errors.message && <span className="vq-mkt-form__error">{errors.message}</span>}
  </div>
 
- <div className="flex justify-end pt-4">
- <MagneticButton>
- <button
- type="submit"
- disabled={processing}
- className="px-8 py-4 rounded-full bg-white text-ink font-bold text-xs uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-sunken disabled:bg-sunken disabled:text-ink-muted transition-all duration-slow"
- >
- {processing ? 'Submitting...' : 'Submit Inquiry'}
- <Send size={12} />
+ <div className="vq-mkt-form__full vq-mkt-form__actions">
+ <button type="submit" disabled={processing} className="vq-btn vq-btn--primary vq-btn--lg">
+ {processing ? 'Submitting…' : 'Submit inquiry'}
+ <Send size={16} aria-hidden="true" />
  </button>
- </MagneticButton>
  </div>
  </form>
  )}
- </GlassCard>
- </RevealOnScroll>
+ </div>
  </div>
  </section>
  </MarketingLayout>

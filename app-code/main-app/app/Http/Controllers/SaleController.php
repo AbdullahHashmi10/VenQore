@@ -74,6 +74,10 @@ class SaleController extends Controller
             'bank_account_id'       => 'nullable',
             'payment_reference'     => 'nullable|string|max:120',
             'cheque_date'           => 'nullable|date',
+            // S-011 / S-044 manager approval (see PosSaleApprovalGuard). The PIN
+            // is checked and dropped; it is never stored or logged.
+            'approved_by'           => 'nullable|string|max:64',
+            'approval_pin'          => 'nullable|string|max:20',
         ]);
 
         // ── L038: Idempotency protection ────────────────────────────────────
@@ -117,7 +121,7 @@ class SaleController extends Controller
             $globalDiscount = (float)($request->discount ?? 0);
             $lineItemsData = [];
 
-            foreach ($request->items as $item) {
+            foreach ($request->items as $itemIndex => $item) {
                 $product = $products->get($item['product_id']);
                 if (!$product) continue;
 
@@ -142,6 +146,7 @@ class SaleController extends Controller
                 $totalItemDiscounts += $itemDiscount + $freeValue;
 
                 $lineItemsData[] = [
+                    'index'         => $itemIndex,
                     'product'       => $product,
                     'product_id'    => $item['product_id'],
                     'variant_id'    => $item['variant_id'] ?? null,
@@ -189,6 +194,10 @@ class SaleController extends Controller
                 
                 $ld['tax_amt'] = $taxAmt;
                 $totalTax     += $taxAmt;
+                // S-011 / S-044 inputs: the order-discount share, and the revenue
+                // this line actually books (taxable net, ex-tax).
+                $ld['global_share'] = $lineShare;
+                $ld['revenue']      = $taxInclusive ? $lineTaxable - $taxAmt : $lineTaxable;
             }
             unset($ld); // release reference
 
@@ -273,6 +282,7 @@ class SaleController extends Controller
 
                 // Check for already-sold serials
                 $duplicate = DB::table('product_serials')
+                    ->where('tenant_id', app('current.tenant')->id)
                     ->where('product_id', $product->id)
                     ->where('status', 'sold')
                     ->whereIn('serial_number', $serials)
@@ -288,6 +298,31 @@ class SaleController extends Controller
             if (!empty($serialErrors)) {
                 throw \Illuminate\Validation\ValidationException::withMessages($serialErrors);
             }
+
+            // ── S-011 / S-044: manager approval (same rules as the V3 sale route) ──
+            // Checked before anything is written. Throws ApprovalRequiredException
+            // (→ 422 code=approval_required) when an approval is missing/invalid.
+            $saleWarehouseId = $request->warehouse_id ?? (\App\Models\Warehouse::first()?->id ?? 1);
+            $approvedBy = \App\Support\PosSaleApprovalGuard::authorize(
+                array_map(fn ($ld) => [
+                    'index'      => $ld['index'],
+                    'product_id' => $ld['product_id'],
+                    'name'       => $ld['product']->name,
+                    'type'       => $ld['product']->type,
+                    'cost_price' => $ld['product']->cost_price,
+                    'paid_qty'   => $ld['qty'],
+                    'free_qty'   => $ld['free_qty'],
+                    'gross'      => $ld['qty'] * $ld['unit_price'],
+                    'discount'   => $ld['item_discount'] + $ld['global_share'],
+                    'revenue'    => $ld['revenue'],
+                ], $lineItemsData),
+                app('current.tenant')->id,
+                Auth::id(),
+                $request->input('approved_by'),
+                $request->filled('approval_pin') ? (string) $request->input('approval_pin') : null,
+                $saleWarehouseId,
+                $isStockEnabled
+            );
 
             $tendered = (float)$request->amount_paid;
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
@@ -392,19 +427,40 @@ class SaleController extends Controller
                 ]);
 
                 // Serial Number Recording
+                // Stamped with the store: a raw insert gets no HasTenant fill,
+                // and a NULL tenant_id row is invisible to this store's own
+                // serial screens (ProductSerial is tenant-scoped). An existing
+                // row (e.g. received 'available' on a purchase) is updated in
+                // place — updateOrInsert() used to overwrite its primary key.
                 if ($product->track_serial && !empty($ld['serials'])) {
                     foreach ($ld['serials'] as $serial) {
-                        DB::table('product_serials')->updateOrInsert(
-                            ['serial_number' => $serial, 'product_id' => $ld['product_id']],
-                            [
+                        $serialKey = [
+                            'tenant_id'     => $sale->tenant_id,
+                            'product_id'    => $ld['product_id'],
+                            'serial_number' => $serial,
+                        ];
+                        $soldAs = [
+                            'status'       => 'sold',
+                            'sale_id'      => $sale->id,
+                            'warehouse_id' => $sale->warehouse_id,
+                            'updated_at'   => now(),
+                        ];
+                        // product_id is this store's own, so a row saved before
+                        // the stamp (tenant_id NULL) is claimed here too.
+                        $existingSerialId = DB::table('product_serials')
+                            ->where('product_id', $ld['product_id'])
+                            ->where('serial_number', $serial)
+                            ->where(fn ($q) => $q->where('tenant_id', $sale->tenant_id)->orWhereNull('tenant_id'))
+                            ->value('id');
+                        if ($existingSerialId) {
+                            DB::table('product_serials')->where('id', $existingSerialId)
+                                ->update($soldAs + ['tenant_id' => $sale->tenant_id]);
+                        } else {
+                            DB::table('product_serials')->insert($serialKey + $soldAs + [
                                 'id'         => \Illuminate\Support\Str::uuid()->toString(),
-                                'status'     => 'sold',
-                                'sale_id'    => $sale->id,
-                                'warehouse_id' => $sale->warehouse_id,
-                                'updated_at' => now(),
                                 'created_at' => now(),
-                            ]
-                        );
+                            ]);
+                        }
                     }
                 }
 
@@ -451,8 +507,20 @@ class SaleController extends Controller
                     // so the product's configured cost_price is the correct (not fabricated)
                     // cost basis. This is an explicit, intended path — not a silent fallback.
                     $itemCogs = ($product->cost_price ?? 0) * $totalQty;
+                    $deductions = null;
                 }
                 $totalCogs += $itemCogs;
+
+                // S-011 safety net: re-check against the cost actually consumed
+                // (throws → full rollback, same 422 as the pre-check).
+                $approvedBy = \App\Support\PosSaleApprovalGuard::assertPostedCostCovered(
+                    ['index' => $ld['index'], 'product_id' => $ld['product_id'], 'name' => $product->name, 'paid_qty' => $ld['qty'], 'revenue' => $ld['revenue']],
+                    $deductions,
+                    (float) ($product->cost_price ?? 0) * $ld['qty'],
+                    $approvedBy,
+                    $sale->tenant_id,
+                    Auth::id()
+                );
 
                 // Legacy Stock Update
                 if ($isStockEnabled && $product->type !== 'service') {
@@ -483,7 +551,7 @@ class SaleController extends Controller
             // 5. ACCOUNTING: Unified Journal Entry
             $recorded = $addToLedger ? $tendered : min($tendered, $invoiceTotal);
             $overpayment = max(0, $tendered - $invoiceTotal);
-            $this->postSaleJournal($sale, $request, $netSales, $totalTax, $totalCogs, $roundOff, $invoiceTotal, $recorded, $overpayment, $addToLedger);
+            $this->postSaleJournal($sale, $request, $netSales, $totalTax, $totalCogs, $roundOff, $invoiceTotal, $recorded, $overpayment, $addToLedger, $approvedBy);
 
             // 6. INTEGRATIONS: FBR
             $fbrEnabled = \App\Helpers\SettingsHelper::get('fbr_integration') == '1';
@@ -513,6 +581,9 @@ class SaleController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'errors' => $e->errors(), 'message' => $e->getMessage()], 422);
+        } catch (\App\Exceptions\ApprovalRequiredException $e) {
+            DB::rollBack();
+            return response()->json($e->payload(), 422);
         } catch (\App\Exceptions\InsufficientStockException $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -543,6 +614,37 @@ class SaleController extends Controller
             Log::error('Sale Store Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * GET /s/{store}/sales/approvers — who can approve a POS sale that needs
+     * it (S-011 below cost / S-044 over-limit discount): the active owners,
+     * admins and managers of THIS store, for the POS approval modal. Guarded
+     * by the same permission as checkout. Exposes no PINs — only whether one
+     * is set, since an approver other than the cashier must enter theirs.
+     */
+    public function approvers()
+    {
+        $tenantId = app('current.tenant')->id;
+        $actorId  = Auth::id();
+
+        $approvers = \App\Models\TenantUser::where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->whereIn('role', \App\Support\ManagerApproval::ROLES)
+            ->with('user:id,name')
+            ->get()
+            ->map(fn ($m) => [
+                'user_id'        => (string) $m->user_id,
+                'name'           => $m->display_name ?: ($m->user?->name ?? 'Unknown'),
+                'role'           => $m->role,
+                'is_self'        => (string) $m->user_id === (string) $actorId,
+                'has_pin'        => !empty($m->security_pin),
+                'discount_limit' => \App\Support\ManagerApproval::discountLimit($m->role, $tenantId),
+            ])
+            ->sortByDesc('is_self')
+            ->values();
+
+        return response()->json(['approvers' => $approvers]);
     }
 
     public function dashboard()
@@ -721,6 +823,12 @@ class SaleController extends Controller
         // Apply Sorting
         $sortBy = $request->input('sort_by', 'date');
         $sortDir = $request->input('sort_dir', 'desc');
+        // Injection sweep (2026-09-10): sort inputs are whitelisted — sort_dir went
+        // straight into orderByRaw() (SQL injection) and unknown columns caused 500s.
+        $sortDir = strtolower((string) $sortDir) === 'asc' ? 'asc' : 'desc';
+        if (!is_string($sortBy) || !preg_match('/^[a-z_]{1,64}$/', $sortBy)) {
+            $sortBy = 'created_at';
+        }
 
         if ($sortBy === 'date') {
             $query->orderBy('created_at', $sortDir);
@@ -735,7 +843,7 @@ class SaleController extends Controller
                 ->select('sales.*')
                 ->orderBy('parties.name', $sortDir);
         } else {
-            $query->orderBy($sortBy, $sortDir);
+            $query->orderBy(\Illuminate\Support\Facades\Schema::hasColumn('sales', $sortBy) ? 'sales.'.$sortBy : 'sales.created_at', $sortDir);
         }
 
         // ── Stats (computed before pagination, on the full filtered set) ──────
@@ -904,177 +1012,64 @@ class SaleController extends Controller
 
                 } else {
                     // ─── PARTIAL RETURN ────────────────────────────────────────
-                    // For partial returns we cannot use the full reversal engine
-                    // directly (it reverses the whole sale). Instead we post a
-                    // partial counter journal entry proportional to the items returned.
-
-                    $returnTotal = 0;
-
-                    // Resolve the refund GL account based on the ORIGINAL sale's payment method.
-                    // Cash sale → refund comes from Cash (1000)
-                    // Bank/card/online → refund comes from Bank (1010)
-                    // Credit/ledger → reduce AR (1200)
-                    // This mirrors the same logic as postSaleJournal() line ~1219.
-                    $originalPaymentMethod = strtolower($sale->payment_method ?? 'cash');
-                    if (in_array($originalPaymentMethod, ['bank', 'card', 'online', 'upi'])) {
-                        $refundAccountCode = '1010';
-                    } elseif (in_array($originalPaymentMethod, ['credit', 'ledger', 'khata'])) {
-                        $refundAccountCode = '1200';
-                    } else {
-                        $refundAccountCode = '1000'; // cash default
-                    }
-
-                    $refundAccount = $this->accounting->getAccountByCode($refundAccountCode);
-                    $cogsAccount   = $this->accounting->getAccountByCode('5000', 'Cost of Goods Sold', 'expense');
-                    $invAccount    = $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
-                    $incAccount    = $this->accounting->getAccountByCode('4000', 'Sales Revenue', 'income');
-
-                    $journalItems = [];
-
+                    // The same B9 partial return the V3 route posts, through the
+                    // same engine (SaleService::reverse), so a return does not
+                    // depend on which screen it was keyed on:
+                    //   DR 4000 net value of the units | DR 2100 their output tax
+                    //   CR 1200 first, for whatever is still owed on the invoice,
+                    //      then CR the sale's cash / bank account for the rest
+                    //   DR 1100 / CR 5000 at the FIFO cost the units left at
+                    // with reference_type 'sale_return', FIFO restored in base
+                    // units, returned_quantity / status / payment badge updated.
+                    // This path used to post revenue only (no tax), credit the
+                    // refund account in full even when the customer still owed
+                    // on the invoice, and leave the entry without reference_type.
+                    $engineItems = [];
                     foreach ($itemsToReturn as $returnItem) {
-                        $originalItem = $sale->items->firstWhere('id', $returnItem['id']);
-                        if (!$originalItem) continue;
-
-                        $alreadyReturned     = (float) $originalItem->returned_quantity;
-                        $remainingReturnable = max(0.0, (float) $originalItem->quantity - $alreadyReturned);
-                        $qty                 = min((float) $returnItem['quantity'], $remainingReturnable);
-                        if ($qty <= 0) { continue; }   // nothing left to return on this line
-
-                        // BUG-04 FIX (CALCULATION_LOGIC.md §8 BUG-04 & §9.2)
-                        // OLD: unit_price × qty — gross price, before discounts
-                        //      If the customer got a 10% discount, this OVERESTIMATES the refund.
-                        // NEW: pro-rate net_amount (what the customer actually paid after discounts)
-                        //
-                        // Formula: net_amount / original_qty × return_qty
-                        //   net_amount  = sale_items.net_amount (gross - item_discount)
-                        //   fraction    = return_qty / original_qty
-                        //
-                        // Fallback: if net_amount is 0 (legacy row pre-waterfall-migration),
-                        //           use unit_price × qty to avoid a zero refund.
-                        $originalQty        = max(0.001, (float) $originalItem->quantity);
-                        $netAmountPerUnit   = ((float) $originalItem->net_amount > 0)
-                            ? (float) $originalItem->net_amount / $originalQty
-                            : (float) $originalItem->unit_price;
-
-                        // Round to 2dp here (not 4) — this value is written directly into
-                        // journal_items.debit/credit below with no further round-off line,
-                        // unlike the main sale-posting path which settles residual cents via
-                        // an explicit "Round off" journal item (see createSale ~L1541-1546).
-                        // Sub-cent precision persisted to the ledger is exactly the kind of
-                        // drift that produced the Rs 0.01–0.04 Sales-vs-Net-Profit mismatch.
-                        $lineRevenue  = round($netAmountPerUnit * $qty, 2);
-                        $returnTotal += $lineRevenue;
-
-                        // Restore FIFO stock for this specific item proportionally (LIFO order of deduction for returns)
-                        $activeBatches = $originalItem->saleItemBatches()
-                            ->select('sale_item_batches.*')
-                            ->join('inventory_batches', 'sale_item_batches.inventory_batch_id', '=', 'inventory_batches.id')
-                            ->active()
-                            ->orderBy('inventory_batches.created_at', 'desc')
-                            ->orderBy('inventory_batches.seq', 'desc')
-                            ->get();
-                        $qtyToRestore  = $qty;
-                        $costToRestore = 0.0;
-
-                        foreach ($activeBatches as $sib) {
-                            if ($qtyToRestore <= 0) break;
-                            $restoreFromThis = min($sib->qty_deducted, $qtyToRestore);
-                            $batch = \App\Models\InventoryBatch::find($sib->inventory_batch_id);
-                            if ($batch) {
-                                $restoredQty = min($restoreFromThis, $batch->original_qty - $batch->remaining_qty);
-                                $batch->increment('remaining_qty', $restoredQty);
-                                $costToRestore += $restoredQty * (float) $batch->unit_cost;
-                                Log::info("Partial FIFO restore: batch {$batch->id}, restored {$restoredQty}");
-                                
-                                // Decrease or mark reversed in sale_item_batches so getGrossProfitByProduct picks up the correct COGS
-                                if ($restoredQty >= $sib->qty_deducted) {
-                                    $sib->markReversed("Partial return of {$sale->reference_number}");
-                                } else {
-                                    $newQty = $sib->qty_deducted - $restoredQty;
-                                    $sib->update([
-                                        'qty_deducted' => $newQty,
-                                        'total_cogs' => $newQty * $sib->unit_cost
-                                    ]);
-                                }
-                            }
-                            $qtyToRestore -= $restoreFromThis;
+                        if (empty($returnItem['id']) || (float) ($returnItem['quantity'] ?? 0) <= 0) {
+                            continue;
                         }
-
-                        // THE FIX: Sync Legacy Stock Tables (Dashboard/List view)
-                        $stock = \App\Models\Stock::where('product_id', $originalItem->product_id)
-                            ->where('warehouse_id', $sale->warehouse_id)
-                            ->first();
-
-                        if ($stock) {
-                            $stock->increment('quantity', $qty);
-                        }
-
-                        if ($originalItem->product_variant_id) {
-                            $variant = \App\Models\ProductVariant::find($originalItem->product_variant_id);
-                            if ($variant) $variant->increment('stock', $qty);
-                        }
-
-                        \App\Models\Product::where('id', $originalItem->product_id)->increment('stock_quantity', $qty);
-
-                        // Build partial reversal journal items:
-                        // DR Inventory (put cost back) | CR COGS (un-record the expense)
-                        if ($costToRestore > 0 && $cogsAccount && $invAccount) {
-                            $journalItems[] = ['account_id' => $invAccount->id,  'debit' => $costToRestore, 'credit' => 0,             'description' => "Inventory restored: partial return of {$sale->reference_number}"];
-                            $journalItems[] = ['account_id' => $cogsAccount->id, 'debit' => 0,             'credit' => $costToRestore, 'description' => "COGS reversal: partial return of {$sale->reference_number}"];
-                        }
-
-                        // DR Revenue (undo earned revenue) | CR refund account (cash/bank/AR)
-                        // Uses original sale's payment_method — NOT hardcoded AR.
-                        if ($lineRevenue > 0 && $refundAccount && $incAccount) {
-                            $journalItems[] = ['account_id' => $incAccount->id,   'debit' => $lineRevenue, 'credit' => 0,            'description' => "Revenue reversal: partial return of {$sale->reference_number}"];
-                            $journalItems[] = ['account_id' => $refundAccount->id, 'debit' => 0,           'credit' => $lineRevenue, 'description' => "Refund ({$refundAccountCode}): partial return of {$sale->reference_number}"];
-                        }
-
-                        DB::table('sale_items')->where('id', $originalItem->id)
-                            ->increment('returned_quantity', $qty);
+                        $engineItems[] = [
+                            'sale_item_id' => (string) $returnItem['id'],
+                            'return_qty'   => (float) $returnItem['quantity'],
+                        ];
                     }
 
-                    if ($returnTotal == 0 && empty($journalItems)) {
+                    if (empty($engineItems)) {
                         return back()->withErrors(['error' => 'Nothing left to return on this sale.']);
                     }
 
-                    // Post the partial reversal journal entry
-                    if (!empty($journalItems)) {
-                        app(\App\Engines\AccountingService::class)->createEntry([
-                            'date'        => now()->toDateString(),
-                            'reference'   => 'PRET-' . $sale->reference_number,
-                            'description' => "Partial return of {$sale->reference_number}. Reason: {$reason}",
-                            'party_id'    => $sale->party_id,
-                            'source_type' => Sale::class,
-                            'source_id'   => $sale->id,
-                        ], $journalItems);
+                    $entriesBefore = DB::table('journal_entries')
+                        ->where('reference_type', 'sale_return')
+                        ->where('source_id', $sale->id)
+                        ->pluck('id')
+                        ->all();
+
+                    try {
+                        app(\App\Engines\SaleService::class)->reverse(
+                            saleId: (string) $sale->id,
+                            reason: $reason,
+                            items:  $engineItems,
+                        );
+                    } catch (\LogicException $e) {
+                        return back()->withErrors(['error' => $e->getMessage()]);
                     }
 
-                    // Mark original sale as partially returned — allows further partial returns later.
-                    // Only set to 'returned' when SaleReversalService::reverse() is called (full return).
-                    DB::statement("UPDATE sales SET status = 'partially_returned', updated_at = ? WHERE id = ?", [now(), $sale->id]);
+                    // What was credited back (net + tax) — for the message below.
+                    $newEntryIds = DB::table('journal_entries')
+                        ->where('reference_type', 'sale_return')
+                        ->where('source_id', $sale->id)
+                        ->whereNotIn('id', $entriesBefore)
+                        ->pluck('id');
+                    $returnTotal = round((float) DB::table('journal_items as ji')
+                        ->join('accounts as a', 'a.id', '=', 'ji.account_id')
+                        ->whereIn('ji.journal_entry_id', $newEntryIds)
+                        ->whereIn('a.code', ['4000', '2100'])
+                        ->sum('ji.debit'), 2);
                 }
 
-                // ─── Record the Refund Payment ─────────────────────────────────
-                // A Payment row records which physical instrument was used for the refund.
-                // The financial reversal is already in the journal — this is an operational record.
-                if (!$isFullReturn) {
-                    $refLabel = match($refundSource) {
-                        'bank_account' => 'BANK TRANSFER REFUND',
-                        'online'       => 'ONLINE/CARD REFUND',
-                        default        => 'CASH REFUND',
-                    };
-
-                    Payment::create([
-                        'sale_id'   => $sale->id,
-                        'party_id'  => $sale->party_id,
-                        'amount'    => -$returnTotal,
-                        'type'      => 'out',
-                        'method'    => $refundMethod === 'ledger' ? 'ledger_credit' : ($refundSource === 'bank_account' ? 'bank' : 'cash'),
-                        'reference' => ($refundMethod === 'ledger' ? 'KHATA CREDIT' : $refLabel) . ': Return of ' . $sale->reference_number,
-                        'date'      => now()->toDateString(),
-                    ]);
-                }
+                // The refund Payment row of a partial return is recorded by the
+                // engine above; a full return reverses the sale's own payments.
             });
 
             if ($retVal instanceof \Illuminate\Http\RedirectResponse) {
@@ -1623,7 +1618,8 @@ class SaleController extends Controller
         float $roundedInvoiceTotal, 
         float $recordedAmount, 
         float $overpaymentAmount, 
-        bool $addToLedger
+        bool $addToLedger,
+        ?string $approvedBy = null
     ) {
         // A. Record Payments
         if ($recordedAmount > 0) {
@@ -1855,14 +1851,17 @@ class SaleController extends Controller
             'reference'      => $sale->id,
             'description'    => "Sale #{$sale->reference_number}",
             'party_id'       => $sale->party_id,
+            // S-011 / S-044: the verified manager approval, as on the V3 path.
+            'approved_by'    => $approvedBy,
         ], $journalItems);
     }
 
     public function cancel(Sale $sale)
     {
-        // Phase 1.2 — Reversal Engine
-        if ($sale->status !== 'posted') {
-            return back()->with('error', "Only posted sales can be cancelled. Current status: {$sale->status}.");
+        // Phase 1.2 — Reversal Engine. A partly returned sale can be cancelled
+        // too: SaleReversalService then reverses only what is still out.
+        if (!in_array($sale->status, ['posted', 'partially_returned'], true)) {
+            return back()->with('error', "Only posted or partially-returned sales can be cancelled. Current status: {$sale->status}.");
         }
 
         try {
@@ -1965,6 +1964,7 @@ class SaleController extends Controller
      *      exactly the quantities they held before the sale ran.
      *   3. The sale is soft-deleted (it remains for compliance reporting).
      *
+     * A partially returned sale has its not-yet-returned remainder reversed.
      * If the sale is already cancelled/returned, reversals have already been
      * posted previously — we only soft-delete the record at this point.
      */
@@ -1972,9 +1972,18 @@ class SaleController extends Controller
     {
         DB::transaction(function () use ($sale) {
 
-            if ($sale->status === 'posted') {
-                // Run the full financial + FIFO reversal.
-                // This creates the counter journal entry and restores inventory_batches.
+            // Re-read under a row lock: two deletes of the same sale must not
+            // both see 'posted' and reverse it twice.
+            $status = DB::table('sales')->where('id', $sale->id)->lockForUpdate()->value('status');
+            $sale->status = $status;
+
+            if (in_array($status, ['posted', 'partially_returned'], true)) {
+                // Run the financial + FIFO reversal. For a posted sale this is
+                // the counter entry of the whole sale; for a partly returned
+                // one SaleReversalService reverses only the units still out
+                // (the returned ones were already reversed by their return
+                // entries) — soft-deleting it alone left the rest of the sale's
+                // revenue, tax, AR/cash and COGS on the books with no stock back.
                 $reason = request()->input('reason', 'Admin deletion by ' . optional(auth()->user())->name);
                 (new \App\Engines\SaleReversalService())->reverse(
                     sale:   $sale,

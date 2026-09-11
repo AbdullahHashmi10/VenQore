@@ -25,6 +25,11 @@ class AiController extends Controller
             return response()->json(['error' => 'Query cannot be empty'], 400);
         }
 
+        // Mirrors config('ai_limits.scope.features.query.max_input_chars').
+        if (!is_string($request->input('query')) || mb_strlen($request->input('query')) > 1500) {
+            return response()->json(['error' => 'Query is too long. Please keep it under 1500 characters.'], 422);
+        }
+
         $userQuery = $request->input('query');
         Log::info("AI Assistant Query: {$userQuery}");
 
@@ -66,6 +71,7 @@ class AiController extends Controller
             ->tenant($tenant)
             ->user($user)
             ->input($userQuery)
+            ->userText($userQuery)
             ->systemPrompt($systemPrompt)
             ->tools($tools, $toolExecutor);
 
@@ -75,6 +81,16 @@ class AiController extends Controller
 
         if (!$result->ok) {
             $code = $result->failureCode ?? 'error';
+
+            // Off-purpose question (code, trivia, jailbreak…): a normal answer
+            // explaining what the assistant is for. No model call was made.
+            if ($code === 'out_of_scope') {
+                return response()->json([
+                    'answer'       => $result->errorMessage,
+                    'type'         => 'out_of_scope',
+                    'out_of_scope' => true,
+                ]);
+            }
 
             if ($code === 'rate_limited') {
                 return response()->json([

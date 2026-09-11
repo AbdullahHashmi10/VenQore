@@ -1,5 +1,11 @@
-/* V6 base — scoped to the public site. See Phase 0.2. */
-.vq-site {
+/* V6 base — scoped to the public site. See Phase 0.2.
+   Scoped with :where(.vq-site), not .vq-site: a plain `.vq-site { … }` wrapper
+   silently added one class of specificity to every rule in this file, so
+   `.vq-site .vq-section { background: var(--vq-bg) }` (0,2,0) beat
+   `.vq-band-dark` (0,1,0) and every dark band rendered on the light page
+   background with white text on it — invisible in light mode. With :where()
+   each rule keeps exactly the specificity it is written with. */
+:where(.vq-site) {
 /* ═══════════════════════════════════════════════════════════════════════════
    VenQore V6 — Base
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -25,14 +31,20 @@
   overflow: visible;
 }
 
-h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd { margin: 0; }
-ul, ol { margin: 0; padding: 0; list-style: none; }
-img, svg, video, canvas { display: block; max-width: 100%; }
-button, input, select, textarea { font: inherit; color: inherit; }
-button { background: none; border: 0; padding: 0; cursor: pointer; }
+/* Element resets are wrapped in :where() so they carry no specificity of
+   their own. Unwrapped, `.vq-site button {padding:0}` (0,1,1) beat every
+   single-class component rule (0,1,0): <button class="vq-btn"> lost its
+   padding and weight, nav-menu buttons rendered at 17px next to 14px links,
+   and <h3 class="…"> could not set its own font. A reset should lose to any
+   class, never win. */
+:where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd) { margin: 0; }
+:where(ul, ol) { margin: 0; padding: 0; list-style: none; }
+:where(img, svg, video, canvas) { display: block; max-width: 100%; }
+:where(button, input, select, textarea) { font: inherit; color: inherit; }
+:where(button) { background: none; border: 0; padding: 0; cursor: pointer; }
 
 /* Display voice is opt-in — Bricolage on headings, never on UI labels. */
-h1, h2, h3, .vq-display, .vq-hero, .vq-h1, .vq-h2, .vq-h3 {
+:where(h1, h2, h3), .vq-display, .vq-hero, .vq-h1, .vq-h2, .vq-h3 {
   font-family: var(--vq-font-display);
   font-weight: var(--vq-fw-semi);
   letter-spacing: var(--vq-ls-h1);

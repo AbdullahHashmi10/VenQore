@@ -122,6 +122,12 @@ class InventoryController extends Controller
         // Global Sorting
         $sortBy = $request->input('sort_by', 'name');
         $sortDir = $request->input('sort_dir', 'asc');
+        // Injection sweep (2026-09-10): sort inputs are whitelisted — sort_dir went
+        // straight into orderByRaw() (SQL injection) and unknown columns caused 500s.
+        $sortDir = strtolower((string) $sortDir) === 'asc' ? 'asc' : 'desc';
+        if (!is_string($sortBy) || !preg_match('/^[a-z_]{1,64}$/', $sortBy)) {
+            $sortBy = 'name';
+        }
 
         if ($sortBy === 'category') {
             $query->leftJoin('categories', 'products.category_id', '=', 'categories.id')
@@ -130,7 +136,7 @@ class InventoryController extends Controller
         } elseif ($sortBy === 'available_stock') {
             $query->orderBy('stock_quantity', $sortDir);
         } else {
-            $query->orderBy($sortBy, $sortDir);
+            $query->orderBy(\Illuminate\Support\Facades\Schema::hasColumn('products', $sortBy) ? 'products.'.$sortBy : 'products.name', $sortDir);
         }
 
         $products = $query->paginate(200)->withQueryString();

@@ -75,19 +75,19 @@ export default function BarcodeValidatorTool({ prefill = '', toolGroups = [] }) 
                 }}
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }]}
         >
-            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-8">
+            <div className="vq-tool-panel vq-tool-panel--pad">
                 <form onSubmit={check} className="flex gap-3 mb-6 flex-col sm:flex-row">
                     <input
                         type="text"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         placeholder="e.g. 012345678905"
-                        className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-sm font-mono focus:outline-none focus:border-brand-400/60"
+                        className="flex-1 px-4 py-3 rounded-xl vq-tool-inset text-ink text-sm font-mono focus:outline-none focus:border-brand-400/60"
                     />
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-7 py-3 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50 shrink-0"
+                        className="vq-btn vq-btn--primary vq-btn--lg shrink-0"
                     >
                         {loading ? 'Checking…' : 'Validate'}
                     </button>
@@ -132,12 +132,12 @@ export default function BarcodeValidatorTool({ prefill = '', toolGroups = [] }) 
                                 {result.breakdown.map((row, i) => (
                                     <p key={i}>digit {row.digit} &times; weight {row.weight} = {row.product}</p>
                                 ))}
-                                <p className="pt-2 border-t border-line dark:border-white/10 text-ink-secondary">sum = {result.sum} &rarr; check digit = (10 &minus; ({result.sum} mod 10)) mod 10 = {result.computed_check_digit}</p>
+                                <p className="pt-2 border-t border-line text-ink-secondary">sum = {result.sum} &rarr; check digit = (10 &minus; ({result.sum} mod 10)) mod 10 = {result.computed_check_digit}</p>
                             </div>
                         </details>
 
                         {!result.valid && (
-                            <div className="mt-4 pt-4 border-t border-line dark:border-white/10">
+                            <div className="mt-4 pt-4 border-t border-line">
                                 <a href="/tools/barcode-generator" className="text-sm font-bold text-brand-600 dark:text-brand-400 hover:underline">
                                     Regenerate this as a new, valid barcode &rarr;
                                 </a>

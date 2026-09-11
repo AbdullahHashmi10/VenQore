@@ -95,130 +95,19 @@ class WooCommerceController extends Controller
         $payload = $request->all();
         Log::info('WooCommerce Webhook Received', ['id' => $payload['id'] ?? 'unknown']);
 
-        if (!isset($payload['line_items'])) {
-            return response()->json(['message' => 'No line items found'], 200);
+        // WOO-001 (2026-09-10): one idempotent poster for both webhook receivers —
+        // order totals, tax, FIFO COGS and a balanced journal, once per order.
+        try {
+            $result = app(\App\Services\WooSync\WooOrderPoster::class)->post($connection->tenant, $payload);
+        } catch (\Throwable $e) {
+            Log::error('Error processing WooCommerce Order: ' . $e->getMessage(), ['connection_id' => $connection->id]);
+            return response()->json(['error' => 'The order could not be recorded. It will be retried.'], 500);
         }
 
-        // Create or Get Web Customer
-        $party = Party::firstOrCreate(
-            ['name' => 'Web Customer'],
-            ['type' => 'customer']
-        );
-
-        // Resolve the tenant's default warehouse (FifoService deducts per-warehouse).
-        $warehouse = \App\Models\Warehouse::where('tenant_id', $connection->tenant->id)
-            ->orderByDesc('is_default')
-            ->orderBy('created_at')
-            ->first();
-
-        $itemsToProcess = [];
-
-        foreach ($payload['line_items'] as $item) {
-            $sku = $item['sku'] ?? null;
-            $quantity = (float) ($item['quantity'] ?? 0);
-            if (!$sku || $quantity <= 0) {
-                continue;
-            }
-
-            $product = Product::where('sku', $sku)->first();
-
-            if ($product) {
-                $itemsToProcess[] = [
-                    'id'       => $product->id,
-                    'product'  => $product,
-                    'quantity' => $quantity,
-                ];
-            } else {
-                Log::warning("Product with SKU $sku not found in VenQore POS");
-            }
-        }
-
-        if (!empty($itemsToProcess)) {
-            try {
-                // L012 FIX: a WooCommerce order must post a full double-entry journal,
-                // exactly like a POS sale — otherwise Woo revenue/COGS are invisible on
-                // the P&L and Balance Sheet. Previously this only deducted stock and wrote
-                // a legacy `transactions` row, bypassing journal_items entirely.
-                //
-                // We deduct through the V3 FifoService (the single source of COGS truth —
-                // it writes sale_item_batches audit rows and returns real batch costs),
-                // then post: DR 1000 Cash + CR 4000 Revenue (Woo orders are prepaid online),
-                // and DR 5000 COGS + CR 1100 Inventory. The legacy Transaction row is kept
-                // so existing consumers/tests that read `transactions` still work.
-                $result = DB::transaction(function () use ($itemsToProcess, $party, $warehouse, $payload, $connection) {
-                    $revenueTotal = 0.0;
-                    $cogsTotal    = 0.0;
-
-                    foreach ($itemsToProcess as $line) {
-                        /** @var \App\Models\Product $product */
-                        $product = $line['product'];
-                        $qty     = (float) $line['quantity'];
-
-                        $revenueTotal += (float) $product->price * $qty;
-
-                        // Real FIFO deduction → returns per-batch costs; writes sale_item_batches.
-                        if ($warehouse && $product->type !== 'service') {
-                            $deductions = $this->fifo->deductStock($product->id, $warehouse->id, $qty);
-                            foreach ($deductions as $d) {
-                                $cogsTotal += (float) $d['total_cost'];
-                            }
-                        }
-                    }
-
-                    $revenueTotal = round($revenueTotal, 2);
-                    $cogsTotal    = round($cogsTotal, 2);
-
-                    // ── Post the double-entry journal ──────────────────────────────
-                    //
-                    // T17 CUTOVER. The revenue leg depends on whether this tenant
-                    // has switched on the Marketplace Clearing pipeline:
-                    //
-                    //   Clearing ON  → DR 1205 Marketplace Clearing
-                    //       The gateway (Stripe/PayPal) is still holding this
-                    //       money for ~2 days and will deduct a fee. It is a
-                    //       receivable, not spendable cash.
-                    //
-                    //   Clearing OFF → DR 1000 Cash on Hand  (legacy behaviour)
-                    //       Preserved verbatim so tenants who have not opted in,
-                    //       and every historical entry, are completely unaffected.
-                    //
-                    // The cutover is per tenant and date-bounded, so closed
-                    // periods and already-filed reports are never rewritten.
-                    $clearingLive = $connection->tenant->clearing_go_live_at !== null
-                        && now()->gte($connection->tenant->clearing_go_live_at);
-
-                    $revenueDebitAccount = $clearingLive
-                        ? \App\Services\VenSynQ\MarketplaceSettlementService::ACCT_CLEARING
-                        : '1000';
-
-                    $journalLines = [
-                        ['account_code' => $revenueDebitAccount, 'debit' => $revenueTotal, 'credit' => 0, 'party_id' => $party->id],
-                        ['account_code' => '4000', 'debit' => 0, 'credit' => $revenueTotal],
-                    ];
-                    // COGS leg (only when we have a real inventory cost).
-                    if ($cogsTotal > 0) {
-                        $journalLines[] = ['account_code' => '5000', 'debit' => $cogsTotal, 'credit' => 0];
-                        $journalLines[] = ['account_code' => '1100', 'debit' => 0, 'credit' => $cogsTotal];
-                    }
-
-                    $this->accounting->createEntry([
-                        'date'           => now()->toDateString(),
-                        'reference_type' => 'sale',
-                        'reference'      => 'WC-' . ($payload['id'] ?? Str::uuid()->toString()),
-                        'description'    => 'WooCommerce order WC-' . ($payload['id'] ?? 'unknown'),
-                        'party_id'       => $party->id,
-                    ], $journalLines);
-
-                    return $revenueTotal;
-                });
-
-                return response()->json(['success' => true, 'total' => $result], 200);
-            } catch (\Exception $e) {
-                Log::error('Error processing WooCommerce Order: ' . $e->getMessage());
-                return response()->json(['error' => $e->getMessage()], 500);
-            }
-        }
-
-        return response()->json(['message' => 'No matching products processed'], 200);
+        return match ($result['status']) {
+            'posted'    => response()->json(['success' => true, 'total' => $result['total']], 200),
+            'duplicate' => response()->json(['success' => true, 'duplicate' => true], 200),
+            default     => response()->json(['message' => $result['message'] ?? 'Ignored'], 200),
+        };
     }
 }

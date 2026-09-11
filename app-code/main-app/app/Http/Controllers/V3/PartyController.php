@@ -50,6 +50,9 @@ class PartyController extends Controller
         ]);
 
         $tenantId = app('current.tenant')->id;
+        // Another store's party: 404 (was a silent no-op reported as success).
+        DB::table('parties')->where('tenant_id', $tenantId)->where('id', $id)->firstOrFail();
+
         DB::table('parties')->where('parties.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('id', $id)

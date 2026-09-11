@@ -8,6 +8,8 @@ use App\Engines\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class CustomerPaymentController extends Controller
 {
@@ -18,16 +20,36 @@ class CustomerPaymentController extends Controller
 
     public function store(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
+
+        // Both the paying party and every invoice must belong to the CURRENT
+        // store (the bare exists: rules accepted another store's ids, and a
+        // foreign sale id then blew up inside the allocation as a 500), and
+        // each invoice must belong to the customer who is paying.
         $validated = $request->validate([
-            'customer_id'    => ['required', 'string', 'exists:parties,id'],
+            'customer_id'    => ['required', 'string', Rule::exists('parties', 'id')->where('tenant_id', $tenantId)],
             'payment_date'   => ['required', 'date', 'before_or_equal:today'],
             'payment_method' => ['required', 'in:cash,bank'],
             'amount'         => ['required', 'numeric', 'min:0.01'],
             'reference'      => ['nullable', 'string', 'max:100'],
             'allocations'    => ['required', 'array', 'min:1'],
-            'allocations.*.sale_id' => ['required', 'string', 'exists:sales,id'],
+            'allocations.*.sale_id' => ['required', 'string', Rule::exists('sales', 'id')->where('tenant_id', $tenantId)],
             'allocations.*.amount'  => ['required', 'numeric', 'min:0.01'],
         ]);
+
+        foreach ($validated['allocations'] as $i => $allocation) {
+            $belongsToCustomer = DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('id', $allocation['sale_id'])
+                ->where('party_id', $validated['customer_id'])
+                ->exists();
+
+            if (!$belongsToCustomer) {
+                throw ValidationException::withMessages([
+                    "allocations.{$i}.sale_id" => 'This invoice does not belong to the selected customer.',
+                ]);
+            }
+        }
 
         // Validate allocation total does not exceed payment amount
         $allocTotal = array_sum(array_column($validated['allocations'], 'amount'));

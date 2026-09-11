@@ -66,4 +66,36 @@ class TerminalPairingController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    /**
+     * Paired terminals for this store (2026-09-10).
+     */
+    public function terminals()
+    {
+        $terminals = \App\Models\Terminal::where('tenant_id', app('current.tenant')->id)
+            ->orderByDesc('last_heartbeat_at')
+            ->get(['id', 'name', 'status', 'last_heartbeat_at', 'paired_at', 'ip_address']);
+
+        return response()->json(['success' => true, 'terminals' => $terminals]);
+    }
+
+    /**
+     * Disconnect a terminal: its device secret stops working immediately and
+     * it must be paired again with a new code.
+     */
+    public function revoke(string $id)
+    {
+        $terminal = \App\Models\Terminal::where('tenant_id', app('current.tenant')->id)->findOrFail($id);
+        $terminal->forceFill([
+            'device_secret_hash'      => null,
+            'device_secret_issued_at' => null,
+            'tenant_id'               => null,
+            'paired_at'               => null,
+            'status'                  => 'CLOSED',
+        ])->save();
+
+        \Illuminate\Support\Facades\Log::info('Terminal disconnected by store', ['terminal_id' => $id, 'user_id' => Auth::id()]);
+
+        return response()->json(['success' => true]);
+    }
 }

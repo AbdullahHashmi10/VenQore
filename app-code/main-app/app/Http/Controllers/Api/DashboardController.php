@@ -236,6 +236,8 @@ class DashboardController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
+        $this->assertCanEdit($dashboard, $user);
+
         // Check if layout is locked
         if ($dashboard->is_locked && ! $user->hasPermission('admin.settings_manage')) {
             return response()->json(['error' => 'This layout is locked by your manager.'], 403);
@@ -315,6 +317,8 @@ class DashboardController extends Controller
             ->where('tenant_id', $tenant->id)
             ->where('id', $id)
             ->firstOrFail();
+
+        $this->assertCanEdit($dashboard, $user);
 
         if ($dashboard->is_locked && ! $user->hasPermission('admin.settings_manage')) {
             return response()->json(['error' => 'Layout is locked.'], 403);
@@ -402,6 +406,8 @@ class DashboardController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
+        $this->assertCanEdit($dashboard, $user);
+
         if ($dashboard->is_locked && ! $user->hasPermission('admin.settings_manage')) {
             return response()->json(['error' => 'Layout is locked.'], 403);
         }
@@ -488,6 +494,8 @@ class DashboardController extends Controller
             ->where('tenant_id', $tenant->id)
             ->where('id', $id)
             ->firstOrFail();
+
+        $this->assertCanEdit($dashboard, $user);
 
         if ($dashboard->is_locked && ! $user->hasPermission('admin.settings_manage')) {
             return response()->json(['error' => 'Layout is locked.'], 403);
@@ -760,5 +768,18 @@ class DashboardController extends Controller
         $key = $aliases[$type] ?? $type;
 
         return $business[$key] ?? $business['default'] ?? [];
+    }
+
+    /**
+     * Route-gap sweep (2026-09-10): a member may edit their OWN dashboard;
+     * shared / role dashboards and other members' dashboards need
+     * admin.settings_manage.
+     */
+    private function assertCanEdit(Dashboard $dashboard, $user): void
+    {
+        if ((string) $dashboard->user_id === (string) $user->id) {
+            return;
+        }
+        abort_unless($user->hasPermission('admin.settings_manage'), 403, 'You can only change your own dashboards.');
     }
 }

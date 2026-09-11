@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import MarketingLayout, { RevealOnScroll } from '@/Pages/Marketing/Shared/MarketingLayout';
 
 /**
@@ -22,32 +23,43 @@ export default function Show({ article }) {
             title={`${article.title} — VenQore Help Centre`}
             description={article.summary}
         >
-            <section className="max-w-3xl mx-auto space-y-6 px-6 pt-32 pb-24">
-                <div>
-                    <Link
-                        href="/help"
-                        className="text-sm font-semibold text-accent-text transition-colors duration-fast hover:text-accent-fill-hover"
-                    >
-                        &larr; Back to Help Centre
-                    </Link>
-                </div>
-
-                <RevealOnScroll direction="up">
-                    <article className="space-y-4 rounded-lg border border-line bg-surface p-8">
-                        <span className="inline-block rounded-full bg-accent-quiet px-3 py-1 text-2xs font-semibold uppercase tracking-wider text-accent-text">
-                            {article.category}
-                        </span>
-
-                        <h1 className="text-3xl font-bold tracking-tight text-ink">{article.title}</h1>
-
-                        <p className="border-b border-line-subtle pb-4 text-lg text-ink-secondary">{article.summary}</p>
-
-                        <div className="space-y-4 pt-2 leading-relaxed text-ink-secondary">
-                            <p>{article.content}</p>
+            <article>
+                <header className="vq-section vq-mc-top vq-mc-top--flush">
+                    <div className="vq-container vq-container--narrow">
+                        <div className="vq-mc-back">
+                            <Link href="/help" className="vq-link">
+                                <ArrowLeft size={16} aria-hidden="true" /> Back to Help Centre
+                            </Link>
                         </div>
-                    </article>
-                </RevealOnScroll>
-            </section>
+                        <span className="vq-badge vq-badge--accent">{article.category}</span>
+                        <h1 className="vq-h1 vq-mt-5">{article.title}</h1>
+                        <p className="vq-lede vq-mt-5" style={{ paddingBottom: 'var(--vq-space-8)', borderBottom: '1px solid var(--vq-line)', maxWidth: 'none' }}>
+                            {article.summary}
+                        </p>
+                    </div>
+                </header>
+
+                <div className="vq-section vq-mc-body" style={{ paddingTop: 'var(--vq-space-4)' }}>
+                    <div className="vq-container vq-container--narrow">
+                        <RevealOnScroll direction="up">
+                            <div className="vq-read">
+                                <p>{article.content}</p>
+                            </div>
+                        </RevealOnScroll>
+
+                        <div className="vq-card vq-row vq-wrap vq-gap-4" style={{ marginTop: 'var(--vq-space-16)', justifyContent: 'space-between', padding: 'var(--vq-space-8)' }}>
+                            <div>
+                                <h2 className="vq-h3" style={{ fontSize: '20px' }}>Still stuck?</h2>
+                                <p className="vq-small vq-text-2 vq-mt-2">Send the team a note from the contact page.</p>
+                            </div>
+                            <div className="vq-row vq-wrap vq-gap-3">
+                                <Link href="/help" className="vq-btn vq-btn--quiet">All articles</Link>
+                                <Link href="/contact" className="vq-btn vq-btn--secondary">Contact support</Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
         </MarketingLayout>
     );
 }

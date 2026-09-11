@@ -36,6 +36,7 @@
         <env name="DB_USERNAME" value="root"/>
         <env name="DB_PASSWORD" value=""/>
         <env name="MAIL_MAILER" value="array"/>
+        <env name="VQ_OTP_DELIVERY" value="queue"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

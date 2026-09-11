@@ -46,13 +46,13 @@ class StaffAuthController extends Controller
             return back()->withErrors(['email' => "Too many attempts. Wait {$seconds}s."]);
         }
 
-        // Attempt authentication
-        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        // AUTH-01: check the password without creating a session.
+        $credentials = $request->only('email', 'password');
+        $user = Auth::getProvider()->retrieveByCredentials($credentials);
+        if (!$user || !Auth::getProvider()->validateCredentials($user, $credentials)) {
             RateLimiter::hit($throttleKey);
             return back()->withErrors(['email' => 'These credentials do not match our records.']);
         }
-
-        $user = Auth::user();
 
         // Check if the user is platform staff OR has an active TenantUser store membership
         $membership = \App\Models\TenantUser::where('user_id', $user->id)
@@ -60,9 +60,6 @@ class StaffAuthController extends Controller
             ->first();
 
         if (!$user->isPlatformStaff() && !$membership) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
             RateLimiter::hit($throttleKey);
             return back()->withErrors(['email' => 'Access denied. This portal is restricted to authorized platform staff and active store employees.']);
         }
@@ -73,9 +70,23 @@ class StaffAuthController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
-        $request->session()->regenerate();
 
-        // Redirect directly to the platform Staff Hub dashboard
-        return redirect()->route('staff.hub');
+        if (!config('venqore.email_otp_required', true)) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+            return redirect()->route('staff.hub');
+        }
+
+        // AUTH-01: the session is granted only after the emailed code.
+        [$challenge, $error] = app(\App\Services\Auth\EmailOtpService::class)->start(
+            $request, 'login', $user->email, $user->id,
+            ['remember' => $request->boolean('remember'), 'then' => 'staff.hub']
+        );
+        if (!$challenge) {
+            return back()->withErrors(['email' => $error]);
+        }
+        EmailOtpController::begin($request, $challenge->id, 'login');
+
+        return redirect()->route('otp.show');
     }
 }

@@ -14,17 +14,30 @@ class ImportMappingController extends Controller
     public function uploadForMapping(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,csv,txt,xls',
-            'type' => 'required|string'
+            // SEC-13: bounded size (20 MB) and a fixed type list.
+            'file' => 'required|file|mimes:xlsx,csv,txt,xls|max:20480',
+            'type' => 'required|string|in:products,parties,sales,purchases,expenses'
         ]);
 
         $type = $request->input('type');
         $file = $request->file('file');
 
-        // Store file temporarily in the exact directory where Laravel's Excel package can read it via raw path
-        $fileName = time() . '_' . $file->getClientOriginalName();
-        $file->move(storage_path('app/temp_imports'), $fileName);
-        $fullPath = storage_path('app/temp_imports/' . $fileName);
+        // SEC-13 (2026-09-10): server-chosen random filename inside a per-store
+        // directory; the client only ever sees an opaque, expiring handle bound
+        // to this store and this user. The client filename is never used.
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
+            $ext = 'csv';
+        }
+        $tenantId = app('current.tenant')->id;
+        $dir = storage_path('app/temp_imports/' . $tenantId);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0750, true);
+        }
+        $fileName = \Illuminate\Support\Str::random(40) . '.' . $ext;
+        $file->move($dir, $fileName);
+        $fullPath = $dir . DIRECTORY_SEPARATOR . $fileName;
+        $handle = $this->issueHandle($fullPath);
 
         try {
             // Read first 100 rows using a simple import object
@@ -126,7 +139,7 @@ class ImportMappingController extends Controller
         }
 
         return Inertia::render('Admin/DataMapping', [
-            'file_path' => 'temp_imports/' . $fileName,
+            'file_path' => $handle, // opaque handle, not a path
             'type' => $type,
             'file_headers' => $cleanHeaders,
             'preview_data' => $previewData,
@@ -149,8 +162,8 @@ class ImportMappingController extends Controller
             $storeSlug = app('current.tenant')->slug;
         }
 
-        $fullPath = storage_path('app/' . $request->file_path);
-        if (!file_exists($fullPath)) {
+        $fullPath = $this->resolveHandle((string) $request->file_path);
+        if ($fullPath === null) {
             return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('error', 'Temporary file expired or not found. Please upload again.');
         }
 
@@ -259,8 +272,8 @@ class ImportMappingController extends Controller
             'ignored_rows' => 'nullable|array'
         ]);
 
-        $fullPath = storage_path('app/' . $request->file_path);
-        if (!file_exists($fullPath)) {
+        $fullPath = $this->resolveHandle((string) $request->file_path);
+        if ($fullPath === null) {
             return response()->json(['error' => 'File not found.'], 404);
         }
 
@@ -359,5 +372,49 @@ class ImportMappingController extends Controller
              \Illuminate\Support\Facades\Log::error('Validation Error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * SEC-13: remember an uploaded import file under an opaque handle bound to
+     * the current store and user, valid for two hours.
+     */
+    private function issueHandle(string $fullPath): string
+    {
+        $handle = 'imp_' . \Illuminate\Support\Str::random(40);
+        \Illuminate\Support\Facades\Cache::put('import_handle:' . $handle, [
+            'path'      => $fullPath,
+            'tenant_id' => app('current.tenant')->id,
+            'user_id'   => auth()->id(),
+        ], now()->addHours(2));
+
+        return $handle;
+    }
+
+    /**
+     * SEC-13: resolve a handle to a file path only if it belongs to this store
+     * and user, has not expired, and still lies inside this store's import
+     * directory. Raw paths, "../" and absolute paths are never accepted.
+     */
+    private function resolveHandle(string $handle): ?string
+    {
+        if (!preg_match('/^imp_[A-Za-z0-9]{40}$/', $handle)) {
+            return null;
+        }
+        $entry = \Illuminate\Support\Facades\Cache::get('import_handle:' . $handle);
+        if (!is_array($entry) || !app()->bound('current.tenant')) {
+            return null;
+        }
+        if ((string) $entry['tenant_id'] !== (string) app('current.tenant')->id
+            || (string) $entry['user_id'] !== (string) auth()->id()) {
+            return null;
+        }
+
+        $real = realpath($entry['path']);
+        $base = realpath(storage_path('app/temp_imports/' . app('current.tenant')->id));
+        if ($real === false || $base === false || !str_starts_with($real, $base . DIRECTORY_SEPARATOR) || !is_file($real)) {
+            return null;
+        }
+
+        return $real;
     }
 }

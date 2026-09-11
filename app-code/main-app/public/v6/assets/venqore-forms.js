@@ -139,17 +139,31 @@
                     }
                 };
 
-                fetch('/contact', {
+                (window.__vqTurnstile ? window.__vqTurnstile() : Promise.resolve(null)).then(function (tt) {
+                    // Turnstile guards POST /contact in production; the page supplies the token.
+                    if (tt) body.append('cf-turnstile-response', tt);
+                    return fetch('/contact', {
                     method: 'POST',
                     body: body,
                     credentials: 'same-origin',
                     headers: {
                         'X-CSRF-TOKEN': token,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    redirect: 'manual'
+                });
                 })
                     .then(function (res) {
-                        if (res.ok) {
+                        // WEB-02: success only on the server's explicit JSON
+                        // acknowledgement — never on a redirect or HTML page.
+                        return res.json().catch(function () { return null; }).then(function (data) {
+                            return { res: res, data: data };
+                        });
+                    })
+                    .then(function (r) {
+                        var res = r.res, data = r.data || {};
+                        if (res.ok && data.success === true) {
                             form.reset();
                             // Reset custom select to first item if present
                             var cs = form.querySelector('[data-custom-select], .vq-custom-select');
@@ -171,7 +185,16 @@
                             }
                             status(form, 'Thank you — your message is with us. A person answers this one.', 'ok');
                         } else if (res.status === 422) {
-                            status(form, 'Please check the form and try again.', 'error');
+                            // Field errors (Laravel) or a security-check message (Turnstile).
+                            var first = null;
+                            if (data.errors) {
+                                for (var k in data.errors) { if (data.errors[k] && data.errors[k][0]) { first = data.errors[k][0]; break; } }
+                            }
+                            status(form, first || data.message || 'Please check the form and try again.', 'error');
+                        } else if (res.status === 419) {
+                            status(form, 'This page expired. Refresh the page and send again — your text is still here.', 'error');
+                        } else if (res.status === 429) {
+                            status(form, 'Too many messages from this connection. Please wait a minute and try again.', 'error');
                         } else {
                             status(form, 'That did not send. Please try again, or email us directly.', 'error');
                         }

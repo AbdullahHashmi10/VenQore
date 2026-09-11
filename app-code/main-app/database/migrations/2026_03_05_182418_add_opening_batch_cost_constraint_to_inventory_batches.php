@@ -19,8 +19,8 @@ return new class extends Migration
     {
         $driver = DB::connection()->getDriverName();
 
-        if ($driver === 'mysql') {
-            DB::statement('ALTER TABLE inventory_batches ADD CONSTRAINT chk_opening_batch_cost CHECK (unit_cost > 0 OR batch_type != "opening")');
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
+            DB::statement("ALTER TABLE inventory_batches ADD CONSTRAINT chk_opening_batch_cost CHECK (unit_cost > 0 OR batch_type <> 'opening')");
         } elseif ($driver === 'sqlite') {
             // SQLite does not support adding CHECK constraints via ALTER TABLE,
             // so we enforce the same rule with triggers instead.
@@ -52,7 +52,7 @@ return new class extends Migration
     {
         $driver = DB::connection()->getDriverName();
 
-        if ($driver === 'mysql') {
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             DB::statement('ALTER TABLE inventory_batches DROP CONSTRAINT chk_opening_batch_cost');
         } elseif ($driver === 'sqlite') {
             DB::statement('DROP TRIGGER IF EXISTS trg_chk_opening_batch_cost_insert');

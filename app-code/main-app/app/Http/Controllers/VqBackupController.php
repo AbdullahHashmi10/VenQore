@@ -12,6 +12,25 @@ use App\Services\GoogleDriveService;
 
 class VqBackupController extends Controller
 {
+    /** SEC-03: manifest key embedded in v2 backups. */
+    private const META_KEY = '__vq_meta';
+
+    /** Max accepted .vq upload in kilobytes (100 MB). */
+    private const MAX_UPLOAD_KB = 102400;
+
+    /**
+     * SEC-03 (2026-09-10): tables that hold security identities, credentials or
+     * infrastructure state. They are never exported and never restored — a
+     * business-data restore must not roll back who has access to the store
+     * (staff memberships, PIN hashes, invitations, tokens) or quota counters.
+     */
+    private const NON_RESTORABLE_TABLES = [
+        'tenant_users', 'staff_invitations', 'personal_access_tokens', 'sessions',
+        'password_reset_tokens', 'jobs', 'failed_jobs', 'job_batches', 'cache', 'cache_locks',
+        'ai_usage_events', 'ai_rate_buckets', 'ai_spend_counters', 'email_otp_challenges',
+        'terminals', 'terminal_activities',
+    ];
+
     /**
      * Export all store data into a single encrypted .vq file.
      * Dynamically scans every single database table containing tenant_id to guarantee
@@ -38,11 +57,21 @@ class VqBackupController extends Controller
         $backupData = [];
 
         foreach ($tenantTables as $table) {
+            if (in_array($table, self::NON_RESTORABLE_TABLES, true)) {
+                continue; // SEC-03: security identities / infra never travel in a backup
+            }
             $backupData[$table] = DB::table($table)
                 ->where('tenant_id', $tenant->id)
                 ->get()
                 ->toArray();
         }
+
+        // SEC-03: tenant-bound manifest. Restore refuses a backup made for another store.
+        $backupData[self::META_KEY] = [
+            'version'    => 2,
+            'tenant_id'  => $tenant->id,
+            'created_at' => now()->toIso8601String(),
+        ];
 
         return Crypt::encryptString(json_encode($backupData));
     }
@@ -112,7 +141,7 @@ class VqBackupController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file'
+            'file' => 'required|file|max:' . self::MAX_UPLOAD_KB,
         ]);
 
         $tenant = app('current.tenant');
@@ -143,40 +172,9 @@ class VqBackupController extends Controller
                 return back()->with('error', 'Backup format is invalid or empty.');
             }
 
-            // Rebuild database tables in a single transaction
-            DB::transaction(function () use ($tenant, $backupData) {
-                Schema::disableForeignKeyConstraints();
-                try {
-                    // 1. Clear existing rows for this tenant
-                    foreach (array_keys($backupData) as $table) {
-                        if (Schema::hasTable($table)) {
-                            DB::table($table)->where('tenant_id', $tenant->id)->delete();
-                        }
-                    }
-
-                    // 2. Insert new rows, enforcing current tenant_id for absolute security
-                    foreach ($backupData as $table => $rows) {
-                        if (Schema::hasTable($table) && !empty($rows)) {
-                            $insertBuffer = [];
-                            foreach ($rows as $row) {
-                                $rowArray = (array) $row;
-                                
-                                // FORCE override the tenant_id column so backup cannot inject data into another store
-                                $rowArray['tenant_id'] = $tenant->id;
-                                
-                                $insertBuffer[] = $rowArray;
-                            }
-                            
-                            // Chunk inserts to prevent SQL parameter limits
-                            foreach (array_chunk($insertBuffer, 200) as $chunk) {
-                                DB::table($table)->insert($chunk);
-                            }
-                        }
-                    }
-                } finally {
-                    Schema::enableForeignKeyConstraints();
-                }
-            });
+            if ($error = $this->restorePayload($tenant, $backupData, 'upload')) {
+                return back()->with('error', $error);
+            }
 
             Log::info("Tenant {$tenant->id} ('{$tenant->slug}') successfully restored complete data from .vq backup.");
             return back()->with('success', 'Store data restored successfully. All products, sales history, cash in hand, bank balances, and configuration settings are exactly as you left them!');
@@ -273,36 +271,9 @@ class VqBackupController extends Controller
                 return back()->with('error', 'Backup format is invalid or empty.');
             }
 
-            // Rebuild database tables in a single transaction
-            DB::transaction(function () use ($tenant, $backupData) {
-                Schema::disableForeignKeyConstraints();
-                try {
-                    // 1. Clear existing rows for this tenant
-                    foreach (array_keys($backupData) as $table) {
-                        if (Schema::hasTable($table)) {
-                            DB::table($table)->where('tenant_id', $tenant->id)->delete();
-                        }
-                    }
-
-                    // 2. Insert new rows, enforcing current tenant_id for absolute security
-                    foreach ($backupData as $table => $rows) {
-                        if (Schema::hasTable($table) && !empty($rows)) {
-                            $insertBuffer = [];
-                            foreach ($rows as $row) {
-                                $rowArray = (array) $row;
-                                $rowArray['tenant_id'] = $tenant->id;
-                                $insertBuffer[] = $rowArray;
-                            }
-                            
-                            foreach (array_chunk($insertBuffer, 200) as $chunk) {
-                                DB::table($table)->insert($chunk);
-                            }
-                        }
-                    }
-                } finally {
-                    Schema::enableForeignKeyConstraints();
-                }
-            });
+            if ($error = $this->restorePayload($tenant, $backupData, 'google_drive:' . $fileId)) {
+                return back()->with('error', $error);
+            }
 
             Log::info("Tenant {$tenant->id} ('{$tenant->slug}') successfully restored data directly from Google Drive backup {$fileId}.");
             return back()->with('success', 'Store data restored directly from Google Drive backup successfully!');
@@ -311,5 +282,93 @@ class VqBackupController extends Controller
             Log::error("Direct Google Drive backup restore failed for store {$tenant->id}: " . $e->getMessage());
             return back()->with('error', 'Failed to restore Google Drive backup: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * SEC-03: the single restore path for both upload and Google Drive.
+     *
+     *  - refuses a v2 backup whose manifest names a different store;
+     *  - restores only tables that exist, carry tenant_id and are not in
+     *    NON_RESTORABLE_TABLES (memberships/credentials are never rolled back);
+     *  - inserts only columns that exist in the current schema;
+     *  - writes a pre-restore safety snapshot to local storage first;
+     *  - records who restored what.
+     *
+     * Returns null on success or a user-facing error message.
+     */
+    private function restorePayload(Tenant $tenant, array $backupData, string $source): ?string
+    {
+        $meta = $backupData[self::META_KEY] ?? null;
+        unset($backupData[self::META_KEY]);
+
+        if (is_array($meta) && isset($meta['tenant_id']) && (string) $meta['tenant_id'] !== (string) $tenant->id) {
+            Log::warning('Backup restore refused: manifest belongs to another store', [
+                'tenant_id' => $tenant->id, 'backup_tenant_id' => $meta['tenant_id'], 'user_id' => auth()->id(), 'source' => $source,
+            ]);
+            return 'This backup was made for a different store and cannot be restored here.';
+        }
+
+        $tables = [];
+        foreach ($backupData as $table => $rows) {
+            if (!is_string($table) || !preg_match('/^[A-Za-z0-9_]+$/', $table)) {
+                continue;
+            }
+            if (in_array($table, self::NON_RESTORABLE_TABLES, true)) {
+                continue;
+            }
+            if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'tenant_id')) {
+                continue;
+            }
+            $tables[$table] = is_array($rows) ? $rows : [];
+        }
+
+        if (empty($tables)) {
+            return 'This backup contains no restorable store data.';
+        }
+
+        // Safety snapshot of the current state, so a bad restore can be undone.
+        try {
+            $snapshot = $this->generateBackupPayload($tenant);
+            $path = 'backups/pre-restore/' . $tenant->id . '/pre_restore_' . date('Y-m-d_His') . '.vq';
+            \Illuminate\Support\Facades\Storage::disk('local')->put($path, $snapshot);
+        } catch (\Throwable $e) {
+            Log::error("Pre-restore snapshot failed for store {$tenant->id}: " . $e->getMessage());
+            return 'Could not take a safety snapshot before restoring, so nothing was changed. Please try again.';
+        }
+
+        DB::transaction(function () use ($tenant, $tables) {
+            Schema::disableForeignKeyConstraints();
+            try {
+                foreach (array_keys($tables) as $table) {
+                    DB::table($table)->where('tenant_id', $tenant->id)->delete();
+                }
+
+                foreach ($tables as $table => $rows) {
+                    if (empty($rows)) {
+                        continue;
+                    }
+                    $columns = array_flip(Schema::getColumnListing($table));
+                    $insertBuffer = [];
+                    foreach ($rows as $row) {
+                        $rowArray = array_intersect_key((array) $row, $columns);
+                        // Force the current store so a backup cannot write into another tenant.
+                        $rowArray['tenant_id'] = $tenant->id;
+                        $insertBuffer[] = $rowArray;
+                    }
+                    foreach (array_chunk($insertBuffer, 200) as $chunk) {
+                        DB::table($table)->insert($chunk);
+                    }
+                }
+            } finally {
+                Schema::enableForeignKeyConstraints();
+            }
+        });
+
+        Log::warning('Store data restored from backup', [
+            'tenant_id' => $tenant->id, 'user_id' => auth()->id(), 'source' => $source,
+            'tables' => count($tables), 'manifest' => is_array($meta) ? 'v2' : 'legacy',
+        ]);
+
+        return null;
     }
 }

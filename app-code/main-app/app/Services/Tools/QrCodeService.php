@@ -7,26 +7,10 @@ use InvalidArgumentException;
 /**
  * QrCodeService — QR Code Generator, "Barcodes & Labels" tool group.
  *
- * ============================================================================
- * IMPORTANT — REQUIRES A COMPOSER PACKAGE NOT YET INSTALLED
- * ============================================================================
- * As of writing, composer.json has NO QR code library (confirmed: no
- * endroid/qr-code, simplesoftwareio/simple-qrcode, or bacon/bacon-qr-code
- * present). This class is written AS IF `endroid/qr-code` (the modern,
- * actively-maintained, Builder-pattern library) is installed, because that
- * is the standard choice for Laravel apps needing QR + PNG/SVG + logo
- * overlay + error-correction control in one package.
+ * QR rendering uses the endroid/qr-code 5.x dependency pinned in composer.lock.
+ * Install dependencies with composer install before building or deploying.
  *
- * BEFORE THIS TOOL WILL WORK, run locally:
- *
- *     composer require endroid/qr-code
- *
- * Do NOT attempt to `composer require` from an automated/sandboxed agent
- * environment — package resolution must happen against the real local PHP
- * environment (this project pins PHP 8.2 / Laravel 12 per CLAUDE.md), which
- * this sandbox cannot verify or guarantee. Run it locally, then re-test.
- *
- * API surface used below (endroid/qr-code ^5.x, the current major version):
+ * API surface used below:
  *   Endroid\QrCode\Builder\Builder::create()
  *       ->writer(new PngWriter() | new SvgWriter())
  *       ->data(string $data)
@@ -285,7 +269,7 @@ class QrCodeService
         if (!class_exists(\Endroid\QrCode\Builder\Builder::class)) {
             throw new InvalidArgumentException(
                 'The QR code library (endroid/qr-code) is not installed on this server. '
-                . 'Run "composer require endroid/qr-code" and try again.'
+                . 'Run "composer install" from the project lockfile and try again.'
             );
         }
 

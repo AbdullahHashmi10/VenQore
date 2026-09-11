@@ -45,6 +45,10 @@ import { Moon, Sun } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import MeshBackdrop from './MeshBackdrop';
 import ThemeSegment, { applyTheme } from './ThemeSegment';
+import SiteHeader from '@/Components/Site/SiteHeader';
+import SiteFooter from '@/Components/Site/SiteFooter';
+import CookieConsent from '@/Components/CookieConsent';
+import { useMarketingShell } from '@/Components/Site/SiteChrome';
 
 const STORAGE_KEY = 'vq-builder-theme';
 
@@ -54,6 +58,118 @@ const THEME_OPTIONS = [
 ];
 
 export default function BuilderShell({
+    children,
+    step = 0,
+    total = 0,
+    eyebrow = null,
+    onBack = null,
+    footer = null,
+    wide = false,
+    orbState = 'breathing',
+    /* Public /build-workspace: render the shared site header/footer and let
+       ThemeContext (the site-wide toggle) own light/dark instead of the
+       builder's private theme segment. In-app surfaces leave this false. */
+    siteChrome = false,
+}) {
+    if (siteChrome) {
+        return (
+            <PublicBuilderFrame
+                step={step}
+                total={total}
+                eyebrow={eyebrow}
+                onBack={onBack}
+                footer={footer}
+                wide={wide}
+                orbState={orbState}
+            >
+                {children}
+            </PublicBuilderFrame>
+        );
+    }
+    return (
+        <AppBuilderFrame
+            step={step}
+            total={total}
+            eyebrow={eyebrow}
+            onBack={onBack}
+            footer={footer}
+            wide={wide}
+            orbState={orbState}
+        >
+            {children}
+        </AppBuilderFrame>
+    );
+}
+
+function progressPct(step, total) {
+    const ratio = total > 0 ? Math.min(1, Math.max(0, step / total)) : 0;
+    return Math.round((1 - Math.pow(1 - ratio, 1.8)) * 100);
+}
+
+function ProgressRail({ step, total, wide }) {
+    if (!(total > 0)) return null;
+    const pct = progressPct(step, total);
+    return (
+        <div className={`mx-auto ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}>
+            <progress className="sr-only" aria-label="Setup progress" value={pct} max={100} />
+            <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-sunken">
+                <motion.div
+                    className="h-full rounded-full bg-accent-fill"
+                    initial={false}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ type: 'spring', stiffness: 220, damping: 30 }}
+                />
+            </div>
+        </div>
+    );
+}
+
+function PublicBuilderFrame({ children, step, total, eyebrow, onBack, footer, wide, orbState }) {
+    useMarketingShell();
+    return (
+        <div className="vq-site vq-app-body relative min-h-screen" style={{ background: 'var(--vq-bg)', color: 'var(--vq-text)' }}>
+            <SiteHeader />
+            <div className="relative" style={{ paddingTop: 72 }}>
+                <MeshBackdrop />
+                <div className="relative flex min-h-[calc(100vh-72px)] flex-col">
+                    <div className="shrink-0 px-5 pt-6 sm:px-8 sm:pt-8">
+                        <div className={`mx-auto flex items-center justify-between gap-4 ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}>
+                            <div className="flex min-w-0 items-center gap-3">
+                                {onBack ? (
+                                    <button
+                                        type="button"
+                                        onClick={onBack}
+                                        className="vq-btn vq-btn--secondary vq-btn--sm"
+                                    >
+                                        Back
+                                    </button>
+                                ) : null}
+                                <ThinkingOrb state={orbState} size={26} aria-label="VenQore AI" />
+                                {eyebrow && (
+                                    <span className="vq-eyebrow vq-eyebrow--accent truncate">{eyebrow}</span>
+                                )}
+                            </div>
+                        </div>
+                        {total > 0 && <div className="mt-5"><ProgressRail step={step} total={total} wide={wide} /></div>}
+                    </div>
+                    <div className="flex flex-1 items-start px-5 py-8 sm:px-8 sm:py-10">
+                        <div className={`mx-auto w-full ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}>{children}</div>
+                    </div>
+                    <div className="shrink-0 px-5 pb-8 sm:px-8">
+                        <div className={`mx-auto flex flex-wrap items-center justify-between gap-3 border-t pt-4 ${wide ? 'max-w-7xl' : 'max-w-6xl'}`} style={{ borderColor: 'var(--vq-line-soft)', fontSize: 'var(--vq-fs-caption)', color: 'var(--vq-text-3)' }}>
+                            <span>Every figure comes from one verified ledger.</span>
+                            {footer}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <SiteFooter showCta={false} />
+            <CookieConsent />
+        </div>
+    );
+}
+
+function AppBuilderFrame({
     children,
     step = 0,
     total = 0,

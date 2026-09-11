@@ -90,6 +90,7 @@
 
         <env name="QUEUE_CONNECTION"       value="sync"/>
         <env name="MAIL_MAILER"            value="array"/>
+        <env name="VQ_OTP_DELIVERY"        value="queue"/>
         <env name="SESSION_DRIVER"         value="array"/>
 
         <!-- Intentionally empty: regression pin for the WooCommerce

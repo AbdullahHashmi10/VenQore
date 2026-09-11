@@ -23,21 +23,37 @@ class FiscalYearController extends Controller
 
         $validated = $request->validate([
             'fiscal_year_end' => ['required', 'date'],
-            'approved_by'     => ['required', 'string', 'exists:users,id'],
+            // users.id is a BIGINT: 'string' rejected every JSON caller sending the id
+            // as a number (the documented contract: "approved_by": 1). 'integer'
+            // accepts both 5 and "5".
+            'approved_by'     => ['required', 'integer', 'exists:users,id'],
+            'approval_pin'    => ['nullable', 'string', 'max:20'],
         ]);
 
         $tenantId = app('current.tenant')->id;
-        $approver = DB::table('users')->where('users.tenant_id', app('current.tenant')->id)
-            ->join('tenant_users', 'users.id', '=', 'tenant_users.user_id')
-            ->where('tenant_users.tenant_id', $tenantId)
-            ->where('users.id', $validated['approved_by'])
-            ->select('users.*', 'tenant_users.role')
-            ->first();
 
-        if (!$approver || $approver->role !== 'admin') {
+        // The store owner outranks an admin (owner ⊇ admin), so either may
+        // approve. Managers, cashiers and other roles still may not. The role
+        // comes from the ACTIVE tenant_users membership of THIS store (users has
+        // no tenant_id — a user can belong to many stores).
+        $approverRole = \App\Support\ManagerApproval::roleOf($validated['approved_by'], $tenantId);
+        if (!in_array($approverRole, ['owner', 'admin'], true)) {
             return back()->withErrors([
-                'approved_by' => 'Fiscal year close requires admin approval.',
+                'approved_by' => 'Fiscal year close requires owner or admin approval.',
             ]);
+        }
+
+        // ...and the approval must be VERIFIED: the approver's PIN is required
+        // whenever the approver is not the logged-in user (naming an admin's id
+        // used to be enough to close the year in their name).
+        $problem = \App\Support\ManagerApproval::check(
+            $validated['approved_by'],
+            $validated['approval_pin'] ?? null,
+            $tenantId,
+            auth()->id()
+        );
+        if ($problem !== null) {
+            return back()->withErrors(['approved_by' => $problem]);
         }
 
         $yearEnd = Carbon::parse($validated['fiscal_year_end']);
@@ -76,26 +92,20 @@ class FiscalYearController extends Controller
                 ->selectRaw('SUM(ji.debit) - SUM(ji.credit) AS balance')
                 ->value('balance') ?? 0;
 
+            $balance = round($balance, 2);
             if (abs($balance) < 0.01) continue;
 
-            // Zero the account: debit income accounts, credit expense accounts
-            if ($account->normal_balance === 'credit') {
-                // Income account — has credit balance, debit it to zero
-                $netProfit += $balance;
-                $journalLines[] = [
-                    'account_code' => $account->code,
-                    'debit'        => $balance,
-                    'credit'       => 0,
-                ];
-            } else {
-                // Expense account — has debit balance, credit it to zero
-                $netProfit -= $balance;
-                $journalLines[] = [
-                    'account_code' => $account->code,
-                    'debit'        => 0,
-                    'credit'       => $balance,
-                ];
-            }
+            // $balance is the raw DEBIT-minus-CREDIT net for every account type:
+            // income accounts normally come out negative (credit balance), expense
+            // accounts positive. Post the opposite side to bring it to zero —
+            // a net-debit account is credited, a net-credit account is debited —
+            // and accumulate profit as credits minus debits.
+            $netProfit -= $balance;
+            $journalLines[] = [
+                'account_code' => $account->code,
+                'debit'        => $balance < 0 ? abs($balance) : 0,
+                'credit'       => $balance > 0 ? $balance : 0,
+            ];
         }
 
         if (empty($journalLines)) {

@@ -21,24 +21,32 @@ class WooHandshakeController extends Controller
     {
         $validated = $request->validate([
             'setup_token'     => 'required|string',
-            'site_url'        => 'required|url|max:255',
+            'site_url'        => ['required', 'url', 'max:255', new \App\Rules\PublicHttpUrl()],
             'consumer_key'    => 'required|string',
             'consumer_secret' => 'required|string',
         ]);
 
         // Find the pending connection with this setup token
-        $connection = WooConnection::where('setup_token', $validated['setup_token'])
+        $connection = WooConnection::withoutTenantScope()->where('setup_token', $validated['setup_token'])
             ->where('status', 'pending')
             ->first();
 
         if (!$connection) {
-            Log::warning('[WooHandshake] Handshake failed: Invalid setup token or already active.', [
-                'setup_token' => $validated['setup_token']
+            Log::warning('[WooHandshake] Handshake failed: invalid setup token or already active.', [
+                'ip' => $request->ip(),
             ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid or expired setup token.',
             ], 400);
+        }
+
+        if (!$connection->tenant) {
+            return response()->json(['success' => false, 'message' => 'Invalid or expired setup token.'], 400);
+        }
+        app()->instance('current.tenant', $connection->tenant);
+        if (!\App\Services\PlanGate::check('woocommerce', $connection->tenant)) {
+            return response()->json(['success' => false, 'message' => 'WooCommerce sync is not included in this store\'s plan.'], 402);
         }
 
         // Generate webhook secret and api token for subsequent requests

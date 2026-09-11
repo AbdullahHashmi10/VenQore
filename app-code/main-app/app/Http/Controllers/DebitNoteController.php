@@ -54,14 +54,14 @@ class DebitNoteController extends Controller
             /* Which bill this note is arguing with. `purchase_id` has been a
                column since the table was made and was never once written, so a
                note could not say what it was about. */
-            'purchase_id' => 'nullable|exists:purchases,id',
+            'purchase_id' => $this->purchaseRule($request),
             'date' => 'required|date',
             /* The column is an enum of exactly these two. It used to accept
                'refunded' as well, which the database then refused. */
             'status' => 'required|in:pending,approved',
             'reason' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            'warehouse_id' => 'nullable|exists:warehouses,id',
+            'warehouse_id' => ['nullable', \Illuminate\Validation\Rule::exists('warehouses', 'id')->where('tenant_id', app('current.tenant')->id)],
             /* A note is not always about goods coming back. A short delivery or
                a price that was wrong is a billing adjustment and nothing leaves
                the shelf, so whether stock moves is a decision, not a guess. */
@@ -70,7 +70,7 @@ class DebitNoteController extends Controller
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'discount' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_id' => ['required', \Illuminate\Validation\Rule::exists('products', 'id')->where('tenant_id', app('current.tenant')->id)],
             'items.*.quantity' => 'required|numeric|min:0.0001',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
@@ -106,7 +106,10 @@ class DebitNoteController extends Controller
             ]);
 
             $goodsValue = 0.0;
-            foreach ($validated['items'] as $itemData) {
+            /* What the goods going back cost when they came in — read off the
+               batches they leave, not the supplier's price on the note. */
+            $stockCost = 0.0;
+            foreach ($validated['items'] as $i => $itemData) {
                 $subtotal = round((float) $itemData['quantity'] * (float) $itemData['unit_price'], 2);
                 $goodsValue += $subtotal;
 
@@ -118,23 +121,43 @@ class DebitNoteController extends Controller
                 ]);
 
                 if ($movesStock && $validated['status'] === 'approved') {
-                    $this->returnStock($itemData['product_id'], $validated['warehouse_id'], $itemData['quantity'], $note->reference_number);
+                    $stockCost += $this->returnStock(
+                        $itemData['product_id'],
+                        $validated['warehouse_id'],
+                        (float) $itemData['quantity'],
+                        $note->reference_number,
+                        $validated['purchase_id'] ?? null,
+                        $i
+                    );
                 }
             }
+            $stockCost = round($stockCost, 2);
 
             /* ── the ledger ──────────────────────────────────────────────
                A debit note says the shop owes the supplier less than their
                bill claimed, and that is a movement whether or not any goods
-               travel. It used to post nothing at all, so the supplier's
-               balance stayed exactly where it was and the note was a piece of
-               paper with no effect on anything.
+               travel.
 
-               DR Accounts Payable   — the shop owes them less
-               CR Inventory          — where the goods actually went back
+               DR Accounts Payable   — the shop owes them less: the note's
+                                       goods (less discount) plus its tax
+               CR Inventory          — goods that went back, at EXACTLY the
+                                       batch cost that left the FIFO layers,
+                                       so 1100 keeps agreeing with them
+               DR/CR 6000            — the gap between that cost and what the
+                                       supplier credits, where a purchase
+                                       return sends it (PurchaseService::
+                                       createReturn: landed cost on returned
+                                       goods is written off to 6000)
                CR Cost of Goods Sold — where it is a price or billing
-                                       adjustment and nothing moved */
+                                       adjustment and nothing moved
+               CR Input Tax          — the tax claimed back on the bill
+
+               It used to credit 1100 with the supplier's price and never touch
+               the batches, `stocks` or products.stock_quantity, so the ledger
+               and the FIFO valuation drifted apart by every note. */
             if ($validated['status'] === 'approved') {
                 $accounting = app(\App\Engines\AccountingService::class);
+                $credited   = round(max(0, $goods - $discount), 2);
                 $lines = [
                     [
                         'account_id' => $accounting->getAccountByCode('2000', 'Accounts Payable', 'liability')->id,
@@ -144,35 +167,61 @@ class DebitNoteController extends Controller
                     ],
                 ];
 
-                $creditCode = $movesStock ? '1100' : '5000';
-                $creditName = $movesStock ? 'Inventory Asset' : 'Cost of Goods Sold';
-                $creditType = $movesStock ? 'asset' : 'expense';
-                $lines[] = [
-                    'account_id' => $accounting->getAccountByCode($creditCode, $creditName, $creditType)->id,
-                    'debit' => 0, 'credit' => round(max(0, $goods - $discount), 2),
-                    'description' => $movesStock
-                        ? "Goods returned on #{$note->reference_number}"
-                        : "Price adjustment on #{$note->reference_number}",
-                ];
+                if ($movesStock) {
+                    $lines[] = [
+                        'account_id' => $accounting->getAccountByCode('1100', 'Inventory Asset', 'asset')->id,
+                        'debit' => 0, 'credit' => $stockCost,
+                        'description' => "Goods returned on #{$note->reference_number}",
+                    ];
+                    $gap = round($credited - $stockCost, 2);
+                    if (abs($gap) >= 0.005) {
+                        $lines[] = [
+                            'account_id' => $accounting->getAccountByCode('6000', 'Operating Expenses', 'expense')->id,
+                            'debit' => $gap < 0 ? -$gap : 0, 'credit' => $gap > 0 ? $gap : 0,
+                            'description' => $gap < 0
+                                ? "Cost of returned goods not credited by the supplier on #{$note->reference_number}"
+                                : "Supplier credit above cost on #{$note->reference_number}",
+                        ];
+                    }
+                } else {
+                    $lines[] = [
+                        'account_id' => $accounting->getAccountByCode('5000', 'Cost of Goods Sold', 'expense')->id,
+                        'debit' => 0, 'credit' => $credited,
+                        'description' => "Price adjustment on #{$note->reference_number}",
+                    ];
+                }
 
-                /* Tax claimed back on the original bill has to go back too. */
+                /* Tax claimed back on the original bill has to go back too —
+                   off 2300 Input Tax Recoverable, where the purchase claimed it.
+                   It was credited to 1300 (Prepaid Expenses / Advance to
+                   Supplier), which left the input-tax claim on the tax summary
+                   overstated and drove Prepaid Expenses negative. */
                 if ($tax > 0.0001) {
                     $lines[] = [
-                        'account_id' => $accounting->getAccountByCode('1300', 'Input Tax Credit', 'asset')->id,
+                        'account_id' => $accounting->getAccountByCode('2300', 'Input Tax Recoverable', 'asset')->id,
                         'debit' => 0, 'credit' => $tax,
                         'description' => "Input tax reversed on #{$note->reference_number}",
                     ];
                 }
 
-                $entry = $accounting->createEntry([
-                    'date' => $validated['date'],
-                    'reference_type' => 'debit_note',
-                    'reference' => $note->id,
-                    'description' => "Debit note #{$note->reference_number}",
-                    'party_id' => $note->supplier_id,
-                ], $lines);
+                $lines = array_values(array_filter($lines, fn ($l) => $l['debit'] > 0.0001 || $l['credit'] > 0.0001));
 
-                $note->update(['journal_entry_id' => $entry->id ?? null]);
+                if (count($lines) >= 2) {
+                    $entry = $accounting->createEntry([
+                        'date' => $validated['date'],
+                        'reference_type' => 'debit_note',
+                        'reference' => $note->id,
+                        'description' => "Debit note #{$note->reference_number}",
+                        'party_id' => $note->supplier_id,
+                    ], $lines);
+
+                    $note->update(['journal_entry_id' => $entry->id ?? null]);
+                }
+
+                // A note against a bill comes off what that bill still owes.
+                if (! empty($validated['purchase_id'])) {
+                    app(\App\Engines\PaymentService::class)->updatePurchaseBadge($validated['purchase_id']);
+                }
             }
 
             return $note;
@@ -211,17 +260,17 @@ class DebitNoteController extends Controller
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:parties,id',
-            'purchase_id' => 'nullable|exists:purchases,id',
+            'purchase_id' => $this->purchaseRule($request),
             'date' => 'required|date',
             'reason' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            'warehouse_id' => 'nullable|exists:warehouses,id',
+            'warehouse_id' => ['nullable', \Illuminate\Validation\Rule::exists('warehouses', 'id')->where('tenant_id', app('current.tenant')->id)],
             'returns_stock' => 'nullable|boolean',
             'tax' => 'nullable|numeric|min:0',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'discount' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_id' => ['required', \Illuminate\Validation\Rule::exists('products', 'id')->where('tenant_id', app('current.tenant')->id)],
             'items.*.quantity' => 'required|numeric|min:0.0001',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
@@ -275,23 +324,41 @@ class DebitNoteController extends Controller
         ]);
     }
 
-    protected function returnStock($productId, $warehouseId, $quantity, $reference)
+    /**
+     * Send one line's goods back: off the named bill's batch, or FIFO — see
+     * PurchaseService::returnStockToSupplier(), which moves the batches,
+     * `stocks`, products.stock_quantity and the movement log together.
+     * Returns the batch cost that left. A line that cannot go back is the
+     * user's to fix, so it comes back as a validation error on the form.
+     */
+    protected function returnStock($productId, $warehouseId, float $quantity, $reference, ?string $purchaseId = null, int $line = 0): float
     {
-        $stock = \App\Models\Stock::firstOrCreate(
-            ['product_id' => $productId, 'warehouse_id' => $warehouseId],
-            ['quantity' => 0]
-        );
-        $stock->decrement('quantity', $quantity);
+        try {
+            return app(\App\Engines\PurchaseService::class)->returnStockToSupplier(
+                (string) $productId,
+                (string) $warehouseId,
+                $quantity,
+                $purchaseId,
+                (string) $reference,
+                "Debit Note / Return ($reference)"
+            )['cost'];
+        } catch (\InvalidArgumentException | \App\Exceptions\InsufficientStockException $e) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'items' => $e->getMessage(),
+                "items.{$line}.quantity" => $e->getMessage(),
+            ]);
+        }
+    }
 
-        \App\Models\StockMovement::create([
-             'product_id' => $productId,
-             'warehouse_id' => $warehouseId,
-             'type' => 'purchase_return',
-             'quantity' => -$quantity,
-             'reference_id' => $reference,
-             'user_id' => Auth::id(),
-             'description' => "Debit Note / Return ($reference)"
-        ]);
+    /** The bill a note names: this store's, and from this note's supplier. */
+    private function purchaseRule(Request $request): array
+    {
+        return [
+            'nullable',
+            \Illuminate\Validation\Rule::exists('purchases', 'id')
+                ->where('tenant_id', app('current.tenant')->id)
+                ->where('party_id', $request->input('supplier_id')),
+        ];
     }
 
     public function show($id)
@@ -373,6 +440,12 @@ class DebitNoteController extends Controller
             $note->update([
                 'status' => 'refunded'
             ]);
+
+            /* The supplier paid the credit back in cash, so it no longer comes
+               off the bill the note named (PaymentService::purchaseSettlements). */
+            if ($note->purchase_id) {
+                app(\App\Engines\PaymentService::class)->updatePurchaseBadge($note->purchase_id);
+            }
         });
 
         return redirect()->back()->with('success', 'Debit note marked as refunded.');

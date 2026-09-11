@@ -13,11 +13,7 @@ use Inertia\Inertia;
 /**
  * QrCodeToolController — QR Code Generator, "Barcodes & Labels" group.
  *
- * NOTE: relies on App\Services\Tools\QrCodeService, which itself requires
- * the `endroid/qr-code` composer package — NOT YET installed in this repo's
- * composer.json as of writing. See the top-of-file docblock in
- * QrCodeService for the exact command to run locally
- * (`composer require endroid/qr-code`) before this controller will work.
+ * QR rendering is supplied by the endroid/qr-code dependency in composer.lock.
  *
  * Entirely free and ungated, like the single-barcode path in
  * BarcodeToolController — no email, only the shared `throttle:tools`

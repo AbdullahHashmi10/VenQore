@@ -23,13 +23,14 @@ import { Check, ArrowRight } from 'lucide-react';
  * The visitor describes their business, the AI assembles the system. The
  * bridge from a free tool is "this document you just made by hand is one
  * the system would have issued for you". Every figure below is verified
- * against config/pricing.php, config/modules.php and ReckonerRegistry — do
+ * against config/pricing.php, config/modules.php (46 top-level modules — see
+ * V6_PUBLIC_PAGE_REGISTER.md §5) and ReckonerRegistry — do
  * not add a number here that is not true in code.
  */
 export default function HousePromo() {
     const points = [
         'Describe your business — Blueprint proposes the system',
-        '140+ modules in, only the ones you use out',
+        '46 modules in, only the ones you use out',
         'Every document here, issued automatically from live stock',
         'One Core Ledger, so no two screens disagree on a number',
         'A photo of a bill in, a posted transaction out',
@@ -41,50 +42,44 @@ export default function HousePromo() {
     ];
 
     return (
-        <aside className="hidden xl:block w-80 shrink-0 sticky top-36 self-start max-h-[calc(100vh-11rem)] overflow-y-auto space-y-4 pb-2">
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-brand-500/10 to-brand-500/5 dark:from-brand-600/20 dark:to-brand-600/10 border border-brand-500/20">
-                <p className="text-2xs font-bold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-300 mb-3">
-                    From the makers of this tool
-                </p>
-                <h3 className="text-lg font-bold text-ink mb-2 leading-snug">
+        <aside className="vq-tools-promo" aria-label="About VenQore">
+            <div className="vq-card vq-tools-promo__card">
+                <span className="vq-eyebrow vq-eyebrow--accent">From the makers of this tool</span>
+                <h3 className="vq-tools-promo__title">
                     You just built one document. VenQore builds the system that issues them.
                 </h3>
-                <p className="text-sm text-ink-secondary leading-relaxed mb-5">
+                <p className="vq-tools-promo__body">
                     VenQore is the AI ERP builder. Describe your business in a sentence and it assembles
                     a working system — till, stock, purchasing and a real double-entry ledger — from the
-                    140+ modules it ships with. No consultant, no implementation fee.
+                    46 modules it ships with. No consultant, no implementation fee.
                 </p>
 
-                <ul className="space-y-2.5 mb-5">
+                <ul className="vq-tools-promo__list">
                     {points.map((p) => (
-                        <li key={p} className="flex items-start gap-2 text-xs text-ink-secondary">
-                            <Check size={13} className="text-success-500 mt-0.5 shrink-0" />
-                            <span className="leading-snug">{p}</span>
+                        <li key={p}>
+                            <Check size={15} aria-hidden="true" />
+                            <span>{p}</span>
                         </li>
                     ))}
                 </ul>
 
-                <div className="grid grid-cols-2 gap-2 mb-5">
+                <div className="vq-tools-promo__stats">
                     {stats.map((s) => (
-                        <div key={s.label} className="p-3 rounded-xl bg-surface/60 dark:bg-white/[0.04] border border-line dark:border-white/10 text-center">
-                            <p className="text-xl font-bold text-ink leading-none mb-1">{s.value}</p>
-                            <p className="text-2xs font-bold uppercase tracking-wide text-ink-muted">{s.label}</p>
+                        <div key={s.label} className="vq-tools-promo__stat">
+                            <span className="vq-num">{s.value}</span>
+                            <span className="vq-caption">{s.label}</span>
                         </div>
                     ))}
                 </div>
 
-                <Link
-                    href="/build-workspace"
-                    className="group/p flex items-center justify-center gap-1.5 w-full py-3 bg-accent-fill text-accent-on rounded-xl text-xs font-bold uppercase tracking-wide transition-transform"
-                >
-                    Start building <ArrowRight size={13} className="transition-transform duration-slow group-hover/p:translate-x-0.5" />
-                </Link>
-                <Link
-                    href="/demo"
-                    className="block text-center text-1xs font-bold text-ink-muted hover:text-ink dark:hover:text-white mt-3 transition-colors"
-                >
-                    Or try the live demo →
-                </Link>
+                <div className="vq-tools-promo__actions">
+                    <Link href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--block">
+                        Start building <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                    </Link>
+                    <Link href="/demo" className="vq-btn vq-btn--ghost vq-btn--block">
+                        Or try the live demo
+                    </Link>
+                </div>
             </div>
         </aside>
     );

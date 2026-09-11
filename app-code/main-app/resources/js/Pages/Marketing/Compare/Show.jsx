@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import MarketingLayout, { RevealOnScroll, MagneticButton, SectionLabel, RelatedPages } from '../Shared/MarketingLayout';
+import MarketingLayout, { RelatedPages } from '../Shared/MarketingLayout';
 
 /**
  * Comparison pages are high-intent but narrow. These links push the reader
@@ -38,222 +38,163 @@ export default function CompareShow({ slug }) {
                 <meta name="description" content={data.metaDescription} />
             </Head>
 
-            {/* Hero Section */}
-            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
-                <RevealOnScroll direction="up">
-                    <SectionLabel icon={Scale} text={`VENQORE VS ${data.name.toUpperCase()}`} />
-                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-ink tracking-tight mb-6 mt-4 max-w-4xl mx-auto leading-tight">
-                        {data.headline}
-                    </h1>
-                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-                        {data.subtitle}
-                    </p>
-                </RevealOnScroll>
-            </section>
-
-            {/* Quick Summary Cards */}
-            <section className="pb-16 px-6 max-w-5xl mx-auto">
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* VenQore Card */}
-                    <div className="bg-emerald-500/10 border-2 border-emerald-500/40 rounded-2xl p-8 relative overflow-hidden">
-                        <div className="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                            RECOMMENDED
-                        </div>
-                        <h3 className="text-2xl font-bold text-ink mb-2">VenQore</h3>
-                        <p className="text-success-600 dark:text-success-400 font-semibold mb-6">The AI ERP builder</p>
-                        <ul className="space-y-3 text-sm text-ink-secondary dark:text-ink">
-                            <li className="flex items-center gap-2">
-                                <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                                <span><strong>Price:</strong> {data.venqorePrice}</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                                <span><strong>Processing Fees:</strong> {data.venqoreTxFee}</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                                <span><strong>Accounting:</strong> {data.venqoreAccounting}</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                                <span><strong>Offline Access:</strong> {data.venqoreOffline}</span>
-                            </li>
-                        </ul>
+            {/* Hero */}
+            <section className="vq-section vq-mkt-hero">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 0, maxWidth: 900 }}>
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">VenQore vs {data.name}</span>
+                        <h1 className="vq-display vq-mt-4">{data.headline}</h1>
+                        <p className="vq-lede">{data.subtitle}</p>
                     </div>
 
-                    {/* Competitor Card */}
-                    <div className="bg-app border border-line rounded-2xl p-8">
-                        <h3 className="text-2xl font-bold text-ink mb-2">{data.name}</h3>
-                        <p className="text-ink-muted font-semibold mb-6">Legacy System</p>
-                        <ul className="space-y-3 text-sm text-ink-secondary">
-                            <li className="flex items-center gap-2">
-                                <X className="w-5 h-5 text-rose-500 shrink-0" />
-                                <span><strong>Price:</strong> {data.competitorPrice}</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <X className="w-5 h-5 text-rose-500 shrink-0" />
-                                <span><strong>Processing Fees:</strong> {data.competitorTxFee}</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <X className="w-5 h-5 text-rose-500 shrink-0" />
-                                <span><strong>Accounting:</strong> {data.competitorAccounting}</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <X className="w-5 h-5 text-rose-500 shrink-0" />
-                                <span><strong>Offline Access:</strong> {data.competitorOffline}</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            {/* Pricing Math Breakdown */}
-            <section className="py-16 bg-neutral-900 text-white px-6">
-                <div className="max-w-4xl mx-auto text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6">
-                        <Calculator className="w-4 h-4" /> Real Margin Math
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                        The True Cost Comparison at {data.pricingMath.monthlySales} / Month
-                    </h2>
-                    <div className="grid md:grid-cols-2 gap-8 my-8 text-left">
-                        <div className="bg-neutral-800/80 p-6 rounded-2xl border border-neutral-700">
-                            <h4 className="text-lg font-bold text-neutral-300 mb-2">{data.name} Total Cost</h4>
-                            <p className="text-2xl font-bold text-rose-400 mb-2">{data.pricingMath.squareFee || data.pricingMath.vyaparFee}</p>
-                            <p className="text-xs text-ink-muted leading-relaxed">
-                                Accumulates every month as processing fees scale with your revenue.
-                            </p>
-                        </div>
-                        <div className="bg-neutral-800/80 p-6 rounded-2xl border border-emerald-500/50">
-                            <h4 className="text-lg font-bold text-emerald-400 mb-2">VenQore Total Cost</h4>
-                            <p className="text-2xl font-bold text-emerald-300 mb-2">{data.pricingMath.venqoreFee}</p>
-                            <p className="text-xs text-neutral-300 leading-relaxed">
-                                Fixed monthly subscription with no transaction markups. Keep 100% of your earnings.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="inline-block bg-emerald-500 text-ink font-bold text-lg px-6 py-3 rounded-xl">
-                        {data.pricingMath.annualSavings}
-                    </div>
-                </div>
-            </section>
-
-            {/* 15-Row Comparison Table */}
-            <section className="py-20 px-6 max-w-6xl mx-auto">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
-                        Detailed Feature-by-Feature Matrix
-                    </h2>
-                    <p className="text-ink-secondary max-w-2xl mx-auto">
-                        Compare VenQore side-by-side with {data.name} across core business operations.
-                    </p>
-                </div>
-
-                <div className="overflow-x-auto rounded-2xl border border-line shadow-sm bg-surface">
-                    <table className="w-full text-left border-collapse min-w-[640px]">
-                        <thead>
-                            <tr className="border-b border-line bg-app">
-                                <th className="p-4 text-sm font-bold text-ink w-2/5">Feature / Capability</th>
-                                <th className="p-4 text-sm font-bold text-emerald-600 dark:text-emerald-400 w-3/10 bg-emerald-500/5">VenQore</th>
-                                <th className="p-4 text-sm font-bold text-ink-muted w-3/10">{data.name}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-line text-sm">
-                            {data.table.map((row, idx) => (
-                                <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                    <td className="p-4 font-semibold text-ink">{row.feature}</td>
-                                    <td className="p-4 font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-500/5">
-                                        <div className="flex items-center gap-2">
-                                            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-                                            <span>{row.venqore}</span>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-ink-secondary">
-                                        <span>{row.competitor}</span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            {/* Honest Verdict Section */}
-            <section className="py-16 bg-app border-y border-line px-6">
-                <div className="max-w-4xl mx-auto">
-                    <h2 className="text-3xl font-bold text-ink text-center mb-10">
-                        Honest Recommendation: Which Should You Choose?
-                    </h2>
-
-                    <div className="grid md:grid-cols-2 gap-8">
-                        <div className="bg-surface p-6 rounded-2xl border border-line">
-                            <h3 className="text-xl font-bold text-ink mb-3">
-                                When to Choose {data.name}
-                            </h3>
-                            <p className="text-sm text-ink-secondary leading-relaxed">
-                                {data.honestVerdict.chooseCompetitor}
-                            </p>
-                        </div>
-
-                        <div className="bg-surface p-6 rounded-2xl border-2 border-emerald-500/40">
-                            <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-3">
-                                When to Choose VenQore
-                            </h3>
-                            <p className="text-sm text-ink-secondary leading-relaxed">
-                                {data.honestVerdict.chooseVenQore}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* FAQs Accordion */}
-            <section className="py-20 px-6 max-w-4xl mx-auto">
-                <div className="text-center mb-12">
-                    <SectionLabel icon={HelpCircle} text="FREQUENTLY ASKED QUESTIONS" />
-                    <h2 className="text-3xl font-bold text-ink mt-2">
-                        Questions About Switching from {data.name} to VenQore
-                    </h2>
-                </div>
-
-                <div className="space-y-4">
-                    {data.faqs.map((faq, idx) => (
-                        <div
-                            key={idx}
-                            className="bg-surface border border-line rounded-2xl overflow-hidden transition-colors"
-                        >
-                            <button
-                                onClick={() => toggleFaq(idx)}
-                                className="w-full p-6 text-left font-bold text-ink flex items-center justify-between gap-4"
-                            >
-                                <span>{faq.q}</span>
-                                <ChevronDown className={`w-5 h-5 transition-transform duration-normal text-ink-muted ${openFaq === idx ? 'rotate-180 text-emerald-500' : ''}`} />
-                            </button>
-                            {openFaq === idx && (
-                                <div className="px-6 pb-6 text-sm text-ink-secondary leading-relaxed border-t border-line pt-4">
-                                    {faq.a}
+                    {/* Quick summary */}
+                    <div className="vq-grid vq-grid--2 vq-mt-16 vq-cmp-sum">
+                        <div className="vq-card vq-card--xl vq-cmp-sum__us">
+                            <div className="vq-row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                                <div>
+                                    <h2 className="vq-h3">VenQore</h2>
+                                    <p className="vq-small vq-accent-text vq-mt-2" style={{ fontWeight: 600 }}>The AI ERP builder</p>
                                 </div>
-                            )}
+                                <span className="vq-badge vq-badge--accent">Recommended</span>
+                            </div>
+                            <ul className="vq-mkt-list vq-mt-6">
+                                <li><Check aria-hidden="true" /><span><strong>Price:</strong> {data.venqorePrice}</span></li>
+                                <li><Check aria-hidden="true" /><span><strong>Processing fees:</strong> {data.venqoreTxFee}</span></li>
+                                <li><Check aria-hidden="true" /><span><strong>Accounting:</strong> {data.venqoreAccounting}</span></li>
+                                <li><Check aria-hidden="true" /><span><strong>Offline access:</strong> {data.venqoreOffline}</span></li>
+                            </ul>
                         </div>
-                    ))}
+                        <div className="vq-card vq-card--xl vq-card--flat vq-cmp-sum__them">
+                            <h2 className="vq-h3">{data.name}</h2>
+                            <p className="vq-small vq-text-3 vq-mt-2" style={{ fontWeight: 600 }}>Legacy system</p>
+                            <ul className="vq-mkt-list vq-mkt-list--x vq-mt-6">
+                                <li><X aria-hidden="true" /><span><strong>Price:</strong> {data.competitorPrice}</span></li>
+                                <li><X aria-hidden="true" /><span><strong>Processing fees:</strong> {data.competitorTxFee}</span></li>
+                                <li><X aria-hidden="true" /><span><strong>Accounting:</strong> {data.competitorAccounting}</span></li>
+                                <li><X aria-hidden="true" /><span><strong>Offline access:</strong> {data.competitorOffline}</span></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            {/* Footer CTA */}
-            <section className="py-24 px-6 text-center max-w-4xl mx-auto">
-                <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6">
-                    Switch to VenQore Today
-                </h2>
-                <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
-                    Start a 14-day free trial. Our team assists with zero-downtime data migration from {data.name}.
-                </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                    <MagneticButton href="/build-workspace" variant="primary">
-                        Start building <ArrowRight className="w-4 h-4 ml-2" />
-                    </MagneticButton>
-                    <MagneticButton href="/demo" variant="secondary">
-                        Try Live Interactive Demo
-                    </MagneticButton>
+            {/* Pricing math */}
+            <section className="vq-section vq-section--alt">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Real margin math</span>
+                        <h2 className="vq-h1 vq-mt-4">The true cost comparison at {data.pricingMath.monthlySales} / month</h2>
+                    </div>
+                    <div className="vq-grid vq-grid--2" style={{ maxWidth: 900, marginInline: 'auto' }}>
+                        <div className="vq-card vq-card--xl vq-stat">
+                            <span className="vq-stat__label">{data.name} total cost</span>
+                            <span className="vq-stat__value vq-stat__value--sm vq-cmp-them">{data.pricingMath.squareFee || data.pricingMath.vyaparFee}</span>
+                            <span className="vq-stat__note">Accumulates every month as processing fees scale with your revenue.</span>
+                        </div>
+                        <div className="vq-card vq-card--xl vq-stat vq-cmp-sum__us">
+                            <span className="vq-stat__label">VenQore total cost</span>
+                            <span className="vq-stat__value vq-stat__value--sm vq-cmp-us">{data.pricingMath.venqoreFee}</span>
+                            <span className="vq-stat__note">Fixed monthly subscription with no transaction markups. Keep 100% of your earnings.</span>
+                        </div>
+                    </div>
+                    <div className="vq-center vq-mt-8">
+                        <span className="vq-cmp-savings">{data.pricingMath.annualSavings}</span>
+                    </div>
+                </div>
+            </section>
+
+            {/* Feature matrix */}
+            <section className="vq-section">
+                <div className="vq-container">
+                    <div className="vq-section-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Side by side</span>
+                        <h2 className="vq-h1 vq-mt-4">Detailed feature-by-feature matrix</h2>
+                        <p className="vq-lede">Compare VenQore side-by-side with {data.name} across core business operations.</p>
+                    </div>
+                    <div className="vq-mkt-table-wrap">
+                        <table className="vq-mkt-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style={{ width: '38%' }}>Feature / capability</th>
+                                    <th scope="col" className="is-us">VenQore</th>
+                                    <th scope="col">{data.name}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.table.map((row, idx) => (
+                                    <tr key={idx}>
+                                        <th scope="row">{row.feature}</th>
+                                        <td className="is-us">
+                                            <span className="vq-row vq-gap-2" style={{ alignItems: 'flex-start' }}>
+                                                <Check size={16} className="vq-cmp-tick" aria-hidden="true" />
+                                                <span>{row.venqore}</span>
+                                            </span>
+                                        </td>
+                                        <td>{row.competitor}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            {/* Verdict */}
+            <section className="vq-section vq-section--alt">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Honest recommendation</span>
+                        <h2 className="vq-h1 vq-mt-4">Which should you choose?</h2>
+                    </div>
+                    <div className="vq-grid vq-grid--2" style={{ maxWidth: 1000, marginInline: 'auto' }}>
+                        <div className="vq-card vq-card--xl">
+                            <h3 className="vq-h3">When to choose {data.name}</h3>
+                            <p className="vq-small vq-text-2 vq-mt-3" style={{ lineHeight: 1.65 }}>{data.honestVerdict.chooseCompetitor}</p>
+                        </div>
+                        <div className="vq-card vq-card--xl vq-cmp-sum__us">
+                            <h3 className="vq-h3">When to choose VenQore</h3>
+                            <p className="vq-small vq-text-2 vq-mt-3" style={{ lineHeight: 1.65 }}>{data.honestVerdict.chooseVenQore}</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* FAQ */}
+            <section className="vq-section">
+                <div className="vq-container vq-container--narrow">
+                    <div className="vq-section-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Frequently asked questions</span>
+                        <h2 className="vq-h1 vq-mt-4">Questions about switching from {data.name} to VenQore</h2>
+                    </div>
+                    <div className="vq-tools__faq">
+                        {data.faqs.map((faq, idx) => (
+                            <div key={idx} className="vq-tools__faq-item" data-open={openFaq === idx ? 'true' : 'false'}>
+                                <button type="button" onClick={() => toggleFaq(idx)} aria-expanded={openFaq === idx} className="vq-tools__faq-q">
+                                    <span>{faq.q}</span>
+                                    <ChevronDown size={20} aria-hidden="true" />
+                                </button>
+                                {openFaq === idx && <p className="vq-tools__faq-a">{faq.a}</p>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA */}
+            <section className="vq-section" style={{ paddingTop: 0 }}>
+                <div className="vq-container">
+                    <div className="vq-card vq-card--xl vq-mkt-cta">
+                        <h2 className="vq-h1">Switch to VenQore today</h2>
+                        <p className="vq-lede">
+                            Start a 14-day free trial. Our team assists with zero-downtime data migration from {data.name}.
+                        </p>
+                        <div className="vq-row vq-wrap vq-gap-3 vq-mkt-cta__actions">
+                            <Link href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg">
+                                Start building <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                            </Link>
+                            <Link href="/demo" className="vq-btn vq-btn--secondary vq-btn--lg">Try the live interactive demo</Link>
+                        </div>
+                    </div>
                 </div>
             </section>
 

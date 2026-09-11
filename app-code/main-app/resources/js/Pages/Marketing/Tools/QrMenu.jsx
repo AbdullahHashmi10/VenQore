@@ -24,8 +24,8 @@ const FAQS = [
     { q: 'How do customers view the menu?', a: 'Customers simply point their smartphone camera at the printed QR code on their table to automatically open your online menu or PDF link.' },
 ];
 
-const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/60 transition-colors';
-const labelBase = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
+const inputBase = 'w-full px-4 py-3 rounded-xl vq-tool-inset text-ink text-sm focus:outline-none focus:border-brand-400/60 transition-colors';
+const labelBase = 'block text-sm font-semibold text-ink mb-2';
 
 export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster = true, supportsLogo = true, toolGroups = [] }) {
     const [restaurantName, setRestaurantName] = useState('The Artisan Bistro');
@@ -155,7 +155,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                 { label: 'Price Tag Generator', href: '/tools/price-tag-generator' },
             ]}
         >
-            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="vq-tool-panel vq-tool-panel--pad">
                 <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
                     {/* Controls Column */}
                     <div className="lg:col-span-7 space-y-6 min-w-0">
@@ -219,7 +219,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                         </div>
 
                         {/* Layout & Style */}
-                        <div className="space-y-4 pt-2 border-t border-line dark:border-white/10">
+                        <div className="space-y-4 pt-2 border-t border-line">
                             <h3 className="text-sm font-bold text-ink flex items-center gap-2">
                                 <Layout size={16} className="text-brand-500" /> Layout & Theme Presets
                             </h3>
@@ -244,7 +244,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                         className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors ${
                                             logo
                                                 ? 'bg-amber-500/15 border border-amber-400/40 text-amber-600 dark:text-amber-300'
-                                                : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary hover:border-line-strong'
+                                                : 'vq-tool-inset text-ink-secondary hover:border-line-strong'
                                         }`}
                                     >
                                         <ImageIcon size={14} /> {logo ? 'Remove Logo' : 'Upload Center Logo'}
@@ -262,7 +262,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
 
                         {/* Optional Menu Items */}
                         {preset !== 'sticker_3x3' && (
-                            <div className="space-y-4 pt-2 border-t border-line dark:border-white/10">
+                            <div className="space-y-4 pt-2 border-t border-line">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-sm font-bold text-ink flex items-center gap-2">
                                         <Utensils size={16} className="text-emerald-500" /> Featured Items / Specials (Optional)
@@ -277,7 +277,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                                 </div>
                                 <div className="space-y-3">
                                     {menuItems.map((item, idx) => (
-                                        <div key={idx} className="p-3 rounded-xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-2">
+                                        <div key={idx} className="p-3 rounded-xl vq-tool-inset space-y-2">
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
@@ -328,7 +328,7 @@ export default function QrMenuTool({ presets = {}, themes = {}, supportsRaster =
                         <button
                             onClick={handleDownload}
                             disabled={loading}
-                            className="w-full py-4 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-2xl text-sm font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                            className="vq-btn vq-btn--primary vq-btn--lg w-full"
                         >
                             <Download size={18} /> {loading ? 'Generating PDF...' : 'Download Printable PDF'}
                         </button>

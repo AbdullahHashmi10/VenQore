@@ -309,7 +309,7 @@ class ChatRoutingService
                     ->reverse()
                     ->toArray();
 
-                $aiResponse = $this->aiService->respond($history, "[System: You have just been handed back this conversation from a human agent. Please resume talking to the customer smoothly, welcoming them back or answering their latest questions.]", $venaContext);
+                $aiResponse = $this->aiService->respond($history, "[System: You have just been handed back this conversation from a human agent. Please resume talking to the customer smoothly, welcoming them back or answering their latest questions.]", $venaContext, true);
                 $aiReply = $aiResponse['text'];
                 $usage = $aiResponse['usage'] ?? [];
 

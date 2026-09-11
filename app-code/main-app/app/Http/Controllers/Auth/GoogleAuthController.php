@@ -28,33 +28,60 @@ class GoogleAuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-            
-            // 1. Find or create the user
-            $user = User::where('google_id', $googleUser->id)
-                ->orWhere('email', $googleUser->email)
-                ->first();
 
-            if ($user) {
-                // Update Google ID if not set
-                if (!$user->google_id) {
-                    $user->update([
-                        'google_id' => $googleUser->id,
-                        'avatar'    => $googleUser->avatar
-                    ]);
-                }
-            } else {
-                // Create new user
-                $user = User::create([
-                    'name'      => $googleUser->name,
-                    'email'     => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'avatar'    => $googleUser->avatar,
-                    'password'  => Hash::make(Str::random(24)), // Random password for safety
-                ]);
+            // AUTH-02 (2026-09-10): trust only what Google verified.
+            $raw = is_array($googleUser->user ?? null) ? $googleUser->user : [];
+            $googleId = (string) $googleUser->getId();
+            $email = strtolower(trim((string) $googleUser->getEmail()));
+            $emailVerified = filter_var($raw['email_verified'] ?? $raw['verified_email'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            if ($googleId === '' || $email === '' || !$emailVerified) {
+                return redirect('/login')->withErrors(['email' => 'Google did not confirm this email address. Please sign in with email instead.']);
             }
 
-            // 2. Log in
+            // 1. Returning linked user: resolve by the stable Google ID only.
+            $user = User::where('google_id', $googleId)->first();
+
+            if (!$user) {
+                $existing = User::withTrashed()->where('email', $email)->first();
+
+                if ($existing) {
+                    if ($existing->trashed()) {
+                        return redirect('/login')->withErrors(['email' => 'This account is not available.']);
+                    }
+
+                    // An existing email/password account is NOT silently attached
+                    // to a Google identity just because the email strings match.
+                    // Prove ownership once with an emailed code; after that,
+                    // Google sign-in is instant.
+                    [$challenge, $error] = app(\App\Services\Auth\EmailOtpService::class)->start(
+                        request(), 'link_google', $existing->email, $existing->id,
+                        ['google_id' => $googleId, 'avatar' => $googleUser->getAvatar()]
+                    );
+                    if (!$challenge) {
+                        return redirect('/login')->withErrors(['email' => $error]);
+                    }
+                    EmailOtpController::begin(request(), $challenge->id, 'link_google');
+
+                    return redirect()->route('otp.show')->with('status', 'You already have an account with this email. Enter the code we sent to link Google to it.');
+                }
+
+                // 2. New user: Google verified the address, so no extra email code.
+                $user = new User();
+                $user->forceFill([
+                    'name'              => $googleUser->getName() ?: explode('@', $email)[0],
+                    'email'             => $email,
+                    'google_id'         => $googleId,
+                    'avatar'            => $googleUser->getAvatar(),
+                    'password'          => Hash::make(Str::random(40)), // unusable; reset flow can set one
+                    'email_verified_at' => now(),
+                ])->save();
+                event(new \Illuminate\Auth\Events\Registered($user));
+            }
+
+            // 3. Log in (platform accounts still pass Require2FA before any page)
             Auth::login($user, true);
+            request()->session()->regenerate();
 
             // 3. Platform Admin initialization (if needed)
             if ($user->isPlatformAdmin()) {

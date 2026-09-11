@@ -1,9 +1,9 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import MarketingLayout, { RevealOnScroll, MagneticButton, SectionLabel, InlineLink, RelatedPages } from '../Shared/MarketingLayout';
+import MarketingLayout, { InlineLink, RelatedPages } from '../Shared/MarketingLayout';
 import { ArrowRight, CheckCircle2, ShieldCheck, Zap, BarChart3, Scale, Layers } from 'lucide-react';
 
-export default function CompareIndex({ competitors }) {
+export default function CompareIndex({ competitors = [] }) {
     return (
         <MarketingLayout>
             <Head>
@@ -12,81 +12,59 @@ export default function CompareIndex({ competitors }) {
             </Head>
 
             {/* Hero */}
-            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
-                <RevealOnScroll direction="up">
-                    <SectionLabel icon={Scale} text="HONEST COMPETITOR COMPARISONS" />
-                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4">
-                        How VenQore Compares to <br />
-                        <span className="bg-gradient-to-r from-emerald-500 to-teal-400 bg-clip-text text-transparent">
-                            Legacy POS & Billing Systems
-                        </span>
-                    </h1>
-                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-                        Most POS software charges 2.6%+ on every sale or leaves your accounting incomplete. VenQore gives you a flat{''}
-                        <InlineLink href="/pricing">subscription</InlineLink> with $0 processing markups and built-in{''}
-                        <InlineLink href="/features/accounting">double-entry bookkeeping</InlineLink> on top of a{''}
-                        <InlineLink href="/features/point-of-sale">full point of sale</InlineLink>.
-                    </p>
-                </RevealOnScroll>
-            </section>
-
-            {/* Competitors Grid */}
-            <section className="pb-24 px-6 max-w-7xl mx-auto">
-                <div className="grid md:grid-cols-2 gap-8">
-                    {competitors.map((item, idx) => (
-                        <RevealOnScroll key={item.slug} delay={idx * 0.15}>
-                            <div className="h-full bg-surface border border-line rounded-2xl p-8 hover:border-emerald-500/50 transition-all duration-slow hover:shadow-2xl flex flex-col justify-between">
-                                <div>
-                                    <div className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-4">
-                                        {item.tag}
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-ink mb-3">
-                                        VenQore vs {item.name}
-                                    </h2>
-                                    <p className="text-ink-secondary leading-relaxed mb-6">
-                                        {item.summary}
-                                    </p>
-                                </div>
-                                <div className="pt-6 border-t border-line flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                                        Detailed Breakdown &amp; Pricing Math
-                                    </span>
-                                    <Link
-                                        href={`/compare/${item.slug}`}
-                                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-ink font-semibold hover:bg-emerald-600 dark:hover:bg-emerald-400 transition-colors"
-                                    >
-                                        Compare <ArrowRight className="w-4 h-4" />
-                                    </Link>
-                                </div>
-                            </div>
-                        </RevealOnScroll>
-                    ))}
+            <section className="vq-section vq-mkt-hero">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 0, maxWidth: 880 }}>
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Honest competitor comparisons</span>
+                        <h1 className="vq-display vq-mt-4">How VenQore compares to legacy POS &amp; billing systems</h1>
+                        <p className="vq-lede">
+                            Most POS software charges 2.6%+ on every sale or leaves your accounting incomplete. VenQore gives you a flat{' '}
+                            <InlineLink href="/pricing">subscription</InlineLink> with $0 processing markups and built-in{' '}
+                            <InlineLink href="/features/accounting">double-entry bookkeeping</InlineLink> on top of a{' '}
+                            <InlineLink href="/features/point-of-sale">full point of sale</InlineLink>.
+                        </p>
+                    </div>
                 </div>
             </section>
 
-            {/* Core Pillars */}
-            <section className="py-20 bg-app border-y border-line px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold text-ink mb-4">
-                            The 4 VenQore Standard Guarantee
-                        </h2>
-                        <p className="text-ink-secondary">
-                            Every comparison page adheres to strict engineering and financial truth rules.
-                        </p>
+            {/* Competitors */}
+            <section className="vq-section" style={{ paddingTop: 0 }}>
+                <div className="vq-container">
+                    <div className="vq-grid vq-grid--2">
+                        {competitors.map((item) => (
+                            <Link key={item.slug} href={`/compare/${item.slug}`} className="vq-card vq-card--xl vq-card--interactive vq-mkt-card">
+                                <span className="vq-badge vq-badge--accent" style={{ alignSelf: 'flex-start' }}>{item.tag}</span>
+                                <h2 className="vq-h2 vq-mt-5" style={{ color: 'var(--vq-text)' }}>VenQore vs {item.name}</h2>
+                                <p className="vq-body vq-text-2 vq-mt-3" style={{ lineHeight: 1.65 }}>{item.summary}</p>
+                                <div className="vq-mkt-card__cta">
+                                    <span className="vq-link">Detailed breakdown &amp; pricing math <ArrowRight size={16} aria-hidden="true" /></span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Pillars */}
+            <section className="vq-section vq-section--alt">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">The standard</span>
+                        <h2 className="vq-h1 vq-mt-4">The four VenQore guarantees</h2>
+                        <p className="vq-lede">Every comparison page adheres to strict engineering and financial truth rules.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-4 gap-6">
+                    <div className="vq-grid vq-grid--4">
                         {[
                             { icon: ShieldCheck, title: "Zero Processing Markup", text: "Pay flat subscription rates with $0 hidden transaction percentages." },
                             { icon: BarChart3, title: "Auditor-Grade Books", text: "Every sale, purchase, and refund creates a balanced double-entry journal." },
                             { icon: Zap, title: "100% Offline PWA", text: "Keep checking out customers even during complete internet blackouts." },
                             { icon: Layers, title: "Eight Correctness Laws", text: "Financial precision verified by robust automated regression suites." },
                         ].map((pillar, i) => (
-                            <div key={i} className="p-6 rounded-2xl bg-surface border border-line">
-                                <pillar.icon className="w-8 h-8 text-emerald-500 mb-4" />
-                                <h3 className="text-lg font-bold text-ink mb-2">{pillar.title}</h3>
-                                <p className="text-sm text-ink-secondary leading-relaxed">{pillar.text}</p>
+                            <div key={i} className="vq-card vq-tile">
+                                <span className="vq-tile__icon"><pillar.icon aria-hidden="true" /></span>
+                                <h3 className="vq-tile__title" style={{ fontSize: 20 }}>{pillar.title}</h3>
+                                <p className="vq-tile__body">{pillar.text}</p>
                             </div>
                         ))}
                     </div>
@@ -94,20 +72,18 @@ export default function CompareIndex({ competitors }) {
             </section>
 
             {/* CTA */}
-            <section className="py-24 px-6 text-center max-w-4xl mx-auto">
-                <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6">
-                    Ready to Take Control of Your Margins?
-                </h2>
-                <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
-                    Start a 14-day free trial with full feature access — cancel anytime.
-                </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                    <MagneticButton href="/register" variant="primary">
-                        Start Free Trial <ArrowRight className="w-4 h-4 ml-2" />
-                    </MagneticButton>
-                    <MagneticButton href="/demo" variant="secondary">
-                        Explore Interactive Demo
-                    </MagneticButton>
+            <section className="vq-section">
+                <div className="vq-container">
+                    <div className="vq-card vq-card--xl vq-mkt-cta">
+                        <h2 className="vq-h1">Ready to take control of your margins?</h2>
+                        <p className="vq-lede">Start a 14-day free trial with full feature access — cancel anytime.</p>
+                        <div className="vq-row vq-wrap vq-gap-3 vq-mkt-cta__actions">
+                            <Link href="/register" className="vq-btn vq-btn--primary vq-btn--lg">
+                                Start free trial <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                            </Link>
+                            <Link href="/demo" className="vq-btn vq-btn--secondary vq-btn--lg">Explore the interactive demo</Link>
+                        </div>
+                    </div>
                 </div>
             </section>
 

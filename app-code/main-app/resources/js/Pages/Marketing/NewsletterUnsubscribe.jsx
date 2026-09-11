@@ -18,27 +18,34 @@ export default function NewsletterUnsubscribe({ token }) {
             description="Stop receiving VenQore newsletter emails."
         >
             <Head><meta name="robots" content="noindex, nofollow" /></Head>
-            <section className="pt-36 md:pt-44 pb-24 px-6 flex items-center justify-center">
-                <div className="max-w-md text-center">
-                    <MailX size={48} className="text-ink-muted mx-auto mb-6" />
-                    {flash?.success ? (
-                        <p className="text-ink-secondary">{flash.success}</p>
-                    ) : (
-                        <>
-                            <h1 className="text-2xl font-bold mb-3 text-ink">Unsubscribe from VenQore</h1>
-                            <p className="text-ink-secondary mb-8">
-                                You will stop receiving newsletter emails. This will not affect any VenQore account you have.
-                            </p>
-                            <button
-                                type="button"
-                                onClick={submit}
-                                disabled={processing}
-                                className="px-7 py-3 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-full text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
-                            >
-                                {processing ? 'Unsubscribing…' : 'Confirm unsubscribe'}
-                            </button>
-                        </>
-                    )}
+            <section className="vq-section vq-mc-top">
+                <div className="vq-container">
+                    <div className="vq-card vq-card--xl vq-center" style={{ maxWidth: '560px', marginInline: 'auto', padding: 'clamp(32px, 5vw, 48px)' }}>
+                        <span className="vq-mc-icon vq-mc-icon--lg vq-mc-icon--round" style={{ '--tone': 'var(--vq-text-2)' }}>
+                            <MailX size={30} aria-hidden="true" />
+                        </span>
+                        {flash?.success ? (
+                            <p className="vq-body vq-mt-6" style={{ marginInline: 'auto', color: 'var(--vq-text)' }}>{flash.success}</p>
+                        ) : (
+                            <>
+                                <h1 className="vq-h2 vq-mt-6">Unsubscribe from VenQore</h1>
+                                <p className="vq-body vq-text-2 vq-mt-3" style={{ marginInline: 'auto' }}>
+                                    You will stop receiving newsletter emails. This will not affect any VenQore account you have.
+                                </p>
+                                <div className="vq-mt-8">
+                                    <button
+                                        type="button"
+                                        onClick={submit}
+                                        disabled={processing}
+                                        className="vq-btn vq-btn--primary vq-btn--lg"
+                                        style={{ opacity: processing ? 0.6 : undefined }}
+                                    >
+                                        {processing ? 'Unsubscribing…' : 'Confirm unsubscribe'}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </section>
         </MarketingLayout>

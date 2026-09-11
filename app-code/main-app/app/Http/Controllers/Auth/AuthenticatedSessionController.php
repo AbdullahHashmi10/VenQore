@@ -7,6 +7,8 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Models\TenantUser;
 use App\Support\InviteRedirect;
 use App\Support\GiftRedirect;
+use App\Support\PostLoginRedirect;
+use App\Services\Auth\EmailOtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -58,66 +60,40 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
-        $request->session()->regenerate();
+        // AUTH-01 (2026-09-10): the password is checked, but NO session is
+        // created here. Every new email/password sign-in must also enter the
+        // 6-digit code we email (EmailOtpController). A previously verified
+        // email does not skip this.
+        $user = $request->validateCredentials();
 
-        $user = Auth::user();
-
-        // ── Case Platform Owner: Block regular login ──────────────────────
-        // Security requirement: Platform owners MUST use the /VenQore-login portal.
+        // ── Platform owners must use the /VenQore-login portal (+ MFA) ─────
         if ($user->isPlatformAdmin()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
             return redirect()->route('platform.login')
                 ->withErrors(['email' => 'Platform admins must use the secure HQ portal to log in.']);
         }
 
-        // ── Invited user: finish accepting the invite before any store routing ──
-        // (An invited user has 0 stores of their own and must NOT be pushed into
-        // the create-store / plan-selection flow.)
-        if ($redirect = InviteRedirect::pending()) {
-            return $redirect;
+        if (!config('venqore.email_otp_required', true)) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+
+            return PostLoginRedirect::for($user);
         }
 
-        // ── Pending gift link: finish viewing/accepting it before store routing ──
-        if ($redirect = GiftRedirect::pending()) {
-            return $redirect;
+        [$challenge, $error] = app(EmailOtpService::class)->start(
+            $request,
+            'login',
+            $user->email,
+            $user->id,
+            ['remember' => $request->boolean('remember')]
+        );
+
+        if (!$challenge) {
+            return back()->withErrors(['email' => $error]);
         }
 
-        // Load all active memberships with their tenant statuses
-        $memberships = TenantUser::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->with('tenant')
-            ->get()
-            ->filter(fn($m) => in_array($m->tenant?->status, ['trial', 'active', 'suspended']));
+        EmailOtpController::begin($request, $challenge->id, 'login');
 
-        // ── Case 0: New user, no stores yet ───────────────────────────
-        if ($memberships->isEmpty()) {
-            return redirect()->route('store.create-or-join');
-        }
-
-        // ── Case 1: Exactly one store → go straight in ────────────────
-        if ($memberships->count() === 1) {
-            return redirect()->route('store.dashboard', [
-                'store_slug' => $memberships->first()->tenant->slug,
-            ]);
-        }
-
-        // ── Case 2: Multiple stores ────────────────────────────────────
-        // Try their last-used store first
-        if ($user->last_store_id) {
-            $lastStore = $memberships->firstWhere('tenant_id', $user->last_store_id);
-            if ($lastStore && $lastStore->tenant) {
-                return redirect()->route('store.dashboard', [
-                    'store_slug' => $lastStore->tenant->slug,
-                ]);
-            }
-        }
-
-        // No last preference → show the store hub
-        return redirect()->route('hub');
+        return redirect()->route('otp.show');
     }
 
 
@@ -143,6 +119,12 @@ class AuthenticatedSessionController extends Controller
 
         $rateKey = 'pos-pin-login:' . $storeId . '|' . $request->ip();
 
+        // Per-store ceiling across all IPs, so distributed PIN guessing is bounded.
+        $storeKey = 'pos-pin-login-store:' . $storeId;
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($storeKey, 30)) {
+            return back()->withErrors(['pin' => 'Too many login attempts for this store. Please try again later.']);
+        }
+
         if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($rateKey, 5)) {
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($rateKey);
             return back()->withErrors([
@@ -160,6 +142,7 @@ class AuthenticatedSessionController extends Controller
 
         if (!$membership || !$membership->user) {
             \Illuminate\Support\Facades\RateLimiter::hit($rateKey, 60);
+            \Illuminate\Support\Facades\RateLimiter::hit($storeKey, 600);
             return back()->withErrors(['pin' => 'Invalid PIN.']);
         }
 

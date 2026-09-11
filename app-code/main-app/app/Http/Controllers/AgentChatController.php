@@ -546,7 +546,7 @@ class AgentChatController extends Controller
                 ->toArray();
 
             $suggestionPrompt = "[System: You are acting as an internal co-pilot AI assistant for a human support agent. Please analyze the chat history and draft a high-quality suggested response that the agent can send to the customer. Return ONLY the suggested reply body, with no notes or conversational preamble.]";
-            $suggestedReplyResult = $aiService->respond($history, $suggestionPrompt);
+            $suggestedReplyResult = $aiService->respond($history, $suggestionPrompt, [], true);
             $suggestedReply = $suggestedReplyResult['text'] ?? '';
 
             return response()->json([

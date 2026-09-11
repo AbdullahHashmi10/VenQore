@@ -37,6 +37,14 @@ class ContactController extends Controller
             report($e);
         }
 
-        return back()->with('success', "Thanks — we've got your message and will reply to {$validated['email']}.");
+        $message = "Thanks — we've got your message and will reply to {$validated['email']}.";
+
+        // WEB-02 (2026-09-10): an explicit JSON contract for the fetch() client,
+        // so "success" is only ever shown after the row above was stored.
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $message, 'id' => $submission->id], 201);
+        }
+
+        return back()->with('success', $message);
     }
 }

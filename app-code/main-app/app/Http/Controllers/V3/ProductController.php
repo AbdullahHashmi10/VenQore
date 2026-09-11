@@ -65,8 +65,9 @@ class ProductController extends Controller
                 'price_includes_tax'=> $validated['price_includes_tax'] ?? 0,
                 'is_manufactured'   => $validated['is_manufactured'] ?? 0,
                 'supplier_sku'      => $validated['supplier_sku'] ?? null,
+                // products has no `status` column (is_active is the flag) — writing
+                // it made every V3 product create a 500.
                 'is_active'         => 1,
-                'status'            => 'active',
                 'created_at'        => now(),
                 'updated_at'        => now(),
             ]);
@@ -129,6 +130,9 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, string $id)
     {
         $validated = $request->validated();
+
+        // Another store's product: 404 (was a silent no-op reported as success).
+        DB::table('products')->where('tenant_id', app('current.tenant')->id)->where('id', $id)->firstOrFail();
 
         DB::table('products')->where('products.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)

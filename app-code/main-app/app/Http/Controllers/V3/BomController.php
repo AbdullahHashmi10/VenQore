@@ -5,11 +5,14 @@ namespace App\Http\Controllers\V3;
 use App\Http\Controllers\Controller;
 use App\Services\PlanGate;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BomController extends Controller
 {
+    private const MAX_BOM_DEPTH = 5;
+
     public function store(Request $request)
     {
         if (!\App\Services\PlanGate::check('bill_of_materials')) {
@@ -19,13 +22,15 @@ class BomController extends Controller
         // ── Plan Gate: Bill of Materials ─────────────────────────────────────
         PlanGate::enforce('bill_of_materials');
 
+        // Finished good and every component must be this store's products.
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
-            'product_id'     => ['required', 'string', 'exists:products,id'],
+            'product_id'     => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'version'        => ['required', 'integer', 'min:1'],
             'effective_from' => ['required', 'date'],
             'notes'          => ['nullable', 'string', 'max:1000'],
             'items'          => ['required', 'array', 'min:1'],
-            'items.*.product_id'    => ['required', 'string', 'exists:products,id'],
+            'items.*.product_id'    => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'items.*.qty_per_unit'  => ['required', 'numeric', 'min:0.0001'],
             'items.*.is_byproduct'  => ['boolean'],
             'items.*.byproduct_nrv' => ['nullable', 'numeric', 'min:0'],
@@ -38,6 +43,24 @@ class BomController extends Controller
                     'items' => 'A product cannot be its own BOM component.',
                 ]);
             }
+        }
+
+        // S-014: sub-assemblies may nest at most MAX_BOM_DEPTH levels, and a
+        // BOM may never (directly or through a sub-assembly) consume itself.
+        $componentIds = array_column(array_filter(
+            $validated['items'],
+            fn ($item) => empty($item['is_byproduct'])
+        ), 'product_id');
+        try {
+            $depth = 1 + $this->deepestBom($componentIds, [$validated['product_id']]);
+        } catch (\DomainException $e) {
+            return back()->withErrors(['items' => $e->getMessage()]);
+        }
+        if ($depth > self::MAX_BOM_DEPTH) {
+            return back()->withErrors([
+                'items' => 'Sub-assemblies can be nested at most ' . self::MAX_BOM_DEPTH
+                    . " levels deep; this BOM would be {$depth} levels.",
+            ]);
         }
 
         // Deactivate any previous active BOM for this product
@@ -120,5 +143,45 @@ class BomController extends Controller
         DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)->where('id', $id)->delete();
 
         return redirect()->back()->with('success', 'BOM deleted.');
+    }
+
+    /**
+     * Number of BOM levels beneath the given components (0 = all raw
+     * materials). Throws when a component leads back to a product on
+     * $path (circular BOM). Bounded: gives up past MAX_BOM_DEPTH + 1.
+     */
+    private function deepestBom(array $productIds, array $path): int
+    {
+        $tenantId = app('current.tenant')->id;
+        $deepest  = 0;
+
+        foreach (array_unique($productIds) as $productId) {
+            if (in_array($productId, $path, true)) {
+                throw new \DomainException('Circular BOM: a component already uses this product as a sub-assembly.');
+            }
+
+            $bomId = DB::table('bill_of_materials')
+                ->where('tenant_id', $tenantId)
+                ->where('product_id', $productId)
+                ->where('is_active', 1)
+                ->value('id');
+            if (!$bomId) {
+                continue; // raw material
+            }
+            if (count($path) > self::MAX_BOM_DEPTH) {
+                return self::MAX_BOM_DEPTH + 1; // already too deep — stop walking
+            }
+
+            $children = DB::table('bom_items')
+                ->where('tenant_id', $tenantId)
+                ->where('bom_id', $bomId)
+                ->where('is_byproduct', 0)
+                ->pluck('product_id')
+                ->all();
+
+            $deepest = max($deepest, 1 + $this->deepestBom($children, array_merge($path, [$productId])));
+        }
+
+        return $deepest;
     }
 }

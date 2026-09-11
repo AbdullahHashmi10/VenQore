@@ -7,6 +7,7 @@ use App\Engines\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PayrollController extends Controller
 {
@@ -19,12 +20,15 @@ class PayrollController extends Controller
      */
     public function accrue(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
+
         $validated = $request->validate([
             'period'       => ['required', 'string', 'max:20'], // e.g. "2026-03"
             'accrual_date' => ['required', 'date', 'before_or_equal:today'],
             'lines'        => ['required', 'array', 'min:1'],
+            // Only this store's employees (a bare exists: accepted any store's id).
             'lines.*.employee_id'    => ['required', 'string',
-                                         'exists:employees,id'],
+                                         Rule::exists('employees', 'id')->where('tenant_id', $tenantId)],
             'lines.*.gross_salary'   => ['required', 'numeric', 'min:0.01'],
         ]);
 
@@ -33,6 +37,10 @@ class PayrollController extends Controller
         );
 
         DB::transaction(function () use ($validated, $totalGross) {
+
+            // 6100 / 2400 are not in a new store's default chart
+            $this->accounting->getAccountByCode('6100', 'Salary Expense', 'expense');
+            $this->accounting->getAccountByCode('2400', 'Salary Payable', 'liability');
 
             // Single journal entry for the whole payroll run
             $this->accounting->createEntry([
@@ -63,16 +71,18 @@ class PayrollController extends Controller
      */
     public function pay(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
+
         $validated = $request->validate([
-            'employee_id'        => ['required', 'string', 'exists:employees,id'],
+            // Only this store's employees (a bare exists: accepted any store's id).
+            'employee_id'        => ['required', 'string', Rule::exists('employees', 'id')->where('tenant_id', $tenantId)],
             'payment_date'       => ['required', 'date', 'before_or_equal:today'],
             'gross_salary'       => ['required', 'numeric', 'min:0.01'],
             'advance_deduction'  => ['nullable', 'numeric', 'min:0'],
             'payment_method'     => ['required', 'in:cash,bank'],
         ]);
 
-        $tenantId = app('current.tenant')->id;
-        $employee = DB::table('employees')->where('employees.tenant_id', app('current.tenant')->id)
+        $employee = DB::table('employees')
             ->where('tenant_id', $tenantId)
             ->where('id', $validated['employee_id'])
             ->firstOrFail();
@@ -87,16 +97,14 @@ class PayrollController extends Controller
             ]);
         }
 
-        // Validate advance balance if deduction requested
+        // Validate advance balance if deduction requested — against THIS
+        // employee's own outstanding advance, not the store's whole 1350
+        // balance (which let one employee's advance be "recovered" from
+        // another employee's salary). Every 1350 movement for an employee
+        // (advance issued, salary deduction, final settlement) carries the
+        // employee id as the journal entry reference.
         if ($advanceDeduction > 0) {
-            $advanceBalance = (float) DB::table('journal_items as ji')->where('ji.tenant_id', app('current.tenant')->id)
-                ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
-                ->join('accounts as a', 'ji.account_id', '=', 'a.id')
-                ->where('je.tenant_id', $tenantId)
-                ->where('a.code', '1350')
-                ->where('je.is_reversed', 0)
-                ->selectRaw('SUM(ji.debit) - SUM(ji.credit) as balance')
-                ->value('balance') ?? 0;
+            $advanceBalance = app(\App\Engines\AccountingService::class)->referenceBalance('1350', (string) $validated['employee_id']);
 
             if ($advanceDeduction > $advanceBalance + 0.01) {
                 return back()->withErrors([
@@ -111,6 +119,13 @@ class PayrollController extends Controller
             $validated, $employee, $grossSalary,
             $advanceDeduction, $netPaid, $cashAccount
         ) {
+            // 2400 / 1350 are not in a new store's default chart
+            $this->accounting->getAccountByCode('2400', 'Salary Payable', 'liability');
+            $this->accounting->getAccountByCode($cashAccount, $cashAccount === '1010' ? 'Bank Account' : 'Cash in Hand', 'asset');
+            if ($advanceDeduction > 0) {
+                $this->accounting->getAccountByCode('1350', 'Employee Advance', 'asset');
+            }
+
             $journalLines = [
                 [
                     'account_code' => '2400',

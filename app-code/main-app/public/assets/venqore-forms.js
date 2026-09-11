@@ -139,7 +139,10 @@
                     }
                 };
 
-                fetch('/contact', {
+                (window.__vqTurnstile ? window.__vqTurnstile() : Promise.resolve(null)).then(function (tt) {
+                    // Turnstile guards POST /contact in production; the page supplies the token.
+                    if (tt) body.append('cf-turnstile-response', tt);
+                    return fetch('/contact', {
                     method: 'POST',
                     body: body,
                     credentials: 'same-origin',
@@ -147,6 +150,7 @@
                         'X-CSRF-TOKEN': token,
                         'X-Requested-With': 'XMLHttpRequest'
                     }
+                });
                 })
                     .then(function (res) {
                         if (res.ok) {

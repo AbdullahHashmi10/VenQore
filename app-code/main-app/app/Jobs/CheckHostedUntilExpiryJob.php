@@ -23,12 +23,23 @@ class CheckHostedUntilExpiryJob implements ShouldQueue
             ->get();
 
         foreach ($expiringTenants as $tenant) {
-            $daysLeft = (int) $now->diffInDays($tenant->hosted_until, false);
+            // hosted_until is not date-cast on Tenant — parse it before calling
+            // Carbon methods on it (->toDateString() on the raw string was fatal).
+            $hostedUntil = \Illuminate\Support\Carbon::parse($tenant->hosted_until);
+            $daysLeft = (int) $now->diffInDays($hostedUntil, false);
 
             if ($daysLeft === 60 || $daysLeft === 30 || $daysLeft === 7) {
-                Log::info("CheckHostedUntilExpiryJob: Store '{$tenant->slug}' (ID: {$tenant->id}) hosting expires in {$daysLeft} days on {$tenant->hosted_until->toDateString()}.");
+                Log::info("CheckHostedUntilExpiryJob: Store '{$tenant->slug}' (ID: {$tenant->id}) hosting expires in {$daysLeft} days on {$hostedUntil->toDateString()}.");
                 
-                $owner = \App\Models\User::where('tenant_id', $tenant->id)->orderBy('id')->first();
+                // users has no tenant_id column — the owner is found through the
+                // tenant_users membership (was a SQL error for every expiring store).
+                $ownerId = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                    ->whereNotNull('user_id')
+                    ->where('status', 'active')
+                    ->orderByRaw("CASE WHEN role = 'owner' THEN 0 WHEN role = 'admin' THEN 1 ELSE 2 END")
+                    ->orderBy('id')
+                    ->value('user_id');
+                $owner = $ownerId ? \App\Models\User::find($ownerId) : null;
                 if ($owner && !empty($owner->email)) {
                     try {
                         \Illuminate\Support\Facades\Mail::to($owner->email)
@@ -38,7 +49,7 @@ class CheckHostedUntilExpiryJob implements ShouldQueue
                     }
                 }
             } elseif ($daysLeft <= 0) {
-                Log::warning("CheckHostedUntilExpiryJob: Store '{$tenant->slug}' (ID: {$tenant->id}) hosting EXPIRED on {$tenant->hosted_until->toDateString()}. Write operations restricted.");
+                Log::warning("CheckHostedUntilExpiryJob: Store '{$tenant->slug}' (ID: {$tenant->id}) hosting EXPIRED on {$hostedUntil->toDateString()}. Write operations restricted.");
             }
         }
     }

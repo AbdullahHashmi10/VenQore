@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { MailX } from 'lucide-react';
 import MarketingLayout from '../Shared/MarketingLayout';
 
@@ -17,24 +17,32 @@ export default function LeadUnsubscribe({ token }) {
                          description="Unsubscribe from VenQore tool emails.">
             {/* One-time token page — never index */}
             <Head><meta name="robots" content="noindex, nofollow" /></Head>
-            <section className="pt-36 md:pt-44 pb-24 px-6 flex items-center justify-center">
-                <div className="max-w-md text-center">
-                    <MailX size={48} className="text-ink-muted mx-auto mb-6" />
-                    {flash?.success ? (
-                        <p className="text-ink-secondary">{flash.success}</p>
-                    ) : (
-                        <>
-                            <h1 className="text-2xl font-bold mb-3 text-ink">Unsubscribe from VenQore emails</h1>
-                            <p className="text-ink-secondary mb-8">You'll stop receiving marketing emails from VenQore. This won't affect any account you have.</p>
-                            <button
-                                onClick={submit}
-                                disabled={processing}
-                                className="px-7 py-3 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-full text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
-                            >
-                                {processing ? 'Unsubscribing…' : 'Confirm unsubscribe'}
-                            </button>
-                        </>
-                    )}
+            <section className="vq-section vq-lead">
+                <div className="vq-container vq-container--narrow">
+                    <div className="vq-card vq-card--xl vq-lead__card">
+                        <span className="vq-lead__icon"><MailX size={28} aria-hidden="true" /></span>
+                        {flash?.success ? (
+                            <>
+                                <h1 className="vq-h1">You're unsubscribed</h1>
+                                <p className="vq-lede">{flash.success}</p>
+                            </>
+                        ) : (
+                            <>
+                                <h1 className="vq-h1">Unsubscribe from VenQore emails</h1>
+                                <p className="vq-lede">You'll stop receiving marketing emails from VenQore. This won't affect any account you have.</p>
+                                <div className="vq-lead__actions">
+                                    <button
+                                        type="button"
+                                        onClick={submit}
+                                        disabled={processing}
+                                        className="vq-btn vq-btn--primary vq-btn--lg"
+                                    >
+                                        {processing ? 'Unsubscribing…' : 'Confirm unsubscribe'}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </section>
         </MarketingLayout>

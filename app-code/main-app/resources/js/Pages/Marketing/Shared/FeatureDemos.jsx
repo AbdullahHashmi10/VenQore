@@ -79,7 +79,14 @@ const ACCENTS = {
 };
 export function DemoFrame({ title, url, badge = 'LIVE DEMO', accent = 'indigo', children }) {
     return (
-        <div className="relative rounded-lg border border-white/[0.08] bg-neutral-950/85 backdrop-blur-2xl shadow-[0_40px_140px_-50px_rgba(99,102,241,0.55)] overflow-hidden">
+        <div
+            /* The demo is a dark product window in both site themes. `dark` +
+               `vq-dark` make it a local dark theme, so the semantic ink
+               utilities inside (text-ink, text-ink-muted…) resolve to light
+               ink on it instead of following the page into light mode. */
+            className="dark vq-dark vq-demo-frame relative rounded-lg border border-white/[0.08] bg-neutral-950/85 backdrop-blur-2xl shadow-[0_40px_140px_-50px_rgba(99,102,241,0.55)] overflow-hidden"
+            style={{ color: 'var(--vq-text)' }}
+        >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-1.5">

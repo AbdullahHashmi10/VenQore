@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Tests\Feature\Golden\GoldenAuditTestsTest" file="Golden Audit Tests (Tests\Feature\Golden\GoldenAuditTests)" tests="2" assertions="4" errors="0" failures="0" skipped="0" time="68.528507">
+    <testcase name="Ledger truth audit" file="Golden Audit Tests (Tests\Feature\Golden\GoldenAuditTests)::Ledger truth audit" class="Tests\Feature\Golden\GoldenAuditTestsTest" classname="Tests.Feature.Golden.GoldenAuditTestsTest" assertions="2" time="62.968128">
+      <system-out>﻿﻿﻿﻿</system-out>
+    </testcase>
+    <testcase name="Data integrity audit" file="Golden Audit Tests (Tests\Feature\Golden\GoldenAuditTests)::Data integrity audit" class="Tests\Feature\Golden\GoldenAuditTestsTest" classname="Tests.Feature.Golden.GoldenAuditTestsTest" assertions="2" time="5.560379"/>
+  </testsuite>
+</testsuites>

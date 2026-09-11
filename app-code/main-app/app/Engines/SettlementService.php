@@ -61,6 +61,24 @@ class SettlementService
                 );
             }
 
+            // ── Ensure the GL accounts exist ──────────────────────────
+            // A new store's chart (TenantDefaultSeeder) has no 6100 / 6800 /
+            // 2400 / 1350, so without this B27 failed with "Account code not
+            // found" on every real store. Same provisioning (names, types,
+            // normal_balance) as PayrollController, which posts to the same
+            // 6100 / 2400 / 1350 accounts.
+            if ($partialMonthSalary > 0) {
+                $this->accounting->getAccountByCode('6100', 'Salary Expense', 'expense');
+            }
+            if ($severanceTotal > 0) {
+                $this->accounting->getAccountByCode('6800', 'Gratuity & Severance', 'expense');
+            }
+            $this->accounting->getAccountByCode('2400', 'Salary Payable', 'liability');
+            $this->accounting->getAccountByCode($cashAccount, $cashAccount === '1010' ? 'Bank Account' : 'Cash in Hand', 'asset');
+            if ($advanceDeduction > 0) {
+                $this->accounting->getAccountByCode('1350', 'Employee Advance', 'asset');
+            }
+
             // ── Entry 1: Accrue ───────────────────────────────────────
             $accrualLines = [];
 

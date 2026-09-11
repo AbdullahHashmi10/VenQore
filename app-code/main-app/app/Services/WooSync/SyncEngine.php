@@ -141,6 +141,15 @@ class SyncEngine
      */
     public function processWebhook(string $topic, array $payload): void
     {
+        // WOO-001 (2026-09-10): order webhooks used to fall through the switch
+        // below and were silently dropped — no stock movement, no ledger entry.
+        if (str_starts_with($topic, 'order.')) {
+            if ($this->connection->tenant && in_array($topic, ['order.created', 'order.updated'], true)) {
+                app(\App\Services\WooSync\WooOrderPoster::class)->post($this->connection->tenant, $payload);
+            }
+            return;
+        }
+
         $wooProductId = $payload['id'] ?? null;
         $sku          = $payload['sku'] ?? null;
 

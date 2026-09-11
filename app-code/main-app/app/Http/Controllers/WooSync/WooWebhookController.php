@@ -43,6 +43,10 @@ class WooWebhookController extends Controller
             return response()->json(['ok' => false], 401);
         }
 
+        if ($blocked = $this->planBlocked($connection)) {
+            return $blocked;
+        }
+
         $topic   = $request->header('x-wc-webhook-topic');
         $payload = $request->json()->all();
 
@@ -50,8 +54,9 @@ class WooWebhookController extends Controller
             return response()->json(['ok' => false], 400);
         }
 
-        // Only handle product events
-        if (!str_starts_with($topic, 'product.')) {
+        // Product and order events (WOO-001, 2026-09-10: orders were ignored here,
+        // so online sales never reached stock or the ledger).
+        if (!str_starts_with($topic, 'product.') && !in_array($topic, ['order.created', 'order.updated'], true)) {
             return response()->json(['ok' => true, 'ignored' => true]);
         }
 
@@ -77,12 +82,18 @@ class WooWebhookController extends Controller
     {
         // Find connection where api_token matches (we decrypt and compare)
         // Since tokens are encrypted, we must iterate (small table — acceptable)
-        $connection = WooConnection::get()->first(function ($conn) use ($token) {
-            return $conn->api_token === $token;
+        // No tenant is bound on this public call, so the HasTenant scope must be
+        // bypassed explicitly (it returned zero rows before, so verify always failed).
+        $connection = WooConnection::withoutTenantScope()->whereNotNull('api_token')->get()->first(function ($conn) use ($token) {
+            return is_string($conn->api_token) && hash_equals($conn->api_token, $token);
         });
 
         if (!$connection) {
             return response()->json(['valid' => false], 401);
+        }
+
+        if ($blocked = $this->planBlocked($connection)) {
+            return $blocked;
         }
 
         return response()->json([
@@ -120,5 +131,20 @@ class WooWebhookController extends Controller
         $computed = base64_encode(hash_hmac('sha256', $body, $webhookSecret, true));
 
         return hash_equals($computed, $signature);
+    }
+
+    /**
+     * Bind the connection's store and enforce the woocommerce plan feature for it.
+     */
+    private function planBlocked(WooConnection $connection)
+    {
+        if (!$connection->tenant) {
+            return response()->json(['ok' => false], 404);
+        }
+        app()->instance('current.tenant', $connection->tenant);
+        if (!\App\Services\PlanGate::check('woocommerce', $connection->tenant)) {
+            return response()->json(['ok' => false, 'type' => 'plan_limit', 'feature' => 'woocommerce'], 402);
+        }
+        return null;
     }
 }

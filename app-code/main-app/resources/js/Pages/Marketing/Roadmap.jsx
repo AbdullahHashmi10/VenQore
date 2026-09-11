@@ -1,7 +1,57 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import MarketingLayout, { RevealOnScroll, MagneticButton, SectionLabel } from './Shared/MarketingLayout';
-import { ArrowRight, CheckCircle2, Clock, Sparkles, Layers, Bot, Zap, Globe, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock, Sparkles, Bot, Zap, Globe } from 'lucide-react';
+
+/* Now / Next / Later — one card style, status told by a token colour
+   (success / accent / quiet) on the top rule, the badge and the item icons. */
+const PHASES = [
+    {
+        key: 'now',
+        badge: { className: 'vq-badge vq-badge--success', icon: CheckCircle2, label: 'Shipped & live' },
+        title: '1. Now — One System for the Whole Business',
+        text: 'Everything you need to run your retail or wholesale business in one place — point of sale, inventory, purchasing, invoicing, customer credit khata, expenses, staff, and auditor-grade double-entry accounting.',
+        itemIcon: CheckCircle2,
+        items: [
+            'Point of Sale (POS) with Touch & Barcode Checkout',
+            'Auditor-Grade Double-Entry General Ledger & Balance Sheet',
+            'FIFO Cost Batching & Inventory Lineage Tracking',
+            '100% Offline-First PWA (Works without Internet)',
+            'WooCommerce Synchronization (Stock out, Orders in)',
+            '40+ Financial & Operational Reports from One Ledger',
+            'Serial & IMEI Tracking + Batch Expiry Controls',
+            'Eight correctness laws, run on every release',
+        ],
+    },
+    {
+        key: 'next',
+        badge: { className: 'vq-badge vq-badge--accent', icon: Zap, label: 'Rolling out now' },
+        title: '2. Next — The System Fills Itself In',
+        text: 'Eliminating manual data entry. Information enters your business via paper, voice, WhatsApp, or marketplaces, and VenQore turns it into ready-made ledger entries automatically.',
+        itemIcon: Sparkles,
+        items: [
+            'SmartCapture AI: Photos of invoices & paper bills to digital records',
+            'SmartCapture Voice: Spoken voice notes drafted into editable sales',
+            'VenSynQ Amazon Integration: Stock & order sync for Amazon Sellers',
+            'VenSynQ TikTok Shop & eBay Integration: Multi-marketplace sync',
+            'Automated Debt & Payment Reminders via WhatsApp',
+            'AI Owner Insights: Restock recommendations & customer churn alerts',
+        ],
+    },
+    {
+        key: 'later',
+        badge: { className: 'vq-badge vq-badge--soon', icon: Globe, label: 'Building toward' },
+        title: '3. Later — Zero-Typing Business Management',
+        text: "Businesses on VenQore stop typing entirely. One company's invoice lands as another company's bill automatically across our secure B2B network.",
+        itemIcon: Bot,
+        items: [
+            'VenQore B2B Trade Network: One-click supplier-to-buyer invoice posting',
+            'Turnkey Hosted Online Storefronts for Every Business',
+            'Vena Autonomous AI Business Advisor: Financial health & inventory tuning',
+            'Cross-Border Automated Multi-Currency Tax Settlements',
+        ],
+    },
+];
 
 export default function Roadmap() {
     return (
@@ -12,128 +62,69 @@ export default function Roadmap() {
             </Head>
 
             {/* Hero Section */}
-            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
-                <RevealOnScroll direction="up">
-                    <SectionLabel icon={Clock} text="PUBLIC PRODUCT ROADMAP" />
-                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4">
-                        Where VenQore is Headed
-                    </h1>
-                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-                        First we put everything in one place. Now we are teaching it to fill itself in. Eventually nobody types anything.
-                    </p>
-                </RevealOnScroll>
+            <section className="vq-section vq-mc-top">
+                <div className="vq-amb" aria-hidden="true"><span className="vq-amb__aurora" style={{ opacity: 0.22 }} /></div>
+                <div className="vq-container" style={{ position: 'relative' }}>
+                    <div className="vq-mc-head">
+                        <SectionLabel icon={Clock} text="Public product roadmap" />
+                        <h1 className="vq-display">Where VenQore is <em className="vq-italic">headed.</em></h1>
+                        <p className="vq-lede vq-mt-6">
+                            First we put everything in one place. Now we are teaching it to fill itself in. Eventually nobody types anything.
+                        </p>
+                    </div>
+                </div>
             </section>
 
             {/* Roadmap Pillars: Now / Next / Later */}
-            <section className="pb-24 px-6 max-w-6xl mx-auto">
-                <div className="space-y-12">
-                    {/* NOW: Shipped */}
-                    <RevealOnScroll direction="up">
-                        <div className="bg-surface border-2 border-success-500/40 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
-                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success-500 text-ink text-xs font-bold uppercase tracking-wider">
-                                <CheckCircle2 className="w-4 h-4" /> SHIPPED &amp; LIVE
-                            </div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-ink mb-3">
-                                1. Now — One System for the Whole Business
-                            </h2>
-                            <p className="text-ink-secondary text-base leading-relaxed mb-6">
-                                Everything you need to run your retail or wholesale business in one place — point of sale, inventory, purchasing, invoicing, customer credit khata, expenses, staff, and auditor-grade double-entry accounting.
-                            </p>
-                            <div className="grid md:grid-cols-2 gap-4 text-sm">
-                                {[
-                                    "Point of Sale (POS) with Touch & Barcode Checkout",
-                                    "Auditor-Grade Double-Entry General Ledger & Balance Sheet",
-                                    "FIFO Cost Batching & Inventory Lineage Tracking",
-                                    "100% Offline-First PWA (Works without Internet)",
-                                    "WooCommerce Synchronization (Stock out, Orders in)",
-                                    "40+ Financial & Operational Reports from One Ledger",
-                                    "Serial & IMEI Tracking + Batch Expiry Controls",
-                                    "Eight correctness laws, run on every release"
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-app text-ink">
-                                        <CheckCircle2 className="w-5 h-5 text-success-500 shrink-0" />
-                                        <span className="font-semibold">{item}</span>
+            <section className="vq-section vq-mc-body">
+                <div className="vq-container">
+                    <div className="vq-stack vq-gap-6">
+                        {PHASES.map((phase) => {
+                            const BadgeIcon = phase.badge.icon;
+                            const ItemIcon = phase.itemIcon;
+                            return (
+                                <RevealOnScroll key={phase.key} direction="up">
+                                    <div className={`vq-card vq-card--xl vq-mc-phase vq-mc-phase--${phase.key}`} style={{ padding: 'clamp(28px, 4vw, 48px)' }}>
+                                        <div className="vq-mc-phase__head">
+                                            <h2 className="vq-h2">{phase.title}</h2>
+                                            <span className={phase.badge.className}>
+                                                <BadgeIcon size={14} aria-hidden="true" /> {phase.badge.label}
+                                            </span>
+                                        </div>
+                                        <p className="vq-body vq-text-2 vq-mt-4" style={{ maxWidth: '68ch' }}>{phase.text}</p>
+                                        <div className="vq-mc-items">
+                                            {phase.items.map((item, i) => (
+                                                <div key={i} className="vq-mc-item">
+                                                    <ItemIcon size={18} aria-hidden="true" />
+                                                    <span>{item}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    </RevealOnScroll>
-
-                    {/* NEXT: Rolling Out */}
-                    <RevealOnScroll direction="up">
-                        <div className="bg-surface border-2 border-brand-500/40 rounded-2xl p-8 md:p-10 shadow-xl relative overflow-hidden">
-                            <div className="absolute top-6 right-6 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-600 text-white text-xs font-bold uppercase tracking-wider">
-                                <Zap className="w-4 h-4" /> ROLLING OUT NOW
-                            </div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-ink mb-3">
-                                2. Next — The System Fills Itself In
-                            </h2>
-                            <p className="text-ink-secondary text-base leading-relaxed mb-6">
-                                Eliminating manual data entry. Information enters your business via paper, voice, WhatsApp, or marketplaces, and VenQore turns it into ready-made ledger entries automatically.
-                            </p>
-                            <div className="grid md:grid-cols-2 gap-4 text-sm">
-                                {[
-                                    "SmartCapture AI: Photos of invoices & paper bills to digital records",
-                                    "SmartCapture Voice: Spoken voice notes drafted into editable sales",
-                                    "VenSynQ Amazon Integration: Stock & order sync for Amazon Sellers",
-                                    "VenSynQ TikTok Shop & eBay Integration: Multi-marketplace sync",
-                                    "Automated Debt & Payment Reminders via WhatsApp",
-                                    "AI Owner Insights: Restock recommendations & customer churn alerts"
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-brand-50/50 dark:bg-brand-950/30 text-ink border border-brand-100 dark:border-brand-900/40">
-                                        <Sparkles className="w-5 h-5 text-brand-500 shrink-0" />
-                                        <span className="font-semibold">{item}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </RevealOnScroll>
-
-                    {/* LATER: Building Toward */}
-                    <RevealOnScroll direction="up">
-                        <div className="bg-surface border border-line rounded-2xl p-8 md:p-10 shadow-lg">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sunken dark:bg-surface text-ink-secondary text-xs font-bold uppercase tracking-wider mb-4">
-                                <Globe className="w-4 h-4" /> BUILDING TOWARD
-                            </div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-ink mb-3">
-                                3. Later — Zero-Typing Business Management
-                            </h2>
-                            <p className="text-ink-secondary text-base leading-relaxed mb-6">
-                                Businesses on VenQore stop typing entirely. One company's invoice lands as another company's bill automatically across our secure B2B network.
-                            </p>
-                            <div className="grid md:grid-cols-2 gap-4 text-sm">
-                                {[
-                                    "VenQore B2B Trade Network: One-click supplier-to-buyer invoice posting",
-                                    "Turnkey Hosted Online Storefronts for Every Business",
-                                    "Vena Autonomous AI Business Advisor: Financial health & inventory tuning",
-                                    "Cross-Border Automated Multi-Currency Tax Settlements"
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-app text-ink-secondary">
-                                        <Bot className="w-5 h-5 text-ink-muted shrink-0" />
-                                        <span className="font-semibold">{item}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </RevealOnScroll>
+                                </RevealOnScroll>
+                            );
+                        })}
+                    </div>
                 </div>
             </section>
 
             {/* CTA Section */}
-            <section className="py-24 px-6 text-center max-w-4xl mx-auto border-t border-line">
-                <h2 className="text-3xl md:text-5xl font-bold text-ink mb-6">
-                    Be Part of the Future of Business Software
-                </h2>
-                <p className="text-lg text-ink-secondary mb-8 max-w-2xl mx-auto">
-                    Describe your business and watch it get built — 14 days at Core level with full feature access. Or explore the live demo without signing up.
-                </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                    <MagneticButton href="/build-workspace" variant="primary">
-                        Start building <ArrowRight className="w-4 h-4 ml-2" />
-                    </MagneticButton>
-                    <MagneticButton href="/demo" variant="secondary">
-                        Explore Live Interactive Demo
-                    </MagneticButton>
+            <section className="vq-section vq-section--alt">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 0 }}>
+                        <h2 className="vq-h1">Be Part of the Future of Business Software</h2>
+                        <p className="vq-lede">
+                            Describe your business and watch it get built — 14 days at Core level with full feature access. Or explore the live demo without signing up.
+                        </p>
+                        <div className="vq-row vq-wrap vq-gap-3 vq-mt-8" style={{ justifyContent: 'center' }}>
+                            <MagneticButton href="/build-workspace" variant="primary" className="vq-btn--lg">
+                                Start building <span className="vq-btn__arrow"><ArrowRight size={16} aria-hidden="true" /></span>
+                            </MagneticButton>
+                            <MagneticButton href="/demo" variant="secondary" className="vq-btn--lg">
+                                Explore Live Interactive Demo
+                            </MagneticButton>
+                        </div>
+                    </div>
                 </div>
             </section>
         </MarketingLayout>

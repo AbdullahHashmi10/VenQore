@@ -590,9 +590,7 @@ class ProvisionTenantJob implements ShouldQueue
 
     private function generateJoinCode(): string
     {
-        do {
-            $code = 'VQ-' . strtoupper(Str::random(4));
-        } while (Tenant::where('join_code', $code)->exists());
-        return $code;
+        // SEC-11: single high-entropy generator.
+        return Tenant::generateJoinCode();
     }
 }

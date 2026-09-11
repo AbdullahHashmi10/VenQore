@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V3;
 use App\Http\Controllers\Controller;
 use App\Engines\AccountingService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
 class SupplierAdvanceController extends Controller
@@ -16,7 +17,8 @@ class SupplierAdvanceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'supplier_id'    => ['required', 'string', 'exists:parties,id'],
+            // Only this store's suppliers (a bare exists: accepted any store's id).
+            'supplier_id'    => ['required', 'string', Rule::exists('parties', 'id')->where('tenant_id', app('current.tenant')->id)],
             'amount'         => ['required', 'numeric', 'min:0.01'],
             'payment_date'   => ['required', 'date', 'before_or_equal:today'],
             'payment_method' => ['required', 'in:cash,bank'],

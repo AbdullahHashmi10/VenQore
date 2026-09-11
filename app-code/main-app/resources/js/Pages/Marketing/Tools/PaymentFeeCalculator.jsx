@@ -86,8 +86,8 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
         setProcessors((list) => list.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-[14px] text-ink focus:outline-none';
+    const labelCls = 'block text-sm font-semibold text-ink mb-2';
     const fmtMoney = (v) => (v === null || v === undefined || Number.isNaN(v) || !Number.isFinite(v)) ? '—' : `$${round2(v).toFixed(2)}`;
 
     /* ── Single transaction mode ─────────────────────────────────────── */
@@ -179,7 +179,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                         className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${
                             mode === key
                                 ? 'bg-accent-fill text-accent-on'
-                                : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary'
+                                : 'vq-tool-inset text-ink-secondary'
                         }`}
                     >
                         {label}
@@ -188,7 +188,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
             </div>
 
             {/* ── Processor rate editor ───────────────────────────────────── */}
-            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <CreditCard size={17} className="text-brand-500 dark:text-brand-300" />
@@ -199,10 +199,10 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10 mb-6">
+                <div className="overflow-x-auto rounded-2xl border border-line mb-6">
                     <table className="w-full text-sm min-w-[640px]">
                         <thead>
-                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken text-left">
                                 {['Processor', 'Rate %', 'Fixed fee', 'Monthly fee'].map((h) => (
                                     <th key={h} className="px-3 py-2.5 font-bold text-ink-secondary text-xs uppercase tracking-wide">{h}</th>
                                 ))}
@@ -210,7 +210,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                         </thead>
                         <tbody>
                             {processors.map((p) => (
-                                <tr key={p.id} className="border-t border-line dark:border-white/[0.06]">
+                                <tr key={p.id} className="border-t border-line">
                                     <td className="px-3 py-2">
                                         <p className="font-bold text-ink">{p.name}</p>
                                         <p className="text-1xs text-ink-muted">{p.note} — illustrative, verify current rates</p>
@@ -265,10 +265,10 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                 )}
 
                 {/* ── Results table ─────────────────────────────────────────── */}
-                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
+                <div className="overflow-x-auto rounded-2xl border border-line">
                     <table className="w-full text-sm min-w-[640px]">
                         <thead>
-                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken text-left">
                                 {(mode === 'single'
                                     ? ['Processor', 'Fee', 'You receive']
                                     : ['Processor', 'Effective rate', 'Total monthly fees', 'Net revenue']
@@ -281,7 +281,7 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
                             {results.map((r) => {
                                 const isCheapest = cheapest && r.id === cheapest.id;
                                 return (
-                                    <tr key={r.id} className={`border-t border-line dark:border-white/[0.06] ${isCheapest ? 'bg-emerald-500/[0.06]' : ''}`}>
+                                    <tr key={r.id} className={`border-t border-line ${isCheapest ? 'bg-emerald-500/[0.06]' : ''}`}>
                                         <td className="px-3 py-2.5">
                                             <div className="flex items-center gap-2">
                                                 <span className="font-bold text-ink">{r.name}</span>

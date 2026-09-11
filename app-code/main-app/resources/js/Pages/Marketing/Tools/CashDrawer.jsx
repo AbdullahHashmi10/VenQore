@@ -164,8 +164,8 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
         }
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold text-ink-muted mb-1.5';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-[14px] text-ink focus:outline-none';
+    const labelCls = 'block text-sm font-semibold text-ink mb-2';
 
     const currencyOptions = Object.entries(currencies).map(([code, c]) => ({
         value: code, label: c.label,
@@ -197,7 +197,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
             )}
 
             {/* Store & Register Metadata */}
-            <section className="mb-8 p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <section className="mb-8 vq-tool-panel vq-tool-panel--pad">
                 <h3 className="text-sm font-bold uppercase tracking-wide text-ink-muted mb-4">
                     Store & Register Shift Info
                 </h3>
@@ -263,7 +263,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                     <button
                         type="button"
                         onClick={resetCounts}
-                        className="text-xs font-bold text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 flex items-center gap-1 transition-colors"
+                        className="text-xs font-bold text-ink-muted hover:text-ink-secondary flex items-center gap-1 transition-colors"
                     >
                         <RefreshCw size={12} /> Reset Counts
                     </button>
@@ -273,7 +273,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                     {denominations.map((d, idx) => {
                         const subtotal = (parseFloat(d.value) || 0) * (parseInt(d.count) || 0);
                         return (
-                            <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                            <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl vq-tool-well">
                                 <span className={`text-2xs font-bold uppercase px-2 py-0.5 rounded ${d.type === 'coin' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                     {d.type}
                                 </span>
@@ -336,21 +336,21 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
             </section>
 
             {/* Reconciliation Live Summary Box */}
-            <section className="mb-8 p-5 rounded-2xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10">
+            <section className="mb-8 p-5 rounded-2xl vq-tool-well">
                 <h3 className="text-sm font-bold uppercase tracking-wide text-ink-muted mb-4">
                     Till Summary & Variance
                 </h3>
 
                 <div className="grid sm:grid-cols-4 gap-4 text-center">
-                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/5">
+                    <div className="p-3 rounded-xl vq-tool-inset">
                         <span className="block text-2xs font-bold uppercase text-ink-muted">Bills Total</span>
                         <span className="text-lg font-bold text-ink">{symbol}{totals.totalBills.toFixed(2)}</span>
                     </div>
-                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/5">
+                    <div className="p-3 rounded-xl vq-tool-inset">
                         <span className="block text-2xs font-bold uppercase text-ink-muted">Coins Total</span>
                         <span className="text-lg font-bold text-ink">{symbol}{totals.totalCoins.toFixed(2)}</span>
                     </div>
-                    <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/5">
+                    <div className="p-3 rounded-xl vq-tool-inset">
                         <span className="block text-2xs font-bold uppercase text-ink-muted">Total Counted Cash</span>
                         <span className="text-xl font-bold text-brand-600 dark:text-brand-400">{symbol}{totals.totalCounted.toFixed(2)}</span>
                     </div>
@@ -379,7 +379,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                 type="button"
                 onClick={generatePdf}
                 disabled={loading}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                className="vq-btn vq-btn--primary vq-btn--lg w-full sm:w-auto"
             >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                 {loading ? 'Generating PDF…' : 'Download Printable Audit PDF'}

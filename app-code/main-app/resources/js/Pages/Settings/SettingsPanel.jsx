@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Toggle from '@/Components/Toggle';
 import SectionHeader from '@/Components/SectionHeader';
+import TerminalPairingSection from '@/Components/Settings/TerminalPairingSection';
 
 const SETTINGS_CATEGORIES = [
  {
@@ -26,7 +27,7 @@ const SETTINGS_CATEGORIES = [
  id: 'adv',
  name: 'Advanced',
  icon: Shield,
- sections: ['security']
+ sections: ['security', 'terminals']
  }
 ];
 
@@ -35,6 +36,7 @@ const SETTINGS_SECTIONS = [
  { id: 'pos', name: 'POS & Sales', icon: ShoppingCart, description: 'Sales and interface configuration' },
  { id: 'security', name: 'Security', icon: Shield, description: 'Access control & passcodes' },
  { id: 'taxes', name: 'Tax Rates', icon: Percent, description: 'Configure custom tax brackets' },
+ { id: 'terminals', name: 'Terminals', icon: Smartphone, description: 'Pair VenQore Station devices' },
 ];
 
 export default function SettingsPanel({ settings }) {
@@ -44,7 +46,7 @@ export default function SettingsPanel({ settings }) {
 
  const { auth } = usePage().props;
  // Check if user is admin. matches original logic
- const isAdmin = auth.user.role === 'admin' || auth.user.role === 'owner' || auth.user.role === 'platform_admin' || auth.user.email === 'abdullah@example.com';
+ const isAdmin = auth.user.role === 'admin' || auth.user.role === 'owner' || auth.user.role === 'platform_admin';
 
  const [activeSection, setActiveSection] = useState('general');
  const [saved, setSaved] = useState(false);
@@ -567,6 +569,13 @@ export default function SettingsPanel({ settings }) {
  </div>
  )}
  </div>
+ </div>
+ );
+
+ case 'terminals':
+ return (
+ <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <TerminalPairingSection storeSlug={store?.slug} />
  </div>
  );
 

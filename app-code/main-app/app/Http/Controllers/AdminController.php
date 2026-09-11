@@ -551,7 +551,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'nullable|string|in:platform_admin,admin,manager,cashier,inventory_staff,accountant,custom',
+            'role' => 'nullable|string|in:admin,manager,cashier,inventory_staff,accountant,custom',
             'permissions' => 'nullable|array',
             'passcode' => [
                 'nullable',
@@ -586,7 +586,8 @@ class AdminController extends Controller
         // ── Phase 4.3: Staff Limit Gate ────────────────────────────────────
         // Count all non-platform_admin staff for this tenant before creating
         if (app()->bound('current.tenant')) {
-            $staffCount = \App\Models\User::whereNotIn('role', ['platform_admin'])->count();
+            // SEC-01: count THIS store's members, not every user on the platform.
+            $staffCount = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)->count();
             PlanGate::enforce('staff_limit', $staffCount);
         }
 
@@ -624,113 +625,59 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'User created successfully');
     }
 
+    /**
+     * SEC-01 (2026-09-10): legacy route. It used to load a GLOBAL user with
+     * User::findOrFail($id) and rewrite their name/email/password, which let an
+     * admin of store A reset credentials of any account on the platform.
+     *
+     * It now resolves the target through the current store's membership only,
+     * runs the same hierarchy checks as updateMember(), refuses platform staff,
+     * and never touches global login credentials (email/password). Store staff
+     * management mutates store membership — nothing else.
+     */
     public function updateUser(\Illuminate\Http\Request $request, $id)
     {
-        $user = \App\Models\User::findOrFail($id);
+        $member = $this->resolveLegacyMember((int) $id);
 
-        $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|email|unique:users,email,' . $id,
-            'password'    => 'nullable|string|min:6',
-            // Include ALL valid store roles so the value is never silently dropped
-            'role'        => 'nullable|string|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,cashier,viewer,custom,platform_admin',
-            'permissions' => 'nullable|array',
-            'passcode' => [
-                'nullable',
-                'string',
-                'min:4',
-                'max:6',
-                function ($attribute, $value, $fail) use ($id) {
-                    $tenant = app('current.tenant');
-                    $exists = false;
-                    if ($tenant) {
-                        $exists = \App\Models\TenantUser::where('tenant_id', $tenant->id)
-                            ->where('user_id', '!=', $id)
-                            ->whereNotNull('pos_pin')
-                            ->get()->first(function($tu) use ($value) {
-                                return \Illuminate\Support\Facades\Hash::check($value, $tu->pos_pin);
-                            });
-                    }
-                    if ($exists) {
-                        $phrases = [
-                            "That's a bit too simple, try another.",
-                            "Common pattern detected, please choose something unique.",
-                            "Security check failed, try a different combination.",
-                            "This sequence is reserved, pick another.",
-                            "Too easy to guess, make it harder.",
-                            "System suggests choosing a different PIN."
-                        ];
-                        $fail($phrases[array_rand($phrases)]);
-                    }
-                },
-            ],
-        ]);
-
-        $user->name  = $validated['name'];
-        $user->email = $validated['email'];
-        if (!empty($validated['password'])) {
-            $user->password = bcrypt($validated['password']);
-        }
-        $user->passcode = $validated['passcode'] ?? $user->passcode;
-
-        // ── CRITICAL FIX ──────────────────────────────────────────────────────
-        // Store the new role in a local variable BEFORE calling $user->save().
-        // After save(), calling $user->role triggers getRoleAttribute() which
-        // queries tenant_users and returns the OLD role — causing TenantUser to
-        // be updated with the wrong (old) role.
-        // We always write the new role to both tables explicitly.
-        $newRole        = $validated['role'] ?? null;
-        $newPermissions = $validated['permissions'] ?? null;
-        if ($newPermissions !== null) {
-            $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
-            if (!$isOwner) {
-                $newPermissions = array_filter($newPermissions, fn($p) => $p !== 'admin.billing_store');
-            }
+        if ($request->filled('password') || ($request->filled('email') && strcasecmp((string) $request->input('email'), (string) optional($member->user)->email) !== 0)) {
+            abort(403, 'Store staff management cannot change a user\'s login email or password. Ask the user to reset it themselves.');
         }
 
-        // Update the legacy users column only if a role was provided
-        if ($newRole !== null) {
-            $user->getAttributes()['role'] ?? null; // ensure attribute is fresh
-            $user->setAttribute('role', $newRole);
+        // Delegate to the membership-scoped implementation.
+        if ($request->filled('name') && !$request->filled('display_name')) {
+            $request->merge(['display_name' => mb_substr((string) $request->input('name'), 0, 50)]);
         }
-        if ($newPermissions !== null) {
-            $user->setAttribute('permissions', json_encode($newPermissions));
-        }
-
-        $user->save();
-
-        // Update the canonical store-level membership in tenant_users directly
-        if (app()->bound('current.tenant')) {
-            $tenant = app('current.tenant');
-
-            // Get the existing membership to preserve fields we're not changing
-            $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
-                ->where('user_id', $user->id)
-                ->first();
-
-            $updateData = ['pos_pin' => $user->passcode];
-            if ($newRole !== null) {
-                $updateData['role'] = $newRole;
-            }
-            if ($newPermissions !== null) {
-                $updateData['permissions'] = $newPermissions;
-            }
-
-            if ($membership) {
-                $membership->update($updateData);
-            } else {
-                \App\Models\TenantUser::create(array_merge($updateData, [
-                    'tenant_id'    => $tenant->id,
-                    'user_id'      => $user->id,
-                    'role'         => $newRole ?? 'cashier',
-                    'status'       => 'active',
-                    'display_name' => $user->name,
-                    'joined_at'    => now(),
-                ]));
-            }
+        $request->request->remove('email');
+        $request->request->remove('password');
+        $request->request->remove('name');
+        if ($request->input('role') === 'platform_admin') {
+            abort(403, 'Platform roles cannot be assigned from a store.');
         }
 
-        return redirect()->back()->with('success', 'User updated successfully');
+        return $this->updateMember($request, $member);
+    }
+
+    /**
+     * SEC-01: resolve a legacy {id} (a users.id) to THIS store's membership row,
+     * or 404. Refuses platform staff and the acting user where appropriate.
+     */
+    private function resolveLegacyMember(int $userId): TenantUser
+    {
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        abort_unless($tenant, 404);
+
+        $member = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        $target = \App\Models\User::find($userId);
+        if ($target && method_exists($target, 'isPlatformStaff') && ($target->isPlatformAdmin() || $target->isPlatformStaff())) {
+            abort(403, 'Platform accounts cannot be managed from a store.');
+        }
+
+        $this->authorizeMemberAction($member);
+
+        return $member;
     }
 
     public function staffSummaries()
@@ -789,18 +736,20 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * SEC-01: legacy route. Previously soft-deleted the GLOBAL user account.
+     * Now it only removes the user's membership of the current store, with the
+     * same hierarchy checks as removeMember(). The login account is untouched.
+     */
     public function destroyUser($id)
     {
-        $user = \App\Models\User::findOrFail($id);
-
-        // Prevent deleting self
-        if ($user->id === \Illuminate\Support\Facades\Auth::id()) {
-            return redirect()->back()->with('error', 'You cannot delete yourself');
+        if ((int) $id === (int) \Illuminate\Support\Facades\Auth::id()) {
+            return redirect()->back()->with('error', 'You cannot remove yourself');
         }
 
-        $user->delete();
+        $member = $this->resolveLegacyMember((int) $id);
 
-        return redirect()->back()->with('success', 'User deleted successfully');
+        return $this->removeMember($member);
     }
     // ─── Member Management (Single Source of Truth) ──────────────────────────
 
@@ -870,7 +819,13 @@ class AdminController extends Controller
                 }
                 $updateData['permissions'] = array_values($permissions);
             }
+            $wasActive = $member->status === 'active';
             $member->update($updateData);
+
+            // SEC-11: suspending someone who knows the join code → rotate it.
+            if ($wasActive && ($updateData['status'] ?? null) === 'suspended') {
+                app('current.tenant')->rotateJoinCode();
+            }
 
             if ($request->filled('passcode')) {
                 $member->update(['pos_pin' => Hash::make($request->passcode)]);
@@ -905,7 +860,10 @@ class AdminController extends Controller
 
         $member->delete();
 
-        return back()->with('success', 'Member removed.');
+        // SEC-11: the removed person may know the shared join code — rotate it.
+        app('current.tenant')->rotateJoinCode();
+
+        return back()->with('success', 'Member removed. The store join code was changed.');
     }
 
     /**

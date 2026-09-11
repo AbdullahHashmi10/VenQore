@@ -229,8 +229,8 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
             )}
 
             {/* Slim control bar — everything that ISN'T part of the document itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
-                <div className="flex items-center rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 p-0.5 text-xs font-bold">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
+                <div className="flex items-center rounded-xl vq-tool-inset p-0.5 text-xs font-bold">
                     <button
                         type="button"
                         onClick={() => setMeta((m) => ({ ...m, document_label: 'QUOTATION' }))}
@@ -260,7 +260,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                         max="3650"
                         value={meta.validity_days}
                         onChange={(e) => { setValidUntilTouched(false); setMeta((m) => ({ ...m, validity_days: e.target.value })); }}
-                        className="w-16 px-2 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-xs focus:outline-none focus:border-brand-400/60 transition-colors"
+                        className="w-16 px-2 py-2 rounded-xl vq-tool-inset text-ink text-xs focus:outline-none focus:border-brand-400/60 transition-colors"
                     />
                     <span className="text-xs text-ink-muted">days</span>
                 </div>
@@ -273,7 +273,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                         ))}
                     </div>
                 )}
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {company.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {company.logo_base64 && (
@@ -283,7 +283,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={onLogoChange} />
 
-                <div className="flex items-center rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 p-0.5 text-xs font-bold">
+                <div className="flex items-center rounded-xl vq-tool-inset p-0.5 text-xs font-bold">
                     <button
                         type="button"
                         onClick={() => setOrientation('portrait')}
@@ -306,7 +306,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : `Download PDF`}
@@ -320,7 +320,7 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
                     Landscape printing is not yet supported for downloads — this previews the layout only.
                 </p>
             )}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white transition-all ${orientation === 'landscape' ? 'max-w-none' : ''}`}>
+            <div className={`vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white transition-all ${orientation === 'landscape' ? 'max-w-none' : ''}`}>
                 {isModern && <div className="h-3 w-full" style={{ background: accent }} />}
                 <div className={`p-6 sm:p-10 text-ink ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                     {/* Header */}

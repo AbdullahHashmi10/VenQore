@@ -151,8 +151,8 @@ export default function JoinStore({ pending_invites = [] }) {
                         name="join_code"
                         value={data.join_code}
                         onChange={(e) => setData('join_code', formatCode(e.target.value))}
-                        placeholder="VQ-XXXX"
-                        maxLength={7}
+                        placeholder="VQ-XXXX-XXXX"
+                        maxLength={16}
                         required
                         autoFocus
                         className="text-center uppercase tracking-widest"

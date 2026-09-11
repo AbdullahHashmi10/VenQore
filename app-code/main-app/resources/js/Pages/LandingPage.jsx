@@ -1,6 +1,11 @@
 import React, { useEffect } from 'react';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { Head, Link, usePage } from '@inertiajs/react';
+import SiteHeader from '@/Components/Site/SiteHeader';
+import SiteFooter from '@/Components/Site/SiteFooter';
+import HeroPrompt from '@/Components/Landing/HeroPrompt';
+import BusinessTypes from '@/Components/Site/BusinessTypes';
+import { BUSINESS_TYPE_CLAIM, SECTOR_COUNT } from '@/Components/Site/sectorCatalog';
 import CookieConsent from '@/Components/CookieConsent';
 
 export default function LandingPage() {
@@ -75,7 +80,7 @@ export default function LandingPage() {
         <>
             <Head>
                 <title>VenQore — The AI ERP Builder for POS, Stock &amp; Accounting</title>
-                <meta name="description" content="Describe your business in plain language. VenQore assembles the operating system that runs it, with double-entry accounting under every module." />
+                <meta name="description" content="Describe your business in plain language. VenQore assembles the operating system that runs it — for 85+ kinds of business across retail, services, food, wholesale and light manufacturing — with double-entry accounting under every module." />
                 <link rel="canonical" href="https://venqore.com/" />
                 <meta property="og:title" content="VenQore — The AI ERP Builder for POS, Stock &amp; Accounting" />
                 <meta property="og:description" content="Describe your business in plain language. VenQore assembles the operating system that runs it, with double-entry accounting under every module." />
@@ -99,171 +104,12 @@ export default function LandingPage() {
   {/*  Scroll Progress Indicator  */}
   <div data-prog="1" style={{"position":"fixed","top":"0","left":"0","height":"3px","width":"0%","background":"linear-gradient(90deg, #0BAA8F, #59DBC0)","zIndex":"500","boxShadow":"0 0 18px rgba(35, 196, 166, 0.6)"}}></div>
 
-  <a className="vq-skip" href="#main">Skip to content</a>
-
-  {/*  SECTION A: ORIGINAL MAIN HEADER (PRESERVED)  */}
-  <header className="vq-header vq-header--onHero" data-header style={{"zIndex":"300"}}>
-    <div className="vq-header__inner">
-      <a className="vq-brand" href="/" aria-label="VenQore home">
-        <img src="/v6/assets/logo.png" alt="" width="30" height="30" />
-        <span className="vq-brand__word">VenQore</span>
-      </a>
-
-      <nav className="vq-nav" aria-label="Main">
-        <ul className="vq-nav__list">
-          {/* Product Mega Menu */}
-          <li className="vq-nav__item">
-            <a href="/blueprint" className="vq-nav__link">Product <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
-            <div className="vq-mega" style={{"minWidth":"660px"}}>
-              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr 1fr 1fr"}}>
-                <div className="vq-mega__col">
-                  <span className="vq-eyebrow vq-eyebrow--accent">Build</span>
-                  <a className="vq-mega__link" href="/blueprint"><b>Blueprint</b><span>Describe it. Approve the plan.</span></a>
-                  <a className="vq-mega__link" href="/onboarding"><b>See a build</b><span>Four minutes, start to live.</span></a>
-                  <a className="vq-mega__link" href="#compiler"><b>Watch it assemble</b><span>5 stages, live compilation.</span></a>
-                </div>
-                <div className="vq-mega__col">
-                  <span className="vq-eyebrow vq-eyebrow--accent">Run</span>
-                  <a className="vq-mega__link" href="/pos"><b>The register</b><span>A till you compose yourself.</span></a>
-                  <a className="vq-mega__link" href="/documents"><b>Documents</b><span>Thirteen types, one editor.</span></a>
-                  <a className="vq-mega__link" href="/vensynq"><b>VenSynQ</b><span>Sell in five places, count once.</span></a>
-                </div>
-                <div className="vq-mega__col">
-                  <span className="vq-eyebrow vq-eyebrow--accent">Know</span>
-                  <a className="vq-mega__link" href="/dashboard-preview"><b>The dashboard</b><span>58 readings, self-assembling.</span></a>
-                  <a className="vq-mega__link" href="/reckoner"><b>The Reckoner</b><span>One place a number is defined.</span></a>
-                  <a className="vq-mega__link" href="/ledger"><b>Core Ledger</b><span>One engine. Every number.</span></a>
-                </div>
-              </div>
-              <div className="vq-mega__foot">
-                <a className="vq-link" href="/smartcapture">SmartCapture — a photo in, a posted transaction out <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-              </div>
-            </div>
-          </li>
-
-          {/* Solutions Mega Menu */}
-          <li className="vq-nav__item">
-            <a href="/solutions" className="vq-nav__link">Solutions <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
-            <div className="vq-mega" style={{"minWidth":"440px"}}>
-              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr 1fr"}}>
-                <div className="vq-mega__col">
-                  <a className="vq-mega__link" href="/solutions/grocery"><b>Grocery &amp; Supermarket</b><span>Fast checkout, real margins.</span></a>
-                  <a className="vq-mega__link" href="/solutions/wholesale"><b>Wholesale &amp; Distribution</b><span>Credit terms and price tiers.</span></a>
-                  <a className="vq-mega__link" href="/solutions/pharmacy"><b>Pharmacy</b><span>Batch and expiry tracking.</span></a>
-                </div>
-                <div className="vq-mega__col">
-                  <a className="vq-mega__link" href="/solutions/clothing"><b>Apparel &amp; Fashion</b><span>Size and colour variants.</span></a>
-                  <a className="vq-mega__link" href="/solutions/electronics-store"><b>Electronics &amp; Hardware</b><span>Serial &amp; IMEI logs.</span></a>
-                  <a className="vq-mega__link" href="/solutions/multi-store"><b>Multi-branch Retail</b><span>One truth across locations.</span></a>
-                </div>
-              </div>
-              <div className="vq-mega__foot">
-                <a className="vq-link" href="/solutions">View all industry solutions <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-              </div>
-            </div>
-          </li>
-
-          <li className="vq-nav__item"><a href="/features" className="vq-nav__link">Features</a></li>
-          <li className="vq-nav__item"><a href="/pricing" className="vq-nav__link">Pricing</a></li>
-
-          {/* Resources Mega Menu */}
-          <li className="vq-nav__item">
-            <a href="/docs" className="vq-nav__link">Resources <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
-            <div className="vq-mega" style={{"minWidth":"420px"}}>
-              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr 1fr"}}>
-                <div className="vq-mega__col">
-                  <span className="vq-eyebrow vq-eyebrow--accent">Guides</span>
-                  <a className="vq-mega__link" href="/tools"><b>Free tools</b><span>Invoices, barcodes, math.</span></a>
-                  <a className="vq-mega__link" href="/docs"><b>Documentation</b><span>Guides &amp; technical refs.</span></a>
-                  <a className="vq-mega__link" href="/help"><b>Help centre</b><span>Step-by-step workflows.</span></a>
-                  <a className="vq-mega__link" href="/security"><b>Security</b><span>Isolation &amp; integrity.</span></a>
-                </div>
-                <div className="vq-mega__col">
-                  <span className="vq-eyebrow vq-eyebrow--accent">Intelligence</span>
-                  <a className="vq-mega__link" href="/blog"><b>Blog</b><span>Retail &amp; accounting playbooks.</span></a>
-                  <a className="vq-mega__link" href="/roadmap"><b>Roadmap</b><span>What ships next.</span></a>
-                  <a className="vq-mega__link" href="/compare"><b>Comparisons</b><span>VenQore vs legacy POS.</span></a>
-                  <a className="vq-mega__link" href="/demo"><b>Live demo</b><span>Explore pre-loaded system.</span></a>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          {/* Company Mega Menu */}
-          <li className="vq-nav__item">
-            <a href="/about" className="vq-nav__link">Company <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
-            <div className="vq-mega" style={{"minWidth":"320px"}}>
-              <div className="vq-mega__grid" style={{"gridTemplateColumns":"1fr"}}>
-                <div className="vq-mega__col">
-                  <a className="vq-mega__link" href="/about"><b>About</b><span>Our mission, architecture, and principles.</span></a>
-                  <a className="vq-mega__link" href="/ledger"><b>How we prove it</b><span>The 35,255 correctness checks.</span></a>
-                  <a className="vq-mega__link" href="/contact"><b>Contact</b><span>A person answers this one.</span></a>
-                  <a className="vq-mega__link" href="/partners"><b>Partners</b><span>Resell and implement.</span></a>
-                </div>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </nav>
-      <div className="vq-header__actions">
-        <button className="vq-theme-btn" data-theme-toggle type="button" aria-label="Switch theme" onClick={toggleTheme}>
-          <span className="vq-icon-sun"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span><span className="vq-icon-moon"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
-        </button>
-        <a href="/login" className="vq-nav__link">Sign in</a>
-        <a href="/build-workspace" className="vq-btn vq-btn--primary">Start building <span className="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
-      </div>
-      <button className="vq-burger" type="button" data-menu-open aria-label="Open menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
-    </div>
-  </header>
-
-  {/*  Mobile Menu Drawer  */}
-  <div className="vq-mobile" data-menu hidden>
-    <button className="vq-burger" type="button" data-menu-close aria-label="Close menu"
-            style={{"position":"absolute","top":"24px","right":"20px"}}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-    <a href="/blueprint">Blueprint</a>
-    <a href="/pos">The register</a>
-    <a href="/documents">Documents</a>
-    <a href="/dashboard-preview">Dashboard</a>
-    <a href="/smartcapture">SmartCapture</a>
-    <a href="/reckoner">The Reckoner</a>
-    <a href="/ledger">Core Ledger</a>
-    <a href="/vensynq">VenSynQ</a>
-    <a href="/solutions">Solutions</a>
-    <a href="/features">Features</a>
-    <a href="/pricing">Pricing</a>
-    <a href="/tools">Free tools</a>
-    <a href="/docs">Documentation</a>
-    <a href="/blog">Blog</a>
-    <a href="/about">About</a>
-    <a href="/contact">Contact</a>
-    <div className="vq-mobile__actions">
-      <a href="/login" className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Sign in</a>
-      <a href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Start building <span className="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
-    </div>
-  </div>
-
-  {/*  Side Live Slider Rail Tracking Sections  */}
-  <aside data-rail="1">
-    <a data-dot="1" data-for="top" href="#top" aria-label="Intent"><span data-dotlabel="1">Intent</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="trust" href="#trust" aria-label="Proof"><span data-dotlabel="1">Proof</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="extremes" href="#extremes" aria-label="Problem"><span data-dotlabel="1">Problem</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="value" href="#value" aria-label="Value"><span data-dotlabel="1">Value</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="compiler" href="#compiler" aria-label="Compiler"><span data-dotlabel="1">Compiler</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="showcase" href="#showcase" aria-label="Product"><span data-dotlabel="1">Product</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="tailored" href="#tailored" aria-label="Modules"><span data-dotlabel="1">Modules</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="day2" href="#day2" aria-label="AI"><span data-dotlabel="1">AI</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="offline" href="#offline" aria-label="Offline"><span data-dotlabel="1">Offline</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="industries" href="#industries" aria-label="Industries"><span data-dotlabel="1">Industries</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="integrations" href="#integrations" aria-label="Channels"><span data-dotlabel="1">Channels</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="analytics" href="#analytics" aria-label="Dashboard"><span data-dotlabel="1">Dashboard</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="ledger" href="#ledger" aria-label="Evidence"><span data-dotlabel="1">Evidence</span><span data-dotmark="1"></span></a>
-    <a data-dot="1" data-for="start" href="#start" aria-label="Start"><span data-dotlabel="1">Start</span><span data-dotmark="1"></span></a>
-  </aside>
+  <SiteHeader />
 
   <main id="main">
 
   {/*  SECTION 1: HERO SECTION (PRESERVED)  */}
-  <section id="top" data-sec="top" className="vq-hero-section" style={{"position":"relative","minHeight":"100svh","width":"100%","display":"flex","flexDirection":"column","paddingTop":"clamp(85px,10vw,120px)","overflow":"hidden"}}>
+  <section id="top" data-sec="top" data-tone="dark" className="vq-hero-section" style={{"position":"relative","minHeight":"100svh","width":"100%","display":"flex","flexDirection":"column","paddingTop":"clamp(85px,10vw,120px)","overflow":"hidden"}}>
     <div className="hero-gradient-overlay" aria-hidden="true" style={{"position":"absolute","inset":"0","pointerEvents":"none","zIndex":"0"}}></div>
     
 
@@ -288,55 +134,30 @@ export default function LandingPage() {
 
     <div className="vq-hero-inner" style={{"position":"relative","zIndex":"10","marginBlock":"auto","marginInline":"auto","maxWidth":"64rem","width":"100%","display":"flex","flexDirection":"column","alignItems":"center","gap":"var(--vq-space-4)","paddingInline":"var(--vq-space-6)","textAlign":"center"}}>
 
-      <span className="vq-eyebrow vq-hero-eyebrow" style={{"display":"inline-flex","alignItems":"center","gap":"8px","height":"30px","padding":"0 14px","borderRadius":"9999px","background":"rgba(255, 255, 255, 0.12)","border":"1px solid rgba(255, 255, 255, 0.22)","backdropFilter":"blur(8px)","font":"700 11px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text)"}}>
+      <span className="vq-eyebrow vq-hero-eyebrow" style={{"display":"inline-flex","alignItems":"center","gap":"8px","height":"30px","padding":"0 14px","borderRadius":"9999px","background":"rgba(255, 255, 255, 0.12)","border":"1px solid rgba(255, 255, 255, 0.22)","backdropFilter":"blur(8px)","font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text)"}}>
         <span style={{"width":"6px","height":"6px","borderRadius":"9999px","background":"var(--vq-accent)","boxShadow":"0 0 8px var(--vq-accent)"}}></span>
         THE AI ERP BUILDER
       </span>
 
       <h1 id="main-heading" className="vq-hero vq-hero-h1 fold-text-container" style={{"fontWeight":"600","fontSize":"clamp(44px,7.2vw,84px)","lineHeight":"1.0","letterSpacing":"-0.04em","maxWidth":"22ch","textAlign":"center","margin":"0"}}>
         Tell us how you operate.<br />
-        We <span style={{"position":"relative","color":"#23C4A6","display":"inline-block"}}>assemble<span style={{"position":"absolute","left":"0","right":"0","bottom":"6px","height":"6px","borderRadius":"999px","background":"rgba(35, 196, 166, 0.38)"}}></span></span> your system.
+        We <span style={{"position":"relative","color":"var(--vq-accent-text)","display":"inline-block"}}>assemble<span style={{"position":"absolute","left":"0","right":"0","bottom":"6px","height":"6px","borderRadius":"999px","background":"rgba(35, 196, 166, 0.38)"}}></span></span> your system.
       </h1>
 
       <p className="vq-lede vq-hero-subhead" style={{"maxWidth":"44rem","color":"var(--vq-text-2)","fontSize":"clamp(1.05rem,1.4vw,1.25rem)","lineHeight":"1.55","marginTop":"var(--vq-space-2)"}}>
-        VenQore is an AI ERP builder for retail and wholesale. Describe how you operate and it assembles the system that runs it — point of sale, inventory, purchasing, invoicing and real double-entry accounting — keeping only the modules you use. Starts at $49 a month, or free on Solo, with no implementation project.
+        VenQore is an AI ERP builder for {BUSINESS_TYPE_CLAIM} kinds of business — retail, services and repairs, food, wholesale and light manufacturing. Describe how you operate and it assembles the system that runs it — point of sale, inventory, purchasing, invoicing and real double-entry accounting — keeping only the modules you use. Starts at $49 a month, or free on Solo, with no implementation project.
       </p>
 
       {/*  The interactive prompt & business picker  */}
-      <form className="vq-mt-6" data-hero-prompt style={{"width":"100%","display":"flex","flexDirection":"column","alignItems":"center","maxWidth":"44rem"}}>
-        <div className="vq-hero-rule" style={{"width":"100%","display":"flex","alignItems":"flex-end","gap":"var(--vq-space-4)","paddingBottom":"10px","position":"relative"}}>
-          <div id="shiny-placeholder" data-hero-placeholder className="shiny-text" aria-hidden="true"
-               style={{"position":"absolute","left":"8px","bottom":"20px","pointerEvents":"none","fontSize":"var(--vq-fs-lede)","textAlign":"left","maxWidth":"calc(100% - 108px)","whiteSpace":"nowrap","overflow":"hidden","textOverflow":"ellipsis"}}>Describe your business (e.g. "Retail pharmacy with batch & expiry")...</div>
-          <textarea id="hero-prompt" rows="1" aria-label="Describe your business" className="vq-hero-input"
-            style={{"flex":"1","resize":"none","background":"transparent","border":"0","outline":"none","fontSize":"var(--vq-fs-lede)","lineHeight":"1.5","padding":"8px","maxHeight":"160px","fontFamily":"inherit","color":"var(--vq-text)"}} />
-          <div style={{"display":"flex","alignItems":"center","gap":"8px","paddingBottom":"4px"}}>
-            <button type="button" className="vq-hero-icon" aria-label="Voice input" title="Voice input"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg></button>
-            <button type="button" className="vq-hero-go" data-hero-go aria-label="Build my system" title="Build my system"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
-          </div>
-        </div>
-
-        <div className="vq-row vq-wrap vq-gap-2 vq-mt-6" style={{"justifyContent":"center","alignItems":"center"}}>
-          <button id="btn-select-business" type="button" className="vq-btn vq-btn--secondary" style={{"fontWeight":"600","display":"inline-flex","alignItems":"center","gap":"6px"}}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Select your business
-          </button>
-          <button type="button" className="vq-chip vq-chip--onHero" data-hero-chip="pharmacy">Pharmacy</button>
-          <button type="button" className="vq-chip vq-chip--onHero" data-hero-chip="wholesale">Wholesale distributor</button>
-          <button type="button" className="vq-chip vq-chip--onHero" data-hero-chip="cafe">Restaurant &amp; café</button>
-          <button type="button" className="vq-chip vq-chip--onHero" data-hero-chip="hardware">Hardware &amp; parts</button>
-          <button type="button" className="vq-chip vq-chip--onHero" data-hero-chip="multi">Multi-branch</button>
-        </div>
-
+      <div className="vq-mt-6" style={{"width":"100%"}}>
+        <HeroPrompt />
         <div style={{"display":"flex","alignItems":"center","gap":"18px","flexWrap":"wrap","justifyContent":"center","marginTop":"16px","font":"500 13px/1 var(--vq-font-sans)","color":"var(--vq-text-3)"}}>
+          <span>{BUSINESS_TYPE_CLAIM} business types, {SECTOR_COUNT} sectors</span><span style={{"opacity":".4"}}>·</span>
           <span>140+ modules, only yours switched on</span><span style={{"opacity":".4"}}>·</span>
           <span>58 readings, one definition each</span><span style={{"opacity":".4"}}>·</span>
           <span>8 correctness laws on every post</span>
         </div>
-
-        <p className="vq-caption vq-mt-4 vq-hero-caret" style={{"maxWidth":"none"}}>
-          14-day free trial. Full access. You'll see your live system before you decide anything.
-        </p>
-      </form>
+      </div>
     </div>
 
     <div className="vq-hero-foot" style={{"marginInline":"auto","width":"100%","maxWidth":"58rem","display":"flex","alignItems":"flex-end","justifyContent":"space-between","gap":"var(--vq-space-6)","padding":"var(--vq-space-8) var(--vq-space-6) var(--vq-space-10)"}}>
@@ -353,6 +174,7 @@ export default function LandingPage() {
   {/*  MOVING STRIP 1: LIVE BUSINESSES & AUTOMATED TESTS TICKER  */}
   <div className="vq-ticker-strip">
     <div className="vq-ticker-track">
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>{BUSINESS_TYPE_CLAIM} business types</b> across {SECTOR_COUNT} sectors, built from one engine</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
@@ -360,6 +182,7 @@ export default function LandingPage() {
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>8 invariant rules</b> run on every transaction post</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
       {/*  Seamless Loop Duplicate  */}
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>{BUSINESS_TYPE_CLAIM} business types</b> across {SECTOR_COUNT} sectors, built from one engine</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
@@ -424,7 +247,7 @@ export default function LandingPage() {
         </div>
 
         <div className="vq-reveal" style={{"marginTop":"34px","display":"flex","flexWrap":"wrap","gap":"8px","alignItems":"center"}}>
-          <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)","marginRight":"6px"}}>MEANWHILE YOU RUN ON</span>
+          <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)","marginRight":"6px"}}>MEANWHILE YOU RUN ON</span>
           <span className="vq-mocktag">A POS that can't see stock</span>
           <span className="vq-mocktag">A spreadsheet for credit</span>
           <span className="vq-mocktag">WhatsApp for orders</span>
@@ -434,7 +257,7 @@ export default function LandingPage() {
 
         <div style={{"marginTop":"44px","display":"grid","gridTemplateColumns":"repeat(auto-fit,minmax(300px,1fr))","gap":"20px","alignItems":"stretch"}}>
           <div className="vq-card vq-reveal" data-par="0.05" style={{"padding":"28px","borderRadius":"var(--vq-r-lg)","background":"var(--vq-surface)","border":"1px solid var(--vq-line)","display":"flex","flexDirection":"column","gap":"14px"}}>
-            <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>LEGACY ERP / POS</span>
+            <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>LEGACY ERP / POS</span>
             <h3 style={{"margin":"0","font":"600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display)","letterSpacing":"var(--vq-ls-h3)","color":"var(--vq-text)"}}>Clunky and inflexible</h3>
             <p style={{"margin":"0","font":"400 15px/1.6 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>Five hundred pre-built menus and rigid settings. A bakery gets buried in wholesale manufacturing screens. A pharmacy finds batch expiry was never part of checkout.</p>
             <div style={{"marginTop":"auto","display":"flex","flexDirection":"column","gap":"8px","paddingTop":"16px","borderTop":"1px solid var(--vq-line-soft)"}}>
@@ -444,7 +267,7 @@ export default function LandingPage() {
           </div>
 
           <div className="vq-card vq-reveal" data-par="0.11" style={{"padding":"28px","borderRadius":"var(--vq-r-lg)","background":"var(--vq-surface)","border":"1px solid var(--vq-line)","display":"flex","flexDirection":"column","gap":"14px"}}>
-            <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>GENERIC AI APP BUILDERS</span>
+            <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>GENERIC AI APP BUILDERS</span>
             <h3 style={{"margin":"0","font":"600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display)","letterSpacing":"var(--vq-ls-h3)","color":"var(--vq-text)"}}>Hallucinated books</h3>
             <p style={{"margin":"0","font":"400 15px/1.6 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>A prompt generates raw code from scratch. Raw code breaks accounting rules, invents totals, and cracks under real transaction load. You cannot run real money on it.</p>
             <div style={{"marginTop":"auto","display":"flex","flexDirection":"column","gap":"8px","paddingTop":"16px","borderTop":"1px solid var(--vq-line-soft)"}}>
@@ -453,8 +276,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="vq-card vq-reveal" data-par="0.17" style={{"position":"relative","overflow":"hidden","padding":"28px","borderRadius":"var(--vq-r-lg)","background":"var(--vq-grad-mint)","boxShadow":"var(--vq-glow-accent-strong)","color":"#fff","display":"flex","flexDirection":"column","gap":"14px"}}>
-            <span style={{"position":"relative","font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"rgba(255,255,255,.78)"}}>VENQORE · THE AI COMPILER</span>
+          <div className="vq-card vq-reveal" data-par="0.17" style={{"position":"relative","overflow":"hidden","padding":"28px","borderRadius":"var(--vq-r-lg)","background":"linear-gradient(135deg, var(--vq-teal-600) 0%, var(--vq-teal-700) 55%, var(--vq-teal-900) 100%)","boxShadow":"var(--vq-glow-accent-strong)","color":"#fff","display":"flex","flexDirection":"column","gap":"14px"}}>
+            <span style={{"position":"relative","font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"rgba(255,255,255,.78)"}}>VENQORE · THE AI COMPILER</span>
             <h3 style={{"position":"relative","margin":"0","font":"600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display)","letterSpacing":"var(--vq-ls-h3)"}}>Both, without the trade</h3>
             <p style={{"position":"relative","margin":"0","font":"400 15px/1.6 var(--vq-font-sans)","color":"rgba(255,255,255,.9)"}}>AI compiles your intent into parameterized, battle-tested financial modules. The agility of natural language, the arithmetic of hardened double-entry accounting.</p>
             <div style={{"position":"relative","marginTop":"auto","display":"flex","flexDirection":"column","gap":"8px","paddingTop":"16px","borderTop":"1px solid rgba(255,255,255,.24)"}}>
@@ -500,7 +323,7 @@ export default function LandingPage() {
             <span className="vq-kicker">WHAT CHANGES ON MONDAY</span>
             <h2 style={{"margin":"0","maxWidth":"22ch","font":"600 var(--vq-fs-h1)/var(--vq-lh-h1) var(--vq-font-display)","fontSize":"clamp(27px,4.2vw,var(--vq-fs-h1))","letterSpacing":"var(--vq-ls-h1)","color":"var(--vq-text)"}}>Four things a compiler does that software cannot.</h2>
           </div>
-          <span style={{"display":"flex","alignItems":"center","gap":"10px","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".12em","color":"var(--vq-text-3)","paddingBottom":"6px"}}>
+          <span style={{"display":"flex","alignItems":"center","gap":"10px","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".12em","color":"var(--vq-text-3)","paddingBottom":"6px"}}>
             KEEP SCROLLING
             <span style={{"width":"54px","height":"3px","background":"var(--vq-line-strong)","position":"relative","overflow":"hidden","borderRadius":"999px"}}>
               <span data-trackbar="1" style={{"position":"absolute","inset":"0","width":"0%","background":"var(--vq-accent)","borderRadius":"999px"}}></span>
@@ -510,7 +333,7 @@ export default function LandingPage() {
         <div data-trackrow="1" style={{"display":"flex","gap":"24px","padding":"0 clamp(24px,8vw,120px)","willChange":"transform"}}>
 
           <div className="vq-card vq-tile" style={{"flex":"0 0 auto","width":"clamp(300px,38vw,520px)","padding":"30px","borderRadius":"var(--vq-r-xl)","background":"var(--vq-surface)","border":"1px solid var(--vq-line)","boxShadow":"var(--vq-elev-1)","display":"flex","flexDirection":"column","gap":"16px"}}>
-            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent)"}}>01</span>
+            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent-text)"}}>01</span>
             <h3 style={{"margin":"0","font":"600 var(--vq-fs-h2)/var(--vq-lh-h2) var(--vq-font-display)","letterSpacing":"var(--vq-ls-h2)","color":"var(--vq-text)","textWrap":"balance"}}>Minutes instead of months</h3>
             <p style={{"margin":"0","font":"400 15.5px/1.62 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>No implementers, no custom-field mapping, no database chart to draw. You write how you operate and the system exists.</p>
             <div style={{"marginTop":"auto","display":"grid","gridTemplateColumns":"auto 1fr","gap":"8px 12px","paddingTop":"18px","borderTop":"1px solid var(--vq-line-soft)","font":"500 13px/1.5 var(--vq-font-sans)"}}>
@@ -520,7 +343,7 @@ export default function LandingPage() {
           </div>
 
           <div className="vq-card vq-tile" style={{"flex":"0 0 auto","width":"clamp(300px,38vw,520px)","padding":"30px","borderRadius":"var(--vq-r-xl)","background":"var(--vq-surface)","border":"1px solid var(--vq-line)","boxShadow":"var(--vq-elev-1)","display":"flex","flexDirection":"column","gap":"16px"}}>
-            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent)"}}>02</span>
+            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent-text)"}}>02</span>
             <h3 style={{"margin":"0","font":"600 var(--vq-fs-h2)/var(--vq-lh-h2) var(--vq-font-display)","letterSpacing":"var(--vq-ls-h2)","color":"var(--vq-text)","textWrap":"balance"}}>Only the software you use</h3>
             <p style={{"margin":"0","font":"400 15.5px/1.62 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>A boutique gets variant matrixes and fast checkout. A wholesaler gets container logistics and credit aging. Neither sees the other's screens.</p>
             <div style={{"marginTop":"auto","display":"grid","gridTemplateColumns":"auto 1fr","gap":"8px 12px","paddingTop":"18px","borderTop":"1px solid var(--vq-line-soft)","font":"500 13px/1.5 var(--vq-font-sans)"}}>
@@ -530,7 +353,7 @@ export default function LandingPage() {
           </div>
 
           <div className="vq-card vq-tile" style={{"flex":"0 0 auto","width":"clamp(300px,38vw,520px)","padding":"30px","borderRadius":"var(--vq-r-xl)","background":"var(--vq-surface)","border":"1px solid var(--vq-line)","boxShadow":"var(--vq-elev-1)","display":"flex","flexDirection":"column","gap":"16px"}}>
-            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent)"}}>03</span>
+            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent-text)"}}>03</span>
             <h3 style={{"margin":"0","font":"600 var(--vq-fs-h2)/var(--vq-lh-h2) var(--vq-font-display)","letterSpacing":"var(--vq-ls-h2)","color":"var(--vq-text)","textWrap":"balance"}}>The books cannot drift</h3>
             <p style={{"margin":"0","font":"400 15.5px/1.62 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>The interface is generated. The ledger underneath is immutable double-entry, checked seven ways before anything posts.</p>
             <div style={{"marginTop":"auto","display":"grid","gridTemplateColumns":"auto 1fr","gap":"8px 12px","paddingTop":"18px","borderTop":"1px solid var(--vq-line-soft)","font":"500 13px/1.5 var(--vq-font-sans)"}}>
@@ -540,7 +363,7 @@ export default function LandingPage() {
           </div>
 
           <div className="vq-card vq-tile" style={{"flex":"0 0 auto","width":"clamp(300px,38vw,520px)","padding":"30px","borderRadius":"var(--vq-r-xl)","background":"var(--vq-surface)","border":"1px solid var(--vq-line)","boxShadow":"var(--vq-elev-1)","display":"flex","flexDirection":"column","gap":"16px"}}>
-            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent)"}}>04</span>
+            <span style={{"font":"600 44px/1 var(--vq-font-numeric)","letterSpacing":"-.03em","color":"var(--vq-accent-text)"}}>04</span>
             <h3 style={{"margin":"0","font":"600 var(--vq-fs-h2)/var(--vq-lh-h2) var(--vq-font-display)","letterSpacing":"var(--vq-ls-h2)","color":"var(--vq-text)","textWrap":"balance"}}>Growth is a sentence</h3>
             <p style={{"margin":"0","font":"400 15.5px/1.62 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>&ldquo;Add wholesale distribution with warehouse transfer workflows.&rdquo; The compiler re-wires your topology without downtime.</p>
             <div style={{"marginTop":"auto","display":"grid","gridTemplateColumns":"auto 1fr","gap":"8px 12px","paddingTop":"18px","borderTop":"1px solid var(--vq-line-soft)","font":"500 13px/1.5 var(--vq-font-sans)"}}>
@@ -562,7 +385,7 @@ export default function LandingPage() {
       <div data-thgrid="1" style={{"position":"relative","flex":"1","maxWidth":"1240px","width":"100%","margin":"0 auto","padding":"96px 28px 40px","display":"grid","gridTemplateColumns":"250px 1fr","gap":"40px","alignItems":"start","minHeight":"0"}}>
 
         <div style={{"display":"flex","flexDirection":"column","gap":"4px","paddingTop":"4px"}}>
-          <span style={{"font":"700 11px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-accent)","marginBottom":"16px"}}>COMPILATION PASS</span>
+          <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-accent-text)","marginBottom":"16px"}}>COMPILATION PASS</span>
           
           <div data-stagerow="0" style={{"display":"grid","gridTemplateColumns":"34px 1fr","gap":"12px","padding":"10px 0","opacity":"1","transition":"opacity var(--vq-dur-3) var(--vq-ease-out)"}}>
             <span style={{"font":"600 12px/1.6 var(--vq-font-numeric)","color":"var(--vq-text-3)"}}>01</span>
@@ -615,22 +438,22 @@ export default function LandingPage() {
             <span style={{"width":"9px","height":"9px","borderRadius":"999px","background":"#FF8A6B"}}></span>
             <span style={{"width":"9px","height":"9px","borderRadius":"999px","background":"#FFCD5B"}}></span>
             <span style={{"width":"9px","height":"9px","borderRadius":"999px","background":"#A9E34B"}}></span>
-            <span data-frametitle="1" style={{"marginLeft":"12px","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".12em","color":"var(--vq-text-3)"}}>BLUEPRINT · READING INTENT</span>
-            <span style={{"marginLeft":"auto","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent)"}}>LIVE</span>
+            <span data-frametitle="1" style={{"marginLeft":"12px","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".12em","color":"var(--vq-text-3)"}}>BLUEPRINT · READING INTENT</span>
+            <span style={{"marginLeft":"auto","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>LIVE</span>
           </div>
 
           <div style={{"position":"relative","height":"calc(100% - 45px)"}}>
 
             {/*  Stage 01: Intent  */}
             <div data-layer="0" style={{"position":"absolute","inset":"0","padding":"44px 48px","display":"flex","flexDirection":"column","justifyContent":"center","gap":"24px","opacity":"1"}}>
-              <span style={{"font":"700 11px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>THE OWNER TYPES</span>
+              <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>THE OWNER TYPES</span>
               <p style={{"margin":"0","font":"600 clamp(22px, 2.5vw, 34px)/1.32 var(--vq-font-display)","letterSpacing":"-.028em","color":"var(--vq-text)","maxWidth":"30ch"}}><span data-typed="1"></span><span style={{"display":"inline-block","width":"3px","height":"1em","marginLeft":"4px","verticalAlign":"-0.12em","background":"var(--vq-accent)","animation":"vqBlink 1s steps(1) infinite"}}></span></p>
               <span style={{"font":"500 14px/1.5 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>No forms. No implementation consultant. One paragraph in your own words.</span>
             </div>
 
             {/*  Stage 02: Parse  */}
             <div data-layer="1" style={{"position":"absolute","inset":"0","padding":"40px 48px","display":"flex","flexDirection":"column","justifyContent":"center","gap":"20px","opacity":"0"}}>
-              <span style={{"font":"700 11px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>DOMAIN PARSE</span>
+              <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>DOMAIN PARSE</span>
               <div style={{"display":"flex","flexDirection":"column","gap":"12px"}}>
                 <div style={{"display":"flex","flexDirection":"column","gap":"6px"}}>
                   <span style={{"font":"600 12px/1 var(--vq-font-sans)","color":"var(--vq-text)"}}>ENTITIES</span>
@@ -665,8 +488,8 @@ export default function LandingPage() {
             {/*  Stage 03: Select  */}
             <div data-layer="2" style={{"position":"absolute","inset":"0","padding":"36px 44px","display":"flex","flexDirection":"column","justifyContent":"center","gap":"18px","opacity":"0"}}>
               <div style={{"display":"flex","alignItems":"baseline","justifyContent":"space-between","gap":"16px"}}>
-                <span style={{"font":"700 11px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>ENGINE SELECTION</span>
-                <span style={{"font":"500 12px/1 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span data-selcount="1" style={{"fontFamily":"var(--vq-font-numeric)","color":"var(--vq-accent)"}}>0</span> of 24 engines wired</span>
+                <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>ENGINE SELECTION</span>
+                <span style={{"font":"500 12px/1 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span data-selcount="1" style={{"fontFamily":"var(--vq-font-numeric)","color":"var(--vq-accent-text)"}}>0</span> of 24 engines wired</span>
               </div>
               <div style={{"display":"grid","gridTemplateColumns":"repeat(4, 1fr)","gap":"10px"}}>
                 <div data-engine="0" data-on="1" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".28","transition":"all 380ms var(--vq-ease-spring)"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text)"}}>POS checkout</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-accent-text)"}}>SELECTED</span></div>
@@ -677,7 +500,7 @@ export default function LandingPage() {
                 <div data-engine="5" data-on="1" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".28","transition":"all 380ms var(--vq-ease-spring)"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text)"}}>Branch transfers</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-accent-text)"}}>SELECTED</span></div>
                 <div data-engine="6" data-on="0" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".12"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text-3)"}}>Payroll</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-text-3)"}}>not needed</span></div>
                 <div data-engine="7" data-on="0" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".12"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text-3)"}}>Container logistics</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-text-3)"}}>not needed</span></div>
-                <div data-engine="8" data-on="1" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".28","transition":"all 380ms var(--vq-ease-spring)"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text)"}}>Core Ledger</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-accent)"}}>ALWAYS ON</span></div>
+                <div data-engine="8" data-on="1" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".28","transition":"all 380ms var(--vq-ease-spring)"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text)"}}>Core Ledger</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-accent-text)"}}>ALWAYS ON</span></div>
                 <div data-engine="9" data-on="0" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".12"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text-3)"}}>Table service</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-text-3)"}}>not needed</span></div>
                 <div data-engine="10" data-on="0" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".12"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text-3)"}}>Tier pricing matrix</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-text-3)"}}>not needed</span></div>
                 <div data-engine="11" data-on="0" style={{"padding":"12px 14px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","opacity":".12"}}><span style={{"display":"block","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text-3)"}}>Channel sync</span><span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1.3 var(--vq-font-numeric)","color":"var(--vq-text-3)"}}>not needed</span></div>
@@ -686,7 +509,7 @@ export default function LandingPage() {
 
             {/*  Stage 04: Wire  */}
             <div data-layer="3" style={{"position":"absolute","inset":"0","padding":"34px 44px","opacity":"0"}}>
-              <span style={{"font":"700 11px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>TOPOLOGY · ROUTES BOUND TO CORE LEDGER</span>
+              <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>TOPOLOGY · ROUTES BOUND TO CORE LEDGER</span>
               <div style={{"position":"relative","height":"calc(100% - 26px)","marginTop":"18px","display":"grid","gridTemplateColumns":"1fr 1fr 1.15fr","gap":"40px","alignItems":"center"}}>
                 <svg data-wires="1" style={{"position":"absolute","inset":"0","width":"100%","height":"100%","pointerEvents":"none","overflow":"visible"}}>
                   <path data-wire="1" fill="none" stroke="#0BAA8F" strokeWidth="2.2" strokeLinecap="round"></path>
@@ -705,9 +528,9 @@ export default function LandingPage() {
                   <div data-node="mid" style={{"position":"relative","padding":"15px 18px","borderRadius":"var(--vq-r-md, 12px)","border":"1px solid var(--vq-accent-quiet-line)","background":"var(--vq-accent-quiet)","font":"600 13px/1.25 var(--vq-font-display)","color":"var(--vq-text)"}}><span style={{"position":"absolute","left":"-5px","top":"50%","transform":"translateY(-50%)","width":"8px","height":"8px","borderRadius":"999px","background":"var(--vq-accent)","border":"2px solid var(--vq-surface)"}}></span>Payables &amp; terms<span style={{"display":"block","marginTop":"4px","font":"500 10.5px/1 var(--vq-font-numeric)","letterSpacing":".08em","color":"var(--vq-accent-text)"}}>30-DAY AGING</span><span style={{"position":"absolute","right":"-5px","top":"50%","transform":"translateY(-50%)","width":"8px","height":"8px","borderRadius":"999px","background":"#59DBC0","border":"2px solid var(--vq-surface)","boxShadow":"0 0 8px #59DBC0"}}></span></div>
                 </div>
                 <div style={{"position":"relative"}}>
-                  <div data-node="core" style={{"position":"relative","padding":"22px 20px","borderRadius":"var(--vq-r-lg, 16px)","background":"var(--vq-grad-mint)","boxShadow":"var(--vq-glow-accent-strong)","color":"#fff"}}>
+                  <div data-node="core" style={{"position":"relative","padding":"22px 20px","borderRadius":"var(--vq-r-lg, 16px)","background":"linear-gradient(135deg, var(--vq-teal-600) 0%, var(--vq-teal-700) 55%, var(--vq-teal-900) 100%)","boxShadow":"var(--vq-glow-accent-strong)","color":"#fff"}}>
                     <span style={{"position":"absolute","left":"-5px","top":"50%","transform":"translateY(-50%)","width":"8px","height":"8px","borderRadius":"999px","background":"#fff","border":"2px solid #088975","boxShadow":"0 0 10px #fff"}}></span>
-                    <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"rgba(255, 255, 255, 0.75)"}}>THE ENGINE</span>
+                    <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"rgba(255, 255, 255, 0.75)"}}>THE ENGINE</span>
                     <span style={{"display":"block","marginTop":"8px","font":"600 20px/1.1 var(--vq-font-display)","letterSpacing":"-.03em"}}>Core Ledger</span>
                     <span style={{"display":"block","marginTop":"8px","font":"500 12px/1.45 var(--vq-font-sans)","color":"rgba(255, 255, 255, 0.84)"}}>Every module posts here. Debits equal credits or the post is refused.</span>
                   </div>
@@ -747,24 +570,24 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div style={{"marginTop":"auto","display":"flex","alignItems":"baseline","justifyContent":"space-between","paddingTop":"12px","borderTop":"1px solid var(--vq-line)"}}>
-                    <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>TOTAL</span>
+                    <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>TOTAL</span>
                     <span style={{"font":"600 24px/1 var(--vq-font-numeric)","fontVariantNumeric":"tabular-nums","letterSpacing":"-.03em","color":"var(--vq-text)"}}>Rs 4,318.00</span>
                   </div>
                 </div>
                 <div style={{"display":"flex","flexDirection":"column","gap":"12px","minHeight":"0"}}>
                   <div style={{"borderRadius":"var(--vq-r-lg, 16px)","border":"1px solid var(--vq-success-line)","background":"var(--vq-success-bg)","padding":"14px 16px"}}>
-                    <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-success)"}}>POSTED · 7 CHECKS PASSED</span>
+                    <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-success)"}}>POSTED · 7 CHECKS PASSED</span>
                     <div style={{"marginTop":"10px","display":"grid","gridTemplateColumns":"1fr auto","gap":"6px 10px","font":"500 12px/1.5 var(--vq-font-numeric)","fontVariantNumeric":"tabular-nums","color":"var(--vq-text)"}}>
                       <span>Debits</span><span>Rs 4,318.00</span>
                       <span>Credits</span><span>Rs 4,318.00</span>
                     </div>
                   </div>
                   <div style={{"flex":"1","borderRadius":"var(--vq-r-lg, 16px)","border":"1px solid var(--vq-line)","background":"var(--vq-sunken)","padding":"14px 16px","display":"flex","flexDirection":"column","gap":"10px","minHeight":"0"}}>
-                    <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>EXPIRING IN 45 DAYS</span>
+                    <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>EXPIRING IN 45 DAYS</span>
                     <div style={{"display":"flex","flexDirection":"column","gap":"8px"}}>
-                      <div style={{"display":"flex","alignItems":"center","justifyContent":"space-between","gap":"8px","font":"500 12px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span>Batch C-0417 · Insulin</span><span style={{"font":"600 11px/1 var(--vq-font-numeric)","color":"var(--vq-warning)"}}>18 DAYS</span></div>
-                      <div style={{"display":"flex","alignItems":"center","justifyContent":"space-between","gap":"8px","font":"500 12px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span>Batch V-1120 · Vitamin D</span><span style={{"font":"600 11px/1 var(--vq-font-numeric)","color":"var(--vq-warning)"}}>31 DAYS</span></div>
-                      <div style={{"display":"flex","alignItems":"center","justifyContent":"space-between","gap":"8px","font":"500 12px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span>Batch A-9043 · Syrup</span><span style={{"font":"600 11px/1 var(--vq-font-numeric)","color":"var(--vq-warning)"}}>44 DAYS</span></div>
+                      <div style={{"display":"flex","alignItems":"center","justifyContent":"space-between","gap":"8px","font":"500 12px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span>Batch C-0417 · Insulin</span><span style={{"font":"600 12px/1 var(--vq-font-numeric)","color":"var(--vq-warning)"}}>18 DAYS</span></div>
+                      <div style={{"display":"flex","alignItems":"center","justifyContent":"space-between","gap":"8px","font":"500 12px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span>Batch V-1120 · Vitamin D</span><span style={{"font":"600 12px/1 var(--vq-font-numeric)","color":"var(--vq-warning)"}}>31 DAYS</span></div>
+                      <div style={{"display":"flex","alignItems":"center","justifyContent":"space-between","gap":"8px","font":"500 12px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span>Batch A-9043 · Syrup</span><span style={{"font":"600 12px/1 var(--vq-font-numeric)","color":"var(--vq-warning)"}}>44 DAYS</span></div>
                     </div>
                   </div>
                 </div>
@@ -796,7 +619,7 @@ export default function LandingPage() {
               <div className="vq-stackcard__bar">
                 <span className="vq-stackcard__dot" style={{"background":"#FF8A6B"}}></span><span className="vq-stackcard__dot" style={{"background":"#FFCD5B"}}></span><span className="vq-stackcard__dot" style={{"background":"#A9E34B"}}></span>
                 <span className="vq-stackcard__ttl">THE REGISTER · BRANCH 2</span>
-                <span style={{"marginLeft":"auto","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>LIVE</span>
+                <span style={{"marginLeft":"auto","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>LIVE</span>
               </div>
               <div className="vq-stackcard__body">
                 <div className="vq-stackcard__say">
@@ -810,7 +633,7 @@ export default function LandingPage() {
                   <div className="vq-mockrow"><span><b>Insulin pen refill</b>BATCH C-0417 · EXP 11/2026</span><span className="vq-mocknum">2,660.00</span></div>
                   <div className="vq-mockrow"><span><b>Paracetamol strip &times; 4</b>BATCH P-8802 · EXP 08/2028</span><span className="vq-mocknum">418.00</span></div>
                   <div style={{"display":"flex","alignItems":"baseline","justifyContent":"space-between","paddingTop":"12px","marginTop":"2px","borderTop":"1px solid var(--vq-line)"}}>
-                    <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>TOTAL</span>
+                    <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>TOTAL</span>
                     <span style={{"font":"600 23px/1 var(--vq-font-numeric)","fontVariantNumeric":"tabular-nums","letterSpacing":"-.03em","color":"var(--vq-text)"}}>Rs 4,318.00</span>
                   </div>
                 </div>
@@ -821,7 +644,7 @@ export default function LandingPage() {
               <div className="vq-stackcard__bar">
                 <span className="vq-stackcard__dot" style={{"background":"#FF8A6B"}}></span><span className="vq-stackcard__dot" style={{"background":"#FFCD5B"}}></span><span className="vq-stackcard__dot" style={{"background":"#A9E34B"}}></span>
                 <span className="vq-stackcard__ttl">DOCUMENTS · INVOICE 2026-0417</span>
-                <span style={{"marginLeft":"auto","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>DRAFT</span>
+                <span style={{"marginLeft":"auto","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>DRAFT</span>
               </div>
               <div className="vq-stackcard__body">
                 <div className="vq-stackcard__say">
@@ -844,7 +667,7 @@ export default function LandingPage() {
               <div className="vq-stackcard__bar">
                 <span className="vq-stackcard__dot" style={{"background":"#FF8A6B"}}></span><span className="vq-stackcard__dot" style={{"background":"#FFCD5B"}}></span><span className="vq-stackcard__dot" style={{"background":"#A9E34B"}}></span>
                 <span className="vq-stackcard__ttl">BLUEPRINT · CHANGE REVIEW</span>
-                <span style={{"marginLeft":"auto","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>AWAITING APPROVAL</span>
+                <span style={{"marginLeft":"auto","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>AWAITING APPROVAL</span>
               </div>
               <div className="vq-stackcard__body">
                 <div className="vq-stackcard__say">
@@ -867,7 +690,7 @@ export default function LandingPage() {
               <div className="vq-stackcard__bar">
                 <span className="vq-stackcard__dot" style={{"background":"#FF8A6B"}}></span><span className="vq-stackcard__dot" style={{"background":"#FFCD5B"}}></span><span className="vq-stackcard__dot" style={{"background":"#A9E34B"}}></span>
                 <span className="vq-stackcard__ttl">THE RECKONER · GROSS MARGIN</span>
-                <span style={{"marginLeft":"auto","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>DEFINED ONCE</span>
+                <span style={{"marginLeft":"auto","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>DEFINED ONCE</span>
               </div>
               <div className="vq-stackcard__body">
                 <div className="vq-stackcard__say">
@@ -889,7 +712,7 @@ export default function LandingPage() {
               <div className="vq-stackcard__bar">
                 <span className="vq-stackcard__dot" style={{"background":"#FF8A6B"}}></span><span className="vq-stackcard__dot" style={{"background":"#FFCD5B"}}></span><span className="vq-stackcard__dot" style={{"background":"#A9E34B"}}></span>
                 <span className="vq-stackcard__ttl">DASHBOARD · SELF-ASSEMBLING</span>
-                <span style={{"marginLeft":"auto","font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>108 READINGS</span>
+                <span style={{"marginLeft":"auto","font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-accent-text)"}}>108 READINGS</span>
               </div>
               <div className="vq-stackcard__body">
                 <div className="vq-stackcard__say">
@@ -929,6 +752,9 @@ export default function LandingPage() {
         <span style={{"display":"inline-flex","alignItems":"center","gap":"48px","font":"600 clamp(20px, 2.4vw, 34px)/1 var(--vq-font-display)","letterSpacing":"-.03em","color":"#59DBC0"}}>Signals<span style={{"width":"6px","height":"6px","borderRadius":"999px","background":"#23C4A6"}}></span></span>
       </div>
     </div>
+
+    {/*  ══ 7b · 85+ BUSINESS TYPES — one engine, five sectors ══════════════  */}
+    <BusinessTypes />
 
     {/*  ══ 8 · CORE BUSINESS MODULES / PILLARS ═══════════════════════════  */}
     <section id="tailored" data-sec="tailored" className="vq-sec vq-sec--base">
@@ -997,7 +823,7 @@ export default function LandingPage() {
         <div className="vq-reveal" data-indgrid="1" style={{"marginTop":"26px","display":"grid","gridTemplateColumns":"1.55fr 1fr","gap":"20px","alignItems":"start"}}>
           <div style={{"padding":"24px","borderRadius":"var(--vq-r-xl, 20px)","background":"var(--vq-surface)","border":"1px solid var(--vq-line)","boxShadow":"var(--vq-elev-1)"}}>
             <div style={{"display":"flex","alignItems":"baseline","justifyContent":"space-between","gap":"14px","marginBottom":"18px"}}>
-              <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>COMPILED ENGINE SET</span>
+              <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>COMPILED ENGINE SET</span>
               <span data-ind-count style={{"font":"600 12px/1 var(--vq-font-numeric)","color":"var(--vq-accent-text)"}}>8 of 24 shipped</span>
             </div>
             <div data-modules-grid style={{"display":"grid","gridTemplateColumns":"repeat(auto-fill, minmax(148px, 1fr))","gap":"8px"}}>
@@ -1006,7 +832,7 @@ export default function LandingPage() {
           </div>
 
           <div data-ind-card style={{"display":"flex","flexDirection":"column","gap":"16px","padding":"24px","borderRadius":"var(--vq-r-xl, 20px)","background":"var(--vq-sunken)","border":"1px solid var(--vq-line)","color":"var(--vq-text)"}}>
-            <span data-ind-eyebrow style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-accent)"}}>PHARMACY · 3 BRANCHES</span>
+            <span data-ind-eyebrow style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-accent-text)"}}>PHARMACY · 3 BRANCHES</span>
             <h3 data-ind-title style={{"margin":"0","font":"600 21px/1.25 var(--vq-font-display)","letterSpacing":"-.02em"}}>Batch expiry lives inside checkout</h3>
             <p data-ind-blurb style={{"margin":"0","font":"400 15px/1.62 var(--vq-font-sans)","color":"var(--vq-text-2)"}}>Not in a settings page, not in a separate module. The counter picks the nearest-expiry batch first, and the write-off posts itself.</p>
             <div data-ind-points style={{"display":"flex","flexDirection":"column","gap":"10px","paddingTop":"16px","borderTop":"1px solid var(--vq-line-soft)"}}>
@@ -1096,7 +922,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="vq-spot vq-ai__card" data-par="0.14" style={{"background":"var(--vq-grad-mint)","borderColor":"transparent","boxShadow":"var(--vq-glow-accent-strong)","color":"#fff"}}>
+          <div className="vq-spot vq-ai__card" data-par="0.14" style={{"background":"linear-gradient(135deg, var(--vq-teal-600) 0%, var(--vq-teal-700) 55%, var(--vq-teal-900) 100%)","borderColor":"transparent","boxShadow":"var(--vq-glow-accent-strong)","color":"#fff"}}>
             <span className="vq-ai__name" style={{"color":"rgba(255,255,255,.78)"}}>THE LINE THE AI DOES NOT CROSS</span>
             <h3 style={{"color":"#fff"}}>It composes. It never posts a number it made up.</h3>
             <p style={{"color":"rgba(255,255,255,.9)"}}>Everything above drafts, matches, reads and flags. A human approves, and Core Ledger &mdash; hand-written, with seven correctness checks &mdash; decides whether the entry is allowed to exist at all.</p>
@@ -1157,7 +983,7 @@ export default function LandingPage() {
               <div className="vq-till__left">
                 <div style={{"display":"flex","alignItems":"center","justifyContent":"space-between"}}>
                   <span style={{"font":"600 13px/1 var(--vq-font-display)","letterSpacing":"-.02em","color":"var(--vq-text)"}}>Held for sync</span>
-                  <span style={{"font":"600 11px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-text-3)"}}><span data-qcount style={{"color":"var(--vq-accent-text)"}}>0</span> IN QUEUE</span>
+                  <span style={{"font":"600 12px/1 var(--vq-font-numeric)","letterSpacing":".1em","color":"var(--vq-text-3)"}}><span data-qcount style={{"color":"var(--vq-accent-text)"}}>0</span> IN QUEUE</span>
                 </div>
 
                 <div className="vq-q" data-qrow data-in="0" data-state="queued">
@@ -1183,7 +1009,7 @@ export default function LandingPage() {
               </div>
 
               <div className="vq-till__right">
-                <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>WHAT KEEPS WORKING</span>
+                <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text-3)"}}>WHAT KEEPS WORKING</span>
                 <div style={{"display":"flex","flexDirection":"column","gap":"7px"}}>
                   <span style={{"display":"flex","alignItems":"center","gap":"8px","font":"500 12.5px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span style={{"color":"var(--vq-success)"}}><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Barcode scanning &amp; price lookup</span>
                   <span style={{"display":"flex","alignItems":"center","gap":"8px","font":"500 12.5px/1.4 var(--vq-font-sans)","color":"var(--vq-text-2)"}}><span style={{"color":"var(--vq-success)"}}><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Cash, card and split tender</span>
@@ -1193,7 +1019,7 @@ export default function LandingPage() {
                 </div>
 
                 <div data-posted style={{"marginTop":"auto","padding":"13px 15px","borderRadius":"var(--vq-r-md)","border":"1px solid var(--vq-success-line, var(--vq-line))","background":"var(--vq-success-bg, var(--vq-accent-quiet))","opacity":"0","transform":"translateY(10px)","transition":"opacity 320ms var(--vq-ease-out),transform 320ms var(--vq-ease-out)"}}>
-                  <span style={{"font":"700 10.5px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-success)"}}>DRAINED · <span data-drained>0</span> OF 5 POSTED</span>
+                  <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-success)"}}>DRAINED · <span data-drained>0</span> OF 5 POSTED</span>
                   <div style={{"marginTop":"9px","display":"grid","gridTemplateColumns":"1fr auto","gap":"5px 10px","font":"500 12px/1.5 var(--vq-font-numeric)","fontVariantNumeric":"tabular-nums","color":"var(--vq-text)"}}>
                     <span>Debits</span><span>Rs 9,478.00</span>
                     <span>Credits</span><span>Rs 9,478.00</span>
@@ -1528,108 +1354,8 @@ export default function LandingPage() {
   </main>
 
   {/*  SECTION C: ORIGINAL MASTER FOOTER (PRESERVED)  */}
-  <footer id="start" data-sec="start" className="vq-footer">
-    <div className="footer-bg"></div>
-    
-    <div className="vq-container" style={{"position":"relative","zIndex":"10","paddingBottom":"var(--vq-space-16)"}}>
-      <div className="mesh-gradient-card" style={{"borderRadius":"var(--vq-r-2xl)","padding":"clamp(32px,5vw,56px)","border":"1px solid rgb(255 255 255 / .10)","boxShadow":"var(--vq-elev-3)"}}>
-        <div style={{"maxWidth":"36rem"}}>
-          <h2 className="vq-h2" style={{"color":"#fff"}}>Describe your business. See what it becomes.</h2>
-          <p className="vq-lede vq-mt-3" style={{"color":"rgb(255 255 255 / .74)"}}>14-day free trial. Full access. You'll see your whole system before you decide anything.</p>
-          <form className="vq-row vq-wrap vq-gap-3 vq-mt-8" data-waitlist style={{"maxWidth":"520px"}}>
-            <input type="email" className="vq-input" required placeholder="you@company.com" aria-label="Work email"
-                   style={{"flex":"1 1 240px","background":"rgb(0 0 0 / .35)","borderColor":"rgb(255 255 255 / .16)","color":"#fff"}} />
-            <button type="submit" className="vq-btn vq-btn--lg vq-btn--light">Start building</button>
-          </form>
-          <p className="vq-caption vq-mt-4" style={{"color":"rgb(255 255 255 / .55)"}}>Takes about four minutes. Nothing goes live until you approve it.</p>
-        </div>
-      </div>
-    </div>
+  <SiteFooter />
 
-    <div className="vq-container" style={{"position":"relative","zIndex":"10","paddingBottom":"var(--vq-space-8)"}}>
-      <div style={{"display":"flex","flexDirection":"column","gap":"var(--vq-space-12)"}} className="vq-foot-cols">
-        <div style={{"display":"grid","gap":"var(--vq-space-8)","gridTemplateColumns":"repeat(auto-fit,minmax(150px,1fr))","flex":"1"}}>
-          <div>
-            <h3 className="vq-footer__head">Product</h3>
-            <ul style={{"marginTop":"var(--vq-space-4)","display":"flex","flexDirection":"column","gap":"var(--vq-space-3)"}}>
-              <li><a href="/blueprint">Blueprint</a></li>
-              <li><a href="/pos">The register</a></li>
-              <li><a href="/documents">Documents</a></li>
-              <li><a href="/dashboard-preview">Dashboard</a></li>
-              <li><a href="/smartcapture">SmartCapture</a></li>
-              <li><a href="/reckoner">The Reckoner</a></li>
-              <li><a href="/ledger">Core Ledger</a></li>
-              <li><a href="/vensynq">VenSynQ</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="vq-footer__head">Company</h3>
-            <ul style={{"marginTop":"var(--vq-space-4)","display":"flex","flexDirection":"column","gap":"var(--vq-space-3)"}}>
-              <li><a href="/about">About</a></li>
-              <li><a href="/contact">Contact</a></li>
-              <li><a href="/blog">Blog</a></li>
-              <li><a href="/roadmap">Roadmap</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="vq-footer__head">Resources</h3>
-            <ul style={{"marginTop":"var(--vq-space-4)","display":"flex","flexDirection":"column","gap":"var(--vq-space-3)"}}>
-              <li><a href="/docs">Documentation</a></li>
-              <li><a href="/help">Help centre</a></li>
-              <li><a href="/security">Security</a></li>
-              <li><a href="/onboarding">See a build</a></li>
-              <li><a href="/login">Sign in</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="vq-footer__head">Social</h3>
-            <div style={{"marginTop":"var(--vq-space-4)","display":"flex","gap":"var(--vq-space-3)"}}>
-              <a className="vq-footer__social" href="https://wa.me/923091999489" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp: +92 309 1999489"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
-              <a className="vq-footer__social" href="#" aria-label="Facebook"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
-              <a className="vq-footer__social" href="#" aria-label="X"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
-              <a className="vq-footer__social" href="#" aria-label="LinkedIn"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg></a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{"marginTop":"var(--vq-space-12)","paddingTop":"var(--vq-space-8)","borderTop":"1px solid rgb(255 255 255 / .08)","display":"flex","flexWrap":"wrap","alignItems":"center","justifyContent":"space-between","gap":"var(--vq-space-4)","paddingBottom":"var(--vq-space-6)"}}>
-        <p className="vq-small" style={{"color":"var(--vq-ink-500)","maxWidth":"none"}}>© 2026 VenQore, Inc. The AI ERP builder for ERP &amp; POS.</p>
-        <div style={{"display":"flex","gap":"var(--vq-space-6)","alignItems":"center"}}>
-          <a className="vq-small" href="/terms">Terms</a>
-          <a className="vq-small" href="/privacy">Privacy</a>
-          <button type="button" className="vq-small" style={{"background":"none","border":"none","padding":"0","cursor":"pointer","color":"inherit"}} onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-preferences'))}>Cookies</button>
-          <a className="vq-small" href="/refund-policy">Refund Policy</a>
-          <a className="vq-small" href="/known-issues">Known Issues</a>
-        </div>
-      </div>
-
-      <div className="watermark-wrapper"><span>VenQore</span></div>
-    </div>
-  </footer>
-
-  {/*  Business Picker Modal  */}
-  <div id="modal-select-business" className="modal-overlay" aria-hidden="true" style={{"position":"fixed","inset":"0","zIndex":"9999","display":"flex","alignItems":"center","justifyContent":"center","opacity":"0","pointerEvents":"none","transition":"opacity 0.25s ease"}}>
-    <div className="modal-backdrop" style={{"position":"absolute","inset":"0","background":"rgba(2, 20, 22, 0.75)","backdropFilter":"blur(12px)"}}></div>
-    <div className="modal-window vq-app" style={{"position":"relative","zIndex":"1","maxWidth":"600px","width":"92%","maxHeight":"85vh","borderRadius":"28px","background":"var(--vq-raised)","border":"1px solid var(--vq-line-strong)","boxShadow":"0 32px 80px -20px rgba(0,0,0,0.8)","display":"flex","flexDirection":"column","overflow":"hidden"}}>
-      <div style={{"padding":"24px 28px 16px","display":"flex","alignItems":"center","justifyContent":"space-between","borderBottom":"1px solid var(--vq-line-soft)"}}>
-        <h3 style={{"margin":"0","font":"600 19px/1.2 var(--vq-font-display)","color":"var(--vq-text)"}}>Select Your Business</h3>
-        <button id="modal-close-btn" type="button" style={{"background":"transparent","border":"0","fontSize":"20px","color":"var(--vq-text-2)","cursor":"pointer","padding":"4px"}}>✕</button>
-      </div>
-      <div className="scroll-list" style={{"padding":"20px 28px","overflowY":"auto","flex":"1","display":"flex","flexDirection":"column","gap":"10px"}}>
-        <div className="item-box is-selected" data-biz="Retail Pharmacy with batch & expiry tracking" style={{"padding":"14px 18px","borderRadius":"14px","border":"1px solid var(--vq-line)","cursor":"pointer","transition":"all 0.2s"}}><p style={{"margin":"0","fontWeight":"600","color":"var(--vq-text)"}}>Retail Pharmacy</p><span style={{"fontSize":"12px","color":"var(--vq-text-3)"}}>Batch & expiry, distributor credit</span></div>
-        <div className="item-box" data-biz="Auto Parts Wholesale with tier pricing and dispatch" style={{"padding":"14px 18px","borderRadius":"14px","border":"1px solid var(--vq-line)","cursor":"pointer","transition":"all 0.2s"}}><p style={{"margin":"0","fontWeight":"600","color":"var(--vq-text)"}}>Wholesale Distribution</p><span style={{"fontSize":"12px","color":"var(--vq-text-3)"}}>Tier pricing, credit aging, dispatch</span></div>
-        <div className="item-box" data-biz="Bakery with Central Kitchen and recipe costing" style={{"padding":"14px 18px","borderRadius":"14px","border":"1px solid var(--vq-line)","cursor":"pointer","transition":"all 0.2s"}}><p style={{"margin":"0","fontWeight":"600","color":"var(--vq-text)"}}>Restaurant &amp; Café</p><span style={{"fontSize":"12px","color":"var(--vq-text-3)"}}>Recipe costing, central kitchen, fast till</span></div>
-        <div className="item-box" data-biz="Hardware & Construction Parts with unit conversions" style={{"padding":"14px 18px","borderRadius":"14px","border":"1px solid var(--vq-line)","cursor":"pointer","transition":"all 0.2s"}}><p style={{"margin":"0","fontWeight":"600","color":"var(--vq-text)"}}>Hardware &amp; Building Supplies</p><span style={{"fontSize":"12px","color":"var(--vq-text-3)"}}>SKU matrix, contractor credit</span></div>
-        <div className="item-box" data-biz="Multi-branch Fashion Boutique with Amazon & Shopify" style={{"padding":"14px 18px","borderRadius":"14px","border":"1px solid var(--vq-line)","cursor":"pointer","transition":"all 0.2s"}}><p style={{"margin":"0","fontWeight":"600","color":"var(--vq-text)"}}>Multi-branch Retail</p><span style={{"fontSize":"12px","color":"var(--vq-text-3)"}}>Branch stock transfers, channel sync</span></div>
-        <div className="item-box" data-biz="Custom Business Operating System" style={{"padding":"14px 18px","borderRadius":"14px","border":"1px solid var(--vq-line)","cursor":"pointer","transition":"all 0.2s"}}><p style={{"margin":"0","fontWeight":"600","color":"var(--vq-text)"}}>Custom Business Profile</p><span style={{"fontSize":"12px","color":"var(--vq-text-3)"}}>Tailored to your specific workflows</span></div>
-      </div>
-      <div style={{"padding":"16px 28px 24px","borderTop":"1px solid var(--vq-line-soft)","display":"flex","justifyContent":"flex-end","gap":"12px"}}>
-        <button id="modal-cancel-btn" type="button" className="vq-btn vq-btn--ghost">Cancel</button>
-        <button id="btn-confirm-business" type="button" className="vq-btn vq-btn--primary">Confirm selection</button>
-      </div>
-    </div>
-  </div>
 
   {/*  V6 Cookie Consent Banner & Preferences Customizer  */}
   <CookieConsent />

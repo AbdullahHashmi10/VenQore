@@ -1,15 +1,13 @@
 import React, { useMemo } from 'react';
 import MarketingLayout from '../Shared/MarketingLayout';
 import { Head, Link } from '@inertiajs/react';
-import {
-    ArrowLeft, Clock, Tag, ChevronRight, BookOpen, Share2
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
 import { marked } from 'marked';
 
 /* ═══════════════════════════════════════════════════════════════════════
    V6 BLOG ARTICLE — "The Deep Read"
-   100% V6 Design System typography, high-contrast readable markdown
-   styling, breadcrumbs, reading time, and author metadata.
+   A reading column (.vq-read, ~72ch, 18px / 1.7) under a V6 page head.
+   Markdown styles live in resources/css/venqore-v6/mkt-content.css.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const ArticleContent = ({ content }) => {
@@ -28,23 +26,22 @@ const ArticleContent = ({ content }) => {
 
     return (
         <div
-            className="vq-prose"
+            className="vq-read"
             dangerouslySetInnerHTML={{ __html: html }}
         />
     );
 };
 
 export default function BlogShow({ post, recentPosts = [] }) {
-    if (!post) return null;
-
+    // Hooks run before the early return so their order never changes.
     const wordCount = useMemo(() => {
-        if (!post.content) return 0;
+        if (!post?.content) return 0;
         return post.content.trim().split(/\s+/).length;
-    }, [post.content]);
+    }, [post?.content]);
 
-    const readTime = useMemo(() => {
-        return Math.max(1, Math.ceil(wordCount / 200));
-    }, [wordCount]);
+    const readTime = Math.max(1, Math.ceil(wordCount / 200));
+
+    if (!post) return null;
 
     return (
         <MarketingLayout
@@ -57,195 +54,92 @@ export default function BlogShow({ post, recentPosts = [] }) {
                 <meta property="og:description" content={post.excerpt} />
             </Head>
 
-            <article style={{ paddingTop: 'clamp(140px, 15vw, 200px)', paddingBottom: 'var(--vq-space-16)' }}>
-                <div className="vq-container vq-container--narrow">
-                    {/* Back link */}
-                    <div style={{ marginBottom: '28px' }}>
-                        <Link href="/blog" className="vq-link" style={{ gap: '8px' }}>
-                            <ArrowLeft size={15} /> Back to all articles
-                        </Link>
-                    </div>
-
-                    {/* Metadata Header */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '20px' }}>
-                        <span className="vq-chip" style={{ background: 'rgba(35, 196, 166, 0.12)', borderColor: 'rgba(35, 196, 166, 0.3)', color: 'var(--vq-accent)' }}>
-                            {post.category || 'Financial Truth'}
-                        </span>
-                        <span style={{ fontSize: '13px', color: 'var(--vq-text-3)', display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--vq-font-numeric)' }}>
-                            <Clock size={13} style={{ color: 'var(--vq-accent)' }} /> {readTime} min read · {wordCount.toLocaleString()} words
-                        </span>
-                        <span style={{ fontSize: '13px', color: 'var(--vq-text-3)', fontFamily: 'var(--vq-font-numeric)' }}>
-                            {post.date}
-                        </span>
-                    </div>
-
-                    {/* Article Title */}
-                    <h1 className="vq-h1" style={{ margin: '0 0 24px', fontWeight: '700', lineHeight: '1.15', letterSpacing: '-0.03em', color: 'var(--vq-text)' }}>
-                        {post.title}
-                    </h1>
-
-                    {/* Excerpt callout */}
-                    {post.excerpt && (
-                        <div style={{
-                            padding: '20px 24px',
-                            background: 'var(--vq-surface)',
-                            border: '1px solid var(--vq-line)',
-                            borderLeft: '4px solid var(--vq-accent)',
-                            borderRadius: 'var(--vq-r-md)',
-                            marginBottom: '40px',
-                            fontSize: '17px',
-                            lineHeight: '1.6',
-                            color: 'var(--vq-text-2)'
-                        }}>
-                            {post.excerpt}
+            <article>
+                {/* ── Article head ───────────────────────────── */}
+                <header className="vq-section vq-mc-top vq-mc-top--flush">
+                    <div className="vq-container vq-container--narrow">
+                        <div className="vq-mc-back">
+                            <Link href="/blog" className="vq-link">
+                                <ArrowLeft size={16} aria-hidden="true" /> Back to all articles
+                            </Link>
                         </div>
-                    )}
 
-                    {/* Author Bar */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '24px', marginBottom: '40px', borderBottom: '1px solid var(--vq-line)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '999px', background: 'var(--vq-surface-raised)', border: '1px solid var(--vq-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--vq-accent)', fontWeight: '700' }}>
+                        <div className="vq-mc-meta">
+                            <span className="vq-badge vq-badge--accent">{post.category || 'Financial Truth'}</span>
+                            <span className="vq-mc-meta__item">
+                                <Clock size={14} aria-hidden="true" /> {readTime} min read · {wordCount.toLocaleString()} words
+                            </span>
+                            {post.date && <span className="vq-mc-meta__item">{post.date}</span>}
+                        </div>
+
+                        <h1 className="vq-h1 vq-mt-6">{post.title}</h1>
+
+                        {post.excerpt && (
+                            <p className="vq-lede vq-mt-6">{post.excerpt}</p>
+                        )}
+
+                        <div className="vq-row vq-gap-3 vq-mt-8" style={{ paddingBottom: 'var(--vq-space-8)', borderBottom: '1px solid var(--vq-line)' }}>
+                            <span
+                                className="vq-mc-icon vq-mc-icon--round"
+                                aria-hidden="true"
+                                style={{ width: 44, height: 44, fontFamily: 'var(--vq-font-numeric)', fontWeight: 700, fontSize: 14 }}
+                            >
                                 VQ
-                            </div>
+                            </span>
                             <div>
-                                <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--vq-text)' }}>{post.author || 'VenQore Editorial'}</div>
-                                <div style={{ fontSize: '12px', color: 'var(--vq-text-3)' }}>Systems & Accounting Research</div>
+                                <div style={{ fontSize: 'var(--vq-fs-small)', fontWeight: 600, color: 'var(--vq-text)' }}>{post.author || 'VenQore Editorial'}</div>
+                                <div className="vq-caption">Systems &amp; Accounting Research</div>
                             </div>
                         </div>
                     </div>
+                </header>
 
-                    {/* Body Content */}
-                    <ArticleContent content={post.content || post.excerpt} />
+                {/* ── Body ───────────────────────────────────── */}
+                <div className="vq-section vq-mc-body" style={{ paddingTop: 'var(--vq-space-6)' }}>
+                    <div className="vq-container vq-container--narrow">
+                        <ArticleContent content={post.content || post.excerpt} />
 
-                    {/* Post-article Callout */}
-                    <div style={{ marginTop: '56px', padding: '36px', borderRadius: 'var(--vq-r-xl)', background: 'var(--vq-surface)', border: '1px solid var(--vq-line)', boxShadow: 'var(--vq-elev-2)', textAlign: 'center' }}>
-                        <span className="vq-eyebrow vq-eyebrow--accent">BUILD YOUR SYSTEM</span>
-                        <h3 className="vq-h2" style={{ margin: '12px 0', color: 'var(--vq-text)' }}>
-                            Run real money through an immutable Core Ledger.
-                        </h3>
-                        <p className="vq-lede" style={{ maxWidth: '480px', marginInline: 'auto', marginBottom: '24px' }}>
-                            VenQore assembles point of sale, inventory, and real double-entry accounting configured to your exact business workflow.
-                        </p>
-                        <Link href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg">
-                            Start building workspace &rarr;
-                        </Link>
+                        {/* Post-article callout */}
+                        <div className="vq-card vq-card--xl vq-center" style={{ marginTop: 'var(--vq-space-20)', padding: 'clamp(32px, 5vw, 48px)' }}>
+                            <span className="vq-eyebrow vq-eyebrow--accent">Build your system</span>
+                            <h2 className="vq-h2 vq-mt-4">Run real money through an immutable Core Ledger.</h2>
+                            <p className="vq-body vq-text-2 vq-mt-4" style={{ maxWidth: '52ch', marginInline: 'auto' }}>
+                                VenQore assembles point of sale, inventory, and real double-entry accounting configured to your exact business workflow.
+                            </p>
+                            <div className="vq-mt-8">
+                                <Link href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg">
+                                    Start building workspace <span className="vq-btn__arrow"><ArrowRight size={16} aria-hidden="true" /></span>
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </article>
 
-            {/* Related Articles */}
+            {/* ── Related articles ───────────────────────────── */}
             {recentPosts.length > 0 && (
-                <section className="vq-section vq-section--alt" style={{ borderTop: '1px solid var(--vq-line)' }}>
+                <section className="vq-section vq-section--alt">
                     <div className="vq-container">
-                        <span className="vq-kicker">CONTINUE READING</span>
-                        <h2 className="vq-h2" style={{ margin: '8px 0 28px' }}>Related Field Guides</h2>
+                        <div className="vq-section-head" style={{ marginBottom: 'var(--vq-space-10)' }}>
+                            <span className="vq-eyebrow">Continue reading</span>
+                            <h2 className="vq-h2">Related field guides</h2>
+                        </div>
                         <div className="vq-grid vq-grid--3">
                             {recentPosts.map((rel, idx) => (
-                                <div key={rel.slug || idx} className="vq-card vq-card--interactive" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    <span className="vq-chip" style={{ alignSelf: 'flex-start', fontSize: '11px' }}>{rel.category}</span>
-                                    <h3 className="vq-h3" style={{ fontSize: '17px', color: 'var(--vq-text)', flex: '1' }}>{rel.title}</h3>
-                                    <p style={{ fontSize: '13px', color: 'var(--vq-text-3)', lineClamp: 2, overflow: 'hidden' }}>{rel.excerpt}</p>
-                                    <Link href={`/blog/${rel.slug}`} className="vq-link" style={{ marginTop: 'auto' }}>
-                                        Read guide <ChevronRight size={14} />
-                                    </Link>
-                                </div>
+                                <Link key={rel.slug || idx} href={`/blog/${rel.slug}`} className="vq-card vq-card--interactive vq-mc-lcard">
+                                    {rel.category && <span className="vq-badge vq-badge--accent" style={{ alignSelf: 'flex-start' }}>{rel.category}</span>}
+                                    <h3 className="vq-mc-lcard__title" style={{ marginTop: 'var(--vq-space-2)' }}>{rel.title}</h3>
+                                    {rel.excerpt && <p className="vq-mc-lcard__text">{rel.excerpt}</p>}
+                                    <div className="vq-mc-lcard__foot">
+                                        <span>{rel.date}</span>
+                                        <span className="vq-mc-lcard__cta">Read guide <ArrowRight size={15} aria-hidden="true" /></span>
+                                    </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
                 </section>
             )}
-
-            {/* Prose styling */}
-            <style>{`
-                .vq-prose {
-                    font-size: 17px;
-                    line-height: 1.75;
-                    color: var(--vq-text-2);
-                    font-family: var(--vq-font-sans);
-                }
-                .vq-prose h2 {
-                    font-size: 26px;
-                    font-weight: 700;
-                    letter-spacing: -0.02em;
-                    color: var(--vq-text);
-                    margin-top: 48px;
-                    margin-bottom: 18px;
-                    font-family: var(--vq-font-display);
-                }
-                .vq-prose h3 {
-                    font-size: 21px;
-                    font-weight: 600;
-                    color: var(--vq-text);
-                    margin-top: 36px;
-                    margin-bottom: 14px;
-                    font-family: var(--vq-font-display);
-                }
-                .vq-prose p {
-                    margin-bottom: 24px;
-                    max-width: none;
-                }
-                .vq-prose ul, .vq-prose ol {
-                    margin-bottom: 24px;
-                    padding-left: 24px;
-                }
-                .vq-prose ul { list-style: disc; }
-                .vq-prose ol { list-style: decimal; }
-                .vq-prose li {
-                    margin-bottom: 8px;
-                    line-height: 1.65;
-                }
-                .vq-prose blockquote {
-                    border-left: 4px solid var(--vq-accent);
-                    padding: 16px 24px;
-                    margin: 28px 0;
-                    background: var(--vq-surface);
-                    border-radius: 0 var(--vq-r-md) var(--vq-r-md) 0;
-                    color: var(--vq-text);
-                    font-style: italic;
-                }
-                .vq-prose table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 32px 0;
-                    font-size: 15px;
-                }
-                .vq-prose th, .vq-prose td {
-                    padding: 12px 16px;
-                    border: 1px solid var(--vq-line);
-                    text-align: left;
-                }
-                .vq-prose th {
-                    background: var(--vq-surface-raised);
-                    color: var(--vq-text);
-                    font-weight: 600;
-                }
-                .vq-prose code {
-                    font-family: var(--vq-font-numeric);
-                    font-size: 14px;
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    background: var(--vq-surface-raised);
-                    border: 1px solid var(--vq-line);
-                    color: var(--vq-accent-text);
-                }
-                .vq-prose pre {
-                    padding: 20px;
-                    border-radius: var(--vq-r-lg);
-                    background: var(--vq-surface-raised);
-                    border: 1px solid var(--vq-line);
-                    overflow-x: auto;
-                    margin: 28px 0;
-                }
-                .vq-prose pre code {
-                    padding: 0;
-                    border: 0;
-                    background: transparent;
-                }
-                .vq-prose strong {
-                    color: var(--vq-text);
-                    font-weight: 600;
-                }
-            `}</style>
         </MarketingLayout>
     );
 }

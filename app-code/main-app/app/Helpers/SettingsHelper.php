@@ -27,8 +27,20 @@ class SettingsHelper
      */
     public static function all(): array
     {
+        // Explicit queries, never the user-dependent HasTenant fallback: the
+        // 'settings:global' key is shared by every request outside a store
+        // (and by HandleInertiaRequests, which caches the platform defaults
+        // under it). Before 2026-09-10 whichever signed-in user filled it first
+        // decided its content — so one store's timezone and language could be
+        // applied to other people's requests for five minutes.
         return Cache::remember(static::cacheKey(), 300, function () {
-            return Setting::all()->pluck('value', 'key')->toArray();
+            if (app()->bound('current.tenant') && app('current.tenant')?->id) {
+                return Setting::withoutGlobalScopes()
+                    ->where('tenant_id', app('current.tenant')->id)
+                    ->pluck('value', 'key')->toArray();
+            }
+
+            return Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
         });
     }
 

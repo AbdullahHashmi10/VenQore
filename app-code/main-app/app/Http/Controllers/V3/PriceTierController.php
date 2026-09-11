@@ -27,6 +27,9 @@ class PriceTierController extends Controller
 
     public function store(Request $request, string $productId)
     {
+        // The product must belong to this store.
+        DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->where('id', $productId)->firstOrFail();
+
         $validated = $request->validate([
             'min_qty'    => ['required', 'numeric', 'min:0'],
             'max_qty'    => ['nullable', 'numeric', 'gt:min_qty'],
@@ -55,8 +58,11 @@ class PriceTierController extends Controller
             ]);
         }
 
-        DB::table('product_price_tiers')->where('product_price_tiers.tenant_id', app('current.tenant')->id)->insert([
+        // tenant_id must be in the row itself — a where() before insert() is ignored,
+        // and a tier stored with tenant_id NULL is invisible to SaleService (S-042).
+        DB::table('product_price_tiers')->insert([
             'id'         => Str::uuid()->toString(),
+            'tenant_id'  => app('current.tenant')->id,
             'product_id' => $productId,
             'min_qty'    => $validated['min_qty'],
             'max_qty'    => $validated['max_qty'] ?? null,

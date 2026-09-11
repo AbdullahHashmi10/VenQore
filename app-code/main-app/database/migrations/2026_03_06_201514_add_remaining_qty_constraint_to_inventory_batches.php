@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        // MariaDB (Laravel's separate `mariadb` driver — used in production and tests)
+        // enforces CHECK constraints since 10.2, exactly like MySQL 8.0.16+.
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
             // Fix any existing broken data first
             DB::table('inventory_batches')->where('remaining_qty', '<', 0)->update(['remaining_qty' => 0]);
             
@@ -44,7 +46,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
             DB::statement('ALTER TABLE inventory_batches DROP CONSTRAINT chk_remaining_qty_positive');
         } elseif (DB::connection()->getDriverName() === 'sqlite') {
             DB::statement('DROP TRIGGER IF EXISTS chk_remaining_qty_positive_update');

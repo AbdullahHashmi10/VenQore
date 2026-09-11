@@ -81,6 +81,7 @@ class TenantMiddleware
             ];
             app()->instance('current.tenant',     $tenant);
             app()->instance('current.membership', $membership);
+            $this->applyStoreClock();
             $request->route()->forgetParameter('store_slug');
             // Skip straight to sharing store data (no limit/subscription checks).
             goto share_store_data;
@@ -182,6 +183,7 @@ class TenantMiddleware
         // Everything downstream is unchanged.
         app()->instance('current.tenant',     $tenant);
         app()->instance('current.membership', $membership);
+        $this->applyStoreClock();
 
         $request->route()->forgetParameter('store_slug');
 
@@ -317,5 +319,27 @@ class TenantMiddleware
             $next->addDay();
         }
         return $next->toIso8601String();
+    }
+
+    /**
+     * Run the rest of a store request on the store's clock and language.
+     * ConfigureSystem runs earlier (web group) when no store is bound yet, so
+     * it can only apply the platform defaults.
+     */
+    private function applyStoreClock(): void
+    {
+        try {
+            $tz = \App\Helpers\SettingsHelper::get('timezone');
+            if (is_string($tz) && in_array($tz, \DateTimeZone::listIdentifiers(), true)) {
+                config(['app.timezone' => $tz]);
+                date_default_timezone_set($tz);
+            }
+            $locale = \App\Helpers\SettingsHelper::get('language');
+            if (is_string($locale) && preg_match('/^[a-z]{2}(_[A-Z]{2})?$/', $locale)) {
+                app()->setLocale($locale);
+            }
+        } catch (\Throwable $e) {
+            // Settings table unavailable (installer, tests without it): keep defaults.
+        }
     }
 }

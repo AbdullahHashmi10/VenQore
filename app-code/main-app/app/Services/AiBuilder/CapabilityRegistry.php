@@ -353,7 +353,7 @@ class CapabilityRegistry
 
         // 2. Domain & Trade Triggers
         $domainKeywords = [
-            'pharmacy'    => ['pharmacy', 'medicine', 'drugstore', 'میڈیکل', 'فارمیسی', 'chemist', 'medical store', 'دوا'],
+            'pharmacy'    => ['pharmacy', 'medicine', 'drugstore', 'میڈیکل', 'فارمیسی', 'chemist', 'medical store', 'دوا', 'صيدلية', 'أدوية'],
             'repairs'     => ['repair', 'fixing', 'مرمت', 'technician', 'phone fix', 'mobile repair', 'workshop'],
             'clothing'    => ['clothing', 'garment', 'apparel', 'boutique', 'کپڑے', 'fashion', 'shoes', 'بوتیک'],
             'restaurant'  => ['restaurant', 'cafe', 'food', 'dining', 'کھانا', 'bistro', 'burger', 'pizza', 'ریسٹورنٹ', 'ہوٹل'],
@@ -361,7 +361,7 @@ class CapabilityRegistry
             'grocery'     => ['grocery', 'supermarket', 'mart', 'کرانہ', 'جنرل اسٹور'],
             'wholesale'   => ['wholesale', 'distributor', 'ہول سیل', 'bulk supply'],
             'salon'       => ['salon', 'spa', 'beauty', 'سلیون', 'barber', 'haircut', 'پارلر'],
-            'electronics' => ['electronics', 'mobile shop', 'computers', 'موبائل شاپ', 'الیکٹرانکس'],
+            'electronics' => ['electronics', 'mobile shop', 'computers', 'موبائل شاپ', 'موبائل کی دکان', 'الیکٹرانکس'],
         ];
 
         foreach ($domainKeywords as $trade => $keywords) {
@@ -401,16 +401,8 @@ class CapabilityRegistry
         $tradeMatrix = $this->tradeMatrix();
         $candidates = [];
 
-        // Determine detected trade from known facts
-        $detectedTrade = null;
-        foreach (array_keys($knownFacts) as $factKey) {
-            if (str_starts_with($factKey, 'trade:')) {
-                $detectedTrade = substr($factKey, 6);
-                break;
-            }
-        }
-
-        $tradeConfig = $detectedTrade && isset($tradeMatrix[$detectedTrade]) ? $tradeMatrix[$detectedTrade] : null;
+        // Combined profile of every trade in the known facts
+        $tradeConfig = $this->combinedTradeConfig($knownFacts, $tradeMatrix);
 
         // Build context string from all known facts
         $factKeys = array_keys($knownFacts);
@@ -486,6 +478,45 @@ class CapabilityRegistry
     }
 
     /**
+     * Every trade the owner described counts (a phone shop that also does
+     * repairs is both): priority questions are the UNION of those trades',
+     * and a domain or capability is ruled out only when EVERY detected trade
+     * rules it out. Before 2026-09-10 only the first trade was used, so the
+     * second trade's priority questions were never asked or counted.
+     *
+     * @return array{priority_caps: string[], forbidden_domains: string[], auto_reject: string[]}|null
+     */
+    private function combinedTradeConfig(array $facts, array $tradeMatrix): ?array
+    {
+        $trades = [];
+        foreach ($facts as $factKey => $fact) {
+            if (!str_starts_with((string) $factKey, 'trade:')) {
+                continue;
+            }
+            if (is_array($fact) && array_key_exists('value', $fact) && !$fact['value']) {
+                continue;
+            }
+            $trade = substr((string) $factKey, 6);
+            if (isset($tradeMatrix[$trade])) {
+                $trades[] = $tradeMatrix[$trade];
+            }
+        }
+
+        if (!$trades) {
+            return null;
+        }
+
+        $pick = fn (string $field) => array_map(fn ($t) => $t[$field] ?? [], $trades);
+        $intersect = fn (array $lists) => count($lists) === 1 ? $lists[0] : array_values(array_intersect(...$lists));
+
+        return [
+            'priority_caps'     => array_values(array_unique(array_merge(...$pick('priority_caps')))),
+            'forbidden_domains' => $intersect($pick('forbidden_domains')),
+            'auto_reject'       => $intersect($pick('auto_reject')),
+        ];
+    }
+
+    /**
      * CALCULATES SYSTEM READINESS CONFIDENCE (Deterministic).
      *
      * @param array<string, array> $facts
@@ -502,15 +533,7 @@ class CapabilityRegistry
         $all = $this->allCapabilities();
         $tradeMatrix = $this->tradeMatrix();
 
-        $detectedTrade = null;
-        foreach (array_keys($facts) as $factKey) {
-            if (str_starts_with($factKey, 'trade:')) {
-                $detectedTrade = substr($factKey, 6);
-                break;
-            }
-        }
-
-        $tradeConfig = $detectedTrade && isset($tradeMatrix[$detectedTrade]) ? $tradeMatrix[$detectedTrade] : null;
+        $tradeConfig = $this->combinedTradeConfig($facts, $tradeMatrix);
 
         $totalHighImpactPoints = 0;
         $resolvedHighImpactPoints = 0;

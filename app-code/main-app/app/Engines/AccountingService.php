@@ -15,8 +15,12 @@ use Illuminate\Support\Facades\Log;
  *   Rule 1 — Every entry has ≥ 2 items (two sides)
  *   Rule 2 — SUM(debit) = SUM(credit) on every entry
  *   Rule 3 — Entries never deleted — only reversed via reverseEntry()
- *   Rule 4 — This method does NOT open its own DB::transaction()
- *            Caller MUST wrap in DB::transaction()
+ *   Rule 4 — createEntry() is atomic on its own (DB::transaction; a
+ *            savepoint when the caller already holds one). All accounts are
+ *            resolved and the entry is validated BEFORE any row is written,
+ *            so a failure never leaves a line-less journal_entries row.
+ *            Callers still wrap multi-entry business operations in their
+ *            own DB::transaction() so the whole operation is atomic.
  *   Rule 5 — reference_type + reference_id are mandatory (every entry has a source)
  *
  * WIRING:
@@ -52,6 +56,29 @@ class AccountingService
 
 
     /**
+     * Balance (debit − credit) of one account for the entries that carry a
+     * given reference — e.g. one employee's outstanding advance on 1350, where
+     * every advance, salary deduction and settlement references the employee
+     * id. Reversed entries are excluded. Ledger reads belong here, not in
+     * controllers (Golden A08).
+     */
+    public function referenceBalance(string $accountCode, string $reference): float
+    {
+        $tenantId = $this->getTenantId();
+
+        return round((float) (DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('je.tenant_id', $tenantId)
+            ->where('a.tenant_id', $tenantId)
+            ->where('a.code', $accountCode)
+            ->where('je.reference', $reference)
+            ->where('je.is_reversed', 0)
+            ->selectRaw('COALESCE(SUM(ji.debit) - SUM(ji.credit), 0) as balance')
+            ->value('balance') ?? 0), 2);
+    }
+
+    /**
      * Create a balanced double-entry journal entry.
      */
     public function createEntry(array $data, array $lines): JournalEntry
@@ -76,6 +103,11 @@ class AccountingService
             $normalizedLines = array_filter($normalizedLines, function($line) {
                 return $line['debit'] > 0 || $line['credit'] > 0;
             });
+        }
+
+        // Rule 1 — an entry with no lines at all would be a line-less header.
+        if (count($normalizedLines) === 0) {
+            throw new \InvalidArgumentException('Journal entry must have at least one line.');
         }
 
         $totalDebit  = array_sum(array_column($normalizedLines, 'debit'));
@@ -105,83 +137,110 @@ class AccountingService
 
         $tenantId = $this->getTenantId();
 
-        $entry = JournalEntry::create([
-            'id'               => \Illuminate\Support\Str::uuid()->toString(),
-            'tenant_id'        => $tenantId,
-            'date'             => $data['entry_date'] ?? $data['date'] ?? now()->toDateString(),
-            'reference_type'   => $data['reference_type'] ?? 'manual',
-            'reference'        => $data['reference_id'] ?? $data['reference'] ?? null,
-            'description'      => $data['description']      ?? null,
-            'narration'        => $data['narration']        ?? null,
-            'approved_by'      => $data['approved_by']      ?? null,
-            'idempotency_key'  => $data['idempotency_key']  ?? null,
-            'party_id'         => $data['party_id']         ?? null,
-            'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? 1,
-            'is_reversed'      => $data['is_reversed']      ?? 0,
-            'reversed_by'      => $data['reversed_by']      ?? null,
-            'is_reversal'      => $data['is_reversal']      ?? false,
-            'reverses_entry_id'=> $data['reverses_entry_id'] ?? null,
-            'source_type'      => $data['source_type']      ?? null,
-            'source_id'        => $data['source_id']        ?? null,
-        ]);
-
-        $partyIds = [];
-
+        // ── Resolve EVERY account before writing anything ────────────────
+        // Previously the header was inserted first and accounts were resolved
+        // line-by-line afterwards, so a missing account code threw half-way
+        // and (for any caller not wrapped in a transaction) left an orphan,
+        // line-less journal_entries row behind. Resolution is now a pure read
+        // phase; the write phase below cannot fail on a missing account.
+        $resolvedLines = [];
         foreach ($normalizedLines as $line) {
             if (!empty($line['account_code'])) {
-                $account = Account::where('tenant_id', $tenantId)->where('code', $line['account_code'])->first();
-                if (!$account) {
+                $accountId = Account::where('tenant_id', $tenantId)
+                    ->where('code', $line['account_code'])
+                    ->value('id');
+                if (!$accountId) {
                     throw new \InvalidArgumentException("Account code not found for this tenant: {$line['account_code']}");
                 }
-                $accountId = $account->id;
             } else {
                 $accountId = $line['account_id']
                     ?? throw new \InvalidArgumentException('Each journal line must have either account_code or account_id.');
-                $account = Account::find($accountId);
+                $exists = Account::withoutGlobalScopes()
+                    ->where('tenant_id', $tenantId)
+                    ->where('id', $accountId)
+                    ->exists();
+                if (!$exists) {
+                    throw new \InvalidArgumentException("Account id not found for this tenant: {$accountId}");
+                }
             }
+            $line['__account_id'] = $accountId;
+            $resolvedLines[] = $line;
+        }
 
-            JournalItem::create([
+        // ── Write phase: header + lines + snapshots + audit, atomically ──
+        // createEntry() is atomic on its own: callers that already hold a
+        // transaction get a savepoint (rolled back on failure), callers that
+        // don't can no longer leave a partial entry behind.
+        return DB::transaction(function () use ($data, $lines, $resolvedLines, $tenantId, $totalDebit, $totalCredit) {
+            $entry = JournalEntry::create([
                 'id'               => \Illuminate\Support\Str::uuid()->toString(),
                 'tenant_id'        => $tenantId,
-                'journal_entry_id' => $entry->id,
-                'account_id'       => $accountId,
-                'party_id'         => $line['party_id'] ?? null,
-                'debit'            => $line['debit'],
-                'credit'           => $line['credit'],
+                'date'             => $data['entry_date'] ?? $data['date'] ?? now()->toDateString(),
+                'reference_type'   => $data['reference_type'] ?? 'manual',
+                'reference'        => $data['reference_id'] ?? $data['reference'] ?? null,
+                'description'      => $data['description']      ?? null,
+                'narration'        => $data['narration']        ?? null,
+                'approved_by'      => $data['approved_by']      ?? null,
+                'idempotency_key'  => $data['idempotency_key']  ?? null,
+                'party_id'         => $data['party_id']         ?? null,
+                'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? 1,
+                'is_reversed'      => $data['is_reversed']      ?? 0,
+                'reversed_by'      => $data['reversed_by']      ?? null,
+                'is_reversal'      => $data['is_reversal']      ?? false,
+                'reverses_entry_id'=> $data['reverses_entry_id'] ?? null,
+                'source_type'      => $data['source_type']      ?? null,
+                'source_id'        => $data['source_id']        ?? null,
             ]);
 
+            $partyIds = [];
 
-            if (!empty($line['party_id'])) {
-                $partyIds[] = $line['party_id'];
+            foreach ($resolvedLines as $line) {
+                JournalItem::create([
+                    'id'               => \Illuminate\Support\Str::uuid()->toString(),
+                    'tenant_id'        => $tenantId,
+                    'journal_entry_id' => $entry->id,
+                    'account_id'       => $line['__account_id'],
+                    'party_id'         => $line['party_id'] ?? null,
+                    'debit'            => $line['debit'],
+                    'credit'           => $line['credit'],
+                ]);
+
+                if (!empty($line['party_id'])) {
+                    $partyIds[] = $line['party_id'];
+                }
             }
-        }
 
-        if (!empty($data['party_id'])) {
-            $partyIds[] = $data['party_id'];
-        }
+            if (!empty($data['party_id'])) {
+                $partyIds[] = $data['party_id'];
+            }
 
-        foreach (array_unique($partyIds) as $partyId) {
-            $this->partyService->rebuildSnapshot($partyId);
-        }
+            foreach (array_unique($partyIds) as $partyId) {
+                $this->partyService->rebuildSnapshot($partyId);
+            }
 
-        Log::info('V3 Journal entry created', [
-            'entry_id'       => $entry->id,
-            'reference_type' => $data['reference_type'] ?? null,
-            'total_debit'    => $totalDebit,
-            'total_credit'   => $totalCredit,
-            'lines_count'    => count($lines),
-        ]);
+            Log::info('V3 Journal entry created', [
+                'entry_id'       => $entry->id,
+                'reference_type' => $data['reference_type'] ?? null,
+                'total_debit'    => $totalDebit,
+                'total_credit'   => $totalCredit,
+                'lines_count'    => count($lines),
+            ]);
 
-        app(\App\Engines\AuditService::class)->log(
-            event:     'journal_posted',
-            modelType: 'journal_entry',
-            modelId:   $entry->id,
-            after:     ['reference_type' => $data['reference_type'] ?? 'manual',
-                        'reference_id'   => $data['reference_id'] ?? $data['reference'] ?? null,
-                        'description'    => $data['description'] ?? null]
-        );
+            app(\App\Engines\AuditService::class)->log(
+                event:     'journal_posted',
+                modelType: 'journal_entry',
+                modelId:   $entry->id,
+                after:     ['reference_type' => $data['reference_type'] ?? 'manual',
+                            'reference_id'   => $data['reference_id'] ?? $data['reference'] ?? null,
+                            'description'    => $data['description'] ?? null,
+                            // Task 6.9: the approver is part of the audit record for
+                            // every entry (null when the transaction needs none).
+                            'approved_by'    => $entry->approved_by,
+                            'user_id'        => $entry->user_id]
+            );
 
-        return $entry;
+            return $entry;
+        });
     }
 
     public function reverseEntry(int|string $journalEntryId, string $reason): JournalEntry
@@ -313,7 +372,7 @@ class AccountingService
      *   2. Sets normal_balance correctly based on account type.
      *   3. Used by SaleController, PurchaseController, ExpenseController.
      */
-    public function getAccountByCode(string $code, ?string $defaultName = null, string $type = 'asset'): Account
+    public function getAccountByCode(string $code, ?string $defaultName = null, string $type = 'asset', ?string $normalBalance = null): Account
     {
         $tenantId = $this->getTenantId();
 
@@ -325,7 +384,9 @@ class AccountingService
                 'code'           => $code,
                 'name'           => $defaultName ?? "Account {$code}",
                 'type'           => $type,
-                'normal_balance' => in_array($type, ['asset', 'expense']) ? 'debit' : 'credit',
+                // $normalBalance overrides the type-derived side for contra
+                // accounts (e.g. 1510 Accumulated Depreciation: asset, credit).
+                'normal_balance' => $normalBalance ?? (in_array($type, ['asset', 'expense']) ? 'debit' : 'credit'),
                 'is_active'      => true,
             ]);
     }

@@ -23,7 +23,11 @@ class SaleController extends Controller
         try {
             $lock->block(5); // Wait up to 5 seconds to acquire the lock
 
-            $sale = $this->sales->post($request->validated());
+            // The approval PIN is verified by StoreSaleRequest; it never travels further.
+            $sale = $this->sales->post(\Illuminate\Support\Arr::except($request->validated(), ['approval_pin']));
+        } catch (\App\Exceptions\BelowCostSaleException $e) {
+            // S-011: surface as a validation error on approved_by (was an unhandled 500).
+            throw \Illuminate\Validation\ValidationException::withMessages(['approved_by' => $e->getMessage()]);
         } finally {
             $lock->release();
         }

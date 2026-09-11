@@ -217,7 +217,7 @@ export default function LabelSheetTool({
             )}
 
             {/* Slim control bar — everything that ISN'T part of the label grid itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="w-56">
                     <Select value={preset} onChange={setPreset} options={presetOptions} />
                     <p className="text-2xs text-ink-muted mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
@@ -231,18 +231,18 @@ export default function LabelSheetTool({
                         max={maxCopies}
                         value={copies}
                         onChange={(e) => setCopies(Math.max(1, Math.min(maxCopies, Number(e.target.value) || 1)))}
-                        className="w-16 px-2 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-sm text-ink font-mono focus:outline-none focus:border-brand-400/60 transition-colors"
+                        className="w-16 px-2 py-1.5 rounded-lg vq-tool-inset text-sm text-ink font-mono focus:outline-none focus:border-brand-400/60 transition-colors"
                     />
                 </div>
 
-                <div className="flex bg-sunken dark:bg-white/[0.06] p-1 rounded-xl shrink-0">
+                <div className="flex bg-sunken p-1 rounded-xl shrink-0">
                     <button
                         type="button"
                         onClick={() => setMode('grid')}
                         className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                             mode === 'grid'
                                 ? 'bg-surface text-ink shadow-sm'
-                                : 'text-ink-secondary hover:text-ink dark:hover:text-white'
+                                : 'text-ink-secondary hover:text-ink'
                         }`}
                     >
                         Grid ({rows.length})
@@ -253,7 +253,7 @@ export default function LabelSheetTool({
                         className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 ${
                             mode === 'bulk'
                                 ? 'bg-surface text-ink shadow-sm'
-                                : 'text-ink-secondary hover:text-ink dark:hover:text-white'
+                                : 'text-ink-secondary hover:text-ink'
                         }`}
                     >
                         <ClipboardPaste size={12} /> Bulk Paste
@@ -266,7 +266,7 @@ export default function LabelSheetTool({
                         type="button"
                         onClick={buildPdf}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -275,7 +275,7 @@ export default function LabelSheetTool({
             </div>
 
             {mode === 'bulk' ? (
-                <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7 mb-4">
+                <div className="vq-tool-panel vq-tool-panel--pad mb-4">
                     <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">
                         Paste Labels — separate each label with a <span className="text-brand-500">blank line</span>
                     </label>
@@ -284,7 +284,7 @@ export default function LabelSheetTool({
                         value={bulkText}
                         onChange={(e) => setBulkText(e.target.value)}
                         placeholder={BULK_PLACEHOLDER}
-                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-xs font-mono leading-relaxed focus:outline-none focus:border-brand-400/60 transition-colors"
+                        className="w-full px-3 py-2 rounded-xl vq-tool-inset text-ink text-xs font-mono leading-relaxed focus:outline-none focus:border-brand-400/60 transition-colors"
                     />
                     <p className="text-1xs text-ink-muted mt-2">
                         Within a block: line 1, line 2, line 3 (up to 3 lines become one label). Add a trailing <code className="font-mono text-brand-500">x10</code> line to repeat that label 10 times.
@@ -294,7 +294,7 @@ export default function LabelSheetTool({
                             type="button"
                             onClick={parseBulk}
                             disabled={parsing || !bulkText.trim()}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-40"
+                            className="vq-btn vq-btn--primary"
                         >
                             {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                             Parse & Load Into Grid
@@ -304,7 +304,7 @@ export default function LabelSheetTool({
             ) : (
                 /* THE LABEL SHEET GRID — this is the editor, styled to mirror
                    resources/views/tools/pdf/label-sheet.blade.php exactly */
-                <div className="rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white p-4 sm:p-6 mb-2">
+                <div className="vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white p-4 sm:p-6 mb-2">
                     <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
                         {rows.map((row) => (
                             <div
@@ -354,7 +354,7 @@ export default function LabelSheetTool({
                                             type="button"
                                             onClick={() => updateRow(row.id, 'align', 'left')}
                                             title="Left align"
-                                            className={`p-1 rounded transition-colors ${row.align === 'left' ? 'bg-brand-500 text-white' : 'text-neutral-300 hover:text-ink-muted'}`}
+                                            className={`p-1 rounded transition-colors ${row.align === 'left' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted hover:text-ink'}`}
                                         >
                                             <AlignLeft size={11} />
                                         </button>
@@ -362,7 +362,7 @@ export default function LabelSheetTool({
                                             type="button"
                                             onClick={() => updateRow(row.id, 'align', 'center')}
                                             title="Center align"
-                                            className={`p-1 rounded transition-colors ${row.align === 'center' ? 'bg-brand-500 text-white' : 'text-neutral-300 hover:text-ink-muted'}`}
+                                            className={`p-1 rounded transition-colors ${row.align === 'center' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted hover:text-ink'}`}
                                         >
                                             <AlignCenter size={11} />
                                         </button>
@@ -370,7 +370,7 @@ export default function LabelSheetTool({
                                             type="button"
                                             onClick={() => updateRow(row.id, 'bold_first', !row.bold_first)}
                                             title="Bold first line"
-                                            className={`p-1 rounded transition-colors ${row.bold_first ? 'bg-brand-500 text-white' : 'text-neutral-300 hover:text-ink-muted'}`}
+                                            className={`p-1 rounded transition-colors ${row.bold_first ? 'bg-accent-fill text-accent-on' : 'text-ink-muted hover:text-ink'}`}
                                         >
                                             <Bold size={11} />
                                         </button>

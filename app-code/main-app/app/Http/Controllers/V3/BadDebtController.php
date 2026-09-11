@@ -16,9 +16,22 @@ class BadDebtController extends Controller
     public function store(Request $request, string $saleId)
     {
         $validated = $request->validate([
-            'approved_by' => ['required', 'string', 'exists:users,id'],
-            'reason'      => ['required', 'string', 'max:500'],
+            'approved_by'  => ['required', 'string', 'exists:users,id'],
+            'approval_pin' => ['nullable', 'string', 'max:20'],
+            'reason'       => ['required', 'string', 'max:500'],
         ]);
+
+        // B26 "requires manager approval": approved_by must be a verified
+        // manager/admin/owner of THIS store (any user id used to pass).
+        $problem = \App\Support\ManagerApproval::check(
+            $validated['approved_by'],
+            $validated['approval_pin'] ?? null,
+            app('current.tenant')->id,
+            auth()->id()
+        );
+        if ($problem !== null) {
+            return back()->withErrors(['approved_by' => $problem]);
+        }
 
         $sale = DB::table('sales')->where('sales.tenant_id', app('current.tenant')->id)->where('id', $saleId)->firstOrFail();
 
@@ -54,6 +67,10 @@ class BadDebtController extends Controller
             // DR 6700 Bad Debt Expense = outstanding
             // CR 1200 Accounts Receivable = outstanding
             // approved_by is mandatory — manager gate
+            // 6700 is not part of a new store's default chart — provision it
+            // instead of failing with "Account code not found".
+            $badDebt = $this->accounting->getAccountByCode('6700', 'Bad Debt Expense', 'expense');
+
             $this->accounting->createEntry([
                 'date'     => now()->toDateString(),
                 'reference_type' => 'bad_debt',
@@ -65,7 +82,7 @@ class BadDebtController extends Controller
                 'approved_by'    => $validated['approved_by'],
             ], [
                 [
-                    'account_code' => '6700',
+                    'account_id'   => $badDebt->id,
                     'debit'        => $outstanding,
                     'credit'       => 0,
                 ],

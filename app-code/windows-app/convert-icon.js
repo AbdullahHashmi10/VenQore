@@ -1,52 +1,29 @@
-const fs = require('fs');
+const fs = require('node:fs');
+const path = require('node:path');
 const png2icons = require('png2icons');
-const Jimp = require('jimp');
-const path = require('path');
 
-async function convert(inputPath, outputPath, isFavicon = false) {
+// png2icons resizes/pads local PNGs without the obsolete Jimp dependency tree.
+function convert(inputPath, outputPath) {
+    const output = png2icons.createICO(fs.readFileSync(inputPath), png2icons.BICUBIC, 0, true, true);
+    if (!output) throw new Error(`Could not convert PNG: ${inputPath}`);
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, output);
+    return output;
+}
+
+if (require.main === module) {
     try {
-        console.log(`Reading ${inputPath}...`);
-        const image = await Jimp.read(inputPath);
-
-        console.log('Original Size:', image.bitmap.width, 'x', image.bitmap.height);
-
-        const size = isFavicon ? 64 : 256;
-        const canvas = new Jimp(size, size, 0x00000000);
-
-        image.scaleToFit(size, size);
-
-        const x = (size - image.bitmap.width) / 2;
-        const y = (size - image.bitmap.height) / 2;
-
-        console.log(`Compositing at ${x},${y}...`);
-        canvas.composite(image, x, y);
-
-        const buffer = await canvas.getBufferAsync(Jimp.MIME_PNG);
-
-        console.log(`Creating ${isFavicon ? 'Favicon' : 'ICO'}...`);
-        const output = isFavicon
-            ? png2icons.createICO(buffer, png2icons.BICUBIC, 0, false)
-            : png2icons.createICO(buffer, png2icons.BICUBIC, 0, false);
-
-        if (output) {
-            fs.writeFileSync(outputPath, output);
-            console.log(`Success! ${outputPath} created.`);
-        } else {
-            console.error(`Failed: png2icons returned null for ${outputPath}.`);
+        const input = process.argv[2] || path.join(__dirname, 'assets/icon.png');
+        const outputs = process.argv[3]
+            ? [path.resolve(process.argv[3])]
+            : ['assets/icon.ico', 'build/icon.ico'].map(p => path.join(__dirname, p));
+        for (const output of outputs) {
+            convert(input, output);
+            console.log(`Created ${output}`);
         }
-    } catch (e) {
-        console.error('Error:', e);
+    } catch (error) {
+        console.error(error.message);
+        process.exitCode = 1;
     }
 }
-
-async function run() {
-    // 1. Create App Icon
-    await convert('assets/icon.png', 'assets/icon.ico');
-    await convert('assets/icon.png', 'build/icon.ico');
-
-    // 2. Create Web Favicon (assuming public directory is at ../public)
-    const faviconPath = path.resolve(__dirname, '../public/favicon.ico');
-    await convert('assets/icon.png', faviconPath, true);
-}
-
-run();
+module.exports = { convert };

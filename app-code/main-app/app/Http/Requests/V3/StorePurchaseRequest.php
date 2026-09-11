@@ -66,9 +66,14 @@ class StorePurchaseRequest extends FormRequest
     /** Shared by StorePurchaseRequest and UpdatePurchaseRequest. */
     public static function sharedPurchaseRules(): array
     {
+        // Every id below must belong to the CURRENT store (bare exists: rules
+        // accepted another store's warehouse / products / variants, and the
+        // account ids were not checked at all).
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+
         return [
             'supplier_id'      => ['required', 'string', self::supplierExistsRule()],
-            'warehouse_id'     => ['nullable', 'string', 'exists:warehouses,id'],
+            'warehouse_id'     => ['nullable', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
             'payment_method'   => ['required', 'in:cash,credit'],
 
             /* A purchase used to be paid in full or not at all: 'cash' meant
@@ -76,7 +81,7 @@ class StorePurchaseRequest extends FormRequest
                "half now, half on the 30th" — which is how a great many
                suppliers are actually settled. These two make that sayable. */
             'amount_paid'        => ['nullable', 'numeric', 'min:0'],
-            'payment_account_id' => ['nullable', 'string'],
+            'payment_account_id' => ['nullable', 'string', self::paymentAccountRule($tenantId)],
             'supplier_invoice' => ['nullable', 'string', 'max:100'],
 
             // ── legacy parity: header fields ─────────────────────────────────
@@ -88,8 +93,8 @@ class StorePurchaseRequest extends FormRequest
             'workflow_status'  => ['nullable', 'in:pending,partial,received'],
 
             // ── legacy parity: line fields ───────────────────────────────────
-            'items.*.product_id'      => ['required', 'string', 'exists:products,id'],
-            'items.*.variant_id'      => ['nullable', 'string', 'exists:product_variants,id'],
+            'items.*.product_id'      => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'items.*.variant_id'      => ['nullable', 'string', Rule::exists('product_variants', 'id')->where('tenant_id', $tenantId)],
             'items.*.qty'             => ['required', 'numeric', 'min:0.0001'],
             'items.*.unit_cost'       => ['required', 'numeric', 'min:0'],
             'items.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
@@ -100,12 +105,32 @@ class StorePurchaseRequest extends FormRequest
             'extras'                  => ['nullable', 'array'],
             'extras.*.amount'         => ['required_with:extras', 'numeric', 'min:0'],
             'extras.*.method'         => ['nullable', 'in:value,quantity,manual'],
-            'extras.*.category_id'    => ['nullable', 'string'],
+            'extras.*.category_id'    => ['nullable', 'string', Rule::exists('expense_categories', 'id')->where('tenant_id', $tenantId)],
             'extras.*.description'    => ['nullable', 'string', 'max:255'],
-            'extras.*.bank_account_id' => ['nullable', 'string'],
+            'extras.*.bank_account_id' => ['nullable', 'string', Rule::exists('bank_accounts', 'id')->where('tenant_id', $tenantId)],
 
             'zero_cost_acknowledged'  => ['boolean'],
         ];
+    }
+
+    /**
+     * payment_account_id is either the picker's 'CHEQUE' sentinel or the id of
+     * one of THIS store's ledger accounts.
+     */
+    private static function paymentAccountRule(int|string|null $tenantId): \Closure
+    {
+        return function (string $attribute, $value, \Closure $fail) use ($tenantId) {
+            if (is_string($value) && strtoupper($value) === 'CHEQUE') {
+                return;
+            }
+            $exists = DB::table('accounts')
+                ->where('tenant_id', $tenantId)
+                ->where('id', $value)
+                ->exists();
+            if (! $exists) {
+                $fail('The selected payment account is invalid.');
+            }
+        };
     }
 
     /**

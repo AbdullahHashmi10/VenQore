@@ -33,6 +33,8 @@ import SettingsDrawer from '@/NewPos/SettingsDrawer';
 import SetupWizardModal from '@/NewPos/SetupWizardModal';
 import LayoutPickerModal from '@/NewPos/LayoutPickerModal';
 import PrintService from '@/Utils/PrintService';
+import ApprovalSheet from '@/NewPos/ApprovalSheet';
+import { parseApprovalRequired, withApproval } from '@/Domain/pos/approval';
 
 export const HUES = ['teal', 'sky', 'lime', 'coral', 'butter', 'plum'];
 
@@ -332,6 +334,9 @@ export default function NewPos({
 
     /* ── Sheets, Drawers, Overlays ────────────────────────────────────────── */
     const [sheet, setSheet] = useState(null);
+    // S-011 / S-044: checkout refused with code=approval_required → { info, opts }
+    const [approval, setApproval] = useState(null);
+    const [approvalBusy, setApprovalBusy] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [setupWizardOpen, setSetupWizardOpen] = useState(() => !prefs?.wizardCompleted);
     const [layoutPickerOpen, setLayoutPickerOpen] = useState(false);
@@ -654,7 +659,9 @@ export default function NewPos({
         } else {
             try {
                 const url = storeSlug ? route('store.sales.store', { store_slug: storeSlug }) : '/sales';
-                const res = await axios.post(url, payload);
+                // The approval (manager id + PIN) rides only on this online post, never the offline queue.
+                const res = await axios.post(url, withApproval(payload, opts.approval));
+                setApproval(null);
                 const recordedSale = res.data?.sale || {
                     id: res.data?.sale_id || Date.now(),
                     invoice_number: res.data?.reference || `INV-${Date.now()}`,
@@ -685,6 +692,13 @@ export default function NewPos({
                 // Refresh stock counts in background
                 fetchFeatured();
             } catch (err) {
+                // S-011 / S-044: below cost or over the discount limit — ask a manager, then resubmit.
+                const approvalInfo = parseApprovalRequired(err);
+                if (approvalInfo) {
+                    setApproval({ info: approvalInfo, opts: { ...opts, skipOverpay: true } });
+                    return false;
+                }
+                setApproval(null);
                 const errorMsg = err.response?.data?.message || err.response?.data?.errors?.customer_id?.[0] || 'Checkout failed. Please review values.';
                 toast(errorMsg, { tone: 'bad', ms: 5000 });
                 return false;
@@ -1658,6 +1672,22 @@ export default function NewPos({
                     onNewBank={() => setSheet('newBank')}
                     narrow={narrow}
                 />
+
+                {approval && <ApprovalSheet
+                    request={approval.info}
+                    storeSlug={storeSlug}
+                    busy={approvalBusy}
+                    narrow={narrow}
+                    onClose={() => setApproval(null)}
+                    onSubmit={async (appr) => {
+                        setApprovalBusy(true);
+                        try {
+                            await complete({ ...approval.opts, approval: appr });
+                        } finally {
+                            setApprovalBusy(false);
+                        }
+                    }}
+                />}
 
                 <OverpaySheet
                     open={sheet === 'overpay'}

@@ -435,7 +435,7 @@ class InstallerController extends Controller
         Log::info("Installer Step: " . $request->input('step'));
         Log::info("Has File 'backup': " . ($request->hasFile('backup') ? 'Yes' : 'No'));
         Log::info("Files: ", $request->allFiles());
-        Log::info("Inputs: ", $request->all());
+        Log::info("Installer inputs received", ["keys" => array_keys($request->except(["db_password", "password", "password_confirmation", "license_key"]))]);
         Log::info("PHP Upload Max: " . ini_get('upload_max_filesize'));
         Log::info("PHP Post Max: " . ini_get('post_max_size'));
 

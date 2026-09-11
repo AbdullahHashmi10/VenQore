@@ -29,10 +29,16 @@ class GoogleDriveAuthController extends Controller
         }
 
         try {
-            // Encode active tenant context in OAuth state parameter to survive dynamic redirects
-            $statePayload = encrypt([
-                'tenant_id' => $tenant->id,
-                'slug' => $tenant->slug
+            // SEC-12 (2026-09-10): random, single-use, session-bound, expiring state.
+            // The old state was an encrypted {tenant_id, slug} with no nonce, expiry
+            // or actor binding, so it stayed valid after the member lost access.
+            $statePayload = \Illuminate\Support\Str::random(48);
+            $request->session()->put('gdrive_oauth', [
+                'nonce'      => hash('sha256', $statePayload),
+                'tenant_id'  => $tenant->id,
+                'slug'       => $tenant->slug,
+                'user_id'    => $request->user()?->id,
+                'expires_at' => now()->addMinutes(10)->getTimestamp(),
             ]);
 
             return Socialite::driver('google')
@@ -56,22 +62,35 @@ class GoogleDriveAuthController extends Controller
      */
     public function handleGoogleCallback(Request $request)
     {
-        // 1. Recover tenant ID and context from state parameter
-        $state = $request->input('state');
-        if (!$state) {
-            return redirect()->route('hub')->with('error', 'Invalid Google state response.');
+        // 1. SEC-12: verify the one-time state against THIS browser session and user.
+        $state   = (string) $request->input('state', '');
+        $pending = $request->session()->pull('gdrive_oauth'); // consumed whatever happens
+
+        if ($state === '' || !is_array($pending) || !hash_equals((string) ($pending['nonce'] ?? ''), hash('sha256', $state))) {
+            return redirect()->route('hub')->with('error', 'Google connection could not be verified. Please start again from Backup settings.');
+        }
+        if (($pending['expires_at'] ?? 0) < now()->getTimestamp()) {
+            return redirect()->route('hub')->with('error', 'The Google connection request expired. Please start again.');
+        }
+        if (!$request->user() || (string) $request->user()->id !== (string) ($pending['user_id'] ?? '')) {
+            return redirect()->route('login')->with('error', 'Please sign in with the account that started the Google connection.');
         }
 
         try {
-            $decrypted = decrypt($state);
-            $tenantId = $decrypted['tenant_id'] ?? null;
-            $slug = $decrypted['slug'] ?? null;
+            $tenantId = $pending['tenant_id'] ?? null;
+            $slug     = $pending['slug'] ?? null;
 
             if (!$tenantId || !$slug) {
                 return redirect()->route('hub')->with('error', 'Google OAuth context was lost.');
             }
 
             $tenant = Tenant::findOrFail($tenantId);
+
+            // Re-check, at callback time, that this user may still manage backups here.
+            if (!$this->canManageBackups($request->user(), $tenant)) {
+                Log::warning('Google Drive link refused: user no longer authorised', ['tenant_id' => $tenant->id, 'user_id' => $request->user()->id]);
+                return redirect()->route('hub')->with('error', 'You no longer have permission to manage backups for that store.');
+            }
 
             // 2. Complete token exchange via Socialite
             $googleUser = Socialite::driver('google')
@@ -175,5 +194,27 @@ class GoogleDriveAuthController extends Controller
             Log::error("Failed to update Google Drive settings for store {$tenant->id}: " . $e->getMessage());
             return back()->with('error', 'Failed to save settings: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * SEC-12: active owner/admin-level membership with admin.data_recovery.
+     */
+    private function canManageBackups($user, Tenant $tenant): bool
+    {
+        if ($user->isPlatformAdmin()) {
+            return true;
+        }
+        $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
+        if (!$membership) {
+            return false;
+        }
+        $perms = (!empty($membership->permissions) && is_array($membership->permissions))
+            ? $membership->permissions
+            : config('permissions.' . ($membership->role ?? 'viewer'), []);
+
+        return in_array('admin.data_recovery', $perms, true);
     }
 }

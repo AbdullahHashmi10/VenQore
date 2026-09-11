@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
-import { MousePointerClick, X } from 'lucide-react';
+import { MousePointerClick, X, ChevronDown } from 'lucide-react';
 import MarketingLayout, { SectionLabel } from '../../Shared/MarketingLayout';
 import ToolsSidebar from './ToolsSidebar';
 import HousePromo from './HousePromo';
@@ -39,18 +39,13 @@ function EditHintBanner() {
     };
 
     return (
-        <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-400/20 text-sm text-brand-700 dark:text-brand-300">
-            <MousePointerClick size={16} className="shrink-0" />
-            <span className="flex-1">
-                <strong className="font-bold">This preview is the editor.</strong> Click any text below — the business name, dates, line items, anything — to change it. What you see is exactly what downloads.
+        <div className="vq-tools__hint" role="note">
+            <MousePointerClick size={18} aria-hidden="true" />
+            <span>
+                <strong>This preview is the editor.</strong> Click any text below — the business name, dates, line items, anything — to change it. What you see is exactly what downloads.
             </span>
-            <button
-                type="button"
-                onClick={dismiss}
-                aria-label="Dismiss"
-                className="shrink-0 p-1 rounded-lg hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-colors"
-            >
-                <X size={14} />
+            <button type="button" onClick={dismiss} aria-label="Dismiss">
+                <X size={16} />
             </button>
         </div>
     );
@@ -59,24 +54,17 @@ function EditHintBanner() {
 function FAQItem({ q, a }) {
     const [isExpanded, setIsExpanded] = useState(false);
     return (
-        <div className="p-6 rounded-2xl bg-surface border border-line transition-all duration-normal shadow-sm">
+        <div className="vq-tools__faq-item" data-open={isExpanded ? 'true' : 'false'}>
             <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between text-left font-bold text-ink group focus:outline-none"
+                aria-expanded={isExpanded}
+                className="vq-tools__faq-q"
             >
-                <span className="pr-4 text-base">{q}</span>
-                <span className={`transform transition-transform duration-normal text-ink-secondary group-hover:text-brand-500 shrink-0`}>
-                    <svg className={`w-5 h-5 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </span>
+                <span>{q}</span>
+                <ChevronDown size={20} aria-hidden="true" />
             </button>
-            <div className={`grid transition-all duration-normal ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100 mt-4 pt-4 border-t border-line' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
-                <div className="overflow-hidden">
-                    <p className="text-sm text-ink-secondary leading-relaxed">{a}</p>
-                </div>
-            </div>
+            {isExpanded && <p className="vq-tools__faq-a">{a}</p>}
         </div>
     );
 }
@@ -85,8 +73,8 @@ function FAQItem({ q, a }) {
  * ToolShell — shared page anatomy for every /tools/* page.
  *
  * Layout: [ left tool nav ] [ tool content ] [ house promo rail ]
- *  - lg: sidebar appears
- *  - xl: promo rail appears
+ *  - ≥1024px: sidebar appears
+ *  - ≥1440px: promo rail appears (only once the tool still gets ≥720px)
  *  - below lg: sidebar becomes a drawer, promo hidden — the tool itself
  *    always gets full width on a phone.
  *
@@ -112,33 +100,25 @@ export default function ToolShell({
 }) {
     return (
         <MarketingLayout title={title} description={metaDescription}>
-            <div className="pt-36 lg:pt-40 pb-28 px-4 sm:px-6 lg:px-8">
-                <div className={`mx-auto flex flex-col lg:flex-row gap-8 lg:gap-10 xl:gap-12 items-start ${wide ? 'max-w-[96rem]' : 'max-w-7xl'}`}>
+            <div className={`vq-tools ${wide ? 'vq-tools--wide' : ''}`}>
+                <div className={`vq-tools__layout ${showPromo ? 'vq-tools__layout--promo' : ''}`}>
                     <ToolsSidebar groups={toolGroups} currentSlug={currentSlug} />
 
-                    <div className="flex-1 min-w-0 w-full">
-                        {eyebrow && <SectionLabel>{eyebrow}</SectionLabel>}
+                    <div className="vq-tools__main">
+                        <header className="vq-tools__head">
+                            {eyebrow && <SectionLabel>{eyebrow}</SectionLabel>}
+                            <h1 className="vq-h1">{h1}</h1>
+                            {answer && <p className="vq-lede vq-tools__answer">{answer}</p>}
+                        </header>
 
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 text-ink">
-                            {h1}
-                        </h1>
+                        {wide && currentSlug && <EditHintBanner />}
 
-                        {answer && (
-                            <p className="text-base sm:text-lg text-ink-secondary leading-relaxed mb-10 max-w-3xl">
-                                {answer}
-                            </p>
-                        )}
-
-                        {wide && <EditHintBanner />}
-
-                        <div className="mb-16">{children}</div>
+                        <div className="vq-tool-ui">{children}</div>
 
                         {faqs.length > 0 && (
-                            <section className="mb-16">
-                                <h2 className="text-2xl font-bold mb-6 text-ink">
-                                    Frequently asked questions
-                                </h2>
-                                <div className="space-y-4">
+                            <section className="vq-tools__block" aria-labelledby="tool-faq">
+                                <h2 id="tool-faq" className="vq-h2">Frequently asked questions</h2>
+                                <div className="vq-tools__faq">
                                     {faqs.map((qa) => (
                                         <FAQItem key={qa.q} q={qa.q} a={qa.a} />
                                     ))}
@@ -147,20 +127,14 @@ export default function ToolShell({
                         )}
 
                         {cta && (
-                            <section className="mb-16 p-8 sm:p-10 rounded-2xl bg-gradient-to-br from-brand-500/10 via-brand-500/5 to-transparent border border-brand-500/20 text-center">
-                                <p className="text-xl font-bold text-ink mb-2">{cta.headline}</p>
-                                {cta.subtext && <p className="text-sm sm:text-base text-ink-secondary mb-8 max-w-2xl mx-auto leading-relaxed">{cta.subtext}</p>}
-                                <div className="flex items-center justify-center gap-4 flex-wrap">
-                                    <Link
-                                        href="/build-workspace"
-                                        className="vq-btn vq-btn--primary"
-                                    >
+                            <section className="vq-tools__block vq-card vq-card--xl vq-tools__cta">
+                                <h2 className="vq-h2">{cta.headline}</h2>
+                                {cta.subtext && <p>{cta.subtext}</p>}
+                                <div className="vq-row vq-gap-3 vq-wrap vq-tools__cta-actions">
+                                    <Link href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg">
                                         Build your system free
                                     </Link>
-                                    <Link
-                                        href="/demo"
-                                        className="vq-btn vq-btn--secondary"
-                                    >
+                                    <Link href="/demo" className="vq-btn vq-btn--secondary vq-btn--lg">
                                         Try the live demo
                                     </Link>
                                 </div>
@@ -168,15 +142,11 @@ export default function ToolShell({
                         )}
 
                         {related.length > 0 && (
-                            <section>
-                                <h2 className="text-lg font-bold text-ink mb-4">Related tools</h2>
-                                <div className="flex flex-wrap gap-3">
+                            <section className="vq-tools__block" aria-labelledby="tool-related">
+                                <h2 id="tool-related" className="vq-h3">Related tools</h2>
+                                <div className="vq-row vq-gap-3 vq-wrap">
                                     {related.map((tool) => (
-                                        <Link
-                                            key={tool.href}
-                                            href={tool.href}
-                                            className="px-5 py-2.5 rounded-full bg-surface border border-line text-sm font-semibold text-ink-secondary hover:text-ink hover:border-brand-400/40 transition-colors shadow-sm"
-                                        >
+                                        <Link key={tool.href} href={tool.href} className="vq-chip">
                                             {tool.label}
                                         </Link>
                                     ))}

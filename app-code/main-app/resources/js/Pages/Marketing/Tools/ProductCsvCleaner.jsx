@@ -211,7 +211,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                 )}
 
                 {/* Step 1: Input */}
-                <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-4">
+                <div className="vq-tool-panel vq-tool-panel--pad space-y-4">
                     <div className="flex items-center justify-between">
                         <h3 className="text-sm font-semibold text-ink dark:text-ink">1. Upload or paste your CSV</h3>
                         <span className="text-2xs text-ink-muted dark:text-ink-muted">Up to {maxRows.toLocaleString()} rows, 5MB file max</span>
@@ -221,14 +221,14 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                         <button
                             type="button"
                             onClick={() => setMode('paste')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'paste' ? 'bg-brand-600 text-white' : 'bg-sunken dark:bg-white/[0.06] text-ink-secondary dark:text-ink-secondary'}`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'paste' ? 'bg-accent-fill text-accent-on' : 'bg-sunken text-ink-secondary dark:text-ink-secondary'}`}
                         >
                             Paste CSV text
                         </button>
                         <button
                             type="button"
                             onClick={() => setMode('file')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'file' ? 'bg-brand-600 text-white' : 'bg-sunken dark:bg-white/[0.06] text-ink-secondary dark:text-ink-secondary'}`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${mode === 'file' ? 'bg-accent-fill text-accent-on' : 'bg-sunken text-ink-secondary dark:text-ink-secondary'}`}
                         >
                             Upload file
                         </button>
@@ -241,7 +241,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                                 onChange={(e) => setCsvText(e.target.value)}
                                 placeholder={SAMPLE_CSV}
                                 rows={8}
-                                className="w-full bg-white dark:bg-app border border-line dark:border-line rounded-xl p-3 text-xs text-ink dark:text-ink font-mono focus:outline-none focus:border-brand-500 resize-none"
+                                className="w-full bg-white dark:bg-app border border-line dark:border-line rounded-xl p-3 text-xs text-ink font-mono focus:outline-none focus:border-brand-500 resize-none"
                             />
                             <button type="button" onClick={() => setCsvText(SAMPLE_CSV)} className="text-xs text-brand-500 hover:underline">
                                 Load a messy sample file
@@ -281,7 +281,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                         type="button"
                         onClick={handleParse}
                         disabled={loading}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                         Analyze & Preview
@@ -290,7 +290,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
 
                 {/* Step 2: Column mapping */}
                 {result && (
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-4">
+                    <div className="vq-tool-panel vq-tool-panel--pad space-y-4">
                         <h3 className="text-sm font-semibold text-ink dark:text-ink">2. Confirm column mapping</h3>
                         <p className="text-xs text-ink-muted dark:text-ink-muted">We auto-detected which column is which. Fix any that guessed wrong.</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -313,7 +313,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
 
                 {/* Step 3: Report */}
                 {summary && (
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 space-y-4">
+                    <div className="vq-tool-panel vq-tool-panel--pad space-y-4">
                         <h3 className="text-sm font-semibold text-ink dark:text-ink">3. Cleanup report</h3>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -407,7 +407,7 @@ export default function ProductCsvCleanerTool({ maxRows = 5000, fields = [], too
                                 type="button"
                                 onClick={handleDownload}
                                 disabled={downloading}
-                                className="flex items-center gap-2 py-3 px-8 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all shadow-lg "
+                                className="vq-btn vq-btn--primary vq-btn--lg"
                             >
                                 {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                 Download Cleaned CSV

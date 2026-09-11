@@ -23,6 +23,9 @@ class Terminal extends Model
         'paired_at',
     ];
 
+    /** SEC-04: never serialise the device credential hash. */
+    protected $hidden = ['device_secret_hash'];
+
     protected $casts = [
         'last_heartbeat_at' => 'datetime',
         'is_active' => 'boolean',

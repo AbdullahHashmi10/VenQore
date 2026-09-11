@@ -80,6 +80,8 @@ class FullRouteSweepTest extends TestCase
         'register'         => 'Feature/Auth/RegistrationTest',
         'password'         => 'Feature/Auth/PasswordResetTest + PasswordUpdateTest',
         'verification'     => 'Feature/Auth/EmailVerificationTest',
+        'otp'              => 'Emailed sign-in code (AUTH-01). Feature/Security/EmailOtpAuthTest + Auth/AuthenticationTest + Auth/RegistrationTest',
+        '2fa'              => 'TOTP two-factor setup/verify. Feature/Security/PreLaunchSecurityTest',
         'account'          => 'Feature/ProfileTest',
         'profile'          => 'Feature/ProfileTest',
         'staff'            => 'Feature/Module16/StaffAttendanceTest',

@@ -205,7 +205,7 @@ export default function PriceTagTool({
             )}
 
             {/* Slim control bar — everything that ISN'T part of the tag sheet itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="w-56">
                     <Select value={preset} onChange={setPreset} options={presetOptions} />
                     <p className="text-2xs text-ink-muted mt-1 leading-snug">Prints portrait, sized to the label grid you choose above.</p>
@@ -221,7 +221,7 @@ export default function PriceTagTool({
                         max={maxCopies}
                         value={copies}
                         onChange={(e) => setCopies(Math.max(1, Math.min(maxCopies, Number(e.target.value) || 1)))}
-                        className="w-16 px-2 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-sm focus:outline-none focus:border-brand-400/60 transition-colors"
+                        className="w-16 px-2 py-2 rounded-xl vq-tool-inset text-ink text-sm focus:outline-none focus:border-brand-400/60 transition-colors"
                     />
                 </div>
                 <label className="flex items-center gap-1.5 cursor-pointer">
@@ -239,14 +239,14 @@ export default function PriceTagTool({
                     </div>
                 )}
 
-                <div className="flex bg-sunken dark:bg-white/[0.06] p-1 rounded-xl shrink-0">
+                <div className="flex bg-sunken p-1 rounded-xl shrink-0">
                     <button
                         type="button"
                         onClick={() => setMode('manual')}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                             mode === 'manual'
                                 ? 'bg-surface text-ink shadow-sm'
-                                : 'text-ink-secondary hover:text-ink dark:hover:text-white'
+                                : 'text-ink-secondary hover:text-ink'
                         }`}
                     >
                         Grid ({rows.length})
@@ -257,7 +257,7 @@ export default function PriceTagTool({
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                             mode === 'bulk'
                                 ? 'bg-surface text-ink shadow-sm'
-                                : 'text-ink-secondary hover:text-ink dark:hover:text-white'
+                                : 'text-ink-secondary hover:text-ink'
                         }`}
                     >
                         Bulk Paste
@@ -270,7 +270,7 @@ export default function PriceTagTool({
                         type="button"
                         onClick={buildPdf}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -280,7 +280,7 @@ export default function PriceTagTool({
 
             {mode === 'bulk' ? (
                 /* Bulk paste — alternate input method, populates the grid on parse */
-                <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7 space-y-4">
+                <div className="vq-tool-panel vq-tool-panel--pad space-y-4">
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2">
                             Paste CSV Lines (Format: <code className="font-mono text-brand-500">name,price,was_price,sku,badge</code>)
@@ -290,7 +290,7 @@ export default function PriceTagTool({
                             value={bulkText}
                             onChange={(e) => setBulkText(e.target.value)}
                             placeholder="Cotton Crew T-Shirt,19.99,29.99,TSH-001,SALE&#10;Slim Fit Denim Jeans,49.99,,JNS-002,NEW"
-                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-xs font-mono leading-relaxed focus:outline-none focus:border-brand-400/60 transition-colors"
+                            className="w-full px-3 py-2 rounded-xl vq-tool-inset text-ink text-xs font-mono leading-relaxed focus:outline-none focus:border-brand-400/60 transition-colors"
                         />
                     </div>
                     <div className="flex items-center justify-between">
@@ -299,7 +299,7 @@ export default function PriceTagTool({
                             type="button"
                             onClick={parseBulk}
                             disabled={parsing || !bulkText.trim()}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-40"
+                            className="vq-btn vq-btn--primary"
                         >
                             {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                             Parse & Load Grid
@@ -308,7 +308,7 @@ export default function PriceTagTool({
                 </div>
             ) : (
                 /* THE TAG SHEET — this grid of cards is the editor */
-                <div className="rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white p-4 sm:p-6">
+                <div className="vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white p-4 sm:p-6">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         {rows.map((row) => {
                             const onSale = !!row.was_price;

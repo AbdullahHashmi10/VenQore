@@ -1,0 +1,8 @@
+{
+    "scope": "isolated controller probes, not full HTTP penetration tests",
+    "probes": [
+        "CONFIRMED at controller layer: actor 7 can delete unrelated global user 900; no membership check occurs. Route access still requires store admin permissions.",
+        "CONFIRMED at resolver layer: saved store 42 accepted without any active-membership lookup. This is not an HTTP-level revocation test.",
+        "CONFIRMED at controller layer: unauthenticated, unregistered device can create activity attributed to a supplied store slug (HTTP 200). Persistence was mocked."
+    ]
+}

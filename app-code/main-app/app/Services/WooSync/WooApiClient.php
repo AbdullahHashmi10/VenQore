@@ -338,6 +338,10 @@ class WooApiClient
 
     protected function get(string $endpoint, array $params = []): ?array
     {
+        if (!\App\Support\OutboundUrlGuard::isPublicHttpUrl($this->baseUrl)) {
+            \Illuminate\Support\Facades\Log::warning('[WooSync] Blocked request to non-public site URL', ['connection_id' => $this->connection->id ?? null]);
+            return null;
+        }
         $this->throttle();
 
         try {
@@ -368,6 +372,10 @@ class WooApiClient
 
     protected function post(string $endpoint, array $data = []): ?array
     {
+        if (!\App\Support\OutboundUrlGuard::isPublicHttpUrl($this->baseUrl)) {
+            \Illuminate\Support\Facades\Log::warning('[WooSync] Blocked request to non-public site URL', ['connection_id' => $this->connection->id ?? null]);
+            return null;
+        }
         $this->throttle();
 
         try {
@@ -398,6 +406,10 @@ class WooApiClient
 
     protected function put(string $endpoint, array $data = []): ?array
     {
+        if (!\App\Support\OutboundUrlGuard::isPublicHttpUrl($this->baseUrl)) {
+            \Illuminate\Support\Facades\Log::warning('[WooSync] Blocked request to non-public site URL', ['connection_id' => $this->connection->id ?? null]);
+            return null;
+        }
         $this->throttle();
 
         try {
@@ -428,6 +440,10 @@ class WooApiClient
 
     protected function delete(string $endpoint, array $params = []): ?array
     {
+        if (!\App\Support\OutboundUrlGuard::isPublicHttpUrl($this->baseUrl)) {
+            \Illuminate\Support\Facades\Log::warning('[WooSync] Blocked request to non-public site URL', ['connection_id' => $this->connection->id ?? null]);
+            return null;
+        }
         $this->throttle();
 
         try {

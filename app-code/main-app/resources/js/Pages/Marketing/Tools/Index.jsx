@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
+import { ArrowRight } from 'lucide-react';
 import ToolShell from './Shared/ToolShell';
 import { InlineLink } from '../Shared/MarketingLayout';
 
@@ -16,53 +17,38 @@ export default function ToolsIndex({ toolGroups = [] }) {
             toolGroups={toolGroups}
             cta={{
                 headline: "Every document here is one a built system would have issued for you.",
-                subtext: "Describe your business once. VenQore assembles it from 140+ modules — you keep the ones you use — and every invoice, label and count sheet comes out of live data instead of a blank form.",
+                subtext: "Describe your business once. VenQore assembles it from 46 modules — you keep the ones you use — and every invoice, label and count sheet comes out of live data instead of a blank form.",
             }}
             wide
         >
-            <div className="space-y-12">
+            <div className="vq-tools-hub">
                 {toolGroups.map((group) => (
-                    <section key={group.key}>
-                        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-muted mb-5">
+                    <section key={group.key} className="vq-tools-hub__group" aria-labelledby={`tools-${group.key}`}>
+                        <h2 id={`tools-${group.key}`} className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">
                             {group.label}
                         </h2>
-                        <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div className="vq-grid vq-grid--2 vq-mt-5">
                             {group.tools.map((tool) => {
                                 const isLive = tool.status === 'live' && tool.href;
 
                                 const inner = (
                                     <>
-                                        <div className="flex items-start justify-between gap-3 mb-2.5">
-                                            <h3 className={`text-base font-bold ${isLive ? 'text-ink group-hover:text-brand-500' : 'text-ink-muted'} transition-colors`}>
-                                                {tool.name}
-                                            </h3>
-                                            {!isLive && (
-                                                <span className="text-3xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sunken border border-line text-ink-muted shrink-0 mt-0.5">
-                                                    Soon
-                                                </span>
-                                            )}
+                                        <div className="vq-row vq-gap-3" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <h3 className="vq-tools-hub__name">{tool.name}</h3>
+                                            {isLive
+                                                ? <ArrowRight size={18} className="vq-tools-hub__arrow" aria-hidden="true" />
+                                                : <span className="vq-badge vq-badge--soon">Soon</span>}
                                         </div>
-                                        <p className={`text-sm leading-relaxed ${isLive ? 'text-ink-secondary' : 'text-ink-muted'}`}>
-                                            {tool.description}
-                                        </p>
+                                        <p className="vq-tools-hub__desc">{tool.description}</p>
                                     </>
                                 );
 
-                                const base = 'p-6 rounded-2xl border transition-all duration-normal group';
-
                                 return isLive ? (
-                                    <Link
-                                        key={tool.slug}
-                                        href={tool.href}
-                                        className={`${base} bg-surface border-line hover:border-brand-400/40 hover:shadow-md`}
-                                    >
+                                    <Link key={tool.slug} href={tool.href} className="vq-card vq-card--interactive vq-tools-hub__card">
                                         {inner}
                                     </Link>
                                 ) : (
-                                    <div
-                                        key={tool.slug}
-                                        className={`${base} bg-surface/50 border-line opacity-60 cursor-default`}
-                                    >
+                                    <div key={tool.slug} className="vq-card vq-card--flat vq-tools-hub__card vq-tools-hub__card--soon">
                                         {inner}
                                     </div>
                                 );
@@ -72,12 +58,12 @@ export default function ToolsIndex({ toolGroups = [] }) {
                 ))}
             </div>
 
-            <p className="mt-12 text-sm text-ink-muted">
+            <p className="vq-small vq-text-2 vq-mt-12">
                 {liveCount} {liveCount === 1 ? 'tool is' : 'tools are'} live now — the rest are on the way. No ads, no trackers beyond basic analytics.
             </p>
 
             {/* In-copy contextual links */}
-            <div className="mt-8 p-6 sm:p-8 rounded-2xl bg-surface border border-line text-sm text-ink-secondary leading-relaxed shadow-sm">
+            <div className="vq-card vq-card--xl vq-mt-8 vq-tools-hub__links">
                 Doing this by hand every day? These tools are the manual version of what a built system
                 does on its own. Describe your business to{' '}
                 <InlineLink href="/blueprint">Blueprint</InlineLink> and it proposes the modules you need —{' '}

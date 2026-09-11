@@ -1,8 +1,10 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import MarketingLayout, { RevealOnScroll, MagneticButton, SectionLabel, GlassCard, InlineLink, RelatedPages } from '../Shared/MarketingLayout';
+import MarketingLayout, { InlineLink, RelatedPages } from '../Shared/MarketingLayout';
+import BusinessTypes from '@/Components/Site/BusinessTypes';
+import { BUSINESS_TYPE_CLAIM } from '@/Components/Site/sectorCatalog';
 import { solutionsHubList } from '../../../Data/solutions';
-import { ArrowRight, Layers, Pill, Smartphone, ShoppingCart, Truck, Shirt, Building2, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Layers, Pill, Smartphone, ShoppingCart, Truck, Shirt, Building2, ShieldCheck } from 'lucide-react';
 
 const iconMap = {
     Pill,
@@ -18,91 +20,77 @@ export default function Index() {
         <MarketingLayout>
             <Head>
                 <title>Industry Solutions — Industry-Specific Business Operating Systems | VenQore</title>
-                <meta name="description" content="Explore VenQore's industry-tailored POS and ERP operating systems. Built for Pharmacy batch/expiry, Electronics IMEI tracking, Grocery, Wholesale, and Multi-Store retail." />
+                <meta name="description" content="VenQore assembles business software for 85+ kinds of business in five sectors — services and repairs, retail, food and hospitality, wholesale and light manufacturing — on one double-entry ledger." />
             </Head>
 
-            {/* Hero Section */}
-            <section className="relative pt-36 lg:pt-44 pb-20 px-6 max-w-7xl mx-auto text-center">
-                <RevealOnScroll direction="up">
-                    <SectionLabel icon={Layers} text="INDUSTRY OPERATING SYSTEMS" />
-                    <h1 className="text-4xl md:text-6xl font-bold text-ink tracking-tight mb-6 mt-4">
-                        Software Built for Your Specific Trade
-                    </h1>
-                    <p className="text-lg md:text-xl text-ink-secondary max-w-3xl mx-auto mb-10 leading-relaxed font-normal">
-                        Generic POS systems force your business into a standard cash register box. VenQore delivers trade-specific controls —
-                        from <InlineLink href="/solutions/pharmacy">pharmacy expiry tracking</InlineLink> to{''}
-                        <InlineLink href="/solutions/electronics-store">smartphone IMEI logs</InlineLink> — backed by{''}
-                        <InlineLink href="/features/accounting">auditor-grade accounting</InlineLink> and{''}
-                        <InlineLink href="/features/inventory-management">FIFO inventory</InlineLink>.
-                    </p>
-                </RevealOnScroll>
-            </section>
-
-            {/* Solutions Grid */}
-            <section className="pb-24 px-6 max-w-7xl mx-auto">
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {solutionsHubList.map((sol, i) => {
-                        const Icon = iconMap[sol.iconName] || Layers;
-                        return (
-                            <RevealOnScroll key={sol.slug} delay={i * 0.1} direction="up">
-                                <GlassCard className="h-full flex flex-col justify-between p-8 rounded-2xl border border-line hover:border-brand-500/40 transition-all duration-slow">
-                                    <div>
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500">
-                                                <Icon className="w-6 h-6" />
-                                            </div>
-                                            <span className={`text-2xs font-bold uppercase px-3 py-1 rounded-full ${sol.badgeColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : sol.badgeColor === 'indigo' ? 'bg-brand-500/10 text-brand-500 border border-brand-500/20' : 'bg-neutral-500/10 text-ink-muted border border-line-strong'}`}>
-                                                {sol.badge}
-                                            </span>
-                                        </div>
-                                        <h3 className="text-xl font-bold text-ink mb-3">
-                                            {sol.name}
-                                        </h3>
-                                        <p className="text-ink-secondary text-sm leading-relaxed mb-6">
-                                            {sol.desc}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <Link
-                                            href={sol.href}
-                                            className="inline-flex items-center text-sm font-bold text-brand-600 dark:text-brand-400 hover:text-brand-500 group"
-                                        >
-                                            Explore {sol.name} <ArrowRight className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
-                                        </Link>
-                                    </div>
-                                </GlassCard>
-                            </RevealOnScroll>
-                        );
-                    })}
-                </div>
-            </section>
-
-            {/* Proof Guarantee */}
-            <section className="py-20 px-6 bg-neutral-900 text-white rounded-2xl max-w-7xl mx-auto mb-24">
-                <div className="max-w-4xl mx-auto text-center">
-                    {/* This panel is permanently dark in both themes, so its
-                        contents keep dark-mode colours — no light partners. */}
-                    <ShieldCheck className="w-12 h-12 text-emerald-400 mx-auto mb-6" />
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                        One Ledger Core. Every Industry Capability.
-                    </h2>
-                    <p className="text-neutral-300 text-base md:text-lg mb-8 leading-relaxed">
-                        No matter your trade, every transaction updates the same verified double-entry General Ledger — the
-                        engine behind <InlineLink href="/features/accounting" className="text-emerald-300 decoration-emerald-400/40">VenQore's accounting</InlineLink> and{''}
-                        <InlineLink href="/features/inventory-management" className="text-emerald-300 decoration-emerald-400/40">FIFO inventory</InlineLink>.
-                        Guarded by eight correctness laws that run against every reading, your reports match your money down to the cent.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-4">
-                        <MagneticButton href="/demo" variant="primary">
-                            Try Live Demo — No Signup
-                        </MagneticButton>
-                        <MagneticButton href="/pricing" variant="ghost">
-                            View Pricing Plans
-                        </MagneticButton>
+            {/* Hero */}
+            <section className="vq-section vq-mkt-hero">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 0 }}>
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Industry operating systems</span>
+                        <h1 className="vq-display vq-mt-4">Software built for your specific trade — {BUSINESS_TYPE_CLAIM} of them.</h1>
+                        <p className="vq-lede">
+                            Generic POS systems force your business into a standard cash register box. VenQore delivers trade-specific controls —
+                            from <InlineLink href="/solutions/pharmacy">pharmacy expiry tracking</InlineLink> to{' '}
+                            <InlineLink href="/solutions/electronics-store">smartphone IMEI logs</InlineLink> — backed by{' '}
+                            <InlineLink href="/features/accounting">auditor-grade accounting</InlineLink> and{' '}
+                            <InlineLink href="/features/inventory-management">FIFO inventory</InlineLink>.
+                        </p>
                     </div>
                 </div>
             </section>
 
+            {/* Solutions grid */}
+            <section className="vq-section" style={{ paddingTop: 0 }}>
+                <div className="vq-container">
+                    <div className="vq-grid vq-grid--3">
+                        {solutionsHubList.map((sol) => {
+                            const Icon = iconMap[sol.iconName] || Layers;
+                            const badge = sol.badgeColor === 'emerald' ? 'vq-badge--success' : sol.badgeColor === 'indigo' ? 'vq-badge--accent' : '';
+                            return (
+                                <Link key={sol.slug} href={sol.href} className="vq-card vq-card--xl vq-card--interactive vq-mkt-card">
+                                    <div className="vq-row" style={{ justifyContent: 'space-between' }}>
+                                        <span className="vq-tile__icon" style={{ marginBottom: 0 }}><Icon aria-hidden="true" /></span>
+                                        {sol.badge && <span className={`vq-badge ${badge}`}>{sol.badge}</span>}
+                                    </div>
+                                    <h2 className="vq-tile__title vq-mt-6">{sol.name}</h2>
+                                    <p className="vq-tile__body vq-mt-3">{sol.desc}</p>
+                                    <span className="vq-link vq-mkt-card__cta">
+                                        Explore {sol.name} <ArrowRight size={16} aria-hidden="true" />
+                                    </span>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+
+            {/* All 85+ business types, by sector — the directory the header and landing link to. */}
+            <BusinessTypes variant="directory" className="vq-section--alt" />
+
+            {/* One ledger core */}
+            <section className="vq-section">
+                <div className="vq-container">
+                    <div className="vq-section-head vq-section-head--center" style={{ marginBottom: 0 }}>
+                        <span className="vq-tile__icon" style={{ margin: '0 auto var(--vq-space-5)' }}><ShieldCheck aria-hidden="true" /></span>
+                        <h2 className="vq-h1">One ledger core. Every industry capability.</h2>
+                        <p className="vq-lede">
+                            No matter your trade, every transaction updates the same verified double-entry General Ledger — the
+                            engine behind <InlineLink href="/features/accounting">VenQore's accounting</InlineLink> and{' '}
+                            <InlineLink href="/features/inventory-management">FIFO inventory</InlineLink>.
+                            Guarded by eight correctness laws that run against every reading, your reports match your money down to the cent.
+                        </p>
+                        <div className="vq-row vq-wrap vq-gap-3 vq-mt-8" style={{ justifyContent: 'center' }}>
+                            <Link href="/demo" className="vq-btn vq-btn--primary vq-btn--lg">
+                                Try the live demo — no signup <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                            </Link>
+                            <Link href="/pricing" className="vq-btn vq-btn--secondary vq-btn--lg">View pricing</Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div className="vq-mt-16">
             <RelatedPages
                 title="Explore the platform"
                 items={[
@@ -112,6 +100,7 @@ export default function Index() {
                     { eyebrow: 'Free tools', label: 'Try a tool first', href: '/tools', desc: 'Invoices, barcodes and calculators, no signup.' },
                 ]}
             />
+            </div>
         </MarketingLayout>
     );
 }

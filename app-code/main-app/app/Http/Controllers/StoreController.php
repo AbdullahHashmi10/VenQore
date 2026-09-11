@@ -393,10 +393,8 @@ class StoreController extends Controller
 
     private function generateJoinCode(): string
     {
-        do {
-            $code = 'VQ-' . strtoupper(Str::random(4));
-        } while (Tenant::where('join_code', $code)->exists());
-        return $code;
+        // SEC-11: single high-entropy generator.
+        return Tenant::generateJoinCode();
     }
 
     /** Normalise an arbitrary interval input to one we support. */

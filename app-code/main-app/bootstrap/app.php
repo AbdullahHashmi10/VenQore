@@ -37,6 +37,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\DemoBannerMiddleware::class,
             \App\Http\Middleware\LastModifiedMiddleware::class,
             \App\Http\Middleware\PreventAuthenticatedPageCaching::class,
+            // SEC-05 (2026-09-10): authenticator-app MFA for platform accounts
+            // (and store owners when venqore.require_owner_2fa is on).
+            \App\Http\Middleware\Require2FA::class,
         ]);
 
         $middleware->api(prepend: [
@@ -59,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // global append above; this alias is the escape hatch, not the gate.
             'module'                  => \App\Http\Middleware\EnsureModule::class,
             'turnstile'               => \App\Http\Middleware\VerifyTurnstileToken::class,
+            'store.member'            => \App\Http\Middleware\EnsureActiveStoreMembership::class,
         ]);
 
         // ── Phase 1.7: Tenant-aware Rate Limiting ──────────────────────────
@@ -156,6 +160,12 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof \Illuminate\Validation\ValidationException) return null;
             if ($e instanceof \Illuminate\Auth\AuthenticationException) return null;
             if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) return null;
+            // N37/I01 (2026-09-10): a missing or other-tenant record (findOrFail)
+            // is a 404, not a 500. Laravel converts these to NotFoundHttpException
+            // only AFTER this callback, so they must be let through here.
+            if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) return null;
+            if ($e instanceof \Illuminate\Database\RecordsNotFoundException) return null;
+            if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) return null;
 
             // CSRF Token Mismatch - cleanly reload the page and display error message
             $isCsrfMismatch = $e instanceof \Illuminate\Session\TokenMismatchException || 
@@ -195,7 +205,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // INSTALLER/UPDATER API: Always return the REAL error as JSON
 
             // This overrides Laravel's default "Server Error" page in production
-            if ($request->is('api/installer/*') || $request->is('api/updater/*')) {
+            // SEC-07: never in production — stack details are an information leak.
+            if (($request->is('api/installer/*') || $request->is('api/updater/*')) && ! app()->environment('production')
+                && ! $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 return response()->json([
                     'error' => $e->getMessage(),
                     'file' => basename($e->getFile()) . ':' . $e->getLine(),

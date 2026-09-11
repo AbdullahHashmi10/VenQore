@@ -25,6 +25,11 @@ class DepreciationController extends Controller
             'amount'            => ['required', 'numeric', 'min:0.01'],
         ]);
 
+        // 6600 / 1510 are not in a new store's default chart — provision them
+        // (1510 is a contra-asset: type asset, credit-normal).
+        $this->accounting->getAccountByCode('6600', 'Depreciation Expense', 'expense');
+        $this->accounting->getAccountByCode('1510', 'Accumulated Depreciation', 'asset', 'credit');
+
         $this->accounting->createEntry([
             'date'     => $validated['depreciation_date'],
             'reference_type' => 'depreciation',

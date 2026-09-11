@@ -117,12 +117,18 @@ class PartyController extends Controller
         // Apply Sorting
         $sortBy = $request->input('sort_by', 'name');
         $sortDir = $request->input('sort_dir', 'asc');
+        // Injection sweep (2026-09-10): sort inputs are whitelisted — sort_dir went
+        // straight into orderByRaw() (SQL injection) and unknown columns caused 500s.
+        $sortDir = strtolower((string) $sortDir) === 'asc' ? 'asc' : 'desc';
+        if (!is_string($sortBy) || !preg_match('/^[a-z_]{1,64}$/', $sortBy)) {
+            $sortBy = 'name';
+        }
 
         if ($sortBy === 'balance') {
             // Sort by absolute net position Since UI shows Absolute values
             $query->orderByRaw('ABS(COALESCE(net_ar,0) - COALESCE(net_ap,0)) ' . $sortDir);
         } else {
-            $query->orderBy($sortBy, $sortDir);
+            $query->orderBy(\Illuminate\Support\Facades\Schema::hasColumn('parties', $sortBy) ? 'parties.'.$sortBy : 'parties.name', $sortDir);
         }
 
         $tenantId = $tenant->id;

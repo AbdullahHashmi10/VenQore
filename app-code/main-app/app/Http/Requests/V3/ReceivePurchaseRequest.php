@@ -3,6 +3,7 @@
 namespace App\Http\Requests\V3;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Phase 2 (V3_CONSOLIDATION_PLAN.md) — goods receipt against a purchase.
@@ -38,9 +39,17 @@ class ReceivePurchaseRequest extends FormRequest
 
     public function rules(): array
     {
+        // Every line must be a line of THIS purchase, in this store.
+        $tenantId   = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+        $purchaseId = $this->route('purchase');
+        $lineRule   = Rule::exists('purchase_items', 'id')->where('tenant_id', $tenantId);
+        if (is_string($purchaseId) && $purchaseId !== '') {
+            $lineRule->where('purchase_id', $purchaseId);
+        }
+
         return [
             'items'                      => ['required', 'array', 'min:1'],
-            'items.*.purchase_item_id'   => ['required', 'string', 'exists:purchase_items,id'],
+            'items.*.purchase_item_id'   => ['required', 'string', $lineRule],
             'items.*.receiving_qty'      => ['required', 'numeric', 'min:0'],
             'items.*.batch_number'       => ['nullable', 'string', 'max:100'],
             'items.*.expiry_date'        => ['nullable', 'date'],

@@ -50,6 +50,17 @@ class UomService
 
         $factor = $this->getConversionFactor($productId, $saleUom);
 
+        // A pack of N base units is stored as 1/N (1 PCS = 0.083333 CTN), and
+        // conversion_factor keeps six decimals, so 1/12 is really 0.083333:
+        // dividing by it made 2 CTN = 24.0001 PCS. When the stored factor is
+        // exactly what 1/N rounds to at that precision, it IS 1/N — multiply.
+        if ($factor < 1) {
+            $perPack = round(1 / $factor);
+            if ($perPack >= 2 && abs(round(1 / $perPack, 6) - $factor) < 0.0000005) {
+                return round($saleQty * $perPack, 4);
+            }
+        }
+
         return round($saleQty / $factor, 4);
     }
 

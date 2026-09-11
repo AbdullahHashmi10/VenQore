@@ -29,6 +29,10 @@ class AiRateLimiter
                 $capacity = (float) ($config['capacity'] ?? 10);
                 $refillPerSec = (float) ($config['refill_per_sec'] ?? 0.5);
                 $dayLimit = (int) ($config['day_limit'] ?? 100);
+                $anonDayLimit = self::anonDayLimit($bucketKey);
+                if ($anonDayLimit !== null) {
+                    $dayLimit = $anonDayLimit;
+                }
                 $now = microtime(true);
                 $todayStr = today()->toDateString();
 
@@ -64,7 +68,15 @@ class AiRateLimiter
             $todayStr = today()->toDateString();
             $dayCount = ($row->day_date === $todayStr) ? (int) $row->day_count : 0;
 
-            if ($row->day_limit > 0 && ($dayCount + $cost) > $row->day_limit) {
+            // Anonymous buckets follow the (tighter) anon_day_limit even when the
+            // row was created before that setting existed — config is the authority.
+            $rowDayLimit = (int) $row->day_limit;
+            $anonDayLimit = self::anonDayLimit($bucketKey);
+            if ($anonDayLimit !== null) {
+                $rowDayLimit = $rowDayLimit > 0 ? min($rowDayLimit, $anonDayLimit) : $anonDayLimit;
+            }
+
+            if ($rowDayLimit > 0 && ($dayCount + $cost) > $rowDayLimit) {
                 return ['ok' => false, 'reason' => 'daily_limit'];
             }
 
@@ -86,5 +98,22 @@ class AiRateLimiter
 
             return ['ok' => true];
         }, 3);
+    }
+
+    /**
+     * Per-IP daily cap for anonymous callers. AiGateway keys anonymous traffic
+     * as "{feature}:anon:{ipHash}"; config('ai_limits.features.{feature}.anon_day_limit')
+     * overrides the tenant day_limit for those buckets.
+     */
+    public static function anonDayLimit(string $bucketKey): ?int
+    {
+        $parts = explode(':', $bucketKey);
+        if (count($parts) < 3 || $parts[1] !== 'anon') {
+            return null;
+        }
+
+        $limit = config("ai_limits.features.{$parts[0]}.anon_day_limit");
+
+        return is_numeric($limit) ? (int) $limit : null;
     }
 }

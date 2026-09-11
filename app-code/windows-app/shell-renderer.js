@@ -78,14 +78,35 @@ async function boot() {
 }
 
 // ─── NATIVE LOGIN / SETUP ACTIONS ─────────────────────────────────────────────
+const pairingCodeInput = document.getElementById('pairing-code-input');
+const pairingError     = document.getElementById('pairing-error');
+
+function showPairingError(msg) {
+    if (!pairingError) { alert(msg); return; }
+    pairingError.textContent = msg;
+    pairingError.style.display = msg ? 'block' : 'none';
+}
+
 btnConnectStore.addEventListener('click', async () => {
     const slug = storeSlugInput.value.trim().toLowerCase();
+    const code = (pairingCodeInput ? pairingCodeInput.value : '').trim().toUpperCase();
+    showPairingError('');
     if (!slug) {
-        alert('Please enter a store slug.');
+        showPairingError('Please enter your store slug.');
         return;
     }
-    
-    await ipcRenderer.invoke('amd:save-prefs', { connectedStore: slug });
+
+    // Terminal pairing (2026-09-10): the server only accepts a new terminal
+    // that presents a one-time pairing code; it answers with this terminal's
+    // device secret, which main.js stores and sends on every later call.
+    btnConnectStore.disabled = true;
+    const result = await ipcRenderer.invoke('amd:pair', { slug, code });
+    btnConnectStore.disabled = false;
+    if (!result || !result.ok) {
+        showPairingError((result && result.error) || 'Could not reach VenQore. Check the internet connection and try again.');
+        return;
+    }
+
     loginOverlay.classList.add('hidden');
     loader.classList.remove('hidden');
     statusTitle.innerText = 'Connecting to store...';
@@ -798,3 +819,15 @@ function showUpdateBanner(msg, isReady = false) {
     document.body.appendChild(updateBanner);
     if (!isReady) setTimeout(() => updateBanner?.remove(), 5000);
 }
+
+// Terminal pairing (2026-09-10): the server no longer recognises this terminal
+// (never paired, or its device secret was revoked) — show the pairing screen.
+ipcRenderer.on('status:pairing-required', (_e, info) => {
+    try {
+        loginOverlay.classList.remove('hidden');
+        loader.classList.add('hidden');
+        showPairingError(info && info.code === 'DEVICE_AUTH_FAILED'
+            ? 'This terminal was disconnected by the store. Enter a new pairing code to reconnect.'
+            : 'This terminal is not paired yet. Enter the pairing code from Settings → Terminals.');
+    } catch (err) { /* overlay not ready */ }
+});

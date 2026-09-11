@@ -1,4 +1,5 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, router } from '@inertiajs/react';
+import { QRCodeSVG } from 'qrcode.react';
 import { ArrowRight, KeyRound, Loader2 } from 'lucide-react';
 import AuthLayout from '@/Layouts/AuthLayout';
 import { AuthButton, AuthField, AuthForm, AuthStack } from '@/Components/Auth';
@@ -35,10 +36,36 @@ import { AuthButton, AuthField, AuthForm, AuthStack } from '@/Components/Auth';
  * The key is set in `font-numeric`, the face the design system reserves for
  * characters that get read out and typed in one at a time.
  */
-export default function TwoFactorSetup({ secret, qrCodeUrl }) {
+export default function TwoFactorSetup({ secret, otpauthUrl, recoveryCodes = null, continueUrl = '/' }) {
     const { data, setData, post, processing, errors } = useForm({
         code: '',
     });
+
+    // SEC-05 (2026-09-10): shown once, right after enrolment.
+    if (Array.isArray(recoveryCodes) && recoveryCodes.length > 0) {
+        return (
+            <AuthLayout
+                title="Save your recovery codes"
+                heading="Save your recovery codes"
+                subheading="Two-factor authentication is on"
+                back={false}
+            >
+                <AuthStack gap={6}>
+                    <p className="text-sm text-ink-secondary">
+                        Each code works once if you lose your phone. Store them somewhere safe — they will not be shown again.
+                    </p>
+                    <ul className="grid grid-cols-2 gap-2 rounded-md border border-line bg-surface p-4">
+                        {recoveryCodes.map((code) => (
+                            <li key={code} className="select-all text-center font-numeric text-sm text-ink">{code}</li>
+                        ))}
+                    </ul>
+                    <AuthButton type="button" onClick={() => router.visit(continueUrl)} iconAfter={<ArrowRight size={16} />}>
+                        I have saved them
+                    </AuthButton>
+                </AuthStack>
+            </AuthLayout>
+        );
+    }
 
     const submit = (e) => {
         e.preventDefault();
@@ -61,7 +88,10 @@ export default function TwoFactorSetup({ secret, qrCodeUrl }) {
                     white-alpha wash, so it reads as a panel in both modes —
                     and the code image keeps its own quiet zone. */}
                 <div className="flex flex-col items-center gap-4 rounded-md border border-line bg-surface p-6">
-                    <img src={qrCodeUrl} alt="2FA QR Code" className="h-48 w-48 rounded-md" />
+                    {/* Rendered locally — the secret never leaves this page. */}
+                    <div className="rounded-md bg-white p-2">
+                        <QRCodeSVG value={otpauthUrl} size={176} level="M" aria-label="Authenticator QR code" />
+                    </div>
                     <span className="select-all text-center text-xs text-ink-muted">
                         Key:{' '}
                         <code className="rounded-sm bg-sunken px-2 py-1 font-numeric text-ink">{secret}</code>

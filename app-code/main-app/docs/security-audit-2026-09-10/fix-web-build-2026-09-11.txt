@@ -1,0 +1,1057 @@
+
+> build
+> npm run fonts:check && npm run ds:check && npm run theme:sync && node scratch/audit_ziggy_routes.cjs && vite build && vite build --ssr
+
+
+> fonts:check
+> node scripts/fonts-vendor.mjs --check
+
+  Vendored fonts are up to date.
+
+> ds:check
+> node scripts/ds-adherence.mjs --check && oxlint -c resources/js/Components/ds/_adherence.oxlintrc.json resources/js
+
+  ✓ ds contract current — 28 components.
+
+> theme:sync
+> npm run theme:from-v6 && npm run theme:build
+
+
+> theme:from-v6
+> node resources/js/theme/build/from-v6-tokens.js
+
+[from-v6] resources\js\theme\themes\venqore-v6.js
+[from-v6] 12 ramps (132 stops), 23 palette bindings
+[from-v6] radius.lg = 20px  ·  duration.fast = 120ms  ·  layout.gutter = 24px
+
+> theme:build
+> node resources/js/theme/build/generate.js
+
+[theme] VenQore V6 → resources/css/theme.generated.css (1431 variables, 16 ramps, 23 Tailwind palettes bound, sky/teal/lime via --vq-tw-*)
+=== ZIGGY DEFINED ROUTES: 1070 ===
+
+=== TOTAL ROUTE NAMES USED IN FRONTEND: 571 ===
+
+✅ All route names used in frontend exist in ziggy.js!
+
+=== ROUTES IN ZIGGY BUT NEVER USED IN FRONTEND: 499 ===
+
+✅ Full results written to scratch/ziggy_audit_results.json
+vite v7.3.0 building client environment for production...
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+transforming...
+[vite:css][postcss] start value has mixed support, consider using flex-start instead
+360 |      display: flex;
+361 |      flex-wrap: wrap;
+362 |      align-content: start;
+    |      ^^^^^^^^^^^^^^^^^^^^^
+363 |      gap: 8px;
+364 |  }
+
+/images/noise.svg referenced in /images/noise.svg didn't resolve at build time, it will remain unchanged to be resolved at runtime
+✓ 4505 modules transformed.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Dashboards/AccountantDashboard.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Components/SuperAdmin/DemoStoreTab.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Components/Reports/MasterReport.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/BillWiseProfit.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/CustomerInsights.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/DayBook.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/DiscountReport.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/Expenses.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/PurchaseReturns.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/Purchases.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/SaleAging.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/SaleOrderItems.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/SaleOrders.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Reports/SupplierInsights.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+Export "Bar" of module "node_modules/recharts/es6/cartesian/Bar.js" was reexported through module "node_modules/recharts/es6/index.js" while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.
+Either change the import in "resources/js/Pages/Staff/Hub.jsx" to point directly to the exporting module or reconfigure "output.manualChunks" to ensure these modules end up in the same chunk.
+rendering chunks...
+computing gzip size...
+public/build/assets/figtree-latin-ext-wght-normal-DCwSJGxG.woff2               10.28 kB
+public/build/assets/bricolage-grotesque-latin-ext-wght-normal-CcLUaPy7.woff2   18.67 kB
+public/build/assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9.woff2         18.94 kB
+public/build/assets/figtree-latin-wght-normal-D_ZTVpCC.woff2                   20.16 kB
+public/build/assets/plus-jakarta-sans-latin-ext-wght-normal-DmpS2jIq.woff2     21.73 kB
+public/build/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2             22.29 kB
+public/build/assets/plus-jakarta-sans-latin-wght-normal-eXO_dkmS.woff2         27.35 kB
+public/build/assets/bricolage-grotesque-latin-wght-normal-DLoelf7F.woff2       41.34 kB
+public/build/assets/source-serif-4-latin-ext-wght-normal-CxNHBx-q.woff2        42.04 kB
+public/build/assets/inter-latin-wght-normal-Dx4kXJAl.woff2                     48.26 kB
+public/build/assets/source-serif-4-latin-wght-normal-D9elroTD.woff2            50.82 kB
+public/build/assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2                 85.07 kB
+public/build/manifest.json                                                    972.71 kB │ gzip:  49.00 kB
+public/build/assets/ExecutiveDashboard-DogrKNTQ.css                             0.08 kB │ gzip:   0.09 kB
+public/build/assets/Dashboard-DULRuONn.css                                      3.75 kB │ gzip:   0.97 kB
+public/build/assets/OneGlanceLayout-DB0Q8XAf.css                                3.94 kB │ gzip:   1.10 kB
+public/build/assets/Kitchen-B36IHG7A.css                                        5.93 kB │ gzip:   1.50 kB
+public/build/assets/FloorBuilder-BIum0dBP.css                                   9.21 kB │ gzip:   2.00 kB
+public/build/assets/NewInvoice--3xNviF1.css                                    25.92 kB │ gzip:   4.65 kB
+public/build/assets/Pos-BsLJt7Iv.css                                           36.76 kB │ gzip:   6.60 kB
+public/build/assets/useDocumentChrome-DXMsbsYq.css                             46.24 kB │ gzip:   7.45 kB
+public/build/assets/SetupWizardModal-DdESHQeE.css                              55.43 kB │ gzip:   9.96 kB
+public/build/assets/NewDashboard-BjYfkq74.css                                 391.26 kB │ gzip: 197.65 kB
+public/build/assets/app-8Ukp7nKp.css                                          650.98 kB │ gzip:  88.59 kB
+public/build/assets/math-DoUjR_s7.js                                            0.11 kB │ gzip:   0.11 kB
+public/build/assets/minus-DNeD5eAQ.js                                           0.12 kB │ gzip:   0.13 kB
+public/build/assets/chevron-down-CgMJ5l69.js                                    0.13 kB │ gzip:   0.14 kB
+public/build/assets/chevron-right-CFbB0L82.js                                   0.13 kB │ gzip:   0.14 kB
+public/build/assets/chevron-left-C9f2C-2T.js                                    0.13 kB │ gzip:   0.14 kB
+public/build/assets/loader-circle-6sKssFxE.js                                   0.14 kB │ gzip:   0.15 kB
+public/build/assets/plus-DbvYGiEC.js                                            0.15 kB │ gzip:   0.15 kB
+public/build/assets/terms-BIEfhDOT.js                                           0.16 kB │ gzip:   0.15 kB
+public/build/assets/terminal-BMMCqjrq.js                                        0.16 kB │ gzip:   0.16 kB
+public/build/assets/arrow-up-DW7HVhbw.js                                        0.16 kB │ gzip:   0.16 kB
+public/build/assets/clock-D07Ehj0M.js                                           0.16 kB │ gzip:   0.16 kB
+public/build/assets/arrow-right-B742Ss7S.js                                     0.16 kB │ gzip:   0.16 kB
+public/build/assets/arrow-left-BGLph3cr.js                                      0.16 kB │ gzip:   0.16 kB
+public/build/assets/arrow-down-DkSi9FN-.js                                      0.16 kB │ gzip:   0.16 kB
+public/build/assets/circle-minus-wk_Wvk5L.js                                    0.17 kB │ gzip:   0.16 kB
+public/build/assets/arrow-down-left-B5rPWD6k.js                                 0.17 kB │ gzip:   0.16 kB
+public/build/assets/search-_1hjalsP.js                                          0.17 kB │ gzip:   0.16 kB
+public/build/assets/arrow-down-right-CrWKFR9D.js                                0.17 kB │ gzip:   0.16 kB
+public/build/assets/trending-up-DuYV09ST.js                                     0.17 kB │ gzip:   0.17 kB
+public/build/assets/ban-CwtLo3C8.js                                             0.18 kB │ gzip:   0.17 kB
+public/build/assets/circle-dot-Dr9f-sVo.js                                      0.18 kB │ gzip:   0.15 kB
+public/build/assets/use-reduced-motion-DYJ8Ctp7.js                              0.18 kB │ gzip:   0.16 kB
+public/build/assets/trending-down-D55_FHBu.js                                   0.18 kB │ gzip:   0.17 kB
+public/build/assets/chart-line-wXOqVDSe.js                                      0.18 kB │ gzip:   0.17 kB
+public/build/assets/corner-up-right-DlICUpAr.js                                 0.19 kB │ gzip:   0.17 kB
+public/build/assets/menu-DNIW_mpq.js                                            0.19 kB │ gzip:   0.16 kB
+public/build/assets/circle-check-big-DLhaoCcC.js                                0.19 kB │ gzip:   0.18 kB
+public/build/assets/user-BFcp60Dm.js                                            0.19 kB │ gzip:   0.18 kB
+public/build/assets/PlatformShell-Dd4Fpt6P.js                                   0.19 kB │ gzip:   0.17 kB
+public/build/assets/flame-DTrj5ptu.js                                           0.19 kB │ gzip:   0.18 kB
+public/build/assets/toggle-right-C5ew1Smr.js                                    0.20 kB │ gzip:   0.18 kB
+public/build/assets/smartphone-iKdbgXfk.js                                      0.20 kB │ gzip:   0.18 kB
+public/build/assets/text-align-start-8jxSojD0.js                                0.20 kB │ gzip:   0.17 kB
+public/build/assets/credit-card-DV6Ivl5C.js                                     0.21 kB │ gzip:   0.19 kB
+public/build/assets/undo-2-ClElzrsY.js                                          0.21 kB │ gzip:   0.18 kB
+public/build/assets/lock-open-DClorNG5.js                                       0.21 kB │ gzip:   0.19 kB
+public/build/assets/pause-CuvRFZHk.js                                           0.21 kB │ gzip:   0.17 kB
+public/build/assets/mail-D9I11j5J.js                                            0.21 kB │ gzip:   0.20 kB
+public/build/assets/circle-arrow-down-sVY0ZpUm.js                               0.21 kB │ gzip:   0.18 kB
+public/build/assets/circle-arrow-up-Brqgkx6p.js                                 0.21 kB │ gzip:   0.19 kB
+public/build/assets/table-2-e7DXwq04.js                                         0.22 kB │ gzip:   0.18 kB
+public/build/assets/dollar-sign-CjpyDHRI.js                                     0.22 kB │ gzip:   0.19 kB
+public/build/assets/type-BlUKh8ZL.js                                            0.22 kB │ gzip:   0.18 kB
+public/build/assets/briefcase-BTnTlQxd.js                                       0.22 kB │ gzip:   0.20 kB
+public/build/assets/target-Dr4Mxf6T.js                                          0.22 kB │ gzip:   0.16 kB
+public/build/assets/ellipsis-DtedcoYy.js                                        0.22 kB │ gzip:   0.16 kB
+public/build/assets/beaker-CcGZHpEn.js                                          0.22 kB │ gzip:   0.18 kB
+public/build/assets/panels-top-left-D0mcf_BI.js                                 0.23 kB │ gzip:   0.19 kB
+public/build/assets/square-check-big-DVaAOGDT.js                                0.23 kB │ gzip:   0.20 kB
+public/build/assets/log-out-CiLGD-kf.js                                         0.23 kB │ gzip:   0.19 kB
+public/build/assets/mic-DSJ_VVhQ.js                                             0.23 kB │ gzip:   0.20 kB
+public/build/assets/upload-C7XVu7F8.js                                          0.23 kB │ gzip:   0.19 kB
+public/build/assets/copy-xdcV3CVV.js                                            0.23 kB │ gzip:   0.21 kB
+public/build/assets/log-in-BGUiX1TQ.js                                          0.23 kB │ gzip:   0.19 kB
+public/build/assets/download-s__zECCv.js                                        0.23 kB │ gzip:   0.19 kB
+public/build/assets/message-square-BBr4ip0l.js                                  0.23 kB │ gzip:   0.20 kB
+public/build/assets/pen-D10DOHHB.js                                             0.23 kB │ gzip:   0.20 kB
+public/build/assets/history-CybOIDSq.js                                         0.24 kB │ gzip:   0.20 kB
+public/build/assets/percent-Bw3VoPG9.js                                         0.24 kB │ gzip:   0.19 kB
+public/build/assets/globe-C4kY4pW8.js                                           0.24 kB │ gzip:   0.19 kB
+public/build/assets/timer-cB5ui8ER.js                                           0.24 kB │ gzip:   0.19 kB
+public/build/assets/banknote-CE9YVLeb.js                                        0.24 kB │ gzip:   0.21 kB
+public/build/assets/message-circle-B3x67MOC.js                                  0.24 kB │ gzip:   0.21 kB
+public/build/assets/circle-pause-BI4ZHZc7.js                                    0.24 kB │ gzip:   0.18 kB
+public/build/assets/link-2-JJqvOOrm.js                                          0.24 kB │ gzip:   0.20 kB
+public/build/assets/database-Coj_xTr0.js                                        0.24 kB │ gzip:   0.20 kB
+public/build/assets/circle-question-mark-CyMExJp6.js                            0.24 kB │ gzip:   0.20 kB
+public/build/assets/arrow-up-down-D0za_Lg6.js                                   0.24 kB │ gzip:   0.19 kB
+public/build/assets/arrow-left-right-DKJg8qAS.js                                0.25 kB │ gzip:   0.19 kB
+public/build/assets/users-round-C4hcJ-LY.js                                     0.25 kB │ gzip:   0.22 kB
+public/build/assets/circle-alert-DJfhnWGL.js                                    0.25 kB │ gzip:   0.19 kB
+public/build/assets/eye-EWELjiuY.js                                             0.25 kB │ gzip:   0.20 kB
+public/build/assets/funnel-DudXMaht.js                                          0.25 kB │ gzip:   0.21 kB
+public/build/assets/external-link-tCMRW4d5.js                                   0.25 kB │ gzip:   0.20 kB
+public/build/assets/chart-column-B5TGQ7rn.js                                    0.25 kB │ gzip:   0.19 kB
+public/build/assets/archive-B71owbER.js                                         0.25 kB │ gzip:   0.21 kB
+public/build/assets/map-pin-B1VxBAYb.js                                         0.25 kB │ gzip:   0.22 kB
+public/build/assets/table-DWJCT9US.js                                           0.26 kB │ gzip:   0.20 kB
+public/build/assets/calendar-2f3tOist.js                                        0.26 kB │ gzip:   0.20 kB
+public/build/assets/monitor-BYHt03t_.js                                         0.26 kB │ gzip:   0.20 kB
+public/build/assets/key-MGvaJkAP.js                                             0.26 kB │ gzip:   0.22 kB
+public/build/assets/utensils-DVjaLS9s.js                                        0.26 kB │ gzip:   0.21 kB
+public/build/assets/zap-Dn7eXPaJ.js                                             0.26 kB │ gzip:   0.21 kB
+public/build/assets/shield-DXnDK7tD.js                                          0.27 kB │ gzip:   0.22 kB
+public/build/assets/image-Bf1q5OtQ.js                                           0.27 kB │ gzip:   0.22 kB
+public/build/assets/award-oT2vNg0s.js                                           0.27 kB │ gzip:   0.22 kB
+public/build/assets/repeat-Bfv5J4z6.js                                          0.27 kB │ gzip:   0.20 kB
+public/build/assets/chart-pie-D283bep4.js                                       0.27 kB │ gzip:   0.22 kB
+public/build/assets/list-checks-DXJ0kur6.js                                     0.27 kB │ gzip:   0.18 kB
+public/build/assets/coins-FFVziSyZ.js                                           0.27 kB │ gzip:   0.22 kB
+public/build/assets/pencil-DU1JyBOH.js                                          0.28 kB │ gzip:   0.22 kB
+public/build/assets/pen-line-nXwRRihA.js                                        0.28 kB │ gzip:   0.23 kB
+public/build/assets/book-open-CArZAqA8.js                                       0.28 kB │ gzip:   0.21 kB
+public/build/assets/wifi-D6nBY5DI.js                                            0.28 kB │ gzip:   0.21 kB
+public/build/assets/lightbulb-Bk44MWZz.js                                       0.28 kB │ gzip:   0.22 kB
+public/build/assets/bike-BssPZzjJ.js                                            0.28 kB │ gzip:   0.20 kB
+public/build/assets/wallet-CVk4H2VG.js                                          0.29 kB │ gzip:   0.21 kB
+public/build/assets/shopping-cart-DvnGqeR6.js                                   0.29 kB │ gzip:   0.23 kB
+public/build/assets/SectionHeader-XL7O_cKM.js                                   0.29 kB │ gzip:   0.22 kB
+public/build/assets/send-CJf58UW5.js                                            0.29 kB │ gzip:   0.23 kB
+public/build/assets/receipt-BOz-0ezQ.js                                         0.29 kB │ gzip:   0.21 kB
+public/build/assets/grid-3x3-_gl0yJbn.js                                        0.29 kB │ gzip:   0.21 kB
+public/build/assets/hash-DMm_cKrx.js                                            0.30 kB │ gzip:   0.19 kB
+public/build/assets/wrench-Kjyez_6Y.js                                          0.30 kB │ gzip:   0.24 kB
+public/build/assets/list-DuJTtS9s.js                                            0.30 kB │ gzip:   0.19 kB
+public/build/assets/coffee-BZcWlbcd.js                                          0.30 kB │ gzip:   0.21 kB
+public/build/assets/users-Cdx_LYY7.js                                           0.31 kB │ gzip:   0.22 kB
+public/build/assets/chef-hat-HtYxggGX.js                                        0.31 kB │ gzip:   0.24 kB
+public/build/assets/badge-check-D0FRoYB6.js                                     0.31 kB │ gzip:   0.21 kB
+public/build/assets/shield-check-Cmh7BRsf.js                                    0.31 kB │ gzip:   0.25 kB
+public/build/assets/mail-x-Dnh0UZ_O.js                                          0.31 kB │ gzip:   0.23 kB
+public/build/assets/printer-B3-Di4o8.js                                         0.32 kB │ gzip:   0.24 kB
+public/build/assets/square-pen-4J3WOG1N.js                                      0.32 kB │ gzip:   0.24 kB
+public/build/assets/refresh-ccw-BmPrV-Aw.js                                     0.32 kB │ gzip:   0.23 kB
+public/build/assets/tag-CnFdW1eU.js                                             0.32 kB │ gzip:   0.25 kB
+public/build/assets/phone-D9DEOQpb.js                                           0.32 kB │ gzip:   0.23 kB
+public/build/assets/save-ZNLEnauA.js                                            0.33 kB │ gzip:   0.23 kB
+public/build/assets/trash-2-CwtNiKrk.js                                         0.33 kB │ gzip:   0.21 kB
+public/build/assets/bot-DS8RY9H5.js                                             0.33 kB │ gzip:   0.23 kB
+public/build/assets/scan-line-DmDFYkHx.js                                       0.33 kB │ gzip:   0.22 kB
+public/build/assets/scale-iN92ONVn.js                                           0.33 kB │ gzip:   0.22 kB
+public/build/assets/server-BghLxdlr.js                                          0.34 kB │ gzip:   0.22 kB
+public/build/assets/shopping-bag-YXaO1o03.js                                    0.34 kB │ gzip:   0.24 kB
+public/build/assets/layout-grid-CiOfzfCx.js                                     0.35 kB │ gzip:   0.19 kB
+public/build/assets/megaphone-Scz8HmRD.js                                       0.35 kB │ gzip:   0.24 kB
+public/build/assets/key-round-CU2cg6Ny.js                                       0.35 kB │ gzip:   0.26 kB
+public/build/assets/webhook-DXmj0zXs.js                                         0.35 kB │ gzip:   0.27 kB
+public/build/assets/shield-alert-DMyiBzEu.js                                    0.35 kB │ gzip:   0.26 kB
+public/build/assets/gift-C3BsyNqC.js                                            0.36 kB │ gzip:   0.25 kB
+public/build/assets/hourglass-Cpte8Ljm.js                                       0.36 kB │ gzip:   0.24 kB
+public/build/assets/crown-BkXVDgjz.js                                           0.36 kB │ gzip:   0.26 kB
+public/build/assets/utensils-crossed-DuivYnfH.js                                0.36 kB │ gzip:   0.26 kB
+public/build/assets/grip-vertical-65M-4t8N.js                                   0.37 kB │ gzip:   0.19 kB
+public/build/assets/package-DfYWU5SG.js                                         0.37 kB │ gzip:   0.26 kB
+public/build/assets/calendar-clock-Br0HBzx-.js                                  0.37 kB │ gzip:   0.25 kB
+public/build/assets/warehouse-CWbH7g4G.js                                       0.37 kB │ gzip:   0.25 kB
+public/build/assets/file-search-BvHsVIj3.js                                     0.38 kB │ gzip:   0.26 kB
+public/build/assets/clipboard-paste-C5IcFL9L.js                                 0.38 kB │ gzip:   0.26 kB
+public/build/assets/building-2-mdUKq-QF.js                                      0.38 kB │ gzip:   0.24 kB
+public/build/assets/file-text-CJGGvFKc.js                                       0.38 kB │ gzip:   0.25 kB
+public/build/assets/hard-drive-CfrzsIOh.js                                      0.39 kB │ gzip:   0.26 kB
+public/build/assets/hammer-DbLph3D5.js                                          0.39 kB │ gzip:   0.28 kB
+public/build/assets/landmark-Df7IS_It.js                                        0.40 kB │ gzip:   0.26 kB
+public/build/assets/truck-D15T9LiS.js                                           0.40 kB │ gzip:   0.27 kB
+public/build/assets/factory-b8sgfqdu.js                                         0.41 kB │ gzip:   0.25 kB
+public/build/assets/scan-barcode-DKRC_Ykl.js                                    0.41 kB │ gzip:   0.24 kB
+public/build/assets/clipboard-list-B0wh0ys6.js                                  0.41 kB │ gzip:   0.26 kB
+public/build/assets/mouse-pointer-click-DusfXGE8.js                             0.41 kB │ gzip:   0.28 kB
+public/build/assets/tags-CzQ41JKR.js                                            0.42 kB │ gzip:   0.29 kB
+public/build/assets/package-minus-Bku-sumc.js                                   0.42 kB │ gzip:   0.28 kB
+public/build/assets/layers-BKHQCaRc.js                                          0.42 kB │ gzip:   0.24 kB
+public/build/assets/sliders-vertical-lxZQfNmZ.js                                0.42 kB │ gzip:   0.24 kB
+public/build/assets/package-check-r8uV1dZv.js                                   0.43 kB │ gzip:   0.29 kB
+public/build/assets/package-x-9OToTtXF.js                                       0.43 kB │ gzip:   0.29 kB
+public/build/assets/file-spreadsheet-CUz8OTvF.js                                0.43 kB │ gzip:   0.26 kB
+public/build/assets/octagon-alert-s_p83Wxi.js                                   0.43 kB │ gzip:   0.25 kB
+public/build/assets/eye-off-Dv9EH6GK.js                                         0.43 kB │ gzip:   0.27 kB
+public/build/assets/rocket-CSornINp.js                                          0.45 kB │ gzip:   0.31 kB
+public/build/assets/star-Phzt6SXU.js                                            0.47 kB │ gzip:   0.29 kB
+public/build/assets/trophy-CG0rBcux.js                                          0.48 kB │ gzip:   0.28 kB
+public/build/assets/settings-DQJtKvh5.js                                        0.48 kB │ gzip:   0.26 kB
+public/build/assets/sparkles-BGNRCKMU.js                                        0.49 kB │ gzip:   0.28 kB
+public/build/assets/calendar-days-rInxSwXN.js                                   0.49 kB │ gzip:   0.27 kB
+public/build/assets/store-BKzakKAT.js                                           0.50 kB │ gzip:   0.29 kB
+public/build/assets/palette-B-oHm7U5.js                                         0.50 kB │ gzip:   0.27 kB
+public/build/assets/unlink-BXDIMKEq.js                                          0.53 kB │ gzip:   0.30 kB
+public/build/assets/calculator-qOmO0pr6.js                                      0.53 kB │ gzip:   0.28 kB
+public/build/assets/brain-DE7natDp.js                                           0.58 kB │ gzip:   0.31 kB
+public/build/assets/user-plus-Dc4KTCDx.js                                       0.58 kB │ gzip:   0.34 kB
+public/build/assets/inbox-CTE-sJoV.js                                           0.59 kB │ gzip:   0.37 kB
+public/build/assets/bug-Cqca9mXV.js                                             0.63 kB │ gzip:   0.32 kB
+public/build/assets/cpu-BXEGIgis.js                                             0.64 kB │ gzip:   0.29 kB
+public/build/assets/qr-code-BpmP20az.js                                         0.65 kB │ gzip:   0.31 kB
+public/build/assets/settings-CEQ8HTo8.js                                        0.67 kB │ gzip:   0.33 kB
+public/build/assets/volume-x-4-V2fn6W.js                                        0.73 kB │ gzip:   0.34 kB
+public/build/assets/PageHeader-CambGUIm.js                                      0.75 kB │ gzip:   0.39 kB
+public/build/assets/brain-circuit-B2-PpHIz.js                                   0.79 kB │ gzip:   0.40 kB
+public/build/assets/boxes-BsM8-inw.js                                           0.85 kB │ gzip:   0.40 kB
+public/build/assets/MidnightNebula-BkjyQKFG.js                                  0.88 kB │ gzip:   0.44 kB
+public/build/assets/AsyncPartyCombobox-Cobc7ezo.js                              0.94 kB │ gzip:   0.60 kB
+public/build/assets/SmartCaptureNudge-BSAcf5iy.js                               0.96 kB │ gzip:   0.50 kB
+public/build/assets/Pagination-BSVE4sYY.js                                      1.00 kB │ gzip:   0.54 kB
+public/build/assets/user-cog-DGx0OYMC.js                                        1.07 kB │ gzip:   0.52 kB
+public/build/assets/ConfirmPassword-BzUOgObT.js                                 1.13 kB │ gzip:   0.66 kB
+public/build/assets/ConfirmModal-DyvSh0W3.js                                    1.14 kB │ gzip:   0.55 kB
+public/build/assets/VerifyEmail-lRoS_jWu.js                                     1.14 kB │ gzip:   0.65 kB
+public/build/assets/Invalid-BsUYnelZ.js                                         1.21 kB │ gzip:   0.67 kB
+public/build/assets/TwoFactorVerify-BA6ept0a.js                                 1.27 kB │ gzip:   0.73 kB
+public/build/assets/AsyncProductCombobox-B7bzzCEN.js                            1.38 kB │ gzip:   0.78 kB
+public/build/assets/ForgotPassword-JpLmiJO5.js                                  1.38 kB │ gzip:   0.81 kB
+public/build/assets/SiteChrome-CrvH549c.js                                      1.39 kB │ gzip:   0.64 kB
+public/build/assets/PremiumButton-BdoEp5Bn.js                                   1.43 kB │ gzip:   0.59 kB
+public/build/assets/useTurnstile-C2WrBQ4c.js                                    1.49 kB │ gzip:   0.75 kB
+public/build/assets/ResetPassword-ncQ_4Hu2.js                                   1.61 kB │ gzip:   0.74 kB
+public/build/assets/Dropdown-DaE7XBBT.js                                        1.67 kB │ gzip:   0.78 kB
+public/build/assets/Toggle-mUUQhMsx.js                                          1.75 kB │ gzip:   0.73 kB
+public/build/assets/LeadUnsubscribe-BadUVeuS.js                                 1.81 kB │ gzip:   0.88 kB
+public/build/assets/LeadConfirm-C9Ssd5VE.js                                     1.92 kB │ gzip:   0.87 kB
+public/build/assets/HousePromo--Bdj09Q_.js                                      1.95 kB │ gzip:   0.89 kB
+public/build/assets/Create-Bbqf_EA4.js                                          1.97 kB │ gzip:   0.81 kB
+public/build/assets/NewsletterUnsubscribe-XKgCHAkA.js                           1.98 kB │ gzip:   0.99 kB
+public/build/assets/Invalid-D76rfzfk.js                                         2.03 kB │ gzip:   0.95 kB
+public/build/assets/NewsletterConfirm-CuFWW2Rm.js                               2.04 kB │ gzip:   0.90 kB
+public/build/assets/ServiceNavTabs-DXJElqWy.js                                  2.08 kB │ gzip:   0.96 kB
+public/build/assets/StoreSuspended-xnM7boeq.js                                  2.11 kB │ gzip:   0.91 kB
+public/build/assets/ToolsSidebar-yZ0YOF9v.js                                    2.15 kB │ gzip:   0.81 kB
+public/build/assets/use-spring-PO7K1wl9.js                                      2.16 kB │ gzip:   1.11 kB
+public/build/assets/Select-Bcl0hscI.js                                          2.19 kB │ gzip:   0.98 kB
+public/build/assets/QrMenuPublic-BQPXocaY.js                                    2.21 kB │ gzip:   1.09 kB
+public/build/assets/Edit-Ci9dN15k.js                                            2.24 kB │ gzip:   0.83 kB
+public/build/assets/Show-GiscWgS5.js                                            2.24 kB │ gzip:   0.97 kB
+public/build/assets/StaffLogin-DkFwtlHV.js                                      2.27 kB │ gzip:   1.16 kB
+public/build/assets/EditableText-DzE2A9ej.js                                    2.31 kB │ gzip:   1.17 kB
+public/build/assets/Index-B5R7QKHT.js                                           2.44 kB │ gzip:   0.83 kB
+public/build/assets/index.module-CaIc4GVl.js                                    2.48 kB │ gzip:   1.05 kB
+public/build/assets/Index-BwLpgD7b.js                                           2.52 kB │ gzip:   0.85 kB
+public/build/assets/Accept-BSEiaoSs.js                                          2.58 kB │ gzip:   1.14 kB
+public/build/assets/format-DUuP8K43.js                                          2.72 kB │ gzip:   1.05 kB
+public/build/assets/TwoFactorSetup-BmNrrRcM.js                                  2.73 kB │ gzip:   1.30 kB
+public/build/assets/VerifyCode-DSEPphXS.js                                      2.84 kB │ gzip:   1.48 kB
+public/build/assets/YAxis-kujKOiTD.js                                           3.02 kB │ gzip:   1.42 kB
+public/build/assets/LoanStatement-Dg8XYYf0.js                                   3.12 kB │ gzip:   1.49 kB
+public/build/assets/Show-VMMBeYw4.js                                            3.16 kB │ gzip:   1.34 kB
+public/build/assets/EmailGate-DpJX10gj.js                                       3.16 kB │ gzip:   1.30 kB
+public/build/assets/GenericReport-BY_FX0nM.js                                   3.17 kB │ gzip:   1.49 kB
+public/build/assets/TrialExpired-jvE4yASG.js                                    3.28 kB │ gzip:   1.32 kB
+public/build/assets/Create-f2SGimc7.js                                          3.38 kB │ gzip:   1.53 kB
+public/build/assets/Edit-f2SGimc7.js                                            3.38 kB │ gzip:   1.53 kB
+public/build/assets/Index-BmX3wecq.js                                           3.45 kB │ gzip:   1.49 kB
+public/build/assets/Create-CK8SYe6f.js                                          3.47 kB │ gzip:   1.57 kB
+public/build/assets/AcceptInvite-DMradwia.js                                    3.49 kB │ gzip:   1.62 kB
+public/build/assets/Edit-2r_5yv6t.js                                            3.53 kB │ gzip:   1.59 kB
+public/build/assets/Landing-rSp5V4xM.js                                         3.59 kB │ gzip:   1.50 kB
+public/build/assets/Input-Br_3xVDq.js                                           3.63 kB │ gzip:   1.41 kB
+public/build/assets/ItemReportByParty-DTvC0s0J.js                               3.69 kB │ gzip:   1.75 kB
+public/build/assets/PartyReportByItem-D2tGgO3Z.js                               3.69 kB │ gzip:   1.75 kB
+public/build/assets/Create-DyFED0Xo.js                                          3.72 kB │ gzip:   1.09 kB
+public/build/assets/QuickPartyModal-DlOPG8GA.js                                 3.73 kB │ gzip:   1.35 kB
+public/build/assets/ToolShell-EHtAAncl.js                                       3.77 kB │ gzip:   1.55 kB
+public/build/assets/ItemWiseDiscount-18rilsKT.js                                3.79 kB │ gzip:   1.62 kB
+public/build/assets/PartyWiseProfitLoss-BlukEkXy.js                             3.79 kB │ gzip:   1.63 kB
+public/build/assets/UomConversions-ppMZUbY-.js                                  3.84 kB │ gzip:   1.36 kB
+public/build/assets/Index-B6lM19Oj.js                                           3.88 kB │ gzip:   1.73 kB
+public/build/assets/PremiumSelect-DQf-fmZ8.js                                   3.89 kB │ gzip:   1.58 kB
+public/build/assets/BusinessTypes-BftqB3ER.js                                   4.02 kB │ gzip:   1.43 kB
+public/build/assets/Dashboard-Bsvz9ism.js                                       4.02 kB │ gzip:   1.83 kB
+public/build/assets/ExpenseByCategory-Ck6WOj_7.js                               4.07 kB │ gzip:   1.80 kB
+public/build/assets/PriceTiers-D69pR_Xn.js                                      4.10 kB │ gzip:   1.36 kB
+public/build/assets/SalePurchaseByParty-zrCya2e4.js                             4.11 kB │ gzip:   1.68 kB
+public/build/assets/SalePurchaseByItemCategory-PbfWFqia.js                      4.19 kB │ gzip:   1.71 kB
+public/build/assets/Error-CJwHqyrW.js                                           4.19 kB │ gzip:   1.64 kB
+public/build/assets/MoneyModuleTabs-DvfOQYCQ.js                                 4.20 kB │ gzip:   1.56 kB
+public/build/assets/Dashboard-CTaO4SX1.js                                       4.26 kB │ gzip:   1.54 kB
+public/build/assets/ExpenseByItem-CqQf2If8.js                                   4.31 kB │ gzip:   1.72 kB
+public/build/assets/RefundReasons-BajTTbqp.js                                   4.33 kB │ gzip:   1.80 kB
+public/build/assets/AllParties-DaU46iG2.js                                      4.36 kB │ gzip:   1.72 kB
+public/build/assets/SalePurchaseByPartyGroup-DJ2MDrrw.js                        4.37 kB │ gzip:   1.72 kB
+public/build/assets/ItemCategoryWiseProfitLoss-BG4qHxS_.js                      4.44 kB │ gzip:   1.75 kB
+public/build/assets/HistoryUnlockedModal-DA8KHLUZ.js                            4.55 kB │ gzip:   1.44 kB
+public/build/assets/Tax-PObony_Z.js                                             4.67 kB │ gzip:   2.08 kB
+public/build/assets/TaxRateReport-zVRSgz84.js                                   4.68 kB │ gzip:   1.86 kB
+public/build/assets/Index-DWox0eAT.js                                           4.68 kB │ gzip:   1.65 kB
+public/build/assets/Transactions-DdRfm4tw.js                                    4.71 kB │ gzip:   2.21 kB
+public/build/assets/ExpiryReport-Dm6EfDfX.js                                    4.72 kB │ gzip:   2.16 kB
+public/build/assets/index-z_OF7OFu.js                                           4.72 kB │ gzip:   2.24 kB
+public/build/assets/ItemDetail-DK-zLafc.js                                      4.73 kB │ gzip:   1.82 kB
+public/build/assets/Create-CULmYbvU.js                                          4.74 kB │ gzip:   1.95 kB
+public/build/assets/ContactsModuleTabs-D9l8f6U7.js                              4.77 kB │ gzip:   1.75 kB
+public/build/assets/Edit-Dh0TZ1Pq.js                                            4.84 kB │ gzip:   1.41 kB
+public/build/assets/BankStatement-QAQxjdwg.js                                   4.87 kB │ gzip:   2.15 kB
+public/build/assets/Register-B60zFGNI.js                                        4.93 kB │ gzip:   2.17 kB
+public/build/assets/StockModuleTabs-xiTsIPFb.js                                 5.13 kB │ gzip:   1.72 kB
+public/build/assets/Newsletter-B4MOYJk9.js                                      5.13 kB │ gzip:   2.07 kB
+public/build/assets/RefundPolicy-BZRI22Oe.js                                    5.23 kB │ gzip:   1.97 kB
+public/build/assets/CreateOrJoin-3GXZMGJ6.js                                    5.31 kB │ gzip:   1.78 kB
+public/build/assets/Index-BjHxzyk6.js                                           5.31 kB │ gzip:   2.08 kB
+public/build/assets/Login-B5UXIHHo.js                                           5.36 kB │ gzip:   2.37 kB
+public/build/assets/RecycleBin-C45M1K1q.js                                      5.48 kB │ gzip:   2.16 kB
+public/build/assets/PrintButton-DX2TuX8_.js                                     5.49 kB │ gzip:   1.55 kB
+public/build/assets/Index-cZ3TPNy8.js                                           5.55 kB │ gzip:   2.26 kB
+public/build/assets/PurchaseModuleTabs-BQHZLogX.js                              5.67 kB │ gzip:   1.80 kB
+public/build/assets/Roadmap-BVKroG6H.js                                         5.71 kB │ gzip:   2.54 kB
+public/build/assets/AccountLedger-CzzR0zs8.js                                   5.80 kB │ gzip:   2.50 kB
+public/build/assets/Return-CXlRmr49.js                                          5.84 kB │ gzip:   2.76 kB
+public/build/assets/PartyStatement-DYxG5tBp.js                                  5.91 kB │ gzip:   2.57 kB
+public/build/assets/SellModuleTabs-D_a8GgjN.js                                  5.95 kB │ gzip:   1.89 kB
+public/build/assets/TrialBalance-DiYFUmfA.js                                    5.96 kB │ gzip:   2.63 kB
+public/build/assets/Receive-3YxRgcEn.js                                         5.97 kB │ gzip:   2.84 kB
+public/build/assets/Kitchen-DXhoUcgw.js                                         5.98 kB │ gzip:   2.32 kB
+public/build/assets/BarcodeValidator-C7m06Xir.js                                6.02 kB │ gzip:   2.71 kB
+public/build/assets/Login-V1wtTtYE.js                                           6.07 kB │ gzip:   2.38 kB
+public/build/assets/OnlineStore-wJ0lY6qR.js                                     6.12 kB │ gzip:   2.28 kB
+public/build/assets/Campaigns-CLEjdT-t.js                                       6.16 kB │ gzip:   2.06 kB
+public/build/assets/Join-BTocA-gY.js                                            6.25 kB │ gzip:   2.42 kB
+public/build/assets/NotificationCenter-D2fzEpwX.js                              6.48 kB │ gzip:   2.45 kB
+public/build/assets/Show-DzbjRSsg.js                                            6.48 kB │ gzip:   2.44 kB
+public/build/assets/CashFlow-Brqqlspd.js                                        6.82 kB │ gzip:   2.39 kB
+public/build/assets/Show-DhYthW75.js                                            6.90 kB │ gzip:   2.51 kB
+public/build/assets/ViewerDashboard-BrnvHJVU.js                                 6.91 kB │ gzip:   2.66 kB
+public/build/assets/ProfitLoss-DxlB8iat.js                                      7.02 kB │ gzip:   2.23 kB
+public/build/assets/Show-CGNSLfRM.js                                            7.14 kB │ gzip:   2.68 kB
+public/build/assets/Create-DzePPhU1.js                                          7.17 kB │ gzip:   2.91 kB
+public/build/assets/KnownIssues-B4EIRmTg.js                                     7.23 kB │ gzip:   2.62 kB
+public/build/assets/Legend-BInmbMhd.js                                          7.23 kB │ gzip:   2.47 kB
+public/build/assets/StockAging-B2OaUfDW.js                                      7.26 kB │ gzip:   3.06 kB
+public/build/assets/Transactions-CSz8SC8i.js                                    7.35 kB │ gzip:   2.86 kB
+public/build/assets/ui-BVQ4WBAL.js                                              7.42 kB │ gzip:   2.80 kB
+public/build/assets/Analytics-Bn1c7SKF.js                                       7.50 kB │ gzip:   2.33 kB
+public/build/assets/Dashboard-CR_VAiEe.js                                       7.53 kB │ gzip:   2.71 kB
+public/build/assets/MarketingLayout-B8WffrPR.js                                 7.54 kB │ gzip:   3.28 kB
+public/build/assets/StockValuation-BuNJawcm.js                                  7.55 kB │ gzip:   2.93 kB
+public/build/assets/MoneyPipeline-BK5yYdrv.js                                   7.56 kB │ gzip:   2.71 kB
+public/build/assets/Show-B_Synvfb.js                                            8.05 kB │ gzip:   2.55 kB
+public/build/assets/LowStock-YzdHPIIN.js                                        8.10 kB │ gzip:   3.28 kB
+public/build/assets/CashHistory-96pSTxOv.js                                     8.10 kB │ gzip:   2.72 kB
+public/build/assets/Contacts-CN-PU0pd.js                                        8.16 kB │ gzip:   2.91 kB
+public/build/assets/Index-Dz3ZnxoP.js                                           8.21 kB │ gzip:   2.82 kB
+public/build/assets/SelectPlan-CzPC9s3S.js                                      8.27 kB │ gzip:   2.84 kB
+public/build/assets/RecurringForm-DGoaPs3Q.js                                   8.38 kB │ gzip:   3.59 kB
+public/build/assets/CreatePreSale-DQpCMBbS.js                                   8.40 kB │ gzip:   3.63 kB
+public/build/assets/BalanceSheet-DsKvPhUy.js                                    8.44 kB │ gzip:   3.14 kB
+public/build/assets/Show-Zr20JhP4.js                                            8.50 kB │ gzip:   2.88 kB
+public/build/assets/Create-Dfz75TjD.js                                          8.50 kB │ gzip:   3.61 kB
+public/build/assets/AttributesList-CYCc0fFz.js                                  8.62 kB │ gzip:   3.08 kB
+public/build/assets/Partners-oI1XQAHv.js                                        8.62 kB │ gzip:   3.06 kB
+public/build/assets/Index-TSb864F5.js                                           8.64 kB │ gzip:   2.86 kB
+public/build/assets/WooCommerce-Bo_yfOS7.js                                     8.65 kB │ gzip:   2.42 kB
+public/build/assets/ReportsLayout-0fJ_AM-k.js                                   8.67 kB │ gzip:   2.89 kB
+public/build/assets/CashierDashboard-BXrmwm1E.js                                8.72 kB │ gzip:   3.02 kB
+public/build/assets/Show-Bh-8YWEp.js                                            8.74 kB │ gzip:   2.68 kB
+public/build/assets/FinanceDashboard-Bk1kdtDw.js                                8.76 kB │ gzip:   2.69 kB
+public/build/assets/Show-BPrG-BgV.js                                            8.78 kB │ gzip:   2.73 kB
+public/build/assets/Appearance-1WSpTsZL.js                                      8.82 kB │ gzip:   3.31 kB
+public/build/assets/StockSummaryByCategory-BHFj2v4S.js                          8.86 kB │ gzip:   3.06 kB
+public/build/assets/Show-CQApLfdP.js                                            8.88 kB │ gzip:   2.69 kB
+public/build/assets/Dashboard-CfO4hvsX.js                                       8.89 kB │ gzip:   3.00 kB
+public/build/assets/VenaTicketDetail-CeCSb7Bu.js                                8.94 kB │ gzip:   3.34 kB
+public/build/assets/Redeem-CWYmCFer.js                                          8.96 kB │ gzip:   2.82 kB
+public/build/assets/Create-q3cdoL2J.js                                          9.31 kB │ gzip:   3.91 kB
+public/build/assets/MovementHistory-D97U2mdA.js                                 9.34 kB │ gzip:   3.62 kB
+public/build/assets/Create-CMjB2n0R.js                                          9.37 kB │ gzip:   4.04 kB
+public/build/assets/ReportPage-YXnMvz3U.js                                      9.44 kB │ gzip:   3.16 kB
+public/build/assets/Create-SDvbJ8EO.js                                          9.69 kB │ gzip:   3.92 kB
+public/build/assets/Users-B2duNNnp.js                                           9.74 kB │ gzip:   3.30 kB
+public/build/assets/SyncHealthPanel-DQOiiPGT.js                                 9.85 kB │ gzip:   3.45 kB
+public/build/assets/VariantsList-CPWa0P6m.js                                    9.93 kB │ gzip:   3.33 kB
+public/build/assets/Index-CbgxWHRD.js                                           9.94 kB │ gzip:   2.42 kB
+public/build/assets/Create-Bx4VWTjG.js                                          9.98 kB │ gzip:   3.34 kB
+public/build/assets/Show-BggtRgTH.js                                           10.04 kB │ gzip:   3.08 kB
+public/build/assets/PurchaseReturns-CW95gWnw.js                                10.10 kB │ gzip:   3.61 kB
+public/build/assets/Create-Cu5Z9voo.js                                         10.27 kB │ gzip:   4.32 kB
+public/build/assets/Logs-BtsHKijt.js                                           10.36 kB │ gzip:   3.33 kB
+public/build/assets/ServiceJobs-Dbxps4rl.js                                    10.36 kB │ gzip:   3.55 kB
+public/build/assets/WhatIsIncluded-Dsu3hf8m.js                                 10.38 kB │ gzip:   2.88 kB
+public/build/assets/Stores-C30V4rTx.js                                         10.40 kB │ gzip:   3.31 kB
+public/build/assets/DigitalProducts-DhCHpIz-.js                                10.52 kB │ gzip:   3.15 kB
+public/build/assets/Create-D-MStOIo.js                                         10.54 kB │ gzip:   4.30 kB
+public/build/assets/ChartOfAccounts-B2lSXpRz.js                                10.58 kB │ gzip:   3.20 kB
+public/build/assets/LabelPrinter-CDLwehw6.js                                   10.63 kB │ gzip:   3.39 kB
+public/build/assets/PartnerSupport-XyDFbtA2.js                                 10.70 kB │ gzip:   3.61 kB
+public/build/assets/Show-DuIqo0FK.js                                           10.74 kB │ gzip:   2.47 kB
+public/build/assets/AmazonSetupWizard-CpVFVeFY.js                              10.76 kB │ gzip:   3.79 kB
+public/build/assets/tooltipContext-DZyRtJ7k.js                                 10.99 kB │ gzip:   3.53 kB
+public/build/assets/Backups-CBhs4lZ_.js                                        11.04 kB │ gzip:   3.53 kB
+public/build/assets/PurchasingDashboard-CFk-FiOu.js                            11.24 kB │ gzip:   3.66 kB
+public/build/assets/Create-rfDCGZkZ.js                                         11.42 kB │ gzip:   4.61 kB
+public/build/assets/Overrides-ohpA6t7l.js                                      11.56 kB │ gzip:   3.99 kB
+public/build/assets/Show-uJZ85TAX.js                                           11.62 kB │ gzip:   3.66 kB
+public/build/assets/SerialTracking-B8pZlnKW.js                                 11.73 kB │ gzip:   3.43 kB
+public/build/assets/Show-YshORp7V.js                                           11.75 kB │ gzip:   3.66 kB
+public/build/assets/Dashboard-DkIwfERx.js                                      11.80 kB │ gzip:   3.69 kB
+public/build/assets/Index-3LxtjzGc.js                                          11.80 kB │ gzip:   3.96 kB
+public/build/assets/Show-DWGc3dEx.js                                           11.81 kB │ gzip:   3.55 kB
+public/build/assets/Migration-BSiSUvzZ.js                                      11.87 kB │ gzip:   3.73 kB
+public/build/assets/BarcodeLabelSheet-ibuJe10k.js                              12.01 kB │ gzip:   4.89 kB
+public/build/assets/SuppliersList-BAs9XQJD.js                                  12.11 kB │ gzip:   3.77 kB
+public/build/assets/Index-CfVcPD04.js                                          12.14 kB │ gzip:   3.84 kB
+public/build/assets/QrCode-DFKEv4xm.js                                         12.34 kB │ gzip:   4.50 kB
+public/build/assets/BatchTracking-mL7nhIn3.js                                  12.42 kB │ gzip:   3.52 kB
+public/build/assets/DayBook-BMbWuStU.js                                        12.43 kB │ gzip:   4.54 kB
+public/build/assets/Database-8YjkIlWG.js                                       12.53 kB │ gzip:   3.69 kB
+public/build/assets/StockLevels-BVUHVCGa.js                                    12.74 kB │ gzip:   3.69 kB
+public/build/assets/PrivacyPolicy-Cb1iZf4r.js                                  12.87 kB │ gzip:   4.54 kB
+public/build/assets/Payouts-UZl9ErMy.js                                        12.97 kB │ gzip:   4.48 kB
+public/build/assets/Expenses--o4s3lVv.js                                       13.12 kB │ gzip:   4.70 kB
+public/build/assets/GraphAnalytics-DzdEtZC_.js                                 13.12 kB │ gzip:   4.50 kB
+public/build/assets/Overview-DIlAa-u4.js                                       13.13 kB │ gzip:   4.00 kB
+public/build/assets/Index-BPnIxojp.js                                          13.16 kB │ gzip:   3.69 kB
+public/build/assets/QrMenu-DTNl4uF0.js                                         13.17 kB │ gzip:   4.94 kB
+public/build/assets/Connections-ChauJus_.js                                    13.26 kB │ gzip:   4.26 kB
+public/build/assets/Wizard-BLaMUXb7.js                                         13.32 kB │ gzip:   5.11 kB
+public/build/assets/CashDrawer-BYdCORFJ.js                                     13.43 kB │ gzip:   4.57 kB
+public/build/assets/Index-DfCAyrGW.js                                          13.48 kB │ gzip:   4.74 kB
+public/build/assets/Purchases-ulu-IjXz.js                                      13.56 kB │ gzip:   4.87 kB
+public/build/assets/StockTransfers-BY3zW3SE.js                                 13.77 kB │ gzip:   3.83 kB
+public/build/assets/ProductionRuns-DXCor4Ma.js                                 13.86 kB │ gzip:   4.42 kB
+public/build/assets/PriceTag-BF4LuV6J.js                                       13.90 kB │ gzip:   5.49 kB
+public/build/assets/Settings-nS0XfaW0.js                                       13.91 kB │ gzip:   4.88 kB
+public/build/assets/RecipesList-DihV_MO3.js                                    14.10 kB │ gzip:   4.51 kB
+public/build/assets/AccountantDashboard-CuzpBg_M.js                            14.11 kB │ gzip:   4.34 kB
+public/build/assets/LabelSheet-y7Q-21Hs.js                                     14.11 kB │ gzip:   5.42 kB
+public/build/assets/ProductCsvCleaner-CT4Dtj48.js                              14.24 kB │ gzip:   4.79 kB
+public/build/assets/PurchaseForm-BJvrTkwe.js                                   14.36 kB │ gzip:   5.49 kB
+public/build/assets/CustomersList-DgUDKYYM.js                                  14.68 kB │ gzip:   4.14 kB
+public/build/assets/BankAccountsList-DNh9cpOy.js                               14.72 kB │ gzip:   4.45 kB
+public/build/assets/SaleAging-BdipqWMI.js                                      14.78 kB │ gzip:   5.11 kB
+public/build/assets/BankReconciliation-D7h_k7Ra.js                             14.78 kB │ gzip:   3.78 kB
+public/build/assets/MasterReport-B_XtesPM.js                                   14.87 kB │ gzip:   4.63 kB
+public/build/assets/Errors-CrWdECwq.js                                         14.92 kB │ gzip:   4.75 kB
+public/build/assets/CreateServiceJob-BosYHlja.js                               14.94 kB │ gzip:   4.72 kB
+public/build/assets/PaymentsList-B73q1Cw5.js                                   15.05 kB │ gzip:   4.93 kB
+public/build/assets/PrintService-dXjDhdYK.js                                   15.06 kB │ gzip:   4.98 kB
+public/build/assets/Index-C87s1aUt.js                                          15.06 kB │ gzip:   4.52 kB
+public/build/assets/ThinkingOrb-DEf1WNzr.js                                    15.09 kB │ gzip:   6.38 kB
+public/build/assets/PieChart-CLoCczAf.js                                       15.35 kB │ gzip:   5.20 kB
+public/build/assets/Home-B3eBEKcH.js                                           15.43 kB │ gzip:   4.75 kB
+public/build/assets/index-B9E83bSG.js                                          15.51 kB │ gzip:   4.78 kB
+public/build/assets/SaleOrderItems-D2Mcu--S.js                                 15.52 kB │ gzip:   5.16 kB
+public/build/assets/StockTake-ONegWk92.js                                      15.56 kB │ gzip:   4.23 kB
+public/build/assets/Out-DbSb8sTk.js                                            15.77 kB │ gzip:   4.90 kB
+public/build/assets/FloorBuilder-BF46t1tv.js                                   15.79 kB │ gzip:   5.34 kB
+public/build/assets/SaleOrders-CIt4p8oi.js                                     15.89 kB │ gzip:   5.20 kB
+public/build/assets/Receipt-CwVMKzHn.js                                        15.90 kB │ gzip:   5.55 kB
+public/build/assets/In-G4mwJ-Lz.js                                             16.01 kB │ gzip:   4.95 kB
+public/build/assets/Payables-DPq5G4ZX.js                                       16.20 kB │ gzip:   4.07 kB
+public/build/assets/ParkedSales-ChKWvzgz.js                                    16.23 kB │ gzip:   5.37 kB
+public/build/assets/BillWiseProfit-BnJhyAiM.js                                 16.32 kB │ gzip:   5.35 kB
+public/build/assets/ChatbotSettings-UJA7RNSI.js                                16.32 kB │ gzip:   4.92 kB
+public/build/assets/StockCountSheet-mnKBxVVp.js                                16.33 kB │ gzip:   5.65 kB
+public/build/assets/index-DqOC9m5z.js                                          16.43 kB │ gzip:   6.15 kB
+public/build/assets/PaymentFeeCalculator-DuSM6iER.js                           16.62 kB │ gzip:   5.44 kB
+public/build/assets/Categories-DlhXM-Fs.js                                     16.65 kB │ gzip:   5.42 kB
+public/build/assets/DiscountReport-DHQJb0WG.js                                 16.71 kB │ gzip:   5.54 kB
+public/build/assets/BarChart-CckLQhJL.js                                       16.77 kB │ gzip:   5.79 kB
+public/build/assets/Rules-I2adgqjL.js                                          16.93 kB │ gzip:   4.60 kB
+public/build/assets/Welcome-CXJO4wFU.js                                        16.98 kB │ gzip:   5.16 kB
+public/build/assets/ui-DJdWQ8qW.js                                             17.00 kB │ gzip:   5.64 kB
+public/build/assets/MoneyDocument-Dw412puW.js                                  17.05 kB │ gzip:   6.77 kB
+public/build/assets/Contact-DBaYBIzz.js                                        17.07 kB │ gzip:   3.86 kB
+public/build/assets/Receivables-0PuRZP1U.js                                    17.15 kB │ gzip:   4.17 kB
+public/build/assets/SmartCombobox-POMrDx5N.js                                  17.30 kB │ gzip:   5.25 kB
+public/build/assets/AreaChart-Cf7ABNDg.js                                      17.32 kB │ gzip:   5.40 kB
+public/build/assets/Overview-D_z0mZWf.js                                       17.48 kB │ gzip:   5.23 kB
+public/build/assets/PackingSlip-CKbFlz8S.js                                    17.48 kB │ gzip:   5.62 kB
+public/build/assets/Invoice-C4seMQ2P.js                                        17.54 kB │ gzip:   5.84 kB
+public/build/assets/VenaTickets-n6Q-r3-O.js                                    17.56 kB │ gzip:   5.00 kB
+public/build/assets/PosRoiCalculator-CvDSZsF7.js                               17.76 kB │ gzip:   5.01 kB
+public/build/assets/DataMapping-9GzDPu5L.js                                    17.88 kB │ gzip:   5.81 kB
+public/build/assets/InvoiceReminders-CpBbymCN.js                               17.90 kB │ gzip:   4.43 kB
+public/build/assets/SyncPage-RK7w3YuI.js                                       18.09 kB │ gzip:   4.95 kB
+public/build/assets/Barcode-DbfIR6N7.js                                        18.14 kB │ gzip:   6.44 kB
+public/build/assets/EInvoicing-Dft7UGJa.js                                     18.24 kB │ gzip:   4.71 kB
+public/build/assets/OverrideDetail-Dnd9yY9m.js                                 18.49 kB │ gzip:   5.25 kB
+public/build/assets/Ledger-Jgw-9W2-.js                                         18.50 kB │ gzip:   4.51 kB
+public/build/assets/TermsOfService-BKVYy3zk.js                                 18.59 kB │ gzip:   7.04 kB
+public/build/assets/ConnectionSetup-B6q13dG6.js                                18.60 kB │ gzip:   5.50 kB
+public/build/assets/StockOperations-CP2eAF44.js                                18.72 kB │ gzip:   4.89 kB
+public/build/assets/PurchaseOrder-BXdnEawi.js                                  18.96 kB │ gzip:   5.98 kB
+public/build/assets/Show-CcpthJ1C.js                                           18.98 kB │ gzip:   5.65 kB
+public/build/assets/Security-DyindBgT.js                                       19.09 kB │ gzip:   5.11 kB
+public/build/assets/PlatformLayout-iYAdcd6B.js                                 19.17 kB │ gzip:   6.83 kB
+public/build/assets/Ledger-3EPoSpzn.js                                         19.47 kB │ gzip:   4.46 kB
+public/build/assets/RecurringInvoices-CcBO6fbL.js                              19.65 kB │ gzip:   4.75 kB
+public/build/assets/About-GVMJIybn.js                                          19.73 kB │ gzip:   5.72 kB
+public/build/assets/CreditNote-CHkutftJ.js                                     19.88 kB │ gzip:   6.34 kB
+public/build/assets/CashDrawerCountSheet-1VmliQu4.js                           19.91 kB │ gzip:   6.55 kB
+public/build/assets/MarginCalculator-BeCAq73x.js                               20.34 kB │ gzip:   6.25 kB
+public/build/assets/Index-DIzMPlqM.js                                          20.50 kB │ gzip:   5.62 kB
+public/build/assets/Show-COQSnOqJ.js                                           20.58 kB │ gzip:   6.44 kB
+public/build/assets/VenSynQ-BgYdne0L.js                                        20.60 kB │ gzip:   4.76 kB
+public/build/assets/StaffAttendance-CJxbJqxY.js                                20.71 kB │ gzip:   5.29 kB
+public/build/assets/CustomerInsights-CHJCyQPS.js                               20.96 kB │ gzip:   5.87 kB
+public/build/assets/Quote-fjYbw8If.js                                          21.06 kB │ gzip:   6.88 kB
+public/build/assets/SetupWizard-C7XAwIeo.js                                    21.11 kB │ gzip:   5.51 kB
+public/build/assets/SkuGenerator-C2DcMIzq.js                                   21.24 kB │ gzip:   6.63 kB
+public/build/assets/Hub-BSTsHSHI.js                                            21.38 kB │ gzip:   5.34 kB
+public/build/assets/SupplierInsights-Dfj-B2i9.js                               21.49 kB │ gzip:   5.91 kB
+public/build/assets/MasterSales-CZXxgO6F.js                                    21.96 kB │ gzip:   5.53 kB
+public/build/assets/ProfitLoss-B4Vi-TI6.js                                     22.05 kB │ gzip:   6.71 kB
+public/build/assets/TransactionsList-D4Jhmvlc.js                               22.40 kB │ gzip:   5.57 kB
+public/build/assets/Documents-CrE1SUv7.js                                      22.50 kB │ gzip:   4.72 kB
+public/build/assets/Index-BNAkBVSi.js                                          22.60 kB │ gzip:   6.16 kB
+public/build/assets/SetupWizardModal-DK8lIyhi.js                               23.11 kB │ gzip:   6.58 kB
+public/build/assets/Tools-DkX0qgGB.js                                          23.51 kB │ gzip:   5.69 kB
+public/build/assets/DashboardPreview-DMApE4nz.js                               23.54 kB │ gzip:   5.30 kB
+public/build/assets/Dashboard-BJkNwTnq.js                                      23.95 kB │ gzip:   8.59 kB
+public/build/assets/ServiceJobDetail-DlPzA7ub.js                               24.21 kB │ gzip:   5.76 kB
+public/build/assets/ReturnsHistory-Co2qFEow.js                                 24.55 kB │ gzip:   6.35 kB
+public/build/assets/FoodCostCalculator-_WGAlRFS.js                             24.69 kB │ gzip:   7.08 kB
+public/build/assets/Dashboard-CyspEc6w.js                                      24.70 kB │ gzip:   8.31 kB
+public/build/assets/Sales-MR5ZNgHa.js                                          24.91 kB │ gzip:   6.91 kB
+public/build/assets/DebitNotes-CSUTq7FQ.js                                     25.25 kB │ gzip:   6.71 kB
+public/build/assets/SmartCapture-C0WL-ht_.js                                   25.28 kB │ gzip:   5.96 kB
+public/build/assets/Create-DpcE8YcP.js                                         25.32 kB │ gzip:   7.19 kB
+public/build/assets/engine-BimNwgf2.js                                         25.39 kB │ gzip:   9.59 kB
+public/build/assets/InventoryHealth-BVKGZZMH.js                                25.39 kB │ gzip:   6.73 kB
+public/build/assets/PointInTimeInventory-85PtNEsA.js                           25.56 kB │ gzip:   7.10 kB
+public/build/assets/CartesianChart-DiOwxT9V.js                                 25.66 kB │ gzip:   7.62 kB
+public/build/assets/GrowthDashboard-Byvjv3d9.js                                26.14 kB │ gzip:   7.45 kB
+public/build/assets/ReportsHub-Ds6mkBjJ.js                                     26.89 kB │ gzip:   8.73 kB
+public/build/assets/Settings-DBISywGR.js                                       27.05 kB │ gzip:   8.87 kB
+public/build/assets/PurchaseOrdersList-D_4XOAdx.js                             27.09 kB │ gzip:   6.43 kB
+public/build/assets/ServiceCalendar-CdXV469M.js                                27.44 kB │ gzip:   6.69 kB
+public/build/assets/PosShowcase-DQNqPTOF.js                                    28.72 kB │ gzip:   5.38 kB
+public/build/assets/Reckoner-B5B3slq0.js                                       28.73 kB │ gzip:   6.80 kB
+public/build/assets/Edit-3Y1Z-VkM.js                                           28.87 kB │ gzip:   6.61 kB
+public/build/assets/PartiesList-5Or0dK67.js                                    30.82 kB │ gzip:   7.50 kB
+public/build/assets/CookieConsent-Cag1zRvR.js                                  31.19 kB │ gzip:  10.42 kB
+public/build/assets/CreateInvoice-GE--QJYf.js                                  31.41 kB │ gzip:  10.04 kB
+public/build/assets/ProposalsList-vxfXwOVG.js                                  32.12 kB │ gzip:   7.59 kB
+public/build/assets/ItemWiseProfit-DjSawR0F.js                                 32.54 kB │ gzip:   8.57 kB
+public/build/assets/BuildWorkspace-BzsKrrEo.js                                 33.82 kB │ gzip:  11.43 kB
+public/build/assets/SettingsPanel-xSRML7zB.js                                  34.38 kB │ gzip:   9.03 kB
+public/build/assets/PreSales-D0D3sY_v.js                                       34.58 kB │ gzip:   8.25 kB
+public/build/assets/Blueprint-X-qq6Upd.js                                      35.25 kB │ gzip:   7.03 kB
+public/build/assets/OwnersDailyPulse-DB1usCDX.js                               35.63 kB │ gzip:   8.20 kB
+public/build/assets/PurchasesList-DnQL1WSA.js                                  35.73 kB │ gzip:   8.15 kB
+public/build/assets/Index-CJhRYO0K.js                                          35.87 kB │ gzip:  10.05 kB
+public/build/assets/ExecutiveDashboard-B8kn7WtU.js                             36.24 kB │ gzip:   8.42 kB
+public/build/assets/AgentInbox-GcjwL5b_.js                                     36.39 kB │ gzip:   9.20 kB
+public/build/assets/solutions-BtSvWuj3.js                                      37.39 kB │ gzip:  11.89 kB
+public/build/assets/CategoryProfitability-52EwDQCO.js                          39.75 kB │ gzip:   8.58 kB
+public/build/assets/time-CDVB1GJM.js                                           42.40 kB │ gzip:  15.05 kB
+public/build/assets/FundManagement-DinmkiUY.js                                 42.73 kB │ gzip:   9.44 kB
+public/build/assets/InventoryList-DAwGtRBP.js                                  45.51 kB │ gzip:  10.99 kB
+public/build/assets/Show-BcxZr1FY.js                                           45.91 kB │ gzip:  14.31 kB
+public/build/assets/Onboarding-DhaCNXFn.js                                     46.54 kB │ gzip:   7.74 kB
+public/build/assets/DataManagement-DbhSAQpR.js                                 47.40 kB │ gzip:  12.10 kB
+public/build/assets/FeatureDemos-DRykJ_SW.js                                   48.20 kB │ gzip:  13.13 kB
+public/build/assets/Index-DJeF-1gN.js                                          49.40 kB │ gzip:  13.01 kB
+public/build/assets/Show-BqO9kMXt.js                                           53.11 kB │ gzip:  17.22 kB
+public/build/assets/SmartCapture-BrofIS9p.js                                   54.25 kB │ gzip:  15.05 kB
+public/build/assets/SalesHistory-C77vuhIR.js                                   54.77 kB │ gzip:  12.17 kB
+public/build/assets/useDiscovery-DNatLOXr.js                                   54.78 kB │ gzip:  17.47 kB
+public/build/assets/index-EYw5x6D4.js                                          59.53 kB │ gzip:  19.77 kB
+public/build/assets/PrintPreview-B_BdLiNX.js                                   63.04 kB │ gzip:   9.65 kB
+public/build/assets/ExpensesList-D8U_z-AN.js                                   68.61 kB │ gzip:  14.80 kB
+public/build/assets/Users-DXYyUKwg.js                                          71.02 kB │ gzip:  16.89 kB
+public/build/assets/CreatePreSale-N_hvICiT.js                                  71.04 kB │ gzip:  15.81 kB
+public/build/assets/Pricing-CbBiZRno.js                                        72.92 kB │ gzip:   7.73 kB
+public/build/assets/Index-CUezn9Vn.js                                          79.32 kB │ gzip:  19.31 kB
+public/build/assets/ProductModal-bNdpM268.js                                   79.39 kB │ gzip:  15.66 kB
+public/build/assets/useDocumentChrome-BrFlKr5A.js                              83.47 kB │ gzip:  24.77 kB
+public/build/assets/Views-_bpz1WKz.js                                          83.61 kB │ gzip:  20.85 kB
+public/build/assets/Index-BjXancdX.js                                          84.01 kB │ gzip:  19.36 kB
+public/build/assets/NewInvoice-DmjxscSb.js                                     87.20 kB │ gzip:  26.61 kB
+public/build/assets/NewPos-CZYVcruN.js                                         88.79 kB │ gzip:  24.46 kB
+public/build/assets/Features-BFEEmjvx.js                                      105.71 kB │ gzip:   8.21 kB
+public/build/assets/react-Di6rvtRl.js                                         123.03 kB │ gzip:  40.30 kB
+public/build/assets/LandingPage-CcbHs9nH.js                                   141.79 kB │ gzip:  25.03 kB
+public/build/assets/Dashboard-BbSKin_R.js                                     147.54 kB │ gzip:  47.05 kB
+public/build/assets/OneGlanceLayout-BjCzQqkJ.js                               171.82 kB │ gzip:  43.90 kB
+public/build/assets/Settings-B3JZQ7qc.js                                      204.64 kB │ gzip:  49.00 kB
+public/build/assets/NewDashboard-0ofSJ77b.js                                  222.53 kB │ gzip:  62.02 kB
+public/build/assets/AiIsland-BJInAa6_.js                                      228.72 kB │ gzip:  64.19 kB
+public/build/assets/CategoricalChart-CG82-Ejk.js                              246.63 kB │ gzip:  75.92 kB
+public/build/assets/Pos-DEGuOfHP.js                                           256.19 kB │ gzip:  68.43 kB
+public/build/assets/app-C_Jjg_G7.js                                           693.32 kB │ gzip: 212.39 kB
+✓ built in 35.04s
+vite v7.3.0 building ssr environment for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[vite:css][postcss] start value has mixed support, consider using flex-start instead
+360 |      display: flex;
+361 |      flex-wrap: wrap;
+362 |      align-content: start;
+    |      ^^^^^^^^^^^^^^^^^^^^^
+363 |      gap: 8px;
+364 |  }
+"Scissors", "AlignRight", "FileCheck", "StickyNote", "Share2", "UserMinus" and "Link" are imported from external module "lucide-react" but never used in "resources/js/Components/PrintPreview.jsx", "resources/js/Components/PrintSettingsSection.jsx", "resources/js/Pages/Admin/Settings.jsx", "resources/js/Pages/Payments/PaymentsList.jsx", "resources/js/Pages/Sales/SalesHistory.jsx", "resources/js/Pages/Store/Staff/Index.jsx" and "resources/js/Pages/SuperAdmin/AccessGrants/Index.jsx".
+"LineChart", "Line", "ScatterChart", "Scatter" and "ZAxis" are imported from external module "recharts" but never used in "resources/js/Pages/Reports/OwnersDailyPulse.jsx", "resources/js/Pages/Admin/Users.jsx" and "resources/js/Pages/Reports/BillWiseProfit.jsx".
+✓ 645 modules transformed.
+rendering chunks...
+bootstrap/ssr/ssr-manifest.json                               64.47 kB
+bootstrap/ssr/assets/PlatformShell-BsJ_Tx5a.js                 0.30 kB
+bootstrap/ssr/assets/terms-HNXVijWS.js                         0.33 kB
+bootstrap/ssr/assets/SectionHeader-CPHLUsd1.js                 0.46 kB
+bootstrap/ssr/assets/PageHeader-qaWJfzfS.js                    1.15 kB
+bootstrap/ssr/assets/Edit-4UTRDS-l.js                          1.17 kB
+bootstrap/ssr/assets/Create-B6gUKKTF.js                        1.18 kB
+bootstrap/ssr/assets/MidnightNebula-BQ5hjMmA.js                1.23 kB
+bootstrap/ssr/assets/Create-DtluHLa-.js                        1.32 kB
+bootstrap/ssr/assets/SmartCaptureNudge-VrUccUol.js             1.39 kB
+bootstrap/ssr/assets/settings-DUqQ1JdE.js                      1.40 kB
+bootstrap/ssr/assets/Edit-vLQQXgID.js                          1.40 kB
+bootstrap/ssr/assets/Pagination-DQc3dU-Z.js                    1.46 kB
+bootstrap/ssr/assets/LoanStatement-CsFCBLnD.js                 1.54 kB
+bootstrap/ssr/assets/GenericReport-Cs0tDCUj.js                 1.54 kB
+bootstrap/ssr/assets/Invalid-DAmFLJqr.js                       1.61 kB
+bootstrap/ssr/assets/PremiumButton-BUDyjGi2.js                 1.79 kB
+bootstrap/ssr/assets/ConfirmModal-DaQlI6mj.js                  1.81 kB
+bootstrap/ssr/assets/VerifyEmail-Dn9_aqex.js                   1.93 kB
+bootstrap/ssr/assets/ConfirmPassword-BoMUBYZj.js               1.96 kB
+bootstrap/ssr/assets/AsyncPartyCombobox-DvXouLjw.js            1.99 kB
+bootstrap/ssr/assets/SiteChrome-CTBS9SEe.js                    2.18 kB
+bootstrap/ssr/assets/TwoFactorVerify-D39XUemQ.js               2.21 kB
+bootstrap/ssr/assets/ItemReportByParty-DzWLjF3M.js             2.38 kB
+bootstrap/ssr/assets/PartyReportByItem-II2Huxss.js             2.38 kB
+bootstrap/ssr/assets/Toggle-Djmy2ap1.js                        2.40 kB
+bootstrap/ssr/assets/ForgotPassword-CjT3-kZd.js                2.51 kB
+bootstrap/ssr/assets/useTurnstile-4WiJ80s8.js                  2.52 kB
+bootstrap/ssr/assets/ItemWiseDiscount-CXbbMQLo.js              2.52 kB
+bootstrap/ssr/assets/LeadUnsubscribe-Ib39_O0m.js               2.54 kB
+bootstrap/ssr/assets/LeadConfirm-CZV1lZ9p.js                   2.55 kB
+bootstrap/ssr/assets/PartyWiseProfitLoss-B1J80AUa.js           2.56 kB
+bootstrap/ssr/assets/Invalid-pwYBxb5y.js                       2.58 kB
+bootstrap/ssr/assets/HousePromo-DidRidkH.js                    2.58 kB
+bootstrap/ssr/assets/NewsletterConfirm-D33O-5DU.js             2.68 kB
+bootstrap/ssr/assets/NewsletterUnsubscribe-Cp13zeYS.js         2.72 kB
+bootstrap/ssr/assets/ServiceNavTabs-5e2m7amG.js                2.87 kB
+bootstrap/ssr/assets/ResetPassword-COUhxlcv.js                 2.88 kB
+bootstrap/ssr/assets/Dropdown-DD4TL5Ab.js                      2.89 kB
+bootstrap/ssr/assets/AsyncProductCombobox-CkLIv0mm.js          2.89 kB
+bootstrap/ssr/assets/SalePurchaseByParty-Crn4M3ji.js           2.94 kB
+bootstrap/ssr/assets/Dashboard-DGkBl8yh.js                     3.00 kB
+bootstrap/ssr/assets/Show-i4Hoe9i1.js                          3.03 kB
+bootstrap/ssr/assets/StoreSuspended-CmGLWnXn.js                3.05 kB
+bootstrap/ssr/assets/SalePurchaseByItemCategory-D22QXbM5.js    3.14 kB
+bootstrap/ssr/assets/ExpenseByItem-CBV0-sjh.js                 3.17 kB
+bootstrap/ssr/assets/Create-CRLauPFD.js                        3.22 kB
+bootstrap/ssr/assets/SalePurchaseByPartyGroup-CFPcOTKA.js      3.27 kB
+bootstrap/ssr/assets/AllParties-9FTMKJbl.js                    3.28 kB
+bootstrap/ssr/assets/ExpenseByCategory-Bw4fFgLk.js             3.33 kB
+bootstrap/ssr/assets/ItemCategoryWiseProfitLoss-BKUsx8NJ.js    3.47 kB
+bootstrap/ssr/assets/RefundReasons-DnQixoNb.js                 3.59 kB
+bootstrap/ssr/assets/Index-COauViNc.js                         3.66 kB
+bootstrap/ssr/assets/ToolsSidebar-UoByrcvz.js                  3.74 kB
+bootstrap/ssr/assets/Index-BNNioNSk.js                         3.75 kB
+bootstrap/ssr/assets/QrMenuPublic-DGlkSBuS.js                  3.78 kB
+bootstrap/ssr/assets/Edit-DFHm8cks.js                          3.81 kB
+bootstrap/ssr/assets/ItemDetail-DxYt9t8S.js                    3.82 kB
+bootstrap/ssr/assets/Accept-DxQX3lfT.js                        3.82 kB
+bootstrap/ssr/assets/Tax-CUwdn7fU.js                           3.91 kB
+bootstrap/ssr/assets/TaxRateReport-CnZST6wp.js                 3.97 kB
+bootstrap/ssr/assets/Select-BvHKwZfu.js                        4.04 kB
+bootstrap/ssr/assets/StaffLogin-DL_-Tnte.js                    4.04 kB
+bootstrap/ssr/assets/BankStatement-D3fJC69h.js                 4.15 kB
+bootstrap/ssr/assets/EditableText-CAR9rgbH.js                  4.15 kB
+bootstrap/ssr/assets/ExpiryReport-CORGgeVc.js                  4.27 kB
+bootstrap/ssr/assets/TwoFactorSetup-DBQV1q7n.js                4.32 kB
+bootstrap/ssr/assets/TrialExpired-CgcBTiLr.js                  4.39 kB
+bootstrap/ssr/assets/Transactions-BjzG5F39.js                  4.50 kB
+bootstrap/ssr/assets/VerifyCode-Cg6kj90I.js                    4.63 kB
+bootstrap/ssr/assets/Index-D1NOwlVf.js                         4.66 kB
+bootstrap/ssr/assets/Show-BJqiNeMc.js                          4.73 kB
+bootstrap/ssr/assets/format-131Nyq79.js                        4.76 kB
+bootstrap/ssr/assets/Landing-CNwCLjKG.js                       4.77 kB
+bootstrap/ssr/assets/Index-7YOgSSC5.js                         5.19 kB
+bootstrap/ssr/assets/Return-CplV3VJv.js                        5.44 kB
+bootstrap/ssr/assets/AcceptInvite-GClf_T9J.js                  5.44 kB
+bootstrap/ssr/assets/EmailGate-BsTy97if.js                     5.50 kB
+bootstrap/ssr/assets/Error-DNjOlORS.js                         5.51 kB
+bootstrap/ssr/assets/RecycleBin-BJAsKns1.js                    5.51 kB
+bootstrap/ssr/assets/Receive-I2enmsgk.js                       5.57 kB
+bootstrap/ssr/assets/ToolShell-ZKIfYBuj.js                     5.62 kB
+bootstrap/ssr/assets/OnlineStore-CaBcrOQj.js                   5.75 kB
+bootstrap/ssr/assets/Input-BO7OpFmF.js                         5.86 kB
+bootstrap/ssr/assets/AccountLedger-DXLQUBA6.js                 5.90 kB
+bootstrap/ssr/assets/TrialBalance-CVeiISNp.js                  6.03 kB
+bootstrap/ssr/assets/MoneyModuleTabs-Cjz6Pk-i.js               6.07 kB
+bootstrap/ssr/assets/UomConversions-BUrB0blx.js                6.09 kB
+bootstrap/ssr/assets/Campaigns-Buz_178E.js                     6.10 kB
+bootstrap/ssr/assets/PartyStatement-eowORmzS.js                6.18 kB
+bootstrap/ssr/assets/BusinessTypes-Dpt2J66y.js                 6.19 kB
+bootstrap/ssr/assets/HistoryUnlockedModal-0KHHDlE2.js          6.23 kB
+bootstrap/ssr/assets/Create-BaK3p9wk.js                        6.41 kB
+bootstrap/ssr/assets/PriceTiers-LVLMGzpf.js                    6.53 kB
+bootstrap/ssr/assets/ContactsModuleTabs-Bq6p5X-B.js            6.54 kB
+bootstrap/ssr/assets/Dashboard-BKtunUIu.js                     6.64 kB
+bootstrap/ssr/assets/PremiumSelect-BaeCSgsA.js                 6.67 kB
+bootstrap/ssr/assets/Show-BePFa2kt.js                          6.82 kB
+bootstrap/ssr/assets/StockModuleTabs-DPNg2VNB.js               6.84 kB
+bootstrap/ssr/assets/Index-crpZxlBD.js                         6.84 kB
+bootstrap/ssr/assets/Index-ChmnsTE5.js                         6.90 kB
+bootstrap/ssr/assets/Index-BzUmcvU2.js                         6.95 kB
+bootstrap/ssr/assets/ViewerDashboard-C20lr37x.js               7.12 kB
+bootstrap/ssr/assets/Roadmap-3HOoWRJG.js                       7.18 kB
+bootstrap/ssr/assets/Show-o4rjJ1Bl.js                          7.26 kB
+bootstrap/ssr/assets/RefundPolicy-Rjo5rvij.js                  7.30 kB
+bootstrap/ssr/assets/NotificationCenter-4RQb9DRk.js            7.34 kB
+bootstrap/ssr/assets/CreateOrJoin-k27ITkSk.js                  7.50 kB
+bootstrap/ssr/assets/CashFlow-C8euqC_D.js                      7.55 kB
+bootstrap/ssr/assets/QuickPartyModal-CwIpF4SK.js               7.60 kB
+bootstrap/ssr/assets/Show-D54llLwX.js                          7.61 kB
+bootstrap/ssr/assets/ProfitLoss-D0XwhXDr.js                    8.04 kB
+bootstrap/ssr/assets/StockAging-6DGeNFQ9.js                    8.10 kB
+bootstrap/ssr/assets/Create-Ds3PP8yu.js                        8.16 kB
+bootstrap/ssr/assets/BarcodeValidator-C59UF7w7.js              8.23 kB
+bootstrap/ssr/assets/Edit-DPiwc8aP.js                          8.28 kB
+bootstrap/ssr/assets/Newsletter-GR701t_5.js                    8.30 kB
+bootstrap/ssr/assets/PrintButton-DA6JnfSJ.js                   8.30 kB
+bootstrap/ssr/assets/Transactions-TgUyz9pZ.js                  8.38 kB
+bootstrap/ssr/assets/PurchaseModuleTabs-umGtmOnS.js            8.41 kB
+bootstrap/ssr/assets/StockValuation-DN8mCj1N.js                8.49 kB
+bootstrap/ssr/assets/Dashboard-DvEVw_7p.js                     8.55 kB
+bootstrap/ssr/assets/Register-CARiiCb6.js                      8.56 kB
+bootstrap/ssr/assets/SellModuleTabs-CxO5AZAs.js                8.74 kB
+bootstrap/ssr/assets/Analytics-CGRazLDO.js                     8.83 kB
+bootstrap/ssr/assets/LowStock-6tUR-QR2.js                      9.04 kB
+bootstrap/ssr/assets/CashHistory-DKKoi7Rw.js                   9.14 kB
+bootstrap/ssr/assets/Show-C9nM5ojv.js                          9.20 kB
+bootstrap/ssr/assets/Create-DoyygRtU.js                        9.38 kB
+bootstrap/ssr/assets/Contacts-DYw_5UQc.js                      9.42 kB
+bootstrap/ssr/assets/Login-Bz6FQzis.js                         9.56 kB
+bootstrap/ssr/assets/CreatePreSale-zqH9iLgf.js                 9.58 kB
+bootstrap/ssr/assets/Kitchen-DXw60CeR.js                      10.00 kB
+bootstrap/ssr/assets/Index-lFu5Jn9e.js                        10.11 kB
+bootstrap/ssr/assets/Index-DvNkvCOv.js                        10.13 kB
+bootstrap/ssr/assets/BalanceSheet-Dv11hALK.js                 10.20 kB
+bootstrap/ssr/assets/Show-DYw3FsDT.js                         10.22 kB
+bootstrap/ssr/assets/FinanceDashboard-Cccinx28.js             10.23 kB
+bootstrap/ssr/assets/StockSummaryByCategory-DJ_DnreD.js       10.23 kB
+bootstrap/ssr/assets/Show-DX8T6DJ8.js                         10.25 kB
+bootstrap/ssr/assets/Show-6LCJP4gq.js                         10.33 kB
+bootstrap/ssr/assets/WooCommerce-Ce12qihf.js                  10.43 kB
+bootstrap/ssr/assets/Create-CN4syHYt.js                       10.61 kB
+bootstrap/ssr/assets/Dashboard-DrsNmbbk.js                    10.69 kB
+bootstrap/ssr/assets/Login-qMnnjgib.js                        10.70 kB
+bootstrap/ssr/assets/VenaTicketDetail-CQsw2bEv.js             10.72 kB
+bootstrap/ssr/assets/RecurringForm-V-nHLU8b.js                10.73 kB
+bootstrap/ssr/assets/CashierDashboard-Dj5W2wiW.js             10.74 kB
+bootstrap/ssr/assets/Show-st4kPN9s.js                         10.78 kB
+bootstrap/ssr/assets/KnownIssues-BHYLShI1.js                  10.86 kB
+bootstrap/ssr/assets/MovementHistory-B5ds0rGT.js              10.98 kB
+bootstrap/ssr/assets/Join-DupIxnOH.js                         11.02 kB
+bootstrap/ssr/assets/MarketingLayout-DGhNW12e.js              11.03 kB
+bootstrap/ssr/assets/Show-BRsF3qpT.js                         11.50 kB
+bootstrap/ssr/assets/ui-_8sZpHCB.js                           11.66 kB
+bootstrap/ssr/assets/ReportsLayout-BinEpJpH.js                11.76 kB
+bootstrap/ssr/assets/Partners-lCdDPmTI.js                     11.81 kB
+bootstrap/ssr/assets/AttributesList-BxQZAUGA.js               11.88 kB
+bootstrap/ssr/assets/SelectPlan-DWVoTa_A.js                   12.19 kB
+bootstrap/ssr/assets/Create-DZ85kyNV.js                       12.27 kB
+bootstrap/ssr/assets/Create-CtWZ_3T8.js                       12.31 kB
+bootstrap/ssr/assets/ServiceJobs-D2s7DSic.js                  12.31 kB
+bootstrap/ssr/assets/Show-BZIAM_qf.js                         12.32 kB
+bootstrap/ssr/assets/PurchaseReturns-Dtj4yEMe.js              12.37 kB
+bootstrap/ssr/assets/Appearance-CpJteaME.js                   12.43 kB
+bootstrap/ssr/assets/Users-BMiN4cPl.js                        12.43 kB
+bootstrap/ssr/assets/Create-D7QzZ7gc.js                       12.43 kB
+bootstrap/ssr/assets/ChartOfAccounts-us10ZdHZ.js              12.58 kB
+bootstrap/ssr/assets/MoneyPipeline-CKynBDg7.js                12.83 kB
+bootstrap/ssr/assets/Create-CobM-6YS.js                       12.83 kB
+bootstrap/ssr/assets/Logs-C5vorTeR.js                         12.84 kB
+bootstrap/ssr/assets/Redeem-vwDzd5uy.js                       13.23 kB
+bootstrap/ssr/assets/ReportPage-BVET1kQz.js                   13.27 kB
+bootstrap/ssr/assets/Create-BgKYOpwb.js                       13.32 kB
+bootstrap/ssr/assets/Stores-Cw_GWy-t.js                       13.35 kB
+bootstrap/ssr/assets/VariantsList-DnQcncT1.js                 13.47 kB
+bootstrap/ssr/assets/Backups-BN8glTZx.js                      13.71 kB
+bootstrap/ssr/assets/Migration-f1Kkh0oQ.js                    14.59 kB
+bootstrap/ssr/assets/PurchasingDashboard-C4ciPZmO.js          14.63 kB
+bootstrap/ssr/assets/Index-yw-IKtZy.js                        14.82 kB
+bootstrap/ssr/assets/SerialTracking-CH4XxlF1.js               14.82 kB
+bootstrap/ssr/assets/Show-p_MACkjJ.js                         14.96 kB
+bootstrap/ssr/assets/Dashboard-CSyIIO9f.js                    14.99 kB
+bootstrap/ssr/assets/Create-D-vD99VQ.js                       15.06 kB
+bootstrap/ssr/assets/Overrides-CVREPI7a.js                    15.23 kB
+bootstrap/ssr/assets/WhatIsIncluded-D842p00o.js               15.25 kB
+bootstrap/ssr/assets/DigitalProducts-BK9H6BKX.js              15.54 kB
+bootstrap/ssr/assets/Show-BhNO_LDl.js                         15.71 kB
+bootstrap/ssr/assets/LabelPrinter-DnWOYmKp.js                 15.82 kB
+bootstrap/ssr/assets/Database-BETYgU77.js                     15.86 kB
+bootstrap/ssr/assets/Show-BCGFhGKd.js                         16.08 kB
+bootstrap/ssr/assets/Index-B3JEZ0AX.js                        16.22 kB
+bootstrap/ssr/assets/BatchTracking-DbshkKyf.js                16.50 kB
+bootstrap/ssr/assets/Show-DPAw8foe.js                         16.65 kB
+bootstrap/ssr/assets/DayBook-H2MRyd1a.js                      16.86 kB
+bootstrap/ssr/assets/SyncHealthPanel-DPKax49H.js              16.92 kB
+bootstrap/ssr/assets/Connections-Dl7-leTF.js                  17.07 kB
+bootstrap/ssr/assets/Create-DnjUBLEd.js                       17.09 kB
+bootstrap/ssr/assets/BarcodeLabelSheet-z5uUuYaH.js            17.35 kB
+bootstrap/ssr/assets/StockLevels-ByyduFWL.js                  17.37 kB
+bootstrap/ssr/assets/PartnerSupport-ZZ5BIOvo.js               17.46 kB
+bootstrap/ssr/assets/Index-I4ovLjAz.js                        17.47 kB
+bootstrap/ssr/assets/Settings-EFc0jMUN.js                     17.76 kB
+bootstrap/ssr/assets/AccountantDashboard-DXA75wRf.js          17.79 kB
+bootstrap/ssr/assets/Index-DlJIegn-.js                        17.91 kB
+bootstrap/ssr/assets/SuppliersList-D4WxFCBw.js                17.94 kB
+bootstrap/ssr/assets/Expenses-T7E7Czcv.js                     18.15 kB
+bootstrap/ssr/assets/GraphAnalytics-BMWnOhI8.js               18.34 kB
+bootstrap/ssr/assets/Payouts-BOVUb27j.js                      18.52 kB
+bootstrap/ssr/assets/Purchases-BydRsgjV.js                    18.57 kB
+bootstrap/ssr/assets/BankReconciliation-Bi5nGBRN.js           18.63 kB
+bootstrap/ssr/assets/StockTransfers-DBL1HGzK.js               18.71 kB
+bootstrap/ssr/assets/AmazonSetupWizard-B7Prq2Nk.js            18.89 kB
+bootstrap/ssr/assets/index-BhXucrH4.js                        18.89 kB
+bootstrap/ssr/assets/Overview-DCJANJ_M.js                     18.94 kB
+bootstrap/ssr/assets/PrivacyPolicy-DPDCkQ4L.js                19.07 kB
+bootstrap/ssr/assets/QrCode-CNMegEBt.js                       19.31 kB
+bootstrap/ssr/assets/Errors-Bp8U4T4W.js                       19.32 kB
+bootstrap/ssr/assets/ProductionRuns-Bk_E3Zxz.js               19.80 kB
+bootstrap/ssr/assets/SaleAging-C_aAdVI1.js                    20.00 kB
+bootstrap/ssr/assets/Index-Bxh6WLxa.js                        20.08 kB
+bootstrap/ssr/assets/RecipesList-BoMtfQS2.js                  20.14 kB
+bootstrap/ssr/assets/PaymentsList-Dls0TIbk.js                 20.57 kB
+bootstrap/ssr/assets/Index-BM7cCoPs.js                        20.57 kB
+bootstrap/ssr/assets/CashDrawer-B2d8qq0E.js                   21.13 kB
+bootstrap/ssr/assets/QrMenu-BAggrHtX.js                       21.34 kB
+bootstrap/ssr/assets/StockTake-CSTZTewJ.js                    21.50 kB
+bootstrap/ssr/assets/ProductCsvCleaner-DmFE4r9X.js            21.51 kB
+bootstrap/ssr/assets/SaleOrderItems-DhggKJ4y.js               21.58 kB
+bootstrap/ssr/assets/BankAccountsList-CXApDdvi.js             21.61 kB
+bootstrap/ssr/assets/ChatbotSettings-BdI5qb0h.js              21.65 kB
+bootstrap/ssr/assets/CustomersList-D-nIxYY0.js                21.69 kB
+bootstrap/ssr/assets/Home-BAhvx87N.js                         21.76 kB
+bootstrap/ssr/assets/LabelSheet-BY_vf6uX.js                   21.78 kB
+bootstrap/ssr/assets/Wizard-Cu4NuwlT.js                       21.98 kB
+bootstrap/ssr/assets/SaleOrders-BYq32PgM.js                   22.03 kB
+bootstrap/ssr/assets/Payables-CHl7XeJ8.js                     22.16 kB
+bootstrap/ssr/assets/Out-Cs5IWNQd.js                          22.40 kB
+bootstrap/ssr/assets/PriceTag-DVs95Zp6.js                     22.45 kB
+bootstrap/ssr/assets/In-gsWc_w49.js                           22.68 kB
+bootstrap/ssr/assets/PaymentFeeCalculator-Au7oegAz.js         22.71 kB
+bootstrap/ssr/assets/Welcome-B6v0lPjJ.js                      22.75 kB
+bootstrap/ssr/assets/PurchaseForm-BEeUCWqW.js                 22.88 kB
+bootstrap/ssr/assets/BillWiseProfit-CgpzmXot.js               22.98 kB
+bootstrap/ssr/assets/DiscountReport-IU_C0ddx.js               23.11 kB
+bootstrap/ssr/assets/CreateServiceJob-C0kU3e1i.js             23.12 kB
+bootstrap/ssr/assets/Receivables-DSqES_Zm.js                  23.40 kB
+bootstrap/ssr/assets/TermsOfService-CNh5ZkBF.js               23.65 kB
+bootstrap/ssr/assets/VenaTickets-C13cRMul.js                  24.31 kB
+bootstrap/ssr/assets/ui-CcDUonPh.js                           24.43 kB
+bootstrap/ssr/assets/Receipt-DCXi1fEv.js                      24.61 kB
+bootstrap/ssr/assets/MasterReport-DM-pFLtH.js                 24.68 kB
+bootstrap/ssr/assets/OverrideDetail-C82ntv6e.js               24.90 kB
+bootstrap/ssr/assets/PlatformLayout-zffw2ESf.js               25.03 kB
+bootstrap/ssr/assets/FloorBuilder-B2zjfAxZ.js                 25.17 kB
+bootstrap/ssr/assets/Ledger-B5Xm-Cyd.js                       25.23 kB
+bootstrap/ssr/assets/StockCountSheet-BJ64T7wR.js              25.24 kB
+bootstrap/ssr/assets/Rules-Cwy4b8a7.js                        25.76 kB
+bootstrap/ssr/assets/Contact-D2Nz_HWI.js                      25.76 kB
+bootstrap/ssr/assets/Categories-D94qDQFF.js                   25.81 kB
+bootstrap/ssr/assets/PackingSlip-DSh_Xajj.js                  25.85 kB
+bootstrap/ssr/assets/ConnectionSetup-Bftjj3KG.js              25.87 kB
+bootstrap/ssr/assets/InvoiceReminders-BAHB0F4C.js             25.88 kB
+bootstrap/ssr/assets/ParkedSales-B7fdkeM0.js                  25.92 kB
+bootstrap/ssr/assets/SyncPage-DJpAyWWA.js                     26.10 kB
+bootstrap/ssr/assets/EInvoicing-FpUUqT2w.js                   26.35 kB
+bootstrap/ssr/assets/Invoice-DuLKI1XZ.js                      26.36 kB
+bootstrap/ssr/assets/StockOperations-DEn_rzog.js              26.57 kB
+bootstrap/ssr/assets/Security-C_0u0mZ_.js                     26.79 kB
+bootstrap/ssr/assets/DataMapping-Cr5NQkoS.js                  26.88 kB
+bootstrap/ssr/assets/Show-feNzv66E.js                         27.03 kB
+bootstrap/ssr/assets/About-03rzFfF-.js                        27.52 kB
+bootstrap/ssr/assets/Barcode-CjukJJTx.js                      27.59 kB
+bootstrap/ssr/assets/StaffAttendance-ChQKCc38.js              28.02 kB
+bootstrap/ssr/assets/PrintService-DHqswPBp.js                 28.19 kB
+bootstrap/ssr/assets/RecurringInvoices-CquuuIXo.js            28.36 kB
+bootstrap/ssr/assets/CustomerInsights-VNn8rpcw.js             28.38 kB
+bootstrap/ssr/assets/PurchaseOrder-CM7WKh0l.js                28.62 kB
+bootstrap/ssr/assets/Show-ChnFQ0Rg.js                         28.71 kB
+bootstrap/ssr/assets/Ledger-DMT2ZRXU.js                       28.93 kB
+bootstrap/ssr/assets/CashDrawerCountSheet-CL1atxex.js         29.14 kB
+bootstrap/ssr/assets/Hub-Cx-rLNmy.js                          29.28 kB
+bootstrap/ssr/assets/SupplierInsights-AsmWYVoU.js             29.30 kB
+bootstrap/ssr/assets/ThinkingOrb-DGYTy5s1.js                  29.58 kB
+bootstrap/ssr/assets/VenSynQ-CYBn9xum.js                      29.67 kB
+bootstrap/ssr/assets/PosRoiCalculator-Tr9CASbD.js             29.75 kB
+bootstrap/ssr/assets/CreditNote-BudVZk7_.js                   30.10 kB
+bootstrap/ssr/assets/SmartCombobox-4192ElGt.js                30.25 kB
+bootstrap/ssr/assets/ProfitLoss-B0PbU-P9.js                   31.12 kB
+bootstrap/ssr/assets/Index-KBdL45Ca.js                        31.22 kB
+bootstrap/ssr/assets/SkuGenerator-CCs-Quky.js                 31.27 kB
+bootstrap/ssr/assets/MarginCalculator-EuGxo8JG.js             31.54 kB
+bootstrap/ssr/assets/Quote-ocOcS2LD.js                        32.10 kB
+bootstrap/ssr/assets/Dashboard-PKUyrbGa.js                    32.13 kB
+bootstrap/ssr/assets/Index-B6PaAK3l.js                        32.58 kB
+bootstrap/ssr/assets/SetupWizard-CnbiApSG.js                  32.62 kB
+bootstrap/ssr/assets/TransactionsList-CY4vnwTH.js             32.90 kB
+bootstrap/ssr/assets/MasterSales-DNhrGiiH.js                  33.49 kB
+bootstrap/ssr/assets/Documents-BzU0dmCG.js                    33.61 kB
+bootstrap/ssr/assets/MoneyDocument-DZs5cZXD.js                33.72 kB
+bootstrap/ssr/assets/Overview-BW_tbBfV.js                     34.66 kB
+bootstrap/ssr/assets/Sales-BdHO5e5U.js                        34.71 kB
+bootstrap/ssr/assets/Tools-CdT46sNE.js                        34.71 kB
+bootstrap/ssr/assets/ReportsHub-OObhbyjX.js                   34.87 kB
+bootstrap/ssr/assets/DashboardPreview-vuLMKR5-.js             35.12 kB
+bootstrap/ssr/assets/SmartCapture-fBGCFf3C.js                 36.37 kB
+bootstrap/ssr/assets/GrowthDashboard-D1EHVzGs.js              36.68 kB
+bootstrap/ssr/assets/InventoryHealth-BM3RP1iz.js              36.84 kB
+bootstrap/ssr/assets/SetupWizardModal-CR-vA7T2.js             36.98 kB
+bootstrap/ssr/assets/PointInTimeInventory-0yGCSk02.js         37.29 kB
+bootstrap/ssr/assets/ServiceJobDetail-C76kajG4.js             37.35 kB
+bootstrap/ssr/assets/ReturnsHistory-DJu2r8oy.js               38.07 kB
+bootstrap/ssr/assets/DebitNotes-CL48qOBF.js                   38.45 kB
+bootstrap/ssr/assets/Settings-C75Cz6zF.js                     38.92 kB
+bootstrap/ssr/assets/Dashboard-CH8Mglxt.js                    39.44 kB
+bootstrap/ssr/assets/FoodCostCalculator-jqRyPvUS.js           39.78 kB
+bootstrap/ssr/assets/PosShowcase-Bf8IA5TW.js                  40.78 kB
+bootstrap/ssr/assets/PurchaseOrdersList-BDCWW41G.js           40.86 kB
+bootstrap/ssr/assets/Reckoner-DIS7m-xl.js                     41.30 kB
+bootstrap/ssr/assets/Edit-2oiSDl3O.js                         42.46 kB
+bootstrap/ssr/assets/Create-RDXJ62PH.js                       42.94 kB
+bootstrap/ssr/assets/solutions-iwYK5Alp.js                    43.30 kB
+bootstrap/ssr/assets/ServiceCalendar-C3gBO5CN.js              43.81 kB
+bootstrap/ssr/assets/engine-Cd795qy4.js                       46.50 kB
+bootstrap/ssr/assets/ItemWiseProfit-D8JmsViD.js               46.98 kB
+bootstrap/ssr/assets/CookieConsent-CEoWtnKR.js                47.54 kB
+bootstrap/ssr/assets/ProposalsList-BKK27y_z.js                50.59 kB
+bootstrap/ssr/assets/PartiesList-ChTIVWiv.js                  50.82 kB
+bootstrap/ssr/assets/SettingsPanel-BOhWTBLy.js                52.26 kB
+bootstrap/ssr/assets/CreateInvoice-PaMqfy8j.js                53.00 kB
+bootstrap/ssr/assets/OwnersDailyPulse-CW86AclS.js             53.09 kB
+bootstrap/ssr/assets/useDiscovery-hYYwlD1Q.js                 54.25 kB
+bootstrap/ssr/assets/ExecutiveDashboard-DDYqPYnj.js           54.43 kB
+bootstrap/ssr/assets/Blueprint-uoMuujvi.js                    54.54 kB
+bootstrap/ssr/assets/Index-DHcflhN-.js                        55.18 kB
+bootstrap/ssr/assets/PreSales-BjFK1N43.js                     56.76 kB
+bootstrap/ssr/assets/runtime-DwSFgQZq.js                      56.83 kB
+bootstrap/ssr/assets/PurchasesList-BvanGgqs.js                57.48 kB
+bootstrap/ssr/assets/CategoryProfitability-DPMRok-p.js        58.35 kB
+bootstrap/ssr/assets/AgentInbox-D__287m4.js                   58.49 kB
+bootstrap/ssr/assets/FundManagement-C-wcjJsW.js               62.49 kB
+bootstrap/ssr/assets/BuildWorkspace-Pz14meD6.js               62.59 kB
+bootstrap/ssr/assets/Show-D1knG6hT.js                         64.80 kB
+bootstrap/ssr/assets/FeatureDemos-CARWNhF9.js                 70.03 kB
+bootstrap/ssr/assets/DataManagement-3Dr3WfHK.js               70.78 kB
+bootstrap/ssr/assets/Onboarding-Cw66AOwz.js                   72.31 kB
+bootstrap/ssr/assets/Index-Bikc3e9q.js                        74.15 kB
+bootstrap/ssr/assets/InventoryList-D4w8qYJz.js                74.71 kB
+bootstrap/ssr/assets/SmartCapture-C7tFd8yG.js                 79.97 kB
+bootstrap/ssr/assets/SalesHistory-CO6eA3dg.js                 86.29 kB
+bootstrap/ssr/assets/Users-CWIUGeRE.js                        97.97 kB
+bootstrap/ssr/assets/PrintPreview-8DORuRI9.js                101.85 kB
+bootstrap/ssr/assets/Pricing-DUUtoyiT.js                     108.04 kB
+bootstrap/ssr/assets/ExpensesList-7jIx2YHY.js                110.37 kB
+bootstrap/ssr/assets/Index-B7t7uPlN.js                       121.90 kB
+bootstrap/ssr/assets/CreatePreSale-DjzMf-aL.js               122.79 kB
+bootstrap/ssr/assets/Index-o9N2Lt3n.js                       128.55 kB
+bootstrap/ssr/assets/Views-B28O9PgU.js                       138.14 kB
+bootstrap/ssr/assets/ProductModal-B3GmB4nt.js                138.46 kB
+bootstrap/ssr/assets/NewInvoice-Cv-tEaXX.js                  147.91 kB
+bootstrap/ssr/assets/Features-CL13TqD3.js                    149.01 kB
+bootstrap/ssr/assets/useDocumentChrome-baB5kwWl.js           155.79 kB
+bootstrap/ssr/assets/NewPos-C-Z03-ia.js                      156.99 kB
+bootstrap/ssr/assets/Settings-Bo-gtpYz.js                    188.80 kB
+bootstrap/ssr/assets/Dashboard-GpbHi23G.js                   209.42 kB
+bootstrap/ssr/assets/LandingPage-D1omKzy-.js                 217.02 kB
+bootstrap/ssr/assets/OneGlanceLayout-CWfkfflE.js             238.86 kB
+bootstrap/ssr/assets/AiIsland-CYlgBnsZ.js                    259.71 kB
+bootstrap/ssr/ssr.js                                         298.14 kB
+bootstrap/ssr/assets/NewDashboard-OII8jqx3.js                338.26 kB
+bootstrap/ssr/assets/Pos-CFLAPXIQ.js                         447.55 kB
+✓ built in 7.83s

@@ -45,10 +45,10 @@ export default function InventoryHealth({ toolGroups = [] }) {
     const sym = CURRENCIES[currency] || currency;
     const currencyOptions = Object.entries(CURRENCIES).map(([code, symbol]) => ({ value: code, label: `${code} (${symbol})` }));
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
-    const cardCls = 'rounded-2xl bg-neutral-900/[0.02] dark:bg-white/[0.03] border border-neutral-900/[0.06] dark:border-white/10 p-5 sm:p-7';
-    const resultCardCls = 'p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-neutral-900/[0.06] dark:border-white/10 text-center';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-[14px] text-ink focus:outline-none';
+    const labelCls = 'block text-sm font-semibold text-ink mb-2';
+    const cardCls = 'vq-tool-panel vq-tool-panel--pad';
+    const resultCardCls = 'p-4 rounded-2xl vq-tool-inset text-center';
 
     const fmtNum = (v, digits = 0) => (v === null || v === undefined || !Number.isFinite(v)) ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: digits });
     const fmtMoney = (v) => (v === null || v === undefined || !Number.isFinite(v)) ? '—' : `${sym}${round2(v).toFixed(2)}`;
@@ -308,8 +308,8 @@ export default function InventoryHealth({ toolGroups = [] }) {
                 </div>
 
                 <div className="mb-5 flex gap-2">
-                    <button type="button" onClick={() => setGmroiMode('direct')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${gmroiMode === 'direct' ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}>Enter gross margin $</button>
-                    <button type="button" onClick={() => setGmroiMode('salesCogs')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${gmroiMode === 'salesCogs' ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}>Compute from sales − COGS</button>
+                    <button type="button" onClick={() => setGmroiMode('direct')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${gmroiMode === 'direct' ? 'vq-tool-on' : 'vq-tool-inset text-ink-muted'}`}>Enter gross margin $</button>
+                    <button type="button" onClick={() => setGmroiMode('salesCogs')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${gmroiMode === 'salesCogs' ? 'vq-tool-on' : 'vq-tool-inset text-ink-muted'}`}>Compute from sales − COGS</button>
                 </div>
 
                 {gmroiMode === 'direct' ? (
@@ -438,23 +438,23 @@ export default function InventoryHealth({ toolGroups = [] }) {
                 </p>
 
                 <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                    <div className="vq-tool-panel vq-tool-panel--pad">
                         <p className="font-bold text-ink mb-1">Reorder Point</p>
                         <p className="font-mono text-xs text-brand-600 dark:text-brand-300">ROP = (Avg Daily Sales × Lead Time Days) + Safety Stock</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                    <div className="vq-tool-panel vq-tool-panel--pad">
                         <p className="font-bold text-ink mb-1">Safety Stock (simple method)</p>
                         <p className="font-mono text-xs text-brand-600 dark:text-brand-300">SS = (Max Daily Sales × Max Lead Time) − (Avg Daily Sales × Avg Lead Time)</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                    <div className="vq-tool-panel vq-tool-panel--pad">
                         <p className="font-bold text-ink mb-1">Economic Order Quantity</p>
                         <p className="font-mono text-xs text-brand-600 dark:text-brand-300">EOQ = √((2 × Annual Demand × Order Cost) ÷ Holding Cost per Unit)</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                    <div className="vq-tool-panel vq-tool-panel--pad">
                         <p className="font-bold text-ink mb-1">GMROI</p>
                         <p className="font-mono text-xs text-brand-600 dark:text-brand-300">GMROI = Gross Margin ($) ÷ Average Inventory Cost Value ($)</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 sm:col-span-2">
+                    <div className="vq-tool-panel vq-tool-panel--pad sm:col-span-2">
                         <p className="font-bold text-ink mb-1">Inventory Turnover &amp; Days of Inventory</p>
                         <p className="font-mono text-xs text-brand-600 dark:text-brand-300">Turnover = COGS ÷ Average Inventory Value &nbsp;·&nbsp; Days of Inventory = 365 ÷ Turnover</p>
                     </div>

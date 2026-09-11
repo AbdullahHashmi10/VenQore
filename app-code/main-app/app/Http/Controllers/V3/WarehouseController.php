@@ -7,6 +7,7 @@ use App\Services\PlanGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class WarehouseController extends Controller
@@ -33,7 +34,10 @@ class WarehouseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'       => ['required', 'string', 'max:100', 'unique:warehouses,name'],
+            // Names are unique per store, not across every store on the platform.
+            'name'       => ['required', 'string', 'max:100',
+                            Rule::unique('warehouses', 'name')
+                                ->where('tenant_id', app('current.tenant')->id)],
             'address'    => ['nullable', 'string', 'max:500'],
             'is_default' => ['boolean'],
         ]);
@@ -90,11 +94,17 @@ class WarehouseController extends Controller
     {
         $validated = $request->validate([
             'name'       => ['required', 'string', 'max:100',
-                            'unique:warehouses,name,' . $id],
+                            Rule::unique('warehouses', 'name')
+                                ->where('tenant_id', app('current.tenant')->id)
+                                ->ignore($id)],
             'address'    => ['nullable', 'string', 'max:500'],
             'is_default' => ['boolean'],
             'is_active'  => ['boolean'],
         ]);
+
+        // Another store's warehouse: 404. (Previously is_default=1 with a foreign
+        // id cleared THIS store's default warehouse and then updated nothing.)
+        DB::table('warehouses')->where('tenant_id', app('current.tenant')->id)->where('id', $id)->firstOrFail();
 
         DB::transaction(function () use ($id, $validated) {
             $tenantId = app('current.tenant')->id;
@@ -124,6 +134,9 @@ class WarehouseController extends Controller
     public function destroy(string $id)
     {
         $tenantId = app('current.tenant')->id;
+        // Another store's (or an unknown) warehouse: 404, not a null-property 500 below.
+        DB::table('warehouses')->where('tenant_id', $tenantId)->where('id', $id)->firstOrFail();
+
         // Block deletion if this warehouse has inventory batches
         $hasBatches = DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)

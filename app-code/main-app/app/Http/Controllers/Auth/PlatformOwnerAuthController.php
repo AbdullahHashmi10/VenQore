@@ -38,8 +38,8 @@ class PlatformOwnerAuthController extends Controller
             request()->session()->regenerateToken();
         }
 
-        // Check if any platform owner has set a PIN
-        $hasPinEnabled = User::where('is_platform_admin', true)
+        // SEC-05: PIN login is off unless explicitly enabled outside production.
+        $hasPinEnabled = self::pinLoginAllowed() && User::where('is_platform_admin', true)
             ->whereNotNull('platform_pin')
             ->exists();
 
@@ -59,13 +59,16 @@ class PlatformOwnerAuthController extends Controller
         ]);
 
         $throttleKey = 'platform-login|' . $request->ip();
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
+        // SEC-05: also limit per account, so distributed guessing hits a ceiling.
+        $accountKey = 'platform-login-acct|' . strtolower((string) $request->input('email'));
+        if (RateLimiter::tooManyAttempts($throttleKey, 5) || RateLimiter::tooManyAttempts($accountKey, 10)) {
+            $seconds = max(RateLimiter::availableIn($throttleKey), RateLimiter::availableIn($accountKey));
             return back()->withErrors(['email' => "Too many attempts. Wait {$seconds}s."]);
         }
 
         if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey);
+            RateLimiter::hit($accountKey, 900);
             return back()->withErrors(['email' => 'These credentials do not match our records.']);
         }
 
@@ -78,16 +81,33 @@ class PlatformOwnerAuthController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
+        RateLimiter::clear($accountKey);
         $request->session()->regenerate();
         session(['platform_last_activity' => time()]);
+        // Require2FA sends the user to setup/verify before any platform page.
         return redirect()->route('platform.dashboard');
     }
 
     // ── PIN Login ───────────────────────────────────────────────────────────
 
+    /**
+     * SEC-05 (2026-09-10): a 4–8 character PIN was a standalone credential for
+     * the most privileged account, with only an IP throttle. Disabled unless
+     * venqore.platform_pin_login_enabled is on AND the app is not production.
+     * Even then, MFA (Require2FA) still applies after the PIN.
+     */
+    public static function pinLoginAllowed(): bool
+    {
+        return (bool) config('venqore.platform_pin_login_enabled', false) && !app()->environment('production');
+    }
+
     public function storePin(Request $request): RedirectResponse
     {
-        $request->validate(['pin' => 'required|string|min:4|max:8']);
+        if (!self::pinLoginAllowed()) {
+            abort(404);
+        }
+
+        $request->validate(['pin' => 'required|string|min:6|max:8']);
 
         $throttleKey = 'platform-pin|' . $request->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
@@ -107,7 +127,7 @@ class PlatformOwnerAuthController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
-        Auth::login($user, true);
+        Auth::login($user, false);
         $request->session()->regenerate();
         session(['platform_last_activity' => time()]);
         return redirect()->route('platform.dashboard');
@@ -118,7 +138,7 @@ class PlatformOwnerAuthController extends Controller
     public function setPasscode(Request $request): RedirectResponse
     {
         $request->validate([
-            'pin'             => 'required|string|min:4|max:8|confirmed',
+            'pin'             => 'required|string|min:6|max:8|confirmed',
             'pin_confirmation'=> 'required',
             'current_password'=> 'required|string',
         ]);
@@ -159,6 +179,7 @@ class PlatformOwnerAuthController extends Controller
         }
 
         $user->update(['password' => Hash::make($request->password)]);
+        \App\Support\SessionRevoker::revokeOthers($user, $request);
         return back()->with('security_success', 'Password changed successfully.');
     }
 

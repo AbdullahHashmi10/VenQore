@@ -1,0 +1,1332 @@
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ChartRegistryParityTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\DashboardApiTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\DashboardLockTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\DashboardSanitizerTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerBatchKeyTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerChartsTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerComparisonTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerGateTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerLabelsTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerPeriodTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Unit\Reckoner\ReckonerPeriodTest::test_named_period_resolves(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerRegistryTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerResultTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerRouteTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Unit\Reckoner\ReckonerSettingsTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::first_code_creates_ltd_1_license(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::second_code_upgrades_license_to_ltd_2_and_updates_tenant(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::third_code_upgrades_to_ltd_3_with_correct_unlimited_limits(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::fourth_code_is_rejected(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::same_code_cannot_be_redeemed_twice(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::invalid_code_returns_422(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::has_tenant_scope_does_not_break_stacking_count_when_no_tenant_is_bound(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::transaction_limit_blocks_write_at_threshold(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::ltd_1_user_cannot_create_second_store(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::ltd_2_user_can_create_second_store_but_not_third(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::read_access_is_never_blocked_at_limit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::redeem_page_shows_correct_tier_state_for_user_with_one_code(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\AppSumo\CodeStackingTest::plan_limits_json_is_complete_after_upgrade(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\BlogPostEngineTest::blog_index_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\BlogPostEngineTest::blog_show_page_renders_successfully_with_dynamic_seo_and_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\BlogPostEngineTest::unknown_blog_slug_returns_404(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\BlogPostEngineTest::unpublished_posts_are_not_publicly_reachable(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\BlogPostEngineTest::sitemap_xml_dynamically_includes_blog_posts_from_database(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\BlogPostEngineTest::superadmin_can_create_update_and_delete_blog_posts(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\BlogPostEngineTest::blog_show_page_includes_blogposting_json_ld_schema(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ComparePagesTest::compare_hub_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ComparePagesTest::compare_square_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ComparePagesTest::compare_vyapar_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ComparePagesTest::compare_sub_sitemap_is_referenced_by_the_sitemap_index(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ComparePagesTest::compare_pages_are_included_in_the_compare_sub_sitemap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Core\NumberLineageCompletenessTest::ledger_derived_metrics_trace_to_a_service_and_accounts(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Core\NumberLineageCompletenessTest::every_metric_names_a_controller_and_route(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Core\NumberLineageCompletenessTest::registry_is_non_trivial(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\CrawlHygieneTest::internal_and_auth_routes_have_noindex_header(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\CrawlHygieneTest::marketing_routes_do_not_have_noindex_header(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\DocumentationHubTest::docs_routes_are_registered_and_accessible(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\DocumentationHubTest::docs_index_loads_getting_started_by_default(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\DocumentationHubTest::docs_show_loads_specific_markdown_document(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\DocumentationHubTest::docs_search_filters_qas_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\DocumentationHubTest::invalid_doc_slug_aborts_with_404(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::features_hub_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::features_accounting_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::features_inventory_management_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::features_offline_pos_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::features_point_of_sale_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::features_growth_engine_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::unknown_feature_slug_returns_404(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FeaturePagesTest::features_pages_are_included_in_sitemap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\FrontendSyntaxIntegrityTest::frontend_codebase_has_no_eslint_errors(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\AdversarialCorruptionTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V01_orphaned_sale_does_not_inflate_ledger_revenue(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V02_unbalanced_journal_entry_breaks_trial_balance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V03_tampered_batch_qty_breaks_inventory_three_way_tie(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V04_cross_tenant_journal_item_does_not_infect_tenant1(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V05_duplicate_journal_entry_doubles_that_sales_revenue(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V06_backdated_entry_changes_verified_period_pl(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V07_deleted_party_does_not_crash_reports(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V08_negative_batch_qty_breaks_fifo_but_not_ledger(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V09_reversed_entry_contributes_zero_to_all_reports(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V10_all_attacks_are_fully_rolled_back_after_test(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V11_is_reversed_mismark_is_detected(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V12_null_tenant_id_journal_item_is_detectable(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\AdversarialCorruptionTest::test_V13_duplicate_reversal_does_not_double_count(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\ArchitecturalEnforcementTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A01_report_controller_contains_no_raw_sql(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A02_dashboard_controller_contains_no_raw_sql(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A03_report_controller_injects_financial_reporting_service(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A04_no_money_column_defined_as_float_or_double_in_migrations(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A05_no_model_casts_money_field_as_float(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A06_financial_reporting_service_does_not_import_controllers(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A07_fifo_service_does_not_reference_journal_items(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A08_no_controller_references_journal_items_directly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A09_golden_company_seeder_does_not_truncate_shared_tables(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A10_test_base_class_does_not_auto_seed(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A11_number_registry_declares_minimum_metric_count(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A12_critical_known_issues_remain_tracked_in_registry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ArchitecturalEnforcementTest::test_A13_money_column_standardization_migration_exists(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\ClockPositionConsistencyTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ClockPositionConsistencyTest::test_CP01_balance_sheet_balanced_at_all_clock_positions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ClockPositionConsistencyTest::test_CP02_trial_balance_balanced_at_all_clock_positions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ClockPositionConsistencyTest::test_CP03_inventory_three_way_tie_at_all_clock_positions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ClockPositionConsistencyTest::test_CP04_ar_control_matches_getReceivables_at_all_positions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ClockPositionConsistencyTest::test_CP05_pl_arithmetic_consistent_at_all_clock_positions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ClockPositionConsistencyTest::test_CP06_pl_revenue_monotonically_non_decreasing_over_time(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ClockPositionConsistencyTest::test_CP07_retained_earnings_equals_pl_net_profit_at_all_positions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\CogsReconciliationTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CogsReconciliationTest::test_C01_gl_5000_equals_fifo_batch_consumption_annually(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CogsReconciliationTest::test_C02_getCogsReport_reconciled_is_true_for_all_periods(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CogsReconciliationTest::test_C03_annual_cogs_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CogsReconciliationTest::test_C04_monthly_gl_5000_matches_fifo_batch_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CogsReconciliationTest::test_C05_cogs_by_product_sums_to_total_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CogsReconciliationTest::test_C06_promotional_sale_cogs_posted_despite_zero_revenue(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CogsReconciliationTest::test_C07_gross_profit_product_cogs_matches_direct_sum(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\CrossSurfaceConsistencyTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IA_cash_consistent_across_dashboard_balancesheet_service(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IB_bank_consistent_across_dashboard_and_balance_sheet(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IC_receivables_consistent_across_three_surfaces(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_ID_payables_consistent_across_three_surfaces(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IE_revenue_consistent_pl_vs_gross_profit_rows(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IF_cogs_consistent_across_pl_cogsreport_and_grossprofit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IG_inventory_value_consistent_across_three_surfaces(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IH_gross_profit_consistent_pl_vs_gross_profit_rows(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_II_output_tax_consistent_tax_report_vs_balance_sheet(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IJ_trial_balance_consistent_with_balance_sheet(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\CrossSurfaceConsistencyTest::test_IK_balance_sheet_http_and_service_agree(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\DashboardOutputTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D01_dashboard_cash_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D02_dashboard_bank_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D03_dashboard_receivables_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D04_dashboard_payables_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D05_dashboard_revenue_mtd_is_non_zero_and_plausible(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D06_dashboard_cogs_mtd_plausible(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D07_dashboard_net_profit_mtd_arithmetic_consistent(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D08_dashboard_response_contains_all_required_keys(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D09_dashboard_does_not_include_tenant_2_data(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\DashboardOutputTest::test_D10_dashboard_returns_200_with_valid_json(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E01_leap_day_transaction_is_included_in_pl(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E02_leap_day_boundary_feb29_differs_from_feb28(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E03_year_end_boundary_dec31_inclusive_jan1_exclusive(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E04_balance_sheet_balanced_on_leap_day(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E05_hundred_percent_discount_has_zero_revenue_positive_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E06_rounding_pivot_php_and_mysql_agree(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E07_large_decimal_amount_stored_and_retrieved_exactly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E08_rounding_accumulation_worst_case_stays_within_tolerance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E09_inverted_date_range_returns_zero_not_crash(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E10_fifo_consume_uses_lock_for_update_inside_transaction(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E11_sequential_fifo_consumes_deplete_batch_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E12_insufficient_stock_throws_exception(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E13_failed_fifo_transaction_rolls_back_batch_qty(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E14_single_day_range_returns_only_that_days_data(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\EdgeCasesTimeConcurrencyTest::test_E15_zero_value_journal_entry_has_no_financial_impact(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\ExpensePaymentInputVerificationTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X01_cash_expense_debits_opex_credits_cash(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X02_bank_expense_credits_bank_not_cash(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X03_expense_with_input_tax_creates_gl_2300_line(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X04_customer_payment_received_reduces_ar(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X05_supplier_payment_made_reduces_ap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X06_partial_payment_reduces_ar_by_exact_amount(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X08_manual_journal_entry_posts_and_balances(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X09_opening_balance_creates_balanced_equity_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ExpensePaymentInputVerificationTest::test_X10_unbalanced_journal_entry_is_rejected_by_accounting_service(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\FifoBatchVerificationTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B01_each_batch_has_correct_remaining_qty(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B02_each_batch_has_correct_unit_cost(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B03_fifo_batches_consumed_oldest_first_per_product(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B04_total_fifo_value_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B05_zero_qty_batches_excluded_from_inventory_value(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B06_each_batch_computed_value_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B07_sale_return_restores_batch_quantities(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FifoBatchVerificationTest::test_B08_inventory_valuation_report_matches_fifo_sum(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\FilterMatrixTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM01_twelve_monthly_http_revenues_sum_to_annual(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM02_party_filter_returns_only_that_partys_sales(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM03_party_filter_complement_equals_annual_revenue(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM04_zero_activity_day_returns_zero_revenue_and_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM05_revenue_monotonicity_annual_ge_half_year(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM06_single_day_precision_returns_only_that_days_revenue(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM07_inventory_movement_product_filter_is_exclusive(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FilterMatrixTest::test_FM08_balance_sheet_as_of_date_is_boundary_inclusive(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\FinancialCoreVerificationTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F01_annual_pl_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F02_year_end_balance_sheet_totals_match_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F03_balance_sheet_equation_holds_at_year_end(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F04_balance_sheet_balances_on_every_date_in_year(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F05_trial_balance_nets_to_zero_at_year_end(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F06_per_account_gl_balances_match_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F07_inventory_three_way_tie_at_year_end(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F08_ar_control_account_matches_customer_sum_and_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F09_ap_control_account_matches_vendor_sum_and_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F10_cash_balance_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F11_bank_balance_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F12_getReceivables_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F13_getPayables_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F14_monthly_pls_sum_to_annual_pl(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F15_tax_summary_matches_manifest_accounts(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F16_tenant_2_revenue_never_appears_in_tenant_1_pl(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F17_reversed_sale_has_zero_net_contribution_to_pl(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F18_cash_flow_net_change_equals_balance_movement(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F19_getProfitByPeriod_matches_getProfitAndLoss(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FinancialCoreVerificationTest::test_F20_quarterly_pls_sum_to_annual(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\FormattingConsistencyTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT01_pl_response_values_are_numeric(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT02_balance_sheet_values_are_numeric(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT03_trial_balance_row_values_are_numeric(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT04_pl_income_account_lines_sum_to_revenue(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT05_pl_expense_account_lines_sum_to_opex(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT06_balance_sheet_asset_lines_sum_to_total_assets(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT07_zero_period_pl_returns_numeric_zeros_not_nulls(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT08_monetary_values_are_idempotently_rounded_to_2dp(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT09_pl_operating_expenses_equals_sum_of_expense_lines(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\FormattingConsistencyTest::test_FMT10_inventory_valuation_row_sum_equals_reported_total(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\GoldenAuditTestsTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenAuditTestsTest::test_ledger_truth_audit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenAuditTestsTest::test_data_integrity_audit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\GoldenCompanyTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_every_journal_entry_is_balanced(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_trial_balance_total_debits_equal_credits(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_no_journal_item_has_both_debit_and_credit_nonzero(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_no_zero_amount_journal_items(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_annual_revenue_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_annual_cogs_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_gross_profit_equals_revenue_minus_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_net_profit_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_balance_sheet_equation_assets_equals_liabilities_plus_equity(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_inventory_three_way_tie_gl_equals_fifo_value(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_no_negative_inventory_batches(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_fifo_remaining_qty_never_exceeds_original_qty(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_ar_gl_balance_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_ap_gl_balance_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_fifo_correctly_spans_two_batches_for_sale_003(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_batch_phn_001_fully_depleted_after_all_sales(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_sale_return_creates_reversed_journal_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_sale_return_restores_inventory_batch(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_cash_balance_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_bank_balance_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_split_payment_creates_both_cash_and_ar_lines(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_100_percent_discount_sale_has_zero_revenue_but_nonzero_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_tenant_2_revenue_is_invisible_to_tenant_1_gl(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_tenant_2_inventory_batches_not_in_tenant_1_fifo(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_tenant_1_sales_count_excludes_tenant_2(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_july_4_zero_activity_date_has_no_transactions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_woocommerce_sale_creates_journal_entry_like_any_other_sale(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_input_tax_recoverable_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_all_sale_items_reference_valid_sales(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\GoldenCompanyTest::test_all_inventory_batches_have_positive_original_qty(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateSelfTest::gate_blocks_on_a_synthetic_injected_critical(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateSelfTest::gate_blocks_on_an_expired_critical_waiver(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateSelfTest::gate_passes_a_clean_fixture(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateSelfTest::self_test_predicate_matches_the_real_gate_registries_shape(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\LaunchGateTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_G01_all_php_test_files_exist_and_are_non_empty(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_G02_frontend_test_file_exists_with_sufficient_coverage(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_G03_number_registry_has_zero_critical_issues(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_G04_architectural_enforcement_covers_minimum_rules(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_G05_verify_ledger_command_exists_and_is_valid(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_G06_golden_verify_command_exists_and_covers_all_sections(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_G07_golden_company_trial_balance_is_balanced_live(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I01_balance_sheet_satisfies_accounting_equation_at_year_end(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I02_revenue_is_ledger_derived_only(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I03_no_orphaned_journal_items(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I04_no_negative_inventory_batches(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I05_all_posted_golden_sales_have_journal_entries(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I06_tenant_isolation_t1_revenue_not_contaminated(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I07_verify_coverage_command_is_syntactically_valid(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\LaunchGateTest::test_I08_all_financial_reports_generate_without_exception(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\PurchaseInputVerificationTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\PurchaseInputVerificationTest::test_P01_cash_purchase_debits_inventory_and_input_tax(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\PurchaseInputVerificationTest::test_P02_credit_purchase_credits_ap_instead_of_cash(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\PurchaseInputVerificationTest::test_P03_purchase_return_reverses_inventory_and_ap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\PurchaseInputVerificationTest::test_P04_cash_purchase_return_debits_cash_instead_of_ap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\ReportOutputTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R01_trial_balance_endpoint_is_balanced_and_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R02_profit_loss_endpoint_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R03_balance_sheet_endpoint_balanced_and_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R04_cash_flow_endpoint_returns_plausible_data(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R05_inventory_valuation_endpoint_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R06_cogs_endpoint_reconciled_and_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R07_gross_profit_by_product_sums_to_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R08_tax_endpoint_output_tax_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R09_sales_report_total_revenue_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R10_purchases_report_total_spend_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R11_profit_loss_scoped_date_returns_partial_year_data(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R12_complement_property_q1_plus_rest_equals_annual(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R13_aged_receivables_total_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R14_party_ledger_closing_balance_matches_manifest(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\ReportOutputTest::test_R15_all_report_endpoints_return_200(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\SaleInputVerificationTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E01_cash_sale_creates_exact_journal_lines(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E02_credit_sale_creates_ar_instead_of_cash_line(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E03_zero_tax_sale_omits_tax_line(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E04_discounted_sale_revenue_is_net_of_discount(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E05_100_discount_promotional_sale_zero_revenue_nonzero_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E06_split_payment_creates_both_cash_and_ar_lines(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E07_overpayment_credits_customer_advance_account(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E08_fifo_layer_spanning_computes_correct_blended_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E09_full_sale_return_resets_all_ledger_balances(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E10_v3_source_tag_woocommerce_does_not_change_journal(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E11_duplicate_client_sale_id_is_idempotent(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SaleInputVerificationTest::test_E12_sale_bypassing_journal_breaks_invariant(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for class Tests\Feature\Golden\SentinelAuditTest. Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SentinelAuditTest::test_sentinel_ledger_isolation_sweep(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Golden\SentinelDeltaDetectionTest::aggregation_leak_moves_the_total_and_is_detected(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Guardrails\AstSingleWriterGuardTest::no_journal_writes_outside_the_approved_writer(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Guardrails\AstSingleWriterGuardTest::guard_self_test_alias_evasion_would_be_caught(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Guardrails\FifoConcurrencyRaceTest::concurrent_deductions_never_oversell_a_batch(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Guardrails\LedgerCorruptionAlertTest::verify_ledger_detects_and_alerts_on_injected_corruption(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Guardrails\PaymentAllocationTriggerTest::trigger_rejects_over_allocation_of_a_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ImportMappingTest::redirect_uses_store_admin_data_with_store_slug_on_failed_expired_file(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\InvoiceFooterViralLoopTest::receipt_html_invoice_view_contains_powered_by_venqore_link_with_utm(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\InvoiceFooterViralLoopTest::pdf_receipt_export_view_contains_powered_by_venqore_link_with_utm(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\InvoiceFooterViralLoopTest::tools_pdf_invoice_export_view_contains_powered_by_venqore_link_with_utm(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\InvoiceFooterViralLoopTest::every_customer_facing_export_template_carries_the_viral_footer(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_header_clock_and_subscription_expiration_banner_rules(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_update_member_via_admin_controller(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_cannot_update_owner_role(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_update_member_validation_error_returns_422(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_remove_member_via_admin_controller(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_cannot_remove_owner_member(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_attendance_and_staff_redirects(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_admin_cannot_promote_user_to_admin_or_owner(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_admin_cannot_edit_or_suspend_another_admin_or_owner(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LayoutAndAdminUsersRegressionTest::test_wildcard_permission_cannot_bypass_gating(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LegacyAdminPasscodeTest::store_user_creates_membership_and_sets_hashed_pos_pin(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LegacyAdminPasscodeTest::update_user_modifies_membership_and_hashes_pos_pin(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\LegacyAdminPasscodeTest::store_user_validates_passcode_uniqueness_within_same_store(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MarketingSsrTest::marketing_routes_have_ssr_enabled(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MarketingSsrTest::tenant_routes_keep_inertia_ssr_disabled(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\MigrateOpeningBalancesTest::it_seeds_opening_balances_with_correct_tenant_scoping(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ModalValidationRegressionTest::test_parties_validation_rules_and_error_handling(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ModalValidationRegressionTest::test_bank_accounts_validation_rules_and_error_handling(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ModalValidationRegressionTest::test_categories_validation_rules_and_error_handling(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ModalValidationRegressionTest::test_expenses_validation_rules_and_error_handling(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ModalValidationRegressionTest::test_inventory_validation_rules_and_error_handling(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::all_pulse_routes_are_registered(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::unauthenticated_user_cannot_access_pulse_dashboard(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::authenticated_owner_can_access_pulse_dashboard(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::verify_endpoint_returns_success_for_valid_passcode(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::verify_endpoint_returns_403_for_invalid_passcode(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::verify_endpoint_validates_passcode_is_required(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::setup_endpoint_can_enable_passcode(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::setup_endpoint_can_disable_passcode(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::setup_requires_passcode_when_action_is_set(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::lock_endpoint_clears_session_and_redirects(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::note_endpoint_saves_memo_when_authorized(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::note_endpoint_rejects_unauthorized_access(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\OwnersDailyPulseTest::note_endpoint_validates_date_format(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PartnersPageTest::partners_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PartnersPageTest::partners_page_is_included_in_sitemap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PartnersPageTest::partnership_inquiry_submission_stores_to_database(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PartnersPageTest::partnership_inquiry_rejects_incomplete_submissions(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_indexes_products_and_matches_via_sql_search_index(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_executes_benchmark_command_and_outputs_results(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_detects_benchmark_failure_on_faulty_fixtures(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_routes_predefined_ai_queries_directly_to_sql_reports(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_routes_low_stock_query_to_sql_reports(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_enforces_tenant_scoping_in_intent_router_reports(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_validates_audio_duration_and_pdf_pages_in_extraction_service(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_routes_receivables_query_to_sql_reports_with_correct_sums(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_routes_payables_query_to_sql_reports_with_correct_sums(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase1SmartCaptureTest::it_get_party_balance_tool_returns_correct_current_balance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_debits_and_refunds_pages_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_calculates_audio_page_credits_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_enforces_managed_limit_and_unlimited_flag(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_handles_job_status_polling_for_async_jobs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_triggers_80_percent_quota_warning_and_100_percent_limit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_credits_top_up_pages_in_checkout_service(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_resets_usage_on_tenant_anniversary_day(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_executes_real_http_post_to_extract_endpoint_without_undefined_variable_errors(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_dispatches_process_smart_capture_job_when_rate_limiter_wait_exceeds_8000ms(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase2MeteringTest::it_provisions_topup_pages_on_order_created_webhook(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase3FeatureGatesTest::it_blocks_access_to_locked_features_via_route_middleware(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase3FeatureGatesTest::it_shares_plan_features_and_limits_in_inertia_props(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase3FeatureGatesTest::it_enforces_counter_plan_sku_and_report_limits(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase3FeatureGatesTest::it_grants_cookbook_recipes_to_counter_food_prep_tenants(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase3FeatureGatesTest::it_prevents_downgrade_when_tenant_has_open_payables_or_receivables(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase3FeatureGatesTest::it_blocks_downgrade_via_http_endpoint_when_open_balances_exist(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase3FeatureGatesTest::it_blocks_downgrade_via_http_endpoint_for_trial_tenants_with_open_balances(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase4PricingLiveTest::it_loads_single_source_of_truth_pricing_config(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase4PricingLiveTest::it_seeds_v4_plans_with_correct_visibility_flags(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase4PricingLiveTest::it_shares_pricing_config_in_inertia_props(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase4PricingLiveTest::it_executes_v4_tenant_migration_command(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase4PricingLiveTest::it_ensures_ltd_tenants_are_never_migrated_by_v4_command(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase5TruthAndTrustTest::it_records_terms_consent_and_version_on_store_creation(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase5TruthAndTrustTest::it_updates_shared_catalog_opt_out_and_ai_accuracy_in_settings(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase5TruthAndTrustTest::it_executes_prune_scan_images_command_and_removes_old_files(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase5TruthAndTrustTest::it_verifies_pricing_tech_specs_contain_no_false_claims(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase5TruthAndTrustTest::it_updates_data_privacy_via_fallback_when_current_tenant_not_bound(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase5TruthAndTrustTest::it_updates_data_privacy_end_to_end_through_real_middleware_stack(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase6VenSynQTest::it_provisions_amazon_addon_and_creates_plan_overrides(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase6VenSynQTest::it_validates_and_generates_checkout_url_for_amazon_and_woocommerce_addons(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase6VenSynQTest::it_blocks_unentitled_tenant_from_accessing_vensynq_dashboard_end_to_end(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase6VenSynQTest::it_allows_entitled_tenant_to_access_vensynq_dashboard_end_to_end(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase6VenSynQTest::it_ensures_vensynq_simulation_mode_defaults_to_false(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_records_contribution_to_shared_catalog_and_publishes_at_three_confirmations(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_wires_shared_catalog_into_learning_service_and_fuzzy_match_strategy_six(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_does_not_contribute_when_tenant_has_opted_out(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_enforces_public_tool_daily_budget_cap_atomically(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_enforces_sequential_spend_reservation_totals_against_budget_cap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_enforces_public_tool_per_email_rate_limit(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_verifies_public_tool_submission_with_mocked_turnstile_and_extraction(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_dispatches_generate_product_descriptions_job_and_debits_balance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_does_not_generate_descriptions_when_balance_is_zero(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase7GrowthTest::it_processes_listing_image_for_amazon_compliance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_enforces_monthly_transaction_limits_on_limited_tiers(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_restricts_expired_hosted_until_stores_to_read_only(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_hard_blocks_managed_platform_ai_on_all_ltd_plans(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_allows_smart_capture_on_ltd_plans_when_byok_key_is_provided(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_dispatches_check_hosted_until_expiry_job_cleanly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_serves_help_centre_index_and_article_search(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_executes_load_testing_benchmark_command(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase8AppSumoTest::it_serves_known_issues_status_page(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase9InfrastructureTest::it_verifies_r2_and_offsite_backup_disk_configurations(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase9InfrastructureTest::it_copies_backup_archives_to_offsite_storage_with_hash_verification(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase9InfrastructureTest::it_audits_database_infrastructure_command(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase9InfrastructureTest::it_audits_messaging_channels_and_mail_driver_configuration(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Phase9InfrastructureTest::it_verifies_ai_model_deprecation_dates_and_fallback_chains(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanLimitsEnforcerTest::exceeding_limit_starts_3_day_countdown(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanLimitsEnforcerTest::self_healing_clears_grace_period_and_view_only_mode(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanLimitsEnforcerTest::expired_countdown_triggers_view_only_lock(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanManagementTest::pricing_page_is_accessible(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanManagementTest::super_admin_can_access_plans_index(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanManagementTest::super_admin_can_update_plan_limits(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanManagementTest::super_admin_can_bulk_update_plan_limits(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PlanManagementTest::plangate_allows_and_blocks_features_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PosFeaturesTest::categories_endpoint_returns_product_count_for_active_categories(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PosFeaturesTest::featured_endpoint_returns_active_products_for_the_grid(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PosFeaturesTest::search_endpoint_filters_products_by_category_id(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\PricingConversionOptimizationTest::pricing_page_loads_successfully_and_has_trust_badges_competitor_table_and_faqs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Production\ExportContentVerificationTest::export_sales_total_matches_ledger_revenue(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Production\ImportJournalBalanceTest::every_journal_entry_balances_per_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Production\ImportJournalBalanceTest::tenant_trial_balance_is_zero(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_parties_show_route_redirects_to_ledger(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_expense_category_store_creates_category(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_role_prioritization_from_tenant_memberships(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_party_opening_balance_updates_successfully(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_record_payment_passes_selected_party_id(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_excel_import_ignores_helper_row(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_multi_word_search_tokenization(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_logout_route_does_not_support_delete_method(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_handle_inertia_requests_version_is_null_in_local_testing(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_sale_stats_exclude_returned_sales(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_verify_elevated_pin_by_platform_user_and_membership(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_sales_dashboard_excludes_returned_sales(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_woocommerce_integration_is_gated_by_plan(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_report_tier_gating_restricts_access(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RegressionFixesTest::test_new_features_plan_gating(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RoadmapTest::roadmap_page_renders_successfully(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RoadmapTest::roadmap_page_enables_inertia_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RoadmapTest::roadmap_page_included_in_sitemap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\RouteParameterRegressionTest::test_route_parameter_names_match_frontend_expectations(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SitemapTest::sitemap_endpoint_returns_a_valid_sitemap_index(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SitemapTest::pages_sub_sitemap_contains_home_and_core_static_pages(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SitemapTest::blog_sub_sitemap_contains_blog_index_and_a_post(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SitemapTest::unknown_sub_sitemap_type_returns_404(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_tenant_dashboard(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::cashier_can_render_cashier_dashboard(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_pos_storefront(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_settings_panel(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_reports_hub(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_sales_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_purchases_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_profit_loss_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_stock_valuation_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_tax_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_trial_balance_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_cash_flow_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_aged_receivables_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_daily_sales_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\Smoke\InertiaPageRenderTest::owner_can_render_day_book_report(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_hub_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_pharmacy_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_electronics_store_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_grocery_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_wholesale_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_clothing_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_multi_store_page_renders_successfully_with_ssr(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::unknown_solution_slug_returns_404(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SolutionsPagesTest::solutions_pages_are_included_in_sitemap(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\StoreUniqueNameTest::creates_store_successfully_when_name_is_unique(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\StoreUniqueNameTest::blocks_creation_when_same_active_store_is_owned_by_current_user(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\StoreUniqueNameTest::blocks_creation_when_same_active_store_is_owned_by_another_user(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\StoreUniqueNameTest::blocks_creation_and_asks_to_contact_support_when_deleted_by_current_user(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\StoreUniqueNameTest::blocks_creation_and_asks_for_unique_name_when_deleted_by_another_user(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::system_reset_endpoint_redirects_unauthenticated_guests(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::system_reset_fails_with_invalid_credentials(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::system_reset_wipes_all_tenant_data_with_valid_password(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::system_reset_selective_delete_wipes_only_products(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::google_user_who_set_password_can_reset_system(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::unprefixed_system_reset_route_falls_back_to_fallback_route_or_fails(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::google_user_without_password_cannot_reset_system_without_setting_password(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\SystemResetTest::google_user_without_password_can_reset_using_admin_passcode(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\AccountingServiceTest::it_rejects_an_unbalanced_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\AccountingServiceTest::it_creates_a_balanced_entry_and_returns_a_journal_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\AccountingServiceTest::it_rejects_a_journal_item_with_both_debit_and_credit_populated(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\AccountingServiceTest::get_balance_returns_correct_debit_normal_balance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\AccountingServiceTest::reverse_entry_voids_all_active_payment_allocations_in_same_transaction(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\FifoServiceTest::it_deducts_from_oldest_batch_first(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\FifoServiceTest::it_spans_multiple_batches_when_first_is_insufficient(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\FifoServiceTest::it_throws_when_stock_is_insufficient(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\FifoServiceTest::database_constraint_blocks_negative_remaining_qty(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\FifoServiceTest::it_restores_stock_to_exact_original_batch(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\FifoServiceTest::it_creates_a_new_batch_on_receive(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\FifoServiceTest::it_only_deducts_from_the_specified_warehouse(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::receive_purchase_creates_inventory_batch(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::receive_purchase_creates_one_batch_per_line_item(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::adjust_stock_decrease_deducts_fifo_oldest_first(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::adjust_stock_increase_creates_batch_and_posts_b11(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::snapshot_is_built_when_journal_entry_has_party_id(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::snapshot_accumulates_across_multiple_journal_entries(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::get_balance_returns_snapshot_value(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::snapshot_reduces_after_payment_is_posted(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\InventoryAndPartyServiceTest::rebuild_snapshot_result_matches_live_ledger_query(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::start_production_run_deducts_raw_materials_fifo(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::start_production_run_posts_wip_journal_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::complete_production_run_creates_finished_goods_batch(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::complete_production_run_posts_completion_journal_closing_wip(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::partial_reverse_only_reverses_unsold_quantity(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::partial_reverse_throws_when_attempting_to_reverse_sold_units(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::disassemble_posts_b30_and_creates_component_batches(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::disassemble_throws_when_bom_percentages_do_not_sum_to_100(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ManufacturingServiceTest::by_product_nrv_reduces_main_product_cost_on_completion(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PartialReturnTest::partial_qty_restores_only_that_qty(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PartialReturnTest::partial_return_calculates_proportional_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PartialReturnTest::proportional_net_revenue_on_discounted_sale(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PartialReturnTest::refund_account_follows_payment_method(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PartialReturnTest::over_return_blocked_by_clamping(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_creates_a_payment_allocation_row(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_sets_payment_status_to_partial_when_underpaid(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_sets_payment_status_to_paid_when_fully_paid(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_blocks_over_allocation_at_app_layer(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_blocks_over_allocation_when_cumulative_amount_exceeds_total(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_voids_all_active_allocations_for_a_journal_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_reverts_badge_to_unpaid_after_void(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\PaymentServiceTest::it_auto_closes_invoice_within_roundoff_tolerance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s001_fifo_deducts_oldest_batch_first(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s004_zero_cost_item_warning(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s012_uom_conversion_on_sale(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s015_partial_production_reversal_blocks_sold_units(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s022_roundoff_tolerance_auto_closes_invoice(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s048_tax_on_advance_posted_at_delivery_not_receipt(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s055_zero_cost_opening_stock_blocked(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s068_over_allocation_blocked(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s074_wip_balance_correct_during_production(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s080_b27_final_settlement_composite_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s094_byproduct_nrv_reduces_main_cost(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s108_b30_disassembly_allocates_cost_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s003_cash_purchase_creates_batch_at_correct_cost(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s006_fifo_is_per_warehouse(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s007_stock_adjustment_decrease_fifo(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s010_credit_purchase_creates_ap_and_batch(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s050_partial_input_tax_recovery(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s053_opening_balance_b19_posts_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s054_account_7000_nets_to_zero(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s059_purchase_return_b18_correct(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s101_stock_transfer_no_journal(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s102_stock_writeoff_posts_to_6300(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s105_stock_adjustment_gain_posts_to_4200(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s002_sale_return_restores_to_exact_batch(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s005_cash_sale_b1_no_ar(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s009_credit_sale_b2_creates_ar(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s011_below_cost_sale_requires_manager_pin(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s017_customer_payment_b4_allocates_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s018_partial_payment_sets_badge_to_partial(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s020_bounced_cheque_b25_reverts_invoice(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s021_bad_debt_writeoff_b26_requires_approval(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s023_customer_advance_b20_zero_tax(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s024_sale_return_after_partial_payment(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s028_customer_overpayment_blocked(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s029_split_payment_cash_and_bank(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s033_credit_sale_fully_returned_ar_nets_zero(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s039_tiered_pricing_blended_unit_price(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s040_promotional_free_item_zero_price_with_cogs(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s044_discount_above_limit_blocked(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s045_sales_order_price_locked(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s046_invoice_pdf_generates(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s049_cash_sale_fifo_spans_three_batches(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s062_bank_transfer_b16_correct_accounts(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s013_production_deducts_bom_materials_fifo(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s014_sub_assembly_bom_five_levels(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s025_supplier_payment_b5_allocates(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s073_future_dated_transaction_blocked(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s078_salary_payment_with_advance_deduction(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s082_salary_accrual_b7_posts_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s083_operating_expense_b13_posts_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s090_bad_debt_writeoff_correct_accounts(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s095_production_external_labor_path_a(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s096_production_salaried_labor_path_b(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s097_production_run_correct_unit_cost(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s098_wip_balance_clears_on_completion(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s104_cash_shortage_b28_blocked_for_non_manager(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s104b_cash_shortage_b28_requires_narration(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s107_insurance_claim_b29_two_steps_linked(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s_report_1100_equals_batch_valuation(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s_report_5000_equals_sale_item_batches(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s_report_aged_ar_equals_1200_balance(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s_report_dashboard_cash_from_accounting_service(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s_report_7000_nets_zero_after_fiscal_close(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s_connection_guard_blocks_offline_writes(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\ScenarioStubsTest::s_audit_log_records_full_context(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::b27_posts_correct_composite_journal_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::b27_marks_employee_as_terminated(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::b27_requires_approved_by_on_journal_entry(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::trial_balance_debits_equal_credits(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::profit_and_loss_calculates_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::balance_sheet_balances_to_the_paisa(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::inventory_valuation_matches_batch_totals(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::aged_receivables_buckets_invoices_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\SettlementAndReportServiceTest::reversed_entries_are_excluded_from_reports(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_calculates_tax_exclusive_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_calculates_tax_inclusive_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_handles_zero_tax_rate(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_returns_tax_report_with_2100_and_2300_breakdown(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::advance_receipt_produces_zero_tax(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_converts_grams_to_kg_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_returns_same_qty_when_uom_matches_base(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_throws_for_unknown_uom(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_returns_the_correct_conversion_factor(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\Scenarios\TaxAndUomServiceTest::it_handles_fractional_conversions_correctly(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\SmokeTest::database_connection_is_live(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\SmokeTest::all_38_accounts_are_seeded(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\SmokeTest::trial_balance_is_balanced(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\SmokeTest::account_1100_reconciles_to_inventory_batches(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\SmokeTest::account_7000_nets_to_zero(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\SmokeTest::dashboard_endpoint_returns_200(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\V3\SmokeTest::ping_endpoint_returns_ok(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ZiggyRouteIntegrityTest::all_frontend_route_calls_have_registered_routes(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ZiggyRouteIntegrityTest::owner_daily_pulse_routes_are_all_registered(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ZiggyRouteIntegrityTest::backup_routes_use_correct_store_prefix(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ZiggyRouteIntegrityTest::recycle_bin_routes_use_admin_prefix(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ZiggyRouteIntegrityTest::migration_routes_use_store_legacy_prefix(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ZiggyRouteIntegrityTest::returns_route_uses_history_suffix(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Feature\ZiggyRouteIntegrityTest::no_route_registered_without_store_slug_parameter_when_expected(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+
+   WARN  Metadata found in doc-comment for method Tests\Performance\SnapshotPerformanceTest::party_snapshot_rebuild_completes_under_2ms(). Metadata in doc-comments is deprecated and will no longer be supported in PHPUnit 12. Update your test code to use attributes instead.
+﻿﻿﻿﻿
+   PASS  Tests\Feature\Guardrails\TerminalOwnershipGuardTest
+  ✓ telemetry is disabled by default config                                                                     48.16s  
+  ✓ unauthenticated caller cannot hijack another tenants terminal                                                0.11s  
+  ✓ activities cannot claim an unclaimed terminal                                                                0.09s  
+  ✓ activities requires device id                                                                                0.07s  
+  ✓ upload screenshot requires device id                                                                         0.09s  
+
+   PASS  Tests\Feature\Security\EmailOtpAuthTest
+  ✓ password login creates no session until code is verified                                                     0.88s  
+  ✓ code is single use                                                                                           0.19s  
+  ✓ wrong codes lock the challenge after five attempts                                                           0.19s  
+  ✓ expired code is refused                                                                                      0.17s  
+  ✓ code is bound to the browser session that started it                                                         0.13s  
+  ✓ resend invalidates the previous code                                                                         0.15s  
+  ✓ a queued code is not sent once superseded used or expired                                                    0.14s  
+  ✓ global daily budget stops sending                                                                            0.14s  
+  ✓ wrong password sends no code                                                                                 0.13s  
+  ✓ signup creates account only after code                                                                       0.17s  
+  ✓ signup with existing email looks identical and sends nothing                                                 0.16s  
+  ✓ first public signup is never a platform admin                                                                0.16s  
+  ✓ send budget per email is enforced                                                                            0.20s  
+  ✓ otp mail job payload is encrypted                                                                            0.11s  
+  ✓ create platform owner command                                                                                0.11s  
+
+   PASS  Tests\Feature\Security\PreLaunchSecurityTest
+  ✓ sec01 store admin cannot edit or delete users of another store                                               0.62s  
+  ✓ sec01 platform account cannot be managed from a store                                                        0.63s  
+  ✓ sec01 legacy update never changes login credentials                                                          0.53s  
+  ✓ sec01 legacy delete removes membership only                                                                  0.47s  
+  ✓ sec02 suspended member cannot use sync api with stale last store id                                          0.16s  
+  ✓ sec10 sync users never returns pin hashes                                                                    0.10s  
+  ✓ sec02 member without active membership has no store permissions                                              0.11s  
+  ✓ sec03 cashier cannot restore or delete backups                                                               0.45s  
+  ✓ sec03 backup for another store is refused                                                                    0.37s  
+  ✓ sec05 platform pin login is disabled by default                                                              0.13s  
+  ✓ sec05 platform admin must complete totp before platform pages                                                0.21s  
+  ✓ sec05 any user who enabled totp is asked for it                                                              0.80s  
+  ✓ sec05 owner 2fa setting is enforced on store pages                                                           0.19s  
+  ✓ sec05 totp setup page does not send secret to third parties                                                  0.22s  
+  ✓ sec07 installer is closed by default                                                                         0.12s  
+  ✓ sec08 web updater is closed by default                                                                       0.10s  
+  ✓ sec08 updater requires csrf when enabled                                                                     0.09s  
+  ✓ sec09 error reporter is rate limited and deduplicated                                                        0.23s  
+  ✓ sec11 join code does not reactivate suspended membership                                                     0.14s  
+  ✓ sec11 new join codes are high entropy                                                                        0.07s  
+  ✓ sec13 import rejects raw and traversal paths                                                                 0.48s  
+
+   PASS  Tests\Feature\TerminalAppIntegrationTest
+  ✓ heartbeat can register new terminal and scope to tenant                                                      0.14s  
+  ✓ unpaired device cannot create a terminal                                                                     0.08s  
+  ✓ heartbeat returns existing terminal id and requires secret                                                   0.11s  
+  ✓ legacy paired terminal must re pair with a code                                                              0.10s  
+  ✓ a pairing code pairs only one device                                                                         0.10s  
+  ✓ terminal activities logging                                                                                  0.09s  
+  ✓ terminal screenshot upload decryption and security                                                           0.46s  
+  ✓ tenant isolation on screenshot viewing                                                                       0.42s  
+  ✓ screenshots stored in the old format still open                                                              0.44s  
+  ✓ terminal screenshot upload security boundaries                                                               0.14s  
+
+   WARN  Tests\Feature\Tools\QrCodeToolTest
+  ✓ index page renders                                                                                           0.25s  
+  ✓ url payload adds https scheme when missing                                                                   0.09s  
+  ✓ url payload preserves existing scheme                                                                        0.08s  
+  ✓ text payload requires non empty text                                                                         0.08s  
+  ✓ wifi payload matches standard format                                                                         0.08s  
+  ✓ wifi payload nopass omits password segment                                                                   0.08s  
+  ✓ wifi payload requires password unless nopass                                                                 0.07s  
+  ✓ wifi payload escapes special characters                                                                      0.06s  
+  ✓ vcard payload is valid vcard 3 block                                                                         0.07s  
+  ✓ vcard payload requires name                                                                                  0.06s  
+  ✓ email payload builds mailto with subject and body                                                            0.07s  
+  ✓ email payload rejects invalid address                                                                        0.07s  
+  ✓ phone payload builds tel uri                                                                                 0.07s  
+  ✓ unknown type is rejected                                                                                     0.07s  
+  - render produces a png for a url → endroid/qr-code is not installed — run `composer require endroid/qr-code`… 0.08s  
+  - render svg output → endroid/qr-code is not installed — run `composer require endroid/qr-code` locally to ex… 0.07s  
+  ✓ render rejects invalid type                                                                                  0.10s  
+  - render returns inline error for empty url not 500 → endroid/qr-code is not installed — run `composer requir… 0.07s  
+  - qr generation requires no email → endroid/qr-code is not installed — run `composer require endroid/qr-code`… 0.07s  
+
+  Tests:    4 skipped, 66 passed (254 assertions)
+  Duration: 62.29s
+

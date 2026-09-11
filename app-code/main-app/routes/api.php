@@ -19,7 +19,8 @@ use App\Http\Controllers\Api\SyncController;
 
 Route::get('/check-connection', [SyncController::class, 'checkConnection']);
 
-Route::middleware('auth:sanctum')->group(function () {
+// SEC-02: store.member binds the store only for ACTIVE members (fail closed).
+Route::middleware(['auth:sanctum', 'store.member', 'throttle:60,1'])->group(function () {
     Route::get('/sync/users', [SyncController::class, 'users']);
     Route::get('/sync/products', [SyncController::class, 'products']);
     Route::get('/sync/customers', [SyncController::class, 'customers']);
@@ -68,21 +69,28 @@ Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:pos'])->group(functi
 // Security is handled via HMAC signature verification (webhook) and token (verify).
 use App\Http\Controllers\WooSync\WooWebhookController;
 
-Route::middleware('plan.feature:woocommerce')->group(function () {
+// 2026-09-10: these public callers carry no tenant, so a route-level
+// `plan.feature` check could never resolve one and answered 402 to every call —
+// WooSync could not handshake, verify or receive webhooks. Each controller now
+// resolves the connection's store first, then enforces the woocommerce plan
+// feature for THAT store.
+Route::middleware('throttle:120,1')->group(function () {
     Route::post('/woo/webhook/{uuid}', [WooWebhookController::class, 'receive'])
         ->name('woo.webhook.receive');
 
     Route::get('/woo/verify/{token}', [WooWebhookController::class, 'verify'])
+        ->middleware('throttle:20,1')
         ->name('woo.verify');
 
     Route::post('/woo/handshake', [\App\Http\Controllers\WooSync\WooHandshakeController::class, 'handshake'])
+        ->middleware('throttle:10,1')
         ->name('woo.handshake');
 });
 
 // ── Offline DRM Validation Endpoints ─────────────────────────────────────
 use App\Http\Controllers\DrmLicenseController;
 
-Route::post('/drm/validate', [DrmLicenseController::class, 'validateLicense']);
+Route::post('/drm/validate', [DrmLicenseController::class, 'validateLicense'])->middleware('throttle:20,1');
 
 Route::middleware('drm.license')->get('/drm/protected', function () {
     return response()->json(['status' => 'access_granted']);
@@ -116,7 +124,16 @@ use App\Http\Controllers\VenaContextController;
 
 Route::middleware('plan.feature:ai_assistant')->group(function () {
     Route::get('/{store_slug}/vena/context', [VenaContextController::class, 'index']);
-    Route::post('/{store_slug}/vena/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist']);
+
+    // SECURITY: unauthenticated, and each call can reach the model (draft
+    // reply via AiGateway, feature visitor_chat). Same floor as the visitor
+    // chat routes above: route throttle + VisitorChatGuard (per-IP / per-store
+    // / per-session caps, kill-switch). The controller binds the store from the
+    // slug only, requires the session to belong to it, screens visitor text
+    // through AiGateway::screen() and never returns the platform-wide KB to a
+    // public caller. Agents use the authenticated routes in routes/web.php.
+    Route::post('/{store_slug}/vena/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist'])
+        ->middleware(['throttle:10,1', 'visitor.chat.guard']);
 });
 
 

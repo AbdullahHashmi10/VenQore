@@ -16,7 +16,7 @@ return new class extends Migration
     {
         $driver = DB::connection()->getDriverName();
 
-        if ($driver === 'mysql') {
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             // Drop old constraint if present (trying both MySQL/MariaDB drop syntaxes)
             try {
                 DB::statement("ALTER TABLE inventory_batches DROP CONSTRAINT chk_remaining_qty_positive");
@@ -64,7 +64,7 @@ return new class extends Migration
     {
         $driver = DB::connection()->getDriverName();
 
-        if ($driver === 'mysql') {
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
             try {
                 DB::statement("ALTER TABLE inventory_batches DROP CONSTRAINT chk_remaining_qty_positive");
             } catch (\Throwable $e) {

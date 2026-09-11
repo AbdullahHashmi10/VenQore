@@ -222,7 +222,7 @@ export default function CreditNoteTool({
             )}
 
             {/* Slim control bar — everything that ISN'T part of the document itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="w-40">
                     <Select value={meta.template} onChange={(v) => setMeta((m) => ({ ...m, template: v }))} options={templateOptions} />
                 </div>
@@ -238,7 +238,7 @@ export default function CreditNoteTool({
                         ))}
                     </div>
                 )}
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-red-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-red-400/40 transition-colors">
                     <Upload size={13} /> {company.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {company.logo_base64 && (
@@ -248,7 +248,7 @@ export default function CreditNoteTool({
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={onLogoChange} />
 
-                <div className="flex items-center rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 p-0.5 text-xs font-bold">
+                <div className="flex items-center rounded-xl vq-tool-inset p-0.5 text-xs font-bold">
                     <button
                         type="button"
                         onClick={() => setOrientation('portrait')}
@@ -271,7 +271,7 @@ export default function CreditNoteTool({
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -285,7 +285,7 @@ export default function CreditNoteTool({
                     Landscape printing is not yet supported for downloads — this previews the layout only.
                 </p>
             )}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white transition-all ${orientation === 'landscape' ? 'max-w-none' : ''}`}>
+            <div className={`vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white transition-all ${orientation === 'landscape' ? 'max-w-none' : ''}`}>
                 {isModern && <div className="h-3 w-full" style={{ background: accent }} />}
                 <div className={`p-6 sm:p-10 text-ink ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                     {/* Header */}

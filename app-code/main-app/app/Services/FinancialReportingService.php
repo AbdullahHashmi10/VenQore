@@ -1845,9 +1845,18 @@ class FinancialReportingService
             ->join('sale_items as si',  fn($j) => $j->on('sib.sale_item_id','=','si.id')->where('si.tenant_id',$tenantId))
             ->join('sales as s',        fn($j) => $j->on('si.sale_id','=','s.id')->where('s.tenant_id',$tenantId))
             ->join('products as p',     fn($j) => $j->on('si.product_id','=','p.id')->where('p.tenant_id',$tenantId))
-            ->where('s.status', 'posted')
+            // A partially-returned sale still carries live COGS for the units the
+            // customer kept (its un-returned sale_item_batches slices are is_reversed = 0
+            // and still sit in ledger 5000) — exclude only fully returned/void sales.
+            ->whereIn('s.status', ['posted', 'partially_returned'])
             ->where('sib.is_reversed', 0)
-            ->whereBetween('s.posted_at', [$from, $to])
+            // posted_at is a TIMESTAMP carrying the time of day (POS checkout stamps
+            // now()); a bare 'Y-m-d' upper bound would drop every sale made after
+            // midnight on the last day of the range.
+            ->whereBetween('s.posted_at', [
+                Carbon::parse($from)->startOfDay()->toDateTimeString(),
+                Carbon::parse($to)->endOfDay()->toDateTimeString(),
+            ])
             ->selectRaw('p.id AS product_id, p.name AS product_name,
                          SUM(sib.qty_deducted) AS total_qty_sold,
                          SUM(sib.total_cogs)   AS total_cogs')

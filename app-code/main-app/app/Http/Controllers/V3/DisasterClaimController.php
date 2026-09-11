@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Engines\AccountingService;
 use App\Engines\FifoService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -21,12 +22,14 @@ class DisasterClaimController extends Controller
      */
     public function store(Request $request)
     {
+        // Products and warehouses must be this store's.
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
             'description'  => ['required', 'string', 'max:1000'],
             'loss_date'    => ['required', 'date', 'before_or_equal:today'],
             'items'        => ['required', 'array', 'min:1'],
-            'items.*.product_id'   => ['required', 'string', 'exists:products,id'],
-            'items.*.warehouse_id' => ['required', 'string', 'exists:warehouses,id'],
+            'items.*.product_id'   => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'items.*.warehouse_id' => ['required', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
             'items.*.qty'          => ['required', 'numeric', 'min:0.0001'],
         ]);
 
@@ -37,7 +40,7 @@ class DisasterClaimController extends Controller
 
             // Deduct inventory FIFO and accumulate cost
             foreach ($validated['items'] as $item) {
-                $product = DB::table('products')->where('id', $item['product_id'])->first();
+                $product = DB::table('products')->where('tenant_id', app('current.tenant')->id)->where('id', $item['product_id'])->first();
                 if ($product && $product->type === 'service') {
                     throw \Illuminate\Validation\ValidationException::withMessages([
                         'items' => ['Service products cannot have physical inventory disaster loss.']
@@ -50,7 +53,17 @@ class DisasterClaimController extends Controller
                     qty:         $item['qty']
                 );
                 $lossAmount += array_sum(array_column($deductions, 'total_cost'));
+
+                // FifoService only moves the batches; the physical stock
+                // (stocks / products.stock_quantity / stock_movements) must
+                // follow, exactly as InventoryService::adjustStock() does —
+                // otherwise destroyed goods stay on hand and sellable.
+                $this->removePhysicalStock($item['product_id'], $item['warehouse_id'], (float) $item['qty'], $claimId);
             }
+
+            // 6950 is not in a new store's default chart
+            $this->accounting->getAccountByCode('6950', 'Disaster Loss', 'expense');
+            $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
 
             $journalEntry = $this->accounting->createEntry([
                 'date'     => $validated['loss_date'],
@@ -64,6 +77,9 @@ class DisasterClaimController extends Controller
 
             DB::table('disaster_claims')->where('disaster_claims.tenant_id', app('current.tenant')->id)->insert([
                 'id'                      => $claimId,
+                // where() before insert() does not stamp tenant_id; without it
+                // the claim was invisible to recover() (Step 2 404'd).
+                'tenant_id'               => app('current.tenant')->id,
                 'description'             => $validated['description'],
                 'loss_journal_entry_id'   => $journalEntry->id,
                 'loss_amount'             => $lossAmount,
@@ -100,6 +116,10 @@ class DisasterClaimController extends Controller
 
         DB::transaction(function () use ($id, $claim, $validated, $cashAccount) {
 
+            // 6960 is not in a new store's default chart
+            $this->accounting->getAccountByCode('6960', 'Insurance Recovery', 'income');
+            $this->accounting->getAccountByCode($cashAccount, $cashAccount === '1010' ? 'Bank Account' : 'Cash in Hand', 'asset');
+
             $journalEntry = $this->accounting->createEntry([
                 'date'     => $validated['recovery_date'],
                 'reference_type' => 'insurance_recovery',
@@ -119,5 +139,48 @@ class DisasterClaimController extends Controller
         });
 
         return redirect()->back()->with('success', 'Insurance recovery posted.');
+    }
+
+    private function removePhysicalStock(string $productId, string $warehouseId, float $qty, string $claimId): void
+    {
+        $tenantId = app('current.tenant')->id;
+
+        $stock = DB::table('stocks')->where('tenant_id', $tenantId)
+            ->where('product_id', $productId)
+            ->where('warehouse_id', $warehouseId)
+            ->first();
+        if ($stock) {
+            DB::table('stocks')->where('tenant_id', $tenantId)
+                ->where('id', $stock->id)
+                ->decrement('quantity', $qty);
+        } else {
+            DB::table('stocks')->insert([
+                'id'           => Str::uuid()->toString(),
+                'tenant_id'    => $tenantId,
+                'product_id'   => $productId,
+                'warehouse_id' => $warehouseId,
+                'quantity'     => -$qty,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+        }
+
+        DB::table('products')->where('tenant_id', $tenantId)
+            ->where('id', $productId)
+            ->decrement('stock_quantity', $qty);
+
+        DB::table('stock_movements')->insert([
+            'id'           => Str::uuid()->toString(),
+            'tenant_id'    => $tenantId,
+            'product_id'   => $productId,
+            'warehouse_id' => $warehouseId,
+            'quantity'     => -$qty,
+            'type'         => 'disaster_loss',
+            'reference_id' => $claimId,
+            'description'  => "Disaster loss — claim {$claimId}",
+            'user_id'      => auth()->id() ?? 1,
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
     }
 }

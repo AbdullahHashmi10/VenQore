@@ -15,9 +15,16 @@ class OwnerDailyPulseService
     /**
      * Calculate and save/update the daily snapshot for a tenant on a specific date.
      *
+     * The Reckoner reads are made as one of the store's own active members
+     * (owner, then admin, then anyone active). A store with NO active member
+     * is skipped: it used to fall back to User::first() — an arbitrary user,
+     * usually of another store — and read (and so cache/mail) this store's
+     * pulse under that user.
+     *
      * @param Tenant $tenant
      * @param string|Carbon $date
      * @return DailySnapshot
+     * @throws \App\Exceptions\DailyPulseSkippedException when the store has no active member
      */
     public function captureSnapshot(Tenant $tenant, $date): DailySnapshot
     {
@@ -28,7 +35,22 @@ class OwnerDailyPulseService
 
         // 1. Resolve metrics via Reckoner
         $reckoner = app(\App\Reckoner\Reckoner::class);
-        $user = \App\Models\User::where('tenant_id', $tenant->id)->first() ?? \App\Models\User::first();
+        // users has no tenant_id column (membership lives on tenant_users), so
+        // resolve the store's owner (then admin, then any active member).
+        $memberId = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->whereNotNull('user_id')
+            ->where('status', 'active')
+            ->orderByRaw("CASE WHEN role = 'owner' THEN 0 WHEN role = 'admin' THEN 1 ELSE 2 END")
+            ->orderBy('id')
+            ->value('user_id');
+        $user = $memberId ? \App\Models\User::find($memberId) : null;
+        if (!$user) {
+            // Every caller (snapshot command, summary mailer, pulse backfiller)
+            // catches this and moves on to the next store/date.
+            throw new \App\Exceptions\DailyPulseSkippedException(
+                "Store [{$tenant->id}] has no active member — daily pulse skipped."
+            );
+        }
 
         $customParams = ['from' => $dateString, 'to' => $dateString];
         $keys = [
@@ -41,25 +63,28 @@ class OwnerDailyPulseService
             'finance.expenses_total'
         ];
 
+        // ReckonerRequest's parameter is `custom` (the old `customPeriod:` named
+        // argument was a fatal "Unknown named parameter"), and results are keyed
+        // by the request's own composite id — not a hand-built string.
         $requests = [];
         foreach ($keys as $key) {
-            $requests[] = new \App\Reckoner\ReckonerRequest(
+            $requests[$key] = new \App\Reckoner\ReckonerRequest(
                 key: $key,
                 period: 'custom',
-                customPeriod: $customParams
+                custom: $customParams
             );
         }
 
-        $results = $reckoner->readMany($requests, $user, $tenant);
-        $argsHash = md5(json_encode($customParams));
+        $results = $reckoner->readMany(array_values($requests), $user, $tenant);
+        $value = fn (string $key): float => (float) ($results[$requests[$key]->getCompositeId()]->data['value'] ?? 0.0);
 
-        $salesValue = (float) ($results["sales.revenue|custom|{$argsHash}"]->data['value'] ?? 0.0);
-        $purchasesValue = (float) ($results["purchasing.spend|custom|{$argsHash}"]->data['value'] ?? 0.0);
-        $stockValue = (float) ($results["inventory.stock_value|custom|{$argsHash}"]->data['value'] ?? 0.0);
-        $payablesValue = (float) ($results["finance.payables|custom|{$argsHash}"]->data['value'] ?? 0.0);
-        $receivablesValue = (float) ($results["finance.receivables|custom|{$argsHash}"]->data['value'] ?? 0.0);
-        $cashValue = (float) ($results["finance.total_liquidity|custom|{$argsHash}"]->data['value'] ?? 0.0);
-        $expenseValue = (float) ($results["finance.expenses_total|custom|{$argsHash}"]->data['value'] ?? 0.0);
+        $salesValue = $value('sales.revenue');
+        $purchasesValue = $value('purchasing.spend');
+        $stockValue = $value('inventory.stock_value');
+        $payablesValue = $value('finance.payables');
+        $receivablesValue = $value('finance.receivables');
+        $cashValue = $value('finance.total_liquidity');
+        $expenseValue = $value('finance.expenses_total');
 
         // Update or create the snapshot
         return DailySnapshot::updateOrCreate(

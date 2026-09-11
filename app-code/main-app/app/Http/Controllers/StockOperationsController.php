@@ -56,7 +56,7 @@ class StockOperationsController extends Controller
             fromWarehouseId: $validated['from_warehouse_id'],
             toWarehouseId: $validated['to_warehouse_id'],
             qty: (float) $validated['quantity'],
-            reason: $validated['notes']
+            reason: $validated['notes'] ?? null
         );
 
         return redirect()->back()->with('success', 'Stock transferred successfully');

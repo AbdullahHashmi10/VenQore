@@ -23,6 +23,15 @@ class AiRequest
     public ?string $systemPrompt = null;
     public ?string $entitlementMode = null;
 
+    /**
+     * The untrusted end-user words inside this request (a chat message, a
+     * business description) — what AiScopeGuard inspects. Kept separate from
+     * $prompt because call sites wrap user text in their own scaffolding
+     * (JSON context, instructions) that must not be mistaken for user input.
+     * Every free-text feature MUST set this.
+     */
+    public ?string $userText = null;
+
     public function __construct(string $feature)
     {
         $this->feature = $feature;
@@ -103,6 +112,12 @@ class AiRequest
     public function systemPrompt(?string $prompt): self
     {
         $this->systemPrompt = $prompt;
+        return $this;
+    }
+
+    public function userText(?string $text): self
+    {
+        $this->userText = $text;
         return $this;
     }
 

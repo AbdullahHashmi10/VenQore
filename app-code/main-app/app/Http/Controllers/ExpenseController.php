@@ -60,6 +60,12 @@ class ExpenseController extends Controller
         // Apply Sorting
         $sortBy = $request->input('sort_by', 'date');
         $sortDir = $request->input('sort_dir', 'desc');
+        // Injection sweep (2026-09-10): sort inputs are whitelisted — sort_dir went
+        // straight into orderByRaw() (SQL injection) and unknown columns caused 500s.
+        $sortDir = strtolower((string) $sortDir) === 'asc' ? 'asc' : 'desc';
+        if (!is_string($sortBy) || !preg_match('/^[a-z_]{1,64}$/', $sortBy)) {
+            $sortBy = 'date';
+        }
 
         if ($sortBy === 'date') {
             $query->orderBy('date', $sortDir);
@@ -72,7 +78,7 @@ class ExpenseController extends Controller
                 ->select('expenses.*')
                 ->orderBy('expense_categories.name', $sortDir);
         } else {
-            $query->orderBy($sortBy, $sortDir);
+            $query->orderBy(\Illuminate\Support\Facades\Schema::hasColumn('expenses', $sortBy) ? 'expenses.'.$sortBy : 'expenses.date', $sortDir);
         }
 
         $expenses = $query->paginate(200)
@@ -197,7 +203,8 @@ class ExpenseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'date'                => 'required|date',
+            // S-073: a post-dated bill is allowed up to 30 days ahead, never beyond.
+            'date'                => 'required|date|before_or_equal:' . now()->addDays(30)->toDateString(),
             'expense_category_id' => 'required|exists:expense_categories,id',
             'channel'             => 'nullable|string',
             'amount'              => 'required|numeric|min:0',
@@ -287,7 +294,8 @@ class ExpenseController extends Controller
         }
 
         $validated = $request->validate([
-            'date'                => 'required|date',
+            // S-073: a post-dated bill is allowed up to 30 days ahead, never beyond.
+            'date'                => 'required|date|before_or_equal:' . now()->addDays(30)->toDateString(),
             'expense_category_id' => 'required|exists:expense_categories,id',
             'channel'             => 'nullable|string',
             'amount'              => 'required|numeric|min:0',
@@ -590,7 +598,10 @@ class ExpenseController extends Controller
            tax and lost the input credit. */
         if ($tax > 0.0001) {
             $lines[] = [
-                'account_id' => $accounting->getAccountByCode('1300', 'Input Tax Credit', 'asset')->id,
+                // 2300 Input Tax Recoverable — the account purchases post to and
+                // the tax summary reads. (1300 is Prepaid Expenses / Advance to
+                // Supplier in the store chart, so tax parked there was lost.)
+                'account_id' => $accounting->getAccountByCode('2300', 'Input Tax Recoverable', 'asset')->id,
                 'debit' => $tax, 'credit' => 0,
                 'description' => 'Input tax on expense',
             ];

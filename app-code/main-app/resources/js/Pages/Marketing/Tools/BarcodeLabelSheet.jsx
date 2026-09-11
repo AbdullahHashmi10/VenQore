@@ -160,8 +160,8 @@ export default function BarcodeLabelSheetTool({
     const formatOptions = barcodeFormats.map((f) => ({ value: f.slug, label: f.name }));
     const formatLabel = (slug) => barcodeFormats.find((f) => f.slug === slug)?.name || slug || 'Code128';
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold text-ink-muted mb-1.5';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-[14px] text-ink focus:outline-none';
+    const labelCls = 'block text-sm font-semibold text-ink mb-2';
 
     return (
         <ToolShell
@@ -188,10 +188,10 @@ export default function BarcodeLabelSheetTool({
             )}
 
             {/* Slim control bar — everything that ISN'T part of the label grid itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="flex gap-2">
-                    <button type="button" onClick={() => setMode('manual')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${mode === 'manual' ? 'bg-neutral-900 dark:bg-white text-white dark:text-ink' : 'bg-white dark:bg-white/[0.04] text-ink-muted border border-line dark:border-white/10'}`}>Label grid</button>
-                    <button type="button" onClick={() => setMode('bulk')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${mode === 'bulk' ? 'bg-neutral-900 dark:bg-white text-white dark:text-ink' : 'bg-white dark:bg-white/[0.04] text-ink-muted border border-line dark:border-white/10'}`}>Bulk paste</button>
+                    <button type="button" onClick={() => setMode('manual')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${mode === 'manual' ? 'bg-accent-fill text-accent-on' : 'vq-tool-inset text-ink-muted border border-line'}`}>Label grid</button>
+                    <button type="button" onClick={() => setMode('bulk')} className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors ${mode === 'bulk' ? 'bg-accent-fill text-accent-on' : 'vq-tool-inset text-ink-muted border border-line'}`}>Bulk paste</button>
                 </div>
 
                 <div className="w-44">
@@ -212,7 +212,7 @@ export default function BarcodeLabelSheetTool({
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -224,7 +224,7 @@ export default function BarcodeLabelSheetTool({
                 <div className="mb-8">
                     <label className={labelCls}>Paste one product per line: name,value,format,price</label>
                     <textarea className={`${inputCls} font-mono text-xs`} rows={8} value={bulkText} onChange={(e) => setBulkText(e.target.value)} />
-                    <button type="button" onClick={parseBulk} disabled={parsing} className="mt-3 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accent-fill text-accent-on hover:bg-accent-fill-hover text-xs font-bold uppercase tracking-wide disabled:opacity-50">
+                    <button type="button" onClick={parseBulk} disabled={parsing} className="vq-btn vq-btn--primary mt-3">
                         {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Parse into label grid
                     </button>
                 </div>
@@ -233,7 +233,7 @@ export default function BarcodeLabelSheetTool({
                     {/* THE LABEL GRID — this is the editor */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-2">
                         {rows.map((row) => (
-                            <div key={row.id} className="group relative rounded-2xl overflow-hidden shadow-lg shadow-neutral-900/5 dark:shadow-black/30 border border-line dark:border-white/10 bg-white p-3.5 text-center">
+                            <div key={row.id} className="vq-paper group relative rounded-2xl overflow-hidden shadow-lg shadow-neutral-900/5 dark:shadow-black/30 border border-line bg-white p-3.5 text-center">
                                 <button
                                     type="button"
                                     onClick={() => removeRow(row.id)}

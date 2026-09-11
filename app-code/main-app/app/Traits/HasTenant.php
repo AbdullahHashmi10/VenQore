@@ -40,8 +40,9 @@ trait HasTenant
             if (empty($model->tenant_id)) {
                 if (app()->bound('current.tenant')) {
                     $model->tenant_id = app('current.tenant')->id;
-                } elseif (auth()->check() && auth()->user()->last_store_id) {
-                    $model->tenant_id = auth()->user()->last_store_id;
+                } elseif (($fallback = static::verifiedFallbackTenantId()) !== null) {
+                    // SEC-02: only a store the user is still an ACTIVE member of.
+                    $model->tenant_id = $fallback;
                 }
             }
         });
@@ -64,9 +65,12 @@ trait HasTenant
                     return;
                 }
 
-                // Regular users use their last session store.
-                if ($user->last_store_id) {
-                    $builder->where($builder->getModel()->getTable() . '.tenant_id', $user->last_store_id);
+                // Regular users use their last session store — but ONLY while they
+                // still hold an ACTIVE membership of it (SEC-02). A suspended or
+                // removed member falls through to the hard block below.
+                $fallback = static::verifiedFallbackTenantId();
+                if ($fallback !== null) {
+                    $builder->where($builder->getModel()->getTable() . '.tenant_id', $fallback);
                     return;
                 }
             }
@@ -77,6 +81,41 @@ trait HasTenant
         });
 
 
+    }
+
+    /**
+     * SEC-02: users.last_store_id is a UI preference, not an authorization.
+     * Return it only if the authenticated user has an ACTIVE membership of that
+     * store; otherwise null (callers then fail closed). Memoised per request
+     * and per user. Uses the query builder directly so it can never recurse
+     * into a model global scope.
+     */
+    public static function verifiedFallbackTenantId(): ?int
+    {
+        if (! auth()->check()) {
+            return null;
+        }
+        $user = auth()->user();
+        $storeId = $user->last_store_id ?? null;
+        if (! $storeId) {
+            return null;
+        }
+
+        $key = 'hastenant.fallback.' . $user->getAuthIdentifier() . '.' . $storeId;
+        if (app()->bound($key)) {
+            return app($key);
+        }
+
+        $active = \Illuminate\Support\Facades\DB::table('tenant_users')
+            ->where('tenant_id', $storeId)
+            ->where('user_id', $user->getAuthIdentifier())
+            ->where('status', 'active')
+            ->exists();
+
+        $result = $active ? (int) $storeId : null;
+        app()->instance($key, $result);
+
+        return $result;
     }
 
     // ── Escape Hatch ──────────────────────────────────────────────────────

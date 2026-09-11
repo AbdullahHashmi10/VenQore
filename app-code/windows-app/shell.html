@@ -38,7 +38,7 @@
 
     <!-- MAIN VIEWPORT -->
     <div id="view-container">
-        <webview id="app-view" src="about:blank" autosize="on" allowpopups
+        <webview id="app-view" src="about:blank" autosize="on"
             webpreferences="contextIsolation=yes, nodeIntegration=no"
             partition="persist:venqore_cloud"></webview>
 
@@ -73,6 +73,14 @@
                                 <span id="slug-suffix-label" class="slug-suffix">.venqore.com</span>
                             </div>
                         </div>
+
+                        <div class="input-group">
+                            <label for="pairing-code-input">Pairing code</label>
+                            <input type="text" id="pairing-code-input" placeholder="ABCD-2345" maxlength="20" autocomplete="off" spellcheck="false" style="text-transform: uppercase; letter-spacing: 0.15em;">
+                            <p class="card-hint" style="margin-top:6px">Store owner: Settings → Terminals → Create pairing code. Not needed again once this terminal is paired.</p>
+                        </div>
+
+                        <p id="pairing-error" class="card-hint" role="alert" style="color:#f87171; display:none"></p>
 
                         <button id="btn-connect-store" class="primary-btn">Link Store &amp; Sign In</button>
                         

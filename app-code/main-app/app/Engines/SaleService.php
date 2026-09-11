@@ -101,9 +101,12 @@ class SaleService
             $lineItems          = [];
 
             // ── S-042 Tiered pricing: expand items before processing ──
+            // S-045: a converted sales order carries the prices LOCKED when the
+            // order was taken — tiers created since must not re-price it.
+            $lockedPrices  = !empty($data['source_order_id']);
             $expandedItems = [];
             foreach ($data['items'] as $item) {
-                foreach ($this->applyTieredPricing($item) as $tieredItem) {
+                foreach (($lockedPrices ? [$item] : $this->applyTieredPricing($item)) as $tieredItem) {
                     $expandedItems[] = $tieredItem;
                 }
             }
@@ -282,10 +285,16 @@ class SaleService
                     ];
                     $paymentStatus = 'partial';
                 } elseif (round($amountReceived, 2) > round($invoiceTotal, 2)) {
-                    // Overpayment — record surplus as Customer Advance (Account 2100)
+                    // Overpayment — the whole amount received is in the till, and the
+                    // surplus is the customer's money held on account: a Customer
+                    // Advance (rulebook B1 "Customer Advance"). In this chart that is
+                    // 2060 — 2100 is Sales Tax Payable, and parking the surplus there
+                    // inflated the tax report by every rupee of unreturned change.
+                    // Held on 2060 against the customer it is consumable by a later
+                    // sale's advance settlement (step 8 below, S-048).
                     $surplus = round($amountReceived - $invoiceTotal, 2);
                     $journalLines[] = [
-                        'account_code' => '2100',
+                        'account_id'   => $this->accounting->getAccountByCode('2060', 'Customer Advances', 'liability')->id,
                         'debit'        => 0,
                         'credit'       => $surplus,
                         'party_id'     => $data['customer_id'],
@@ -329,7 +338,9 @@ class SaleService
                 'payment_method'       => $data['payment_method'],
                 'status'               => 'posted',
                 'posted_at'            => $data['sale_date'] ?? now(),
-                'user_id'              => $data['approved_by'] ?? auth()->id() ?? 1, // added for legacy
+                // The seller is whoever rang the sale up; a manager approval (S-011/S-044)
+                // is recorded on journal_entries.approved_by, not here.
+                'user_id'              => auth()->id() ?? $data['approved_by'] ?? 1, // added for legacy
                 'created_at'           => $data['sale_date'] ?? now(),
                 'updated_at'           => now(),
             ]);
@@ -378,6 +389,19 @@ class SaleService
                 }
             }
 
+            // ── 6b. Stock aggregates (stocks / products.stock_quantity) ──
+            // FIFO batches are the source of truth; these are the denormalised
+            // counters the POS, stock lists and low-stock alerts read. Every other
+            // stock movement (purchases, adjustments, returns) keeps them in step,
+            // so a sale must too — otherwise they drift upward by every unit sold
+            // through this engine. Moved by the base qty actually taken from batches.
+            foreach ($lineItems as $lineData) {
+                $movedQty = (float) array_sum(array_column($lineData['deductions'], 'qty_taken'));
+                if ($movedQty > 0) {
+                    $this->adjustStockAggregates($lineData['item']['product_id'], $data['warehouse_id'], -$movedQty);
+                }
+            }
+
             // ── 7. Allocate payment if cash/bank ──────────────────────
             if ($data['payment_method'] !== 'credit') {
                 $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
@@ -392,7 +416,8 @@ class SaleService
             if (!empty($data['advance_amount'])) {
                 $advanceAmount = (float) $data['advance_amount'];
 
-                // Verify customer has sufficient advance balance on account 2100
+                // Verify customer has sufficient advance balance on 2060 Customer Advances
+                // (2100 is Sales Tax Payable in this chart — see CustomerAdvanceController).
                 $tid = $this->tenantId;
                 $advanceBalance = (float) (DB::table('journal_items as ji')
                     ->where('ji.tenant_id', $tid)
@@ -405,7 +430,7 @@ class SaleService
                              ->where('a.tenant_id', $tid);
                     })
                     ->where('je.party_id', $data['customer_id'])
-                    ->where('a.code', '2100')
+                    ->where('a.code', '2060')
                     ->where('je.is_reversed', 0)
                     ->selectRaw('IFNULL(SUM(ji.credit) - SUM(ji.debit), 0) as balance')
                     ->value('balance') ?? 0);
@@ -417,9 +442,10 @@ class SaleService
                     );
                 }
 
-                // Step 2 settlement journal: DR 2100 / CR 1200
+                // Step 2 settlement journal: DR 2060 / CR 1200
                 // This reduces the advance liability and offsets the AR from the sale
-                $this->accounting->createEntry([
+                $advanceAccount = $this->accounting->getAccountByCode('2060', 'Customer Advances', 'liability');
+                $settlement = $this->accounting->createEntry([
                     'date'     => $data['sale_date'],
                     'reference_type' => 'advance_settlement',
                     'reference'   => $saleId,
@@ -427,7 +453,7 @@ class SaleService
                     'party_id'       => $data['customer_id'],
                 ], [
                     [
-                        'account_code' => '2100',
+                        'account_id'   => $advanceAccount->id,
                         'debit'        => $advanceAmount,
                         'credit'       => 0,
                         'party_id'     => $data['customer_id'],
@@ -439,6 +465,19 @@ class SaleService
                         'party_id'     => $data['customer_id'],
                     ],
                 ]);
+
+                // The settlement pays the invoice, so it must count toward the badge.
+                $alreadyAllocated = (float) DB::table('allocations')
+                    ->where('tenant_id', $tid)
+                    ->where('sale_id', $saleId)
+                    ->where('status', 'active')
+                    ->sum('allocated_amount');
+                $settleAmount = round(min($advanceAmount, $invoiceTotal - $alreadyAllocated), 2);
+                if ($settleAmount > 0) {
+                    $this->payments->allocate($settlement->id, [
+                        ['sale_id' => $saleId, 'amount' => $settleAmount],
+                    ]);
+                }
             }
 
             return DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->first();
@@ -465,17 +504,57 @@ class SaleService
 
             $sale = DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->lockForUpdate()->firstOrFail();
 
-            if ($sale->status === 'returned') {
+            if (in_array($sale->status, ['returned', 'cancelled'], true)) {
                 throw new \LogicException("Sale {$saleId} has already been returned.");
             }
 
-            // Check if it's a partial return
-            $isPartial = !empty($items) && $this->isPartialReturn($sale, $items);
+            $entryDate = $returnDate ?: now()->toDateString();
+
+            // A sale that already had ANY units returned — through this path, the
+            // legacy returnSale() partial path or the Returns screen (all three
+            // record sale_items.returned_quantity) — can no longer be reversed
+            // wholesale: the original journal entry would be undone in full on top
+            // of the return entries already posted (revenue, tax, COGS and AR/cash
+            // for those units reversed twice). Return whatever is still
+            // outstanding through the partial path instead.
+            $alreadyReturned = $sale->status === 'partially_returned'
+                || DB::table('sale_items')
+                    ->where('tenant_id', $this->tenantId)
+                    ->where('sale_id', $sale->id)
+                    ->where('returned_quantity', '>', 0)
+                    ->exists();
+
+            if ($alreadyReturned) {
+                if (empty($items)) {
+                    $items = DB::table('sale_items')
+                        ->where('tenant_id', $this->tenantId)
+                        ->where('sale_id', $sale->id)
+                        ->get()
+                        ->map(fn ($si) => [
+                            'sale_item_id' => $si->id,
+                            'return_qty'   => max(0.0, (float) $si->quantity - (float) $si->returned_quantity),
+                        ])
+                        ->filter(fn ($i) => $i['return_qty'] > 0)
+                        ->values()
+                        ->all();
+                }
+                $isPartial = true;
+            } else {
+                // Check if it's a partial return
+                $isPartial = !empty($items) && $this->isPartialReturn($sale, $items);
+            }
 
             if ($isPartial) {
-                // ─── PARTIAL RETURN PATH ──────────────────────────────────────
-                $returnTotal = 0.0;
-                $journalItems = [];
+                // ─── PARTIAL RETURN PATH (B9) ─────────────────────────────────
+                //   DR 4000 Revenue            net value of the returned units
+                //   DR 2100 Sales Tax Payable  their share of the output tax
+                //   CR 1200 AR / cash / bank   the two together
+                //   DR 1100 Inventory / CR 5000 COGS   at the FIFO cost they left at
+                //
+                // Revenue and tax are pro-rated cumulatively — what has been
+                // returned after this return, less what had been returned before
+                // it, both rounded to the cent — so however a line is returned in
+                // pieces, the pieces add up to exactly what the sale posted.
 
                 // Resolve the refund GL account based on the ORIGINAL sale's payment method.
                 $originalPaymentMethod = strtolower($sale->payment_method ?? 'cash');
@@ -487,10 +566,13 @@ class SaleService
                     $refundAccountCode = '1000'; // cash default
                 }
 
-                $refundAccount = $this->accounting->getAccountByCode($refundAccountCode);
-                $cogsAccount   = $this->accounting->getAccountByCode('5000', 'Cost of Goods Sold', 'expense');
-                $invAccount    = $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
-                $incAccount    = $this->accounting->getAccountByCode('4000', 'Sales Revenue', 'income');
+                // What the customer still owes on THIS invoice, before this return.
+                $owedBefore = $this->receivableOutstanding($sale);
+
+                $revenueTotal = 0.0;
+                $taxTotal     = 0.0;
+                $costTotal    = 0.0;
+                $touched      = false;
 
                 foreach ($items as $item) {
                     $saleItemId = $item['sale_item_id'];
@@ -500,157 +582,203 @@ class SaleService
                         ->where('tenant_id', $this->tenantId)
                         ->where('sale_id', $sale->id)
                         ->where('id', $saleItemId)
+                        ->lockForUpdate()
                         ->first();
 
                     if (!$originalItem) {
                         continue;
                     }
 
-                    $alreadyReturned = (float)$originalItem->returned_quantity;
-                    $remainingReturnable = max(0.0, (float)$originalItem->quantity - $alreadyReturned);
+                    $alreadyReturnedQty  = (float)$originalItem->returned_quantity;
+                    $remainingReturnable = max(0.0, (float)$originalItem->quantity - $alreadyReturnedQty);
                     $qty = min($returnQty, $remainingReturnable);
                     if ($qty <= 0) {
                         continue;
                     }
+                    $touched = true;
 
-                    // Pro-rate net revenue
-                    $originalQty = max(0.001, (float)$originalItem->quantity);
-                    $netAmountPerUnit = ((float)$originalItem->net_amount > 0)
-                        ? (float)$originalItem->net_amount / $originalQty
-                        : (float)$originalItem->unit_price;
+                    // ── Revenue and tax share (cumulative pro-rata) ──────────
+                    $originalQty = max(0.0001, (float)$originalItem->quantity);
+                    $lineNet     = (float)$originalItem->net_amount;
+                    $lineTax     = (float)($originalItem->tax_amount ?? 0);
+                    $isFreeLine  = (float)($originalItem->free_quantity ?? 0) >= (float)$originalItem->quantity - 0.0001;
 
-                    $lineRevenue = round($netAmountPerUnit * $qty, 4);
-                    $returnTotal += $lineRevenue;
+                    if ($lineNet <= 0 && !$isFreeLine) {
+                        // Legacy row from before the waterfall columns: no net_amount
+                        // recorded, so value the units at their unit price.
+                        $lineNet = round((float)$originalItem->unit_price * $originalQty, 2);
+                    }
 
-                    // Restore FIFO stock
+                    $after  = min($originalQty, $alreadyReturnedQty + $qty) / $originalQty;
+                    $before = $alreadyReturnedQty / $originalQty;
+                    $revenueTotal += round($lineNet * $after, 2) - round($lineNet * $before, 2);
+                    $taxTotal     += round($lineTax * $after, 2) - round($lineTax * $before, 2);
+
+                    // ── Restore FIFO stock, newest deduction first ────────────
                     $activeBatches = DB::table('sale_item_batches')
                         ->select('sale_item_batches.*')
                         ->join('inventory_batches', 'sale_item_batches.inventory_batch_id', '=', 'inventory_batches.id')
                         ->where('sale_item_batches.sale_item_id', $originalItem->id)
                         ->where('sale_item_batches.qty_deducted', '>', 0)
+                        ->where('sale_item_batches.is_reversed', 0)
                         ->whereNull('sale_item_batches.reversed_at')
                         ->orderBy('inventory_batches.created_at', 'desc')
                         ->orderBy('inventory_batches.seq', 'desc')
                         ->get();
 
-                    $qtyToRestore = $qty;
-                    $costToRestore = 0.0;
+                    // ── Sale units → base units ──────────────────────────────
+                    // returned_quantity / return_qty are in the SALE unit (2 CTN),
+                    // while the FIFO paper trail is in the product's BASE unit
+                    // (24 PCS), so the two cannot be compared directly. sale_items
+                    // keeps no UOM, but its live slices say how many base units
+                    // are still out for the sale units still out: this return
+                    // takes its share of them, and the last unit of the line takes
+                    // whatever is left, so however the line comes back the pieces
+                    // add up to exactly what left the batches. For a line sold in
+                    // the base unit the share is the returned qty itself.
+                    $liveBase = (float) $activeBatches->sum(fn ($sib) => (float) $sib->qty_deducted);
+                    if ($qty >= $remainingReturnable - 0.00001) {
+                        $qtyToRestore = $liveBase;
+                    } else {
+                        $qtyToRestore = min($liveBase, round($liveBase * $qty / $remainingReturnable, 4));
+                    }
+                    $restoredBase = 0.0;
 
                     foreach ($activeBatches as $sib) {
-                        \Illuminate\Support\Facades\Log::info("reverse() activeBatch SIB: " . json_encode($sib));
-                        if ($qtyToRestore <= 0) break;
+                        if ($qtyToRestore <= 0.00001) break;
                         $restoreFromThis = min((float)$sib->qty_deducted, $qtyToRestore);
-                        $batch = DB::table('inventory_batches')->where('id', $sib->inventory_batch_id)->first();
-                        \Illuminate\Support\Facades\Log::info("reverse() activeBatch batch: " . json_encode($batch));
+                        $batch = DB::table('inventory_batches')->where('id', $sib->inventory_batch_id)->lockForUpdate()->first();
                         if ($batch) {
-                            $restoredQty = min($restoreFromThis, (float)$batch->initial_qty - (float)$batch->remaining_qty);
-                            \Illuminate\Support\Facades\Log::info("reverse() activeBatch restoredQty: " . $restoredQty);
-                            
-                            // Increment remaining_qty on inventory_batches
+                            $everTaken   = (float)($batch->initial_qty ?? $batch->original_qty) - (float)$batch->remaining_qty;
+                            $restoredQty = min($restoreFromThis, $everTaken);
+
                             DB::table('inventory_batches')
                                 ->where('id', $batch->id)
                                 ->increment('remaining_qty', $restoredQty);
+                            $restoredBase += $restoredQty;
 
-                            $costToRestore += $restoredQty * (float)$batch->unit_cost;
-                            
-                            if ($restoredQty >= (float)$sib->qty_deducted) {
-                                // Mark reversed
+                            // COGS comes back at what this slice was costed at when
+                            // it left: the drop in the slice's own total_cogs, so a
+                            // line returned in pieces restores exactly what it took.
+                            $sliceCogs = (float)($sib->total_cogs ?? round((float)$sib->qty_deducted * (float)$sib->unit_cost, 2));
+
+                            if ($restoredQty >= (float)$sib->qty_deducted - 0.00001) {
+                                $costTotal += $sliceCogs;
                                 DB::table('sale_item_batches')
                                     ->where('id', $sib->id)
                                     ->update([
+                                        // is_reversed is the flag FifoService::restoreStock(), the
+                                        // COGS report and every SIB reader filter on — reversed_at
+                                        // alone left this slice counted as live COGS (and let a later
+                                        // full return restore the same stock twice).
+                                        'is_reversed' => 1,
                                         'reversed_at' => now(),
                                         'reversal_reason' => "Partial return of {$sale->reference_number}"
                                     ]);
                             } else {
-                                $newQty = (float)$sib->qty_deducted - $restoredQty;
+                                $newQty  = (float)$sib->qty_deducted - $restoredQty;
+                                $newCogs = round($newQty * (float)$sib->unit_cost, 2);
+                                $costTotal += $sliceCogs - $newCogs;
                                 DB::table('sale_item_batches')
                                     ->where('id', $sib->id)
                                     ->update([
                                         'qty_deducted' => $newQty,
-                                        'total_cogs' => $newQty * (float)$sib->unit_cost
+                                        'total_cogs'   => $newCogs,
                                     ]);
                             }
                         }
                         $qtyToRestore -= $restoreFromThis;
                     }
 
-                    // Sync legacy stocks and aggregates
-                    $stock = DB::table('stocks')
-                        ->where('product_id', $originalItem->product_id)
-                        ->where('warehouse_id', $sale->warehouse_id)
-                        ->first();
-                    if ($stock) {
-                        DB::table('stocks')->where('id', $stock->id)->increment('quantity', $qty);
+                    // Keep the denormalised counters in step with what actually
+                    // went back into the batches.
+                    if ($restoredBase > 0) {
+                        $this->adjustStockAggregates($originalItem->product_id, $sale->warehouse_id, $restoredBase);
                     }
 
-                    if ($originalItem->product_variant_id) {
+                    if ($originalItem->product_variant_id && $restoredBase > 0) {
                         DB::table('product_variants')
                             ->where('id', $originalItem->product_variant_id)
-                            ->increment('stock', $qty);
-                    }
-
-                    DB::table('products')->where('id', $originalItem->product_id)->increment('stock_quantity', $qty);
-
-                    // Reversal journal lines
-                    if ($costToRestore > 0 && $cogsAccount && $invAccount) {
-                        $journalItems[] = [
-                            'account_id' => $invAccount->id,
-                            'debit' => $costToRestore,
-                            'credit' => 0,
-                            'description' => "Inventory restored: partial return of {$sale->reference_number}"
-                        ];
-                        $journalItems[] = [
-                            'account_id' => $cogsAccount->id,
-                            'debit' => 0,
-                            'credit' => $costToRestore,
-                            'description' => "COGS reversal: partial return of {$sale->reference_number}"
-                        ];
-                    }
-
-                    if ($lineRevenue > 0 && $refundAccount && $incAccount) {
-                        $journalItems[] = [
-                            'account_id' => $incAccount->id,
-                            'debit' => $lineRevenue,
-                            'credit' => 0,
-                            'description' => "Revenue reversal: partial return of {$sale->reference_number}"
-                        ];
-                        $journalItems[] = [
-                            'account_id' => $refundAccount->id,
-                            'debit' => 0,
-                            'credit' => $lineRevenue,
-                            'description' => "Refund ({$refundAccountCode}): partial return of {$sale->reference_number}"
-                        ];
+                            ->increment('stock', $restoredBase);
                     }
 
                     DB::table('sale_items')->where('id', $originalItem->id)->increment('returned_quantity', $qty);
                 }
 
-                if ($returnTotal == 0 && empty($journalItems)) {
+                if (!$touched) {
                     throw new \LogicException("Nothing left to return on this sale.");
                 }
 
-                // Post the partial reversal journal entry
+                $revenueTotal = round($revenueTotal, 2);
+                $taxTotal     = round($taxTotal, 2);
+                $costTotal    = round($costTotal, 2);
+                $returnValue  = round($revenueTotal + $taxTotal, 2);
+
+                // The credit goes first against what is still owed on this
+                // invoice (a part-paid cash sale's remainder sits on 1200); only
+                // the rest leaves the drawer / bank. A credit sale's return always
+                // lands on the customer's account.
+                if ($refundAccountCode === '1200') {
+                    $toReceivable = $returnValue;
+                } else {
+                    $toReceivable = round(min($returnValue, max(0.0, $owedBefore)), 2);
+                }
+                $toRefund = round($returnValue - $toReceivable, 2);
+
+                $journalItems = [];
+                if ($revenueTotal > 0) {
+                    $journalItems[] = ['account_id' => $this->accounting->getAccountByCode('4000', 'Sales Revenue', 'income')->id,
+                        'debit' => $revenueTotal, 'credit' => 0, 'party_id' => $sale->party_id];
+                }
+                if ($taxTotal > 0) {
+                    $journalItems[] = ['account_id' => $this->accounting->getAccountByCode('2100', 'Sales Tax Payable', 'liability')->id,
+                        'debit' => $taxTotal, 'credit' => 0];
+                }
+                if ($toReceivable > 0) {
+                    // Tag the customer so a 1200 credit reduces THEIR sub-ledger
+                    // (aged receivables / party statement), same as the sale did.
+                    $journalItems[] = ['account_id' => $this->accounting->getAccountByCode('1200', 'Accounts Receivable', 'asset')->id,
+                        'debit' => 0, 'credit' => $toReceivable, 'party_id' => $sale->party_id];
+                }
+                if ($toRefund > 0) {
+                    $journalItems[] = ['account_id' => $this->accounting->getAccountByCode($refundAccountCode)->id,
+                        'debit' => 0, 'credit' => $toRefund, 'party_id' => $sale->party_id];
+                }
+                if ($costTotal > 0) {
+                    $journalItems[] = ['account_id' => $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset')->id,
+                        'debit' => $costTotal, 'credit' => 0];
+                    $journalItems[] = ['account_id' => $this->accounting->getAccountByCode('5000', 'Cost of Goods Sold', 'expense')->id,
+                        'debit' => 0, 'credit' => $costTotal];
+                }
+
+                // Post the partial reversal journal entry. reference_type
+                // 'sale_return' is what every return entry carries (Returns
+                // screen, POS open return) and what the dashboard, day book and
+                // fund ledger classify as a return; source_* ties it to the sale.
                 if (!empty($journalItems)) {
                     $this->accounting->createEntry([
-                        'date' => now()->toDateString(),
-                        'reference' => 'PRET-' . $sale->reference_number,
-                        'description' => "Partial return of {$sale->reference_number}. Reason: {$reason}",
-                        'party_id' => $sale->party_id,
-                        'source_type' => \App\Models\Sale::class,
-                        'source_id' => $sale->id,
+                        'date'           => $entryDate,
+                        'reference_type' => 'sale_return',
+                        'reference'      => 'PRET-' . $sale->reference_number,
+                        'description'    => "Partial return of {$sale->reference_number}. Reason: {$reason}",
+                        'party_id'       => $sale->party_id,
+                        'source_type'    => \App\Models\Sale::class,
+                        'source_id'      => $sale->id,
                     ], $journalItems);
                 }
 
                 // Record Refund Payment
-                \App\Models\Payment::create([
-                    'sale_id'   => $sale->id,
-                    'party_id'  => $sale->party_id,
-                    'amount'    => -$returnTotal,
-                    'type'      => 'out',
-                    'method'    => $sale->payment_method ?? 'cash',
-                    'reference' => 'Partial refund of payment: ' . $sale->reference_number,
-                    'date'      => $returnDate ?? now()->toDateString(),
-                ]);
+                if ($returnValue > 0) {
+                    \App\Models\Payment::create([
+                        'sale_id'   => $sale->id,
+                        'party_id'  => $sale->party_id,
+                        'amount'    => -$returnValue,
+                        'type'      => 'out',
+                        'method'    => $sale->payment_method ?? 'cash',
+                        'reference' => 'Partial refund of payment: ' . $sale->reference_number,
+                        'date'      => $entryDate,
+                    ]);
+                }
 
                 // Check if the entire sale is now fully returned across all items
                 $allSaleItems = DB::table('sale_items')->where('tenant_id', $this->tenantId)->where('sale_id', $sale->id)->get();
@@ -669,14 +797,29 @@ class SaleService
                     'updated_at' => now(),
                 ]);
 
+                // S-024: what is still owed changed — rebuild the payment badge.
+                $this->refreshBadgeAfterReturn($sale);
+
                 return DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $sale->id)->first();
             }
 
             // ─── FULL RETURN PATH ──────────────────────────────────────────────────
-            // Restore stock for every sale_item
+            // Restore stock for every sale_item, and the denormalised counters by
+            // exactly what goes back into the batches.
             $saleItems = DB::table('sale_items')->where('tenant_id', $this->getTenantId())->where('sale_id', $saleId)->get();
             foreach ($saleItems as $saleItem) {
+                $restoring = (float) DB::table('sale_item_batches')
+                    ->where('tenant_id', $this->tenantId)
+                    ->where('sale_item_id', $saleItem->id)
+                    ->where('is_reversed', 0)
+                    ->sum('qty_deducted');
+
                 $this->fifo->restoreStock($saleItem->id);
+
+                if ($restoring > 0) {
+                    $this->adjustStockAggregates($saleItem->product_id, $sale->warehouse_id, $restoring);
+                }
+
                 DB::table('sale_items')
                     ->where('tenant_id', $this->tenantId)
                     ->where('id', $saleItem->id)
@@ -688,6 +831,7 @@ class SaleService
                 ->where('tenant_id', $this->tenantId)
                 ->where('reference_type', 'sale')
                 ->where('reference', $saleId)
+                ->where('is_reversed', 0)
                 ->value('id');
 
             if ($journalEntryId) {
@@ -760,6 +904,157 @@ class SaleService
     }
 
     // ─── Private Helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Move the denormalised stock counters (stocks per warehouse, and the
+     * product master's stock_quantity) by $delta base units — negative when
+     * goods leave, positive when they come back. FIFO batches stay the source
+     * of truth; this only keeps the counters the POS and stock screens read in
+     * step with them. Same conventions as InventoryService / PurchaseService.
+     */
+    private function adjustStockAggregates(string|int $productId, string|int|null $warehouseId, float $delta): void
+    {
+        if (abs($delta) < 0.00001) {
+            return;
+        }
+
+        $tid = $this->tenantId;
+
+        if (DB::table('products')->where('tenant_id', $tid)->where('id', $productId)->value('type') === 'service') {
+            return;
+        }
+
+        if ($warehouseId !== null) {
+            $stock = DB::table('stocks')
+                ->where('tenant_id', $tid)
+                ->where('product_id', $productId)
+                ->where('warehouse_id', $warehouseId)
+                ->first();
+
+            if ($stock) {
+                DB::table('stocks')->where('id', $stock->id)->increment('quantity', $delta);
+            } else {
+                DB::table('stocks')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tid,
+                    'product_id'   => $productId,
+                    'warehouse_id' => $warehouseId,
+                    'quantity'     => $delta,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+            }
+        }
+
+        DB::table('products')->where('tenant_id', $tid)->where('id', $productId)->increment('stock_quantity', $delta);
+    }
+
+    /**
+     * What the customer still owes on THIS invoice, read from the ledger:
+     * the 1200 movements of the sale's own entries (the unpaid part at the
+     * till, its advance settlement, the returns already credited against it —
+     * engine partial returns and Returns-screen credit notes alike), less
+     * payments received against it through allocations (B4).
+     */
+    private function receivableOutstanding(object $sale): float
+    {
+        $tid = $this->tenantId;
+
+        $arAccountId = DB::table('accounts')->where('tenant_id', $tid)->where('code', '1200')->value('id');
+        if (!$arAccountId) {
+            return 0.0;
+        }
+
+        $returnSaleIds = DB::table('sales')
+            ->where('tenant_id', $tid)
+            ->where('original_sale_id', $sale->id)
+            ->pluck('id')
+            ->all();
+
+        $entryIds = DB::table('journal_entries')
+            ->where('tenant_id', $tid)
+            ->where('is_reversed', 0)
+            ->where(function ($q) use ($sale, $returnSaleIds) {
+                $q->where(function ($w) use ($sale) {
+                    $w->whereIn('reference_type', ['sale', 'advance_settlement'])
+                      ->where('reference', $sale->id);
+                })->orWhere('source_id', $sale->id);
+                if (!empty($returnSaleIds)) {
+                    $q->orWhere(function ($w) use ($returnSaleIds) {
+                        $w->where('reference_type', 'sale_return')->whereIn('reference', $returnSaleIds);
+                    });
+                }
+            })
+            ->pluck('id')
+            ->all();
+
+        $onEntries = empty($entryIds) ? 0.0 : (float) DB::table('journal_items')
+            ->whereIn('journal_entry_id', $entryIds)
+            ->where('account_id', $arAccountId)
+            ->selectRaw('COALESCE(SUM(debit) - SUM(credit), 0) as bal')
+            ->value('bal');
+
+        $paidAgainst = (float) DB::table('allocations')
+            ->where('tenant_id', $tid)
+            ->where('sale_id', $sale->id)
+            ->where('status', 'active')
+            ->when(!empty($entryIds), fn ($q) => $q->whereNotIn('payment_journal_entry_id', $entryIds))
+            ->sum('allocated_amount');
+
+        return round($onEntries - $paidAgainst, 2);
+    }
+
+
+    /**
+     * Payment badge after a partial return. An engine sale is paid through
+     * allocations and PaymentService::updatePaymentBadge() reads them; a sale
+     * rung up on the legacy POS (SaleController@store) was paid at the till
+     * and has no allocation rows at all, so that method would call a fully
+     * paid cash sale 'unpaid' the moment one unit came back. For those the
+     * badge is read from the ledger instead: what is still owed on the
+     * invoice (receivableOutstanding) against what it is now worth.
+     */
+    private function refreshBadgeAfterReturn(object $sale): void
+    {
+        $tid = $this->tenantId;
+
+        $hasAllocations = DB::table('allocations')
+            ->where('tenant_id', $tid)
+            ->where('sale_id', $sale->id)
+            ->exists();
+
+        if ($hasAllocations) {
+            $this->payments->updatePaymentBadge($sale->id);
+            return;
+        }
+
+        $current = DB::table('sales')->where('tenant_id', $tid)->where('id', $sale->id)->first();
+        if (!$current || $current->payment_status === 'written_off') {
+            return;
+        }
+
+        $returnedValue = (float) DB::table('sale_items')
+            ->where('tenant_id', $tid)
+            ->where('sale_id', $sale->id)
+            ->where('returned_quantity', '>', 0)
+            ->selectRaw('COALESCE(SUM(returned_quantity * CASE WHEN net_amount > 0 AND quantity > 0 THEN (net_amount + COALESCE(tax_amount, 0)) / quantity ELSE unit_price END), 0) as v')
+            ->value('v');
+        $worth     = max(0.0, round((float) ($current->total ?? 0) - $returnedValue, 2));
+        $owed      = max(0.0, $this->receivableOutstanding($current));
+        $tolerance = (float) (DB::table('system_settings')->where('tenant_id', $tid)
+            ->where('key', 'roundoff_tolerance')->value('value') ?? 1.00);
+
+        if ($owed <= $tolerance) {
+            $status = 'paid';
+        } elseif ($owed >= $worth - 0.005) {
+            $status = 'unpaid';
+        } else {
+            $status = 'partial';
+        }
+
+        DB::table('sales')->where('tenant_id', $tid)->where('id', $sale->id)
+            ->update(['payment_status' => $status, 'updated_at' => now()]);
+    }
 
     /**
      * S-042: Apply tiered pricing to a product line.

@@ -31,6 +31,9 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        // Sign out every other device/browser and old remember-me cookies.
+        \App\Support\SessionRevoker::revokeOthers($request->user(), $request);
+
         return back();
     }
 }

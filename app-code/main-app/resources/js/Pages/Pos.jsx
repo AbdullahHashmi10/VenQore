@@ -63,6 +63,8 @@ import AlertModal from '@/Components/AlertModal';
 import ConfirmModal from '@/Components/ConfirmModal';
 import InputModal from '@/Components/InputModal';
 import PaymentModal from '@/Components/Pos/PaymentModal';
+import ApprovalPinModal from '@/Components/Pos/ApprovalPinModal';
+import { parseApprovalRequired, withApproval } from '@/Domain/pos/approval';
 
 import FormModal from '@/Components/FormModal';
 import QuickPartyModal from '@/Components/QuickPartyModal';
@@ -320,6 +322,8 @@ const POSInterface = ({
     const [variantModalOpen, setVariantModalOpen] = useState(false);
     const [selectedProductForVariant, setSelectedProductForVariant] = useState(null);
     const [processingPayment, setProcessingPayment] = useState(false);
+    // S-011 / S-044: checkout refused with code=approval_required → { info, paymentData, addToLedger }
+    const [approvalRequest, setApprovalRequest] = useState(null);
     const [lastSale, setLastSale] = useState(null); // For receipt
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
@@ -2025,7 +2029,9 @@ const POSInterface = ({
         processCheckout(paymentData, false);
     };
 
-    const processCheckout = async (paymentData, addToLedger = false) => {
+    /* Resolves true when the sale was recorded (online or queued offline).
+       `approval` = { approvedBy, pin } from the manager-approval modal. */
+    const processCheckout = async (paymentData, addToLedger = false, approval = null) => {
         setProcessingPayment(true);
 
         // Clamp cash payment lines to avoid sending change excess to the backend,
@@ -2046,7 +2052,7 @@ const POSInterface = ({
             }
         });
 
-        const payload = {
+        const basePayload = {
             items: activeSale.cart.map(item => ({
                 product_id: item.id,
                 variant_id: item.variant_id,
@@ -2074,6 +2080,7 @@ const POSInterface = ({
             source: 'pos',
             is_dropship: activeSale.is_dropship || false,
         };
+        const payload = withApproval(basePayload, approval);
 
         try {
             let responseData;
@@ -2086,21 +2093,35 @@ const POSInterface = ({
             }
 
             if (responseData.success) {
+                setApprovalRequest(null);
                 finalizeSale(responseData, paymentData);
+                return true;
             }
+            return false;
         } catch (error) {
             console.log("Checkout processing check:", error);
+
+            // S-011 / S-044: below cost or over the discount limit — ask a manager.
+            const approvalInfo = parseApprovalRequired(error);
+            if (approvalInfo) {
+                setApprovalRequest({ info: approvalInfo, paymentData, addToLedger });
+                setProcessingPayment(false);
+                return false;
+            }
             
             // Layout Law fix (errors_as_offline): Differentiate network failure from 4xx API errors
             if (error.response && error.response.status >= 400 && error.response.status < 500) {
                 const errMsg = error.response.data?.message || error.response.data?.error || 'Validation or authorization error occurred.';
+                setApprovalRequest(null);
                 showAlert('Checkout Error', errMsg, 'error');
                 setProcessingPayment(false);
-                return;
+                return false;
             }
 
-            // Save to offline queue for network failures
-            const offlineSaved = await saveOfflineSale(payload);
+            // Save to offline queue for network failures. Never the approval
+            // PIN: it is not stored on the device.
+            setApprovalRequest(null);
+            const offlineSaved = await saveOfflineSale(basePayload);
 
             if (offlineSaved) {
                 const offlineResponse = {
@@ -2110,9 +2131,10 @@ const POSInterface = ({
                     is_offline: true
                 };
                 finalizeSale(offlineResponse, paymentData);
-            } else {
-                showAlert('Checkout Failed', 'Could not save sale offline. Please check device storage.', 'error');
+                return true;
             }
+            showAlert('Checkout Failed', 'Could not save sale offline. Please check device storage.', 'error');
+            return false;
         } finally {
             setProcessingPayment(false);
             setShowOverpaymentModal(false); // Close overpayment modal if open
@@ -2587,7 +2609,7 @@ const POSInterface = ({
                         notes: activeSale.remarks || '',
                         printReceipt: printOnComplete
                     };
-                    processCheckout(paymentData, false).then(() => createNewSale());
+                    processCheckout(paymentData, false).then((ok) => { if (ok) createNewSale(); });
                 }
             }
 
@@ -5172,6 +5194,15 @@ const POSInterface = ({
                 </div>
             )}
             {/* UI Modals */}
+            {approvalRequest && <ApprovalPinModal
+                request={approvalRequest.info}
+                storeSlug={store?.slug}
+                busy={processingPayment}
+                money={money}
+                zIndex="z-modal"
+                onClose={() => setApprovalRequest(null)}
+                onSubmit={(approval) => processCheckout(approvalRequest.paymentData, approvalRequest.addToLedger, approval)}
+            />}
             <Toast toasts={toasts} removeToast={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
 
             <AlertModal

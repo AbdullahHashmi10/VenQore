@@ -1,49 +1,60 @@
-import React, { useState } from 'react';
-import { Head, router, usePage } from '@inertiajs/react'; // usePage added
+import React, { useEffect, useMemo, useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
-import { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
-import { Factory, Plus, Trash2, Search, Package } from 'lucide-react';
+import { FormField, FormInput, FormSelect, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
+import { Factory, Package } from 'lucide-react';
 import axios from 'axios';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
+import { bomRequirements, bomsForProduct, buildProductionRunPayload, localIsoDate } from '@/Domain/production/runPayload';
 
-export default function CreateProductionRun({ products = [], recipes = [], warehouses = [] }) {
+/*
+ * New Production Run.
+ *
+ * Posts to store.production.store = V3 ProductionRunController@store, whose
+ * contract is {bom_id, warehouse_id, planned_qty, run_date} (see
+ * Domain/production/runPayload). A run is made FROM a bill of materials, so
+ * the operator picks the product and the screen picks its active BOM, loaded
+ * from GET /s/{store}/inventory/production/boms.
+ */
+export default function CreateProductionRun({ products = [], warehouses = [] }) {
     const { store } = usePage().props;
     const [loading, setLoading] = useState(false);
-    const [productSearch, setProductSearch] = useState('');
-    const [showProductDropdown, setShowProductDropdown] = useState(false);
-    const [formData, setFormData] = useState({
+    const [boms, setBoms] = useState([]);
+    const [bomsLoading, setBomsLoading] = useState(true);
+    const [bomsError, setBomsError] = useState('');
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [formData, setFormData] = useState(() => ({
         product_id: '',
-        product_name: '',
-        quantity: 1,
-        warehouse_id: '',
-        recipe_id: '',
-        notes: ''
-    });
-    const [selectedRecipe, setSelectedRecipe] = useState(null);
+        bom_id: '',
+        planned_qty: 1,
+        warehouse_id: warehouses.length === 1 ? String(warehouses[0].id) : '',
+        run_date: localIsoDate(),
+    }));
     const [errors, setErrors] = useState({});
 
-    // Filter products
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.sku?.toLowerCase().includes(productSearch.toLowerCase())
-    );
+    useEffect(() => {
+        let cancelled = false;
+        axios.get(`/s/${store?.slug}/inventory/production/boms`)
+            .then((res) => { if (!cancelled) setBoms(res.data?.boms || []); })
+            .catch(() => { if (!cancelled) setBomsError('Could not load bills of materials.'); })
+            .finally(() => { if (!cancelled) setBomsLoading(false); });
+        return () => { cancelled = true; };
+    }, [store?.slug]);
+
+    const productBoms = useMemo(() => bomsForProduct(boms, formData.product_id), [boms, formData.product_id]);
+    const selectedBom = boms.find((b) => b.id === formData.bom_id) || null;
+    const requirements = bomRequirements(selectedBom, formData.planned_qty);
 
     const selectProduct = (product) => {
-        setFormData({
-            ...formData,
-            product_id: product.id,
-            product_name: product.name
-        });
-        setProductSearch(product.name);
-        setShowProductDropdown(false);
+        setSelectedProduct(product);
+        const own = bomsForProduct(boms, product.id);
+        setFormData((prev) => ({ ...prev, product_id: product.id, bom_id: own.length ? own[0].id : '' }));
+    };
 
-        // Auto-select recipe if available
-        const recipe = recipes.find(r => r.product_id === product.id);
-        if (recipe) {
-            setFormData(prev => ({ ...prev, recipe_id: recipe.id }));
-            setSelectedRecipe(recipe);
-        }
+    const selectBom = (bomId) => {
+        const bom = boms.find((b) => b.id === bomId);
+        setFormData((prev) => ({ ...prev, bom_id: bomId, product_id: bom ? bom.product_id : prev.product_id }));
     };
 
     const handleSubmit = async (e) => {
@@ -52,8 +63,8 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
         setErrors({});
 
         try {
-            await axios.post(route('store.production.store', { store_slug: store?.slug }), formData);
-            
+            await axios.post(route('store.production.store', { store_slug: store?.slug }), buildProductionRunPayload(formData));
+
             // Global Sync Trigger (Production affects finished goods and raw materials)
             window.dispatchEvent(new CustomEvent('amd:product-updated'));
             localStorage.setItem('amd_product_latest_change', Date.now().toString());
@@ -69,6 +80,8 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
             setLoading(false);
         }
     };
+
+    const noBomForProduct = !!formData.product_id && !bomsLoading && productBoms.length === 0;
 
     return (
         <OneGlanceLayout title="New Production Run">
@@ -94,109 +107,110 @@ export default function CreateProductionRun({ products = [], recipes = [], wareh
 
                         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                             {/* Product Selection */}
-                            <FormField label="Product to Manufacture" required error={errors.product_id?.[0]}>
+                            <FormField label="Product to Manufacture" required>
                                 <AsyncProductCombobox
-                                    selectedItem={products.find(p => p.id === formData.product_id)}
+                                    selectedItem={selectedProduct || products.find(p => p.id === formData.product_id)}
                                     onSelect={(product) => {
                                         if (product) {
                                             selectProduct(product);
                                         } else {
-                                            setFormData({ ...formData, product_id: '', product_name: '' });
-                                            setProductSearch('');
+                                            setSelectedProduct(null);
+                                            setFormData((prev) => ({ ...prev, product_id: '', bom_id: '' }));
                                         }
                                     }}
                                     placeholder="Search product..."
                                 />
                             </FormField>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField label="Quantity to Produce" required error={errors.quantity?.[0]}>
+                            <FormField
+                                label="Bill of Materials"
+                                required
+                                error={errors.bom_id?.[0] || bomsError || (noBomForProduct ? 'This product has no active bill of materials.' : undefined)}
+                            >
+                                <FormSelect
+                                    value={formData.bom_id}
+                                    onChange={(e) => selectBom(e.target.value)}
+                                    placeholder={bomsLoading ? 'Loading…' : 'Select bill of materials'}
+                                >
+                                    {productBoms.map(b => (
+                                        <option key={b.id} value={b.id}>{`${b.product_name || 'Product'} — v${b.version}`}</option>
+                                    ))}
+                                </FormSelect>
+                            </FormField>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <FormField label="Quantity to Produce" required error={errors.planned_qty?.[0]}>
                                     <FormInput
                                         type="number"
-                                        min="1"
-                                        value={formData.quantity}
-                                        onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
+                                        min="0.0001"
+                                        step="any"
+                                        value={formData.planned_qty}
+                                        onChange={(e) => setFormData({ ...formData, planned_qty: e.target.value })}
                                     />
                                 </FormField>
 
-                                <FormField label="Output Warehouse" required error={errors.warehouse_id?.[0]}>
+                                <FormField label="Warehouse" required error={errors.warehouse_id?.[0]}>
                                     <FormSelect
                                         value={formData.warehouse_id}
                                         onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
+                                        placeholder="Select warehouse"
                                     >
-                                        <option value="">Select warehouse</option>
                                         {warehouses.map(w => (
                                             <option key={w.id} value={w.id}>{w.name}</option>
                                         ))}
                                     </FormSelect>
                                 </FormField>
+
+                                <FormField label="Run Date" required error={errors.run_date?.[0]}>
+                                    <FormInput
+                                        type="date"
+                                        max={localIsoDate()}
+                                        value={formData.run_date}
+                                        onChange={(e) => setFormData({ ...formData, run_date: e.target.value })}
+                                    />
+                                </FormField>
                             </div>
-
-                            <FormField label="Recipe/BOM" error={errors.recipe_id?.[0]}>
-                                <FormSelect
-                                    value={formData.recipe_id}
-                                    onChange={(e) => {
-                                        const recipe = recipes.find(r => r.id == e.target.value);
-                                        setFormData({ ...formData, recipe_id: e.target.value });
-                                        setSelectedRecipe(recipe);
-                                    }}
-                                >
-                                    <option value="">Select recipe (optional)</option>
-                                    {recipes.filter(r => !formData.product_id || r.product_id === formData.product_id).map(r => (
-                                        <option key={r.id} value={r.id}>{r.name}</option>
-                                    ))}
-                                </FormSelect>
-                            </FormField>
-
-                            <FormField label="Production Notes">
-                                <FormTextarea
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    placeholder="Any notes about this production run..."
-                                    rows={3}
-                                />
-                            </FormField>
 
                             <div className="flex justify-end gap-3 pt-4 border-t border-line">
                                 <SecondaryButton onClick={() => router.visit(route('store.production.index', { store_slug: store?.slug }))}>
                                     Cancel
                                 </SecondaryButton>
-                                <PrimaryButton type="submit" loading={loading}>
+                                <PrimaryButton type="submit" loading={loading} disabled={!formData.bom_id}>
                                     Start Production
                                 </PrimaryButton>
                             </div>
                         </form>
                     </div>
 
-                    {/* Recipe Preview */}
+                    {/* BOM Preview */}
                     <div className="bg-surface rounded-2xl border border-line p-6">
                         <h3 className="font-semibold text-lg text-ink mb-4 flex items-center gap-2">
                             <Package size={18} />
-                            Recipe Ingredients
+                            Materials Needed
                         </h3>
 
-                        {selectedRecipe ? (
+                        {selectedBom ? (
                             <div className="space-y-3">
-                                {selectedRecipe.ingredients?.map((ing, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-app rounded-lg">
+                                {requirements.map((ing) => (
+                                    <div key={ing.product_id} className="flex items-center justify-between p-3 bg-app rounded-lg">
                                         <div>
-                                            <p className="font-medium text-ink">{ing.product?.name}</p>
-                                            <p className="text-xs text-ink-muted">{ing.product?.sku}</p>
+                                            <p className="font-medium text-ink">{ing.name}</p>
+                                            <p className="text-xs text-ink-muted">{ing.sku}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-brand-600">{ing.quantity * formData.quantity}</p>
+                                            <p className="font-bold text-brand-600">{ing.required}</p>
                                             <p className="text-xs text-ink-muted">needed</p>
                                         </div>
                                     </div>
                                 ))}
-                                {selectedRecipe.ingredients?.length === 0 && (
-                                    <p className="text-sm text-ink-muted">No ingredients defined</p>
+                                {requirements.length === 0 && (
+                                    <p className="text-sm text-ink-muted">No components defined</p>
                                 )}
                             </div>
                         ) : (
                             <div className="text-center py-8 text-ink-muted">
                                 <Package size={32} className="mx-auto mb-2 opacity-50" />
-                                <p>Select a recipe to see ingredients</p>
+                                <p>Select a bill of materials to see its components</p>
                             </div>
                         )}
                     </div>

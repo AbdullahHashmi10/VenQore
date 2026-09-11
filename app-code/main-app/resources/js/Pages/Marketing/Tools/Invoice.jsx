@@ -193,14 +193,14 @@ export default function InvoiceTool({ templates = {}, currencies = {}, maxItems 
             )}
 
             {/* Slim control bar — everything that ISN'T part of the document itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="w-40">
                     <Select value={meta.template} onChange={(v) => setMeta((m) => ({ ...m, template: v }))} options={templateOptions} />
                 </div>
                 <div className="w-36">
                     <Select value={meta.currency} onChange={(v) => setMeta((m) => ({ ...m, currency: v }))} options={currencyOptions} />
                 </div>
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
+                <div className="flex items-center gap-1 p-1 rounded-xl vq-tool-inset">
                     <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'portrait' }))}
                         className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}>
                         Portrait
@@ -219,7 +219,7 @@ export default function InvoiceTool({ templates = {}, currencies = {}, maxItems 
                         ))}
                     </div>
                 )}
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {company.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {company.logo_base64 && (
@@ -235,7 +235,7 @@ export default function InvoiceTool({ templates = {}, currencies = {}, maxItems 
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -250,7 +250,7 @@ export default function InvoiceTool({ templates = {}, currencies = {}, maxItems 
             )}
 
             {/* THE DOCUMENT — this is the editor */}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? 'max-w-4xl' : 'max-w-2xl'}`}>
+            <div className={`vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? 'max-w-4xl' : 'max-w-2xl'}`}>
                 {isModern && <div className="h-3 w-full" style={{ background: accent }} />}
                 <div className={`p-6 sm:p-10 text-ink ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                     {/* Header */}

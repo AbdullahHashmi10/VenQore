@@ -94,6 +94,40 @@ class MarketingSeo
             }
         }
 
+        // Help Centre articles (2026-09-10): these pages had no server-written
+        // title or description, so all 20 shared "VenQore POS" in search results.
+        if ($route->getName() === 'help.show') {
+            $article = \App\Http\Controllers\HelpCenterController::article((string) $route->parameter('slug'));
+            if ($article) {
+                $title = $article['title'] . ' — VenQore Help';
+                $description = rtrim($article['summary'], '.') . '. ' . $article['content'];
+                $description = \Illuminate\Support\Str::limit($description, 158, '…');
+                $canonical = 'https://venqore.com/help/articles/' . $article['slug'];
+
+                return [
+                    'title' => $title,
+                    'description' => $description,
+                    'og_image' => url('/images/logo.png'),
+                    'canonical' => $canonical,
+                    'jsonld' => [[
+                        '@context' => 'https://schema.org',
+                        '@type' => 'TechArticle',
+                        'headline' => $article['title'],
+                        'description' => $article['summary'],
+                        'articleSection' => $article['category'],
+                        'mainEntityOfPage' => $canonical,
+                        'publisher' => self::organizationLd(),
+                    ]],
+                    'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                        . '<h1>' . htmlspecialchars($article['title']) . '</h1>'
+                        . '<p><strong>' . htmlspecialchars($article['summary']) . '</strong></p>'
+                        . '<p>' . htmlspecialchars($article['content']) . '</p>'
+                        . '<p><a href="/help">&larr; All help articles</a></p>'
+                        . self::navLinks() . '</main>',
+                ];
+            }
+        }
+
         // Handle dynamic docs route dynamically from resources/docs
         if ($route->getName() === 'marketing.docs.index' || $route->getName() === 'marketing.docs.show') {
             $slug = $route->parameter('slug') ?: 'getting-started';
@@ -458,24 +492,27 @@ class MarketingSeo
                 'description' => 'Traditional ERP costs $20,000+ a year. VenQore starts free. Solo ($0, free forever), Starter ($49/mo), Core ($99/mo), Scale ($299/mo). 14-day free trial on all paid plans.',
                 'keywords' => 'POS software price, ERP software cost, cheap retail POS, retail ERP pricing, point of sale subscription, online ERP pricing, small business software subscription',
                 'jsonld' => [
+                    // Mirrors the FAQ visible on resources/js/Pages/Marketing/Pricing.jsx word for
+                    // word (2026-09-10) — Google requires FAQ markup to match the page.
                     self::faq([
-                        ['Is there a free trial?', '14 days at Core level, card required, cancel anytime. That includes multi-branch, API access, audit trail, Vena, Signals and all 43 reports — so you are trying the real thing, not a demo of it. We send a reminder on day 11 before the trial ends, not after.'],
+                        ['Is there a free trial?', '14 days at Core level, no credit card required, cancel anytime. That includes multi-branch, API access, audit trail, Vena, Signals and all 43 reports — so you are trying the real thing, not a demo of it. We send a reminder on day 11 before the trial ends, not after.'],
                         ['What happens after the trial?', 'If you don\'t select a paid plan, your system drops smoothly to Solo — free forever. Your data is preserved and nothing is deleted or reset.'],
-                        ['What is the one-time BYOK fee for?', 'Bringing Your Own API Key (BYOK) means you connect your own OpenAI or Gemini key. We charge a one-time $19 platform activation fee to unlock direct AI routing in your account. After that, you are billed directly by your AI provider — we charge you nothing ongoing.'],
-                        ['Can I change my plan later?', 'Yes. You can upgrade or downgrade your plan at any time from your admin dashboard. Upgrades take effect immediately. Downgrading never deletes anything: data above the new limit becomes read-only and hidden, and comes back the moment you upgrade.'],
-                        ['Are there any hidden fees or setup costs?', 'No. There are zero hidden fees, transaction markups, or setup fees. The monthly or annual price you see is exactly what you pay. Standard payment processing fees from your merchant gateway still apply if you process credit cards.'],
-                        ['Do you offer discounts for annual billing?', 'Yes. Every paid plan has a discounted annual billing option ($490/yr Starter, $990/yr Core, $2,990/yr Scale). Choosing annual billing gives you twelve months for the price of ten (2 months free).'],
+                        ['Can I change plans?', 'Any time, both directions, prorated. Downgrading never deletes anything: data above the new limit or beyond 30 days on Solo becomes read-only and safely archived, and comes back the moment you upgrade.'],
+                        ['Do you charge to import my data?', 'No. Import is included, and so is the help getting it in.'],
+                        ['Do you charge to leave?', 'No. Export everything, any time, in a format your next system can read.'],
+                        ['Is there a contract?', 'Monthly is month-to-month. Annual is twelve months at two months off ($490, $990, or $2,990). There is no minimum term and no notice period.'],
+                        ['Why does the cheapest plan include everything?', 'Because a feature you need should not be a negotiation. A one-person shop needs a correct trial balance exactly as much as a ten-branch one does — it just needs fewer seats. You pay for the size of your business, not for permission to run it properly.'],
                     ]),
                 ],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Pricing</h1>'
-                    . '<p><strong>Traditional ERP costs $20,000+ a year. VenQore starts free.</strong> 14-day trial at Core level. Card authorized at $0.00 — cancel anytime before day 14.</p>'
+                    . '<p><strong>Traditional ERP costs $20,000+ a year. VenQore starts free.</strong> 14-day trial at Core level, no credit card required, cancel anytime.</p>'
                     . '<ul><li><strong>Solo — Free Forever</strong>: 1 full seat, 1 POS register, 500 SKUs, 30-day history visible, offline POS, full double-entry ledger, all 43 reports</li>'
                     . '<li><strong>Starter — $49/month ($490/year)</strong>: 1 full seat, 2 registers, 5,000 SKUs, full history retention, Google Drive backup, email support</li>'
                     . '<li><strong>Core — $99/month ($990/year)</strong>: 5 full seats, 6 registers, 25,000 SKUs, multi-branch transfers, REST API &amp; webhooks, audit trail, custom roles</li>'
                     . '<li><strong>Scale — $299/month ($2,990/year)</strong>: 25 full seats, 20 registers, 250,000 SKUs, white-label &amp; custom domain, 2 channel syncs included, named support contact</li></ul>'
                     . '<h2>Frequently Asked Questions</h2>'
-                    . '<p><strong>Is there a free trial?</strong> 14 days at Core level, card required, cancel anytime. Dropping to Solo upon expiry preserves your records intact.</p>'
+                    . '<p><strong>Is there a free trial?</strong> 14 days at Core level, no credit card required, cancel anytime. Dropping to Solo upon expiry preserves your records intact.</p>'
                     . '<p><a href="/demo">Try the live demo first</a> · <a href="/register">Start your free trial</a></p>' . $nav . '</main>',
             ],
 
@@ -1205,6 +1242,36 @@ class MarketingSeo
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Partner Support Desk</h1>'
                     . '<p>Dedicated support and assistance for certified partners and multi-store operators.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'help.index' => [
+                'title' => 'Help Centre — Setup, Hardware, Billing & Troubleshooting | VenQore',
+                'description' => 'Step-by-step VenQore guides: store setup, receipt printers and barcode scanners, stock and SKUs, tax and VAT, staff roles, billing, backups and common errors.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Help Centre</h1>'
+                    . '<p>Guides for setting up your store, connecting hardware, managing stock, tax, staff and billing, and fixing common errors.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'known-issues.show' => [
+                'title' => 'Known Issues & Workarounds — VenQore Status',
+                'description' => 'Open and recently resolved VenQore issues, who they affect and the workaround for each — printers, invoice scanning and marketplace sync.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Known issues</h1>'
+                    . '<p>Issues we know about, their status, who they affect and how to work around them until they are fixed.</p>'
+                    . $nav . '</main>',
+            ],
+
+            'workspace.build' => [
+                'title' => 'Build Your Workspace — Describe Your Business | VenQore',
+                'description' => 'Answer a few questions about how your business runs and VenQore assembles the POS, stock, purchasing and accounting setup that fits it. Free 14-day trial.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Build your VenQore workspace</h1>'
+                    . '<p>Tell VenQore what you sell and how you work; it sets up the modules, screens and accounts your business needs.</p>'
                     . $nav . '</main>',
             ],
         ];

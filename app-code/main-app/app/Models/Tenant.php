@@ -511,4 +511,33 @@ class Tenant extends Model
             'grace_ends_at' => $this->limit_grace_ends_at?->toIso8601String(),
         ];
     }
+
+    /**
+     * SEC-11: generate a high-entropy staff join code, "VQ-XXXX-XXXX".
+     * Alphabet excludes 0/O/1/I/L to avoid misreads. 32^8 ≈ 1.1e12.
+     */
+    public static function generateJoinCode(): string
+    {
+        $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        do {
+            $chars = '';
+            for ($i = 0; $i < 8; $i++) {
+                $chars .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+            $code = 'VQ-' . substr($chars, 0, 4) . '-' . substr($chars, 4, 4);
+        } while (static::withoutGlobalScopes()->where('join_code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * SEC-11: replace the join code (after a member is removed/suspended, or
+     * on owner request) so a code known to a former member stops working.
+     */
+    public function rotateJoinCode(): string
+    {
+        $this->forceFill(['join_code' => static::generateJoinCode()])->save();
+
+        return $this->join_code;
+    }
 }

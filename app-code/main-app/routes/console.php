@@ -317,3 +317,9 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer()
     ->name('check-hosted-until-expiry');
+
+// AUTH-01 (2026-09-10): delete expired email sign-in code challenges daily.
+\Illuminate\Support\Facades\Schedule::call(fn () => app(\App\Services\Auth\EmailOtpService::class)->prune())
+    ->name('email-otp:prune')
+    ->dailyAt('03:15')
+    ->withoutOverlapping();

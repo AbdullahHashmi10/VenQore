@@ -270,7 +270,7 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
             )}
 
             {/* Slim control bar */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="w-44">
                     <Select value={currency} onChange={setCurrency} options={currencyOptions} />
                 </div>
@@ -292,7 +292,7 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                         type="button"
                         onClick={() => setRegisterCount(registers.length - 1)}
                         disabled={registers.length <= minRegisters}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary disabled:opacity-30 hover:border-brand-400/40 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg vq-tool-inset text-ink-secondary disabled:opacity-30 hover:border-brand-400/40 transition-colors"
                     >
                         <Minus size={13} />
                     </button>
@@ -301,13 +301,13 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                         type="button"
                         onClick={() => setRegisterCount(registers.length + 1)}
                         disabled={registers.length >= maxRegisters}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary disabled:opacity-30 hover:border-brand-400/40 transition-colors"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg vq-tool-inset text-ink-secondary disabled:opacity-30 hover:border-brand-400/40 transition-colors"
                     >
                         <Plus size={13} />
                     </button>
                 </div>
 
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
@@ -323,7 +323,7 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
                         type="button"
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -339,7 +339,7 @@ export default function CashDrawerCountSheetTool({ minRegisters = 1, maxRegister
 
             {/* THE DOCUMENT — this is the editor. Orientation visually widens the preview container. */}
             <div className={`mx-auto transition-all ${orientation === 'landscape' ? 'max-w-none' : 'max-w-3xl'}`}>
-            <div className="rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white">
+            <div className="vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white">
                 <div className="p-6 sm:p-10 text-ink text-sm" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row justify-between gap-6 mb-8 border-b-2 border-neutral-900 pb-4">

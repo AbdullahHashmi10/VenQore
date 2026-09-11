@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V3;
 use App\Http\Controllers\Controller;
 use App\Engines\ManufacturingService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProductionRunController extends Controller
 {
@@ -14,9 +15,11 @@ class ProductionRunController extends Controller
 
     public function store(Request $request)
     {
+        // BOM and warehouse must be this store's.
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
-            'bom_id'       => ['required', 'string', 'exists:bill_of_materials,id'],
-            'warehouse_id' => ['required', 'string', 'exists:warehouses,id'],
+            'bom_id'       => ['required', 'string', Rule::exists('bill_of_materials', 'id')->where('tenant_id', $tenantId)],
+            'warehouse_id' => ['required', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
             'planned_qty'  => ['required', 'numeric', 'min:0.0001'],
             'run_date'     => ['required', 'date', 'before_or_equal:today'],
             'labor_cost'   => ['nullable', 'numeric', 'min:0'],
@@ -56,10 +59,12 @@ class ProductionRunController extends Controller
 
     public function disassemble(Request $request)
     {
+        // Product and warehouse must be this store's.
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
-            'product_id'   => ['required', 'string', 'exists:products,id'],
+            'product_id'   => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'qty'          => ['required', 'numeric', 'min:0.0001'],
-            'warehouse_id' => ['required', 'string', 'exists:warehouses,id'],
+            'warehouse_id' => ['required', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
         ]);
 
         $this->manufacturing->disassemble(

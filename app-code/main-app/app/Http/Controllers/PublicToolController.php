@@ -22,18 +22,45 @@ class PublicToolController extends Controller
         ]);
     }
 
+    /**
+     * Free public invoice scanner (anonymous, image/PDF only).
+     *
+     * WHY THIS DOES NOT CALL AiGateway::resolve(): the extraction runs through
+     * AiExtractionService -> SmartCaptureExtractionBridge (multimodal upload,
+     * provider-specific transports, model substitution) which ModelResolver does
+     * not implement. Rewriting that pipeline is out of scope, so the call is
+     * wrapped in AiGateway::meter() instead: the gateway still owns the rate
+     * limit (per hashed IP, ai_limits.features.public_tool.anon_day_limit) and
+     * spend (per-IP anon_spend_cap + global anon_global_spend_cap). This
+     * controller never touches AiRateLimiter / AiSpendGuard. No free text
+     * reaches the model (image-only, fixed prompt), so there is no scope entry.
+     *
+     * Layers, cheapest first: route throttle -> upload validation (type + 5 MB)
+     * -> Turnstile -> monthly email/IP quota (PublicToolBudgetGuard::checkQuota)
+     * -> AiGateway::meter (per-IP daily cap, per-IP + global daily spend).
+     */
     public function submitSmartCapture(
         Request $request,
         PublicToolBudgetGuard $guard,
         AiExtractionService $aiService,
-        \App\Services\Ai\AiSpendGuard $spendGuard
+        \App\Services\Ai\AiGateway $gateway
     ): JsonResponse {
         $turnstileSecret = config('services.cloudflare.turnstile_secret_key');
-        
+
+        $maxKb = (int) config('ai_limits.features.public_tool.max_upload_kb', 5120);
+        $mimes = (array) config('ai_limits.features.public_tool.upload_mimes', ['jpg', 'jpeg', 'png', 'pdf']);
+
         $rules = [
             'email' => 'required|email|max:255',
-            'file'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            'file'  => [
+                'required',
+                'file',
+                'mimes:' . implode(',', $mimes),
+                'mimetypes:image/jpeg,image/png,application/pdf',
+                'max:' . $maxKb,
+            ],
             'type'  => 'nullable|string|in:invoice,purchase,expense,quotation,packing_slip,credit_note,purchase_order',
+            'turnstile_token' => 'nullable|string|max:4096',
         ];
 
         $request->validate($rules);
@@ -67,36 +94,20 @@ class PublicToolController extends Controller
             }
         }
 
-        // 2. Atomic Budget & Limit Reservation
-        $rateLimiter = app(\App\Services\Ai\AiRateLimiter::class);
-        $rateCheck = $rateLimiter->tryAcquire('public_tool');
-        if (!$rateCheck['ok']) {
-            return response()->json([
-                'success' => false,
-                'error'   => 'The free scanner tool is receiving high traffic right now. Please wait a moment and try again.',
-                'reason'  => 'rate_limit',
-            ], 429);
-        }
-
-        $estimatedCost = 0.0120;
-        $check = $guard->checkAndReserve($email, $ip, $estimatedCost, 10.00);
-
-        if (!$check['allowed']) {
+        // 2. Product quota (free scans per email / per IP per month). Not a rate
+        //    limit or spend cap — those are the gateway's, in step 3.
+        $quota = $guard->checkQuota($email, $ip);
+        if (!$quota['allowed']) {
             return response()->json([
                 'success'  => false,
-                'error'    => $check['message'],
-                'reason'   => $check['reason'],
+                'error'    => $quota['message'],
+                'reason'   => $quota['reason'],
                 'waitlist' => true,
             ], 429);
         }
 
-        if (!$spendGuard->checkAndRecord('public_tool', $estimatedCost, 10.00)) {
-            return response()->json([
-                'success' => false,
-                'error'   => 'The free scanner tool daily spend budget has been reached for today. Please try again tomorrow.',
-                'reason'  => 'spend_cap_exceeded',
-            ], 429);
-        }
+        $estimatedCost = (float) (config('ai_models.public_tool.est_cost_usd')
+            ?? config('ai_limits.features.public_tool.estimated_cost', 0.0120));
 
         // 3. Real AI Extraction Service Call (Phase 1 engine) — NO FAKE FALLBACKS
         $extractedItems = [];
@@ -121,16 +132,55 @@ class PublicToolController extends Controller
             $base64 = base64_encode(file_get_contents($file->getRealPath()));
             $mime   = $file->getMimeType();
 
-            $extractionResult = $aiService->extract(
-                'image',
-                [['base64' => $base64, 'mime' => $mime]],
-                $extractionType,
-                null,
-                ['feature' => 'public_tool']
+            $metered = $gateway->meter(
+                \App\Services\Ai\AiRequest::for('public_tool')
+                    ->tenant(null)
+                    ->entitlementMode('public_tool'),
+                function () use ($aiService, $base64, $mime, $extractionType) {
+                    try {
+                        $data = $aiService->extract(
+                            'image',
+                            [['base64' => $base64, 'mime' => $mime]],
+                            $extractionType,
+                            null,
+                            ['feature' => 'public_tool', 'entitlement_mode' => 'public_tool']
+                        );
+                    } catch (\Throwable $e) {
+                        if ($aiService->lastRequestCount === 0) {
+                            // Rejected before any upstream call (bad image, no
+                            // key): model=null tells meter() nothing was spent.
+                            return \App\Services\Ai\AiResult::failure('extraction_failed', $e->getMessage(), 'deterministic');
+                        }
+                        throw $e; // upstream was called: the estimate stands
+                    }
+
+                    // Actual cost is recorded per call by the bridge; the gateway
+                    // keeps the estimate on the spend counters (costUsd 0).
+                    return \App\Services\Ai\AiResult::success($data, 'model', $aiService->lastModelUsed ?? 'unknown');
+                }
             );
 
-            $actualCost = (float) ($extractionResult['cost_usd'] ?? $estimatedCost);
-            $spendGuard->reconcile('public_tool', $estimatedCost, $actualCost);
+            if (!$metered->ok) {
+                if ($metered->failureCode === 'rate_limited') {
+                    return response()->json([
+                        'success' => false,
+                        'error'   => 'You have reached the free scanner limit for today. Please try again tomorrow, or sign up for VenQore for unlimited scans.',
+                        'reason'  => 'rate_limit',
+                    ], 429);
+                }
+                if ($metered->failureCode === 'spend_capped') {
+                    return response()->json([
+                        'success'  => false,
+                        'error'    => 'Daily free tool budget limit reached. Please join the waitlist or sign up for a free account.',
+                        'reason'   => 'budget_exceeded',
+                        'waitlist' => true,
+                    ], 429);
+                }
+
+                throw new \RuntimeException($metered->errorMessage ?? (string) $metered->failureCode);
+            }
+
+            $extractionResult = is_array($metered->value) ? $metered->value : [];
 
             if (!empty($extractionResult['items'])) {
                 foreach ($extractionResult['items'] as $item) {

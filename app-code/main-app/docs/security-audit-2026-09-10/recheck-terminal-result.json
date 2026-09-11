@@ -1,0 +1,5 @@
+{
+    "scope": "Real controller and TerminalDeviceAuth; persistence mocked; not live HTTP test",
+    "confirmed": "An already paired legacy terminal without a secret issues a valid 64-character secret to a request containing only its device ID. No session, pairing code, or previous device credential was supplied.",
+    "status": 200
+}

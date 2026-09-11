@@ -328,8 +328,8 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
         >
             <div className="space-y-8">
                 {/* ── Preset selector & Top Controls ── */}
-                <div className="p-6 rounded-2xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 shadow-sm space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line dark:border-white/10 pb-5">
+                <div className="p-6 rounded-2xl vq-tool-inset shadow-sm space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
                         <div>
                             <span className="text-2xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 block mb-1">
                                 Quick Start Presets
@@ -345,7 +345,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     key={p.name}
                                     type="button"
                                     onClick={() => loadPreset(p)}
-                                    className="px-3 py-1.5 rounded-xl bg-sunken dark:bg-white/[0.06] hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 text-xs font-bold text-ink-secondary transition-colors"
+                                    className="px-3 py-1.5 rounded-xl bg-sunken hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 text-xs font-bold text-ink-secondary transition-colors"
                                 >
                                     {p.name}
                                 </button>
@@ -362,7 +362,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                 type="text"
                                 value={recipeName}
                                 onChange={(e) => setRecipeName(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-sm font-semibold focus:outline-none focus:border-brand-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl vq-tool-inset text-ink text-sm font-semibold focus:outline-none focus:border-brand-500"
                                 placeholder="e.g. Chicken Alfredo"
                             />
                         </div>
@@ -389,7 +389,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                 step="1"
                                 value={yieldPortions}
                                 onChange={(e) => setYieldPortions(e.target.value)}
-                                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-sm font-semibold focus:outline-none focus:border-brand-500"
+                                className="w-full px-3.5 py-2.5 rounded-xl vq-tool-inset text-ink text-sm font-semibold focus:outline-none focus:border-brand-500"
                             />
                         </div>
                         <div>
@@ -404,7 +404,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     step="0.5"
                                     value={wastePct}
                                     onChange={(e) => setWastePct(e.target.value)}
-                                    className="w-full px-3.5 py-2.5 pr-8 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-sm font-semibold focus:outline-none focus:border-brand-500"
+                                    className="w-full px-3.5 py-2.5 pr-8 rounded-xl vq-tool-inset text-ink text-sm font-semibold focus:outline-none focus:border-brand-500"
                                 />
                                 <span className="absolute right-3 top-2.5 text-xs text-ink-muted font-bold">%</span>
                             </div>
@@ -413,7 +413,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                 </div>
 
                 {/* ── Ingredient List Builder ── */}
-                <div className="p-6 rounded-2xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 shadow-sm space-y-5">
+                <div className="p-6 rounded-2xl vq-tool-inset shadow-sm space-y-5">
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-base font-bold text-ink">
@@ -448,7 +448,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                 className={`p-4 rounded-2xl border transition-all ${
                                     item.unitMismatch
                                         ? 'bg-amber-500/[0.04] border-amber-500/30'
-                                        : 'bg-sunken dark:bg-white/[0.02] border-line dark:border-white/10'
+                                        : 'bg-sunken border-line'
                                 } flex flex-col lg:flex-row lg:items-center gap-3 min-w-[700px]`}
                             >
                                 <div className="flex-1 min-w-[160px]">
@@ -460,7 +460,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                         value={item.name}
                                         onChange={(e) => updateIngredient(item.id, 'name', e.target.value)}
                                         placeholder="e.g. Flour"
-                                        className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-xs font-medium focus:outline-none focus:border-brand-500"
+                                        className="w-full px-3 py-1.5 rounded-lg vq-tool-inset text-ink text-xs font-medium focus:outline-none focus:border-brand-500"
                                     />
                                 </div>
 
@@ -476,7 +476,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                             step="0.01"
                                             value={item.purchaseCost}
                                             onChange={(e) => updateIngredient(item.id, 'purchaseCost', e.target.value)}
-                                            className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-xs font-semibold focus:outline-none focus:border-brand-500"
+                                            className="w-full px-2.5 py-1.5 rounded-lg vq-tool-inset text-ink text-xs font-semibold focus:outline-none focus:border-brand-500"
                                         />
                                     </div>
                                     <span className="text-xs text-ink-muted font-bold mt-4">/</span>
@@ -490,7 +490,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                             step="any"
                                             value={item.purchaseQty}
                                             onChange={(e) => updateIngredient(item.id, 'purchaseQty', e.target.value)}
-                                            className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-xs font-semibold focus:outline-none focus:border-brand-500"
+                                            className="w-full px-2.5 py-1.5 rounded-lg vq-tool-inset text-ink text-xs font-semibold focus:outline-none focus:border-brand-500"
                                         />
                                     </div>
                                     <div className="w-28">
@@ -519,7 +519,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                             step="any"
                                             value={item.recipeQty}
                                             onChange={(e) => updateIngredient(item.id, 'recipeQty', e.target.value)}
-                                            className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-xs font-semibold focus:outline-none focus:border-brand-500"
+                                            className="w-full px-2.5 py-1.5 rounded-lg vq-tool-inset text-ink text-xs font-semibold focus:outline-none focus:border-brand-500"
                                         />
                                     </div>
                                     <div className="w-28">
@@ -560,7 +560,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                 {/* ── Key Output Metrics Grid ── */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {/* Card 1: Batch & Portion Cost */}
-                    <div className="p-6 rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-800 text-ink shadow-xl flex flex-col justify-between">
+                    <div className="p-6 rounded-2xl vq-tool-inset shadow-sm text-ink flex flex-col justify-between">
                         <div>
                             <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">
                                 Recipe Cost Structure
@@ -575,7 +575,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-line dark:border-white/10 space-y-2 text-xs">
+                        <div className="mt-6 pt-4 border-t border-line space-y-2 text-xs">
                             <div className="flex justify-between text-ink-secondary">
                                 <span>Raw Ingredients Total:</span>
                                 <span className="font-bold text-ink">{formatMoney(rawBatchCost, sym)}</span>
@@ -592,7 +592,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                     </div>
 
                     {/* Card 2: Target Food Cost % Solver */}
-                    <div className="p-6 rounded-2xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 shadow-sm flex flex-col justify-between">
+                    <div className="p-6 rounded-2xl vq-tool-inset shadow-sm flex flex-col justify-between">
                         <div>
                             <span className="text-2xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
                                 Target Pricing Solver
@@ -607,7 +607,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-line dark:border-white/10">
+                        <div className="mt-6 pt-4 border-t border-line">
                             <label className="block text-xs font-bold text-ink-secondary mb-1.5">
                                 Target Food Cost %
                             </label>
@@ -619,7 +619,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     step="1"
                                     value={targetFoodCostPct}
                                     onChange={(e) => setTargetFoodCostPct(e.target.value)}
-                                    className="w-full px-3 py-2 pr-8 rounded-xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-sm font-bold focus:outline-none focus:border-brand-500"
+                                    className="w-full px-3 py-2 pr-8 rounded-xl vq-tool-well text-ink text-sm font-bold focus:outline-none focus:border-brand-500"
                                 />
                                 <span className="absolute right-3 top-2 text-xs text-ink-muted font-bold">%</span>
                             </div>
@@ -630,7 +630,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                     </div>
 
                     {/* Card 3: Actual Menu Price & Margin Evaluation */}
-                    <div className="p-6 rounded-2xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 shadow-sm flex flex-col justify-between">
+                    <div className="p-6 rounded-2xl vq-tool-inset shadow-sm flex flex-col justify-between">
                         <div>
                             <span className="text-2xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
                                 Menu Margin Analysis
@@ -645,7 +645,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-line dark:border-white/10 space-y-3">
+                        <div className="mt-6 pt-4 border-t border-line space-y-3">
                             <div>
                                 <label className="block text-xs font-bold text-ink-secondary mb-1">
                                     Actual / Planned Selling Price ({sym})
@@ -656,7 +656,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                     step="0.25"
                                     value={sellingPrice}
                                     onChange={(e) => setSellingPrice(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-xl bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink text-sm font-bold focus:outline-none focus:border-brand-500"
+                                    className="w-full px-3 py-2 rounded-xl vq-tool-well text-ink text-sm font-bold focus:outline-none focus:border-brand-500"
                                 />
                             </div>
                             <div className="flex items-center justify-between text-xs pt-1">
@@ -670,7 +670,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                 </div>
 
                 {/* ── Multi-Recipe Summary & CSV Export ── */}
-                <div className="p-6 rounded-2xl bg-white dark:bg-white/[0.03] border border-line dark:border-white/10 shadow-sm space-y-5">
+                <div className="p-6 rounded-2xl vq-tool-inset shadow-sm space-y-5">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <h3 className="text-base font-bold text-ink flex items-center gap-2">
@@ -685,14 +685,14 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                             <button
                                 type="button"
                                 onClick={saveCurrentRecipeToSummary}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 text-xs font-bold transition-all shadow-md"
+                                className="vq-btn vq-btn--primary"
                             >
                                 <Plus size={14} /> Add "{recipeName}" to Summary
                             </button>
                             <button
                                 type="button"
                                 onClick={exportCsv}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-ink hover:opacity-90 text-xs font-bold transition-all"
+                                className="vq-btn vq-btn--secondary"
                             >
                                 <Download size={14} /> Export CSV
                             </button>
@@ -700,7 +700,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                     </div>
 
                     {savedRecipes.length === 0 ? (
-                        <div className="p-8 text-center rounded-2xl bg-sunken dark:bg-white/[0.02] border border-dashed border-line dark:border-white/10">
+                        <div className="p-8 text-center rounded-2xl bg-sunken border border-dashed border-line">
                             <BookOpen className="mx-auto text-ink-muted mb-2" size={24} />
                             <p className="text-xs font-bold text-ink-secondary">
                                 No saved recipes in summary yet.
@@ -713,7 +713,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-xs">
                                 <thead>
-                                    <tr className="border-b border-line dark:border-white/10 text-ink-muted font-bold uppercase text-2xs">
+                                    <tr className="border-b border-line text-ink-muted font-bold uppercase text-2xs">
                                         <th className="py-2.5 px-3">Recipe</th>
                                         <th className="py-2.5 px-3">Yield</th>
                                         <th className="py-2.5 px-3">Batch Cost</th>
@@ -727,7 +727,7 @@ export default function FoodCostCalculator({ toolGroups = [] }) {
                                 </thead>
                                 <tbody className="divide-y divide-line dark:divide-white/5">
                                     {savedRecipes.map((r) => (
-                                        <tr key={r.id} className="hover:bg-interactive-hover/[0.02] dark:hover:bg-white/[0.02]">
+                                        <tr key={r.id} className="hover:bg-sunken">
                                             <td className="py-3 px-3 font-bold text-ink">{r.name}</td>
                                             <td className="py-3 px-3 text-ink-secondary">{r.portions} ptn</td>
                                             <td className="py-3 px-3 text-ink-secondary">{formatMoney(r.batchCost, sym)}</td>

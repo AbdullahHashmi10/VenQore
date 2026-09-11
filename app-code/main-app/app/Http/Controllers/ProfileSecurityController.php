@@ -97,8 +97,6 @@ class ProfileSecurityController extends Controller
      */
     public function verifyElevatedPin(Request $request)
     {
-        \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_ATTEMPT_RAW', $request->all());
-
         $request->validate([
             'pin'        => ['required', 'string', 'size:6', 'regex:/^\d+$/'],
             'user_id'    => ['nullable', 'integer', 'exists:users,id'],
@@ -110,51 +108,20 @@ class ProfileSecurityController extends Controller
         $permission = $request->input('permission');
         $tenant     = app('current.tenant');
 
-        \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_ATTEMPT', [
-            'input_pin' => $pin,
-            'user_id' => $userId,
-            'permission' => $permission,
+        // Route-gap sweep (2026-09-10): removed (1) logging of the raw PIN and the
+        // whole request, and (2) the "platform staff silent super-override" that
+        // accepted ANY platform user's PIN inside ANY store — a cross-tenant
+        // override with no store membership check. Platform admins already pass
+        // every store permission check; they never need an elevated PIN.
+        \Illuminate\Support\Facades\Log::info('Elevated PIN attempt', [
+            'user_id'   => $userId,
+            'actor_id'  => auth()->id(),
+            'permission'=> $permission,
             'tenant_id' => $tenant->id ?? null,
         ]);
 
-        // ── PATH 1: Platform staff — silent super-override ──────────────────
-        // Try PIN against all platform users first (allows super-override even if a user is selected).
-        $platformUser = \App\Models\User::where('is_platform_admin', true)
-            ->orWhere(function ($q) {
-                $q->whereNotNull('platform_role')
-                  ->where('platform_role', '!=', 'none')
-                  ->where('platform_role', '!=', '');
-            })
-            ->orWhere(function ($q) {
-                $q->whereNotNull('staff_role')
-                  ->whereIn('staff_role', ['support', 'content', 'marketing', 'finance', 'sales']);
-            })
-            ->get()
-            ->first(function($u) use ($pin) {
-                $matches = $u->platform_pin && Hash::check($pin, $u->platform_pin);
-                \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_USER_CHECK', [
-                    'email' => $u->email,
-                    'has_pin' => !empty($u->platform_pin),
-                    'matches' => $matches
-                ]);
-                return $matches;
-            });
-
-        if ($platformUser) {
-            \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_SUPER_OVERRIDE_SUCCESS', [
-                'user' => $platformUser->email
-            ]);
-            return response()->json([
-                'success'       => true,
-                'authorized_by' => $platformUser->name,
-                'type'          => 'platform',
-            ]);
-        }
-
-        // If no user_id is provided and the PIN did not match a platform admin, return invalid
         if (!$userId) {
-            \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_FAILED_NO_USER_ID');
-            return response()->json(['success' => false, 'message' => 'Invalid platform PIN.'], 401);
+            return response()->json(['success' => false, 'message' => 'Choose who is authorising this action.'], 422);
         }
 
         // ── PATH 2: Store member elevated auth ──────────────────────────────

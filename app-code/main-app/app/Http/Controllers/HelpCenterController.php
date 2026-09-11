@@ -18,6 +18,12 @@ class HelpCenterController extends Controller
         return array_column((new self)->getArticles(), 'slug');
     }
 
+    /** One article by slug, for MarketingSeo (server-written title/description). */
+    public static function article(string $slug): ?array
+    {
+        return collect((new self)->getArticles())->firstWhere('slug', $slug);
+    }
+
     private function getArticles(): array
     {
         return [
@@ -39,8 +45,8 @@ class HelpCenterController extends Controller
                 'slug'        => 'inventory-management-skus',
                 'title'       => 'Managing Inventory & SKU Limits',
                 'category'    => 'Inventory',
-                'summary'     => 'Understanding SKU limits across plans and managing stock level alerts.',
-                'content'     => 'Each plan includes a declared SKU capacity (Counter: 500, Starter: 5,000, Growth: 20,000, Business: 50,000). Stock alerts trigger at threshold levels.',
+                'summary'     => 'How many products (SKUs) each plan holds, and how low-stock alerts work.',
+                'content'     => 'Product (SKU) allowance per plan: Solo 500, Starter 5,000, Core 25,000, Scale 250,000. Lifetime (AppSumo) tiers: Tier 1 5,000, Tier 2 25,000, Tier 3 50,000. Low-stock alerts fire at the threshold you set on each product.',
             ],
             [
                 'slug'        => 'ltd-plans-and-byok',
@@ -51,10 +57,10 @@ class HelpCenterController extends Controller
             ],
             [
                 'slug'        => 'transaction-limits-explained',
-                'title'       => 'Monthly Transaction Quotas & Top-ups',
+                'title'       => 'Monthly Sales Limits',
                 'category'    => 'Billing & LTD',
-                'summary'     => 'Understanding monthly transaction caps and automatic monthly resets.',
-                'content'     => 'AppSumo LTD tiers carry monthly transaction caps (Tier 1: 1,000/mo, Tier 2: 3,000/mo, Tier 3: 8,000/mo). Counters reset automatically on your monthly anniversary.',
+                'summary'     => 'Which plans have a monthly sales cap and when it resets.',
+                'content'     => 'The free Solo plan includes 100 sales a month; the counter resets on your monthly anniversary. Every paid plan and every lifetime (AppSumo) tier has unlimited sales.',
             ],
             [
                 'slug'        => 'hosted-until-renewal',

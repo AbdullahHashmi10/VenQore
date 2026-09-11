@@ -231,27 +231,33 @@ class PaymentController extends Controller
                     $paymentService = app(\App\Engines\PaymentService::class);
 
                     if ($party->type === 'supplier') {
-                        $invoices = DB::table('purchases')
+                        /* Only money going OUT to the supplier pays their bills.
+                           A refund received from them (type 'in') credits their
+                           account; allocating it to purchases marked bills paid
+                           that nobody had paid. A voided purchase owes nothing. */
+                        $invoices = $type !== 'out' ? collect() : DB::table('purchases')
                             ->where('tenant_id', $tenantId)
                             ->where('party_id', $partyId)
                             ->whereIn('payment_status', ['unpaid', 'partial'])
+                            ->where(fn ($q) => $q->whereNull('workflow_status')->orWhere('workflow_status', '!=', 'cancelled'))
                             ->orderBy('purchase_date', 'asc')
+                            ->orderBy('created_at', 'asc')
                             ->get();
 
                         foreach ($invoices as $invoice) {
-                            if ($remainingAmount <= 0) break;
+                            if ($remainingAmount <= 0.005) break;
 
-                            $allocated = (float) DB::table('allocations')
-                                ->where('tenant_id', $tenantId)
-                                ->where('purchase_id', $invoice->id)
-                                ->where('status', 'active')
-                                ->sum('allocated_amount');
-
-                            $due = max(0.0, (float)$invoice->total - $allocated);
+                            /* What is still owed ON ACCOUNT, from the same reading
+                               the badge and the allocation guard use: the bill less
+                               what was paid at the counter, what came back on a
+                               debit note, and what is already allocated. Total
+                               minus allocations alone over-allocated a part-paid
+                               or part-returned purchase. */
+                            $due = $paymentService->purchaseSettlementSummary($invoice)['outstanding'];
                             if ($due <= 0.01) continue;
 
-                            $allocAmount = min($remainingAmount, $due);
-                            $remainingAmount -= $allocAmount;
+                            $allocAmount = round(min($remainingAmount, $due), 2);
+                            $remainingAmount = round($remainingAmount - $allocAmount, 2);
 
                             DB::table('allocations')->insert([
                                 'id'                       => \Illuminate\Support\Str::uuid()->toString(),
@@ -267,28 +273,39 @@ class PaymentController extends Controller
                             $paymentService->updatePurchaseBadge($invoice->id);
                         }
                     } else { // Customer
-                        $invoices = DB::table('sales')
+                        /* Only money coming IN from the customer pays their
+                           invoices. A refund paid OUT to them debits their
+                           account; allocating it marked invoices paid that
+                           nobody had paid. A returned, cancelled or voided
+                           sale owes nothing, and a return document is not an
+                           invoice. */
+                        $invoices = $type !== 'in' ? collect() : DB::table('sales')
                             ->where('tenant_id', $tenantId)
                             ->where('party_id', $partyId)
                             ->whereIn('payment_status', ['unpaid', 'partial'])
                             ->whereNull('deleted_at')
+                            ->where(fn ($q) => $q->whereNull('status')
+                                ->orWhereNotIn('status', \App\Engines\PaymentService::CLOSED_SALE_STATUSES))
+                            ->when(DB::getSchemaBuilder()->hasColumn('sales', 'original_sale_id'),
+                                fn ($q) => $q->whereNull('original_sale_id'))
                             ->orderBy('posted_at', 'asc')
+                            ->orderBy('created_at', 'asc')
                             ->get();
 
                         foreach ($invoices as $invoice) {
-                            if ($remainingAmount <= 0) break;
+                            if ($remainingAmount <= 0.005) break;
 
-                            $allocated = (float) DB::table('allocations')
-                                ->where('tenant_id', $tenantId)
-                                ->where('sale_id', $invoice->id)
-                                ->where('status', 'active')
-                                ->sum('allocated_amount');
-
-                            $due = max(0.0, (float)$invoice->total - $allocated);
+                            /* What is still owed ON ACCOUNT, from the same reading
+                               the badge and the allocation guard use: the invoice
+                               less what came back on a return, what was paid at
+                               the till and what is already allocated. Total minus
+                               allocations alone over-allocated a till-part-paid or
+                               part-returned invoice. */
+                            $due = $paymentService->saleSettlementSummary($invoice)['outstanding'];
                             if ($due <= 0.01) continue;
 
-                            $allocAmount = min($remainingAmount, $due);
-                            $remainingAmount -= $allocAmount;
+                            $allocAmount = round(min($remainingAmount, $due), 2);
+                            $remainingAmount = round($remainingAmount - $allocAmount, 2);
 
                             DB::table('allocations')->insert([
                                 'id'                       => \Illuminate\Support\Str::uuid()->toString(),

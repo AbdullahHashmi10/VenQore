@@ -47,6 +47,17 @@ createInertiaApp({
             throw error;
         }).then((module) => {
             const page = module.default;
+
+            // Inertia resolves the page component again on EVERY visit, and the
+            // module object is cached — so without this guard each visit wrapped
+            // the previous wrapper in one more GlobalProviderLayout. The tree
+            // changed shape on every navigation, React remounted the page, and
+            // `preserveState` never held: e.g. a failed sign-in cleared the email
+            // field. Wrap once per page module.
+            if (page.__vqLayoutWrapped) {
+                return module;
+            }
+            page.__vqLayoutWrapped = true;
             const originalLayout = page.layout;
 
             // Robustly handle both functional and component layouts, or no layout

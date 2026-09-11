@@ -149,7 +149,9 @@ class ManufacturingService
             if ($laborCost > 0 && $laborType) {
                 $laborCreditAccount = $laborType === 'internal' ? '2400' : '1000';
 
-                if (isset($data['labor_bank']) && $data['labor_bank']) {
+                // "Paid by bank" only applies to external labor (Path A). Salaried
+                // labor (Path B) is owed to staff via 2400 and never moves cash.
+                if ($laborType !== 'internal' && !empty($data['labor_bank'])) {
                     $laborCreditAccount = '1010';
                 }
 

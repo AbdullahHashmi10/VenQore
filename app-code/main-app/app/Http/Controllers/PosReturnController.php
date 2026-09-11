@@ -32,6 +32,15 @@ class PosReturnController extends Controller
         $idempotencyKey = $request->input('idempotency_key');
         $warehouseId = $request->input('warehouse_id');
 
+        // exists:products,id / exists:warehouses,id are not store-scoped: the
+        // goods and the shelf they go back on must be this store's own.
+        $productIds = collect($request->input('items'))->pluck('product_id')->unique();
+        $ownProducts = DB::table('products')->where('tenant_id', $tenant->id)->whereIn('id', $productIds)->count();
+        $ownWarehouse = DB::table('warehouses')->where('tenant_id', $tenant->id)->where('id', $warehouseId)->exists();
+        if ($ownProducts !== $productIds->count() || !$ownWarehouse) {
+            return response()->json(['error' => 'Unknown product or warehouse for this store.'], 422);
+        }
+
         $lock = \Illuminate\Support\Facades\Cache::lock("pos-return-lock-{$idempotencyKey}", 10);
 
         try {
@@ -90,6 +99,7 @@ class PosReturnController extends Controller
                 ]);
 
                 // Create sale items and restore stock
+                $returnCogs = 0.0;
                 foreach ($items as $item) {
                     $saleItem = SaleItem::create([
                         'sale_id'    => $sale->id,
@@ -100,6 +110,20 @@ class PosReturnController extends Controller
                         'subtotal'   => -($item['price'] * $item['quantity']),
                         'line_total' => -($item['price'] * $item['quantity']),
                     ]);
+
+                    $product = \App\Models\Product::find($item['product_id']);
+                    if ($product?->type === 'service') {
+                        continue;   // nothing goes back on a shelf
+                    }
+
+                    // The cost the unit comes back at — the SAME figure for the
+                    // FIFO batch, its sale_item_batches row and the 1100/5000
+                    // lines below, so ledger 1100 stays equal to the batch
+                    // valuation. (The journal used cost_price-or-0 while the
+                    // batch used cost_price-or-price.)
+                    $unitCost = (float) ($product?->cost_price ?? $item['price']);
+                    $lineCost = round($unitCost * (float) $item['quantity'], 2);
+                    $returnCogs += $lineCost;
 
                     // Restore stock scoped to product_id, warehouse_id, tenant_id
                     $stock = DB::table('stocks')
@@ -124,7 +148,13 @@ class PosReturnController extends Controller
                         ]);
                     }
 
-                    $unitCost = \App\Models\Product::find($item['product_id'])?->cost_price ?? $item['price'];
+                    // The product master's counter moves with the batches too —
+                    // the POS, product list and low-stock alerts read it, and
+                    // every other stock movement keeps it in step.
+                    DB::table('products')
+                        ->where('tenant_id', $tenant->id)
+                        ->where('id', $item['product_id'])
+                        ->increment('stock_quantity', $item['quantity']);
 
                     $newBatch = app(\App\Engines\FifoService::class)->receiveBatch(
                         productId:   $item['product_id'],
@@ -142,7 +172,7 @@ class PosReturnController extends Controller
                         'inventory_batch_id' => $newBatch->id,
                         'qty_deducted'       => -$item['quantity'],
                         'unit_cost'          => $unitCost,
-                        'total_cogs'         => -($unitCost * $item['quantity']),
+                        'total_cogs'         => -$lineCost,
                         'created_at'         => now(),
                         'updated_at'         => now(),
                     ]);
@@ -159,10 +189,7 @@ class PosReturnController extends Controller
                 $cogsAccount      = Account::where('tenant_id', $tenant->id)->where('code', '5000')->first();
                 $inventoryAccount = Account::where('tenant_id', $tenant->id)->where('code', '1100')->first();
 
-                $returnCogs = collect($items)->sum(function ($item) {
-                    $product = \App\Models\Product::find($item['product_id']);
-                    return ($product?->cost_price ?? 0) * $item['quantity'];
-                });
+                $returnCogs = round($returnCogs, 2);
 
                 $lines = [];
 

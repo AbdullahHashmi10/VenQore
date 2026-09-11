@@ -7,7 +7,9 @@ window.axios = axios;
 window.axios.interceptors.request.use(
     config => {
         if (config.url) {
-            const localRegex = /^https?:\/\/(127\.0\.0\.1|localhost)(:8000)?/;
+            // Any local port (was :8000 only — on another port the port was left in
+            // the path and axios threw "Invalid URL" on every request).
+            const localRegex = /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?(?=[/?#]|$)/;
             if (localRegex.test(config.url)) {
                 const path = config.url.replace(localRegex, '');
                 config.url = `${window.location.origin}${path}`;

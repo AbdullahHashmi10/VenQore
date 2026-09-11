@@ -219,7 +219,7 @@ export default function BarcodeTool({
         badge: p.per_sheet > 1 ? `${p.per_sheet}/sheet` : 'Roll',
     }));
 
-    const inputBase = 'w-full px-4 py-3 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/60 transition-colors';
+    const inputBase = 'w-full px-4 py-3 rounded-xl vq-tool-inset text-ink text-sm focus:outline-none focus:border-brand-400/60 transition-colors';
 
     return (
         <ToolShell
@@ -238,7 +238,7 @@ export default function BarcodeTool({
             related={[{ label: 'Barcode Validator', href: '/tools/barcode-validator' }]}
         >
             {/* ── Generator ─────────────────────────────────────────────── */}
-            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="vq-tool-panel vq-tool-panel--pad">
                 <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
                     {/* Controls */}
                     <div className="space-y-5 min-w-0">
@@ -314,7 +314,7 @@ export default function BarcodeTool({
                                             className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
                                                 output === fmt
                                                     ? 'bg-accent-fill text-accent-on hover:bg-accent-fill-hover'
-                                                    : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted hover:text-ink dark:hover:text-white'
+                                                    : 'vq-tool-inset text-ink-muted hover:text-ink'
                                             }`}
                                         >
                                             {fmt}
@@ -340,7 +340,7 @@ export default function BarcodeTool({
                                 <button
                                     type="button"
                                     onClick={() => setShowCaption((v) => !v)}
-                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors ${showCaption ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}
+                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors ${showCaption ? 'vq-tool-on' : 'vq-tool-inset text-ink-muted'}`}
                                 >
                                     <Type size={13} /> Add label text
                                 </button>
@@ -349,7 +349,7 @@ export default function BarcodeTool({
                                     onClick={() => { if (!logo) logoInputRef.current?.click(); else setLogo(null); }}
                                     disabled={!supportsRaster}
                                     title={!supportsRaster ? 'Logo overlay needs the GD extension' : ''}
-                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors disabled:opacity-35 ${logo ? 'bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300' : 'bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-muted'}`}
+                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-colors disabled:opacity-35 ${logo ? 'vq-tool-on' : 'vq-tool-inset text-ink-muted'}`}
                                 >
                                     <ImageIcon size={13} /> {logo ? 'Remove logo' : 'Add logo'}
                                 </button>
@@ -368,7 +368,7 @@ export default function BarcodeTool({
                             )}
 
                             {logo && (
-                                <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
+                                <div className="flex items-center gap-3 p-3 rounded-xl vq-tool-inset">
                                     <img src={logo} alt="" className="w-9 h-9 object-contain rounded bg-white" />
                                     <span className="text-xs text-ink-muted flex-1 leading-snug">Keep it small — a large logo over the bars can stop the code scanning.</span>
                                     <button onClick={() => setLogo(null)} className="text-ink-muted hover:text-red-500 transition-colors"><X size={16} /></button>
@@ -397,7 +397,7 @@ export default function BarcodeTool({
 
                     {/* Preview */}
                     <div className="flex flex-col min-w-0">
-                        <div className="w-full aspect-[3/2] rounded-2xl bg-white border border-line flex items-center justify-center p-6 mb-3">
+                        <div className="vq-paper w-full aspect-[3/2] rounded-2xl bg-white border border-line flex items-center justify-center p-6 mb-3">
                             {loading && <Loader2 size={20} className="text-ink-muted animate-spin" />}
                             {!loading && result && (
                                 <img
@@ -412,7 +412,7 @@ export default function BarcodeTool({
                         <button
                             onClick={download}
                             disabled={!result}
-                            className="w-full py-3.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-40 flex items-center justify-center gap-2"
+                            className="vq-btn vq-btn--primary vq-btn--lg w-full"
                         >
                             <Download size={16} /> Download {result ? result.file_extension.toUpperCase() : output.toUpperCase()}
                         </button>
@@ -422,7 +422,7 @@ export default function BarcodeTool({
             </div>
 
             {/* ── Print sheet ───────────────────────────────────────────── */}
-            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <Printer size={17} className="text-brand-500 dark:text-brand-300" />
@@ -456,7 +456,7 @@ export default function BarcodeTool({
                 <button
                     onClick={onSheetClick}
                     disabled={sheetLoading}
-                    className="w-full sm:w-auto px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                    className="vq-btn vq-btn--primary vq-btn--lg w-full sm:w-auto"
                 >
                     {sheetLoading ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
                     {sheetLoading ? 'Building PDF…' : 'Download print sheet (PDF)'}
@@ -469,10 +469,10 @@ export default function BarcodeTool({
             {/* Format table */}
             <section className="mt-12">
                 <h2 className="text-2xl font-bold mb-6 text-ink">Supported formats</h2>
-                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
+                <div className="overflow-x-auto rounded-2xl border border-line">
                     <table className="w-full text-sm min-w-[560px]">
                         <thead>
-                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken text-left">
                                 {['Format', 'Character set', 'Length', 'Typical retail use'].map((h) => (
                                     <th key={h} className="px-4 py-3 font-bold text-ink-secondary">{h}</th>
                                 ))}
@@ -480,7 +480,7 @@ export default function BarcodeTool({
                         </thead>
                         <tbody>
                             {FORMAT_TABLE.map((row) => (
-                                <tr key={row[0]} className="border-t border-line dark:border-white/[0.06]">
+                                <tr key={row[0]} className="border-t border-line">
                                     {row.map((cell, i) => <td key={i} className="px-4 py-3 text-ink-secondary">{cell}</td>)}
                                 </tr>
                             ))}
@@ -496,7 +496,7 @@ export default function BarcodeTool({
                         <Link
                             key={slug}
                             href={`/tools/barcode-generator/${slug}`}
-                            className="px-4 py-2 rounded-full bg-sunken dark:bg-white/[0.04] border border-line dark:border-white/10 text-sm font-bold text-ink-secondary hover:text-ink dark:hover:text-white hover:border-brand-400/40 transition-colors"
+                            className="px-4 py-2 rounded-full vq-tool-well text-sm font-bold text-ink-secondary hover:text-ink hover:border-brand-400/40 transition-colors"
                         >
                             {m.name}
                         </Link>

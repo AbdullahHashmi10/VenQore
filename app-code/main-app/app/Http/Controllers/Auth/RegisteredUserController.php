@@ -41,42 +41,73 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            // AUTH-01: no `unique` rule here — an existing address gets the same
+            // response as a new one, so this form cannot be used to discover
+            // who has an account. Uniqueness is enforced again at activation.
+            'email' => 'required|string|lowercase|email|max:255',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // First user becomes Platform Owner (platform owner)
-        $isFirstUser = User::count() === 0;
+        $email = strtolower(trim($request->email));
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // AUTH-03 (2026-09-10): public sign-up NEVER grants platform privileges.
+        // The old "first user becomes Platform Owner" rule turned an empty or
+        // restored database into a public admin-bootstrap. Create the owner with
+        //   php artisan venqore:create-platform-owner
+        if (!config('venqore.email_otp_required', true)) {
+            if (User::withTrashed()->where('email', $email)->exists()) {
+                return back()->withErrors(['email' => 'An account with this email already exists. Please sign in.']);
+            }
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $email,
+                'password' => Hash::make($request->password),
+            ]);
+            event(new Registered($user));
+            Auth::login($user);
+            $request->session()->regenerate();
 
-        if ($isFirstUser) {
-            $user->forceFill([
-                'is_platform_admin' => true,
-                'platform_role' => 'platform_owner',
-            ])->save();
+            return $this->afterSignup();
         }
 
-        event(new Registered($user));
+        // AUTH-01: nothing is created yet. The account exists only once the
+        // emailed code is proven (EmailOtpController::completeSignup).
+        if (User::withTrashed()->where('email', $email)->exists()) {
+            // Decoy: same page, same wording, no email sent (protects the quota
+            // and the address). Any code entered is simply "not correct".
+            EmailOtpController::begin($request, 'decoy_' . \Illuminate\Support\Str::random(20), 'signup', [
+                'decoy' => true,
+                'display_email' => $email,
+            ]);
+            return redirect()->route('otp.show');
+        }
 
-        Auth::login($user);
+        [$challenge, $error] = app(\App\Services\Auth\EmailOtpService::class)->start(
+            $request,
+            'signup',
+            $email,
+            null,
+            ['name' => $request->name, 'password_hash' => Hash::make($request->password)]
+        );
 
-        // Invited users go straight to accepting their invite — no plan, no store.
+        if (!$challenge) {
+            return back()->withErrors(['email' => $error]);
+        }
+
+        EmailOtpController::begin($request, $challenge->id, 'signup');
+
+        return redirect()->route('otp.show');
+    }
+
+    private function afterSignup(): RedirectResponse
+    {
         if ($redirect = InviteRedirect::pending()) {
             return $redirect;
         }
-
-        // Users who registered via a gift link go straight back to accept it.
         if ($redirect = GiftRedirect::pending()) {
             return $redirect;
         }
 
-        // Otherwise, off to the Hub to create or join their first store.
-        // (Plan selection happens later, only if they create a store of their own.)
         return redirect()->intended(route('hub', absolute: false));
     }
 }

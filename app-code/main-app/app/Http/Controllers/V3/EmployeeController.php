@@ -20,6 +20,10 @@ class EmployeeController extends Controller
 
         DB::table('employees')->where('employees.tenant_id', app('current.tenant')->id)->insert([
             'id'              => Str::uuid()->toString(),
+            // A where() before insert() does not stamp the column — without this
+            // the row had tenant_id NULL and was invisible to every
+            // tenant-scoped read (payroll pay/settlement 404'd on it).
+            'tenant_id'       => app('current.tenant')->id,
             'name'            => $validated['name'],
             'monthly_salary'  => $validated['monthly_salary'],
             'hire_date'       => $validated['hire_date'],

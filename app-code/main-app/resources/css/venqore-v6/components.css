@@ -898,7 +898,9 @@ html.dark .vq-theme-btn .vq-icon-sun { display: none; }
   --vq-line-soft: rgba(2, 20, 22, 0.06);
   --vq-line-strong: rgba(2, 20, 22, 0.22);
   --vq-accent: #0BAA8F;
-  --vq-accent-fill: #0BAA8F;
+  --vq-accent-fill: var(--vq-teal-700); /* was #0BAA8F — white on it measured 2.9:1 */
+  --vq-accent-fill-hover: var(--vq-teal-800);
+  --vq-on-accent: var(--vq-ink-0); /* white on teal-700 = 6.4:1 in both themes */
   --vq-accent-text: #088975;
   --vq-accent-quiet: rgba(11, 170, 143, 0.12);
   --vq-accent-quiet-line: rgba(11, 170, 143, 0.25);
@@ -924,7 +926,9 @@ html.dark .vq-app {
   --vq-line-soft: rgba(255, 255, 255, 0.06);
   --vq-line-strong: rgba(255, 255, 255, 0.20);
   --vq-accent: #23C4A6;
-  --vq-accent-fill: #0BAA8F;
+  --vq-accent-fill: var(--vq-teal-700); /* was #0BAA8F — white on it measured 2.9:1 */
+  --vq-accent-fill-hover: var(--vq-teal-800);
+  --vq-on-accent: var(--vq-ink-0); /* white on teal-700 = 6.4:1 in both themes */
   --vq-accent-text: #59DBC0;
   --vq-accent-quiet: rgba(35, 196, 166, 0.14);
   --vq-series-1-ink: #2CD3B3;
@@ -2752,7 +2756,9 @@ html.dark .vq-card--accent, html.dark .vq-dcard--accent {
   --vq-line-soft: rgba(2, 20, 22, 0.06);
   --vq-line-strong: rgba(2, 20, 22, 0.22);
   --vq-accent: #0BAA8F;
-  --vq-accent-fill: #0BAA8F;
+  --vq-accent-fill: var(--vq-teal-700); /* was #0BAA8F — white on it measured 2.9:1 */
+  --vq-accent-fill-hover: var(--vq-teal-800);
+  --vq-on-accent: var(--vq-ink-0); /* white on teal-700 = 6.4:1 in both themes */
   --vq-accent-text: #088975;
   --vq-accent-quiet: rgba(11, 170, 143, 0.12);
   --vq-accent-quiet-line: rgba(11, 170, 143, 0.25);
@@ -2779,7 +2785,9 @@ html.dark .vq-app {
   --vq-line-soft: rgba(255, 255, 255, 0.06);
   --vq-line-strong: rgba(255, 255, 255, 0.20);
   --vq-accent: #23C4A6;
-  --vq-accent-fill: #0BAA8F;
+  --vq-accent-fill: var(--vq-teal-700); /* was #0BAA8F — white on it measured 2.9:1 */
+  --vq-accent-fill-hover: var(--vq-teal-800);
+  --vq-on-accent: var(--vq-ink-0); /* white on teal-700 = 6.4:1 in both themes */
   --vq-accent-text: #59DBC0;
   --vq-accent-quiet: rgba(35, 196, 166, 0.14);
   --vq-series-1-ink: #2CD3B3;

@@ -62,9 +62,38 @@ class LoginRequest extends FormRequest
      *
      * @throws \Illuminate\Validation\ValidationException
      */
+    /**
+     * AUTH-01: check the password WITHOUT creating a session, remember cookie
+     * or token. Returns the user on success; throws the same generic error as
+     * authenticate() on failure. The session is granted later, only after the
+     * emailed code is verified.
+     */
+    public function validateCredentials(): \App\Models\User
+    {
+        $this->ensureIsNotRateLimited();
+
+        $credentials = $this->only('email', 'password');
+        $user = Auth::getProvider()->retrieveByCredentials($credentials);
+
+        if (! $user || ! Auth::getProvider()->validateCredentials($user, $credentials)) {
+            RateLimiter::hit($this->throttleKey());
+            // Per-account ceiling too, so distributed guessing hits a limit.
+            RateLimiter::hit('login-acct:' . sha1(Str::lower($this->string('email'))), 900);
+
+            throw ValidationException::withMessages([
+                'email' => __('auth.failed'),
+            ]);
+        }
+
+        RateLimiter::clear($this->throttleKey());
+
+        return $user;
+    }
+
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)
+            && ! RateLimiter::tooManyAttempts('login-acct:' . sha1(Str::lower($this->string('email'))), 20)) {
             return;
         }
 

@@ -1,5 +1,6 @@
 import { usePage, Link, router } from '@inertiajs/react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { purchaseStanding } from '@/Domain/purchase/settlement';
 
 /**
  * V3 CONSOLIDATION Phase 2 — parity with the legacy Purchases/Show screen.
@@ -32,11 +33,15 @@ export default function PurchaseShow({
     landedCosts = [],
     returns = [],
     paidAmount = 0,
+    settlement = null,
 }) {
     const { store } = usePage().props;
     const isCancelled = purchase.workflow_status === 'cancelled';
     const canReceive = ['pending', 'partial'].includes(purchase.workflow_status);
-    const outstanding = Number(purchase.total) - Number(paidAmount);
+    /* From the server's settlement summary — the badge's own reading — so a
+       bill with goods sent back does not show their value as still owed. */
+    const standing = purchaseStanding({ purchase, settlement, paidAmount });
+    const outstanding = standing.outstanding;
 
     const linesFor = (entryId) => journalLines.filter(l => l.journal_entry_id === entryId);
 
@@ -135,7 +140,10 @@ export default function PurchaseShow({
                 </div>
                 <div>
                     <p className="text-sm text-ink-muted">Paid <span className="text-xs">(from ledger)</span></p>
-                    <p className="font-medium">{formatCurrency(paidAmount, store)}</p>
+                    <p className="font-medium">{formatCurrency(standing.paid, store)}</p>
+                    {standing.returned > 0.005 && (
+                        <p className="text-xs text-ink-muted">Returned {formatCurrency(standing.returned, store)}</p>
+                    )}
                 </div>
                 <div>
                     <p className="text-sm text-ink-muted">Outstanding</p>

@@ -101,7 +101,7 @@ class WooConnectionController extends Controller implements HasMiddleware
             'name'            => 'required|string|max:100',
             'priority_source' => 'in:venqore,woocommerce,manual',
             'sync_fields'     => 'nullable|array',
-            'site_url'        => 'nullable|url|max:255',
+            'site_url'        => ['nullable', 'url', 'max:255', new \App\Rules\PublicHttpUrl()],
         ]);
 
         $uuid       = WooConnection::generateUuid();
@@ -385,7 +385,7 @@ class WooConnectionController extends Controller implements HasMiddleware
             'priority_source' => 'sometimes|in:venqore,woocommerce,manual',
             'sync_fields'     => 'sometimes|array',
             'status'          => 'sometimes|in:active,paused',
-            'site_url'        => 'sometimes|nullable|url|max:255',
+            'site_url'        => ['sometimes', 'nullable', 'url', 'max:255', new \App\Rules\PublicHttpUrl()],
         ]);
 
         if (isset($validated['site_url'])) {

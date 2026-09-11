@@ -434,8 +434,15 @@ class SalesOrderController extends Controller
         ]);
     }
 
-    public function convertToSale(SalesOrder $salesOrder)
+    public function convertToSale(Request $request, SalesOrder $salesOrder)
     {
+        $request->validate([
+            // S-011 manager approval, as on the POS checkout and the V3
+            // conversion. The PIN is checked and dropped, never stored.
+            'approved_by'  => 'nullable|string|max:64',
+            'approval_pin' => 'nullable|string|max:20',
+        ]);
+
         $order = $salesOrder;
         $tenantId = $order->tenant_id ?? app('current.tenant')->id;
         $lock = \Illuminate\Support\Facades\Cache::lock("sales_order_convert_lock_{$order->id}", 10);
@@ -452,7 +459,7 @@ class SalesOrderController extends Controller
                 ], 422);
             }
 
-            $sale = DB::transaction(function () use ($order, $tenantId) {
+            $sale = DB::transaction(function () use ($order, $tenantId, $request) {
                 $referenceNumber = \App\Services\SequenceService::generateTransactionNumber('SAL');
 
                 $warehouseId = Warehouse::first()?->id ?? 1;
@@ -481,13 +488,57 @@ class SalesOrderController extends Controller
                     $totalTax += $taxAmount;
                 }
 
+                // ── S-011: below-cost lines need a manager approval ──────────
+                // The same rule, through the same helper, as the POS checkout
+                // (PosSaleApprovalGuard → ManagerApproval) and the V3
+                // conversion: a line whose revenue is below the FIFO cost of
+                // the stock it will consume is refused with a 422
+                // code=approval_required unless a verified approval is sent (an
+                // owner/admin/manager converting it approves with their own
+                // session). Checked before anything is written. Discounts were
+                // fixed when the order was taken, so only the cost rule applies
+                // here — as on the V3 conversion.
+                $guardLines = [];
+                foreach ($items->values() as $i => $item) {
+                    $product = Product::find($item->product_id);
+                    $qty     = (float) $item->quantity_requested;
+                    $gross   = $qty * (float) $item->unit_price;
+                    $guardLines[$item->id] = [
+                        'index'      => $i,
+                        'product_id' => $item->product_id,
+                        'name'       => $product?->name,
+                        'type'       => $product?->type,
+                        'cost_price' => $product?->cost_price,
+                        'paid_qty'   => $qty,
+                        'free_qty'   => 0.0,
+                        'gross'      => $gross,
+                        'discount'   => 0.0,
+                        'revenue'    => $gross - (float) ($item->discount ?? 0),
+                    ];
+                }
+                $approvedBy = \App\Support\PosSaleApprovalGuard::authorize(
+                    array_values($guardLines),
+                    $tenantId,
+                    auth()->id(),
+                    $request->input('approved_by'),
+                    $request->filled('approval_pin') ? (string) $request->input('approval_pin') : null,
+                    $warehouseId,
+                    true
+                );
+
                 $deliveryCharge = (float)($order->delivery_charge ?? 0);
                 $extraCharge = (float)($order->extra_charge_value ?? 0);
 
                 $netSales = $subtotalGross - $totalDiscount;
                 $invoiceTotal = $netSales + $totalTax + $deliveryCharge + $extraCharge;
 
-                $sale = Sale::create([
+                // withoutEvents: SaleObserver::created() books a stand-in
+                // "DR 1000 / CR income" entry for any posted sale that has no
+                // 'sale' entry yet — meant for bare test fixtures. Here the real
+                // entry is posted below, so the stand-in doubled the revenue and
+                // put cash that was never taken in the drawer. The POS checkout
+                // creates its sale the same way.
+                $sale = Sale::withoutEvents(fn () => Sale::create([
                     'reference_number' => $referenceNumber,
                     'party_id' => $order->customer_id,
                     'status' => 'posted',
@@ -509,7 +560,7 @@ class SalesOrderController extends Controller
                     'user_id' => auth()->id() ?? \App\Models\User::first()->id,
                     'warehouse_id' => $warehouseId,
                     'tenant_id' => $tenantId
-                ]);
+                ]));
 
                 $fifo = app(\App\Engines\FifoService::class);
                 $totalCogs = 0.0;
@@ -534,6 +585,17 @@ class SalesOrderController extends Controller
                             Log::warning("Backorder in conversion for product {$item->product_id}: using static cost.");
                         }
 
+                        // Safety net: re-check against the cost actually consumed
+                        // (throws → the whole conversion rolls back).
+                        $approvedBy = \App\Support\PosSaleApprovalGuard::assertPostedCostCovered(
+                            $guardLines[$item->id],
+                            $deductions,
+                            (float) ($product->cost_price ?? 0) * $totalQty,
+                            $approvedBy,
+                            $tenantId,
+                            auth()->id()
+                        );
+
                         // B. Deduct Physical Stock from 'stocks' table (handles negatives)
                         $stock = Stock::where('product_id', $item->product_id)->where('warehouse_id', $warehouseId)->first();
                         if ($stock) {
@@ -546,6 +608,8 @@ class SalesOrderController extends Controller
                                 'tenant_id' => $tenantId
                             ]);
                         }
+                        // ... and the product master's counter, as the POS sale does.
+                        Product::where('id', $item->product_id)->decrement('stock_quantity', $totalQty);
 
                         // C. Also handle StockMovement for history
                         \App\Models\StockMovement::create([
@@ -654,7 +718,9 @@ class SalesOrderController extends Controller
                     'reference_type' => 'sale',
                     'reference' => $sale->id,
                     'description' => "Sale Conversion #{$sale->reference_number}",
-                    'party_id' => $order->customer_id
+                    'party_id' => $order->customer_id,
+                    // S-011: the verified manager approval, as on the POS / V3.
+                    'approved_by' => $approvedBy,
                 ], $journalItems);
 
                 // 3. Update Order Status and release inventory reservation
@@ -678,6 +744,12 @@ class SalesOrderController extends Controller
                 'sale_id' => $sale->id ?? null
             ]);
 
+        } catch (\App\Exceptions\ApprovalRequiredException $e) {
+            if (request()->header('X-Inertia')) {
+                return redirect()->back()->withErrors($e->payload()['errors'] ?: ['approved_by' => $e->getMessage()])
+                    ->with('approval_required', $e->payload());
+            }
+            return response()->json($e->payload(), 422);
         } catch (\Exception $e) {
             Log::error("Conversion Error: " . $e->getMessage());
             if (request()->header('X-Inertia')) {

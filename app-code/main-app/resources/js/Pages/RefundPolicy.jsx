@@ -6,130 +6,111 @@ import MarketingLayout from '@/Pages/Marketing/Shared/MarketingLayout';
 /**
  * RefundPolicy.jsx — Phase 7
  *
- * Required by AppSumo before campaign approval.
- * 60-day money-back guarantee per AppSumo's standard.
  * URL: /refund-policy
+ * Subscriptions are the main policy. Lifetime licences sold through a
+ * partner marketplace are covered in the fine print at the end — no
+ * third-party site is named anywhere on this page, by decision (10 Sep 2026).
  */
 export default function RefundPolicy() {
     return (
         <MarketingLayout
             title="Refund Policy — VenQore"
-            description="VenQore's refund policy for AppSumo Lifetime Deal purchases. 60-day money-back guarantee."
+            description="How cancellations and refunds work for VenQore subscriptions, and what happens to your data after you cancel."
         >
-            <div className="relative z-10 max-w-3xl mx-auto px-6 pt-32 md:pt-36 pb-16">
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-10">
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                        <Shield size={26} className="text-emerald-600 dark:text-emerald-400" />
+            <section className="vq-section vq-mc-top vq-mc-top--flush">
+                <div className="vq-container">
+                    <div className="vq-mc-head">
+                        <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Legal</span>
+                        <h1 className="vq-h1 vq-mt-4">Refund Policy</h1>
+                        <div className="vq-mc-meta vq-mt-4"><span className="vq-mc-meta__item">Last updated: April 2025</span></div>
                     </div>
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-ink">Refund Policy</h1>
-                        <p className="text-ink-muted text-sm mt-1">Last updated: April 2025</p>
-                    </div>
-                </div>
 
-                {/* AppSumo highlight */}
-                <div className="p-6 rounded-2xl bg-orange-500/10 border border-orange-500/20 mb-10">
-                    <div className="flex items-start gap-4">
-                        <Clock size={22} className="text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
-                        <div>
-                            <p className="font-bold text-orange-700 dark:text-orange-300 mb-1">AppSumo Lifetime Deal — 60-Day Guarantee</p>
-                            <p className="text-ink-secondary text-sm leading-relaxed">
-                                All AppSumo purchases of VenQore are covered by AppSumo's standard 60-day money-back
-                                guarantee. You may request a full refund within 60 days of your purchase through
-                                AppSumo's platform — no questions asked.
-                            </p>
-                        </div>
-                    </div>
                 </div>
+            </section>
+
+            <section className="vq-section vq-mc-body" style={{ paddingTop: 'var(--vq-space-8)' }}>
+                <div className="vq-container">
+                    <div className="vq-mc-doc vq-mc-doc--toc" style={{ borderTop: '1px solid var(--vq-line)', paddingTop: 'var(--vq-space-12)' }}>
+                        <nav className="vq-mc-rail vq-mc-toc" aria-label="On this page">
+                            <span className="vq-eyebrow vq-mc-rail__label vq-mc-toc__title">On this page</span>
+                            {[
+                                    ['subscriptions', '1. Monthly & annual plans'],
+                                    ['data-retention', '2. Your data after cancelling'],
+                                    ['contact', '3. Contact'],
+                                ].map(([id, label]) => (
+                                <a key={id} href={`#${id}`} className="vq-mc-rail__link">{label}</a>
+                            ))}
+                        </nav>
 
                 {/* Policy sections */}
-                <div className="space-y-10 text-ink-secondary leading-relaxed">
-                    <section>
-                        <h2 className="text-xl font-bold text-ink mb-3">1. AppSumo Purchases</h2>
-                        <p>
-                            VenQore participates in AppSumo's standard refund policy. For any AppSumo Lifetime Deal
-                            (LTD) purchase, you are entitled to a full refund within <strong className="text-ink">60 calendar days</strong> of
-                            your original purchase date. To request a refund for an AppSumo purchase, visit your
-                            AppSumo dashboard or contact AppSumo support directly at{''}
-                            <a href="mailto:hello@appsumo.com" className="text-brand-600 dark:text-brand-400 hover:underline">hello@appsumo.com</a>.
-                        </p>
-                        <p className="mt-3">
-                            If you have stacked multiple codes and request a refund, the refund applies per code.
-                            Refunding a code will result in a plan downgrade to the next lower tier. Refunding all
-                            codes will deactivate your account.
-                        </p>
-                    </section>
-
-                    <section>
-                        <h2 className="text-xl font-bold text-ink mb-3">2. Monthly / Annual Subscriptions</h2>
+                <article className="vq-read vq-mc-legal">
+                    <section id="subscriptions" style={{ scrollMarginTop: '112px' }}>
+                        <h2>1. Monthly &amp; annual plans</h2>
                         <p>
                             For paid monthly or annual subscriptions (Starter $49/mo, Core $99/mo, Scale $299/mo),
                             you may cancel at any time. Cancellation takes effect at the end of the current billing
                             period — you will not be charged for the following period.
                         </p>
-                        <p className="mt-3">
+                        <p>
                             We do not offer prorated refunds for the remaining days of a billing period. If you
                             experience a technical issue that prevented you from using the service, contact support
                             within 7 days and we will review your case.
                         </p>
                     </section>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-ink mb-3">3. Hosting After LTD Period</h2>
+                    <section id="data-retention" style={{ scrollMarginTop: '112px' }}>
+                        <h2>2. Your data after cancelling</h2>
                         <p>
-                            AppSumo LTD codes include <strong className="text-ink">2 years of hosting</strong> on venqore.com.
-                            After this period, you have two options:
-                        </p>
-                        <ul className="list-disc list-inside mt-3 space-y-2 text-ink-muted">
-                            <li><strong className="text-ink">Continue hosted:</strong> $9/month to $30/month depending on plan tier (no feature limitations based on LTD tier)</li>
-                            <li><strong className="text-ink">Self-host:</strong> Export your data and run VenQore on your own server at no cost</li>
-                        </ul>
-                        <p className="mt-3">
-                            The 2-year hosting clock starts at the time of code redemption, not purchase.
-                            We will send reminder emails at 90 days and 30 days before hosting expiry.
-                        </p>
-                    </section>
-
-                    <section>
-                        <h2 className="text-xl font-bold text-ink mb-3">4. Data Retention After Cancellation</h2>
-                        <p>
-                            After account cancellation or expiry, your data is retained for <strong className="text-ink">30 days</strong> to
+                            After account cancellation or expiry, your data is retained for <strong>30 days</strong> to
                             allow for data export. After 30 days, all data is permanently deleted. You may request
-                            immediate deletion by emailing{''}
-                            <a href="mailto:privacy@venqore.com" className="text-brand-600 dark:text-brand-400 hover:underline">privacy@venqore.com</a>.
+                            immediate deletion by emailing{' '}
+                            <a href="mailto:privacy@venqore.com">privacy@venqore.com</a>.
                         </p>
                     </section>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-ink mb-3">5. Contact</h2>
-                        <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                            <a href="mailto:support@venqore.com" className="flex items-center gap-3 p-4 rounded-xl bg-sunken dark:bg-white/5 border border-line dark:border-white/10 hover:border-brand-500/30 transition-colors">
-                                <Mail size={18} className="text-brand-600 dark:text-brand-400" />
-                                <div>
-                                    <p className="text-xs text-ink-muted uppercase tracking-widest">Email</p>
-                                    <p className="text-ink text-sm font-medium">support@venqore.com</p>
-                                </div>
+                    <section id="contact" style={{ scrollMarginTop: '112px' }}>
+                        <h2>3. Contact</h2>
+                        <div className="vq-grid vq-grid--2">
+                            <a href="mailto:support@venqore.com" className="vq-card vq-card--interactive vq-row vq-gap-4" style={{ textDecoration: 'none' }}>
+                                <span className="vq-mc-icon"><Mail size={20} aria-hidden="true" /></span>
+                                <span>
+                                    <span className="vq-caption" style={{ display: 'block' }}>Email</span>
+                                    <span style={{ display: 'block', color: 'var(--vq-text)', fontWeight: 600, fontSize: 'var(--vq-fs-small)' }}>support@venqore.com</span>
+                                </span>
                             </a>
-                            <div className="flex items-center gap-3 p-4 rounded-xl bg-sunken dark:bg-white/5 border border-line dark:border-white/10">
-                                <Clock size={18} className="text-emerald-600 dark:text-emerald-400" />
-                                <div>
-                                    <p className="text-xs text-ink-muted uppercase tracking-widest">Response Time</p>
-                                    <p className="text-ink text-sm font-medium">Within 12 hours</p>
-                                </div>
+                            <div className="vq-card vq-row vq-gap-4">
+                                <span className="vq-mc-icon" style={{ '--tone': 'var(--vq-success)' }}><Clock size={20} aria-hidden="true" /></span>
+                                <span>
+                                    <span className="vq-caption" style={{ display: 'block' }}>Response Time</span>
+                                    <span style={{ display: 'block', color: 'var(--vq-text)', fontWeight: 600, fontSize: 'var(--vq-fs-small)' }}>Within 12 hours</span>
+                                </span>
                             </div>
                         </div>
                     </section>
-                </div>
 
-                <div className="mt-12 pt-8 border-t border-line dark:border-white/5 flex flex-wrap items-center justify-between gap-4 text-sm text-ink-muted">
-                    <p>Related: read our{''}
-                        <Link href="/terms" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Terms of Service</Link>{''}and{''}
-                        <Link href="/privacy" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">Privacy Policy</Link>.
-                    </p>
-                    <Link href="/pricing" className="font-semibold text-brand-600 dark:text-brand-300 hover:underline">See plans &amp; pricing →</Link>
+
+                    <section id="lifetime-licences" className="vq-fineprint" aria-label="Lifetime licences">
+                        <p>
+                            <strong>Lifetime licences.</strong> If you bought a one-time lifetime licence through a partner
+                            marketplace rather than subscribing here, refunds for that purchase are handled by the
+                            marketplace you bought from, within the refund window it showed at checkout. Refunding one of
+                            several stacked codes moves the workspace down one tier; refunding every code closes it.
+                            Lifetime licences include two years of hosting from the date the code is redeemed; after that
+                            you can continue hosted at the plan rate shown to you at the time, or export your data. We
+                            email reminders 90 and 30 days before hosting ends.
+                        </p>
+                    </section>
+                    <div className="vq-mc-related">
+                        <p>Related: read our{' '}
+                            <Link href="/terms">Terms of Service</Link>{' '}and{' '}
+                            <Link href="/privacy">Privacy Policy</Link>.
+                        </p>
+                        <Link href="/pricing">See plans &amp; pricing →</Link>
+                    </div>
+                </article>
+                    </div>
                 </div>
-            </div>
+            </section>
         </MarketingLayout>
     );
 }

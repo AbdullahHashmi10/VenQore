@@ -351,7 +351,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
       currentSlug="smart-capture"
       faqs={FAQS}
       cta={{
-                    headline: "SmartCapture is one of the 140+ modules VenQore assembles for you.",
+                    headline: "SmartCapture is one of the 46 modules VenQore assembles for you.",
                     subtext: "Inside the system it builds, a photographed bill posts to accounts payable and adjusts stock on its own — no manual entry from receipt to reconciliation.",
                 }}
       related={[
@@ -364,7 +364,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
       <div className="space-y-10">
 
         {/* ── PREMIUM HERO BANNER ───────────────────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-hero border border-brand-500/20 p-8 md:p-12">
+        <div className="vq-sc-hero relative overflow-hidden rounded-[20px] border border-brand-500/20 p-8 md:p-12" data-tone="dark">
           {/* glow blobs */}
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none" />
@@ -432,14 +432,14 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                   <div className="text-sm font-bold text-white mb-1">{step.title}</div>
                   <div className="text-1xs text-neutral-300 leading-relaxed">{step.desc}</div>
                 </div>
-                {i < 2 && <ChevronRight className="hidden sm:block shrink-0 w-4 h-4 text-ink-secondary mt-3 ml-auto" />}
+                {i < 2 && <ChevronRight className="hidden sm:block shrink-0 w-4 h-4 text-white/40 mt-3 ml-auto" />}
               </div>
             ))}
           </div>
         </div>
 
         {/* ── MODE TOGGLE ───────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-sunken dark:bg-white/[0.02] border border-line dark:border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl vq-tool-well">
           <div>
             <h4 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
               <span className="flex h-2 w-2 relative">
@@ -454,14 +454,14 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 : 'Live mode scans your actual uploaded files through Gemini API and uses your monthly page allowance.'}
             </p>
           </div>
-          <div className="flex bg-surface p-1 rounded-xl border border-line dark:border-white/10 shrink-0">
+          <div className="flex bg-surface p-1 rounded-xl border border-line shrink-0">
             <button
               type="button"
               onClick={() => { setTestMode(true); handleReset(); }}
               className={`px-4 py-2 rounded-lg text-2xs font-bold uppercase tracking-wider transition-all ${
                 testMode
-                  ? 'bg-brand-600 text-white shadow-md '
-                  : 'text-brand-500 dark:text-brand-400 ring-2 ring-brand-400/60 ring-offset-1 ring-offset-white dark:ring-offset-slate-950 animate-pulse'
+                  ? 'bg-accent-fill text-accent-on shadow-md'
+                  : 'text-brand-500 dark:text-brand-400 ring-2 ring-brand-400/60 ring-offset-1 ring-offset-surface animate-pulse'
               }`}>
               ✦ Try Free Demo
             </button>
@@ -480,7 +480,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
         {/* ── INPUT FORM ────────────────────────────────────────────────────── */}
         {!scanTriggered && (
-          <div className="bg-surface border border-line dark:border-white/[0.04] rounded-2xl p-6 md:p-8 shadow-xl shadow-neutral-900/5">
+          <div className="bg-surface border border-line rounded-2xl p-6 md:p-8 shadow-xl shadow-neutral-900/5">
             <form onSubmit={handleInitialScan} className="space-y-7">
 
               {/* 1. Document Type */}
@@ -502,7 +502,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                       className={`p-3 rounded-xl border text-center transition-all duration-normal focus:outline-none text-2xs font-bold uppercase tracking-wider ${
                         docType === opt.value
                           ? 'border-brand-500 bg-brand-500/[0.06] text-brand-600 dark:text-brand-400 shadow-sm '
-                          : 'border-line dark:border-white/[0.04] text-ink-secondary hover:border-line dark:hover:border-white/10'
+                          : 'border-line text-ink-secondary hover:border-line dark:hover:border-white/10'
                       }`}>
                       {opt.label}
                     </button>
@@ -520,14 +520,14 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                     </label>
                     <input type="file" required accept="image/*,.pdf"
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
-                      className="w-full px-4 py-3 bg-app border border-line dark:border-white/10 rounded-xl text-ink-secondary text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:uppercase file:bg-brand-500/10 file:text-brand-600 dark:file:text-brand-400 hover:file:bg-brand-500/20" />
+                      className="w-full px-4 py-3 bg-app border border-line rounded-xl text-ink-secondary text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:uppercase file:bg-brand-500/10 file:text-brand-600 dark:file:text-brand-400 hover:file:bg-brand-500/20" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                       3 — Apply Branding Logo (Optional)
                     </label>
                     <input type="file" accept="image/*" onChange={handleLiveModeLogoChange}
-                      className="w-full px-4 py-3 bg-app border border-line dark:border-white/10 rounded-xl text-ink-secondary text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:uppercase file:bg-brand-500/10 file:text-brand-600 dark:file:text-brand-400 hover:file:bg-brand-500/20" />
+                      className="w-full px-4 py-3 bg-app border border-line rounded-xl text-ink-secondary text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:uppercase file:bg-brand-500/10 file:text-brand-600 dark:file:text-brand-400 hover:file:bg-brand-500/20" />
                   </div>
                 </div>
               )}
@@ -545,7 +545,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                         className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-slow group overflow-hidden ${
                           selectedSample === 'handwritten'
                             ? 'border-brand-500 bg-brand-500/[0.03] ring-2 ring-brand-500/20 shadow-xl '
-                            : 'border-line dark:border-white/[0.06] hover:border-line dark:hover:border-white/20'
+                            : 'border-line hover:border-line dark:hover:border-white/20'
                         }`}>
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -579,7 +579,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                         className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-slow group overflow-hidden ${
                           selectedSample === 'printed'
                             ? 'border-brand-500 bg-brand-500/[0.03] ring-2 ring-brand-500/20 shadow-xl '
-                            : 'border-line dark:border-white/[0.06] hover:border-line dark:hover:border-white/20'
+                            : 'border-line hover:border-line dark:hover:border-white/20'
                         }`}>
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -612,7 +612,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                         className={`relative p-4 rounded-2xl border cursor-pointer transition-all duration-slow group overflow-hidden ${
                           selectedSample === 'digital'
                             ? 'border-brand-500 bg-brand-500/[0.03] ring-2 ring-brand-500/20 shadow-xl '
-                            : 'border-line dark:border-white/[0.06] hover:border-line dark:hover:border-white/20'
+                            : 'border-line hover:border-line dark:hover:border-white/20'
                         }`}>
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -655,7 +655,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                           className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all duration-normal flex flex-col items-center justify-center gap-1.5 ${
                             selectedLogo === logo.id
                               ? 'border-brand-500 bg-brand-500/[0.04] shadow-md ring-1 ring-brand-500/30'
-                              : 'border-line dark:border-white/[0.04] hover:border-line dark:hover:border-white/10'
+                              : 'border-line hover:border-line dark:hover:border-white/10'
                           }`}>
                           <div className="p-2 rounded-lg bg-surface dark:bg-white/5 border border-line dark:border-white/5">
                             {logo.symbol}
@@ -676,12 +676,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 </div>
               )}
 
-              <button type="submit"
-                className={`w-full py-4 font-bold rounded-2xl transition text-white shadow-xl flex items-center justify-center gap-2.5 text-sm uppercase tracking-wider ${
-                  testMode
-                    ? 'bg-gradient-to-r from-brand-600 to-brand-600 hover:from-brand-500 hover:to-brand-500 '
-                    : 'bg-gradient-brand hover:opacity-90 '
-                }`}>
+              <button type="submit" className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">
                 <Sparkles size={15} />
                 <span>{testMode ? 'Run AI Demo Scan (Free)' : 'Upload & Scan with AI'}</span>
                 <ArrowRight size={14} />
@@ -718,7 +713,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
         {/* ── EMAIL GATE (live mode) ────────────────────────────────────────── */}
         {scanTriggered && !testMode && !emailSubmitted && !resultLoaded && !loading && (
-          <div className="relative rounded-2xl overflow-hidden border border-line dark:border-white/10 bg-surface p-6 md:p-8">
+          <div className="relative rounded-2xl overflow-hidden border border-line bg-surface p-6 md:p-8">
             <div className="filter blur-sm opacity-25 select-none pointer-events-none space-y-4 mb-4">
               <div className="flex justify-between">
                 <div className="w-24 h-8 bg-sunken rounded" />
@@ -730,7 +725,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               </div>
             </div>
             <div className="absolute inset-0 flex items-center justify-center p-6">
-              <div className="w-full max-w-md bg-surface border border-line dark:border-white/10 rounded-2xl p-8 shadow-2xl text-center">
+              <div className="w-full max-w-md bg-surface border border-line rounded-2xl p-8 shadow-2xl text-center">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
                   <Lock className="w-5 h-5 text-emerald-500" />
                 </div>
@@ -741,14 +736,14 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 <form onSubmit={handleRevealResults} className="space-y-3">
                   <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full px-4 py-3 bg-app border border-line dark:border-white/10 rounded-xl text-ink focus:outline-none focus:border-emerald-500 transition-all text-sm text-center" />
+                    className="w-full px-4 py-3 bg-app border border-line rounded-xl text-ink focus:outline-none focus:border-emerald-500 transition-all text-sm text-center" />
                   {errors.length > 0 && (
                     <div className="p-3 bg-red-500/5 border border-red-500/20 text-red-600 dark:text-red-300 text-2xs font-bold rounded-lg">
                       {errors.map((e, i) => <p key={i}>{e}</p>)}
                     </div>
                   )}
                   <button type="submit"
-                    className="w-full py-3.5 bg-gradient-brand hover:opacity-90 font-bold rounded-xl transition text-white shadow-lg flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
+                    className="vq-btn vq-btn--primary vq-btn--lg w-full">
                     <Sparkles size={13} /> Trigger AI Scan & Reveal
                   </button>
                 </form>
@@ -775,16 +770,16 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 </div>
               </div>
               <button type="button" onClick={handleReset}
-                className="px-3 py-1.5 rounded-lg text-2xs font-bold uppercase tracking-wider text-ink-secondary hover:bg-white/10 border border-line dark:border-white/10 transition-colors">
+                className="px-3 py-1.5 rounded-lg text-2xs font-bold uppercase tracking-wider text-ink-secondary hover:bg-white/10 border border-line transition-colors">
                 ↺ Scan Another
               </button>
             </div>
 
             {/* Slim control bar */}
-            <div className="flex flex-wrap items-center gap-3 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 p-3 vq-tool-panel">
               <div className="w-40"><Select value={meta.template} onChange={(v) => setMeta((m) => ({ ...m, template: v }))} options={templateOptions} /></div>
               <div className="w-36"><Select value={meta.currency} onChange={(v) => setMeta((m) => ({ ...m, currency: v }))} options={currencyOptions} /></div>
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
+              <div className="flex items-center gap-1 p-1 rounded-xl vq-tool-inset">
                 <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'portrait' }))}
                   className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}>Portrait</button>
                 <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'landscape' }))}
@@ -800,7 +795,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 </div>
               )}
               <button type="button" onClick={() => logoInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                 <Upload size={13} /> {company.logo_base64 ? 'Change logo' : 'Add logo'}
               </button>
               {company.logo_base64 && (
@@ -810,7 +805,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
               <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
               <div className="ml-auto">
                 <button type="button" onClick={generatePdf} disabled={generatingPdf}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50">
+                  className="vq-btn vq-btn--primary">
                   {generatingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   {generatingPdf ? 'Generating…' : 'Download PDF'}
                 </button>
@@ -825,7 +820,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
             )}
 
             {/* THE DOCUMENT — identical to Invoice.jsx */}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? 'max-w-4xl' : 'max-w-2xl'}`}>
+            <div className={`vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? 'max-w-4xl' : 'max-w-2xl'}`}>
               {isModern && <div className="h-3 w-full" style={{ background: accent }} />}
               <div className={`p-6 sm:p-10 text-ink ${isCompact ? 'text-[13px]' : 'text-sm'}`} style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
 
@@ -932,7 +927,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
         )}
 
         {/* ── ERP COMPARISON ────────────────────────────────────────────────── */}
-        <div className="space-y-5 pt-6 border-t border-line dark:border-white/[0.04]">
+        <div className="space-y-5 pt-6 border-t border-line">
           <div className="text-center">
             <span className="inline-block px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-wider mb-3">
               Standalone vs. ERP Integrated
@@ -947,7 +942,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Standalone */}
-            <div className="p-6 rounded-2xl border border-line dark:border-white/[0.05] bg-neutral-500/[0.01]">
+            <div className="p-6 rounded-2xl vq-tool-inset">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-xl bg-sunken dark:bg-white/5 flex items-center justify-center">
                   <FileSearch className="w-4 h-4 text-ink-muted" />
@@ -998,7 +993,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 ))}
               </ul>
               <Link href="/register"
-                className="mt-5 flex items-center justify-center gap-2 w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md ">
+                className="vq-btn vq-btn--primary mt-5 w-full">
                 Get Smart Capture in your ERP <ArrowRight size={13} />
               </Link>
             </div>
@@ -1006,7 +1001,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
         </div>
 
         {/* ── PRICING TIERS ─────────────────────────────────────────────────── */}
-        <div className="space-y-5 pt-6 border-t border-line dark:border-white/[0.04]">
+        <div className="space-y-5 pt-6 border-t border-line">
           <div className="text-center max-w-xl mx-auto">
             <span className="inline-block px-3 py-1 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-wider mb-3">
               Standalone Scan Credit Plans
@@ -1028,7 +1023,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                 className={`relative p-5 rounded-2xl border flex flex-col justify-between transition-all ${
                   plan.popular
                     ? 'border-brand-500 bg-gradient-to-b from-brand-500/[0.04] to-transparent shadow-[0_0_40px_rgba(139,92,246,0.08)]'
-                    : 'border-line dark:border-white/[0.05] bg-neutral-500/[0.01] hover:border-line dark:hover:border-white/10'
+                    : 'vq-tool-inset hover:border-line-strong'
                 }`}>
                 {plan.popular && (
                   <div className="absolute -top-px inset-x-4 h-px bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
@@ -1045,17 +1040,13 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                     <span className="text-3xl font-bold text-ink">{plan.price}</span>
                     <span className="text-xs text-ink-muted">/month</span>
                   </div>
-                  <div className="px-3 py-2 rounded-xl bg-sunken/50 dark:bg-black/20 text-center">
+                  <div className="px-3 py-2 rounded-xl bg-sunken text-center">
                     <span className="text-sm font-bold text-brand-600 dark:text-brand-400">{plan.pages.toLocaleString()} pages</span>
                     <span className="text-2xs text-ink-muted ml-1">per month</span>
                   </div>
                 </div>
                 <Link href="/register"
-                  className={`mt-5 block w-full py-2.5 rounded-xl text-2xs font-bold uppercase tracking-wider text-center transition ${
-                    plan.popular
-                      ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-md '
-                      : 'bg-sunken dark:bg-white/10 hover:bg-interactive-hover dark:hover:bg-white/20 text-ink-secondary dark:text-white'
-                  }`}>
+                  className={`vq-btn ${plan.popular ? 'vq-btn--primary' : 'vq-btn--secondary'} vq-btn--block mt-5`}>
                   Get Started
                 </Link>
               </div>
@@ -1063,14 +1054,14 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
           </div>
 
           {/* top-up strip */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-950 border border-white/[0.06]">
-            <div className="flex items-center gap-3 text-sm text-ink-muted">
-              <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl vq-tool-well">
+            <div className="flex items-center gap-3 text-sm text-ink-secondary">
+              <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <span>
-                Ran out of pages mid-month? Get a <strong className="text-white">200-page top-up for just $2.00</strong> — no plan change needed.
+                Ran out of pages mid-month? Get a <strong className="text-ink">200-page top-up for just $2.00</strong> — no plan change needed.
               </span>
             </div>
-            <Link href="/register" className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-2xs font-bold uppercase tracking-wider rounded-xl transition">
+            <Link href="/register" className="vq-btn vq-btn--secondary shrink-0">
               Get Top-Up
             </Link>
           </div>

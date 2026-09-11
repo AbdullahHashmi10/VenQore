@@ -126,4 +126,66 @@ return [
         'sales.view', 'inventory.view', 'purchases.view', 'finance.transactions',
     ],
 
+
+    /*
+    | Route-gap sweep (2026-09-10): these roles are offered when inviting staff
+    | (StaffController / StaffInvitationController) but had NO entry here, so
+    | they resolved to zero permissions. Each now gets a least-privilege set.
+    | Owners can still override any member with custom checkboxes.
+    */
+    'franchise_admin' => [
+        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
+        'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers',
+        'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
+        'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
+        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses',
+        'data.export', 'users.manage',
+    ],
+
+    'shift_supervisor' => [
+        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'sales.view', 'sales.create', 'sales.returns',
+        'inventory.view',
+        'reports.summary',
+        'admin.staff_view',
+    ],
+
+    'inventory_controller' => [
+        'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
+        'purchases.view', 'reports.stock', 'admin.warehouses',
+    ],
+
+    'hr_officer' => [
+        'admin.staff_view', 'admin.staff_manage', 'reports.performance',
+    ],
+
+    'production_supervisor' => [
+        'inventory.view', 'inventory.edit', 'inventory.adjust', 'reports.stock',
+    ],
+
+    'kitchen_manager' => [
+        'pos.checkout', 'sales.view', 'sales.edit', 'inventory.view', 'reports.summary',
+    ],
+
+    'dispenser' => [
+        'pos.checkout', 'inventory.view',
+    ],
+
+    'sales_executive' => [
+        'pos.checkout', 'sales.view', 'sales.create', 'sales.quotations', 'inventory.view', 'reports.summary',
+    ],
+
+    'fulfillment_lead' => [
+        'sales.view', 'sales.edit', 'inventory.view', 'inventory.transfer',
+    ],
+
+    'delivery_driver' => [
+        'sales.view',
+    ],
+
+    // 'custom' uses only the checkboxes stored on the membership.
+    'custom' => [],
+
 ];

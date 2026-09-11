@@ -418,18 +418,10 @@ class User extends Authenticatable implements MustVerifyEmail
             return config('permissions.' . $role, []);
         }
 
-        if (!empty($this->attributes['permissions'])) {
-            $perms = $this->attributes['permissions'];
-            if (is_string($perms)) {
-                $perms = json_decode($perms, true) ?? [];
-            }
-            if (!empty($perms)) {
-                return $perms;
-            }
-        }
-
-        // If no membership found, return minimal default
-        return ['pos', 'sales_view'];
+        // SEC-02 (2026-09-10): no ACTIVE membership → no store permissions.
+        // The legacy users.permissions column and the old ['pos','sales_view']
+        // default let suspended/removed members keep store abilities.
+        return [];
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Engines\AccountingService;
 use App\Engines\FifoService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -52,14 +53,22 @@ class PurchaseReturnController extends Controller
 
     public function store(Request $request, string $purchaseId)
     {
+        $tenantId = app('current.tenant')->id;
+
+        // The purchase must be this store's (404 otherwise) ...
+        DB::table('purchases')->where('tenant_id', $tenantId)->where('id', $purchaseId)->firstOrFail();
+
+        // ... and every line / batch must be this purchase's, in this store.
         $validated = $request->validate([
             'return_date' => ['required', 'date', 'before_or_equal:today'],
             'reason'      => ['required', 'string', 'max:500'],
             'items'       => ['required', 'array', 'min:1'],
             'items.*.purchase_item_id'   => ['required', 'string',
-                                             'exists:purchase_items,id'],
+                                             Rule::exists('purchase_items', 'id')
+                                                 ->where('tenant_id', $tenantId)
+                                                 ->where('purchase_id', $purchaseId)],
             'items.*.inventory_batch_id' => ['required', 'string',
-                                             'exists:inventory_batches,id'],
+                                             Rule::exists('inventory_batches', 'id')->where('tenant_id', $tenantId)],
             'items.*.return_qty'         => ['required', 'numeric', 'min:0.0001'],
         ]);
 

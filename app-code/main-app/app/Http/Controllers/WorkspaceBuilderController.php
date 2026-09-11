@@ -426,6 +426,42 @@ class WorkspaceBuilderController extends Controller
             ], 409);
         }
 
+        // AUTH-01 (2026-09-10): a brand-new account must prove its email with
+        // the emailed code BEFORE any user, store or trial is created. The
+        // builder answers travel in the (encrypted) challenge payload and are
+        // provisioned by EmailOtpController::completeSignup().
+        if (!$existingUser && config('venqore.email_otp_required', true)) {
+            [$challenge, $error] = app(\App\Services\Auth\EmailOtpService::class)->start(
+                $request,
+                'signup',
+                $email,
+                null,
+                [
+                    'name'              => $name . ' Owner',
+                    'password_hash'     => Hash::make($password),
+                    'workspace_builder' => [
+                        'business_name' => $name,
+                        'currency'      => $request->input('currency'),
+                        'phone'         => $request->input('phone'),
+                        'modules'       => $request->input('modules', []),
+                        'preset_key'    => $request->input('preset_key'),
+                    ],
+                ]
+            );
+
+            if (!$challenge) {
+                return response()->json(['success' => false, 'message' => $error], 429);
+            }
+
+            \App\Http\Controllers\Auth\EmailOtpController::begin($request, $challenge->id, 'signup');
+
+            return response()->json([
+                'success'  => true,
+                'redirect' => route('otp.show'),
+                'pending_verification' => true,
+            ]);
+        }
+
         try {
             $user = $existingUser;
             if (!$user) {
@@ -477,9 +513,12 @@ class WorkspaceBuilderController extends Controller
      */
     public function converseStart(Request $request, ConversationalBuilderService $service): JsonResponse
     {
+        // Caps mirror config('ai_limits.scope.features.config_ai.max_input_chars')
+        // (600). AiScopeGuard enforces the same limit inside the gateway; this
+        // rejects oversize bodies before any work is done.
         $validated = $request->validate([
-            'prompt' => 'required|string|max:1500',
-            'preset' => 'nullable|string|max:64',
+            'prompt' => 'required|string|max:600',
+            'preset' => ['nullable', 'string', 'max:64', 'regex:/^[a-z0-9_]+$/'],
         ]);
 
         $result = $service->startSession(
@@ -495,10 +534,14 @@ class WorkspaceBuilderController extends Controller
      */
     public function converseStep(Request $request, ConversationalBuilderService $service): JsonResponse
     {
+        // session_id is a server-issued UUID (DiscoverySession::start). Replays
+        // cannot burn tokens: a session makes at most DiscoverySession::MAX_TURNS
+        // model calls, a completed session returns its stored proposal, and
+        // off-purpose turns are rejected by the scope guard without advancing.
         $validated = $request->validate([
-            'session_id'          => 'required|string',
-            'response'            => 'required|string|max:1500',
-            'selected_option_key' => 'nullable|string|max:64',
+            'session_id'          => 'required|uuid',
+            'response'            => 'required|string|max:600',
+            'selected_option_key' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_:\-]+$/'],
         ]);
 
         $result = $service->step(
@@ -515,6 +558,8 @@ class WorkspaceBuilderController extends Controller
      */
     public function converseReset(Request $request): JsonResponse
     {
+        $request->validate(['session_id' => 'nullable|uuid']);
+
         $sessionId = $request->input('session_id');
         if ($sessionId) {
             $session = DiscoverySession::load($sessionId);

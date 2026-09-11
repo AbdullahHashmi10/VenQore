@@ -32,6 +32,9 @@ class DiscoverySession
         public ?string $preset = null,
         public float $systemReadinessConfidence = 0.5,
         public float $aiSignalConfidence = 0.5,
+        // Off-purpose turns rejected by AiScopeGuard. They never advance the
+        // session; ConversationalBuilderService ends it after MAX_SCOPE_STRIKES.
+        public int $scopeStrikes = 0,
     ) {}
 
     public static function cacheKey(string $sessionId): string
@@ -60,6 +63,7 @@ class DiscoverySession
             preset: $data['preset'] ?? null,
             systemReadinessConfidence: (float) ($data['system_readiness_confidence'] ?? 0.5),
             aiSignalConfidence: (float) ($data['ai_signal_confidence'] ?? 0.5),
+            scopeStrikes: (int) ($data['scope_strikes'] ?? 0),
         );
     }
 
@@ -95,6 +99,7 @@ class DiscoverySession
             'preset'                     => $this->preset,
             'system_readiness_confidence' => $this->systemReadinessConfidence,
             'ai_signal_confidence'       => $this->aiSignalConfidence,
+            'scope_strikes'              => $this->scopeStrikes,
         ], self::TTL_SECONDS);
     }
 

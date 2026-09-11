@@ -6,76 +6,78 @@ use App\Http\Controllers\Controller;
 use App\Models\Terminal;
 use App\Models\TerminalActivity;
 use Illuminate\Http\Request;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Support\TerminalDeviceAuth;
 
 class TerminalActivityController extends Controller
 {
     /**
-     * Store terminal activity logs.
+     * SEC-04 (2026-09-10): resolve and authenticate the calling terminal.
+     * Returns [Terminal, null] or [null, JsonResponse]. A device_id alone is not
+     * authentication: the terminal must already be PAIRED to a store and present
+     * its device secret. Activity submission can never claim a terminal.
+     */
+    private function authenticateTerminal(Request $request): array
+    {
+        $deviceId = (string) $request->input('device_id', '');
+        if ($deviceId === '') {
+            return [null, response()->json(['error' => 'Device ID required'], 400)];
+        }
+
+        if (!config('venqore.terminal_telemetry_enabled')) {
+            return [null, response()->json(['error' => 'Terminal activity tracking is disabled.', 'code' => 'TELEMETRY_DISABLED'], 503)];
+        }
+
+        $terminal = Terminal::withoutGlobalScope('tenant')->where('device_id', $deviceId)->first();
+        if (!$terminal || empty($terminal->tenant_id)) {
+            return [null, response()->json(['error' => 'Unauthorized device'], 401)];
+        }
+
+        if (!TerminalDeviceAuth::verify($terminal, $request)) {
+            return [null, response()->json(['error' => 'Unauthorized device', 'code' => 'DEVICE_AUTH_FAILED'], 401)];
+        }
+
+        $storeSlug = $request->input('store_slug');
+        if ($storeSlug) {
+            $tenant = \App\Models\Tenant::where('slug', $storeSlug)->first();
+            if (!$tenant || (string) $tenant->id !== (string) $terminal->tenant_id) {
+                return [null, response()->json(['error' => 'Terminal does not belong to this store.'], 403)];
+            }
+        }
+
+        return [$terminal, null];
+    }
+
+    /**
+     * Store terminal activity logs (paired + authenticated terminals only).
      */
     public function store(Request $request)
     {
-        $deviceId = $request->input('device_id');
-        $terminalId = $request->input('terminal_id');
-        $storeSlug = $request->input('store_slug');
-        $activities = $request->input('activities', []);
-
-        if (!$deviceId) {
-            return response()->json(['error' => 'Device ID required'], 400);
+        [$terminal, $error] = $this->authenticateTerminal($request);
+        if ($error) {
+            return $error;
         }
 
-        // Resolve Tenant by storeSlug if supplied
-        $tenant = null;
-        if ($storeSlug) {
-            $tenant = \App\Models\Tenant::where('slug', $storeSlug)->first();
-        }
+        $validated = $request->validate([
+            'activities'                    => 'array|max:100',
+            'activities.*.away_at'          => 'required|date',
+            'activities.*.back_at'          => 'required|date',
+            'activities.*.duration_seconds' => 'required|integer|min:0|max:86400',
+        ]);
 
-        // Locate terminal using withoutGlobalScope to bypass the unauthenticated block
-        $terminal = null;
-        if ($terminalId && Str::isUuid($terminalId)) {
-            $terminal = Terminal::withoutGlobalScope('tenant')->find($terminalId);
-        }
-        if (!$terminal) {
-            $terminal = Terminal::withoutGlobalScope('tenant')->where('device_id', $deviceId)->first();
-        }
-        if (!$terminal && $terminalId) {
-            // Find by legacy ID name for fallback
-            $terminal = Terminal::withoutGlobalScope('tenant')->where('name', 'Terminal ' . $terminalId)->first();
-        }
-
-        // Update terminal device ID mapping if not set
-        if ($terminal) {
-            if (!$terminal->device_id) {
-                $terminal->update(['device_id' => $deviceId]);
-            }
-
-            // SECURITY (tenant isolation): this endpoint is unauthenticated, so
-            // the caller-supplied store_slug must NEVER be able to move a
-            // terminal that already belongs to a tenant into a different one —
-            // that is a cross-tenant hijack. Only allow an initial claim when
-            // the terminal has no owner yet; refuse conflicting ownership.
-            // Regression guard: Tester/tests/Feature/Guardrails/TerminalOwnershipGuardTest.php
-            if ($tenant) {
-                if (empty($terminal->tenant_id)) {
-                    $terminal->update(['tenant_id' => $tenant->id]);
-                } elseif ((string) $terminal->tenant_id !== (string) $tenant->id) {
-                    return response()->json(['error' => 'Terminal does not belong to this store.'], 403);
-                }
-            }
-        }
-
-        $tenantId = $tenant ? $tenant->id : ($terminal ? $terminal->tenant_id : null);
-
-        foreach ($activities as $act) {
+        foreach ($validated['activities'] ?? [] as $act) {
             TerminalActivity::create([
-                'terminal_id' => $terminal ? $terminal->id : null,
-                'device_id' => $deviceId,
-                'away_at' => $act['away_at'],
-                'back_at' => $act['back_at'],
+                'terminal_id'      => $terminal->id,
+                'device_id'        => $terminal->device_id,
+                'away_at'          => $act['away_at'],
+                'back_at'          => $act['back_at'],
                 'duration_seconds' => $act['duration_seconds'],
-                'screenshot_path' => $act['screenshot_filename'] ?? null,
-                'tenant_id' => $tenantId,
+                // Screenshot paths are assigned by the server on upload only.
+                'screenshot_path'  => null,
+                'tenant_id'        => $terminal->tenant_id,
             ]);
         }
 
@@ -83,54 +85,49 @@ class TerminalActivityController extends Controller
     }
 
     /**
-     * Upload an encrypted screen capture.
+     * Upload an encrypted screen capture (paired + authenticated terminals only).
+     * The server chooses the storage path; client filenames are ignored.
      */
     public function uploadScreenshot(Request $request)
     {
-        $deviceId = $request->input('device_id');
-        if (!$deviceId) {
-            return response()->json(['error' => 'Device ID required'], 400);
+        [$terminal, $error] = $this->authenticateTerminal($request);
+        if ($error) {
+            return $error;
         }
 
-        // Authenticate the device (L028)
-        $terminal = \App\Models\Terminal::withoutGlobalScope('tenant')->where('device_id', $deviceId)->first();
-        if (!$terminal) {
-            return response()->json(['error' => 'Unauthorized device'], 401);
-        }
-
-        // Validate the upload file size (max 10MB) to prevent disk exhaustion DoS
+        // Max 10MB to prevent disk exhaustion
         $request->validate([
             'file' => 'required|file|max:10240',
         ]);
 
-        $file = $request->file('file');
-        
-        // Sanitize the filename to prevent directory traversal attacks
-        $filename = basename($file->getClientOriginalName());
-        
-        // Sanity check extension
-        if (!Str::endsWith($filename, '.bin')) {
-            $filename .= '.bin';
+        // Recheck SEC-04: the old client encrypted with a key derived from the
+        // device ID, which is not secret. Captures now travel as a PNG over TLS
+        // on this authenticated call and are encrypted AT REST here with the
+        // application key. Uploads in the old format are still accepted (and
+        // re-encrypted) so an un-updated station does not lose its queue.
+        $bytes = (string) file_get_contents($request->file('file')->getRealPath());
+        $png = self::isPng($bytes) ? $bytes : self::legacyDecrypt($bytes, (string) $terminal->device_id);
+        if ($png === null) {
+            return response()->json(['error' => 'The screenshot must be a PNG image.'], 422);
         }
-        
-        $path = $file->storeAs('terminal_screenshots', $filename);
 
-        // Associate screenshot with the most recent activity log for this device that doesn't have a path yet
-        // Bypass global tenant scope since this is a global public API upload call
+        $relative = $terminal->tenant_id . '/' . $terminal->id . '/' . Str::uuid() . '.bin';
+        Storage::put('terminal_screenshots/' . $relative, Crypt::encryptString($png));
+
         $activity = TerminalActivity::withoutGlobalScope('tenant')
-            ->where('device_id', $deviceId)
+            ->where('terminal_id', $terminal->id)
+            ->where('tenant_id', $terminal->tenant_id)
             ->whereNull('screenshot_path')
             ->orderBy('created_at', 'desc')
             ->first();
 
         if ($activity) {
-            $activity->update(['screenshot_path' => $filename]);
+            $activity->update(['screenshot_path' => $relative]);
         }
 
         return response()->json([
-            'success' => true,
-            'filename' => $filename,
-            'path' => $path
+            'success'  => true,
+            'filename' => $relative,
         ]);
     }
 
@@ -150,33 +147,37 @@ class TerminalActivityController extends Controller
             abort(404, 'Screenshot file does not exist on server storage');
         }
 
-        // Get key based on the activity's device_id or fallback
-        $deviceId = $activity->device_id;
-        if (!$deviceId) {
-            // Check terminal device id
-            $deviceId = $activity->terminal?->device_id;
+        $stored = Storage::get($filePath);
+
+        try {
+            $decrypted = Crypt::decryptString($stored);
+        } catch (DecryptException $e) {
+            // Captures stored before at-rest encryption (old device-ID format).
+            $deviceId = $activity->device_id ?: $activity->terminal?->device_id;
+            $decrypted = $deviceId ? self::legacyDecrypt($stored, (string) $deviceId) : null;
         }
 
-        if (!$deviceId) {
-            abort(400, 'Unable to decrypt screenshot: Missing Device ID');
-        }
-
-        $encryptedData = Storage::get($filePath);
-        if (strlen($encryptedData) < 17) {
-            abort(500, 'Invalid or corrupted screenshot data');
-        }
-
-        // Decrypt using AES-256-CBC
-        $iv = substr($encryptedData, 0, 16);
-        $ciphertext = substr($encryptedData, 16);
-        $key = hash('sha256', $deviceId, true);
-        $decrypted = openssl_decrypt($ciphertext, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
-
-        if ($decrypted === false) {
-            abort(500, 'Decryption failed. Check key validity.');
+        if ($decrypted === null || $decrypted === false) {
+            abort(500, 'The screenshot could not be decrypted.');
         }
 
         return response($decrypted, 200)
             ->header('Content-Type', 'image/png');
+    }
+
+    private static function isPng(string $bytes): bool
+    {
+        return strncmp($bytes, "\x89PNG\r\n\x1a\n", 8) === 0;
+    }
+
+    /** Old station format: 16-byte IV + AES-256-CBC(sha256(device_id)). Returns the PNG or null. */
+    private static function legacyDecrypt(string $bytes, string $deviceId): ?string
+    {
+        if ($deviceId === '' || strlen($bytes) < 17) {
+            return null;
+        }
+        $plain = openssl_decrypt(substr($bytes, 16), 'aes-256-cbc', hash('sha256', $deviceId, true), OPENSSL_RAW_DATA, substr($bytes, 0, 16));
+
+        return ($plain !== false && self::isPng($plain)) ? $plain : null;
     }
 }

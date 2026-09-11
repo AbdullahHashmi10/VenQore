@@ -20,54 +20,98 @@
     @foreach($vqHtmlAttributes as $vqAttribute => $vqValue) {{ $vqAttribute }}="{{ $vqValue }}" @endforeach>
 
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-404QXQB4XF"></script>
+    {{--
+      WEB-01 (2026-09-10): analytics obeys the cookie choice.
+      - Nothing is loaded from Google until the visitor allows Analytics in the
+        cookie banner (CookieConsent stores [essential, analytics, marketing]).
+      - A saved "allow" is honoured on first paint; a later "reject" disables
+        collection immediately (withdrawal) — no reload needed.
+      - Only for signed-out visitors: signed-in POS/ERP screens (store slugs,
+        customer and financial pages) are never sent to Google Analytics.
+    --}}
+    @php($vqAnalyticsGuest = rescue(fn () => auth()->guest(), true, false))
+    @if($vqAnalyticsGuest)
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      // AI Referral Traffic Grouping (T8)
-      var referrer = document.referrer || '';
-      var aiReferrals = ['chatgpt.com', 'chat.openai.com', 'perplexity.ai', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com', 'copilot.bing.com'];
-      var isAiReferral = false;
-      for (var i = 0; i < aiReferrals.length; i++) {
-        if (referrer.indexOf(aiReferrals[i]) !== -1) {
-          isAiReferral = true;
-          break;
-        }
-      }
-
-      var gtagConfig = {};
-      if (isAiReferral) {
-        gtagConfig['traffic_type'] = 'ai_referral';
-        gtagConfig['ai_referral'] = 'true';
-        
-        // Extract platform name
-        var platform = 'unknown';
-        var match = referrer.match(/(chatgpt|openai|perplexity|claude|gemini|copilot)/i);
-        if (match) {
-          platform = match[0].toLowerCase();
-        }
-        
-        gtag('event', 'ai_referral_visit', {
-          'event_category': 'engagement',
-          'event_label': referrer,
-          'ai_platform': platform
+      (function () {
+        var GA_ID = 'G-404QXQB4XF';
+        var loaded = false;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+        gtag('consent', 'default', {
+          analytics_storage: 'denied', ad_storage: 'denied',
+          ad_user_data: 'denied', ad_personalization: 'denied'
         });
-      }
 
-      gtag('config', 'G-404QXQB4XF', gtagConfig);
+        function analyticsAllowed(prefs) {
+          try {
+            if (!prefs) {
+              if (localStorage.getItem('venqore_cookie_consent_v1') !== 'true') return false;
+              prefs = JSON.parse(localStorage.getItem('venqore_cookie_preferences_v1') || 'null');
+            }
+            return Array.isArray(prefs) && prefs[1] === true;
+          } catch (e) { return false; }
+        }
+
+        function load() {
+          window['ga-disable-' + GA_ID] = false;
+          gtag('consent', 'update', { analytics_storage: 'granted' });
+          if (loaded) return;
+          loaded = true;
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+          document.head.appendChild(s);
+          gtag('js', new Date());
+
+          // AI Referral Traffic Grouping (T8)
+          var referrer = document.referrer || '';
+          var ai = ['chatgpt.com', 'chat.openai.com', 'perplexity.ai', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com', 'copilot.bing.com'];
+          var cfg = {};
+          for (var i = 0; i < ai.length; i++) {
+            if (referrer.indexOf(ai[i]) !== -1) {
+              var m = referrer.match(/(chatgpt|openai|perplexity|claude|gemini|copilot)/i);
+              cfg.traffic_type = 'ai_referral';
+              cfg.ai_referral = 'true';
+              gtag('event', 'ai_referral_visit', {
+                event_category: 'engagement',
+                event_label: referrer.split('?')[0],
+                ai_platform: m ? m[0].toLowerCase() : 'unknown'
+              });
+              break;
+            }
+          }
+          gtag('config', GA_ID, cfg);
+        }
+
+        function withdraw() {
+          window['ga-disable-' + GA_ID] = true;
+          gtag('consent', 'update', { analytics_storage: 'denied' });
+        }
+
+        if (analyticsAllowed()) load();
+
+        window.addEventListener('cookie-consent-changed', function (e) {
+          if (analyticsAllowed(e && e.detail)) load(); else withdraw();
+        });
+      })();
     </script>
+    @endif
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Visitor pricing currency (GeoPricingMiddleware). Read by public page scripts. --}}
+    @php($vqGeoCurrency = data_get($page ?? [], 'props.geo.currency'))
+    @if($vqGeoCurrency)
+    <meta name="vq-currency" content="{{ $vqGeoCurrency }}">
+    @endif
 
     {{-- Favicons for Browser & Google Search Results --}}
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    {{-- WEB-03 (2026-09-10): right-sized icons. favicon.ico = 16/32/48 (≈8 KB,
+         was 422 KB); favicon.png = 512px (≈65 KB, was 6250px / 652 KB). --}}
+    <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
-    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
     @php($seo = \App\Support\MarketingSeo::current())
 
@@ -151,6 +195,13 @@
 </head>
 
 <body class="font-sans antialiased">
+    {{-- N14/N15 (2026-09-10): the server-written page text from MarketingSeo /
+         ToolSeo (static_html) was defined for every public page but never
+         printed, so crawlers and AI bots that do not run JavaScript saw an
+         empty <div id="app">. It is shown only when JavaScript is off. --}}
+    @if(!empty($seo['static_html']))
+    <noscript>{!! $seo['static_html'] !!}</noscript>
+    @endif
     @if (!isset($page))
         <div id="app"></div>
     @else

@@ -969,7 +969,11 @@ class LedgerTruthAuditCommand extends Command
     // ─────────────────────────────────────────────────────────────────────────
     private function generateReport(): void
     {
-        $reportDir  = base_path('verification');
+        // Test fixtures must not overwrite the saved report from a real audit.
+        // Keep test output in Laravel's writable, disposable testing directory.
+        $reportDir = app()->runningUnitTests()
+            ? storage_path('framework/testing/ledger-truth')
+            : base_path('verification');
         if (!is_dir($reportDir)) {
             mkdir($reportDir, 0755, true);
         }
@@ -1362,8 +1366,14 @@ class LedgerTruthAuditCommand extends Command
 
     private function saveRegistry(): void
     {
-        $path = base_path('verification/number_registry.yaml');
-        if (file_exists($path) && class_exists(\Symfony\Component\Yaml\Yaml::class)) {
+        $sourcePath = base_path('verification/number_registry.yaml');
+        $path = app()->runningUnitTests()
+            ? storage_path('framework/testing/ledger-truth/number_registry.yaml')
+            : $sourcePath;
+        if (file_exists($sourcePath) && class_exists(\Symfony\Component\Yaml\Yaml::class)) {
+            if (!is_dir(dirname($path))) {
+                mkdir(dirname($path), 0755, true);
+            }
             $cleanMetrics = [];
             foreach ($this->registry['metrics'] ?? [] as $m) {
                 $id = $m['id'] ?? '';

@@ -267,8 +267,8 @@ export default function MarginCalculator({ toolGroups = [] }) {
         URL.revokeObjectURL(url);
     };
 
-    const inputCls = 'w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-neutral-900/10 dark:border-white/10 text-ink text-sm placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-brand-400/60 transition-colors';
-    const labelCls = 'block text-xs font-bold uppercase tracking-widest text-ink-muted mb-2';
+    const inputCls = 'w-full px-3.5 py-2.5 rounded-[14px] text-ink focus:outline-none';
+    const labelCls = 'block text-sm font-semibold text-ink mb-2';
 
     const currencyOptions = Object.entries(CURRENCIES).map(([code, symbol]) => ({
         value: code, label: `${code} (${symbol})`,
@@ -291,7 +291,7 @@ export default function MarginCalculator({ toolGroups = [] }) {
             related={[{ label: 'Barcode Generator', href: '/tools/barcode-generator' }, { label: 'Invoice Generator', href: '/tools/invoice-generator' }]}
         >
             {/* ── Bidirectional solver ─────────────────────────────────── */}
-            <div className="rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <Calculator size={17} className="text-brand-500 dark:text-brand-300" />
@@ -352,7 +352,7 @@ export default function MarginCalculator({ toolGroups = [] }) {
                         ['Margin', fmtPct(solved.margin)],
                         ['Markup', fmtPct(solved.markup)],
                     ].map(([label, val]) => (
-                        <div key={label} className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-center">
+                        <div key={label} className="p-4 rounded-2xl vq-tool-inset text-center">
                             <p className="text-2xs font-bold uppercase tracking-widest text-ink-muted mb-1">{label}</p>
                             <p className="text-xl font-bold text-ink">{val}</p>
                         </div>
@@ -366,7 +366,7 @@ export default function MarginCalculator({ toolGroups = [] }) {
             </div>
 
             {/* ── Target price modes ───────────────────────────────────── */}
-            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <TrendingUp size={17} className="text-brand-500 dark:text-brand-300" />
@@ -386,7 +386,7 @@ export default function MarginCalculator({ toolGroups = [] }) {
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-5">
-                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
+                    <div className="p-4 rounded-2xl vq-tool-inset">
                         <label className={labelCls}>Target margin %</label>
                         <div className="relative mb-3">
                             <input type="number" step="0.01" value={tMarginTarget} onChange={(e) => setTMarginTarget(e.target.value)} className={`${inputCls} pr-8`} />
@@ -403,7 +403,7 @@ export default function MarginCalculator({ toolGroups = [] }) {
                         )}
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
+                    <div className="p-4 rounded-2xl vq-tool-inset">
                         <label className={labelCls}>Target markup %</label>
                         <div className="relative mb-3">
                             <input type="number" step="0.01" value={tMarkupTarget} onChange={(e) => setTMarkupTarget(e.target.value)} className={`${inputCls} pr-8`} />
@@ -423,7 +423,7 @@ export default function MarginCalculator({ toolGroups = [] }) {
             </div>
 
             {/* ── Bulk mode ─────────────────────────────────────────────── */}
-            <div className="mt-6 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10 p-5 sm:p-7">
+            <div className="mt-6 vq-tool-panel vq-tool-panel--pad">
                 <div className="flex items-start gap-3 mb-6">
                     <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
                         <TableIcon size={17} className="text-brand-500 dark:text-brand-300" />
@@ -448,17 +448,17 @@ export default function MarginCalculator({ toolGroups = [] }) {
                         <button
                             type="button"
                             onClick={parseBulk}
-                            className="px-4 py-2 rounded-xl bg-brand-500/15 border border-brand-400/40 text-brand-600 dark:text-brand-300 text-xs font-bold uppercase tracking-wide hover:bg-brand-500/25 transition-colors inline-flex items-center gap-1.5 shrink-0"
+                            className="vq-btn vq-btn--quiet shrink-0"
                         >
                             <ClipboardPaste size={14} /> Add rows
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-line dark:border-white/10">
+                <div className="overflow-x-auto rounded-2xl border border-line">
                     <table className="w-full text-sm min-w-[720px]">
                         <thead>
-                            <tr className="bg-sunken dark:bg-white/[0.04] text-left">
+                            <tr className="bg-sunken text-left">
                                 {['Product', 'Cost', 'Price', 'Profit', 'Margin %', 'Markup %', ''].map((h) => (
                                     <th key={h} className="px-3 py-2.5 font-bold text-ink-secondary text-xs uppercase tracking-wide">{h}</th>
                                 ))}
@@ -466,7 +466,7 @@ export default function MarginCalculator({ toolGroups = [] }) {
                         </thead>
                         <tbody>
                             {bulkResults.map((r, i) => (
-                                <tr key={i} className="border-t border-line dark:border-white/[0.06]">
+                                <tr key={i} className="border-t border-line">
                                     <td className="px-3 py-2">
                                         <input value={r.name} onChange={(e) => updateRow(i, 'name', e.target.value)} className={`${inputCls} py-1.5`} placeholder="Product name" />
                                     </td>
@@ -494,14 +494,14 @@ export default function MarginCalculator({ toolGroups = [] }) {
                     <button
                         type="button"
                         onClick={addRow}
-                        className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-xl vq-tool-inset text-ink-secondary text-xs font-bold uppercase tracking-wide hover:border-brand-400/40 transition-colors inline-flex items-center gap-1.5"
                     >
                         <Plus size={14} /> Add row
                     </button>
                     <button
                         type="button"
                         onClick={exportCsv}
-                        className="px-4 py-2.5 rounded-xl bg-accent-fill text-accent-on text-xs font-bold uppercase tracking-wide transition-transform inline-flex items-center gap-1.5"
+                        className="vq-btn vq-btn--primary"
                     >
                         <Download size={14} /> Export CSV
                     </button>
@@ -519,11 +519,11 @@ export default function MarginCalculator({ toolGroups = [] }) {
                     price is always higher than the cost (assuming you're profitable), markup is always the larger percentage of the two.
                 </p>
                 <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                    <div className="vq-tool-panel vq-tool-panel--pad">
                         <p className="font-bold text-ink mb-1">Margin formula</p>
                         <p className="font-mono text-sm text-brand-600 dark:text-brand-300">margin % = (price − cost) ÷ price × 100</p>
                     </div>
-                    <div className="p-5 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+                    <div className="vq-tool-panel vq-tool-panel--pad">
                         <p className="font-bold text-ink mb-1">Markup formula</p>
                         <p className="font-mono text-sm text-brand-600 dark:text-brand-300">markup % = (price − cost) ÷ cost × 100</p>
                     </div>

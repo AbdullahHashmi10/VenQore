@@ -208,7 +208,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
             )}
 
             {/* Slim control bar — everything that ISN'T part of the document itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="w-40">
                     <Select
                         value={meta.orientation}
@@ -229,7 +229,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                         ]}
                     />
                 </div>
-                <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary cursor-pointer">
+                <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary cursor-pointer">
                     <input
                         type="checkbox"
                         checked={meta.show_sku}
@@ -241,11 +241,11 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                 <button
                     type="button"
                     onClick={() => setPasteMode((p) => !p)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors"
                 >
                     <ClipboardPaste size={13} /> {pasteMode ? 'Back to table' : 'Bulk paste'}
                 </button>
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
@@ -261,7 +261,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                         type="button"
                         onClick={handleGenerate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -271,7 +271,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
 
             {pasteMode ? (
                 /* Bulk paste — alternate input method, populates the table on import */
-                <div className="rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white p-6 sm:p-10">
+                <div className="vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white p-6 sm:p-10">
                     <div className="flex items-center gap-2 mb-3">
                         <FileText size={16} className="text-brand-500" />
                         <h3 className="text-sm font-bold text-ink">Bulk paste items</h3>
@@ -294,7 +294,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
                             <button type="button" onClick={() => setPasteMode(false)} className="px-4 py-2 bg-sunken hover:bg-interactive-hover text-ink-secondary text-xs font-bold rounded-lg">
                                 Cancel
                             </button>
-                            <button type="button" onClick={handleParseCsv} className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-lg">
+                            <button type="button" onClick={handleParseCsv} className="vq-btn vq-btn--primary">
                                 Import Items
                             </button>
                         </div>
@@ -303,7 +303,7 @@ export default function StockCountSheetTool({ maxItems = 500, suggestedReference
             ) : (
                 /* THE DOCUMENT — this is the editor. Orientation visually widens/narrows the container. */
                 <div className={`mx-auto transition-all ${isLandscape ? 'max-w-none' : 'max-w-3xl'}`}>
-                    <div className="rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white">
+                    <div className="vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white">
                         <div className="p-6 sm:p-10 text-ink text-sm" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                             {/* Header */}
                             <div className="flex flex-col sm:flex-row justify-between gap-6 mb-6 pb-4 border-b-2 border-neutral-900">

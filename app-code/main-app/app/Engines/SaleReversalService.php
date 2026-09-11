@@ -58,8 +58,8 @@ class SaleReversalService
      */
     public function reverse(Sale $sale, string $type, string $reason, string $userId): array
     {
-        // ─── Guard: Only posted sales can be reversed ─────────────────────────
-        if ($sale->status !== 'posted') {
+        // ─── Guard: Only posted (or partly returned) sales can be reversed ────
+        if (!in_array($sale->status, ['posted', 'partially_returned'], true)) {
             throw new \RuntimeException(
                 "Cannot reverse Sale {$sale->reference_number}: " .
                 "status is '{$sale->status}'. Only 'posted' sales can be reversed."
@@ -69,6 +69,41 @@ class SaleReversalService
         // ─── Guard: Valid reversal types only ──────────────────────────────────
         if (!in_array($type, ['cancelled', 'returned'])) {
             throw new \RuntimeException("Invalid reversal type: '{$type}'. Must be 'cancelled' or 'returned'.");
+        }
+
+        // ─── Already partly returned → only the remainder can be reversed ─────
+        // Mirroring the ORIGINAL sale entry in full would undo revenue, tax,
+        // COGS and AR/cash for units whose return entry is still posted (a
+        // double reversal), and the stock step below would put them back on
+        // the shelf a second time. Whatever is still out goes back through the
+        // engine's partial-return path, which values and restores just that.
+        $partlyReturned = $sale->status === 'partially_returned'
+            || DB::table('sale_items')->where('sale_id', $sale->id)->where('returned_quantity', '>', 0)->exists();
+
+        if ($partlyReturned) {
+            app(\App\Engines\SaleService::class)->reverse(
+                saleId: (string) $sale->id,
+                reason: "[{$type}] Reversal of {$sale->reference_number}: {$reason}",
+            );
+
+            DB::statement(
+                "UPDATE sales SET status = ?, updated_at = ? WHERE id = ?",
+                [$type, now(), $sale->id]
+            );
+
+            $summary = [
+                'sale_id'           => $sale->id,
+                'reference'         => $sale->reference_number,
+                'reversal_type'     => $type,
+                'journal_reversed'  => true,
+                'fifo_restored'     => true,
+                'stock_restored'    => true,
+                'items_restored'    => $sale->items()->count(),
+                'remainder_only'    => true,
+            ];
+            Log::info("SaleReversalService: remainder of partly-returned Sale {$sale->reference_number} reversed as '{$type}'", $summary);
+
+            return $summary;
         }
 
         $summary = [
@@ -83,9 +118,17 @@ class SaleReversalService
 
         // ─── Step 1: Reverse the Journal Entry ───────────────────────────────
         // Find the original journal entry for this sale (handles both UUID and reference_number)
-        $originalEntry = JournalEntry::where('reference', $sale->id)
-            ->orWhere('reference', $sale->reference_number)
-            ->first();
+        // The live SALE entry — not its advance settlement (same reference), nor
+        // a copy already undone by an edit (is_reversed = 1), which
+        // reverseEntry() would refuse.
+        $originalEntry = JournalEntry::where('reference_type', 'sale')
+            ->whereIn('reference', [$sale->id, $sale->reference_number])
+            ->where('is_reversed', 0)
+            ->first()
+            ?? JournalEntry::where(fn ($q) => $q->where('reference', $sale->id)->orWhere('reference', $sale->reference_number))
+                ->whereNotIn('reference_type', ['advance_settlement', 'sale_return', 'reversal'])
+                ->where('is_reversed', 0)
+                ->first();
 
         if ($originalEntry) {
             $reversalEntry = app(\App\Engines\AccountingService::class)->reverseEntry($originalEntry->id, "[{$type}] Reversal of {$sale->reference_number}: {$reason}");
@@ -125,6 +168,7 @@ class SaleReversalService
         // Read the sale_item_batches paper trail — this tells us EXACTLY which
         // inventory_batch was decremented and by how much. We put it back precisely.
         $fifoItemsRestored = 0;
+        $restoredQtyByItem = [];
 
         // Build the reversal note once — stamped on every affected batch record
         $reversalNote = "[{$type}] Reversal of {$sale->reference_number}: {$reason}";
@@ -158,6 +202,7 @@ class SaleReversalService
                             $batch->original_qty - $batch->remaining_qty
                         );
                         $batch->increment('remaining_qty', $restoredQty);
+                        $restoredQtyByItem[$saleItem->id] = ($restoredQtyByItem[$saleItem->id] ?? 0) + $restoredQty;
 
                         Log::info("FIFO restoration: batch {$batch->id}, restored {$restoredQty} units");
                     }
@@ -192,16 +237,22 @@ class SaleReversalService
                 continue;
             }
 
+            // Put back what actually went back into the batches. A legacy line's
+            // quantity excludes its free units while a V3 promotional line's
+            // includes them, so quantity + free_quantity double-counted the
+            // latter; the batch paper trail is right for both. Lines with no
+            // FIFO trail (pre-FIFO) keep the old quantity + free rule.
+            $totalQty = (float) ($restoredQtyByItem[$saleItem->id] ?? ($saleItem->quantity + ($saleItem->free_quantity ?? 0)));
+
             $stock = \App\Models\Stock::where('product_id', $saleItem->product_id)
                 ->where('warehouse_id', $sale->warehouse_id)
                 ->first();
             if ($stock) {
-                $totalQty = $saleItem->quantity + ($saleItem->free_quantity ?? 0);
                 $stock->increment('quantity', $totalQty);
             }
             // Also restore the Product master stock quantity
             \App\Models\Product::where('id', $saleItem->product_id)
-                ->increment('stock_quantity', $saleItem->quantity + ($saleItem->free_quantity ?? 0));
+                ->increment('stock_quantity', $totalQty);
         }
         $summary['stock_restored'] = true;
 

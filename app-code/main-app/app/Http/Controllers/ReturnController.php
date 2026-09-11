@@ -17,8 +17,18 @@ class ReturnController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Sale::query()
+        /* A sale returned on this screen is listed through its return
+           document (the negative SRET row); the original, now marked
+           returned too, would otherwise show up alongside it and cancel it
+           out of the totals below. */
+        $returned = fn () => Sale::query()
             ->where('status', 'returned')
+            ->whereNotExists(function ($q) {
+                $q->select(DB::raw(1))->from('sales as rd')
+                  ->whereColumn('rd.original_sale_id', 'sales.id');
+            });
+
+        $query = $returned()
             ->with(['customer', 'user', 'items.product']);
 
         // Search functionality
@@ -55,10 +65,10 @@ class ReturnController extends Controller
         
         // Calculate Stats
         $stats = [
-            'total_returns' => Sale::where('status', 'returned')->count(),
-            'total_refunded' => abs(Sale::where('status', 'returned')->sum('total')),
-            'items_returned' => abs(Sale::where('status', 'returned')->join('sale_items', 'sales.id', '=', 'sale_items.sale_id')->sum('sale_items.quantity')), // distinct items or total qty? Assuming qty for now
-            'this_month' => Sale::where('status', 'returned')->whereMonth('created_at', now()->month)->count(),
+            'total_returns' => $returned()->count(),
+            'total_refunded' => abs($returned()->sum('total')),
+            'items_returned' => abs($returned()->join('sale_items', 'sales.id', '=', 'sale_items.sale_id')->sum('sale_items.quantity')), // distinct items or total qty? Assuming qty for now
+            'this_month' => $returned()->whereMonth('sales.created_at', now()->month)->count(),
         ];
 
         return Inertia::render('Returns/ReturnsHistory', [
@@ -181,6 +191,16 @@ class ReturnController extends Controller
                     ->where('sale_items.sale_id', $originalId)
                     ->pluck('sale_items.quantity', 'sale_items.id');
 
+                /* Units already taken back on the original line itself —
+                   the engine's partial return (V3 / legacy sales.return) and
+                   this screen both record it there. Counting only this
+                   screen's own credit notes let goods returned through the
+                   engine be returned again here (stock, revenue and refund
+                   twice). */
+                $lineReturned = DB::table('sale_items')
+                    ->where('sale_id', $originalId)
+                    ->pluck('returned_quantity', 'id');
+
                 $back = DB::table('sale_items')
                     ->join('sales as r', 'sale_items.sale_id', '=', 'r.id')
                     ->where('r.tenant_id', $tenantId)
@@ -192,7 +212,8 @@ class ReturnController extends Controller
                     ->pluck('qty', 'line_id');
 
                 foreach ($sold as $lineId => $qty) {
-                    $returnable[$lineId] = max(0, (float) $qty - (float) ($back[$lineId] ?? 0));
+                    $already = max((float) ($back[$lineId] ?? 0), (float) ($lineReturned[$lineId] ?? 0));
+                    $returnable[$lineId] = max(0, (float) $qty - $already);
                 }
 
                 foreach ($request->items as $i => $item) {
@@ -387,6 +408,40 @@ class ReturnController extends Controller
                     $totalCogs += $data['quantity'] * $unitCost;
                 }
 
+                /* The original line now knows these units came back, so the
+                   engine (a later full return, cancel or delete of the sale)
+                   reverses only what is still out instead of the whole sale
+                   entry on top of this credit note. */
+                if ($data['original_sale_item_id']) {
+                    DB::table('sale_items')
+                        ->where('id', $data['original_sale_item_id'])
+                        ->increment('returned_quantity', $data['quantity']);
+                }
+
+                /* The counters the POS and stock screens read move with the
+                   batches, as they do on every other stock movement. */
+                if ($productRecord?->type !== 'service') {
+                    $stockRow = DB::table('stocks')
+                        ->where('tenant_id', $tenantId)
+                        ->where('product_id', $data['product_id'])
+                        ->where('warehouse_id', $warehouseId)
+                        ->first();
+                    if ($stockRow) {
+                        DB::table('stocks')->where('id', $stockRow->id)->increment('quantity', $data['quantity']);
+                    } else {
+                        DB::table('stocks')->insert([
+                            'id'           => \Illuminate\Support\Str::uuid()->toString(),
+                            'tenant_id'    => $tenantId,
+                            'product_id'   => $data['product_id'],
+                            'warehouse_id' => $warehouseId,
+                            'quantity'     => $data['quantity'],
+                            'created_at'   => now(),
+                            'updated_at'   => now(),
+                        ]);
+                    }
+                    DB::table('products')->where('id', $data['product_id'])->increment('stock_quantity', $data['quantity']);
+                }
+
                 \App\Models\StockMovement::create([
                     'product_id'   => $data['product_id'],
                     'warehouse_id' => $warehouseId,
@@ -479,6 +534,18 @@ class ReturnController extends Controller
                 'description' => "Auto journal — Return #{$sale->reference_number}",
                 'party_id' => $sale->party_id,
             ], $journalItems);
+
+            /* The original sale's status follows what is left on it. */
+            $open = DB::table('sale_items')
+                ->where('sale_id', $originalId)
+                ->whereNull('deleted_at')
+                ->whereRaw('returned_quantity < quantity - 0.0001')
+                ->exists();
+            DB::statement(
+                'UPDATE sales SET status = ?, updated_at = ? WHERE id = ? AND status IN (?, ?)',
+                [$open ? 'partially_returned' : 'returned', now(), $originalId, 'posted', 'partially_returned']
+            );
+            app(\App\Engines\PaymentService::class)->updatePaymentBadge($originalId);
 
             DB::commit();
 

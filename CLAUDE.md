@@ -318,7 +318,7 @@ with its components. See `finance.net_margin_pct`, `sales.gross_margin_pct`,
 - `Coupon` / `CouponRedemption` for discount codes.
 
 ### WooCommerce Integration
-- Webhook receiver auto-creates sales from WooCommerce orders.
+- Webhook receiver auto-creates sales from WooCommerce orders through `App\Services\WooSync\WooOrderPoster` only (idempotent on `WC-{id}` + cache lock; skips pending/failed/cancelled/refunded; revenue = Woo line totals + shipping, tax → 2100, COGS from FIFO). Public Woo endpoints check the HMAC signature **before** the plan, and resolve the store from the connection (no tenant session).
 - Stock sync command pushes inventory changes back to WooCommerce via API.
 - SKU-based product matching.
 
@@ -437,3 +437,26 @@ Stale git worktrees may exist in `.claude/worktrees/`. They can be safely pruned
 ```bash
 git worktree prune
 ```
+
+---
+
+## ⛔ Security rules added 2026-09-10 (pre-launch audit remediation)
+
+Full record: `app-code/main-app/docs/security-audit-2026-09-10/REMEDIATION-STATUS.md`.
+
+- **Sign-in:** every email/password login and signup goes through `App\Services\Auth\EmailOtpService` + `EmailOtpController` (6-digit emailed code). Never call `Auth::attempt()`/`Auth::login()` for a password login directly — use `LoginRequest::validateCredentials()` then start a challenge. Post-login routing lives in `App\Support\PostLoginRedirect`.
+- **Platform accounts:** `Require2FA` (global web middleware) forces authenticator-app MFA. Create owners only with `php artisan venqore:create-platform-owner` — never from public signup.
+- **Bare `/api/*` store routes** must use the `store.member` middleware. `users.last_store_id` is a UI preference, not authorization.
+- **Terminals** authenticate with `X-Device-Secret` (`App\Support\TerminalDeviceAuth`), issued once at pairing. Pairing needs a one-time code (`ABCD-2345`) created in Settings → Terminals (`TerminalPairingController`); the code is spent atomically. There is **no trust-on-first-use**: a terminal without a secret must re-pair with a code. The signed-in browser POS heartbeat (`store.api.heartbeat`) is answered without pairing and never creates terminal rows. Screenshots travel as PNG over the authenticated call and are encrypted at rest with the app key (`Crypt`); never derive keys from a device ID.
+- **Every store write route needs `->middleware('permission:…')`** (any-of list, keys from `config/permissions.php`). `PermissionBypassGuardTest` + `tests/VerificationCenter/registry/permission_ratchet.yaml` fail the build if an unprotected write route appears; only self-service routes (profile, appearance, notifications, own layout, attendance, heartbeat) are baselined. Checkout routes take `sales.create,pos.checkout` so cashiers can ring sales.
+- **Any user who has switched 2FA on** is asked for the code every session (`Require2FA`), not only platform accounts. The middleware runs before the tenant is bound — resolve the store from `store_slug` when you need it.
+- **Store clock:** `TenantMiddleware::applyStoreClock()` applies the store's `timezone`/`language` settings once the store is bound. `SettingsHelper` outside a store returns platform defaults only (`tenant_id IS NULL`) — never a user's last store.
+- **Outbound URLs** supplied by users (Woo store URLs, webhooks) go through `App\Rules\PublicHttpUrl` / `App\Support\OutboundUrlGuard` (no private/loopback/metadata IPs).
+- **Password changes and resets** call `App\Support\SessionRevoker::revokeOthers()` (other sessions, remember token, API tokens).
+- **Sort parameters** from requests are whitelisted (`asc|desc`, column must exist) before `orderBy`.
+- **Switches** (`config/venqore.php`, `VQ_*` env): `email_otp_required`, `require_owner_2fa`, `platform_pin_login_enabled`, `terminal_telemetry_enabled`, `web_installer_enabled`, `web_updater_enabled`, `otp.*` budgets. Defaults are the launch-safe values.
+- **Manager approval** (below-cost sales, discounts over a role's limit, bad-debt write-off, sales-order conversion, fiscal close, cash shortage) goes through `App\Support\ManagerApproval` (approver must be an active owner/admin/manager of THIS store; PIN required when the approver isn't the signed-in user). The main POS checkout uses `App\Support\PosSaleApprovalGuard` and answers 422 `code: approval_required`; the till shows the PIN pop-up. Never accept a bare `approved_by` user id.
+- **Every V3 validation rule on a tenant-owned id** must be store-scoped (`Rule::exists(...)->where('tenant_id', …)`); `Hardening/V3IdScopingTest` has a case per controller — add one when you add an endpoint.
+- **Ledger:** `AccountingService::createEntry()` is atomic and validates before writing; accounts a new store's chart lacks are created where they are posted (see `PayrollController`/`SettlementService`). Ledger reads by reference use `AccountingService::referenceBalance()`, never `journal_items` from a controller (Golden A08).
+- **Tests:** no `markTestSkipped`/`markTestIncomplete`/`assertTrue(true)` placeholders — the suite runs 2,638 tests with none skipped. Scope count assertions to your own tenants (Golden fixtures commit rows). New rulebook scenarios go in `tests/tests/Feature/V3/Scenarios/Phase*ScenariosTest.php`; regressions in `tests/tests/Feature/Hardening/`. After adding test files run `php tests/Scripts/update_suites.php`.
+- Tests for all of this: `tests/tests/Feature/Security/PreLaunchSecurityTest.php`, `EmailOtpAuthTest.php`, `RouteGapSweepTest.php`, `tests/tests/Feature/TerminalAppIntegrationTest.php`, `tests/tests/Feature/Hardening/*`.

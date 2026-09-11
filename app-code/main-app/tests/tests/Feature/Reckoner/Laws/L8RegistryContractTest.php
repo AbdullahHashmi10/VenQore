@@ -43,10 +43,9 @@ class L8RegistryContractTest extends TestCase
             "Reading '{$key}' has no usable 'source' class and no 'derived' declaration.");
     }
 
-    #[DataProvider('registryProvider')]
+    #[DataProvider('sourceBackedProvider')]
     public function test_source_backed_reading_has_existing_method(string $key, array $def): void
     {
-        if (isset($def['derived'])) { $this->markTestSkipped("{$key} is derived."); }
         $src    = $def['source'] ?? null;
         $method = $def['method'] ?? null;
         if (! $src || ! class_exists($src)) { $this->fail("Source class '{$src}' does not exist for '{$key}'."); }
@@ -59,12 +58,11 @@ class L8RegistryContractTest extends TestCase
         );
     }
 
-    #[DataProvider('registryProvider')]
+    #[DataProvider('sourceBackedProvider')]
     public function test_source_supports_reading_key(string $key, array $def): void
     {
-        if (isset($def['derived'])) { $this->markTestSkipped("{$key} is derived."); }
         $src = $def['source'] ?? null;
-        if (! $src || ! class_exists($src)) { $this->markTestSkipped("Missing source class."); }
+        $this->assertTrue($src && class_exists($src), "Source class '{$src}' does not exist for '{$key}'.");
         /** @var \App\Reckoner\Sources\ReckonerSource $source */
         $source = app($src);
         $this->assertContains(
@@ -74,10 +72,9 @@ class L8RegistryContractTest extends TestCase
         );
     }
 
-    #[DataProvider('registryProvider')]
+    #[DataProvider('derivedProvider')]
     public function test_derived_reading_has_compute_closure_and_deps(string $key, array $def): void
     {
-        if (! isset($def['derived'])) { $this->markTestSkipped("{$key} is not derived."); }
         $this->assertIsArray($def['derived'],
             "Derived '{$key}' must have array 'derived' dep list.");
         $this->assertNotEmpty($def['derived'],
@@ -86,10 +83,9 @@ class L8RegistryContractTest extends TestCase
             "Derived '{$key}' must have a callable 'compute' closure.");
     }
 
-    #[DataProvider('registryProvider')]
+    #[DataProvider('derivedProvider')]
     public function test_derived_deps_exist_in_registry(string $key, array $def): void
     {
-        if (! isset($def['derived'])) { $this->markTestSkipped("{$key} is not derived."); }
         foreach ($def['derived'] as $depKey) {
             $this->assertTrue(ReckonerRegistry::exists($depKey),
                 "Derived '{$key}' depends on '{$depKey}', which is not in the registry.");
@@ -125,12 +121,9 @@ class L8RegistryContractTest extends TestCase
             "Array key '{$key}' does not match 'key' field '{$def['key']}'.");
     }
 
-    #[DataProvider('registryProvider')]
+    #[DataProvider('tenantScopedProvider')]
     public function test_tenant_readings_have_permissions(string $key, array $def): void
     {
-        if (($def['scope'] ?? 'tenant') === 'platform') {
-            $this->markTestSkipped("Platform readings may have empty permissions.");
-        }
         $this->assertNotEmpty($def['permissions'] ?? [],
             "Tenant reading '{$key}' must declare at least one permission.");
     }
@@ -144,13 +137,78 @@ class L8RegistryContractTest extends TestCase
             "Reading '{$key}' cache_ttl must be >= 0.");
     }
 
-    // ── Data Provider ────────────────────────────────────────────────────────
+    #[DataProvider('platformScopedProvider')]
+    public function test_platform_readings_declare_a_permissions_list(string $key, array $def): void
+    {
+        // Platform readings may legitimately have no store permission (they are
+        // gated by the platform role instead), but the field must still be a list.
+        $this->assertIsArray($def['permissions'] ?? null,
+            "Platform reading '{$key}' must declare 'permissions' as an array (it may be empty).");
+    }
+
+    /**
+     * The split providers below replace per-case markTestSkipped() calls
+     * (2026-09-10): a check that does not apply to a reading is not run for it,
+     * instead of being reported as "skipped". This asserts nothing fell
+     * through the split.
+     */
+    public function test_providers_partition_the_whole_registry(): void
+    {
+        $all = array_keys(iterator_to_array(self::registryProvider()));
+        $bySource = array_keys(iterator_to_array(self::sourceBackedProvider()));
+        $byDerived = array_keys(iterator_to_array(self::derivedProvider()));
+        $tenant = array_keys(iterator_to_array(self::tenantScopedProvider()));
+        $platform = array_keys(iterator_to_array(self::platformScopedProvider()));
+
+        $this->assertNotEmpty($all);
+        $this->assertEqualsCanonicalizing($all, array_merge($bySource, $byDerived));
+        $this->assertEqualsCanonicalizing($all, array_merge($tenant, $platform));
+        $this->assertSame([], array_intersect($bySource, $byDerived));
+    }
+
+    // ── Data Providers ───────────────────────────────────────────────────────
 
     public static function registryProvider(): iterable
     {
         ReckonerRegistry::clearCache();
         foreach (ReckonerRegistry::all() as $key => $def) {
             yield $key => [$key, $def];
+        }
+    }
+
+    public static function sourceBackedProvider(): iterable
+    {
+        foreach (self::registryProvider() as $key => [$k, $def]) {
+            if (! isset($def['derived'])) {
+                yield $key => [$k, $def];
+            }
+        }
+    }
+
+    public static function derivedProvider(): iterable
+    {
+        foreach (self::registryProvider() as $key => [$k, $def]) {
+            if (isset($def['derived'])) {
+                yield $key => [$k, $def];
+            }
+        }
+    }
+
+    public static function tenantScopedProvider(): iterable
+    {
+        foreach (self::registryProvider() as $key => [$k, $def]) {
+            if (($def['scope'] ?? 'tenant') !== 'platform') {
+                yield $key => [$k, $def];
+            }
+        }
+    }
+
+    public static function platformScopedProvider(): iterable
+    {
+        foreach (self::registryProvider() as $key => [$k, $def]) {
+            if (($def['scope'] ?? 'tenant') === 'platform') {
+                yield $key => [$k, $def];
+            }
         }
     }
 }

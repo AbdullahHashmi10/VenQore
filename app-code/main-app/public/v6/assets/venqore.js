@@ -497,7 +497,7 @@
 
       if (pointsEl) {
         pointsEl.innerHTML = data.points.map(function (p) {
-          return '<span style="display: flex; gap: 10px; font: 500 13.5px/1.5 var(--vq-font-sans); color: #EDF2EF;"><span style="color: #4BD99B; font-family: var(--vq-font-numeric);">+</span>' + p + '</span>';
+          return '<span style="display: flex; gap: 10px; font: 500 15px/1.55 var(--vq-font-sans); color: var(--vq-text);"><span style="color: var(--vq-success); font-family: var(--vq-font-numeric);">+</span>' + p + '</span>';
         }).join('');
       }
 

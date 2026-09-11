@@ -42,15 +42,17 @@ import { Head } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
     ArrowRight, Building2, Check, ChevronDown, Compass, Globe, Lock, Mail,
-    Phone, Rocket, Send, ShieldCheck, Sparkles, Wand2,
+    Phone, Rocket, Send, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
+import useTurnstile from '@/Components/Builder/useTurnstile';
 import {
     BuilderShell,
     ConversationalDiscovery,
     HandoffTips,
     LiveStack,
     ModuleGrid,
+    PromptTextarea,
     QuestionStep,
     RecommendedBand,
     StackPill,
@@ -117,6 +119,7 @@ export default function BuildWorkspace({
     recommended = {},
     presets = {},
 }) {
+    const getTurnstileToken = useTurnstile();
 
     /* ── Phase machine ─────────────────────────────────────────────────────
        'intent' is skipped when the landing hero already captured a sentence,
@@ -161,6 +164,27 @@ export default function BuildWorkspace({
 
     const [discoveryMode, setDiscoveryMode] = useSessionState(`${STORAGE_KEY}:discoveryMode`, 'ai');
 
+    /* The intent box edits a local draft, not the persisted `prompt`. A draft
+       that was never submitted must not greet someone who comes back via the
+       browser's back button — only real mid-flow state is restored. So the
+       draft starts empty on the intent screen, and starts from the submitted
+       sentence only when this visit resumed PAST intent (then Back/Edit lands
+       on a box holding what they actually sent). */
+    const [draft, setDraft] = useState(() => (rawPhase !== 'intent' ? prompt || '' : ''));
+
+    /* The conversational flow reports its own readiness (0–100); the shell's
+       rail reads it so the bar moves while the AI asks. Never goes backwards. */
+    const [aiProgress, setAiProgress] = useState(0);
+
+    /* The conversation mounts only after the mount effect below has decided
+       fresh-attempt vs. resume. Before that, `prompt` is still whatever this
+       tab hydrated from sessionStorage — mounting on it would flash (and
+       resume) the PREVIOUS business's conversation for one frame. */
+    const [attemptResolved, setAttemptResolved] = useState(false);
+    const handleAiProgress = (pct) => {
+        if (typeof pct === 'number') setAiProgress((p) => Math.max(p, Math.min(100, pct)));
+    };
+
     const handleAiComplete = (proposal, modules, preset) => {
         if (modules && modules.length > 0) {
             setBaseModules(modules);
@@ -178,7 +202,14 @@ export default function BuildWorkspace({
     };
 
     const handleAiStateUpdate = (confirmedCaps, facts) => {
-        if (confirmedCaps && confirmedCaps.length > 0) {
+        /* `capabilities` holds {key, label, …} objects (see analyse). The
+           conversation reports bare capability keys; storing those here would
+           poison catalogueByKey, so only object-shaped lists are accepted. */
+        if (
+            Array.isArray(confirmedCaps) &&
+            confirmedCaps.length > 0 &&
+            confirmedCaps.every((c) => c && typeof c === 'object' && c.key)
+        ) {
             setCapabilities(confirmedCaps);
         }
     };
@@ -191,6 +222,7 @@ export default function BuildWorkspace({
         [
             'phase', 'qIndex', 'prompt', 'presetKey', 'presetLabel',
             'presetDesc', 'baseModules', 'capabilities', 'edited', 'matched',
+            'converse', 'discoveryMode',
         ].forEach((slot) => {
             try {
                 window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
@@ -281,6 +313,7 @@ export default function BuildWorkspace({
         const isFreshAttempt =
             (incomingPrompt && incomingPrompt !== prompt) ||
             (incomingPreset && incomingPreset !== presetKey);
+        if (!isFreshAttempt) setAttemptResolved(true);
 
         if (isFreshAttempt) {
             resetAnswers();
@@ -295,7 +328,9 @@ export default function BuildWorkspace({
             setEdited(null);
             setQIndex(0);
             setPhase(incomingPrompt ? 'questions' : 'intent');
+            setDraft(incomingPrompt);
             setAnalysed(false);
+            setAttemptResolved(true);
             return;
         }
 
@@ -407,13 +442,28 @@ export default function BuildWorkspace({
         advance();
     };
 
-    const startFromPrompt = () => {
-        if (!prompt.trim()) {
+    const startFromPrompt = (submitted) => {
+        const text = (typeof submitted === 'string' ? submitted : draft).trim();
+        if (!text) {
             promptRef.current?.focus();
             return;
         }
+        if (text !== prompt) {
+            /* A new sentence is a new attempt: re-resolve the preset in the
+               background (as the landing-page path does on mount) so the side
+               panel has a stack while the questions run. */
+            setPrompt(text);
+            setEdited(null);
+            setAiProgress(0);
+            analyse(text, initialPreset || '', {});
+        }
         setDiscoveryMode('ai');
         setPhase('questions');
+    };
+
+    const editPrompt = () => {
+        setDraft(prompt || '');
+        setPhase('intent');
     };
 
     const toggleModule = (key) => {
@@ -448,7 +498,9 @@ export default function BuildWorkspace({
         setPhase('building');
         setBuildIndex(0);
         try {
+            const turnstileToken = await getTurnstileToken();
             const data = await postJson(route('workspace.provision'), {
+                ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
                 business_name: businessName || 'My Business',
                 currency,
                 phone,
@@ -507,7 +559,10 @@ export default function BuildWorkspace({
         phase === 'intent'
             ? 1
             : phase === 'questions'
-              ? (hasIntent ? 1 : 0) + qIndex + 1
+              ? (hasIntent ? 1 : 0) +
+                (discoveryMode !== 'manual'
+                    ? Math.max(1, Math.round((aiProgress / 100) * questions.length))
+                    : qIndex + 1)
               : phase === 'reveal'
                 ? (hasIntent ? 1 : 0) + questions.length + 1
                 : phase === 'identity'
@@ -516,7 +571,7 @@ export default function BuildWorkspace({
 
     const backTarget = () => {
         if (phase === 'questions' && qIndex > 0) return () => setQIndex((i) => i - 1);
-        if (phase === 'questions' && hasIntent) return () => setPhase('intent');
+        if (phase === 'questions' && hasIntent) return editPrompt;
         if (phase === 'reveal' && questions.length) {
             return () => {
                 setPhase('questions');
@@ -557,6 +612,7 @@ export default function BuildWorkspace({
         <>
             <Head title="Build your VenQore workspace" />
             <BuilderShell
+                siteChrome
                 step={stepNow}
                 total={phase === 'building' ? 0 : totalSteps}
                 eyebrow={presetLabel || 'Your ERP, built by AI'}
@@ -600,63 +656,71 @@ export default function BuildWorkspace({
                                     transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                                     className="mx-auto max-w-2xl"
                                 >
-                                    <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-                                        Tell us what your business does.
-                                    </h1>
-                                    <p className="mt-3 text-base leading-relaxed text-ink-secondary">
-                                        One sentence in your own words. This does most of
-                                        the work &mdash; the questions after it are quick.
-                                    </p>
+                                    <div className="vq-intent">
+                                        <h1 className="vq-intent__title">
+                                            Tell us what your business does.
+                                        </h1>
+                                        <p className="vq-intent__lede" id="vq-intent-lede">
+                                            One sentence in your own words, in any language. This
+                                            does most of the work &mdash; the questions after it
+                                            are quick.
+                                        </p>
 
-                                    <textarea
-                                        ref={promptRef}
-                                        rows={3}
-                                        value={prompt}
-                                        onChange={(e) => setPrompt(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                                                startFromPrompt();
+                                        <PromptTextarea
+                                            ref={promptRef}
+                                            size="lg"
+                                            value={draft}
+                                            onChange={setDraft}
+                                            onSubmit={startFromPrompt}
+                                            maxLength={600}
+                                            minRows={1}
+                                            maxRows={5}
+                                            autoFocus
+                                            ariaLabel="Describe your business"
+                                            ariaDescribedBy="vq-intent-lede"
+                                            placeholder="We sell…"
+                                            submitText="Start building"
+                                            submitLabel="Start building"
+                                            submitIcon={ArrowRight}
+                                            hint={
+                                                <>
+                                                    <kbd>Enter</kbd> to start · <kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line
+                                                </>
                                             }
-                                        }}
-                                        placeholder="We sell…"
-                                        className="mt-6 w-full resize-none rounded-lg border border-line bg-surface p-4 text-base text-ink shadow-sm placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                                    />
+                                        />
 
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {EXAMPLES.map((ex) => (
-                                            <button
-                                                key={ex}
-                                                type="button"
-                                                onClick={() => setPrompt(ex)}
-                                                className="rounded-full border border-line bg-surface px-3 py-1.5 text-2xs text-ink-secondary transition-colors duration-fast ease-standard hover:border-accent hover:bg-accent-quiet hover:text-accent-text"
-                                            >
-                                                {ex.length > 42 ? `${ex.slice(0, 40)}…` : ex}
-                                            </button>
-                                        ))}
+                                        <div className="vq-intent__examples" role="group" aria-label="Examples">
+                                            {EXAMPLES.map((ex) => (
+                                                <button
+                                                    key={ex}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setDraft(ex);
+                                                        promptRef.current?.focus();
+                                                    }}
+                                                    className="vq-chip"
+                                                >
+                                                    {ex}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={startFromPrompt}
-                                        className="mt-7 inline-flex h-12 items-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                                    >
-                                        <Wand2 size={16} />
-                                        Start building
-                                        <ArrowRight size={16} />
-                                    </button>
                                 </motion.div>
                             )}
 
                             {/* ─── 2. The questions / AI Discovery ─────────────────── */}
                             {phase === 'questions' && (
                                 discoveryMode !== 'manual' ? (
-                                    <ConversationalDiscovery
+                                    attemptResolved && <ConversationalDiscovery
                                         key={`ai-discovery-${prompt || 'init'}`}
                                         initialPrompt={prompt}
                                         initialPreset={presetKey}
                                         onComplete={handleAiComplete}
                                         onFallbackToManual={() => setDiscoveryMode('manual')}
                                         onStateUpdate={handleAiStateUpdate}
+                                        onProgress={handleAiProgress}
+                                        onEditPrompt={editPrompt}
+                                        storageKey={`${STORAGE_KEY}:converse`}
                                     />
                                 ) : (
                                     questions[qIndex] && (

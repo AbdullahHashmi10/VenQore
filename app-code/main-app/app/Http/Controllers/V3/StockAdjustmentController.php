@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V3;
 use App\Http\Controllers\Controller;
 use App\Engines\InventoryService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class StockAdjustmentController extends Controller
 {
@@ -14,9 +15,11 @@ class StockAdjustmentController extends Controller
 
     public function store(Request $request)
     {
+        // Product and warehouse must be this store's.
+        $tenantId = app('current.tenant')->id;
         $rules = [
-            'product_id'   => ['required', 'string', 'exists:products,id'],
-            'warehouse_id' => ['required', 'string', 'exists:warehouses,id'],
+            'product_id'   => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'warehouse_id' => ['required', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
             'direction'    => ['required', 'in:increase,decrease'],
             'qty'          => ['required', 'numeric', 'min:0.0001'],
             'unit_cost'    => ['required_if:direction,increase',

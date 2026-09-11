@@ -98,78 +98,70 @@ class PurchaseController extends Controller
             $query->orderBy('purchases.created_at', $sortDir);
         }
 
-        // Calculate statistics for the list view
-        $apAccount = DB::table('accounts')
-            ->where('code', '2000')
-            ->where('tenant_id', $tenantId)
-            ->value('id');
-
-        $applyStatsScope = function ($q) use ($tenantId, $request) {
-            $q->where('journal_entries.tenant_id', $tenantId);
-            if ($request->filled('from_date') && $request->filled('to_date')) {
-                $q->whereBetween('journal_entries.date', [
-                    $request->input('from_date'),
-                    $request->input('to_date'),
-                ]);
-            }
-            return $q;
-        };
-
-        // Total invoiced = sum of all AP credits (what we owe suppliers)
-        $totalPurchase = (float) $applyStatsScope(
-            DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.reference_type', 'purchase')
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-        )->sum('journal_items.credit');
-
-        // Total paid = sum of all AP debits against purchase entries and payments
-        $totalPaid = (float) $applyStatsScope(
-            DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->whereIn('journal_entries.reference_type', ['purchase', 'purchase_payment'])
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-        )->sum('journal_items.debit');
-
-        $totalDue = $totalPurchase - $totalPaid;
+        /* The summary is read from the same source of truth as each row's
+           badge (PaymentService::purchaseSettlementSummaries): paid at the
+           counter + every allocation (Supplier Payments, the Payments screen,
+           backfilled legacy payments), less purchase returns and debit notes
+           for what is owed. It used to sum AP debits on `purchase` /
+           `purchase_payment` entries only, so nothing paid through Supplier
+           Payments or the Payments screen ever reached "Paid", and "Due"
+           ignored returns. A voided purchase owes nothing and an unreceived
+           one owes nothing yet. */
+        $paymentService = app(\App\Engines\PaymentService::class);
 
         $stats = [
-            'total_purchase' => $totalPurchase,
-            'total_paid'     => $totalPaid,
-            'total_due'      => $totalDue,
+            'total_purchase' => 0.0,
+            'total_paid'     => 0.0,
+            'total_due'      => 0.0,
             'pending_count'  => DB::table('purchases')
                 ->where('tenant_id', $tenantId)
                 ->where('workflow_status', 'pending')
                 ->count(),
         ];
 
-        $purchases = $query->paginate(50)
-            ->withQueryString()
-            ->through(function ($purchase) use ($tenantId, $apAccount) {
+        DB::table('purchases')
+            ->where('tenant_id', $tenantId)
+            ->where(fn ($q) => $q->whereNull('workflow_status')->orWhereNotIn('workflow_status', ['pending', 'cancelled']))
+            ->when($request->filled('from_date') && $request->filled('to_date'), fn ($q) => $q->whereBetween('purchase_date', [
+                $request->input('from_date'),
+                $request->input('to_date'),
+            ]))
+            ->select('id', 'total', 'payment_status')
+            ->orderBy('id')
+            ->chunk(500, function ($chunk) use ($paymentService, &$stats) {
+                $summaries = $paymentService->purchaseSettlementSummaries($chunk);
+                foreach ($chunk as $purchase) {
+                    [$paid, $balance] = $this->listFigures($purchase, $summaries[(string) $purchase->id]);
+                    $stats['total_purchase'] += (float) $purchase->total;
+                    $stats['total_paid']     += $paid;
+                    $stats['total_due']      += $balance;
+                }
+            });
+
+        $stats['total_purchase'] = round($stats['total_purchase'], 2);
+        $stats['total_paid']     = round($stats['total_paid'], 2);
+        $stats['total_due']      = round($stats['total_due'], 2);
+
+        $purchases = $query->paginate(50)->withQueryString();
+
+        // One batch of settlement queries for the page, not three per row.
+        $summaries = $paymentService->purchaseSettlementSummaries(
+            $purchases->getCollection()->map(fn ($p) => (object) $p->getAttributes())
+        );
+
+        $purchases = $purchases
+            ->through(function ($purchase) use ($tenantId, $summaries) {
                 $extras = (float) DB::table('expenses')
                     ->where('tenant_id', $tenantId)
                     ->where('purchase_id', $purchase->id)
                     ->where('is_landed_cost', true)
                     ->sum('amount');
 
-                // Read paid amount from ledger journal entries
-                $paid = (float) DB::table('journal_items')
-                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                    ->where('journal_entries.tenant_id', $tenantId)
-                    ->where('journal_entries.reference', $purchase->id)
-                    ->whereIn('journal_entries.reference_type', ['purchase_payment', 'purchase'])
-                    ->where('journal_entries.is_reversed', 0)
-                    ->where('journal_items.account_id', $apAccount)
-                    ->sum('journal_items.debit');
-
-                if ($purchase->payment_status === 'paid' && $paid <= 0) {
-                    $paid = (float) $purchase->total;
-                }
+                // Paid / balance from the same reading the badge uses: counter
+                // payment + allocations, less debit notes for what is owed.
+                [$paid, $balance] = $this->listFigures($purchase, $summaries[(string) $purchase->id]);
 
                 $total = (float) $purchase->total;
-                $balance = max(0.0, $total - $paid);
 
                 return [
                     'id'              => $purchase->id,
@@ -257,10 +249,27 @@ class PurchaseController extends Controller
 
         // Every journal entry the document has ever raised, including reversals,
         // so the audit trail is visible rather than just the current one.
+        /* A return's entry is referenced by the RETURN id, not the purchase id
+           (PurchaseService::createReturn), so it is found through
+           purchase_returns.journal_entry_id. One query with an OR, so an entry
+           that matches both ways (migrated legacy returns) is listed once. */
+        $returnEntryIds = DB::table('purchase_returns')
+            ->where('tenant_id', $tenantId)
+            ->where('purchase_id', $id)
+            ->whereNotNull('journal_entry_id')
+            ->pluck('journal_entry_id');
+
         $journalEntries = DB::table('journal_entries')
             ->where('tenant_id', $tenantId)
-            ->where('reference', $id)
-            ->whereIn('reference_type', ['purchase', 'purchase_payment', 'purchase_reversal', 'purchase_return'])
+            ->where(function ($q) use ($id, $returnEntryIds) {
+                $q->where(function ($own) use ($id) {
+                    $own->where('reference', $id)
+                        ->whereIn('reference_type', ['purchase', 'purchase_payment', 'purchase_reversal', 'purchase_return']);
+                });
+                if ($returnEntryIds->isNotEmpty()) {
+                    $q->orWhereIn('id', $returnEntryIds);
+                }
+            })
             ->orderBy('created_at')
             ->get();
 
@@ -297,6 +306,10 @@ class PurchaseController extends Controller
             'landedCosts'    => $landedCosts,
             'returns'        => $returns,
             'paidAmount'     => $this->paidAmount($id, $tenantId),
+            /* Where the bill stands — total, paid, returned, outstanding — from
+               the badge's own reading. The page used to work outstanding out
+               as total − paid, which ignored returns. */
+            'settlement'     => app(\App\Engines\PaymentService::class)->purchaseSettlementSummary($purchase),
         ]);
     }
 
@@ -518,49 +531,47 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Paid amount is DERIVED from the ledger, never stored. Sums AP debits on
-     * non-reversed purchase_payment entries for this purchase.
-     */
-    /**
-     * How much of this purchase has been settled, counting BOTH kinds of
-     * payment: money handed over at the counter when the purchase was entered,
-     * and payments recorded against it afterwards.
+     * A list row's paid and balance figures, for the rows and their summary
+     * alike. A purchase marked paid with nothing behind it in the ledger (a
+     * migrated legacy bill) reads as paid in full and owing nothing.
      *
-     * Only the second was counted before, which was right when a purchase was
-     * paid in full or not at all. Now that part of a bill can be settled on the
-     * spot, missing the first meant an edit read back "nothing paid" and
-     * re-posted the whole bill to the supplier's account.
+     * @return array{0: float, 1: float}  [paid, balance]
+     */
+    private function listFigures(object $purchase, array $settlement): array
+    {
+        $total = (float) $purchase->total;
+        $paid  = min($settlement['paid'], $total);
+
+        if ($purchase->payment_status === 'paid' && $paid <= 0) {
+            $paid = $total;
+        }
+
+        $balance = $purchase->payment_status === 'paid' ? 0.0 : $settlement['outstanding'];
+
+        return [round($paid, 2), round($balance, 2)];
+    }
+
+    /**
+     * How much of this purchase has been settled — money handed over at the
+     * counter when it was entered, plus every payment allocated to it since
+     * (v3 supplier payments, the Payments screen, backfilled legacy
+     * purchase_payment entries).
+     *
+     * Read from PaymentService::purchaseSettlementSummary(), the same source
+     * the payment badge is computed from. This used to count only
+     * `purchase_payment` journal entries, which nothing posts any more, so a
+     * purchase paid through Supplier Payments showed "paid" on its badge and
+     * nothing paid on its show and edit screens.
      */
     private function paidAmount(string $purchaseId, string $tenantId): float
     {
-        $later = (float) (DB::table('journal_items as ji')
-            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
-            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
-            ->where('je.tenant_id', $tenantId)
-            ->where('je.is_reversed', 0)
-            ->where('je.reference_type', 'purchase_payment')
-            ->where('je.reference', $purchaseId)
-            ->where('a.code', '2000')
-            ->sum('ji.debit') ?? 0);
+        $purchase = DB::table('purchases')->where('tenant_id', $tenantId)->where('id', $purchaseId)->first();
+        if (! $purchase) {
+            return 0.0;
+        }
 
-        /* What was put ON ACCOUNT when the purchase was posted. Anything of the
-           bill that was not put on account was paid there and then. */
-        $onAccount = (float) (DB::table('journal_items as ji')
-            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
-            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
-            ->where('je.tenant_id', $tenantId)
-            ->where('je.is_reversed', 0)
-            ->where('je.reference_type', 'purchase')
-            ->where('je.reference', $purchaseId)
-            ->where('a.code', '2000')
-            ->whereNotNull('ji.party_id')
-            ->sum('ji.credit') ?? 0);
+        $summary = app(\App\Engines\PaymentService::class)->purchaseSettlementSummary($purchase);
 
-        $total = (float) (DB::table('purchases')
-            ->where('tenant_id', $tenantId)->where('id', $purchaseId)->value('total') ?? 0);
-
-        $atCounter = max(0.0, round($total - $onAccount, 2));
-
-        return round(min($atCounter + $later, $total), 2);
+        return round(min($summary['paid'], $summary['total']), 2);
     }
 }

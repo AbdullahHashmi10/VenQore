@@ -5,6 +5,7 @@ export { default as ThemeSegment, applyTheme, SPRING } from './ThemeSegment';
 export { default as OptionCard } from './OptionCard';
 export { default as QuestionStep } from './QuestionStep';
 export { default as ConversationalDiscovery } from './ConversationalDiscovery';
+export { default as PromptTextarea } from './PromptTextarea';
 export { default as LiveStack } from './LiveStack';
 export { default as StackPill } from './StackPill';
 export { default as ModuleGrid } from './ModuleGrid';

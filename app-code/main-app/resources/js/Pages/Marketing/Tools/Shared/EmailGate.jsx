@@ -50,57 +50,63 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
     };
 
     return (
-        <div className="fixed inset-0 z-drawer flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={handleClose}>
+        <div className="vq-gate" onClick={handleClose}>
             <div
-                className="w-full max-w-md rounded-2xl bg-neutral-950 border border-line dark:border-white/10 p-8 relative"
+                className="vq-gate__card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="vq-gate-title"
                 onClick={(e) => e.stopPropagation()}
             >
-                <button onClick={handleClose} className="absolute top-5 right-5 text-ink-muted hover:text-white transition-colors" aria-label="Close">
+                <button type="button" onClick={handleClose} className="vq-gate__close" aria-label="Close">
                     <X size={20} />
                 </button>
 
                 {!submitted ? (
                     <>
-                        <div className="w-12 h-12 rounded-2xl bg-brand-500/15 border border-brand-400/20 flex items-center justify-center mb-5">
-                            <Mail size={20} className="text-brand-300" />
+                        <div className="vq-tile__icon" aria-hidden="true">
+                            <Mail size={20} />
                         </div>
-                        <h3 className="text-xl font-bold text-ink mb-2">{title || 'Where should we send it?'}</h3>
-                        <p className="text-sm text-ink-muted mb-6">
+                        <h3 id="vq-gate-title" className="vq-h3 vq-mt-2">{title || 'Where should we send it?'}</h3>
+                        <p className="vq-small vq-text-2 vq-mt-2">
                             {subtitle || "Your PDF downloads straight away — we'll email you a copy so you can find it later."}
                         </p>
 
-                        <form onSubmit={submit} className="space-y-4">
-                            <div>
+                        <form onSubmit={submit} className="vq-gate__form">
+                            <div className="vq-field">
+                                <label htmlFor="vq-gate-email" className="vq-label">Email</label>
                                 <input
+                                    id="vq-gate-email"
                                     type="email"
                                     required
                                     placeholder="you@company.com"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/50"
+                                    className="vq-input"
                                 />
-                                {errors.email && <p className="text-xs text-red-400 mt-1.5">{errors.email}</p>}
+                                {errors.email && <p className="vq-gate__error">{errors.email}</p>}
                             </div>
 
-                            <div>
+                            <div className="vq-field">
+                                <label htmlFor="vq-gate-name" className="vq-label">Name <span className="vq-text-3">(optional)</span></label>
                                 <input
+                                    id="vq-gate-name"
                                     type="text"
-                                    placeholder="Name (optional)"
+                                    placeholder="Your name"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-line dark:border-white/10 text-ink placeholder-slate-500 text-sm focus:outline-none focus:border-brand-400/50"
+                                    className="vq-input"
                                 />
                             </div>
 
                             {/* Marketing checkbox — UNCHECKED by default. Do not change. (plan §15.2) */}
-                            <label className="flex items-start gap-3 cursor-pointer">
+                            <label className="vq-gate__consent">
                                 <input
                                     type="checkbox"
                                     checked={data.marketing_consent}
                                     onChange={(e) => setData('marketing_consent', e.target.checked)}
-                                    className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/[0.04] accent-brand-500"
                                 />
-                                <span className="text-xs text-ink-muted leading-relaxed">
+                                <span>
                                     Also send me occasional retail and POS tips from VenQore. No spam, unsubscribe anytime.
                                 </span>
                             </label>
@@ -108,30 +114,27 @@ export default function EmailGate({ open, onClose, toolSlug, toolName, deliverab
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="w-full py-3.5 bg-white text-void-900 rounded-xl text-sm font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                                className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block"
                             >
                                 {processing ? 'Sending…' : 'Download my PDF'}
                             </button>
 
-                            <p className="text-1xs text-ink-secondary text-center leading-relaxed">
-                                We'll email your file right away. We never sell your data.{''}
-                                <a href="/privacy" className="underline hover:text-ink-muted">Privacy Policy</a>
+                            <p className="vq-caption vq-center" style={{ marginInline: 'auto' }}>
+                                We'll email your file right away. We never sell your data.{' '}
+                                <a href="/privacy">Privacy Policy</a>
                             </p>
                         </form>
                     </>
                 ) : (
-                    <div className="text-center py-6">
-                        <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center mx-auto mb-5">
-                            <Mail size={22} className="text-emerald-600 dark:text-emerald-400" />
+                    <div className="vq-center" style={{ paddingBlock: 'var(--vq-space-4)' }}>
+                        <div className="vq-gate__done" aria-hidden="true">
+                            <Mail size={22} />
                         </div>
-                        <h3 className="text-xl font-bold text-ink mb-2">Check your email</h3>
-                        <p className="text-sm text-ink-muted mb-6">
+                        <h3 id="vq-gate-title" className="vq-h3">Check your email</h3>
+                        <p className="vq-small vq-text-2 vq-mt-2" style={{ marginInline: 'auto' }}>
                             We've sent your file to {data.email}.
                         </p>
-                        <button
-                            onClick={handleClose}
-                            className="px-6 py-2.5 bg-white/[0.06] border border-white/15 text-ink rounded-full text-sm font-bold hover:bg-white/[0.1] transition-colors"
-                        >
+                        <button type="button" onClick={handleClose} className="vq-btn vq-btn--secondary vq-mt-6">
                             Close
                         </button>
                     </div>

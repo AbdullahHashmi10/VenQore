@@ -618,7 +618,11 @@ ${Object.entries(ROLE_ALIASES).map(([role, target]) => `        ${role}: null, /
     );
 
     fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
-    fs.writeFileSync(OUT_FILE, withAliases, 'utf8');
+    // Avoid rewriting identical generated output (also avoids Windows editor
+    // sharing locks during an otherwise read-only production build).
+    if (!fs.existsSync(OUT_FILE) || fs.readFileSync(OUT_FILE, 'utf8') !== withAliases) {
+        fs.writeFileSync(OUT_FILE, withAliases, 'utf8');
+    }
 
     const stops = Object.keys(t.ramps).length * SHADES.length;
     console.log(`[from-v6] ${path.relative(process.cwd(), OUT_FILE)}`);

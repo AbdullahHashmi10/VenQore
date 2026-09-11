@@ -231,6 +231,33 @@ class BlogController extends Controller
         ];
     }
 
+    /**
+     * Every published post for the sitemap: database posts when there are
+     * any, otherwise the built-in articles (same rule as index()).
+     *
+     * Fix (2026-09-10): SitemapController called getPosts(), which did not
+     * exist, so /sitemap.xml and every sub-sitemap returned HTTP 500.
+     *
+     * @return \Illuminate\Support\Collection<int, array{slug:string,date:?string}>
+     */
+    public function getPosts(): Collection
+    {
+        try {
+            $posts = BlogPost::published()->latest('published_at')->get();
+            if ($posts->isNotEmpty()) {
+                return $posts->map(fn (BlogPost $post) => $this->formatPost($post))->values();
+            }
+        } catch (\Throwable $e) {
+            // Table missing (fresh install) — fall back to the built-in articles.
+        }
+
+        return $this->getFallbackArticles()->map(fn ($p) => [
+            'slug' => $p['slug'],
+            'date' => $p['date'] ?? now()->toDateString(),
+            'title' => $p['title'] ?? '',
+        ])->values();
+    }
+
     public function index()
     {
         try {

@@ -205,7 +205,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
             )}
 
             {/* Slim control bar — everything that ISN'T part of the document itself */}
-            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl bg-sunken dark:bg-white/[0.03] border border-line dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-3 mb-5 p-3 vq-tool-panel">
                 <div className="w-48">
                     <Select value={meta.paper_preset} onChange={(v) => setMeta((m) => ({ ...m, paper_preset: v }))} options={presetOptions} />
                 </div>
@@ -215,7 +215,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                 <div className="w-36">
                     <Select value={meta.payment_method} onChange={(v) => setMeta((m) => ({ ...m, payment_method: v }))} options={paymentOptions} />
                 </div>
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10">
+                <div className="flex items-center gap-1 p-1 rounded-xl vq-tool-inset">
                     <button type="button" onClick={() => setMeta((m) => ({ ...m, orientation: 'portrait' }))}
                         className={`px-2.5 py-1.5 rounded-lg text-1xs font-bold transition-colors ${meta.orientation === 'portrait' ? 'bg-accent-fill text-accent-on' : 'text-ink-muted'}`}>
                         Portrait
@@ -225,7 +225,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                         Landscape
                     </button>
                 </div>
-                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.04] border border-line dark:border-white/10 text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
+                <button type="button" onClick={() => logoInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl vq-tool-inset text-xs font-bold text-ink-secondary hover:border-brand-400/40 transition-colors">
                     <Upload size={13} /> {store.logo_base64 ? 'Change logo' : 'Add logo'}
                 </button>
                 {store.logo_base64 && (
@@ -241,7 +241,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
                         type="button"
                         onClick={generate}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-fill text-accent-on hover:bg-accent-fill-hover rounded-xl text-xs font-bold uppercase tracking-wide transition-transform disabled:opacity-50"
+                        className="vq-btn vq-btn--primary"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         {loading ? 'Generating…' : 'Download PDF'}
@@ -256,7 +256,7 @@ export default function ReceiptTool({ paperPresets = {}, paymentMethods = [], cu
             )}
 
             {/* THE DOCUMENT — this is the editor */}
-            <div className={`rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line dark:border-white/10 bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? (isThermal ? 'max-w-md' : 'max-w-2xl') : (isThermal ? 'max-w-xs' : 'max-w-md')}`}>
+            <div className={`vq-paper rounded-2xl overflow-hidden shadow-xl shadow-neutral-900/10 dark:shadow-black/40 border border-line bg-white mx-auto transition-[max-width] ${meta.orientation === 'landscape' ? (isThermal ? 'max-w-md' : 'max-w-2xl') : (isThermal ? 'max-w-xs' : 'max-w-md')}`}>
                 <div
                     className={`text-ink ${isThermal ? 'p-5 text-1xs font-mono' : 'p-8 text-xs'}`}
                     style={{ fontFamily: isThermal ? "'Courier New', Courier, monospace" : 'Helvetica, Arial, sans-serif' }}

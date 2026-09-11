@@ -1,0 +1,11 @@
+Command: npm.cmd test -- --reporter=dot
+Working directory: E:/AMD POS/AMD POS/app-code/main-app
+Date: 2026-09-10
+Exit code: 0
+Runner: Vitest 4.1.10
+Test Files: 4 passed (4)
+Tests: 103 passed (103)
+Duration: 6.74s
+
+Recorded summary of tool output. This is the existing resources/js/tests suite,
+not a backend security integration test or end-to-end checkout test.

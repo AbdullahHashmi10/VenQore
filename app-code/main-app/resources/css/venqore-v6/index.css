@@ -84,3 +84,10 @@
 @import './site-base.css';
 @import './components.css';
 @import './landing.css';
+/* The one public header / footer / cookie UI — see Components/Site. */
+@import './site-chrome.css';
+@import './mkt-content.css';
+@import './mkt-tools.css';
+
+/* Public AI builder — PromptTextarea + ConversationalDiscovery. */
+@import './builder.css';

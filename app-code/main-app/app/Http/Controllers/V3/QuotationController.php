@@ -8,6 +8,7 @@ use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -15,13 +16,15 @@ class QuotationController extends Controller
 {
     public function store(Request $request)
     {
+        // Customer and products must be this store's.
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
-            'customer_id'  => ['required', 'string', 'exists:parties,id'],
+            'customer_id'  => ['required', 'string', Rule::exists('parties', 'id')->where('tenant_id', $tenantId)],
             'quotation_date'=> ['required', 'date'],
             'valid_until'  => ['nullable', 'date', 'after_or_equal:quotation_date'],
             'notes'        => ['nullable', 'string', 'max:1000'],
             'items'        => ['required', 'array', 'min:1'],
-            'items.*.product_id'       => ['required', 'string', 'exists:products,id'],
+            'items.*.product_id'       => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'items.*.qty'              => ['required', 'numeric', 'min:0.0001'],
             'items.*.sale_uom'         => ['required', 'string', 'max:20'],
             'items.*.unit_price'       => ['required', 'numeric', 'min:0'],
@@ -91,7 +94,7 @@ class QuotationController extends Controller
             }
 
             $validated = $request->validate([
-                'warehouse_id'  => ['required', 'string', 'exists:warehouses,id'],
+                'warehouse_id'  => ['required', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
                 'delivery_date' => ['nullable', 'date'],
             ]);
 

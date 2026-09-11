@@ -29,7 +29,8 @@ class SaleReturnLookupController extends Controller
         $sales = DB::table('sales')
             ->leftJoin('parties', 'sales.party_id', '=', 'parties.id')
             ->where('sales.tenant_id', $tenantId)
-            ->where('sales.status', 'posted')
+            /* A sale with some units already back still has the rest to return. */
+            ->whereIn('sales.status', ['posted', 'partially_returned'])
             ->when($request->query('party'), fn ($q, $p) => $q->where('sales.party_id', $p))
             ->when($request->query('query'), function ($q, $term) {
                 $q->where(function ($w) use ($term) {
@@ -68,7 +69,7 @@ class SaleReturnLookupController extends Controller
             ->where('sale_items.sale_id', $sale)
             ->get([
                 'sale_items.id', 'sale_items.product_id', 'sale_items.quantity',
-                'sale_items.unit_price', 'sale_items.subtotal',
+                'sale_items.unit_price', 'sale_items.subtotal', 'sale_items.returned_quantity',
                 'sale_items.tax_rate', 'sale_items.cost_price',
                 'products.name as product_name', 'products.sku', 'products.base_unit',
                 'products.tax_rate as product_tax_rate',
@@ -91,7 +92,10 @@ class SaleReturnLookupController extends Controller
 
         $out = $lines->map(function ($l) use ($alreadyBack) {
             $sold = (float) $l->quantity;
-            $back = (float) ($alreadyBack[$l->id] ?? 0);
+            /* Returns through the sale's own return action are recorded on
+               the line (returned_quantity) rather than as a return document;
+               this screen's credit notes are recorded in both places. */
+            $back = max((float) ($alreadyBack[$l->id] ?? 0), (float) ($l->returned_quantity ?? 0));
             return [
                 'original_sale_item_id' => $l->id,
                 'product_id'   => $l->product_id,
