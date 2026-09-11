@@ -94,6 +94,8 @@ return [
         'global_warning_at'           => (int) env('VQ_OTP_GLOBAL_WARNING_AT', 70),
         // 'queue' | 'sync' | null (null = queue in production, sync elsewhere)
         'delivery'                    => env('VQ_OTP_DELIVERY'),
+        // Local dev master code: accepted only when APP_ENV=local
+        'dev_master_code'             => env('VQ_OTP_DEV_MASTER_CODE', '000000'),
     ],
 
 ];
