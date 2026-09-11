@@ -17,11 +17,16 @@ export default function RecommendedBand({ items, active, onToggle }) {
             <div className="mb-3 flex items-center gap-2">
                 <Sparkles size={14} className="text-accent-text" />
                 <h2 className="text-sm font-semibold text-ink">
-                    We added these — most people want them
+                    What we&rsquo;d suggest on top
                 </h2>
             </div>
+            {/* This used to say "We added these". It no longer adds all of them —
+                two arrive on because they are true for anyone, and the third is
+                a suggestion waiting for an answer — so the heading stopped
+                claiming otherwise. */}
             <p className="mb-4 text-xs leading-relaxed text-ink-secondary">
-                Included on every plan. Untick anything you would rather not have.
+                Included on every plan, at no extra cost. Tap any of them to switch
+                it on or off.
             </p>
             <div className="grid gap-2 sm:grid-cols-3">
                 {items.map((m) => {

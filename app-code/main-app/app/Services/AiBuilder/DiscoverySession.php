@@ -25,6 +25,10 @@ class DiscoverySession
         public array $structuredFacts = [], // [key => ['value' => ..., 'confidence' => ..., 'source' => ..., 'evidence' => ...]]
         public array $confirmed = [],       // ['repair_job_tracking', ...]
         public array $rejected = [],        // ['table_and_kot_management', ...]
+        // Capabilities the visitor declined to answer about. Neither confirmed
+        // nor rejected — but the question selector must not offer them again,
+        // or "skip" hands back the same question forever. See recordSkip().
+        public array $skipped = [],         // ['loyalty_points', ...]
         public array $history = [],
         public ?array $currentQuestion = null,
         public bool $isComplete = false,
@@ -56,6 +60,7 @@ class DiscoverySession
             structuredFacts: $data['structured_facts'] ?? [],
             confirmed: $data['confirmed'] ?? [],
             rejected: $data['rejected'] ?? [],
+            skipped: $data['skipped'] ?? [],
             history: $data['history'] ?? [],
             currentQuestion: $data['current_question'] ?? null,
             isComplete: (bool) ($data['is_complete'] ?? false),
@@ -92,6 +97,7 @@ class DiscoverySession
             'structured_facts'           => $this->structuredFacts,
             'confirmed'                  => array_values(array_unique($this->confirmed)),
             'rejected'                   => array_values(array_unique($this->rejected)),
+            'skipped'                    => array_values(array_unique($this->skipped)),
             'history'                    => $this->history,
             'current_question'           => $this->currentQuestion,
             'is_complete'                => $this->isComplete,
@@ -149,6 +155,32 @@ class DiscoverySession
     }
 
     /**
+     * The visitor declined to answer the current question.
+     *
+     * This costs a turn exactly like an answer does (so skipping cannot be
+     * used to walk past MAX_TURNS for free), but resolves nothing: the target
+     * capability goes on `skipped` so selectNextCandidateQuestion stops
+     * offering it. Without that list a skip changes no state at all, the
+     * selector re-picks the same highest-scoring unresolved capability, and
+     * the same question comes straight back — which is indistinguishable,
+     * from the visitor's side, from the skip button being dead.
+     */
+    public function recordSkip(?string $capability): void
+    {
+        $this->turnCount++;
+        $this->history[] = [
+            'role'    => 'user',
+            'content' => '(skipped this question)',
+            'turn'    => $this->turnCount,
+            'skipped' => true,
+        ];
+
+        if ($capability !== null && $capability !== '' && !in_array($capability, $this->skipped, true)) {
+            $this->skipped[] = $capability;
+        }
+    }
+
+    /**
      * Compact payload format passed to Gemini.
      * Includes explicit detected_trade and known_context so Gemini stays domain-coherent.
      */
@@ -183,6 +215,7 @@ class DiscoverySession
             'structured_facts'       => $this->structuredFacts,
             'confirmed_capabilities' => $this->confirmed,
             'rejected_capabilities'  => $this->rejected,
+            'skipped_capabilities'   => $this->skipped,
             'candidate_question'     => $candidateQuestion ? [
                 'target_capability' => $candidateQuestion['key'],
                 'name'              => $candidateQuestion['name'],

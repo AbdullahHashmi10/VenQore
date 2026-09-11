@@ -45,8 +45,6 @@ import { Moon, Sun } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import MeshBackdrop from './MeshBackdrop';
 import ThemeSegment, { applyTheme } from './ThemeSegment';
-import SiteHeader from '@/Components/Site/SiteHeader';
-import SiteFooter from '@/Components/Site/SiteFooter';
 import CookieConsent from '@/Components/CookieConsent';
 import { useMarketingShell } from '@/Components/Site/SiteChrome';
 
@@ -110,7 +108,7 @@ function ProgressRail({ step, total, wide }) {
     if (!(total > 0)) return null;
     const pct = progressPct(step, total);
     return (
-        <div className={`mx-auto ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}>
+        <div className={`mx-auto ${wide ? 'max-w-[90rem]' : 'max-w-4xl'}`}>
             <progress className="sr-only" aria-label="Setup progress" value={pct} max={100} />
             <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-sunken">
                 <motion.div
@@ -124,46 +122,74 @@ function ProgressRail({ step, total, wide }) {
     );
 }
 
+/* The public builder used to sit inside the marketing site: full nav —
+   Product, Solutions, Features, Pricing, Resources, Company — a sign-in
+   button, a Start building button pointing at the page you were already on,
+   and the whole site footer underneath. Someone halfway through describing
+   their business was being offered six ways to leave it, and the page read as
+   a web page about software rather than the software. Everything below the
+   thin bar is now the product: back, who is thinking, where you are, and the
+   work. The one link out is Sign in, because removing the site header removes
+   the only route back for someone who already has an account.
+
+   The width is deliberate too. `wide` surfaces (the questions and the reveal,
+   which carry the live module panel beside them) run to 90rem so a desktop
+   actually uses its screen instead of framing a narrow column in empty space;
+   everything else stays in a readable measure. */
 function PublicBuilderFrame({ children, step, total, eyebrow, onBack, footer, wide, orbState }) {
     useMarketingShell();
+    const shellWidth = wide ? 'max-w-[90rem]' : 'max-w-4xl';
+
     return (
         <div className="vq-site vq-app-body relative min-h-screen" style={{ background: 'var(--vq-bg)', color: 'var(--vq-text)' }}>
-            <SiteHeader />
-            <div className="relative" style={{ paddingTop: 72 }}>
-                <MeshBackdrop />
-                <div className="relative flex min-h-[calc(100vh-72px)] flex-col">
-                    <div className="shrink-0 px-5 pt-6 sm:px-8 sm:pt-8">
-                        <div className={`mx-auto flex items-center justify-between gap-4 ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}>
-                            <div className="flex min-w-0 items-center gap-3">
-                                {onBack ? (
-                                    <button
-                                        type="button"
-                                        onClick={onBack}
-                                        className="vq-btn vq-btn--secondary vq-btn--sm"
-                                    >
-                                        Back
-                                    </button>
-                                ) : null}
-                                <ThinkingOrb state={orbState} size={26} aria-label="VenQore AI" />
-                                {eyebrow && (
-                                    <span className="vq-eyebrow vq-eyebrow--accent truncate">{eyebrow}</span>
-                                )}
-                            </div>
+            <MeshBackdrop />
+            <div className="relative flex min-h-screen flex-col">
+                <header className="shrink-0 px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">
+                    <div className={`mx-auto flex items-center justify-between gap-3 ${shellWidth}`}>
+                        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                            {onBack ? (
+                                <button
+                                    type="button"
+                                    onClick={onBack}
+                                    className="vq-btn vq-btn--secondary vq-btn--sm shrink-0"
+                                >
+                                    Back
+                                </button>
+                            ) : null}
+                            <ThinkingOrb state={orbState} size={24} aria-label="VenQore AI" />
+                            <span className="font-display text-sm font-semibold tracking-tight text-ink sm:text-base">
+                                VenQore
+                            </span>
+                            {eyebrow && (
+                                <span className="vq-eyebrow vq-eyebrow--accent hidden truncate md:inline">
+                                    {eyebrow}
+                                </span>
+                            )}
                         </div>
-                        {total > 0 && <div className="mt-5"><ProgressRail step={step} total={total} wide={wide} /></div>}
+                        <a
+                            href="/login"
+                            className="shrink-0 text-2xs font-semibold text-ink-secondary underline-offset-4 transition-colors duration-fast ease-standard hover:text-ink hover:underline sm:text-xs"
+                        >
+                            Sign in
+                        </a>
                     </div>
-                    <div className="flex flex-1 items-start px-5 py-8 sm:px-8 sm:py-10">
-                        <div className={`mx-auto w-full ${wide ? 'max-w-7xl' : 'max-w-6xl'}`}>{children}</div>
+                    {total > 0 && <div className="mt-3 sm:mt-4"><ProgressRail step={step} total={total} wide={wide} /></div>}
+                </header>
+
+                <main className="flex flex-1 items-start px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+                    <div className={`mx-auto w-full ${shellWidth}`}>{children}</div>
+                </main>
+
+                <footer className="shrink-0 px-4 pb-5 sm:px-6 lg:px-8">
+                    <div
+                        className={`mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t pt-3 ${shellWidth}`}
+                        style={{ borderColor: 'var(--vq-line-soft)', fontSize: 'var(--vq-fs-caption)', color: 'var(--vq-text-3)' }}
+                    >
+                        <span>Every figure comes from one verified ledger.</span>
+                        {footer}
                     </div>
-                    <div className="shrink-0 px-5 pb-8 sm:px-8">
-                        <div className={`mx-auto flex flex-wrap items-center justify-between gap-3 border-t pt-4 ${wide ? 'max-w-7xl' : 'max-w-6xl'}`} style={{ borderColor: 'var(--vq-line-soft)', fontSize: 'var(--vq-fs-caption)', color: 'var(--vq-text-3)' }}>
-                            <span>Every figure comes from one verified ledger.</span>
-                            {footer}
-                        </div>
-                    </div>
-                </div>
+                </footer>
             </div>
-            <SiteFooter showCta={false} />
             <CookieConsent />
         </div>
     );

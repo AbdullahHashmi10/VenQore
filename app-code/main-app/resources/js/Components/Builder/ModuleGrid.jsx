@@ -83,7 +83,11 @@ export default function ModuleGrid({
                 </div>
             )}
 
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {/* The reveal runs to 90rem on a desktop, so the catalogue spreads
+                rather than stacking into a long column with empty space either
+                side of it. Phones keep one column, and every step between has
+                one of its own. */}
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 <AnimatePresence initial={false}>
                     {rows.map((m) => {
                         const on = active.includes(m.key);

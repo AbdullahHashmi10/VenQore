@@ -962,8 +962,15 @@ return [
     |--------------------------------------------------------------------------
     | 3b. THE HOUSE RECOMMENDATIONS
     |--------------------------------------------------------------------------
-    | A small set added to EVERY proposal regardless of the answers, shown in
-    | their own band, ticked, labelled as ours, and removable in one tap.
+    | A small set offered on EVERY proposal regardless of the answers, shown in
+    | their own band, labelled as ours, and one tap to add.
+    |
+    | Offered, not pre-ticked, and never part of the live module count while the
+    | questions are still running. They used to be merged straight into the
+    | stack by WorkspaceBuilderController::analyze(), which meant they arrived
+    | as unlabelled rows inside the panel's module count before anything had
+    | been asked — the exact silent padding the paragraph below forbids, done by
+    | the code that quotes it.
     |
     | The labelling is the whole point and is not negotiable. Silently padding a
     | proposal with modules nobody asked for is precisely the failure this flow
@@ -981,15 +988,49 @@ return [
     */
 
     'recommended' => [
+        // `default_on` is the difference between advice and padding. Two of
+        // these arrive ticked because they are true for every business that
+        // ever opens this page: you cannot run anything without being able to
+        // see it. Expenses is the honest third — obviously useful, but it is a
+        // thing a person either wants or does not, so it is offered rather
+        // than assumed. Anyone who actually mentions costs or profit gets it
+        // switched on anyway, because BusinessUnderstanding read them say so.
         'reports' => [
-            'why' => 'You cannot fix what you cannot see. Free on every plan.',
+            'why'        => 'You cannot fix what you cannot see. Free on every plan.',
+            'default_on' => true,
         ],
         'expenses' => [
-            'why' => 'Sales alone are not profit. This is the other half of the number.',
+            'why'        => 'Sales alone are not profit. This is the other half of the number.',
+            'default_on' => false,
         ],
         'ai_insights' => [
-            'why' => 'Tells you what changed this week without you going looking.',
+            'why'        => 'Tells you what changed this week without you going looking.',
+            'default_on' => true,
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 3c. PACKAGES — what cannot sensibly stand alone
+    |--------------------------------------------------------------------------
+    | config/modules.php `requires` is the HARD graph: without it the module is
+    | broken. This is the softer, shorter list — modules that technically run
+    | alone but ship as half a feature when they do.
+    |
+    | A counter that sells physical things has to know what is on the shelf, so
+    | `pos` brings `inventory`. That is the whole list, and it should stay near
+    | that size: every entry here is a module the visitor did not ask for, and
+    | the only thing that makes it defensible is that the one they DID ask for
+    | does not work properly without it.
+    |
+    | What is deliberately NOT here: purchasing and suppliers. Plenty of people
+    | sell things they never restock from a vendor — a repair shop, someone
+    | clearing stock, a maker selling their own work. Those are a QUESTION, and
+    | guessing them is how this flow used to hand a solo plumber a supplier
+    | network. Resolved deterministically in code; the model never decides it.
+    */
+    'packages' => [
+        'pos' => ['inventory'],
     ],
 
     /*
@@ -1144,12 +1185,24 @@ TXT,
     | of an unfinished Services module is the fastest route to a refund.
     */
 
+    /*
+    | `modules` is everything this trade could want; `core` is what it gets the
+    | moment we recognise the trade and nothing more. The difference is the
+    | product: a solo plumber saying "I work alone, I want to track expenses"
+    | used to be handed eleven modules including staff attendance before he had
+    | answered a single question, which is the old "here is everything" pitch
+    | wearing an AI badge. Core never assumes the business holds stock, buys
+    | from suppliers or employs anyone unless the trade itself is that. The rest
+    | is earned — a question confirms it, and it appears with its reason
+    | attached. See CapabilityRegistry::coreModules().
+    */
     'presets' => [
 
         'pos_only' => [
             'label'   => 'Simple Counter',
             'blurb'   => 'Ring up sales. Nothing else.',
             'modules' => ['products', 'pos'],
+            'core'    => ['products', 'pos'],
             'terms'   => [],
             'cards'   => ['revenue_today', 'top_products', 'quick_actions'],
         ],
@@ -1158,6 +1211,7 @@ TXT,
             'label'   => 'Retail Shop',
             'blurb'   => 'Counter, stock and a khata book.',
             'modules' => ['products', 'pos', 'inventory', 'customers', 'khata_credit', 'payments', 'expenses', 'barcodes_labels', 'reports'],
+            'core'    => ['products', 'pos', 'expenses', 'reports'],
             'terms'   => [],
             'cards'   => ['revenue_today', 'low_stock', 'receivables', 'expenses', 'revenue_trend'],
         ],
@@ -1166,6 +1220,7 @@ TXT,
             'label'   => 'Grocery / Kiryana',
             'blurb'   => 'Weights, suppliers, credit and daily cash.',
             'modules' => ['products', 'pos', 'inventory', 'units_of_measure', 'purchases', 'suppliers', 'customers', 'khata_credit', 'payments', 'expenses', 'barcodes_labels', 'cash_register', 'reports'],
+            'core'    => ['products', 'pos', 'inventory', 'expenses', 'reports'],
             'terms'   => [],
             'cards'   => ['revenue_today', 'low_stock', 'receivables', 'payables', 'cash_position'],
         ],
@@ -1174,6 +1229,7 @@ TXT,
             'label'   => 'Pharmacy',
             'blurb'   => 'Batches, expiry dates and supplier credit.',
             'modules' => ['products', 'pos', 'inventory', 'batches_expiry', 'purchases', 'suppliers', 'customers', 'khata_credit', 'payments', 'expenses', 'barcodes_labels', 'reports'],
+            'core'    => ['products', 'pos', 'inventory', 'expenses', 'reports'],
             'terms'   => ['customer' => ['singular' => 'Patient', 'plural' => 'Patients']],
             'cards'   => ['revenue_today', 'low_stock', 'needs_attention', 'receivables'],
         ],
@@ -1182,6 +1238,7 @@ TXT,
             'label'   => 'Cafe',
             'blurb'   => 'Five modules. The whole shop.',
             'modules' => ['products', 'pos', 'inventory', 'cookbook', 'expenses'],
+            'core'    => ['products', 'pos', 'expenses'],
             'terms'   => [],
             'cards'   => ['revenue_today', 'top_products', 'expenses', 'revenue_trend'],
             'note'    => 'THE NAMED CUSTOMER. Under the old pricing this person was forced onto ltd_2. Under usage billing they land on the entry tier. Keep this preset exactly five modules — it is the proof of the whole model.',
@@ -1191,6 +1248,7 @@ TXT,
             'label'   => 'Restaurant',
             'blurb'   => 'Tables, kitchen tickets and recipes.',
             'modules' => ['products', 'pos', 'park_recall', 'table_service', 'cookbook', 'inventory', 'expenses', 'staff_attendance', 'reports'],
+            'core'    => ['products', 'pos', 'expenses', 'reports'],
             'terms'   => ['position' => ['singular' => 'Table', 'plural' => 'Tables'], 'sale' => ['singular' => 'Order', 'plural' => 'Orders']],
             'cards'   => ['revenue_today', 'top_products', 'active_staff', 'expenses'],
         ],
@@ -1199,6 +1257,7 @@ TXT,
             'label'   => 'Bakery',
             'blurb'   => 'Recipes, production runs and custom orders.',
             'modules' => ['products', 'pos', 'inventory', 'cookbook', 'production_runs', 'batches_expiry', 'sales_orders', 'customers', 'expenses', 'reports'],
+            'core'    => ['products', 'pos', 'expenses', 'reports'],
             'terms'   => ['order' => ['singular' => 'Custom Order', 'plural' => 'Custom Orders']],
             'cards'   => ['revenue_today', 'production_output', 'open_orders', 'low_stock'],
         ],
@@ -1207,6 +1266,7 @@ TXT,
             'label'   => 'Mobile & Electronics',
             'blurb'   => 'IMEI tracking, warranties and returns.',
             'modules' => ['products', 'pos', 'inventory', 'serials', 'purchases', 'suppliers', 'customers', 'khata_credit', 'payments', 'sales_returns', 'expenses', 'reports'],
+            'core'    => ['products', 'pos', 'inventory', 'expenses', 'reports'],
             'terms'   => [],
             'cards'   => ['revenue_today', 'inventory_value', 'receivables', 'top_products'],
         ],
@@ -1215,6 +1275,7 @@ TXT,
             'label'   => 'Clothing & Footwear',
             'blurb'   => 'Sizes, colours and exchanges.',
             'modules' => ['products', 'variants', 'pos', 'inventory', 'barcodes_labels', 'customers', 'sales_returns', 'expenses', 'reports'],
+            'core'    => ['products', 'pos', 'inventory', 'expenses', 'reports'],
             'terms'   => [],
             'cards'   => ['revenue_today', 'top_products', 'low_stock', 'revenue_trend'],
         ],
@@ -1223,6 +1284,7 @@ TXT,
             'label'   => 'Hardware / General Store',
             'blurb'   => 'Sold by weight, length or piece — on credit.',
             'modules' => ['products', 'pos', 'inventory', 'units_of_measure', 'purchases', 'suppliers', 'customers', 'khata_credit', 'payments', 'expenses', 'reports'],
+            'core'    => ['products', 'pos', 'inventory', 'expenses', 'reports'],
             'terms'   => [],
             'cards'   => ['revenue_today', 'receivables', 'payables', 'low_stock'],
         ],
@@ -1231,6 +1293,7 @@ TXT,
             'label'   => 'Wholesale / Distribution',
             'blurb'   => 'Orders, tiers, branches and books.',
             'modules' => ['products', 'inventory', 'multi_location', 'stock_transfers', 'sales_orders', 'pricing_tiers', 'purchases', 'suppliers', 'purchase_orders', 'customers', 'khata_credit', 'payments', 'accounting_workspace', 'reports'],
+            'core'    => ['products', 'inventory', 'customers', 'sales_orders', 'expenses', 'reports'],
             'terms'   => [],
             'cards'   => ['revenue_trend', 'receivables', 'payables', 'inventory_value', 'net_profit'],
         ],
@@ -1239,6 +1302,7 @@ TXT,
             'label'   => 'Multi-Branch Retail',
             'blurb'   => 'Same shop, more than one address.',
             'modules' => ['products', 'pos', 'inventory', 'multi_location', 'stock_transfers', 'purchases', 'suppliers', 'customers', 'khata_credit', 'staff_attendance', 'cash_register', 'expenses', 'reports'],
+            'core'    => ['products', 'pos', 'inventory', 'multi_location', 'expenses', 'reports'],
             'terms'   => ['location' => ['singular' => 'Branch', 'plural' => 'Branches']],
             'cards'   => ['revenue_today', 'cash_position', 'active_staff', 'low_stock'],
         ],
@@ -1257,6 +1321,7 @@ TXT,
             'label'      => 'Salon / Spa',
             'blurb'      => 'Appointments, staff and repeat customers.',
             'modules'    => ['services', 'customers', 'invoicing', 'staff_attendance', 'loyalty_gift', 'expenses', 'reports'],
+            'core'    => ['services', 'customers', 'invoicing', 'expenses', 'reports'],
             'terms'      => ['service' => ['singular' => 'Treatment', 'plural' => 'Treatments'], 'staff' => ['singular' => 'Stylist', 'plural' => 'Stylists']],
             'cards'      => ['revenue_today', 'active_staff', 'top_customers', 'expenses'],
             'blocked_by' => [],
@@ -1266,6 +1331,7 @@ TXT,
             'label'      => 'Repair Workshop',
             'blurb'      => 'A job queue, parts and an invoice at the end.',
             'modules'    => ['services', 'products', 'pos', 'park_recall', 'inventory', 'customers', 'invoicing', 'expenses', 'reports'],
+            'core'    => ['services', 'customers', 'invoicing', 'expenses', 'reports'],
             'terms'      => ['job' => ['singular' => 'Job', 'plural' => 'Jobs'], 'occupancy' => ['singular' => 'Bay', 'plural' => 'Bays']],
             'cards'      => ['revenue_today', 'open_orders', 'low_stock', 'receivables'],
             'blocked_by' => [],
@@ -1282,6 +1348,7 @@ TXT,
             'label'   => 'Field Service & Trades',
             'blurb'   => 'Jobs, technicians, parts and an invoice at the end.',
             'modules' => ['services', 'products', 'inventory', 'customers', 'invoicing', 'purchases', 'suppliers', 'staff_attendance', 'payments', 'expenses', 'reports'],
+            'core'    => ['services', 'customers', 'invoicing', 'payments', 'expenses', 'reports'],
             'terms'   => ['job' => ['singular' => 'Job', 'plural' => 'Jobs'], 'customer' => ['singular' => 'Client', 'plural' => 'Clients']],
             'cards'   => ['revenue_trend', 'receivables', 'open_orders', 'expenses'],
         ],
@@ -1290,6 +1357,7 @@ TXT,
             'label'   => 'Professional Services',
             'blurb'   => 'Clients, invoices and retainers. No stock.',
             'modules' => ['services', 'customers', 'invoicing', 'recurring_invoices', 'payments', 'expenses', 'reports'],
+            'core'    => ['services', 'customers', 'invoicing', 'expenses', 'reports'],
             'terms'   => ['customer' => ['singular' => 'Client', 'plural' => 'Clients']],
             'cards'   => ['revenue_trend', 'receivables', 'expenses', 'net_profit'],
         ],
@@ -1298,6 +1366,7 @@ TXT,
             'label'   => 'Memberships & Classes',
             'blurb'   => 'Members, recurring fees and staff schedules.',
             'modules' => ['services', 'customers', 'invoicing', 'recurring_invoices', 'staff_attendance', 'payments', 'expenses', 'reports'],
+            'core'    => ['services', 'customers', 'invoicing', 'recurring_invoices', 'expenses', 'reports'],
             'terms'   => ['customer' => ['singular' => 'Member', 'plural' => 'Members']],
             'cards'   => ['revenue_trend', 'receivables', 'active_staff', 'expenses'],
         ],
@@ -1306,6 +1375,7 @@ TXT,
             'label'   => 'Rental & Hire',
             'blurb'   => 'Items out, items back, and a bill for the days between.',
             'modules' => ['products', 'services', 'inventory', 'pre_sales', 'customers', 'invoicing', 'payments', 'expenses', 'reports'],
+            'core'    => ['products', 'services', 'customers', 'invoicing', 'expenses', 'reports'],
             'terms'   => ['order' => ['singular' => 'Booking', 'plural' => 'Bookings']],
             'cards'   => ['revenue_trend', 'receivables', 'inventory_value', 'expenses'],
         ],
@@ -1314,6 +1384,7 @@ TXT,
             'label'   => 'Quick-Service Food',
             'blurb'   => 'A fast counter, recipes and daily cash.',
             'modules' => ['products', 'pos', 'inventory', 'cookbook', 'cash_register', 'expenses', 'reports'],
+            'core'    => ['products', 'pos', 'expenses', 'reports'],
             'terms'   => ['sale' => ['singular' => 'Order', 'plural' => 'Orders']],
             'cards'   => ['revenue_today', 'top_products', 'expenses', 'revenue_trend'],
         ],
@@ -1322,6 +1393,7 @@ TXT,
             'label'   => 'Catering',
             'blurb'   => 'Event orders, bulk recipes and supplier bills.',
             'modules' => ['products', 'inventory', 'cookbook', 'sales_orders', 'customers', 'invoicing', 'purchases', 'suppliers', 'payments', 'expenses', 'reports'],
+            'core'    => ['customers', 'invoicing', 'sales_orders', 'expenses', 'reports'],
             'terms'   => ['order' => ['singular' => 'Event Order', 'plural' => 'Event Orders']],
             'cards'   => ['revenue_trend', 'open_orders', 'receivables', 'payables'],
         ],
@@ -1330,6 +1402,7 @@ TXT,
             'label'   => 'Light Manufacturing',
             'blurb'   => 'Materials in, finished goods out, at real cost.',
             'modules' => ['products', 'inventory', 'cookbook', 'production_runs', 'purchases', 'suppliers', 'purchase_orders', 'sales_orders', 'customers', 'invoicing', 'payments', 'expenses', 'reports'],
+            'core'    => ['products', 'inventory', 'production_runs', 'customers', 'invoicing', 'expenses', 'reports'],
             'terms'   => [],
             'cards'   => ['production_output', 'inventory_value', 'open_orders', 'payables'],
         ],
@@ -1338,6 +1411,7 @@ TXT,
             'label'   => 'Tailoring & Stitching',
             'blurb'   => 'Measurements, stitching orders and fabric stock.',
             'modules' => ['products', 'inventory', 'services', 'sales_orders', 'customers', 'khata_credit', 'payments', 'staff_attendance', 'expenses', 'reports'],
+            'core'    => ['services', 'customers', 'sales_orders', 'expenses', 'reports'],
             'terms'   => ['order' => ['singular' => 'Stitching Order', 'plural' => 'Stitching Orders']],
             'cards'   => ['revenue_trend', 'open_orders', 'receivables', 'expenses'],
         ],

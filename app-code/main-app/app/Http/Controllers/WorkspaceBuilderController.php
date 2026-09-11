@@ -269,8 +269,76 @@ class WorkspaceBuilderController extends Controller
         // watched being built is the stack that arrives here.
         $answers  = (array) ($validated['answers'] ?? []);
         $resolver = app(\App\Services\AiBuilder\DiscoveryResolver::class);
-        $baseModules = $businessType ? \App\Support\BusinessTypes::modulesFor($businessType) : ($preset['modules'] ?? []);
-        $modules  = $resolver->merge($baseModules, $answers, true, $matchedKey);
+
+        // The floor, not the ceiling. This endpoint runs the moment the
+        // sentence lands, before a single question has been answered, so what
+        // it returns is what the visitor watches appear in the live panel —
+        // and handing a solo plumber eleven modules there, five of which he
+        // never asked for and one of which he had just ruled out in writing,
+        // is the whole "here is everything" pitch this flow exists to replace.
+        // Answers add to this; nothing is assumed on their behalf.
+        $baseModules = $businessType
+            ? \App\Support\BusinessTypes::coreModulesFor($businessType)
+            : ($preset['core'] ?? $preset['modules'] ?? []);
+
+        // Facts the visitor stated outright outrank the trade's default shape.
+        $registry = app(\App\Services\AiBuilder\CapabilityRegistry::class);
+        $rawPrompt = (string) $request->input('prompt', '');
+        $statedFacts = $registry->detectStructuredFacts($rawPrompt)['facts'] ?? [];
+
+        // ── Read the sentence, rather than scan it for phrases ─────────────
+        // The long comment above analyze() used to explain that this endpoint
+        // could not reach a model because it runs before a tenant exists, so
+        // there was nothing to rate limit or bill against. AiGateway has had
+        // anonymous limits — per hashed IP, plus a global anonymous ceiling —
+        // since the conversational builder shipped on this very page, so that
+        // stopped being true a while ago. What it left behind was a landing
+        // flow whose entire understanding of a business was str_contains()
+        // against hand-written phrase lists: "I work alone" was heard only
+        // because someone had typed that exact string into one of them.
+        //
+        // A reading is never load-bearing. It returns null when the model is
+        // unavailable, rate limited, spend capped or off-purpose, and the
+        // deterministic preset path carries the page exactly as before.
+        $understanding = null;
+        $reasons = [];
+        if (trim($rawPrompt) !== '' && !$businessType && !$presetKey) {
+            $understanding = app(\App\Services\AiBuilder\BusinessUnderstanding::class)->read($rawPrompt);
+        }
+
+        if ($understanding) {
+            // What was read outranks what the trade usually looks like. The
+            // preset still names the business and supplies its vocabulary; it
+            // no longer decides what this particular person gets.
+            $baseModules = app(\App\Services\AiBuilder\ModuleManifest::class)
+                ->withDependencies($understanding['modules']);
+            $reasons = $understanding['reasons'];
+            $statedFacts = array_merge(
+                $statedFacts,
+                app(\App\Services\AiBuilder\BusinessUnderstanding::class)->toFacts($understanding)
+            );
+        }
+
+        $ruledOut = $registry->contradictedModules($statedFacts);
+
+        // withRecommended: false — the band owns its own members. Merging the
+        // whole band here is what put three unlabelled rows inside a "12
+        // MODULES" headline before a single question had been answered, which
+        // is the silent padding config §3b exists to forbid.
+        $modules  = $resolver->merge($baseModules, $answers, false, $matchedKey);
+
+        // Two of the three are true for every business that opens this page, so
+        // they arrive ticked; the third is offered in the band and left for the
+        // visitor to decide. Anyone who actually mentioned costs already has
+        // expenses from their own words rather than from this list.
+        foreach ($resolver->recommendations() as $recKey => $recMeta) {
+            if (!empty($recMeta['default_on']) && !in_array($recKey, $modules, true)) {
+                $modules[] = $recKey;
+            }
+        }
+
+        $modules  = app(\App\Services\AiBuilder\ModuleManifest::class)->withDependencies($modules);
+        $modules  = array_values(array_diff($modules, $ruledOut));
 
         // Map technical module keys into friendly user capabilities
         $capabilitiesMap = [
@@ -325,6 +393,15 @@ class WorkspaceBuilderController extends Controller
             'prompt'             => $request->input('prompt', ''),
             'modules'            => $modules,
             'capabilities'       => $suggestedCapabilities,
+
+            // Why each module is here, in the visitor's own words. Empty when
+            // the stack came from the deterministic path — the panel then shows
+            // no reason rather than inventing one.
+            'reasons'            => (object) $reasons,
+
+            // Things they asked for that this product does not do. Named, never
+            // approximated with a module that does something else.
+            'unsupported'        => $understanding['unsupported'] ?? [],
 
             // Written from the answer to the "what do you most want to fix"
             // question, so the proposal is headed with the visitor's own stated
@@ -625,14 +702,29 @@ class WorkspaceBuilderController extends Controller
         // off-purpose turns are rejected by the scope guard without advancing.
         $validated = $request->validate([
             'session_id'          => 'required|uuid',
-            'response'            => 'required|string|max:600',
+            // A skip carries no answer, so `response` cannot be unconditionally
+            // required — but an empty answer that is NOT a skip is a client bug,
+            // and is rejected explicitly below rather than recorded as a turn.
+            'skip'                => 'sometimes|boolean',
+            'response'            => 'nullable|string|max:600',
             'selected_option_key' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_:\-]+$/'],
         ]);
 
+        $skip = (bool) ($validated['skip'] ?? false);
+        $response = trim((string) ($validated['response'] ?? ''));
+
+        if (!$skip && $response === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please answer the question, or skip it.',
+            ], 422);
+        }
+
         $result = $service->step(
             sessionId: $validated['session_id'],
-            userResponse: $validated['response'],
-            selectedOptionKey: $validated['selected_option_key'] ?? null
+            userResponse: $response,
+            selectedOptionKey: $skip ? null : ($validated['selected_option_key'] ?? null),
+            skip: $skip
         );
 
         return response()->json($result);

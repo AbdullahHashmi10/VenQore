@@ -14,9 +14,11 @@ tests/*
 !tests/Unit/
 tests/Unit/*
 !tests/Unit/Reckoner/
+!tests/Unit/AiBuilder/
 !tests/Feature/
 tests/Feature/*
 !tests/Feature/Reckoner/
+!tests/Feature/Billing/
 !tests/Feature/Module/
 !tests/Feature/Security/
 !tests/Feature/Security/*.php

@@ -86,7 +86,11 @@ class DiscoveryResolver
 
         foreach (config('ai_builder.recommended', []) as $key => $meta) {
             if ($this->isLive($key)) {
-                $out[$key] = ['why' => $meta['why'] ?? ''];
+                $out[$key] = [
+                    'why' => $meta['why'] ?? '',
+                    // Ticked on arrival, or merely offered — see config §3b.
+                    'default_on' => (bool) ($meta['default_on'] ?? false),
+                ];
             }
         }
 

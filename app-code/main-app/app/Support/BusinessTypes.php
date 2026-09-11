@@ -85,6 +85,25 @@ final class BusinessTypes
     }
 
     /**
+     * What this type ships BEFORE a single question is answered.
+     *
+     * Deliberately not modulesFor(): that merges the preset's full list with
+     * the type's own extras (serials for a phone repair shop, batch tracking
+     * for cosmetics), and those extras are trade SPECIALISATIONS — exactly the
+     * things a question should confirm rather than assume. Core is the floor;
+     * everything above it is earned.
+     */
+    public static function coreModulesFor(?string $key): array
+    {
+        $type = self::get($key);
+        $preset = $type ? $type['preset'] : (string) $key;
+
+        return self::withDependencies(
+            (array) config("ai_builder.presets.{$preset}.core", config("ai_builder.presets.{$preset}.modules", []))
+        );
+    }
+
+    /**
      * Terminology for a type: the preset's terms, then the type's own on top.
      * Shape matches ApplyConfigurationService: key => ['singular', 'plural'].
      */

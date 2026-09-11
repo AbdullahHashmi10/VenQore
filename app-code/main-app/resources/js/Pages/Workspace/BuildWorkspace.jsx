@@ -52,7 +52,7 @@ import { Head } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
     ArrowRight, Building2, Check, ChevronDown, Compass, FastForward, Lock, Mail,
-    MessageSquareText, Phone, Rocket, Send, ShieldCheck, Sparkles,
+    MessageSquareText, Phone, Rocket, Send, ShieldCheck, Sliders, Sparkles,
 } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import useTurnstile from '@/Components/Builder/useTurnstile';
@@ -237,6 +237,15 @@ export default function BuildWorkspace({
     const [matched, setMatched] = useSessionState(`${STORAGE_KEY}:matched`, true);
     const [baseModules, setBaseModules] = useSessionState(`${STORAGE_KEY}:baseModules`, entryPreset?.modules || []);
     const [capabilities, setCapabilities] = useSessionState(`${STORAGE_KEY}:capabilities`, []);
+    /* Why each module is here, in the visitor's own words — present only when
+       the server actually read the sentence (see BusinessUnderstanding). Empty
+       on the deterministic path, and the panel then shows what each module does
+       instead of inventing a reason. */
+    const [reasons, setReasons] = useSessionState(`${STORAGE_KEY}:reasons`, {});
+    /* Things they asked for that this product does not do yet. Named on the
+       reveal rather than quietly approximated with a module that does something
+       else — the demand log already records them. */
+    const [unsupported, setUnsupported] = useSessionState(`${STORAGE_KEY}:unsupported`, []);
     const [analysed, setAnalysed] = useState(false);
 
     const legalKeys = useMemo(() => allModules.map((m) => m.key), [allModules]);
@@ -249,6 +258,10 @@ export default function BuildWorkspace({
     /* The user's own edits on the reveal screen override the proposal. Until
        they touch it, the proposal flows straight through. */
     const [edited, setEdited] = useSessionState(`${STORAGE_KEY}:edited`, null);
+    /* Someone who already knows what they want should not be interviewed. The
+       blank slate skips every question and opens the full list with nothing
+       chosen, so the whole setup is however many taps they feel like. */
+    const [blankSlate, setBlankSlate] = useSessionState(`${STORAGE_KEY}:blankSlate`, false);
     const activeModules = edited ?? proposedModules;
 
     const [discoveryMode, setDiscoveryMode] = useSessionState(`${STORAGE_KEY}:discoveryMode`, 'ai');
@@ -256,20 +269,47 @@ export default function BuildWorkspace({
     /* The intent box edits a local draft, not the persisted `prompt`. A draft
        that was never submitted must not greet someone who comes back via the
        browser's back button — only real mid-flow state is restored. So the
-       draft starts empty on the intent screen, and starts from the submitted
-       sentence only when this visit resumed PAST intent (then Back/Edit lands
-       on a box holding what they actually sent). */
-    const [draft, setDraft] = useState(() => (rawPhase !== 'intent' ? prompt || '' : ''));
+       draft starts empty when nothing has ever been submitted, and otherwise
+       always starts from the last submitted sentence — whether this visit
+       resumed past intent (Back/Edit lands on a box holding what was sent),
+       or resumed ON intent itself, which happens whenever someone used Back
+       to reconsider their sentence and then actually left (closed the tab,
+       navigated away) before resubmitting. Gating this on rawPhase !== 'intent'
+       used to blank the box in exactly that case: `prompt` still held their
+       sentence in sessionStorage, but a fresh mount landing on a persisted
+       'intent' phase threw it away for no reason — the one persistence gap
+       'going back' could actually walk someone into. */
+    const [draft, setDraft] = useState(() => prompt || '');
 
     /* The conversational flow reports its own readiness (0–100); the shell's
        rail reads it so the bar moves while the AI asks. Never goes backwards. */
     const [aiProgress, setAiProgress] = useState(0);
 
-    /* The conversation mounts only after the mount effect below has decided
-       fresh-attempt vs. resume. Before that, `prompt` is still whatever this
-       tab hydrated from sessionStorage — mounting on it would flash (and
-       resume) the PREVIOUS business's conversation for one frame. */
-    const [attemptResolved, setAttemptResolved] = useState(false);
+    /* Is what arrived on THIS page load a new attempt, or the one this tab is
+       already in the middle of? Both the first render and the mount effect need
+       the answer, computed from the same hydrated values, so it lives here
+       rather than inside the effect. See the long note on the effect itself. */
+    const isFreshAttempt = () => {
+        const incomingPrompt = initialPrompt || '';
+        const incomingPreset = initialPreset || '';
+        const incomingType = entryType ? entryType.key : '';
+
+        return Boolean(
+            (incomingPrompt && incomingPrompt !== prompt) ||
+            (incomingType && incomingType !== businessType) ||
+            (!incomingType && incomingPreset && incomingPreset !== presetKey),
+        );
+    };
+
+    /* The conversation must not mount on a `prompt` that the mount effect is
+       about to replace — that would flash, and resume, the PREVIOUS business's
+       conversation for one frame. Only a FRESH attempt rewrites `prompt`, and
+       whether this is one is knowable on the first render, so a resume clears
+       this gate immediately (one frame earlier than it used to) and only a
+       fresh attempt waits for the effect to finish resetting. Evaluated once,
+       in an initialiser: re-deriving it later would read the values the effect
+       has already rewritten and answer a different question. */
+    const [attemptResolved, setAttemptResolved] = useState(() => !isFreshAttempt());
     const handleAiProgress = (pct) => {
         if (typeof pct === 'number') setAiProgress((p) => Math.max(p, Math.min(100, pct)));
     };
@@ -313,6 +353,7 @@ export default function BuildWorkspace({
             'presetDesc', 'baseModules', 'capabilities', 'edited', 'matched',
             'converse', 'discoveryMode', 'path', 'planKey', 'planTouched',
             'businessType', 'businessLabel', 'terms', 'candidates',
+            'reasons', 'unsupported', 'blankSlate',
         ].forEach((slot) => {
             try {
                 window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
@@ -346,6 +387,13 @@ export default function BuildWorkspace({
     const [buildIndex, setBuildIndex] = useState(0);
     const [googleBusy, setGoogleBusy] = useState(false);
 
+    /* Roadmap notice — an unsupported request is a named person who told us
+       what to build next AND who to tell when it exists. The same demand log
+       the rest of this page writes to, with an address attached. */
+    const [notifyEmail, setNotifyEmail] = useState('');
+    const [notifyBusy, setNotifyBusy] = useState(false);
+    const [notifySent, setNotifySent] = useState(false);
+
     /* Demand log */
     const [demandOpen, setDemandOpen] = useState(false);
     const [demandText, setDemandText] = useState('');
@@ -378,6 +426,8 @@ export default function BuildWorkspace({
             setPresetDesc(data.preset_description || '');
             setBaseModules(data.modules || []);
             setCapabilities(data.capabilities || []);
+            setReasons(data.reasons && typeof data.reasons === 'object' ? data.reasons : {});
+            setUnsupported(Array.isArray(data.unsupported) ? data.unsupported : []);
             setMatched(data.matched !== false);
             setBusinessType(data.business_type || '');
             setBusinessLabel(data.business_label || '');
@@ -413,13 +463,9 @@ export default function BuildWorkspace({
         const incomingPrompt = initialPrompt || '';
         const incomingPreset = initialPreset || '';
         const incomingType = entryType ? entryType.key : '';
-        const isFreshAttempt =
-            (incomingPrompt && incomingPrompt !== prompt) ||
-            (incomingType && incomingType !== businessType) ||
-            (!incomingType && incomingPreset && incomingPreset !== presetKey);
-        if (!isFreshAttempt) setAttemptResolved(true);
-
-        if (isFreshAttempt) {
+        /* The resume case needs nothing announced here: `attemptResolved` was
+           initialised true for it on the first render. */
+        if (isFreshAttempt()) {
             resetAnswers();
             setDiscoveryMode('ai');
             setPrompt(incomingPrompt);
@@ -428,6 +474,9 @@ export default function BuildWorkspace({
             setPresetDesc('');
             setBaseModules([]);
             setCapabilities([]);
+            setReasons({});
+            setUnsupported([]);
+            setBlankSlate(false);
             setMatched(true);
             setEdited(null);
             setQIndex(0);
@@ -447,6 +496,12 @@ export default function BuildWorkspace({
                 setPhase(incomingPrompt ? 'questions' : 'intent');
                 if (incomingPrompt) analyse(incomingPrompt, incomingPreset, {});
             }
+            /* This whole branch is "a new attempt arrived on the URL, reset for
+               it" — a dozen pieces of state plus sessionStorage plus a network
+               match, in response to props rather than to a render. There is no
+               render-time form of that, and the resume path (the common one)
+               no longer passes through here at all. */
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setDraft(incomingPrompt);
             setAnalysed(false);
             setAttemptResolved(true);
@@ -549,14 +604,31 @@ export default function BuildWorkspace({
         });
     };
 
+    /* `advance` runs from a 460ms timeout after a single-select (see
+       QuestionStep) and straight after commitMulti on a multi — in both cases
+       from a render that predates the answer which triggered it. Reading
+       `questions` out of that closure meant an answer that REVEALS a follow-up
+       question (show_if) could still be measured against the shorter list it
+       replaced, and the flow would call itself finished and jump to the reveal
+       with the follow-up never asked. Refs refreshed every render below give
+       it the list and position that actually exist when it runs.
+
+       It also no longer calls setPhase from inside a setQIndex updater: state
+       updaters must be pure, and React is free to run them twice. */
+    const questionsRef = useRef(questions);
+    const qIndexRef = useRef(qIndex);
+    useEffect(() => {
+        questionsRef.current = questions;
+        qIndexRef.current = qIndex;
+    });
+
     const advance = () => {
-        setQIndex((i) => {
-            if (i + 1 >= questions.length) {
-                setPhase('reveal');
-                return i;
-            }
-            return i + 1;
-        });
+        const next = qIndexRef.current + 1;
+        if (next >= questionsRef.current.length) {
+            setPhase('reveal');
+            return;
+        }
+        setQIndex(next);
     };
 
     /* Multi questions do not auto-advance — the user is not finished until they
@@ -587,6 +659,7 @@ export default function BuildWorkspace({
             analyse(text, '', {});
         }
         setDiscoveryMode('ai');
+        setBlankSlate(false);
         setPath('questions');
         setPhase('questions');
     };
@@ -617,6 +690,47 @@ export default function BuildWorkspace({
         analyse('', t.preset, {}, key);
     }
 
+    /* Whatever the AI has already confirmed this attempt (capabilities) is
+       kept separately from baseModules for display purposes only (see
+       catalogueByKey) — it was never folded into the actual module set. That
+       was invisible as long as the AI conversation always ran to completion
+       (handleAiComplete does the folding itself), but the moment someone
+       leaves early — switches to manual, or hits Skip — baseModules still
+       only reflects the ORIGINAL one-sentence match, and every answer given
+       to the AI in between is silently dropped. Call this before leaving AI
+       mid-conversation so "switch" or "skip" never means "forget". Safe to
+       call whenever: merging an already-merged key is a no-op. */
+    const foldInConfirmedCapabilities = () => {
+        if (!capabilities.length) return;
+        setBaseModules((prev) => {
+            const merged = [...(prev || [])];
+            for (const c of capabilities) {
+                if (c?.key && !merged.includes(c.key)) merged.push(c.key);
+            }
+            return merged;
+        });
+    };
+
+    /* Hand off from AI to manual without losing progress — see
+       foldInConfirmedCapabilities above. This is the only place discoveryMode
+       should be set to 'manual'; the AI panel's own "manual setup" link and
+       the toggle below both call this rather than setDiscoveryMode directly. */
+    const switchToManual = () => {
+        foldInConfirmedCapabilities();
+        setDiscoveryMode('manual');
+    };
+
+    /* "I'll pick them myself." No questions, no proposal, no starting set —
+       the full catalogue with nothing ticked. Distinct from the AI/manual
+       toggle above it, which is about who asks the questions; this is about
+       not being asked any. */
+    const openBlankSlate = () => {
+        setEdited([]);
+        setBlankSlate(true);
+        setPath('preset');
+        setPhase('reveal');
+    };
+
     /* Skip the rest of the questions: keep whatever was answered, use the
        standard setup for the business type matched so far, go to the reveal. */
     const skipQuestions = async () => {
@@ -626,6 +740,7 @@ export default function BuildWorkspace({
             await analyse(prompt || '', '', answers);
             setSkipping(false);
         }
+        foldInConfirmedCapabilities();
         setPhase('reveal');
     };
 
@@ -685,6 +800,24 @@ export default function BuildWorkspace({
             /* Losing a demand note must never block signup. */
         } finally {
             setDemandBusy(false);
+        }
+    };
+
+    const requestNotify = async () => {
+        const address = notifyEmail.trim();
+        if (!address || notifyBusy) return;
+        setNotifyBusy(true);
+        try {
+            const data = await postJson(route('workspace.demand'), {
+                prompt: `[not supported yet] ${unsupported.join(' | ')} — asked for in: ${prompt || ''}`.slice(0, 1000),
+                email: address,
+                source: 'build_workspace_unsupported',
+            });
+            if (data?.success) setNotifySent(true);
+        } catch (e) {
+            /* Never let a roadmap signup block a signup. */
+        } finally {
+            setNotifyBusy(false);
         }
     };
 
@@ -817,7 +950,15 @@ export default function BuildWorkspace({
         return mine.length ? mine[mine.length - 1] : null;
     }, [lastAnswer, activeModules, attribution]);
 
-    const showStack = phase === 'questions' || phase === 'reveal';
+    /* The stack is shown ONCE, at the end.
+       While the questions run there is no module list, no count and no rows
+       sliding in — answering five questions beside a panel that keeps
+       rewriting itself is two jobs at once, and the count in its header was
+       the thing that made a lean setup still feel like a pile. The answers are
+       recorded; our own engine works out what they add up to; the reveal is
+       where that arrives. It is also free: nothing has to be re-resolved on
+       the server after every single answer. */
+    const showStack = phase === 'reveal';
 
     return (
         <>
@@ -840,8 +981,8 @@ export default function BuildWorkspace({
                 <div
                     className={
                         showStack
-                            ? 'grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:gap-10'
-                            : ''
+                            ? 'grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:gap-8 2xl:grid-cols-[minmax(0,1fr)_26rem]'
+                            : 'mx-auto w-full max-w-3xl'
                     }
                 >
                     <div className="min-w-0">
@@ -856,21 +997,60 @@ export default function BuildWorkspace({
                             />
                         )}
 
+                        {/* Mode and escape hatch on ONE line. This was a pill row
+                            stacked on top of a bordered card carrying three lines of
+                            copy about being in a hurry — together they pushed the
+                            actual question below the fold on a laptop, which is a
+                            strange thing for the question to be. The button says what
+                            it does; the paragraph explaining it was the third thing
+                            competing with it for the same glance. */}
                         {phase === 'questions' && (
-                            <div className="mb-5 flex flex-col gap-3 rounded-lg border border-line bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                                <p className="text-xs leading-relaxed text-ink-secondary">
-                                    <span className="font-semibold text-ink">In a hurry?</span>{' '}
-                                    Skip the questions and use the standard setup
-                                    {displayLabel ? <> for <strong className="font-semibold text-ink">{displayLabel}</strong></> : ' for your business'}.
-                                    Answering them gets you a closer fit.
-                                </p>
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                                <div
+                                    className="inline-flex items-center gap-0.5 rounded-full border border-line bg-surface p-1"
+                                    role="group"
+                                    aria-label="Answer with AI, or do it yourself"
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setDiscoveryMode('ai')}
+                                        aria-pressed={discoveryMode !== 'manual'}
+                                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-fast ease-standard ${
+                                            discoveryMode !== 'manual'
+                                                ? 'bg-accent-fill text-accent-on'
+                                                : 'text-ink-secondary hover:text-ink'
+                                        }`}
+                                    >
+                                        <Sparkles size={13} />
+                                        AI is asking
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={switchToManual}
+                                        aria-pressed={discoveryMode === 'manual'}
+                                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-fast ease-standard ${
+                                            discoveryMode === 'manual'
+                                                ? 'bg-accent-fill text-accent-on'
+                                                : 'text-ink-secondary hover:text-ink'
+                                        }`}
+                                    >
+                                        <Sliders size={13} />
+                                        I&rsquo;ll answer myself
+                                    </button>
+                                </div>
+
                                 <button
                                     type="button"
                                     onClick={skipQuestions}
                                     disabled={skipping}
-                                    className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-md border border-line bg-sunken px-3.5 text-xs font-semibold text-ink transition-colors duration-fast ease-standard hover:bg-interactive-hover disabled:opacity-60"
+                                    title={
+                                        displayLabel
+                                            ? `Stop here and set up the essentials for ${displayLabel}`
+                                            : 'Stop here and set up the essentials'
+                                    }
+                                    className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-xs font-semibold text-ink-secondary transition-colors duration-fast ease-standard hover:bg-interactive-hover hover:text-ink disabled:opacity-60"
                                 >
-                                    <FastForward size={14} />
+                                    <FastForward size={13} />
                                     {skipping ? 'Setting up…' : 'Skip questions'}
                                 </button>
                             </div>
@@ -997,7 +1177,7 @@ export default function BuildWorkspace({
                                         initialPrompt={prompt}
                                         initialPreset={presetKey}
                                         onComplete={handleAiComplete}
-                                        onFallbackToManual={() => setDiscoveryMode('manual')}
+                                        onFallbackToManual={openBlankSlate}
                                         onStateUpdate={handleAiStateUpdate}
                                         onProgress={handleAiProgress}
                                         onEditPrompt={editPrompt}
@@ -1032,11 +1212,15 @@ export default function BuildWorkspace({
                                     </span>
 
                                     <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-                                        {headline || 'Your system is ready to build.'}
+                                        {blankSlate
+                                            ? 'Build it yourself.'
+                                            : headline || 'Your system is ready to build.'}
                                     </h1>
                                     <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-secondary">
-                                        {presetDesc ||
-                                            'Everything below is switched on for you. Add or remove anything — nothing here costs extra.'}
+                                        {blankSlate
+                                            ? 'Nothing is switched on. Tap whatever you want — anything that needs something else switches that on too, and nothing here costs extra.'
+                                            : presetDesc ||
+                                              'Everything below is switched on for you. Add or remove anything — nothing here costs extra.'}
                                     </p>
 
                                     {/* Honest note — shown only when nothing about what was typed
@@ -1047,7 +1231,7 @@ export default function BuildWorkspace({
                                         a considered recommendation. */}
                                     <TermsPreview terms={terms} className="mt-3" />
 
-                                    {!matched && candidates.length > 0 && (
+                                    {!blankSlate && !matched && candidates.length > 0 && (
                                         <div className="mt-4 rounded-lg border border-accent bg-accent-quiet p-4">
                                             <p className="text-sm font-semibold text-ink">Did you mean one of these?</p>
                                             <div className="mt-2 flex flex-wrap gap-2">
@@ -1072,7 +1256,7 @@ export default function BuildWorkspace({
                                         </div>
                                     )}
 
-                                    {!matched && !candidates.length && (
+                                    {!blankSlate && !matched && !candidates.length && (
                                         <div className="mt-4 flex items-start gap-3 rounded-lg border border-line bg-surface p-4">
                                             <Compass size={16} className="mt-0.5 shrink-0 text-ink-muted" />
                                             <p className="text-sm leading-relaxed text-ink-secondary">
@@ -1092,7 +1276,63 @@ export default function BuildWorkspace({
                                         </div>
                                     )}
 
-                                    {recommendedList.length > 0 && (
+                                    {!blankSlate && unsupported.length > 0 && (
+                                        <div className="mt-4 rounded-lg border border-line bg-surface p-4">
+                                            <p className="text-sm font-semibold text-ink">
+                                                {unsupported.length === 1
+                                                    ? 'One thing we don\u2019t do yet'
+                                                    : 'A few things we don\u2019t do yet'}
+                                            </p>
+                                            <ul className="mt-1.5 space-y-1">
+                                                {unsupported.map((item) => (
+                                                    <li key={item} className="text-sm leading-relaxed text-ink-secondary">
+                                                        {item} <span className="text-ink-muted">&mdash; noted for our roadmap</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                                                Nothing below pretends to cover it. That is the whole reason
+                                                we said so rather than switching on something that sounds close.
+                                            </p>
+
+                                            {notifySent ? (
+                                                <p className="mt-3 flex items-center gap-2 text-sm text-ink">
+                                                    <Check size={15} className="text-accent-text" />
+                                                    We&rsquo;ll email you the day it ships.
+                                                </p>
+                                            ) : (
+                                                <div className="mt-3">
+                                                    <label htmlFor="vq-notify" className="text-xs font-semibold text-ink">
+                                                        Want it? We&rsquo;ll tell you when it&rsquo;s ready.
+                                                    </label>
+                                                    <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
+                                                        <input
+                                                            id="vq-notify"
+                                                            type="email"
+                                                            value={notifyEmail}
+                                                            onChange={(e) => setNotifyEmail(e.target.value)}
+                                                            placeholder="you@yourbusiness.com"
+                                                            className="h-11 flex-1 rounded-md border border-line bg-app px-3.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={requestNotify}
+                                                            disabled={notifyBusy || !notifyEmail.trim()}
+                                                            className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-line bg-sunken px-4 text-xs font-semibold text-ink transition-colors duration-fast ease-standard hover:bg-interactive-hover disabled:opacity-50"
+                                                        >
+                                                            <Send size={14} />
+                                                            {notifyBusy ? 'Saving…' : 'Notify me'}
+                                                        </button>
+                                                    </div>
+                                                    <p className="mt-1.5 text-3xs text-ink-faint">
+                                                        Only about this. No newsletter.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {!blankSlate && recommendedList.length > 0 && (
                                         <RecommendedBand
                                             items={recommendedList}
                                             active={activeModules}
@@ -1158,7 +1398,8 @@ export default function BuildWorkspace({
                                         <button
                                             type="button"
                                             onClick={goToPlan}
-                                            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:w-auto"
+                                            disabled={activeModules.length === 0}
+                                            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                                         >
                                             <Rocket size={16} />
                                             Build this workspace
@@ -1504,6 +1745,7 @@ export default function BuildWorkspace({
                                 modules={activeModules}
                                 catalogue={catalogueByKey}
                                 attribution={attribution}
+                                reasons={reasons}
                                 lastAnswer={lastAnswer}
                                 className="max-h-[68vh]"
                             />
@@ -1637,9 +1879,13 @@ function CurrencyDropdown({ value, onChange }) {
 function GoogleMark() {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+            {/* eslint-disable-next-line no-restricted-syntax -- Google brand colour; the "Sign up with Google" mark must not follow our theme. */}
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            {/* eslint-disable-next-line no-restricted-syntax -- Google brand colour; the "Sign up with Google" mark must not follow our theme. */}
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            {/* eslint-disable-next-line no-restricted-syntax -- Google brand colour; the "Sign up with Google" mark must not follow our theme. */}
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+            {/* eslint-disable-next-line no-restricted-syntax -- Google brand colour; the "Sign up with Google" mark must not follow our theme. */}
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
         </svg>
     );

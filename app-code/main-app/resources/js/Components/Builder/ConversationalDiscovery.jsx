@@ -48,7 +48,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { AlertTriangle, ArrowRight, ChevronDown, Info, RotateCcw, Sliders } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ChevronDown, Info, RotateCcw, Sliders, SkipForward } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import PromptTextarea from './PromptTextarea';
 import useSessionState from './useSessionState';
@@ -296,6 +296,13 @@ export default function ConversationalDiscovery({
         [setConvo],
     );
 
+    /* `start`'s own error path offers a retry that calls `start` again. Naming
+       it directly inside its own initialiser reads fine but leaves the retry
+       closed over a binding it cannot see updating — the same reason `cbs`
+       above exists. The ref is assigned in an effect below, which has always
+       run by the time anyone can click Try again. */
+    const startRef = useRef(null);
+
     const start = useCallback(
         async (text, preset, { keepHistory = true } = {}) => {
             setPhase('thinking');
@@ -322,7 +329,7 @@ export default function ConversationalDiscovery({
                 setError({
                     tone: 'warning',
                     text: 'We could not reach the setup assistant just now.',
-                    retry: () => start(text, preset, { keepHistory }),
+                    retry: () => startRef.current?.(text, preset, { keepHistory }),
                 });
             }
         },
@@ -330,11 +337,20 @@ export default function ConversationalDiscovery({
         [apply, startingPrompt, getTurnstileToken],
     );
 
+    useEffect(() => {
+        startRef.current = start;
+    });
+
     /* Mount: resume this tab's conversation for the same sentence, or start. */
     useEffect(() => {
         const resumable =
             convo && convo.prompt === startingPrompt && convo.current && convo.current.question;
         if (resumable) return;
+        /* Kicking off the opening request on mount is what this effect is for.
+           `start` flips to the thinking state before it awaits, which the rule
+           reads as a cascading render; the alternative — deferring those writes
+           past a microtask — buys one frame of the wrong UI and nothing else. */
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         start(startingPrompt, initialPreset || null, { keepHistory: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -362,6 +378,7 @@ export default function ConversationalDiscovery({
             return;
         }
 
+        // eslint-disable-next-line react-hooks/purity -- event handler, not render; ids must stay unique against rows rehydrated from sessionStorage, which a per-mount counter would collide with.
         const entry = { id: Date.now(), q: prev.question, a: text };
         setConvo((c) => ({ ...c, history: [...(c.history || []), entry], current: null }));
         setThinkingSet(THINKING_STEP);
@@ -393,6 +410,48 @@ export default function ConversationalDiscovery({
                 tone: 'warning',
                 text: 'That answer did not go through — nothing was lost.',
                 retry: () => answer(text, optionKey),
+            });
+        }
+    };
+
+    /* Decline the current question and move on.
+       This is a first-class server call, not an answer of "skip": the backend
+       records the question's target capability on the session's skipped list,
+       which is the only thing that stops its deterministic selector from
+       picking the same capability — and therefore asking the same question —
+       on the very next turn. The transcript keeps the row: "you were asked
+       this and passed on it" is part of the history worth showing. */
+    const skipQuestion = async () => {
+        if (busy || !current || current.opener || !convo.sessionId) return;
+
+        const prev = current;
+        // eslint-disable-next-line react-hooks/purity -- see the note on the same pattern in answer() above.
+        const entry = { id: Date.now(), q: prev.question, a: 'Skipped', skipped: true };
+        setDraft('');
+        setError(null);
+        setConvo((c) => ({ ...c, history: [...(c.history || []), entry], current: null }));
+        setThinkingSet(THINKING_STEP);
+        setPhase('thinking');
+
+        try {
+            const data = await postJson('/workspace/converse/step', {
+                session_id: convo.sessionId,
+                skip: true,
+            });
+            if (!alive.current) return;
+            if (!apply(data, { prev })) throw new Error('Unexpected response');
+        } catch (e) {
+            if (!alive.current) return;
+            setConvo((c) => ({
+                ...c,
+                history: (c.history || []).filter((h) => h.id !== entry.id),
+                current: prev,
+            }));
+            setPhase('idle');
+            setError({
+                tone: 'warning',
+                text: 'That skip did not go through — the question is still here.',
+                retry: () => skipQuestion(),
             });
         }
     };
@@ -528,7 +587,10 @@ export default function ConversationalDiscovery({
                 <AnimatePresence mode="wait" initial={false}>
                     {busy || !current ? (
                         <motion.div key="thinking" {...fade}>
-                            <Thinking texts={thinkingSet} still={still} />
+                            {/* Keyed on the set itself: a new set of lines is a new
+                                Thinking, which starts at line 0 by construction
+                                rather than by resetting state inside an effect. */}
+                            <Thinking key={thinkingSet[0]} texts={thinkingSet} still={still} />
                         </motion.div>
                     ) : (
                         <motion.div key={`q-${current.question}`} {...fade}>
@@ -555,7 +617,16 @@ export default function ConversationalDiscovery({
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.26, delay: still ? 0 : 0.05 * i, ease: [0.22, 1, 0.36, 1] }}
                                         >
-                                            <span>{opt.label}</span>
+                                            {/* The label says what you are picking; the line
+                                                under it says what picking it actually does.
+                                                Always system-authored — validOptions() lets the
+                                                model restyle the label and nothing else. */}
+                                            <span className="vq-cd-option__text">
+                                                <span className="vq-cd-option__label">{opt.label}</span>
+                                                {opt.desc && (
+                                                    <span className="vq-cd-option__desc">{opt.desc}</span>
+                                                )}
+                                            </span>
                                             <ArrowRight size={18} aria-hidden="true" />
                                         </motion.button>
                                     ))}
@@ -594,6 +665,21 @@ export default function ConversationalDiscovery({
                 />
             </div>
 
+            {current && !current.opener && convo.sessionId && phase !== 'done' && (
+                <div className="vq-cd-foot">
+                    <span>Not sure, or would rather not say?</span>
+                    <button
+                        type="button"
+                        className="vq-btn vq-btn--quiet vq-btn--sm"
+                        onClick={skipQuestion}
+                        disabled={busy}
+                    >
+                        <SkipForward size={15} aria-hidden="true" />
+                        Skip this question
+                    </button>
+                </div>
+            )}
+
             <div className="vq-cd-foot">
                 <span>Rather pick the modules yourself?</span>
                 <button type="button" className="vq-btn vq-btn--quiet vq-btn--sm" onClick={onFallbackToManual}>
@@ -608,7 +694,8 @@ export default function ConversationalDiscovery({
 function Thinking({ texts, still }) {
     const [i, setI] = useState(0);
     useEffect(() => {
-        setI(0);
+        /* No reset here: the caller keys this component on the text set, so a
+           different set arrives as a fresh mount already sitting at 0. */
         if (texts.length < 2) return undefined;
         const t = window.setInterval(() => setI((n) => (n + 1) % texts.length), 1700);
         return () => window.clearInterval(t);

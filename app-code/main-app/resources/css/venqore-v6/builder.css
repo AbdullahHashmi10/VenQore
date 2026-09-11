@@ -202,7 +202,7 @@
   display: flex; align-items: center; justify-content: space-between; gap: var(--vq-space-3);
   width: 100%;
   min-height: 56px;
-  padding: 12px 18px;
+  padding: 12px 16px;
   text-align: left;
   border-radius: var(--vq-r-md);
   background: var(--vq-surface);
@@ -220,6 +220,19 @@
     transform        var(--vq-dur-2) var(--vq-ease-out);
 }
 .vq-cd-option svg { flex: none; color: var(--vq-text-3); transition: transform var(--vq-dur-2) var(--vq-ease-out), color var(--vq-dur-1) var(--vq-ease-out); }
+
+/* An option is a choice, not a word. The second line says what choosing it
+   does, in the same plain terms as the question — picking "Yes" should never
+   be a guess about what you have just switched on. */
+.vq-cd-option__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vq-cd-option__label { font-weight: var(--vq-fw-medium); }
+.vq-cd-option__desc {
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-regular);
+  line-height: 1.4;
+  color: var(--vq-text-3);
+}
+.vq-cd-option:hover .vq-cd-option__desc { color: var(--vq-accent-text); opacity: .85; }
 .vq-cd-option:hover {
   border-color: var(--vq-accent);
   background: var(--vq-accent-quiet);

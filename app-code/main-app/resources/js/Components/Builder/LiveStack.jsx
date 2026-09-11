@@ -38,6 +38,11 @@ export default function LiveStack({
     modules = [],
     catalogue = {},
     attribution = {},
+    /* module key -> why it is here, written from the visitor's own sentence.
+       Present only when the description was actually READ rather than matched
+       against a preset; a row with no reason simply shows what the module does,
+       which is the honest fallback. See BusinessUnderstanding. */
+    reasons = {},
     lastAnswer = null,
     className = '',
 }) {
@@ -56,11 +61,15 @@ export default function LiveStack({
         return () => window.clearTimeout(t);
     }, [modules]);
 
-    /* An answer that added nothing still deserves a reply. */
+    /* An answer that added nothing still deserves a reply. Reacting to an
+       answer ARRIVING is what an effect is for; the rule flags any setState in
+       an effect body, and the alternative here — deriving the note during
+       render — cannot work, because it has to clear itself on a timer. */
     useEffect(() => {
         if (!lastAnswer) return;
         const added = modules.filter((k) => attribution[k] === lastAnswer.questionKey);
         if (added.length > 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setNoOpNote(null);
             return;
         }
@@ -144,11 +153,20 @@ export default function LiveStack({
                                         <span className="block truncate text-xs font-semibold text-ink">
                                             {entry.label || key.replace(/_/g, ' ')}
                                         </span>
-                                        {entry.description && (
+                                        {/* "you said you want to know what you spend"
+                                            beats "Operating cost recording" every
+                                            time — it is the difference between a
+                                            system that was assigned and one that was
+                                            built. */}
+                                        {reasons[key] ? (
+                                            <span className="block truncate text-3xs text-accent-text" title={reasons[key]}>
+                                                {reasons[key]}
+                                            </span>
+                                        ) : entry.description ? (
                                             <span className="block truncate text-3xs text-ink-faint">
                                                 {entry.description}
                                             </span>
-                                        )}
+                                        ) : null}
                                     </span>
                                     {earned && fresh && (
                                         <motion.span

@@ -95,12 +95,12 @@ class CapabilityRegistry
                     'triggers'          => ['repair', 'fixing', 'workshop', 'technician', 'service', 'phone fix', 'mobile repair', 'auto repair', 'مرمت', 'ورکشاپ'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['repairs', 'pos', 'customers'],
-                    'consequences'      => ['Enables repair ticket intake, diagnostic notes, stage updates (Received, In Progress, Ready, Delivered) and SMS notification.'],
-                    'question_template' => 'Do you take in customer items/devices for repair and need stage-by-stage status tracking (Received -> Diagnosing -> Ready -> Delivered)?',
+                    'consequences'      => ['You get a simple job list. Each job shows who it is for, what needs doing, and whether it is booked, started or done.'],
+                    'question_template' => 'Do you want a list of every job you take on, so you can see what is booked, what you are working on and what is finished?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, track repair jobs', 'implies' => 'repair_job_tracking'],
-                        ['key' => 'no', 'label' => 'No, sales only', 'implies' => 'sales_only'],
-                        ['key' => 'custom', 'label' => 'Let me explain', 'implies' => 'custom'],
+                        ['key' => 'yes', 'label' => 'Yes, keep a job list', 'desc' => 'Every job in one place, from booked to finished.', 'implies' => 'repair_job_tracking'],
+                        ['key' => 'no', 'label' => 'No, just record what I sell', 'desc' => 'No job list — you only record the sale.', 'implies' => 'sales_only'],
+                        ['key' => 'custom', 'label' => 'Let me explain', 'desc' => 'Tell us how you work and we will fit it.', 'implies' => 'custom'],
                     ],
                 ],
                 'spare_parts_and_labour' => [
@@ -109,12 +109,12 @@ class CapabilityRegistry
                     'triggers'          => ['repair', 'technician', 'parts', 'labour', 'service charges', 'اسپیئر پارٹس'],
                     'requires_caps'     => ['repair_job_tracking'],
                     'implies_modules'   => ['repairs', 'inventory', 'expenses'],
-                    'consequences'      => ['Deducts replacement parts from inventory while billing labor charges as service line items on the repair invoice.'],
-                    'question_template' => 'When completing a repair, do you bill for replacement parts and labor/service charges separately on the customer invoice?',
+                    'consequences'      => ['Your bill shows parts and labour on their own lines, and any part you use comes off your stock by itself.'],
+                    'question_template' => 'When a job is done, do you charge for parts and for your time as separate things?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, parts and labor', 'implies' => 'spare_parts_and_labour'],
-                        ['key' => 'parts_only', 'label' => 'Flat fee / parts only', 'implies' => 'flat_repair_fee'],
-                        ['key' => 'no', 'label' => 'No parts needed', 'implies' => 'labour_only'],
+                        ['key' => 'yes', 'label' => 'Yes, parts and my time', 'desc' => 'Both on the bill, parts taken off stock.', 'implies' => 'spare_parts_and_labour'],
+                        ['key' => 'parts_only', 'label' => 'One price for the job', 'desc' => 'A single charge, with no separate parts line.', 'implies' => 'flat_repair_fee'],
+                        ['key' => 'no', 'label' => 'Only my time', 'desc' => 'You charge for the work, never for parts.', 'implies' => 'labour_only'],
                     ],
                 ],
             ],
@@ -126,12 +126,12 @@ class CapabilityRegistry
                     'triggers'          => ['branches', 'outlets', 'stores', 'locations', 'warehouses', 'chain', 'برانچ', 'گودام'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['branches', 'stock_transfers', 'inventory'],
-                    'consequences'      => ['Enables isolated branch inventories, central warehouse management, inter-store transfer requests, and branch-level analytics.'],
-                    'question_template' => 'Do you operate across multiple shops, branches, or separate warehouses that need stock transfers between them?',
+                    'consequences'      => ['Each place keeps its own stock and its own figures, and you can move items between them.'],
+                    'question_template' => 'Do you work out of more than one shop, branch or storeroom?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, multiple branches', 'implies' => 'multi_branch_warehouses'],
-                        ['key' => 'no', 'label' => 'Single location', 'implies' => 'single_location'],
-                        ['key' => 'planning', 'label' => 'Opening soon', 'implies' => 'multi_branch_warehouses'],
+                        ['key' => 'yes', 'label' => 'Yes, more than one', 'desc' => 'Separate stock and figures for each place.', 'implies' => 'multi_branch_warehouses'],
+                        ['key' => 'no', 'label' => 'Just the one', 'desc' => 'One set of stock, one set of figures.', 'implies' => 'single_location'],
+                        ['key' => 'planning', 'label' => 'Opening another soon', 'desc' => 'Set it up now so it is ready when you are.', 'implies' => 'multi_branch_warehouses'],
                     ],
                 ],
                 'batch_expiry_tracking' => [
@@ -140,12 +140,12 @@ class CapabilityRegistry
                     'triggers'          => ['pharmacy', 'medicine', 'drugstore', 'food', 'bakery', 'cosmetics', 'perishables', 'dairy', 'meat', 'فارمیسی', 'میڈیکل'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['batches_expiry', 'inventory'],
-                    'consequences'      => ['Enables batch/lot number tracking, automated FEFO (First-Expired-First-Out) dispatch, and near-expiry alerts.'],
-                    'question_template' => 'Do your products have batch/lot numbers or expiry dates that need automatic tracking and expiration warnings?',
+                    'consequences'      => ['You are warned before anything expires, and whatever expires soonest is always sold first.'],
+                    'question_template' => 'Do the things you sell have expiry dates or batch numbers you need to keep an eye on?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, track batches & expiry', 'implies' => 'batch_expiry_tracking'],
-                        ['key' => 'no', 'label' => 'No expiry dates', 'implies' => 'no_expiry'],
-                        ['key' => 'some', 'label' => 'Only specific items', 'implies' => 'batch_expiry_tracking'],
+                        ['key' => 'yes', 'label' => 'Yes, they expire', 'desc' => 'Get warned before stock goes out of date.', 'implies' => 'batch_expiry_tracking'],
+                        ['key' => 'no', 'label' => 'No, nothing expires', 'desc' => 'Nothing you sell has a date on it.', 'implies' => 'no_expiry'],
+                        ['key' => 'some', 'label' => 'Only some of them', 'desc' => 'Watch dates on the items that need it.', 'implies' => 'batch_expiry_tracking'],
                     ],
                 ],
                 'supplier_purchasing' => [
@@ -154,11 +154,11 @@ class CapabilityRegistry
                     'triggers'          => ['suppliers', 'distributors', 'vendors', 'purchases', 'restock', 'reorder', 'سپلائر', 'ڈسٹری بیوٹر'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['purchases', 'suppliers', 'inventory'],
-                    'consequences'      => ['Automates supplier bills, low-stock reorder triggers, and purchase order tracking.'],
-                    'question_template' => 'Do you order stock from suppliers/distributors and want automated low-stock reordering and purchase bills?',
+                    'consequences'      => ['You keep a record of what you ordered, what it cost and what you still owe, and get told when stock is running low.'],
+                    'question_template' => 'Do you buy from suppliers, and do you want their bills and your reordering kept track of?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, track supplier orders & bills', 'implies' => 'supplier_purchasing'],
-                        ['key' => 'cash_only', 'label' => 'Direct cash purchase only', 'implies' => 'cash_purchases'],
+                        ['key' => 'yes', 'label' => 'Yes, I order from suppliers', 'desc' => 'Track their bills and what you still owe.', 'implies' => 'supplier_purchasing'],
+                        ['key' => 'cash_only', 'label' => 'I just buy as I go', 'desc' => 'Pay on the spot, no supplier accounts.', 'implies' => 'cash_purchases'],
                     ],
                 ],
                 'serial_imei_tracking' => [
@@ -167,12 +167,12 @@ class CapabilityRegistry
                     'triggers'          => ['electronics', 'mobile', 'phones', 'computers', 'hardware', 'appliances', 'machinery', 'موبائل', 'الیکٹرانکس'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['serial_numbers', 'inventory'],
-                    'consequences'      => ['Tracks unique serial numbers or IMEIs per unit from purchase through sale, warranty claims, and returns.'],
-                    'question_template' => 'Do you need to record individual Serial Numbers or IMEIs for every single device bought and sold (for warranty and tracking)?',
+                    'consequences'      => ['Every unit is followed one by one, so you can look up where any single item came from and who bought it.'],
+                    'question_template' => 'Do you need to record a serial or IMEI number for each individual item you buy and sell?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, track serials/IMEIs', 'implies' => 'serial_imei_tracking'],
-                        ['key' => 'no', 'label' => 'Standard SKU quantity', 'implies' => 'standard_inventory'],
-                        ['key' => 'custom', 'label' => 'Only for phones/laptops', 'implies' => 'serial_imei_tracking'],
+                        ['key' => 'yes', 'label' => 'Yes, every unit', 'desc' => 'Look up any item by its serial or IMEI.', 'implies' => 'serial_imei_tracking'],
+                        ['key' => 'no', 'label' => 'No, just count them', 'desc' => 'You track how many you have, not which one.', 'implies' => 'standard_inventory'],
+                        ['key' => 'custom', 'label' => 'Only the costly ones', 'desc' => 'Serial numbers on the expensive items only.', 'implies' => 'serial_imei_tracking'],
                     ],
                 ],
                 'product_variants' => [
@@ -181,11 +181,11 @@ class CapabilityRegistry
                     'triggers'          => ['clothing', 'apparel', 'garments', 'fashion', 'shoes', 'boutique', 'fabric', 'textiles', 'کپڑے', 'گارمنٹس'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['variants', 'products', 'inventory'],
-                    'consequences'      => ['Allows creating master items with color, size, material, and barcode variants with individual stock counts.'],
-                    'question_template' => 'Do your items come in multiple sizes, colors, or styles that need distinct stock counts per variant?',
+                    'consequences'      => ['One item with many versions — each size or colour keeps its own stock count.'],
+                    'question_template' => 'Do your items come in different sizes or colours that you need to count separately?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, sizes & colors', 'implies' => 'product_variants'],
-                        ['key' => 'no', 'label' => 'Uniform items only', 'implies' => 'simple_products'],
+                        ['key' => 'yes', 'label' => 'Yes, sizes and colours', 'desc' => 'Each size and colour counted on its own.', 'implies' => 'product_variants'],
+                        ['key' => 'no', 'label' => 'No, one version each', 'desc' => 'One item, one stock count.', 'implies' => 'simple_products'],
                     ],
                 ],
             ],
@@ -197,12 +197,12 @@ class CapabilityRegistry
                     'triggers'          => ['restaurant', 'cafe', 'food', 'dining', 'bistro', 'eatery', 'bar', 'pizzeria', 'ریسٹورنٹ', 'کھانا'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['tables', 'kitchen_display', 'pos'],
-                    'consequences'      => ['Configures table floorplans, table booking, split bills, and kitchen order ticket (KOT) routing.'],
-                    'question_template' => 'Do you provide dine-in seating with tables and require kitchen order tickets (KOT) sent to your kitchen?',
+                    'consequences'      => ['You get a table plan, orders sent straight to the kitchen, and bills you can split between people.'],
+                    'question_template' => 'Do people sit down and eat in, with their orders going through to your kitchen?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, dine-in & kitchen tickets', 'implies' => 'table_and_kot_management'],
-                        ['key' => 'counter_only', 'label' => 'Counter / Takeaway only', 'implies' => 'counter_dining'],
-                        ['key' => 'delivery_only', 'label' => 'Cloud kitchen / Delivery', 'implies' => 'delivery_management'],
+                        ['key' => 'yes', 'label' => 'Yes, people eat in', 'desc' => 'Tables, kitchen orders and split bills.', 'implies' => 'table_and_kot_management'],
+                        ['key' => 'counter_only', 'label' => 'Counter and takeaway', 'desc' => 'They order at the counter and take it away.', 'implies' => 'counter_dining'],
+                        ['key' => 'delivery_only', 'label' => 'Delivery only', 'desc' => 'No dining area — everything goes out.', 'implies' => 'delivery_management'],
                     ],
                 ],
                 'food_delivery_dispatch' => [
@@ -211,11 +211,11 @@ class CapabilityRegistry
                     'triggers'          => ['delivery', 'riders', 'dispatch', 'home delivery', 'ڈلیوری', 'رائڈر'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['delivery_orders', 'pos'],
-                    'consequences'      => ['Assigns orders to riders, records delivery charges, and tracks dispatch to customer doorsteps.'],
-                    'question_template' => 'Do you manage your own home deliveries and rider assignments?',
+                    'consequences'      => ['You give each order to a rider and can see what is out for delivery and what has arrived.'],
+                    'question_template' => 'Do you deliver to people yourself, with your own riders?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, own riders & delivery', 'implies' => 'food_delivery_dispatch'],
-                        ['key' => 'no', 'label' => 'Takeaway/Dine-in only', 'implies' => 'no_delivery'],
+                        ['key' => 'yes', 'label' => 'Yes, my own riders', 'desc' => 'Hand orders to riders and follow them out.', 'implies' => 'food_delivery_dispatch'],
+                        ['key' => 'no', 'label' => 'No, they come to me', 'desc' => 'Nothing leaves the shop.', 'implies' => 'no_delivery'],
                     ],
                 ],
             ],
@@ -227,12 +227,12 @@ class CapabilityRegistry
                     'triggers'          => ['wholesale', 'distribution', 'credit', 'khata', 'terms', 'installments', 'pharmacy', 'grocery', 'کھاتہ', 'ادھار', 'ہول سیل'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['credit_sales', 'customers', 'sales_orders'],
-                    'consequences'      => ['Manages customer credit limits, aging balances, partial payments, payment reminders, and statements.'],
-                    'question_template' => 'Do regular customers or patients buy on credit / monthly Khata terms, or is it strictly immediate cash/card checkout?',
+                    'consequences'      => ['Each customer gets a running balance, so you can see who owes you what, for how long, and remind them.'],
+                    'question_template' => 'Do any of your customers take things now and pay you later?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, offer credit / Khata', 'implies' => 'customer_khata_credit'],
-                        ['key' => 'cash_only', 'label' => 'Immediate cash/card only', 'implies' => 'cash_only'],
-                        ['key' => 'some', 'label' => 'Only trusted regular clients', 'implies' => 'customer_khata_credit'],
+                        ['key' => 'yes', 'label' => 'Yes, they pay later', 'desc' => 'A running balance for every customer.', 'implies' => 'customer_khata_credit'],
+                        ['key' => 'cash_only', 'label' => 'No, always paid up front', 'desc' => 'Every sale settled on the spot.', 'implies' => 'cash_only'],
+                        ['key' => 'some', 'label' => 'Only people I know well', 'desc' => 'Credit for regulars, cash for the rest.', 'implies' => 'customer_khata_credit'],
                     ],
                 ],
                 'quotations_and_orders' => [
@@ -241,11 +241,11 @@ class CapabilityRegistry
                     'triggers'          => ['quotations', 'estimates', 'b2b', 'corporate', 'purchase orders', 'کوٹیشن'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['quotations', 'sales_orders', 'customers'],
-                    'consequences'      => ['Allows issuing formal quotes/estimates to clients and converting approved quotes directly into sales invoices.'],
-                    'question_template' => 'Do you issue price quotes/estimates to corporate or wholesale clients before confirming an order?',
+                    'consequences'      => ['You send a price, and when they say yes it becomes the bill — nothing gets typed twice.'],
+                    'question_template' => 'Do you send a price first and only start the work once they agree to it?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, send quotes first', 'implies' => 'quotations_and_orders'],
-                        ['key' => 'no', 'label' => 'Direct POS sales only', 'implies' => 'pos_only'],
+                        ['key' => 'yes', 'label' => 'Yes, I quote first', 'desc' => 'Send a price, turn it into the bill later.', 'implies' => 'quotations_and_orders'],
+                        ['key' => 'no', 'label' => 'No, I charge on the spot', 'desc' => 'Straight to the sale, no quote first.', 'implies' => 'pos_only'],
                     ],
                 ],
             ],
@@ -257,11 +257,11 @@ class CapabilityRegistry
                     'triggers'          => ['bakery', 'manufacturing', 'assembly', 'production', 'recipe', 'crafting', 'raw materials', 'پروڈکشن', 'بیکری'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['cookbook', 'production_runs', 'inventory'],
-                    'consequences'      => ['Defines Bill of Materials (BOM)/recipes and auto-deducts ingredients while stocking the finished goods.'],
-                    'question_template' => 'Do you manufacture or bake finished goods from raw materials/ingredients and need recipe-based deduction?',
+                    'consequences'      => ['You write down what goes into each thing you make, and those ingredients come off your stock as you make it.'],
+                    'question_template' => 'Do you make what you sell out of raw materials or ingredients?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, recipe/production tracking', 'implies' => 'recipe_and_bom'],
-                        ['key' => 'no', 'label' => 'Buy & resell ready goods', 'implies' => 'trading_only'],
+                        ['key' => 'yes', 'label' => 'Yes, I make it myself', 'desc' => 'Ingredients come off stock as you produce.', 'implies' => 'recipe_and_bom'],
+                        ['key' => 'no', 'label' => 'No, I buy it ready-made', 'desc' => 'You sell it exactly as you bought it.', 'implies' => 'trading_only'],
                     ],
                 ],
             ],
@@ -273,11 +273,11 @@ class CapabilityRegistry
                     'triggers'          => ['salon', 'spa', 'clinic', 'barber', 'consultant', 'appointments', 'سلیون', 'بکنگ'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['appointments', 'staff_roster', 'customers'],
-                    'consequences'      => ['Enables calendar appointment scheduling, staff shift roster, and service commission allocation.'],
-                    'question_template' => 'Do clients book appointments in advance for specific staff members, stylists, or treatment rooms?',
+                    'consequences'      => ['You get a diary of who is coming and when, so the same slot never goes to two people.'],
+                    'question_template' => 'Do people book a time with you in advance?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, appointment calendar', 'implies' => 'appointment_scheduling'],
-                        ['key' => 'walkin', 'label' => 'Walk-ins only', 'implies' => 'walkins_only'],
+                        ['key' => 'yes', 'label' => 'Yes, they book ahead', 'desc' => 'A booking diary of times and people.', 'implies' => 'appointment_scheduling'],
+                        ['key' => 'walkin', 'label' => 'No, they just turn up', 'desc' => 'First come, first served.', 'implies' => 'walkins_only'],
                     ],
                 ],
             ],
@@ -351,6 +351,31 @@ class CapabilityRegistry
             }
         }
 
+        // 1b. Working alone. Stated plainly by a lot of one-person
+        // businesses and, until now, heard by nothing: a solo plumber who
+        // wrote "I work alone" was still handed staff attendance before he
+        // answered a question. A fact the visitor volunteered has to outrank
+        // the trade's default shape — see contradictedModules().
+        $soloPatterns = [
+            'i work alone', 'work alone', 'working alone', 'i am alone', 'by myself',
+            'on my own', 'just me', 'only me', 'just myself', 'one man', 'one-man',
+            'one person', 'single person', 'sole proprietor', 'solo', 'freelance',
+            'freelancer', 'self employed', 'self-employed', 'no staff', 'no employees',
+            'no workers', 'no team', 'without staff', 'اکیلا', 'اکیلے', 'تنہا', 'بغیر عملہ',
+            'وحدي', 'بمفردي',
+        ];
+        foreach ($soloPatterns as $needle) {
+            if (str_contains($normalized, $needle)) {
+                $facts['solo'] = [
+                    'value'      => true,
+                    'confidence' => 1.0,
+                    'source'     => 'user_explicit',
+                    'evidence'   => $needle,
+                ];
+                break;
+            }
+        }
+
         // 2. Domain & Trade Triggers
         $domainKeywords = [
             'pharmacy'    => ['pharmacy', 'medicine', 'drugstore', 'میڈیکل', 'فارمیسی', 'chemist', 'medical store', 'دوا', 'صيدلية', 'أدوية'],
@@ -395,7 +420,7 @@ class CapabilityRegistry
      * @param string[] $rejectedCaps
      * @return array{key: string, name: string, impact: int, consequences: string[], question_template: string, options: array}|null
      */
-    public function selectNextCandidateQuestion(array $knownFacts, array $confirmedCaps, array $rejectedCaps): ?array
+    public function selectNextCandidateQuestion(array $knownFacts, array $confirmedCaps, array $rejectedCaps, array $skippedCaps = []): ?array
     {
         $all = $this->allCapabilities();
         $tradeMatrix = $this->tradeMatrix();
@@ -411,6 +436,14 @@ class CapabilityRegistry
         foreach ($all as $key => $cap) {
             // Already resolved? Skip
             if (in_array($key, $confirmedCaps, true) || in_array($key, $rejectedCaps, true)) {
+                continue;
+            }
+
+            // Asked and declined. A skipped capability is neither confirmed nor
+            // rejected, so without this it stays the top unresolved candidate
+            // and gets re-selected on the very next turn — the visitor skips a
+            // question and is handed the same question back.
+            if (in_array($key, $skippedCaps, true)) {
                 continue;
             }
 
@@ -590,22 +623,97 @@ class CapabilityRegistry
      * @param string|null $presetKey
      * @return string[]
      */
-    public function resolveModules(array $confirmedCaps, ?string $presetKey = null): array
+    /**
+     * What a preset ships before anything has been confirmed.
+     *
+     * `core` is the honest floor for a trade — never the full `modules` list,
+     * which is everything the trade COULD want. A preset with no `core` yet
+     * falls back to its full list, so an unconverted preset degrades to the
+     * old behaviour rather than to nothing.
+     */
+    public function coreModules(?string $presetKey): array
+    {
+        $preset = $presetKey ? config("ai_builder.presets.{$presetKey}", []) : [];
+        $core = (array) ($preset['core'] ?? $preset['modules'] ?? []);
+
+        // An unknown or misspelt preset key must not hand someone an empty
+        // workspace — a lean starting point is the goal, nothing at all is a
+        // broken page. Fall back to the smallest shop that still works.
+        if ($core === []) {
+            $core = (array) config('ai_builder.presets.retail_shop.core', ['products', 'pos', 'expenses', 'reports']);
+        }
+
+        return $core;
+    }
+
+    /**
+     * Modules the visitor's own words rule out.
+     *
+     * Only ever driven by something they stated outright — never by a guess
+     * about their size or their trade. Saying "I work alone" and still being
+     * handed staff attendance is the single most obvious way for this builder
+     * to prove it was not listening.
+     *
+     * @return string[] module keys to remove
+     */
+    public function contradictedModules(array $facts): array
+    {
+        $out = [];
+
+        if (!empty($facts['solo']['value'])) {
+            // One person has no attendance to take and no roster to fill.
+            $out = array_merge($out, ['staff_attendance', 'staff_roster']);
+        }
+
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * Capabilities that must not be asked about at all, given what was stated.
+     * Fed to selectNextCandidateQuestion as rejections so a solo operator is
+     * never asked to choose between rotas.
+     *
+     * @return string[] capability keys
+     */
+    public function contradictedCapabilities(array $facts): array
+    {
+        $contradicted = $this->contradictedModules($facts);
+        if ($contradicted === []) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($this->allCapabilities() as $key => $cap) {
+            $implied = (array) ($cap['implies_modules'] ?? []);
+            // Only when EVERY module it would add is ruled out. A capability
+            // that also brings something still wanted stays askable.
+            if ($implied !== [] && array_diff($implied, $contradicted) === []) {
+                $out[] = $key;
+            }
+        }
+
+        return $out;
+    }
+
+    public function resolveModules(array $confirmedCaps, ?string $presetKey = null, array $facts = []): array
     {
         $all = $this->allCapabilities();
 
-        // Baseline essential modules
-        $modules = ['products', 'pos', 'inventory', 'sales_orders', 'customers', 'suppliers', 'expenses', 'reports'];
-
-        if ($presetKey && isset(config('ai_builder.presets', [])[$presetKey]['modules'])) {
-            $modules = array_merge($modules, config('ai_builder.presets')[$presetKey]['modules']);
-        }
+        // The preset's core, not a universal baseline. The old hardcoded list
+        // ('products', 'pos', 'inventory', 'sales_orders', 'customers',
+        // 'suppliers', ...) was bolted onto every proposal in every trade, so
+        // even a conversation that correctly concluded "one person, no stock,
+        // just invoices and expenses" still finished by handing over a
+        // supplier network and a stock ledger.
+        $modules = $this->coreModules($presetKey);
 
         foreach ($confirmedCaps as $capKey) {
             if (isset($all[$capKey]['implies_modules'])) {
                 $modules = array_merge($modules, $all[$capKey]['implies_modules']);
             }
         }
+
+        $modules = array_diff($modules, $this->contradictedModules($facts));
 
         // Intersect strictly with live modules in config/modules.php
         $liveRegistry = array_keys(array_filter(config('modules', []), fn ($m) => ($m['status'] ?? null) === 'live'));
