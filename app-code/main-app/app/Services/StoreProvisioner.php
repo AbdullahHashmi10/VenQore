@@ -172,7 +172,7 @@ class StoreProvisioner
 
         $recentTenant = Tenant::where('name', $name)
             ->where('created_at', '>=', now()->subSeconds(60))
-            ->whereHas('users', fn($q) => $q->where('users.id', $user->id)->where('role', 'owner'))
+            ->whereHas('users', fn($q) => $q->where('users.id', $user->id)->where('tenant_users.role', 'owner'))
             ->first();
         if ($recentTenant) {
             return $recentTenant;

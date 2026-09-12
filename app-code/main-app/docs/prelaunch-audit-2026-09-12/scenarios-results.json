@@ -3,9 +3,9 @@
         "scenario_id": "scenario_01",
         "title": "Freelancer: Services & Invoicing (No POS, Inventory, Barcodes, Manufacturing)",
         "status": "pass",
-        "duration_sec": 0.652,
+        "duration_sec": 0.761,
         "data": {
-            "tenant_id": 578,
+            "tenant_id": 138,
             "requested_modules": [
                 "services",
                 "invoicing",
@@ -26,60 +26,60 @@
             "has_inventory": false,
             "route_outcomes": {
                 "invoicing": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/sales",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/sales",
                     "status": 200,
                     "is_gated": false
                 },
                 "services": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/service-jobs",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/service-jobs",
                     "status": 200,
                     "is_gated": false
                 },
                 "pos": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/pos",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/pos",
                     "status": 403,
                     "is_gated": true
                 },
                 "new_pos_mock": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/new-pos",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/new-pos",
                     "status": 403,
                     "is_gated": true
                 },
                 "inventory": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/inventory",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/inventory",
                     "status": 403,
                     "is_gated": true
                 },
                 "inventory_list": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/inventory/list",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/inventory/list",
                     "status": 403,
                     "is_gated": true
                 },
                 "labels": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/labels",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/labels",
                     "status": 403,
                     "is_gated": true
                 },
                 "production": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/production",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/production",
                     "status": 404,
                     "is_gated": false
                 },
                 "cookbook": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/cookbook",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/cookbook",
                     "status": 403,
                     "is_gated": true
                 },
                 "tables": {
-                    "uri": "/s/audit-solo-freelancer-m64qbx/tables/state",
+                    "uri": "/s/audit-solo-freelancer-1vxjxk/tables/state",
                     "status": 403,
                     "is_gated": true
                 }
             },
             "api_outcomes": {
-                "pos_search": 200,
+                "pos_search": 403,
                 "work_orders": 200,
-                "sync_inventory": 200
+                "sync_inventory": 403
             },
             "cards": [
                 "sales.revenue",
@@ -87,33 +87,28 @@
                 "sales.revenue_trend",
                 "sales.payment_breakdown",
                 "finance.expenses_total",
-                "finance.expenses_by_category",
+                "finance.net_profit",
+                "sales.revenue_trend",
                 "sales.live_feed",
-                "sales.revenue",
+                "finance.expenses_by_category",
                 "finance.balance_sheet_ok",
+                "finance.net_profit",
                 "sales.revenue",
-                "sales.top_products",
                 "sales.payment_breakdown",
-                "inventory.stock_value",
-                "finance.net_profit",
-                "finance.net_profit",
-                "sales.revenue_trend"
+                "sales.revenue"
             ],
-            "unexpected_cards": {
-                "10": "sales.top_products",
-                "12": "inventory.stock_value"
-            },
+            "unexpected_cards": [],
             "new_pos_leak": false,
-            "api_pos_leak": true
+            "api_pos_leak": false
         }
     },
     "scenario_02": {
         "scenario_id": "scenario_02",
         "title": "Small Shop: POS & Products without Barcode Labels or Production",
         "status": "pass",
-        "duration_sec": 0.375,
+        "duration_sec": 0.441,
         "data": {
-            "tenant_id": 579,
+            "tenant_id": 139,
             "requested_modules": [
                 "products",
                 "pos",
@@ -139,13 +134,13 @@
         "scenario_id": "scenario_03",
         "title": "Product Catalogue & Invoicing: No POS, but Products and Invoicing Work",
         "status": "pass",
-        "duration_sec": 0.43,
+        "duration_sec": 0.507,
         "data": {
-            "tenant_id": 580,
+            "tenant_id": 140,
             "has_pos": false,
             "has_products": true,
             "has_invoicing": true,
-            "product_id": "01a095ce-9870-7236-8c1f-65863f55477b",
+            "product_id": "01a09641-f66c-7203-b7a8-171a291b3c0a",
             "route_outcomes": {
                 "pos": 403,
                 "sales_index": 200,
@@ -188,12 +183,12 @@
         "scenario_id": "scenario_05",
         "title": "Restaurant vs Takeaway-Only: Tables and Dining Requirements",
         "status": "pass",
-        "duration_sec": 0.376,
+        "duration_sec": 0.462,
         "data": {
-            "dine_in_tenant": "audit-dine-in-bistro-yh07xf",
+            "dine_in_tenant": "audit-dine-in-bistro-5fovmj",
             "dine_in_tables_module": true,
             "dine_in_tables_route_status": 200,
-            "takeaway_tenant": "audit-takeaway-counter-dqhenn",
+            "takeaway_tenant": "audit-takeaway-counter-dgyyl8",
             "takeaway_tables_module": false,
             "takeaway_tables_route_status": 403,
             "takeaway_tables_leak": false
@@ -203,7 +198,7 @@
         "scenario_id": "scenario_06",
         "title": "Repair Business: Mixed Labour and Spare Parts (Products & Services)",
         "status": "pass",
-        "duration_sec": 0.483,
+        "duration_sec": 0.562,
         "data": {
             "services_enabled": true,
             "products_enabled": true,
@@ -232,7 +227,7 @@
         "scenario_id": "scenario_08",
         "title": "Wholesale Business: Suppliers, Purchasing, Khata Credit, Pricing Tiers",
         "status": "pass",
-        "duration_sec": 0.484,
+        "duration_sec": 0.541,
         "data": {
             "wholesale_modules": [
                 "products",
@@ -257,47 +252,47 @@
         "scenario_id": "scenario_09",
         "title": "Reports with Inventory/Manufacturing Disabled: Gating on Reports",
         "status": "pass",
-        "duration_sec": 0.451,
+        "duration_sec": 0.572,
         "data": {
             "report_outcomes": {
                 "reports_overview": {
-                    "uri": "/s/audit-reports-only-i3uyjk/reports",
+                    "uri": "/s/audit-reports-only-0anrum/reports",
                     "status": 200,
                     "owner": null,
                     "is_blocked": false
                 },
                 "sales_report": {
-                    "uri": "/s/audit-reports-only-i3uyjk/reports/sales",
+                    "uri": "/s/audit-reports-only-0anrum/reports/sales",
                     "status": 200,
                     "owner": null,
                     "is_blocked": false
                 },
                 "expenses_report": {
-                    "uri": "/s/audit-reports-only-i3uyjk/reports/expenses",
+                    "uri": "/s/audit-reports-only-0anrum/reports/expenses",
                     "status": 200,
                     "owner": "expenses",
                     "is_blocked": false
                 },
                 "inventory_valuation": {
-                    "uri": "/s/audit-reports-only-i3uyjk/reports/inventory-valuation",
+                    "uri": "/s/audit-reports-only-0anrum/reports/inventory-valuation",
                     "status": 403,
                     "owner": "inventory",
                     "is_blocked": true
                 },
                 "purchases_report": {
-                    "uri": "/s/audit-reports-only-i3uyjk/reports/purchases",
+                    "uri": "/s/audit-reports-only-0anrum/reports/purchases",
                     "status": 403,
                     "owner": "purchases",
                     "is_blocked": true
                 },
                 "tax_report": {
-                    "uri": "/s/audit-reports-only-i3uyjk/reports/tax",
+                    "uri": "/s/audit-reports-only-0anrum/reports/tax",
                     "status": 403,
                     "owner": "tax_compliance",
                     "is_blocked": true
                 },
                 "discount_report": {
-                    "uri": "/s/audit-reports-only-i3uyjk/reports/discount",
+                    "uri": "/s/audit-reports-only-0anrum/reports/discount",
                     "status": 403,
                     "owner": "pricing_tiers",
                     "is_blocked": true
@@ -311,7 +306,7 @@
         "scenario_id": "scenario_10",
         "title": "Module Lifecycle: Disable Used Module and Restore (Data Preservation)",
         "status": "pass",
-        "duration_sec": 0.231,
+        "duration_sec": 0.246,
         "data": {
             "data_at_stake_before": [],
             "disabled_result": {
@@ -434,9 +429,9 @@
         "scenario_id": "scenario_11",
         "title": "Tenant States: Fresh Signup vs Legacy (0 rows) vs Missing Key",
         "status": "pass",
-        "duration_sec": 0.181,
+        "duration_sec": 0.208,
         "data": {
-            "legacy_tenant_id": 587,
+            "legacy_tenant_id": 147,
             "legacy_row_count": 0,
             "legacy_fails_open_inventory": true,
             "legacy_fails_open_pos": true,
@@ -448,15 +443,15 @@
         "scenario_id": "scenario_12",
         "title": "Multi-Tenant Isolation: Cross-Tenant IDOR and Cashier Role Restrictions",
         "status": "pass",
-        "duration_sec": 0.451,
+        "duration_sec": 0.467,
         "data": {
-            "tenant_a": "store-a-alpha-ronlzm",
-            "tenant_b": "store-b-beta-ph6qfz",
-            "product_b_id": "01a095ce-a376-7385-9664-fcbecf3f68c0",
+            "tenant_a": "store-a-alpha-xudc4x",
+            "tenant_b": "store-b-beta-jqhnof",
+            "product_b_id": "01a09642-0367-721c-a4ea-126cd22531c2",
             "cross_tenant_access_status": 404,
-            "cashier_settings_status": 200,
+            "cashier_settings_status": 403,
             "cross_tenant_isolated": true,
-            "cashier_properly_denied": false
+            "cashier_properly_denied": true
         }
     },
     "scenario_13": {
@@ -465,7 +460,7 @@
         "status": "pass",
         "duration_sec": 0.003,
         "data": {
-            "session_id": "03fc4510-799f-492b-b747-5dd6b100ed86",
+            "session_id": "f04e6e8c-bd20-4a78-b69e-efd131d0c804",
             "initial_depth": 1,
             "initial_max_turns": 4,
             "skip_recorded": true,
@@ -478,9 +473,9 @@
         "scenario_id": "scenario_14",
         "title": "Direct Gating vs Stale Client: Write Attempt to Disabled Module",
         "status": "pass",
-        "duration_sec": 0.834,
+        "duration_sec": 0.933,
         "data": {
-            "tenant": "audit-direct-gating-4jhija",
+            "tenant": "audit-direct-gating-ke3wnt",
             "inventory_enabled": false,
             "stock_adjustment_write_status": 405,
             "manufacturing_api_status": 403,

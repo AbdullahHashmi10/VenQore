@@ -58,12 +58,16 @@ class EnsureModuleTest extends VenQoreTestCase
     }
 
     #[Test]
-    public function an_unknown_module_key_is_never_denied(): void
+    public function an_unknown_module_key_is_denied(): void
     {
         $tenant = $this->makeTenant();
 
-        $this->assertTrue(ModuleService::enabled($tenant, 'teleportation'));
-        $this->assertTrue(ModuleService::enabled($tenant, 'accounting'));   // a Qore word, not a module
+        // Changed deliberately (R10). Fail-open let SendPaymentReminders guard on the key
+        // 'invoices' — which is not a module — so the guard silently passed and the command
+        // ran for tenants who had it switched off. ModuleRegistryIntegrityTest already stops
+        // unknown keys reaching the gate from config, so the lock-out risk is covered there.
+        $this->assertFalse(ModuleService::enabled($tenant, 'teleportation'));
+        $this->assertFalse(ModuleService::enabled($tenant, 'accounting'));   // a Qore word, not a module
     }
 
     #[Test]

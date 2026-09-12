@@ -70,17 +70,15 @@
         "cards": [
             "sales.revenue",
             "sales.revenue_trend",
+            "sales.revenue",
             "sales.payment_breakdown",
-            "sales.live_feed",
             "sales.revenue_trend",
+            "sales.live_feed",
             "finance.expenses_by_category",
-            "finance.net_profit",
-            "finance.balance_sheet_ok",
-            "sales.top_products",
             "sales.revenue",
             "finance.net_profit",
-            "sales.revenue",
-            "inventory.stock_value"
+            "finance.net_profit",
+            "finance.balance_sheet_ok"
         ],
         "terms": [
             {
@@ -195,17 +193,17 @@
             "sales.revenue",
             "finance.profit_trend",
             "finance.net_profit",
-            "finance.net_profit",
-            "finance.expenses_by_category",
-            "sales.revenue",
-            "sales.top_products",
-            "sales.revenue",
             "inventory.stock_value",
             "finance.balance_sheet_ok",
-            "finance.net_profit",
-            "sales.payment_breakdown",
             "sales.revenue_trend",
-            "sales.live_feed"
+            "sales.payment_breakdown",
+            "sales.revenue",
+            "sales.top_products",
+            "finance.expenses_by_category",
+            "sales.live_feed",
+            "finance.net_profit",
+            "sales.revenue",
+            "finance.net_profit"
         ],
         "terms": [],
         "seed_counts": {
@@ -312,16 +310,16 @@
             "finance.profit_trend",
             "finance.net_profit",
             "sales.revenue",
-            "sales.live_feed",
-            "finance.net_profit",
-            "sales.top_products",
-            "sales.revenue",
-            "inventory.stock_value",
-            "finance.net_profit",
             "finance.expenses_by_category",
+            "inventory.stock_value",
             "sales.revenue_trend",
             "finance.balance_sheet_ok",
-            "sales.payment_breakdown"
+            "finance.net_profit",
+            "sales.top_products",
+            "sales.payment_breakdown",
+            "sales.revenue",
+            "finance.net_profit",
+            "sales.live_feed"
         ],
         "terms": [],
         "seed_counts": {
@@ -334,105 +332,63 @@
         }
     },
     "disabled_product_fixture": {
-        "id": "01a0934b-a2d2-73bb-9489-ee902256e0b3",
+        "id": "01a09642-1c83-72ec-a1d4-7ed681b72e5b",
         "products_enabled": false
     },
     "http:/api/sync/products": {
-        "status": 200,
-        "location": null,
-        "body": [
-            {
-                "id": "01a0934b-a2d2-73bb-9489-ee902256e0b3",
-                "is_active": 1,
-                "tenant_id": "98",
-                "name": "Audit disabled product",
-                "ai_title": null,
-                "ai_description_short": null,
-                "ai_description_long": null,
-                "ai_tags": null,
-                "created_via": null,
-                "short_description": null,
-                "sku": "AUDIT-OFF",
-                "supplier_sku": null,
-                "track_serial": 0,
-                "type": "standard",
-                "service_pricing": null,
-                "default_duration": null,
-                "default_rate": null,
-                "requires_visit": 0,
-                "skill_tag": null,
-                "price": "472.8600",
-                "wholesale_price": null,
-                "wholesale_min_quantity": null,
-                "cost_price": "405.3200",
-                "unit": "pcs",
-                "quantity": "0.00",
-                "tax_rate": "0.0000",
-                "price_includes_tax": 0,
-                "is_manufactured": 0,
-                "is_expiry_tracked": 0,
-                "base_unit": "pcs",
-                "secondary_unit": null,
-                "conversion_rate": null,
-                "min_stock_alert": 5,
-                "stock_quantity": 0,
-                "created_at": "2026-09-12T01:46:42.000000Z",
-                "updated_at": "2026-09-12T01:46:42.000000Z",
-                "category_id": null,
-                "brand_id": null,
-                "hsn_code": null,
-                "is_weighted": 0,
-                "description": "Rerum magnam quasi expedita explicabo.",
-                "image_path": null,
-                "has_variants": 0,
-                "woocommerce_id": null,
-                "alert_quantity": 5,
-                "deleted_at": null,
-                "category": null,
-                "variants": []
-            }
-        ]
-    },
-    "http:/api/sync/inventory": {
-        "status": 200,
-        "location": null,
-        "body": []
-    },
-    "http:/api/sync/suppliers": {
-        "status": 200,
-        "location": null,
-        "body": []
-    },
-    "http:/api/pos/search": {
-        "status": 200,
+        "status": 403,
         "location": null,
         "body": {
-            "data": [
-                {
-                    "id": "01a0934b-a2d2-73bb-9489-ee902256e0b3",
-                    "name": "Audit disabled product",
-                    "sku": "AUDIT-OFF",
-                    "type": "standard",
-                    "service_pricing": null,
-                    "default_duration": null,
-                    "requires_visit": 0,
-                    "skill_tag": null,
-                    "price": 472.86,
-                    "cost_price": 405.32,
-                    "has_variants": 0,
-                    "base_unit": "pcs",
-                    "tax_rate": "0.0000",
-                    "category_id": null,
-                    "category_name": null,
-                    "stock_quantity": "0.0000",
-                    "primary_barcode": null,
-                    "image_url": null
-                }
-            ],
-            "total": 1,
-            "per_page": 30,
-            "current_page": 1,
-            "last_page": 1
+            "success": false,
+            "code": "module_disabled",
+            "module": "products",
+            "label": "Products",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=products",
+            "upgrade": false
+        }
+    },
+    "http:/api/sync/inventory": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "success": false,
+            "code": "module_disabled",
+            "module": "inventory",
+            "label": "Inventory",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=inventory",
+            "upgrade": false
+        }
+    },
+    "http:/api/sync/suppliers": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "success": false,
+            "code": "module_disabled",
+            "module": "suppliers",
+            "label": "Suppliers",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=suppliers",
+            "upgrade": false
+        }
+    },
+    "http:/api/pos/search": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "success": false,
+            "code": "module_disabled",
+            "module": "pos",
+            "label": "POS / Counter",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=pos",
+            "upgrade": false
         }
     },
     "http:/api/work-orders": {
@@ -473,32 +429,54 @@
             "total": 0
         }
     },
-    "http:/s/audit-solo-mlf1rqwq/tables/state": {
-        "status": 200,
+    "http:/s/audit-solo-pnjbkccq/tables/state": {
+        "status": 403,
         "location": null,
         "body": {
-            "positions": [],
-            "tickets": [],
-            "zones": [],
-            "kitchen": 0
+            "success": false,
+            "code": "module_disabled",
+            "module": "table_service",
+            "label": "Table & Floor Service",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=table_service",
+            "upgrade": false
         }
     },
-    "http:/s/audit-solo-mlf1rqwq/api/manufacturing-rules": {
-        "status": 200,
+    "http:/s/audit-solo-pnjbkccq/api/manufacturing-rules": {
+        "status": 403,
         "location": null,
-        "body": []
+        "body": {
+            "success": false,
+            "code": "module_disabled",
+            "module": "production_runs",
+            "label": "Production Runs",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=production_runs",
+            "upgrade": false
+        }
     },
-    "http:/s/audit-solo-mlf1rqwq/new-pos": {
+    "http:/s/audit-solo-pnjbkccq/new-pos": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "success": false,
+            "code": "module_disabled",
+            "module": "pos",
+            "label": "POS / Counter",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=pos",
+            "upgrade": false
+        }
+    },
+    "http:/s/audit-solo-pnjbkccq/new-invoice": {
         "status": 200,
         "location": null,
         "body": "<!DOCTYPE html>\n\n<html lang=\"en\"\n     data-vq-theme=\"venqore-v6\"  data-vq-density=\"comfortable\"  data-vq-radius=\"default\" >\n\n<head>\n    \n        \n    <meta charset=\"utf-8\">\n    <me"
     },
-    "http:/s/audit-solo-mlf1rqwq/new-invoice": {
-        "status": 200,
-        "location": null,
-        "body": "<!DOCTYPE html>\n\n<html lang=\"en\"\n     data-vq-theme=\"venqore-v6\"  data-vq-density=\"comfortable\"  data-vq-radius=\"default\" >\n\n<head>\n    \n        \n    <meta charset=\"utf-8\">\n    <me"
-    },
-    "http:/s/audit-solo-mlf1rqwq/inventory": {
+    "http:/s/audit-solo-pnjbkccq/inventory": {
         "status": 403,
         "location": null,
         "body": {
@@ -508,11 +486,11 @@
             "label": "Inventory",
             "message": "This isn't part of your system yet — add it?",
             "action": "add_module",
-            "add_url": "http://localhost/s/audit-solo-mlf1rqwq/builder?add=inventory",
+            "add_url": "http://localhost/s/audit-solo-pnjbkccq/builder?add=inventory",
             "upgrade": false
         }
     },
-    "http:/s/audit-solo-mlf1rqwq/api/reckoner/catalogue": {
+    "http:/s/audit-solo-pnjbkccq/api/reckoner/catalogue": {
         "status": 404,
         "location": null,
         "body": {
@@ -530,7 +508,7 @@
                 },
                 {
                     "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\routes\\web.php",
-                    "line": 2402,
+                    "line": 2401,
                     "function": "abort"
                 },
                 {
@@ -636,20 +614,6 @@
                     "line": 219,
                     "function": "handle",
                     "class": "Illuminate\\Http\\Middleware\\AddLinkHeadersForPreloadedAssets",
-                    "type": "->"
-                },
-                {
-                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\EnsureModule.php",
-                    "line": 129,
-                    "function": "Illuminate\\Pipeline\\{closure}",
-                    "class": "Illuminate\\Pipeline\\Pipeline",
-                    "type": "->"
-                },
-                {
-                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
-                    "line": 219,
-                    "function": "handle",
-                    "class": "App\\Http\\Middleware\\EnsureModule",
                     "type": "->"
                 },
                 {
@@ -1078,7 +1042,7 @@
             ]
         }
     },
-    "http:/s/audit-solo-mlf1rqwq/reports/discount": {
+    "http:/s/audit-solo-pnjbkccq/reports/discount": {
         "status": 403,
         "location": null,
         "body": {
@@ -1094,11 +1058,11 @@
     "reckoner_off_readings": {
         "availability": {
             "batch_tracking.count": false,
-            "proposals.count": true,
-            "recurring_invoices.count": true,
-            "purchase_orders.count": true,
+            "proposals.count": false,
+            "recurring_invoices.count": false,
+            "purchase_orders.count": false,
             "sales_orders.count": false,
-            "returns.count": true,
+            "returns.count": false,
             "inventory.stock_value": false
         },
         "results": {
@@ -1114,36 +1078,10 @@
             "proposals.count|today|d751713988987e9331980363e24189ce": {
                 "id": "proposals.count|today|d751713988987e9331980363e24189ce",
                 "key": "proposals.count",
-                "ok": true,
-                "shape": "scalar",
-                "unit": "integer",
-                "precision": 0,
-                "period": {
-                    "key": "today",
-                    "label": "today",
-                    "from": "2026-09-12",
-                    "to": "2026-09-12",
-                    "compare_label": "vs yesterday"
-                },
-                "label": "Proposals",
-                "help": "Filtered by status: all, accepted, pending.",
-                "direction": "higher_is_better",
-                "data": {
-                    "value": 0,
-                    "previous": null,
-                    "change_pct": null,
-                    "compare_label": "vs yesterday"
-                },
-                "meta": {
-                    "cached": false,
-                    "computed_at": "2026-09-12T01:46:43+00:00"
-                },
-                "drill": {
-                    "route": "sales.index",
-                    "params": {
-                        "from": "2026-09-12",
-                        "to": "2026-09-12"
-                    }
+                "ok": false,
+                "error": {
+                    "code": "not_applicable",
+                    "message": "This store has this module switched off."
                 }
             },
             "recurring_invoices.count|today|d751713988987e9331980363e24189ce": {
@@ -1151,43 +1089,17 @@
                 "key": "recurring_invoices.count",
                 "ok": false,
                 "error": {
-                    "code": "invalid_period",
-                    "message": "Period 'today' is not valid for 'recurring_invoices.count'."
+                    "code": "not_applicable",
+                    "message": "This store has this module switched off."
                 }
             },
             "purchase_orders.count|today|d751713988987e9331980363e24189ce": {
                 "id": "purchase_orders.count|today|d751713988987e9331980363e24189ce",
                 "key": "purchase_orders.count",
-                "ok": true,
-                "shape": "scalar",
-                "unit": "integer",
-                "precision": 0,
-                "period": {
-                    "key": "today",
-                    "label": "today",
-                    "from": "2026-09-12",
-                    "to": "2026-09-12",
-                    "compare_label": "vs yesterday"
-                },
-                "label": "Purchase Orders",
-                "help": "Filtered by status: all, pending, received.",
-                "direction": "neutral",
-                "data": {
-                    "value": 0,
-                    "previous": null,
-                    "change_pct": null,
-                    "compare_label": "vs yesterday"
-                },
-                "meta": {
-                    "cached": false,
-                    "computed_at": "2026-09-12T01:46:43+00:00"
-                },
-                "drill": {
-                    "route": "purchases.index",
-                    "params": {
-                        "from": "2026-09-12",
-                        "to": "2026-09-12"
-                    }
+                "ok": false,
+                "error": {
+                    "code": "not_applicable",
+                    "message": "This store has this module switched off."
                 }
             },
             "sales_orders.count|today|d751713988987e9331980363e24189ce": {
@@ -1202,36 +1114,10 @@
             "returns.count|today|d751713988987e9331980363e24189ce": {
                 "id": "returns.count|today|d751713988987e9331980363e24189ce",
                 "key": "returns.count",
-                "ok": true,
-                "shape": "scalar",
-                "unit": "integer",
-                "precision": 0,
-                "period": {
-                    "key": "today",
-                    "label": "today",
-                    "from": "2026-09-12",
-                    "to": "2026-09-12",
-                    "compare_label": "vs yesterday"
-                },
-                "label": "Sales Returns",
-                "help": "Number of posted return invoices.",
-                "direction": "lower_is_better",
-                "data": {
-                    "value": 0,
-                    "previous": 0,
-                    "change_pct": null,
-                    "compare_label": "vs yesterday"
-                },
-                "meta": {
-                    "cached": false,
-                    "computed_at": "2026-09-12T01:46:43+00:00"
-                },
-                "drill": {
-                    "route": "sales.index",
-                    "params": {
-                        "from": "2026-09-12",
-                        "to": "2026-09-12"
-                    }
+                "ok": false,
+                "error": {
+                    "code": "not_applicable",
+                    "message": "This store has this module switched off."
                 }
             },
             "inventory.stock_value|today|d751713988987e9331980363e24189ce": {
@@ -1247,7 +1133,7 @@
     },
     "reapply": {
         "first": {
-            "version": 2,
+            "version": 1,
             "enabled": [
                 "services",
                 "customers",
@@ -1301,7 +1187,7 @@
             "newly_enabled": []
         },
         "second": {
-            "version": 3,
+            "version": 2,
             "enabled": [
                 "services",
                 "customers",
@@ -1371,8 +1257,8 @@
         ]
     },
     "duplicate_provision": {
-        "first": "audit-duplicate-bgy9agql",
-        "second": "audit-duplicate-bgy9agql-1",
+        "first": "audit-duplicate-o6d6tnkj",
+        "second": "audit-duplicate-o6d6tnkj-1",
         "distinct": true
     }
 }

@@ -93,8 +93,8 @@ class SubscriptionStatusMappingTest extends VenQoreTestCase
 
         $tenant->refresh();
 
-        // Plan upgrades (they picked Business), but they are NOT a paying customer.
-        $this->assertEquals('business', $tenant->plan);
+        // Plan upgrades (they picked Business/Scale), but they are NOT a paying customer.
+        $this->assertEquals('scale', $tenant->plan);
         $this->assertEquals('trial', $tenant->status);
         $this->assertEquals('555001', $tenant->lemon_squeezy_subscription_id);
     }

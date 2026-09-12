@@ -49,11 +49,11 @@ return [
         'woocommerce'              => false,
 
         // Explicitly Enabled on Solo (Full operational core)
-        'reports'                  => 'advanced',
-        'report_profit_loss'       => true,
-        'discount_report'          => true,
-        'cash_flow_report'         => true,
-        'stock_valuation'          => true,
+        'reports'                  => 'basic',
+        'report_profit_loss'       => false,
+        'discount_report'          => false,
+        'cash_flow_report'         => false,
+        'stock_valuation'          => false,
         'outstanding_balance_grid' => true,
         'live_chat_widget'         => true,
         'bulk_upload'              => true,

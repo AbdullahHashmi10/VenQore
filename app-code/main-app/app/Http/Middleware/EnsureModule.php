@@ -135,7 +135,16 @@ class EnsureModule
                 ? substr($routeName, strlen('store.v3.reports.'))
                 : substr($routeName, strlen('store.reports.'));
 
-            if (!\App\Support\ReportModuleMap::visible($tenant, $suffix)) {
+            $planVisible = \App\Support\ReportPlanMap::visible($tenant, $suffix);
+            $moduleVisible = \App\Support\ReportModuleMap::visible($tenant, $suffix);
+
+            // Precedence: plan gate fails -> upgrade refusal, regardless of module gate
+            if (!$planVisible) {
+                return $this->refusePlanUpgrade($request, $tenant, $suffix);
+            }
+
+            // Plan gate passes, module gate fails -> add_module refusal
+            if (!$moduleVisible) {
                 return $this->refuseReport($request, $tenant, $suffix);
             }
         }
@@ -274,4 +283,38 @@ class EnsureModule
 
         return redirect($target)->with('info', $message);
     }
+
+    /**
+     * The refusal for a report that requires a higher plan (Starter and up).
+     * Directs to billing, never to the builder.
+     */
+    private function refusePlanUpgrade(Request $request, $tenant, string $suffix): Response
+    {
+        $featureKey = \App\Support\ReportPlanMap::requiresPlanFeature($suffix) ?? 'reports';
+        $label = \App\Support\ReportPlanMap::labelFor($featureKey);
+        $message = "Profit reporting is on the Starter plan and up.";
+        $planUrl = route('store.billing', ['store_slug' => $tenant->slug]);
+
+        if (
+            $request->expectsJson()
+            || $request->wantsJson()
+            || $request->header('X-Inertia')
+            || $request->ajax()
+            || app()->environment('testing')
+        ) {
+            return response()->json([
+                'success'  => false,
+                'code'     => 'plan_upgrade_required',
+                'feature'  => $featureKey,
+                'label'    => $label,
+                'message'  => $message,
+                'action'   => 'upgrade',          // NOT 'add_module'
+                'upgrade'  => true,
+                'plan_url' => $planUrl,
+            ], 403);
+        }
+
+        return redirect($planUrl)->with('info', $message);
+    }
 }
+

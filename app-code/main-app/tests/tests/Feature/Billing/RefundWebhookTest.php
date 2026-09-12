@@ -69,7 +69,7 @@ test('a refunded subscription payment suspends the tenant and notifies the admin
         ->where('override_key', 'smart_capture')
         ->exists())->toBeFalse();
 
-    Mail::assertSent(SubscriptionPaymentRefundedMail::class, fn ($mail) => $mail->hasTo($admin->email));
+    Mail::assertQueued(SubscriptionPaymentRefundedMail::class, fn ($mail) => $mail->hasTo($admin->email));
 });
 
 test('a refund for an unknown subscription is a safe no-op', function () {
@@ -86,6 +86,7 @@ test('a refund for an unknown subscription is a safe no-op', function () {
     postWebhook($this, $payload)->assertOk();
 
     Mail::assertNothingSent();
+    Mail::assertNothingQueued();
 });
 
 test('refunding an AI top-up order reverses exactly the pages it granted', function () {
@@ -109,6 +110,7 @@ test('refunding an AI top-up order reverses exactly the pages it granted', funct
     // used for this same variant) = 150.
     expect($tenant->fresh()->ai_pages_limit)->toBe(150);
     Mail::assertNothingSent();
+    Mail::assertNothingQueued();
 });
 
 test('refunding an AI top-up never takes the limit below zero', function () {
@@ -166,6 +168,7 @@ test('refunding a BYOK unlock drops the tenant off unlimited AI', function () {
         ->exists())->toBeFalse();
 
     Mail::assertNothingSent();
+    Mail::assertNothingQueued();
 });
 
 test('refunding a purchase type with no safe auto-reversal flags it for manual review instead of guessing', function () {
@@ -189,7 +192,7 @@ test('refunding a purchase type with no safe auto-reversal flags it for manual r
     // No entitlement was silently mutated.
     expect($tenant->fresh()->status)->toBe('active');
 
-    Mail::assertSent(OrderRefundNeedsReviewMail::class, fn ($mail) => $mail->hasTo(config('mail.notifications.contact')));
+    Mail::assertQueued(OrderRefundNeedsReviewMail::class, fn ($mail) => $mail->hasTo(config('mail.notifications.contact')));
 });
 
 test('a failed subscription payment now actually finds the tenant and emails the admin', function () {
@@ -213,5 +216,5 @@ test('a failed subscription payment now actually finds the tenant and emails the
 
     postWebhook($this, $payload)->assertOk();
 
-    Mail::assertSent(PaymentFailedMail::class, fn ($mail) => $mail->hasTo($admin->email));
+    Mail::assertQueued(PaymentFailedMail::class, fn ($mail) => $mail->hasTo($admin->email));
 });

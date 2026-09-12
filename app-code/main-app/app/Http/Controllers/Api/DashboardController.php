@@ -43,7 +43,7 @@ class DashboardController extends Controller
         // If no dashboards exist yet, auto-create a default one
         if ($dashboards->isEmpty()) {
             $default = $this->createDefaultDashboard($user, $tenant);
-            $dashboards = collect([$default]);
+            $dashboards = new \Illuminate\Database\Eloquent\Collection([$default]);
         }
 
         // Get available keys to filter gated cards across all boards (R08)

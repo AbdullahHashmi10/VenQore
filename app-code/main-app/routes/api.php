@@ -27,7 +27,7 @@ Route::middleware(['auth:sanctum', 'store.member', 'throttle:60,1'])->name('api.
     Route::get('/sync/suppliers', [SyncController::class, 'suppliers'])->name('suppliers');
     Route::get('/sync/inventory', [SyncController::class, 'inventory'])->name('inventory');
     Route::get('/sync/taxes', [SyncController::class, 'taxes'])->name('taxes');
-    Route::post('/sync/orders/batch', [SyncController::class, 'batchOrders'])->name('orders.batch');
+    Route::post('/sync/orders/batch', [SyncController::class, 'batchOrders'])->middleware('permission:sales.create')->name('orders.batch');
 });
 
 // ── Work Orders & Service Jobs API ──────────────────────────────────────────

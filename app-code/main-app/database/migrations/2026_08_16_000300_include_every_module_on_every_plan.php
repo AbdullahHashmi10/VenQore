@@ -91,20 +91,15 @@ return new class extends Migration
         // modules
         'suppliers_directory', 'purchase_orders', 'purchase_returns',
         'debit_credit_notes', 'compositions', 'bill_of_materials', 'production',
-        'multi_branch', 'expense_manager', 'fund_management', 'recurring_invoices',
+        'expense_manager', 'fund_management', 'recurring_invoices',
         'invoice_reminders', 'e_invoicing', 'bank_reconciliation',
         'b2b_proposal_builder', 'pre_sales_reservation', 'barcode_label_print',
         'customer_khata', 'bulk_upload', 'double_entry_ledger', 'auto_vat_gst',
-        'loyalty_points', 'digital_gift_cards', 'owners_daily_pulse',
+        'loyalty_points', 'digital_gift_cards',
         'outstanding_balance_grid',
 
-        // reports — Reports (#42) is ONE module and auto-scales; individual
-        // report gates are exactly the "42 toggles" the plan removed
-        'report_profit_loss', 'report_trial_balance', 'report_party_statement',
-        'report_cash_flow', 'report_stock_valuation', 'report_sales_aging',
-        'cash_flow_report', 'stock_valuation', 'discount_report',
-        'point_in_time_inventory', 'customer_insights', 'supplier_insights',
-        'stock_aging', 'aged_receivables', 'aged_payables',
+        // operational reports that stay free
+        'report_party_statement', 'aged_receivables', 'aged_payables',
         'customer_statements', 'supplier_statements', 'unified_party_ledger',
     ];
 

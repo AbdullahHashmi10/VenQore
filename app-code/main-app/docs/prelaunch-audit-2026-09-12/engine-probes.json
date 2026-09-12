@@ -133,7 +133,7 @@
         ],
         "first_proposal": {
             "ok": true,
-            "session_id": "49d497c0-04d5-4506-9510-09142d2e05fa",
+            "session_id": "73aac73f-42cf-439f-8e6b-b19d18eca02c",
             "is_complete": true,
             "assistant_message": "Great! I have all the details needed to build your tailored VenQore workspace.",
             "proposal": {
@@ -165,7 +165,7 @@
                 "coming_soon": [],
                 "reasoning": "Configured dynamically through VenQore AI Discovery based on merchant capability requirements.",
                 "unsupported": [],
-                "confidence": 0.9,
+                "confidence": 0.75,
                 "preset": "field_service",
                 "fallback_reason": null
             },
@@ -178,7 +178,7 @@
                 "reports"
             ],
             "preset": "field_service",
-            "confidence": 0.9,
+            "confidence": 0.75,
             "turn": 4,
             "progress": 100,
             "question": null,
@@ -189,7 +189,7 @@
         "deeper_questions": [],
         "deep_proposal": {
             "ok": true,
-            "session_id": "49d497c0-04d5-4506-9510-09142d2e05fa",
+            "session_id": "73aac73f-42cf-439f-8e6b-b19d18eca02c",
             "is_complete": true,
             "assistant_message": "Great! I have all the details needed to build your tailored VenQore workspace.",
             "proposal": {
@@ -221,7 +221,7 @@
                 "coming_soon": [],
                 "reasoning": "Configured dynamically through VenQore AI Discovery based on merchant capability requirements.",
                 "unsupported": [],
-                "confidence": 0.9,
+                "confidence": 0.75,
                 "preset": "field_service",
                 "fallback_reason": null
             },
@@ -234,7 +234,7 @@
                 "reports"
             ],
             "preset": "field_service",
-            "confidence": 0.9,
+            "confidence": 0.75,
             "turn": 4,
             "progress": 100,
             "question": null,
@@ -381,7 +381,7 @@
         ],
         "first_proposal": {
             "ok": true,
-            "session_id": "bab022fe-d44d-4be5-ae70-ad0a11d3b61b",
+            "session_id": "194b6097-48cc-47fd-88d7-d072c3cda4ac",
             "is_complete": true,
             "assistant_message": "Great! I have all the details needed to build your tailored VenQore workspace.",
             "proposal": {
@@ -469,7 +469,7 @@
         ],
         "deep_proposal": {
             "ok": true,
-            "session_id": "bab022fe-d44d-4be5-ae70-ad0a11d3b61b",
+            "session_id": "194b6097-48cc-47fd-88d7-d072c3cda4ac",
             "is_complete": true,
             "assistant_message": "Great! I have all the details needed to build your tailored VenQore workspace.",
             "proposal": {
@@ -680,7 +680,7 @@
         ],
         "first_proposal": {
             "ok": true,
-            "session_id": "d16cdc4b-db92-4d97-8673-7b50ce7e17fc",
+            "session_id": "e5bb4cfe-f0bb-4afd-8c2b-3ba116717179",
             "is_complete": true,
             "assistant_message": "Great! I have all the details needed to build your tailored VenQore workspace.",
             "proposal": {
@@ -698,12 +698,7 @@
                 ],
                 "terminology": [],
                 "dashboard": [],
-                "added": {
-                    "multi_location": {
-                        "because": "stock_transfers",
-                        "why": "Stock Transfers needs Multi-Location / Warehouses to work."
-                    }
-                },
+                "added": [],
                 "questions": [],
                 "suggestions": [
                     "pos",
@@ -776,7 +771,7 @@
         ],
         "deep_proposal": {
             "ok": true,
-            "session_id": "d16cdc4b-db92-4d97-8673-7b50ce7e17fc",
+            "session_id": "e5bb4cfe-f0bb-4afd-8c2b-3ba116717179",
             "is_complete": true,
             "assistant_message": "Great! I have all the details needed to build your tailored VenQore workspace.",
             "proposal": {
@@ -794,12 +789,7 @@
                 ],
                 "terminology": [],
                 "dashboard": [],
-                "added": {
-                    "multi_location": {
-                        "because": "stock_transfers",
-                        "why": "Stock Transfers needs Multi-Location / Warehouses to work."
-                    }
-                },
+                "added": [],
                 "questions": [],
                 "suggestions": [
                     "pos",
@@ -905,37 +895,33 @@
     },
     "capability_catalogue": {
         "invalid_implied": [
-            "repairs",
-            "branches",
-            "serial_numbers",
-            "tables",
-            "kitchen_display",
-            "delivery_orders",
-            "credit_sales",
-            "quotations",
-            "appointments",
-            "staff_roster"
+            "quotations"
         ],
         "all_confirmed_modules": [
             "products",
             "pos",
             "expenses",
             "reports",
+            "services",
             "customers",
             "inventory",
             "staff_attendance",
             "pricing_tiers",
             "stock_takes",
+            "multi_location",
             "stock_transfers",
             "batches_expiry",
             "purchases",
             "suppliers",
+            "serials",
             "variants",
+            "table_service",
+            "park_recall",
             "sales_orders",
+            "khata_credit",
             "b2b_proposals",
             "cookbook",
-            "production_runs",
-            "multi_location"
+            "production_runs"
         ]
     },
     "bundle_skip": {
@@ -1026,7 +1012,7 @@
     },
     "fallback.rate_limited": {
         "ok": false,
-        "session_id": "6f249ef3-fca0-4d15-b3ea-2a0f5e62d913",
+        "session_id": "672f25e7-ecd3-48b9-b2de-a7279a0841ba",
         "is_complete": true,
         "fallback": true,
         "fallback_reason": "rate_limited",
@@ -1070,7 +1056,7 @@
     },
     "fallback.spend_capped": {
         "ok": false,
-        "session_id": "95128df4-b8a2-4853-b72c-e1d1dd0be967",
+        "session_id": "a6201097-581a-4607-bfd4-fe8488a100d3",
         "is_complete": true,
         "fallback": true,
         "fallback_reason": "spend_capped",
@@ -1114,7 +1100,7 @@
     },
     "fallback.provider_unavailable": {
         "ok": true,
-        "session_id": "d72151c0-6267-4180-8b76-2c2b852514e6",
+        "session_id": "a1dad71a-6925-4b08-b944-226cd62457ad",
         "assistant_message": "Do you want a list of every job you take on, so you can see what is booked, what you are working on and what is finished?",
         "question": "Do you want a list of every job you take on, so you can see what is booked, what you are working on and what is finished?",
         "question_hint": "You get a simple job list. Each job shows who it is for, what needs doing, and whether it is booked, started or done.",
