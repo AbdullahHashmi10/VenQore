@@ -534,7 +534,7 @@ return [
         ],
         'features'     => [65, 69, 208],
         'opens'        => 'All retail. A shop that cannot take a return is not a shop.',
-        'owns_data'    => ['sale_returns', 'sale_return_items'],
+        'owns_data'    => [],
         'history_probe' => ['sales'],
     ],
 
@@ -623,7 +623,7 @@ return [
         ],
         'features'     => [28, 60, 63],
         'opens'        => 'Wholesalers who also sell retail — the most common Pakistani shop shape there is.',
-        'owns_data'    => ['price_tiers'],
+        'owns_data'    => ['product_price_tiers'],
         'history_probe' => ['sales'],
     ],
 
@@ -659,7 +659,7 @@ return [
         ],
         'features'     => [24, 25, 27],
         'opens'        => 'THE SPLIT THAT PAYS: restaurants (tables), workshops (job queue), retail (hold bill). One built feature, three business types, honest presets for each.',
-        'owns_data'    => ['parked_sales'],
+        'owns_data'    => ['occupancies'],
         'history_probe' => ['sales'],
     ],
 
@@ -697,7 +697,7 @@ return [
         ],
         'features'     => [25, 27, 43],
         'opens'        => 'Restaurants, cafes, dhabas, dine-in of any kind.',
-        'owns_data'    => ['occupancies', 'restaurant_tables'],
+        'owns_data'    => ['occupancies'],
         'history_probe' => ['sales'],
     ],
 
@@ -725,7 +725,7 @@ return [
         ],
         'features'     => [67, 252, 186],
         'opens'        => 'Electronics, appliances, vehicles, anything with a deposit and a wait.',
-        'owns_data'    => ['stock_reservations'],
+        'owns_data'    => [],
         'history_probe' => ['stock_movements'],
     ],
 
@@ -1007,7 +1007,7 @@ return [
         ],
         'features'     => [117],
         'opens'        => 'Grocery, wholesale, agriculture, chemicals, anything sold by weight.',
-        'owns_data'    => ['uom_conversions'],
+        'owns_data'    => ['product_uom_conversions'],
         'history_probe' => [],
     ],
 
@@ -1368,7 +1368,7 @@ return [
         ],
         'features'     => [32, 132, 135, 143],
         'opens'        => 'Any counter with a cash drawer and more than one person behind it.',
-        'owns_data'    => ['funds', 'fund_transactions', 'cash_shortages'],
+        'owns_data'    => ['fund_transactions'],
         'history_probe' => ['fund_transactions'],
     ],
 
@@ -1395,7 +1395,7 @@ return [
         ],
         'features'     => [94, 171],
         'opens'        => 'Any business banking money rather than keeping it in the drawer.',
-        'owns_data'    => ['bank_accounts', 'bank_transfers'],
+        'owns_data'    => ['bank_accounts'],
         'history_probe' => ['journal_entries'],
     ],
 
@@ -1422,7 +1422,7 @@ return [
         ],
         'features'     => [139],
         'opens'        => 'Businesses with real bank volume; accountants.',
-        'owns_data'    => ['bank_reconciliations'],
+        'owns_data'    => [],
         'history_probe' => ['journal_entries'],
     ],
 
@@ -1479,7 +1479,7 @@ return [
         ],
         'features'     => [39, 44, 63, 70, 98, 140, 158, 176, 246],
         'opens'        => 'Registered businesses, anyone filing sales tax, exporters.',
-        'owns_data'    => ['tax_rates', 'einvoice_submissions'],
+        'owns_data'    => [],
         'history_probe' => ['journal_entries', 'sales'],
     ],
 
@@ -1507,7 +1507,7 @@ return [
         ],
         'features'     => [108, 133],
         'opens'        => 'Anyone with machinery, vehicles or a tax depreciation schedule.',
-        'owns_data'    => ['assets', 'depreciation_entries'],
+        'owns_data'    => [],
         'history_probe' => ['journal_entries'],
     ],
 
@@ -1534,7 +1534,7 @@ return [
         ],
         'features'     => [134, 166],
         'opens'        => 'Businesses financing stock or equipment.',
-        'owns_data'    => ['loans', 'loan_repayments'],
+        'owns_data'    => [],
         'history_probe' => ['journal_entries'],
     ],
 
@@ -1600,7 +1600,7 @@ return [
         ],
         'features'     => [188, 189, 190, 191, 192, 193, 194, 195, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234],
         'opens'        => 'Any business with three months of history. Gets better the longer the Qore has been recording.',
-        'owns_data'    => ['ai_recommendations', 'signals', 'daily_snapshots'],
+        'owns_data'    => ['ai_recommendations', 'growth_signal_events', 'daily_snapshots'],
         'history_probe' => ['daily_snapshots', 'sales'],
     ],
 
@@ -1660,7 +1660,7 @@ return [
         ],
         'features'     => [119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130],
         'opens'        => 'Shops that also sell online. The bridge between a counter and a website.',
-        'owns_data'    => ['woo_sync_queue', 'marketplace_payouts', 'channels'],
+        'owns_data'    => ['woo_sync_queue', 'marketplace_payouts', 'ecommerce_channels'],
         'history_probe' => ['sales', 'products'],
     ],
 
@@ -1697,7 +1697,7 @@ return [
         ],
         'features'     => [8, 9, 17, 185, 243, 247, 253],
         'opens'        => 'Any business with more than one person behind the counter.',
-        'owns_data'    => ['staff_attendance', 'staff_invitations'],
+        'owns_data'    => ['staff_attendances', 'staff_invitations'],
         'history_probe' => ['users'],
     ],
 ];

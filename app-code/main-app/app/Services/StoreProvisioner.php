@@ -288,6 +288,8 @@ class StoreProvisioner
                 $modules = $businessType
                     ? \App\Support\BusinessTypes::modulesFor($businessType)
                     : ['products', 'pos', 'inventory', 'expenses', 'reports'];
+            } else {
+                $modules = \App\Support\BusinessTypes::withDependencies($modules);
             }
 
             // BL-06: Filter to live modules only

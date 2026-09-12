@@ -31,9 +31,9 @@ final class RestaurantSource implements ReckonerSource
             $id = $request['id'];
 
             $out[$id] = match ($key) {
-                'restaurant.tables_occupied' => DB::table('restaurant_tables')
+                'restaurant.tables_occupied' => DB::table('occupancies')
                     ->where('tenant_id', $tenantId)
-                    ->where('status', 'occupied')
+                    ->whereNull('closed_at')
                     ->count(),
                 'restaurant.kitchen_orders_pending' => DB::table('work_orders')
                     ->where('tenant_id', $tenantId)

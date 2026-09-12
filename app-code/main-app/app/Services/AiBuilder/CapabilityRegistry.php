@@ -453,7 +453,7 @@ class CapabilityRegistry
             'وحدي', 'بمفردي',
         ];
         foreach ($soloPatterns as $needle) {
-            if (str_contains($normalized, $needle)) {
+            if (preg_match('/(?:\b|^)' . preg_quote($needle, '/') . '(?:\b|$)/iu', $normalized)) {
                 $facts['solo'] = [
                     'value'      => true,
                     'confidence' => 1.0,
@@ -479,7 +479,14 @@ class CapabilityRegistry
 
         foreach ($domainKeywords as $trade => $keywords) {
             foreach ($keywords as $kw) {
-                if (str_contains($normalized, $kw)) {
+                $pattern = '/(?:\b|^)' . preg_quote($kw, '/') . '(?:\b|$)/iu';
+                if (preg_match($pattern, $normalized)) {
+                    // Check for negation: "no repairs", "not a pharmacy", "without repairs"
+                    $negationPattern = '/\b(?:no|not|never|without|don\'?t\s+(?:do|have|offer|need))\s+' . preg_quote($kw, '/') . '\b/iu';
+                    if (preg_match($negationPattern, $normalized)) {
+                        continue;
+                    }
+
                     $facts["trade:{$trade}"] = [
                         'value'      => true,
                         'confidence' => 0.95,

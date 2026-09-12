@@ -84,7 +84,7 @@ class ModuleService
             return true;                      // unconfigured tenant — see the safety rail
         }
 
-        return $map[$moduleKey] ?? true;      // key absent from a configured tenant: still open
+        return $map[$moduleKey] ?? false;     // key absent from a configured tenant: disabled by default
     }
 
     /**
@@ -287,6 +287,25 @@ class ModuleService
             // Silently ignored, exactly like an unknown key from the AI. Never
             // create a row for a module that does not exist — that is how a
             // registry ends up with orphans nobody can explain.
+            return;
+        }
+
+        $existingCount = DB::table('tenant_modules')->where('tenant_id', $tenant->id)->count();
+        if ($existingCount === 0) {
+            $now = now();
+            $rows = [];
+            foreach (array_keys(config('modules', [])) as $key) {
+                $rows[] = [
+                    'tenant_id'  => $tenant->id,
+                    'module_key' => $key,
+                    'enabled'    => $key === $moduleKey ? $enabled : true,
+                    'source'     => $source,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            DB::table('tenant_modules')->insert($rows);
+            self::invalidate($tenant->id);
             return;
         }
 

@@ -27,12 +27,6 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PlatformInactivityMiddleware::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\GeoPricingMiddleware::class,
-            // The Rulebook's teeth (see EnsureModule's own docblock). Appended
-            // globally so it covers all 464 registry-owned routes with no
-            // per-route edits. Fails open by design: no tenant, no route name,
-            // an always-on route, or an unclaimed route all pass straight
-            // through — see EnsureModule::handle() for the exact conditions.
-            \App\Http\Middleware\EnsureModule::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\DemoBannerMiddleware::class,
             \App\Http\Middleware\LastModifiedMiddleware::class,

@@ -656,7 +656,7 @@ final class Reckoner
                 ),
                 // Reckoner-only probes (§4.1) — default false until their
                 // Phase 2/4 sources exist to make them meaningful.
-                'has_restaurant' => $probe('restaurant_tables', fn () => DB::table('restaurant_tables')->where('tenant_id', $tenant->id)->exists()),
+                'has_restaurant' => $probe('occupancies', fn () => DB::table('occupancies')->where('tenant_id', $tenant->id)->exists()),
                 'has_ecommerce' => $probe('ecommerce_channels', fn () => DB::table('ecommerce_channels')->where('tenant_id', $tenant->id)->exists()),
                 'has_fbr' => false,
                 'has_bank_accounts' => $probe('bank_accounts', fn () => \App\Models\BankAccount::query()->exists()),

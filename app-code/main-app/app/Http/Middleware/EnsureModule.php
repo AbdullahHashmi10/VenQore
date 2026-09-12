@@ -78,20 +78,10 @@ class EnsureModule
      */
     public function handle(Request $request, Closure $next, ?string $module = null): Response
     {
-        // ── tenant resolution: VERBATIM from EnsurePlanFeature. Do not edit. ──
+        // ── tenant resolution: bound by TenantMiddleware on web, or auth user on api ──
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-        if ($tenant && (is_null($tenant->id) || $tenant->slug === 'test-store')) {
+        if ($tenant && is_null($tenant->id)) {
             $tenant = null;
-        }
-
-        if (!$tenant) {
-            $slug = $request->route('store_slug') ?? $request->route('store') ?? $request->segment(2);
-            if ($slug) {
-                $tenant = \App\Models\Tenant::withoutGlobalScopes()->where('slug', $slug)->first();
-                if ($tenant) {
-                    app()->instance('current.tenant', $tenant);
-                }
-            }
         }
 
         if (!$tenant && $request->user()) {
@@ -104,7 +94,7 @@ class EnsureModule
         if (!$tenant) {
             return $next($request);
         }
-        // ── end verbatim block ───────────────────────────────────────────────
+        // ── end tenant resolution ───────────────────────────────────────────
 
         $routeName = $request->route()?->getName();
 
@@ -127,6 +117,11 @@ class EnsureModule
             if (!\App\Support\ReportModuleMap::visible($tenant, $suffix)) {
                 return $this->refuseReport($request, $tenant, $suffix);
             }
+        }
+
+        // Special case: Services catalogue is served under store.inventory.index with ?type=service
+        if ($routeName === 'store.inventory.index' && $request->input('type') === 'service' && ModuleService::enabled($tenant, 'services')) {
+            return $next($request);
         }
 
         // Explicit mode wins when a module was named on the route itself.

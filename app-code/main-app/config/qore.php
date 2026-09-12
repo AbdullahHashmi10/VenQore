@@ -246,7 +246,7 @@ return [
         'store.onboarding.*',
         'store.builder', 'store.builder.*',   // the Rulebook's front door — must never gate itself
         'store.plugin.*',
-        'store.api.*',             // in-app API used by the shell itself
+        'store.api.dashboards.*', 'store.api.reckoner.*', 'store.api.plan.usage', 'store.api.categories.general',
         'store.global.*',
         'store.legacy.*',          // VERIFY: 20 legacy.* names — retire or claim
         'billing.*', 'plans.*', 'redeem', 'redeem.submit',

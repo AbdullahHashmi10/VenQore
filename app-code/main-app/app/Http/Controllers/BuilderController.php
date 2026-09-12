@@ -148,16 +148,24 @@ class BuilderController extends Controller
             ], 422);
         }
 
+        $registry = config('modules', []);
         $beingRemoved = array_diff($currentlyEnabled, $result['modules']);
         foreach ($beingRemoved as $key) {
-            $verdict = $this->resolver->canDisable($currentlyEnabled, $key);
-            if (!$verdict['allowed']) {
+            $dependentsStillOn = array_values(array_filter(
+                $result['modules'],
+                fn ($m) => isset($registry[$m]) && in_array($key, $registry[$m]['requires'] ?? [], true)
+            ));
+            if ($dependentsStillOn !== []) {
+                $labels = array_map(fn ($k) => $registry[$k]['label'] ?? $k, $dependentsStillOn);
+                $target = $registry[$key]['label'] ?? $key;
                 return response()->json([
-                    'success' => false,
-                    'reason'  => 'disable_blocked',
-                    'module'  => $key,
-                    'message' => $verdict['message'],
-                    'dependents' => $verdict['dependents'],
+                    'success'    => false,
+                    'reason'     => 'disable_blocked',
+                    'module'     => $key,
+                    'message'    => count($labels) === 1
+                        ? sprintf('%s needs %s. I can remove both, or keep %s just for %s. Which would you like?', $labels[0], $target, $target, $labels[0])
+                        : sprintf('%s all need %s. I can remove them together, or keep %s and leave them as they are. Which would you like?', implode(', ', $labels), $target, $target),
+                    'dependents' => $dependentsStillOn,
                 ], 422);
             }
         }
@@ -212,11 +220,21 @@ class BuilderController extends Controller
                 }
 
                 if ($parsed['intent'] === 'DISABLE') {
-                    $verdict = $this->resolver->canDisable($currentlyEnabled, $parsed['module']);
-                    if (!$verdict['allowed']) {
+                    $registry = config('modules', []);
+                    $dependentsStillOn = array_values(array_filter(
+                        $result['modules'],
+                        fn ($m) => isset($registry[$m]) && in_array($parsed['module'], $registry[$m]['requires'] ?? [], true)
+                    ));
+                    if ($dependentsStillOn !== []) {
+                        $labels = array_map(fn ($k) => $registry[$k]['label'] ?? $k, $dependentsStillOn);
+                        $target = $registry[$parsed['module']]['label'] ?? $parsed['module'];
                         return response()->json([
-                            'success' => false, 'reason' => 'disable_blocked',
-                            'message' => $verdict['message'], 'dependents' => $verdict['dependents'],
+                            'success'    => false,
+                            'reason'     => 'disable_blocked',
+                            'message'    => count($labels) === 1
+                                ? sprintf('%s needs %s. I can remove both, or keep %s just for %s. Which would you like?', $labels[0], $target, $target, $labels[0])
+                                : sprintf('%s all need %s. I can remove them together, or keep %s and leave them as they are. Which would you like?', implode(', ', $labels), $target, $target),
+                            'dependents' => $dependentsStillOn,
                         ], 422);
                     }
                 }

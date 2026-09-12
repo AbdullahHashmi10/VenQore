@@ -407,7 +407,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::c
 
 // ── Store Context Routes ─────────────────────────────────────────────────
 // All routes under /s/{store_slug}/ require auth + valid store membership
-Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class])
+Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class, \App\Http\Middleware\EnsureModule::class])
     ->prefix('s/{store_slug}')
     ->name('store.')
     ->group(function () {
@@ -1114,7 +1114,7 @@ Route::middleware([])->group(function () {
          ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|purchase-returns|item-wise-discount|daily-sales|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-party-group)).*');
 });
 
-Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
+Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class, \App\Http\Middleware\EnsureModule::class])
     ->prefix('s/{store_slug}')
     ->group(function () {
         // Compatibility Aliases for POS & AJAX (Resolves Ziggy 'route not found' while keeping URL isolation)
@@ -2231,7 +2231,7 @@ Route::prefix('superadmin')
 // Route-gap sweep (2026-09-10): the v3 group now carries the same lifecycle /
 // DRM / demo / hosted-until gates as the main store group, so a suspended,
 // view-only or demo store cannot write through the v3 endpoints.
-Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class])->group(function () {
+Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class, \App\Http\Middleware\EnsureModule::class])->group(function () {
     Route::resource('products', \App\Http\Controllers\V3\ProductController::class)->except(['show'])
         ->middlewareFor('store', 'permission:inventory.create')
         ->middlewareFor('update', 'permission:inventory.edit')

@@ -51,7 +51,7 @@ class SaleController extends Controller
             'items.*.price'         => 'required|numeric|min:0',
             'items.*.discount'      => 'nullable|numeric|min:0',
             'payment_method'        => 'required|string',
-            'amount_paid'           => 'required|numeric|min:0',
+            'amount_paid'           => 'nullable|numeric|min:0',
             'discount'              => 'nullable|numeric|min:0',
             'tax'                   => 'nullable|numeric|min:0',
             'tax_rate'              => 'nullable|numeric|min:0',
@@ -262,7 +262,9 @@ class SaleController extends Controller
                     if ($request->payment_method === 'credit') {
                         $creditPortion = $invoiceTotal;
                     } else {
-                        $amountPaid = (float) $request->amount_paid;
+                        $amountPaid = $request->filled('amount_paid')
+                            ? (float) $request->amount_paid
+                            : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
                         if (round($amountPaid, 2) < round($invoiceTotal, 2)) {
                             $creditPortion = round($invoiceTotal - $amountPaid, 2);
                         }
@@ -351,7 +353,9 @@ class SaleController extends Controller
                 $isStockEnabled
             );
 
-            $tendered = (float)$request->amount_paid;
+            $tendered = $request->filled('amount_paid')
+                ? (float) $request->amount_paid
+                : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
             $changeReturn = (!$addToLedger && $tendered > $invoiceTotal) ? ($tendered - $invoiceTotal) : 0;
 

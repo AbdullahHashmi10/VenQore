@@ -287,7 +287,7 @@ final class BusinessTypes
         return false;
     }
 
-    private static function withDependencies(array $modules): array
+    public static function withDependencies(array $modules): array
     {
         $registry = (array) config('modules', []);
         $set = [];

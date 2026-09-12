@@ -262,8 +262,11 @@ class ModificationParser
             foreach (array_merge([$module['label'], $key], $module['aliases']) as $alias) {
                 $alias = strtolower(str_replace('_', ' ', $alias));
 
-                if ($alias !== '' && str_contains($text, $alias)) {
-                    $candidates[$key] = max($candidates[$key] ?? 0, mb_strlen($alias));
+                if ($alias !== '') {
+                    $pattern = '/(?:\b|_)' . preg_quote($alias, '/') . '(?:\b|_)/iu';
+                    if (preg_match($pattern, $text)) {
+                        $candidates[$key] = max($candidates[$key] ?? 0, mb_strlen($alias));
+                    }
                 }
             }
         }
