@@ -150,8 +150,9 @@ class TenantDefaultSeeder
         ];
 
         $readingModuleMap = [
-            'sales.top_products' => 'products',
-            'inventory.stock_value' => 'inventory',
+            'sales.top_products'        => 'products',
+            'inventory.stock_value'     => 'inventory',
+            'inventory.low_stock_count' => 'inventory',
         ];
 
         foreach ($dashboards as $d) {

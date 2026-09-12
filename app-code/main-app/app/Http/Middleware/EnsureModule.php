@@ -85,9 +85,30 @@ class EnsureModule
         }
 
         if (!$tenant && $request->user()) {
-            $tenant = $request->user()->tenant;
-            if ($tenant) {
+            $user = $request->user();
+            $storeId = $user->last_store_id;
+            $membership = null;
+            if ($storeId) {
+                $membership = \App\Models\TenantUser::withoutGlobalScopes()
+                    ->where('tenant_id', $storeId)
+                    ->where('user_id', $user->id)
+                    ->where('status', 'active')
+                    ->with('tenant')
+                    ->first();
+            }
+            if (!$membership) {
+                $membership = \App\Models\TenantUser::withoutGlobalScopes()
+                    ->where('user_id', $user->id)
+                    ->where('status', 'active')
+                    ->with('tenant')
+                    ->first();
+            }
+            if ($membership && $membership->tenant) {
+                $tenant = $membership->tenant;
                 app()->instance('current.tenant', $tenant);
+                if (!app()->bound('current.membership')) {
+                    app()->instance('current.membership', $membership);
+                }
             }
         }
 
@@ -157,6 +178,21 @@ class EnsureModule
     {
         $primary = $owners[0];
         $label = config("modules.{$primary}.label", $primary);
+
+        try {
+            $throttleKey = 'module_refusal:' . ($tenant->id ?? 'anon') . ':' . $primary;
+            if (\Illuminate\Support\Facades\RateLimiter::remaining($throttleKey, 30) > 0) {
+                \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, 60);
+                \Illuminate\Support\Facades\Log::info('Module gate refusal', [
+                    'tenant_id'        => $tenant->id ?? null,
+                    'route'            => $request->route() ? $request->route()->getName() : null,
+                    'path'             => $request->path(),
+                    'required_modules' => $owners,
+                    'primary_module'   => $primary,
+                    'ip'               => $request->ip(),
+                ]);
+            }
+        } catch (\Throwable) {}
 
         $message = config(
             'ai_builder.messages.gate_blocked',

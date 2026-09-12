@@ -128,9 +128,12 @@ class ModuleRouteMap
 
     private static function cacheKey(): string
     {
-        return 'module_route_map:'.substr(md5(serialize(array_map(
+        $routeNames = array_keys(app('router')->getRoutes()->getRoutesByName());
+        $routesHash = md5(implode('|', $routeNames));
+        $modulesHash = md5(serialize(array_map(
             fn ($m) => $m['routes'] ?? [],
             config('modules', [])
-        ))), 0, 12);
+        )));
+        return 'module_route_map:' . substr(md5($routesHash . ':' . $modulesHash), 0, 16);
     }
 }

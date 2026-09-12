@@ -59,9 +59,23 @@ final class ReckonerRegistry
         'inventory.out_of_stock_count' => 'inventory',
         'inventory.overstock_count' => 'inventory',
         'inventory.product_count' => 'products',
+        'batch_tracking.count' => 'batches_expiry',
+        'batch_tracking.qty' => 'batches_expiry',
+        // Sales / Products
+        'sales.top_products' => 'products',
+        'sales.top_customers' => 'customers',
+        'proposals.count' => 'b2b_proposals',
+        'recurring_invoices.count' => 'recurring_invoices',
+        'recurring_invoices.revenue' => 'recurring_invoices',
+        'reminders.count' => 'recurring_invoices',
+        'sales_orders.count' => 'sales_orders',
+        'returns.count' => 'sales_returns',
+        'returns.qty' => 'sales_returns',
+        'returns.value' => 'sales_returns',
         // Purchasing
         'purchasing.spend' => 'purchases',
         'purchasing.count' => 'purchases',
+        'purchase_orders.count' => 'purchase_orders',
         'finance.paid_to_suppliers' => 'purchases',
         'finance.payables' => 'purchases',
         // Receivables / khata

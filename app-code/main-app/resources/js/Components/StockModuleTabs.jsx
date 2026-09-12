@@ -81,7 +81,7 @@ export default function StockModuleTabs({ activeTab }) {
     ], [store, tt]);
 
     const groups = useMemo(() => {
-        if (!Array.isArray(modules) || modules.length === 0) {
+        if (!Array.isArray(modules)) {
             return rawGroups;
         }
         return rawGroups.map(group => ({
@@ -123,6 +123,8 @@ export default function StockModuleTabs({ activeTab }) {
                 <button
                     type="button"
                     onClick={() => setIsCollapsed(!isCollapsed)}
+                    aria-label="Toggle Stock Navigation Menu"
+                    aria-expanded={!isCollapsed}
                     className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
                 >
                     <ChevronRight size={16} className={`transition-transform duration-normal ${isCollapsed ? 'rotate-90' : '-rotate-90'}`} />

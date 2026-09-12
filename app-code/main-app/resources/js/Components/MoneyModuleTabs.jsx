@@ -69,7 +69,7 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
     };
 
     const groups = useMemo(() => {
-        if (!Array.isArray(modules) || modules.length === 0) {
+        if (!Array.isArray(modules)) {
             return rawGroups;
         }
         return rawGroups.map(group => ({

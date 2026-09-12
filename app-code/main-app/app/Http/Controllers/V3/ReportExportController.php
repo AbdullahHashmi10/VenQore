@@ -24,6 +24,23 @@ class ReportExportController extends Controller
         $from = $validated['from'] ?? null;
         $to   = $validated['to']   ?? Carbon::today()->toDateString();
 
+        $tenant = app('current.tenant');
+        $reportSuffix = str_replace('_', '-', $validated['report']);
+        if ($tenant && !\App\Support\ReportModuleMap::visible($tenant, $reportSuffix)) {
+            $owner = \App\Support\ReportModuleMap::OWNERS[$reportSuffix] ?? null;
+            $message = \App\Support\ReportModuleMap::refusalFor($reportSuffix);
+
+            if ($request->expectsJson() || $request->is('api/*') || $validated['format'] === 'json') {
+                return response()->json([
+                    'message' => $message,
+                    'error'   => 'module_disabled',
+                    'module'  => $owner,
+                ], 403);
+            }
+
+            abort(403, $message);
+        }
+
         $data = match($validated['report']) {
             'trial_balance'       => $this->frs->getTrialBalance($to),
             'profit_loss'         => $this->frs->getProfitAndLoss($from ?? Carbon::today()->startOfYear()->toDateString(), $to),

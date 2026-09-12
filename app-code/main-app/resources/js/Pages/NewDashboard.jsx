@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+﻿import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import axios from 'axios';
 import './NewDashboard.css';
@@ -183,30 +183,31 @@ function readingDesc(r){
    else. An empty enabled-set (no tenant bound, the dev harness) gates
    nothing. A reading matching no rule is always available. */
 const READING_MODULE_RULES = [
-  [/^accounting\./,           ["accounting_workspace"]],
-  [/^bank_accounts\./,        ["bank_accounts"]],
-  [/^bank_reconciliation\./,  ["bank_reconciliation"]],
-  [/^batch_tracking\./,       ["batches_expiry"]],
-  [/^debit_notes\./,          ["purchase_returns"]],
-  [/^finance\.expenses/,      ["expenses"]],
-  [/^finance\.tax/,           ["tax_compliance"]],
-  [/^finance\./,              ["khata_credit", "payments", "accounting_workspace"]],
-  [/^party\./,                ["customers", "suppliers"]],
-  [/^inventory\./,            ["inventory"]],
-  [/^production\./,           ["production_runs"]],
-  [/^pre_sales\./,            ["pre_sales"]],
-  [/^proposals\./,            ["quotations"]],
-  [/^purchase_orders\./,      ["purchase_orders"]],
-  [/^purchasing\./,           ["purchases", "purchase_orders"]],
-  [/^recurring_invoices\./,   ["recurring_invoices"]],
-  [/^reminders\./,            ["khata_credit"]],
-  [/^returns\./,              ["sales_returns"]],
-  [/^sales_orders\./,         ["sales_orders"]],
-  [/^sales\./,                ["pos", "invoicing"]],
-  [/^serial_tracking\./,      ["serials"]],
-  [/^staff\./,                ["staff_attendance"]],
-  [/^staff_attendance\./,     ["staff_attendance"]],
-  [/^operations\./,           []],
+  [/^accounting\./,              ["accounting_workspace"]],
+  [/^bank_accounts\./,           ["bank_accounts"]],
+  [/^bank_reconciliation\./,     ["bank_reconciliation"]],
+  [/^batch_tracking\./,          ["batches_expiry"]],
+  [/^debit_notes\./,             ["purchase_returns"]],
+  [/^finance\.expenses/,         ["expenses"]],
+  [/^finance\.tax/,              ["tax_compliance"]],
+  [/^finance\./,                 ["khata_credit", "payments", "accounting_workspace"]],
+  [/^party\./,                   ["customers", "suppliers"]],
+  [/^inventory\.product_count$/, ["products"]],
+  [/^inventory\./,               ["inventory"]],
+  [/^production\./,              ["production_runs"]],
+  [/^pre_sales\./,               ["pre_sales"]],
+  [/^proposals\./,               ["b2b_proposals"]],
+  [/^purchase_orders\./,         ["purchase_orders"]],
+  [/^purchasing\./,              ["purchases", "purchase_orders"]],
+  [/^recurring_invoices\./,      ["recurring_invoices"]],
+  [/^reminders\./,               ["recurring_invoices"]],
+  [/^returns\./,                 ["sales_returns"]],
+  [/^sales_orders\./,            ["sales_orders"]],
+  [/^sales\./,                   ["pos", "invoicing"]],
+  [/^serial_tracking\./,         ["serials"]],
+  [/^staff\./,                   ["staff_attendance"]],
+  [/^staff_attendance\./,        ["staff_attendance"]],
+  [/^operations\./,              []],
 ];
 function modulesOf(key){
   for (const [re, mods] of READING_MODULE_RULES) if (re.test(key)) return mods;
@@ -295,7 +296,7 @@ function runCardBuilder(opts) {
 
 let ENABLED_MODULES = null;    /* null = ungated (no tenant / dev harness) */
 function setEnabledModules(list){
-  ENABLED_MODULES = Array.isArray(list) && list.length ? new Set(list) : null;
+  ENABLED_MODULES = Array.isArray(list) ? new Set(list) : null;
 }
 function readingAvailable(r){
   if (!ENABLED_MODULES) return true;
@@ -3377,8 +3378,8 @@ function boot(presetId){
           const activeBoard = list.find(b => b.is_default) || list[0];
           if (activeBoard) {
             ACTIVE_DASHBOARD_ID = activeBoard.id;
-            if (Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
-              const backendCards = activeBoard.cards.map(bc => {
+            if (Array.isArray(activeBoard.cards)) {
+              const backendCards = (activeBoard.cards.length === 0 ? [] : activeBoard.cards).map(bc => {
                 const st = bc.style || {};
                 return {
                   id: bc.id || newId(),

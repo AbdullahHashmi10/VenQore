@@ -57,6 +57,6 @@ class HandleSubscriptionCancelledJob implements ShouldQueue
                 ->send(new SubscriptionCancelledMail($tenant, $adminUser));
         }
 
-        Log::info("Tenant {$tenant->subdomain} cancelled — active until " . ($endsAt ?? 'N/A'));
+        Log::info("Tenant {$tenant->slug} cancelled — active until " . ($endsAt ?? 'N/A'));
     }
 }

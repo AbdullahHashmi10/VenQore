@@ -326,7 +326,7 @@ class CapabilityRegistry
                     'impact'            => 70,
                     'triggers'          => ['quotations', 'estimates', 'b2b', 'corporate', 'purchase orders', 'کوٹیشن'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['quotations', 'b2b_proposals', 'sales_orders', 'customers'],
+                    'implies_modules'   => ['b2b_proposals', 'sales_orders', 'customers'],
                     'consequences'      => ['You send a price, and when they say yes it becomes the bill — nothing gets typed twice.'],
                     'question_template' => 'Do you send a price first and only start the work once they agree to it?',
                     'options'           => [

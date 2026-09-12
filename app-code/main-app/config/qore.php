@@ -267,11 +267,16 @@ return [
         'store.create', 'store.create-or-join', 'store.store',
         'store.join', 'store.join.submit',
         'store.terminal-pairing.*', 'terminal-pairing.*',
+        'store.terminals.*', 'store.devices.*',
+        'store.session.eviction-status',
+        'store.root', 'store.new-dashboard', 'store.new-dashboard.legacy',
+        'store.api.heartbeat', 'store.api.check-connection',
+        'store.backups.*',
         'store.v3.dashboard', 'store.v3.settings.*', 'store.v3.users.*',
         'store.v3.store.*', 'store.v3.error.*',
 
         // public / pre-tenant
-        'account.*', 'api.*', 'csrf.*', 'dashboard', 'demo.*', 'error.*',
+        'account.*', 'api.report-error', 'api.reckoner.*', 'api.plan.usage', 'api.sync.users', 'api.sync.taxes', 'csrf.*', 'dashboard', 'demo.*', 'error.*',
         'gift.*', 'google.*', 'health', 'help.*', 'hub', 'my-stores.*',
         'installer.*', 'updater.*', 'invite.*', 'known-issues.*',
         'partner-support.*', 'blog.*', 'sitemap', 'sitemap.sub',

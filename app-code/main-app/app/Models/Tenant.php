@@ -308,7 +308,20 @@ class Tenant extends Model
     public function ownerUser(): ?User
     {
         $owner = $this->ownerMembership()->with('user')->first();
-        return $owner?->user ?? User::withoutTenantScope()->where('tenant_id', $this->id)->whereIn('role', ['owner', 'admin'])->first();
+        if ($owner?->user) {
+            return $owner->user;
+        }
+
+        $fallback = $this->memberships()
+            ->with('user')
+            ->whereIn('role', ['owner', 'admin', 'manager'])
+            ->first();
+
+        if ($fallback?->user) {
+            return $fallback->user;
+        }
+
+        return $this->memberships()->with('user')->first()?->user;
     }
 
     /**

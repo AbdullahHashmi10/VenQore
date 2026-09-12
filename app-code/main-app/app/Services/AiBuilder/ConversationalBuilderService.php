@@ -131,6 +131,11 @@ class ConversationalBuilderService
         // extraction (no user text), no answer recorded.
         if ($skip) {
             $session->recordSkip($session->currentQuestion['target_capability'] ?? null);
+            if (!empty($session->currentQuestion['members']) && is_array($session->currentQuestion['members'])) {
+                foreach ($session->currentQuestion['members'] as $m) {
+                    $session->recordSkip($m);
+                }
+            }
             // Persisted before the turn is processed, not after: every later
             // path saves on its own EXCEPT a re-ask, and a skip that failed to
             // stick would hand the question back — the very bug this fixes.
@@ -179,6 +184,22 @@ class ConversationalBuilderService
                     $confirmed[] = $member;
                 } else {
                     $rejected[] = $member;
+                }
+            }
+        }
+
+        // Check if user answered via an option key with declared implications
+        if ($session->currentQuestion && !empty($session->currentQuestion['options']) && is_array($session->currentQuestion['options'])) {
+            if ($selectedOptionKey) {
+                foreach ($session->currentQuestion['options'] as $opt) {
+                    if (($opt['key'] ?? null) === $selectedOptionKey) {
+                        if (!empty($opt['implies']) && !in_array($opt['implies'], $confirmed, true)) {
+                            $confirmed[] = $opt['implies'];
+                        }
+                        if (!empty($opt['rejects']) && !in_array($opt['rejects'], $rejected, true)) {
+                            $rejected[] = $opt['rejects'];
+                        }
+                    }
                 }
             }
         }
@@ -584,7 +605,16 @@ class ConversationalBuilderService
         $dummyTenant = new Tenant();
         $dummyTenant->id = 0;
 
+        $resolvedModules = $this->capabilityRegistry->resolveModules(
+            $session->confirmed,
+            $preset,
+            $session->structuredFacts
+        );
+
         $proposal = $this->aiService->fallback($dummyTenant, $reason, ['what' => $preset], null, $preset);
+        if (is_array($proposal)) {
+            $proposal['modules'] = $resolvedModules;
+        }
 
         $session->isComplete = true;
         $session->proposal = $proposal;
@@ -603,7 +633,7 @@ class ConversationalBuilderService
             'out_of_scope'      => false,
             'proposal'          => $proposal,
             'preset'            => $preset,
-            'modules'           => config("ai_builder.presets.{$preset}.modules", []),
+            'modules'           => $resolvedModules,
             'progress'          => 100,
         ];
     }

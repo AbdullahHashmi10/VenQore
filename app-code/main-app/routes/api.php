@@ -20,26 +20,26 @@ use App\Http\Controllers\Api\SyncController;
 Route::get('/check-connection', [SyncController::class, 'checkConnection']);
 
 // SEC-02: store.member binds the store only for ACTIVE members (fail closed).
-Route::middleware(['auth:sanctum', 'store.member', 'throttle:60,1'])->group(function () {
-    Route::get('/sync/users', [SyncController::class, 'users']);
-    Route::get('/sync/products', [SyncController::class, 'products']);
-    Route::get('/sync/customers', [SyncController::class, 'customers']);
-    Route::get('/sync/suppliers', [SyncController::class, 'suppliers']);
-    Route::get('/sync/inventory', [SyncController::class, 'inventory']);
-    Route::get('/sync/taxes', [SyncController::class, 'taxes']);
-    Route::post('/sync/orders/batch', [SyncController::class, 'batchOrders']);
+Route::middleware(['auth:sanctum', 'store.member', 'throttle:60,1'])->name('api.sync.')->group(function () {
+    Route::get('/sync/users', [SyncController::class, 'users'])->name('users');
+    Route::get('/sync/products', [SyncController::class, 'products'])->name('products');
+    Route::get('/sync/customers', [SyncController::class, 'customers'])->name('customers');
+    Route::get('/sync/suppliers', [SyncController::class, 'suppliers'])->name('suppliers');
+    Route::get('/sync/inventory', [SyncController::class, 'inventory'])->name('inventory');
+    Route::get('/sync/taxes', [SyncController::class, 'taxes'])->name('taxes');
+    Route::post('/sync/orders/batch', [SyncController::class, 'batchOrders'])->name('orders.batch');
 });
 
 // ── Work Orders & Service Jobs API ──────────────────────────────────────────
 use App\Http\Controllers\Api\WorkOrderController;
 
-Route::middleware(['auth:sanctum', 'plan.feature:work_orders'])->group(function () {
-    Route::get('/work-orders', [WorkOrderController::class, 'index']);
-    Route::post('/work-orders', [WorkOrderController::class, 'store'])->middleware('permission:sales.create');
-    Route::get('/work-orders/{id}', [WorkOrderController::class, 'show']);
-    Route::put('/work-orders/{id}', [WorkOrderController::class, 'update'])->middleware('permission:sales.edit');
-    Route::post('/work-orders/{id}/assign', [WorkOrderController::class, 'assign'])->middleware('permission:sales.edit');
-    Route::post('/work-orders/{id}/convert-invoice', [WorkOrderController::class, 'convertInvoice'])->middleware('permission:sales.edit');
+Route::middleware(['auth:sanctum', 'store.member', 'plan.feature:work_orders'])->name('api.work-orders.')->group(function () {
+    Route::get('/work-orders', [WorkOrderController::class, 'index'])->name('index');
+    Route::post('/work-orders', [WorkOrderController::class, 'store'])->middleware('permission:sales.create')->name('store');
+    Route::get('/work-orders/{id}', [WorkOrderController::class, 'show'])->name('show');
+    Route::put('/work-orders/{id}', [WorkOrderController::class, 'update'])->middleware('permission:sales.edit')->name('update');
+    Route::post('/work-orders/{id}/assign', [WorkOrderController::class, 'assign'])->middleware('permission:sales.edit')->name('assign');
+    Route::post('/work-orders/{id}/convert-invoice', [WorkOrderController::class, 'convertInvoice'])->middleware('permission:sales.edit')->name('convert-invoice');
 });
 
 // ── Phase 2.1: Lemon Squeezy Billing Webhooks ──────────────────────────────
@@ -56,12 +56,12 @@ Route::post('/webhooks/pusher', [\App\Http\Controllers\PusherWebhookController::
 // Rate-limited to 300 requests/min per tenant (config in bootstrap/app.php).
 use App\Http\Controllers\Api\PosSearchController;
 
-Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:pos'])->group(function () {
-    Route::get('/search',           [PosSearchController::class, 'search']);
-    Route::get('/featured',         [PosSearchController::class, 'featured']);
-    Route::get('/categories',       [PosSearchController::class, 'categories']);
-    Route::get('/barcode/{code}',   [PosSearchController::class, 'findByBarcode']);
-    Route::get('/modifiers',        [PosSearchController::class, 'modifiers']);
+Route::prefix('pos')->name('api.pos.')->middleware(['auth:sanctum', 'store.member', 'throttle:pos'])->group(function () {
+    Route::get('/search',           [PosSearchController::class, 'search'])->name('search');
+    Route::get('/featured',         [PosSearchController::class, 'featured'])->name('featured');
+    Route::get('/categories',       [PosSearchController::class, 'categories'])->name('categories');
+    Route::get('/barcode/{code}',   [PosSearchController::class, 'findByBarcode'])->name('barcode');
+    Route::get('/modifiers',        [PosSearchController::class, 'modifiers'])->name('modifiers');
 });
 
 // ── WooCommerce Sync — Public Endpoints ───────────────────────────────────

@@ -57,7 +57,7 @@ export default function SellModuleTabs({ activeTab }) {
 
     const itemModuleMap = {
         'orders': ['invoicing', 'pos', 'sales_orders'],
-        'pre-sales': ['pre_sales', 'quotations'],
+        'pre-sales': ['pre_sales'],
         'proposals': ['b2b_proposals'],
         'returns': ['sales_returns'],
         'recurring': ['recurring_invoices'],
@@ -66,7 +66,7 @@ export default function SellModuleTabs({ activeTab }) {
     };
 
     const groups = React.useMemo(() => {
-        if (!Array.isArray(modules) || modules.length === 0) {
+        if (!Array.isArray(modules)) {
             return rawGroups;
         }
         return rawGroups.map(group => ({
@@ -191,22 +191,24 @@ export default function SellModuleTabs({ activeTab }) {
                 </div>
 
                 {/* New Invoice Action - Authentic Midnight Nebula */}
-                <div className="shrink-0 self-stretch flex items-center">
-                    <Link
-                        href={route('store.sales.invoice.create', { store_slug: store?.slug })}
-                        className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl"
-                    >
-                        {/* Midnight Nebula Background */}
-                        <div className="absolute inset-0 bg-neutral-900 z-0">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors"></div>
-                            <div className="absolute bottom-0 left-0 w-16 h-16 bg-brand-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-brand-500/50 transition-colors"></div>
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
-                        </div>
-                        {/* Content */}
-                        <Plus size={18} strokeWidth={3} className="relative z-10" />
-                        <span className="relative z-10">New Invoice</span>
-                    </Link>
-                </div>
+                {(!Array.isArray(modules) || modules.includes('invoicing')) && (
+                    <div className="shrink-0 self-stretch flex items-center">
+                        <Link
+                            href={route('store.sales.invoice.create', { store_slug: store?.slug })}
+                            className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl"
+                        >
+                            {/* Midnight Nebula Background */}
+                            <div className="absolute inset-0 bg-neutral-900 z-0">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors"></div>
+                                <div className="absolute bottom-0 left-0 w-16 h-16 bg-brand-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-brand-500/50 transition-colors"></div>
+                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
+                            </div>
+                            {/* Content */}
+                            <Plus size={18} strokeWidth={3} className="relative z-10" />
+                            <span className="relative z-10">New Invoice</span>
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );

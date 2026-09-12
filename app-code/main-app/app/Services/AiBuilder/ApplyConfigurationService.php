@@ -61,7 +61,8 @@ class ApplyConfigurationService
             );
         }
 
-        return DB::transaction(function () use ($tenant, $config, $modules, $source, $reason) {
+        $result = DB::transaction(function () use ($tenant, $config, $modules, $source, $reason) {
+            DB::table('tenants')->where('id', $tenant->id)->lockForUpdate()->first();
 
             $before = ModuleService::allEnabled($tenant);
 
@@ -95,13 +96,7 @@ class ApplyConfigurationService
                 ['enabled', 'source', 'updated_at']
             );
 
-            $this->applyTerminology($tenant, $config['terminology'] ?? []);
-
-            ModuleService::invalidate($tenant->id);
-
-            if (method_exists(\App\Support\Terms::class, 'invalidateCache')) {
-                \App\Support\Terms::invalidateCache($tenant->id);
-            }
+            $this->applyTerminology($tenant, $config['terminology'] ?? [], $source === 'restore');
 
             return [
                 'version'       => $this->currentVersion($tenant),
@@ -110,6 +105,15 @@ class ApplyConfigurationService
                 'newly_enabled' => $newlyEnabled,
             ];
         });
+
+        // Invalidate cache after transaction commit to eliminate race conditions
+        ModuleService::invalidate($tenant->id);
+
+        if (method_exists(\App\Support\Terms::class, 'invalidateCache')) {
+            \App\Support\Terms::invalidateCache($tenant->id);
+        }
+
+        return $result;
     }
 
     /**
@@ -237,8 +241,16 @@ class ApplyConfigurationService
      * Terminology writes are filtered against Terms::$fallbacks, so a made-up
      * key from an AI response cannot create a row nothing will ever read.
      */
-    private function applyTerminology(Tenant $tenant, array $terminology): void
+    private function applyTerminology(Tenant $tenant, array $terminology, bool $isRestore = false): void
     {
+        if ($isRestore) {
+            $keepKeys = array_keys($terminology);
+            DB::table('tenant_terminology')
+                ->where('tenant_id', $tenant->id)
+                ->whereNotIn('term_key', $keepKeys)
+                ->delete();
+        }
+
         if ($terminology === []) {
             return;
         }

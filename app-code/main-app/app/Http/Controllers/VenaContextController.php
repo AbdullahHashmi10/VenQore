@@ -37,15 +37,14 @@ class VenaContextController extends Controller
             $planLabels[$slug] = in_array($slug, ['trial', 'ltd'], true) || str_starts_with($slug, 'ltd_') ? $label : "{$label} Plan";
         }
 
-        // ── Feature flags from tenant record ──────────────────────────────────
-        // base_features are always available; advanced features depend on plan.
+        // ── Feature flags from tenant record & module service ─────────────────
         $features = [
-            // Core — always available
-            'pos'         => true,
-            'invoicing'   => true,
-            'expenses'    => true,
-            'inventory'   => true,
-            'parties'     => true,
+            // Operational modules — queried from ModuleService
+            'pos'         => \App\Services\ModuleService::enabled($tenant, 'pos'),
+            'invoicing'   => \App\Services\ModuleService::enabled($tenant, 'invoicing'),
+            'expenses'    => \App\Services\ModuleService::enabled($tenant, 'expenses'),
+            'inventory'   => \App\Services\ModuleService::enabled($tenant, 'inventory'),
+            'parties'     => \App\Services\ModuleService::enabled($tenant, 'customers') || \App\Services\ModuleService::enabled($tenant, 'suppliers'),
 
             // Plan-gated features — read from plan limits
             'reports_basic'    => true,
@@ -54,11 +53,11 @@ class VenaContextController extends Controller
             'multi_warehouse'  => ($tenant->getLimit('warehouses') === null || $tenant->getLimit('warehouses') > 1),
             'multi_user'       => ($tenant->getLimit('users') === null || $tenant->getLimit('users') > 1),
 
-            // Feature flags stored directly on tenant
-            'variants'         => (bool) $tenant->feature_variants,
-            'serials'          => (bool) $tenant->feature_serials,
-            'batches'          => (bool) $tenant->feature_batches,
-            'manufacturing'    => (bool) $tenant->feature_manufacturing,
+            // Feature flags and advanced modules
+            'variants'         => \App\Services\ModuleService::enabled($tenant, 'variants'),
+            'serials'          => \App\Services\ModuleService::enabled($tenant, 'serials'),
+            'batches'          => \App\Services\ModuleService::enabled($tenant, 'batches_expiry'),
+            'manufacturing'    => \App\Services\ModuleService::enabled($tenant, 'manufacturing'),
         ];
 
         // ── Limits ────────────────────────────────────────────────────────────

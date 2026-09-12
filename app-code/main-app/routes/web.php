@@ -411,7 +411,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     ->prefix('s/{store_slug}')
     ->name('store.')
     ->group(function () {
-        Route::get('/', fn() => \redirect()->route('store.pos', ['store_slug' => app('current.tenant')->slug]));
+        Route::get('/', function () {
+            $tenant = app('current.tenant');
+            if (\App\Services\ModuleService::enabled($tenant, 'pos')) {
+                return \redirect()->route('store.pos', ['store_slug' => $tenant->slug]);
+            }
+            return \redirect()->route('store.dashboard', ['store_slug' => $tenant->slug]);
+        })->name('root');
 
         // Setup wizard (no plan gate — always accessible)
         Route::get('/setup',  [\App\Http\Controllers\SetupController::class, 'index'])->name('setup');
@@ -476,7 +482,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/google/backup/restore/{fileId}',  [\App\Http\Controllers\VqBackupController::class, 'restoreFromGoogleDrive'])->middleware(['permission:admin.data_recovery', 'throttle:5,1'])->name('google.backup.restore');
 
         // Store settings
-        Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings');
+        Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->middleware('permission:admin.settings_view,admin.settings_manage')->name('settings');
         Route::post('/settings',                   [\App\Http\Controllers\SettingsController::class, 'update'])->middleware('permission:admin.settings_manage')->name('settings.update');
 
         // SmartCapture (AI Scan) API
@@ -1128,11 +1134,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
         Route::name('store.')->group(function () {
     Route::get('/new-dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('new-dashboard');
-    Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug], 301));
+    Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug], 301))->name('new-dashboard.legacy');
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/onboarding/step', function ($store_slug) {
         return redirect()->route('store.dashboard', ['store_slug' => $store_slug]);
-    });
+    })->name('onboarding.step.legacy');
     Route::post('/onboarding/step', [\App\Http\Controllers\OnboardingController::class, 'updateStep'])->middleware('permission:admin.settings_view,pos.checkout,sales.view,inventory.view,purchases.view,reports.summary')->name('onboarding.step');
 
     // 7 Core Onboarding Screens (STEP 13)
@@ -1938,9 +1944,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('legacy.admin.data');
         Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('legacy.admin.data.export');
         Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('legacy.admin.data.import');
-        Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
+        Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.data.upload-mapping.redirect');
         Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('legacy.admin.data.upload-mapping');
-        Route::get('/admin-panel/data/process-import', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
+        Route::get('/admin-panel/data/process-import', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.data.process-import.redirect');
         Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('legacy.admin.data.process-import');
         Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('legacy.admin.data.validate-import');
         Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('legacy.admin.data.template');
@@ -2148,15 +2154,15 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Added Category D Store Routes
     Route::get('/finance/accounts', fn() => \abort(501, 'Implement finance.accounts'))->name('finance.accounts');
     Route::get('/finance/journal', fn() => \abort(501, 'Implement finance.journal'))->name('finance.journal');
-    Route::get('/payments/in/create', fn() => \abort(501, 'Implement payment-in.create'))->name('payment-in.create');
-    Route::get('/payments/out/create', fn() => \abort(501, 'Implement payment-out.create'))->name('payment-out.create');
+    Route::get('/payments/in/create', fn() => \redirect()->route('store.payments.in', ['store_slug' => app('current.tenant')->slug]))->name('payment-in.create');
+    Route::get('/payments/out/create', fn() => \redirect()->route('store.payments.out', ['store_slug' => app('current.tenant')->slug]))->name('payment-out.create');
     Route::get('/sales/pre-sales/{order}/print', fn() => \abort(501, 'Implement pre-sales.print'))->name('pre-sales.print');
     /* Both of these were abort(501) closures, so a debit note could be raised
        and then neither corrected nor printed. */
     Route::get('/debit-notes/{id}/print', [\App\Http\Controllers\DebitNoteController::class, 'print'])->name('debit-notes.print');
     Route::put('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'update'])->middleware('permission:purchases.edit')->name('debit-notes.update');
     Route::get('/purchases/{purchase}/print', fn() => \abort(501, 'Implement purchases.print'))->name('purchases.print');
-    Route::get('/sales/create', fn() => \abort(501, 'Implement sales.create'))->name('sales.create');
+    Route::get('/sales/create', fn() => \redirect()->route('store.new-invoice', ['store_slug' => app('current.tenant')->slug]))->name('sales.create');
     Route::get('/inventory/production/{run}/edit', fn() => \abort(501, 'Implement production.edit'))->name('production.edit');
     Route::get('/reports/discount-report', fn() => \abort(501, 'Implement reports.discount-report'))->name('reports.discount-report');
     Route::get('/reports/inventory-valuation', fn() => \abort(501, 'Implement reports.inventory-valuation'))->name('reports.inventory-valuation');

@@ -32,6 +32,13 @@ class SendPaymentReminders extends Command
             app()->instance('current.tenant', $tenant);
             SettingsHelper::clearCache();
 
+            if (!\App\Services\ModuleService::enabled($tenant, 'invoicing')
+                && !\App\Services\ModuleService::enabled($tenant, 'recurring_invoices')
+                && !\App\Services\ModuleService::enabled($tenant, 'khata_credit')) {
+                $this->line("   Skipped: None of 'invoicing', 'recurring_invoices' or 'khata_credit' module is enabled.");
+                continue;
+            }
+
             // Check that the feature is enabled
             if (!SettingsHelper::isEnabled('payment_reminders')) {
                 $this->line("   Skipped: 'payment_reminders' setting is disabled.");

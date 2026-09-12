@@ -1066,10 +1066,6 @@ return [
 
     'packages' => [
         'pos' => ['inventory'],
-
-        // Insights are insights INTO something. Switched on with expenses,
-        // absent without it — never predicted, never on its own.
-        'expenses' => ['ai_insights'],
     ],
 
     /*

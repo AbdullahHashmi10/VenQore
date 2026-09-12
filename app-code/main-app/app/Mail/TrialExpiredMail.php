@@ -27,8 +27,8 @@ class TrialExpiredMail extends Mailable implements ShouldQueue
         public readonly Tenant $tenant,
         public readonly User   $user
     ) {
-        $domain           = config('app.domain', 'venqore.com');
-        $this->billingUrl = "https://{$tenant->subdomain}.{$domain}/billing";
+        $baseUrl          = rtrim(config('app.url', 'https://venqore.com'), '/');
+        $this->billingUrl = "{$baseUrl}/s/{$tenant->slug}/billing";
     }
 
     public function envelope(): Envelope

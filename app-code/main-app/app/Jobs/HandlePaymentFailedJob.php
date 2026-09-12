@@ -59,6 +59,6 @@ class HandlePaymentFailedJob implements ShouldQueue
             Mail::to($adminUser->email)->send(new PaymentFailedMail($tenant, $adminUser));
         }
 
-        Log::info("Payment failed email sent for tenant {$tenant->subdomain}");
+        Log::info("Payment failed email sent for tenant {$tenant->slug}");
     }
 }

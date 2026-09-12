@@ -791,11 +791,19 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 		// Insights → Sales / Purchase analysis
 		'Sales Report': 'reports',
-		'Discount Report': 'reports',
+		'Discount Report': 'pricing_tiers',
 		'Sale Aging': 'khata_credit',
 		'Purchase Report': 'purchases',
 		'Expense Report': 'expenses',
 		'Growth Engine': 'reports',
+		'Invoices': 'invoicing',
+		'Invoices List': 'invoicing',
+		'New Sale': 'invoicing',
+		'Sales Orders': 'sales_orders',
+		'Return History': 'sales_returns',
+		'Purchases List': 'purchases',
+		'New Purchase': 'purchases',
+		'Debit Notes': 'purchase_returns',
 
 		// Insights → Inventory. The four that gave a plumber a stock menu.
 		'Stock Valuation': 'inventory',

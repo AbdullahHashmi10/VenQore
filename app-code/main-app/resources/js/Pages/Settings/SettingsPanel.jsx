@@ -42,7 +42,7 @@ const SETTINGS_SECTIONS = [
 
 export default function SettingsPanel({ settings }) {
  const {
- store
+ store, modules
  } = usePage().props;
 
  const { auth } = usePage().props;
@@ -646,7 +646,12 @@ export default function SettingsPanel({ settings }) {
  {SETTINGS_CATEGORIES.map((category) => {
  const CatIcon = category.icon;
  const isExpanded = expandedCategories.includes(category.id);
- const categorySections = SETTINGS_SECTIONS.filter(s => category.sections.includes(s.id));
+ const categorySections = SETTINGS_SECTIONS.filter(s => {
+ if (!category.sections.includes(s.id)) return false;
+ if (s.id === 'pos' && Array.isArray(modules) && !modules.includes('pos')) return false;
+ if (s.id === 'taxes' && Array.isArray(modules) && !modules.includes('tax_compliance')) return false;
+ return true;
+ });
 
  if (categorySections.length === 0) return null;
 

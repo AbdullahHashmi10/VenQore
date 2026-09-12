@@ -32,6 +32,11 @@ class SendServiceReminders extends Command
             app()->instance('current.tenant', $tenant);
             SettingsHelper::clearCache();
 
+            if (!\App\Services\ModuleService::enabled($tenant, 'services')) {
+                $this->line("   Skipped: 'services' module is disabled.");
+                continue;
+            }
+
             $email = $tenant->ownerEmail();
             if (!$email) {
                 $this->line("   Skipped: No owner email.");

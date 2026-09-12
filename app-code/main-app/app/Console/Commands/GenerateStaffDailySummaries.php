@@ -27,6 +27,12 @@ class GenerateStaffDailySummaries extends Command
 
         foreach ($tenants as $tenant) {
             $this->info("\n🏪 Tenant [{$tenant->id}] {$tenant->name}");
+
+            if (!\App\Services\ModuleService::enabled($tenant, 'staff_attendance')) {
+                $this->line("   Skipped: 'staff_attendance' module is disabled.");
+                continue;
+            }
+
             $this->processForTenant($tenant);
         }
 

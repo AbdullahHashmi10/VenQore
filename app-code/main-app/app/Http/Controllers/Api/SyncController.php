@@ -199,6 +199,14 @@ class SyncController extends Controller
             return response()->json(['message' => 'Store not found'], 404);
         }
 
+        if (!\App\Services\ModuleService::enabled($tenant, 'pos')) {
+            return response()->json([
+                'message' => 'The POS module is currently disabled for this store.',
+                'error'   => 'module_disabled',
+                'module'  => 'pos',
+            ], 409);
+        }
+
         if (!app()->bound('current.tenant')) {
             app()->instance('current.tenant', $tenant);
         }

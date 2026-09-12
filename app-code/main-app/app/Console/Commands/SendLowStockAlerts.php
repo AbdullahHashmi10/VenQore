@@ -32,6 +32,11 @@ class SendLowStockAlerts extends Command
             app()->instance('current.tenant', $tenant);
             \App\Helpers\SettingsHelper::clearCache();
 
+            if (!\App\Services\ModuleService::enabled($tenant, 'inventory')) {
+                $this->line("   Skipped: 'inventory' module is disabled.");
+                continue;
+            }
+
             if (!\App\Helpers\SettingsHelper::isEnabled('low_stock_alerts')) {
                 $this->line("   Skipped: 'low_stock_alerts' is disabled.");
                 continue;

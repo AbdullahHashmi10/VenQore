@@ -59,10 +59,12 @@ export default function ContactsModuleTabs({ activeTab }) {
         'ledgers': ['khata_credit'],
         'attendance': ['staff_attendance'],
         'summaries': ['staff_attendance'],
+        'members': ['staff_attendance'],
+        'invitations': ['staff_attendance'],
     };
 
     const groups = React.useMemo(() => {
-        if (!Array.isArray(modules) || modules.length === 0) {
+        if (!Array.isArray(modules)) {
             return rawGroups;
         }
         return rawGroups.map(group => ({

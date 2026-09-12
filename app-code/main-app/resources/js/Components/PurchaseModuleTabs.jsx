@@ -47,7 +47,7 @@ export default function PurchaseModuleTabs({ activeTab }) {
     };
 
     const groups = useMemo(() => {
-        if (!Array.isArray(modules) || modules.length === 0) {
+        if (!Array.isArray(modules)) {
             return rawGroups;
         }
         return rawGroups.map(group => ({
@@ -94,7 +94,7 @@ export default function PurchaseModuleTabs({ activeTab }) {
                     <ChevronDown size={16} className={`transition-transform duration-normal ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
 
-                {!isExpanded && (
+                {!isExpanded && (!Array.isArray(modules) || modules.includes('purchases')) && (
                     <div className="shrink-0 flex items-center">
                         <Link
                             href={getRoute('purchases.create')}
@@ -168,22 +168,24 @@ export default function PurchaseModuleTabs({ activeTab }) {
                 </div>
 
                 {/* New Purchase Action - Midnight Nebula */}
-                <div className="shrink-0 self-stretch flex items-center">
-                    <Link
-                        href={getRoute('purchases.create')}
-                        className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl"
-                    >
-                        {/* Midnight Nebula Background */}
-                        <div className="absolute inset-0 bg-neutral-900 z-0">
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors"></div>
-                            <div className="absolute bottom-0 left-0 w-16 h-16 bg-brand-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-brand-500/50 transition-colors"></div>
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
-                        </div>
-                        {/* Content */}
-                        <Plus size={18} strokeWidth={3} className="relative z-10" />
-                        <span className="relative z-10">New Purchase</span>
-                    </Link>
-                </div>
+                {(!Array.isArray(modules) || modules.includes('purchases')) && (
+                    <div className="shrink-0 self-stretch flex items-center">
+                        <Link
+                            href={getRoute('purchases.create')}
+                            className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl"
+                        >
+                            {/* Midnight Nebula Background */}
+                            <div className="absolute inset-0 bg-neutral-900 z-0">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-brand-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-brand-500/60 transition-colors"></div>
+                                <div className="absolute bottom-0 left-0 w-16 h-16 bg-brand-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-brand-500/50 transition-colors"></div>
+                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
+                            </div>
+                            {/* Content */}
+                            <Plus size={18} strokeWidth={3} className="relative z-10" />
+                            <span className="relative z-10">New Purchase</span>
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -59,6 +59,11 @@ Artisan::command('inspire', function () {
     ->hourly()
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
+\Illuminate\Support\Facades\Schedule::command('finance:depreciate')
+    ->dailyAt('00:01')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // V3 consolidation, Phase 0 step 2 -- see V3_CONSOLIDATION_PLAN.md
 // Read-only daily count of rows still in the legacy purchase island
 // (invoices type=purchase/purchase_return). Must go FLAT after Phase 5

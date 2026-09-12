@@ -160,8 +160,25 @@ class StoreProvisioner
 
     public function create(User $user, array $data): Tenant
     {
-        return DB::transaction(function () use ($user, $data) {
-            $name     = trim((string) ($data['name'] ?? '')) ?: 'My Business';
+        $name = trim((string) ($data['name'] ?? '')) ?: 'My Business';
+        $idempotencyKey = $data['idempotency_key'] ?? null;
+
+        if ($idempotencyKey) {
+            $existingId = \Illuminate\Support\Facades\Cache::get('provision_idem:' . $user->id . ':' . $idempotencyKey);
+            if ($existingId && ($existingTenant = Tenant::find($existingId))) {
+                return $existingTenant;
+            }
+        }
+
+        $recentTenant = Tenant::where('name', $name)
+            ->where('created_at', '>=', now()->subSeconds(60))
+            ->whereHas('users', fn($q) => $q->where('users.id', $user->id)->where('role', 'owner'))
+            ->first();
+        if ($recentTenant) {
+            return $recentTenant;
+        }
+
+        return DB::transaction(function () use ($user, $data, $name, $idempotencyKey) {
             $country  = strtoupper((string) ($data['country'] ?? ''));
             $interval = ($data['interval'] ?? 'monthly') === 'annual' ? 'annual' : 'monthly';
 
@@ -262,10 +279,6 @@ class StoreProvisioner
 
             $user->update(['last_store_id' => $tenant->id]);
 
-            // Chart of accounts, warehouse, cash account, expense categories,
-            // settings, terminology. Idempotent.
-            TenantDefaultSeeder::seedFor($tenant);
-
             if (!empty($data['phone'])) {
                 Setting::updateOrCreate(
                     ['tenant_id' => $tenant->id, 'key' => 'store_phone'],
@@ -280,22 +293,26 @@ class StoreProvisioner
             }
 
             // Module set from the builder, through its single writer.
-            $rawModules = (array_key_exists('modules', $data) && is_array($data['modules']))
-                ? $data['modules']
-                : [];
-            $modules = array_values(array_intersect($rawModules, array_keys(config('modules', []))));
-            if ($modules === []) {
+            // Distinguish missing modules (default to preset) from explicit modules array (even if empty)
+            $hasExplicitModules = array_key_exists('modules', $data);
+            if (!$hasExplicitModules) {
                 $modules = $businessType
                     ? \App\Support\BusinessTypes::modulesFor($businessType)
                     : ['products', 'pos', 'inventory', 'expenses', 'reports'];
-            } else {
                 $modules = \App\Support\BusinessTypes::withDependencies($modules);
+            } else {
+                $rawModules = is_array($data['modules']) ? $data['modules'] : [];
+                $modules = array_values(array_intersect($rawModules, array_keys(config('modules', []))));
             }
 
             // BL-06: Filter to live modules only
             $modules = array_values(array_filter($modules, function ($key) {
                 return (config("modules.{$key}.status") ?? 'live') === 'live';
             }));
+
+            if ($idempotencyKey) {
+                \Illuminate\Support\Facades\Cache::put('provision_idem:' . $user->id . ':' . $idempotencyKey, $tenant->id, 300);
+            }
 
             // Terminology from the catalogue: the store talks the way the
             // trade does ("Clients", "Jobs", "Plumbers") from minute one.
@@ -308,6 +325,11 @@ class StoreProvisioner
                 'preset',
                 'Selected during workspace provisioning.'
             );
+
+            // Chart of accounts, warehouse, cash account, expense categories,
+            // settings, terminology. Idempotent. Must run after ApplyConfigurationService
+            // so dashboard card seeding can filter against enabled modules.
+            TenantDefaultSeeder::seedFor($tenant);
 
             try {
                 app()->instance('current.tenant', $tenant);

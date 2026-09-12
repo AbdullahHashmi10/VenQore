@@ -26,6 +26,11 @@ class GenerateRecurringInvoices extends Command
             // Scope context to tenant
             app()->instance('current.tenant', $tenant);
 
+            if (!\App\Services\ModuleService::enabled($tenant, 'recurring_invoices')) {
+                $this->line("   Skipped: 'recurring_invoices' module is disabled.");
+                continue;
+            }
+
             // Fetch active templates due today or earlier
             $dueInvoices = RecurringInvoice::where('status', 'active')
                 ->whereDate('next_run_date', '<=', now()->toDateString())

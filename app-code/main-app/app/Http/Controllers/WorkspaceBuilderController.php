@@ -302,7 +302,7 @@ class WorkspaceBuilderController extends Controller
         // deterministic preset path carries the page exactly as before.
         $understanding = null;
         $reasons = [];
-        if (trim($rawPrompt) !== '' && !$businessType && !$presetKey) {
+        if (trim($rawPrompt) !== '') {
             $understanding = app(\App\Services\AiBuilder\BusinessUnderstanding::class)->read($rawPrompt);
         }
 

@@ -63,6 +63,12 @@ class RunGrowthEngine extends Command
         $created = $skipped = $failed = 0;
 
         foreach ($tenants as $tenant) {
+            if (!\App\Services\ModuleService::enabled($tenant, 'ai_insights')) {
+                $skipped++;
+                $this->line(sprintf('  [%d] %-28s skipped (ai_insights module disabled)', $tenant->id, \Illuminate\Support\Str::limit($tenant->name, 26)));
+                continue;
+            }
+
             if ($sync) {
                 $run = $engine->runForTenant($tenant->id, $mode, (bool) $this->option('force'));
 

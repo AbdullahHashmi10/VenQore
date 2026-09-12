@@ -75,7 +75,7 @@ class ModuleService
         }
 
         if (!array_key_exists($moduleKey, config('modules', []))) {
-            return true;                      // not a module; nothing to gate
+            return false;                     // not a registered module — fail-closed
         }
 
         $map = self::allFor($tenant);
@@ -162,7 +162,7 @@ class ModuleService
             return $registry;
         }
 
-        return array_values(array_filter($registry, fn ($key) => $map[$key] ?? true));
+        return array_values(array_filter($registry, fn ($key) => (bool) ($map[$key] ?? false)));
     }
 
     /** Enabled AND live AND permitted — what the shell should actually render. */

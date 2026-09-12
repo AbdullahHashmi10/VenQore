@@ -53,7 +53,7 @@ export default function ProductModal({
     const [activeTab, setActiveTab] = useState('details');
     const [isNewCategory, setIsNewCategory] = useState(false);
     const isEditable = mode === 'create' || mode === 'edit';
-    const { settings, store } = usePage().props;
+    const { settings, store, modules } = usePage().props;
     const tt = useTermText();
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -630,7 +630,7 @@ export default function ProductModal({
  />
  </div>
  </div>
- {(settings?.batch_tracking_enabled === '1' || settings?.batch_tracking_enabled === true) && (
+ {(!Array.isArray(modules) || modules.includes('batches_expiry')) && (settings?.batch_tracking_enabled === '1' || settings?.batch_tracking_enabled === true) && (
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-line">
  <div>
  <label className="block text-xs font-bold text-ink-muted mb-1.5">Batch Number</label>
@@ -841,9 +841,9 @@ export default function ProductModal({
  ]
  : [
  { id: 'details', label: 'Details' },
- { id: 'reservations', label: 'Reservations' },
+ ...(!Array.isArray(modules) || modules.includes('pre_sales') ? [{ id: 'reservations', label: 'Reservations' }] : []),
  { id: 'extra', label: 'Extra Details' },
- { id: 'variants', label: 'Variants' },
+ ...(!Array.isArray(modules) || modules.includes('variants') ? [{ id: 'variants', label: 'Variants' }] : []),
  ...(mode !== 'create' ? [{ id: 'history', label: 'History' }, { id: 'purchase_stats', label: 'Purchase Stats' }] : []),
  ]
  ).map(tab => (
@@ -1350,7 +1350,7 @@ export default function ProductModal({
  {renderInventorySection()}
 
  {/* Barcodes Section */}
- <section id="tour-product-barcode">
+ {(!Array.isArray(modules) || modules.includes('barcodes_labels')) && <section id="tour-product-barcode">
  <div className="flex items-center justify-between mb-4">
  <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
  <Box size={16} className="text-brand-500" /> Barcodes
@@ -1411,7 +1411,7 @@ export default function ProductModal({
  )}
  </div>
  )}
- </section>
+ </section>}
  </div>
  )}
  </div>
@@ -2310,6 +2310,7 @@ export default function ProductModal({
  className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
  />
  </div>
+ {(!Array.isArray(modules) || modules.includes('barcodes_labels')) && (
  <div>
  <label className="block text-sm font-bold text-ink-secondary mb-2">Barcode</label>
  <input
@@ -2320,6 +2321,7 @@ export default function ProductModal({
  className="w-full px-4 py-2.5 rounded-lg bg-surface border border-line focus:ring-2 ring-brand-500/20 outline-none"
  />
  </div>
+ )}
  </div>
 
  {/* Price & Cost */}
@@ -2378,7 +2380,7 @@ export default function ProductModal({
  )}
 
  {/* Barcode Modal */}
- {isBarcodeModalOpen && createPortal(
+ {(!Array.isArray(modules) || modules.includes('barcodes_labels')) && isBarcodeModalOpen && createPortal(
  <div className="fixed inset-0 z-drawer flex items-center justify-center p-4">
  <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={() => setIsBarcodeModalOpen(false)}></div>
  <div className="relative w-full max-w-lg bg-surface rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-normal">

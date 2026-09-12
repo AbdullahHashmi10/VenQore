@@ -1607,7 +1607,8 @@ const POSInterface = ({
             return;
         }
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
-        if (!isService && (product.available_stock ?? product.stock_quantity ?? 0) <= 0 && (!product.has_manufacturing_rule)) {
+        const hasPreSales = !Array.isArray(modules) || modules.includes('pre_sales');
+        if (hasPreSales && (product.reserved_quantity > 0) && !isService && (product.available_stock ?? product.stock_quantity ?? 0) <= 0 && (!product.has_manufacturing_rule)) {
             if (!window.confirm(`Warning: ${product.reserved_quantity || 0} units are reserved for pre-orders. Available: ${product.available_stock || 0}. Selling this will put reservations into backorder. Continue?`)) {
                 updateActiveSale({ searchTerm: '' });
                 setSearchResults([]);
@@ -1616,7 +1617,8 @@ const POSInterface = ({
             }
         }
 
-        if (product.variants && product.variants.length > 0) {
+        const hasVariants = !Array.isArray(modules) || modules.includes('variants');
+        if (hasVariants && product.variants && product.variants.length > 0) {
             setSelectedProductForVariant(product);
             setVariantModalOpen(true);
         } else {
@@ -3125,21 +3127,30 @@ const POSInterface = ({
                 <span className="hidden sm:inline">+ Item</span>
             </button>
             <div id="tour-pos-product" className="flex-1 relative min-w-0">
-                <AsyncProductCombobox
-                    defaultOptions={categoryProducts}
-                    value={activeSale.searchTerm}
-                    onQueryChange={(val) => updateActiveSale({ searchTerm: val })}
-                    onSelect={(product) => handleProductSelect(product)}
-                    placeholder="Scan barcode or search item by name / SKU… [F2]"
-                    onKeyDown={handleSearchInputKeyDown}
-                    inputClassName="!pl-12 !pr-11 font-bold h-11 text-sm bg-sunken/60 focus:bg-surface rounded-xl border-line/90 focus:border-brand-500 shadow-none focus:ring-4 focus:ring-brand-500/15 transition-all"
-                    onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
-                    hideCostAndMargin={true}
-                    hideSearchIcon={true}
-                />
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10 flex items-center gap-1">
-                    <ScanBarcode size={20} className="text-brand-600 dark:text-brand-400" />
-                </div>
+                {(() => {
+                    const hasBarcodes = !Array.isArray(modules) || modules.includes('barcodes_labels');
+                    return (
+                        <>
+                            <AsyncProductCombobox
+                                defaultOptions={categoryProducts}
+                                value={activeSale.searchTerm}
+                                onQueryChange={(val) => updateActiveSale({ searchTerm: val })}
+                                onSelect={(product) => handleProductSelect(product)}
+                                placeholder={hasBarcodes ? "Scan barcode or search item by name / SKU… [F2]" : "Search item by name / SKU… [F2]"}
+                                onKeyDown={handleSearchInputKeyDown}
+                                inputClassName={`${hasBarcodes ? '!pl-12' : '!pl-4'} !pr-11 font-bold h-11 text-sm bg-sunken/60 focus:bg-surface rounded-xl border-line/90 focus:border-brand-500 shadow-none focus:ring-4 focus:ring-brand-500/15 transition-all`}
+                                onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
+                                hideCostAndMargin={true}
+                                hideSearchIcon={true}
+                            />
+                            {hasBarcodes && (
+                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10 flex items-center gap-1">
+                                    <ScanBarcode size={20} className="text-brand-600 dark:text-brand-400" />
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
                 <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10 flex items-center">
                     <Search size={18} />
                 </div>

@@ -21,7 +21,7 @@ import {
 import { useTermText } from '@/lib/terms';
 
 const CommandPalette = () => {
-    const { auth, store } = usePage().props;
+    const { auth, store, modules } = usePage().props;
     const tt = useTermText();
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -31,6 +31,29 @@ const CommandPalette = () => {
 
     const userRole = auth.user?.role;
     const userPerms = auth.user?.permissions || [];
+
+    // Module Map (R07)
+    const COMMAND_MODULES = {
+        'pos': ['pos'],
+        'inventory': ['inventory', 'products'],
+        'parties': ['customers', 'suppliers', 'khata_credit'],
+        'reports': ['reports'],
+        'new-sale': ['invoicing', 'pos'],
+        'new-purchase': ['purchases'],
+        'new-product': ['products'],
+        'new-customer': ['customers'],
+        'new-expense': ['expenses'],
+        'payment-in': ['payments'],
+        'payment-out': ['payments'],
+        'report-sales': ['reports'],
+        'report-purchases': ['purchases', 'reports'],
+        'report-pnl': ['accounting_workspace', 'reports'],
+        'report-stock': ['inventory', 'reports'],
+        'report-daybook': ['accounting_workspace', 'reports'],
+        'stock-levels': ['inventory'],
+        'categories': ['products'],
+        'production': ['production_runs', 'manufacturing']
+    };
 
     // Permission Map
     const COMMAND_PERMISSIONS = {
@@ -67,13 +90,13 @@ const CommandPalette = () => {
         { id: 'settings', name: 'Settings', keywords: 'settings preferences config', icon: Settings, action: () => router.visit(route('store.settings', { store_slug: store?.slug })), category: 'Navigation' },
 
         // Quick Actions
-        { id: 'new-sale', name: 'New Sale Invoice', keywords: 'new sale invoice create', icon: Plus, action: () => router.visit(route('store.sales.create', { store_slug: store?.slug })), category: 'Quick Actions' },
-        { id: 'new-purchase', name: 'New Purchase', keywords: 'new purchase buy', icon: Truck, action: () => router.visit(route('store.purchases.create', { store_slug: store?.slug })), category: 'Quick Actions' },
+        { id: 'new-sale', name: tt('New Sale Invoice'), keywords: 'new sale invoice create', icon: Plus, action: () => router.visit(route('store.new-invoice', { store_slug: store?.slug })), category: 'Quick Actions' },
+        { id: 'new-purchase', name: tt('New Purchase'), keywords: 'new purchase buy', icon: Truck, action: () => router.visit(route('store.purchases.create', { store_slug: store?.slug })), category: 'Quick Actions' },
         { id: 'new-product', name: tt('Add Product'), keywords: 'new product item add create', icon: Package, action: () => router.visit(route('store.inventory.dashboard', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
         { id: 'new-customer', name: tt('Add Customer'), keywords: 'new customer party add create', icon: Users, action: () => router.visit(route('store.parties.index', { store_slug: store?.slug }) + '?action=add&type=customer'), category: 'Quick Actions' },
-        { id: 'new-expense', name: 'Add Expense', keywords: 'new expense add create', icon: CreditCard, action: () => router.visit(route('store.expenses.index', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
-        { id: 'payment-in', name: 'Record Payment In', keywords: 'payment receive in money', icon: DollarSign, action: () => router.visit(route('store.payment-in.create', { store_slug: store?.slug })), category: 'Quick Actions' },
-        { id: 'payment-out', name: 'Record Payment Out', keywords: 'payment out pay money', icon: DollarSign, action: () => router.visit(route('store.payment-out.create', { store_slug: store?.slug })), category: 'Quick Actions' },
+        { id: 'new-expense', name: tt('Add Expense'), keywords: 'new expense add create', icon: CreditCard, action: () => router.visit(route('store.expenses.index', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
+        { id: 'payment-in', name: tt('Record Payment In'), keywords: 'payment receive in money', icon: DollarSign, action: () => router.visit(route('store.payments.in', { store_slug: store?.slug })), category: 'Quick Actions' },
+        { id: 'payment-out', name: tt('Record Payment Out'), keywords: 'payment out pay money', icon: DollarSign, action: () => router.visit(route('store.payments.out', { store_slug: store?.slug })), category: 'Quick Actions' },
 
         // Reports
         { id: 'report-sales', name: 'Sales Report', keywords: 'report sales revenue', icon: FileText, action: () => router.visit(route('store.reports.sales', { store_slug: store?.slug })), category: 'Reports' },
@@ -89,6 +112,14 @@ const CommandPalette = () => {
     ];
 
     const commands = rawCommands.filter(cmd => {
+        if (Array.isArray(modules)) {
+            const requiredModules = COMMAND_MODULES[cmd.id];
+            if (requiredModules && requiredModules.length > 0) {
+                if (!requiredModules.some(m => modules.includes(m))) {
+                    return false;
+                }
+            }
+        }
         if (userRole === 'platform_admin') return true;
         const required = COMMAND_PERMISSIONS[cmd.id];
         if (!required || required.length === 0) return true;

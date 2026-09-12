@@ -46,7 +46,35 @@ class DashboardController extends Controller
             $dashboards = collect([$default]);
         }
 
-        return response()->json(['data' => $dashboards]);
+        // Get available keys to filter gated cards across all boards (R08)
+        $reckoner = app(Reckoner::class);
+        $keys = array_keys(ReckonerRegistry::all());
+        $availability = $reckoner->checkAvailability($keys, $user, $tenant);
+        $availableKeys = array_keys(array_filter($availability));
+
+        $dashboards->load('cards');
+
+        $dashboardsData = $dashboards->map(function ($dashboard) use ($availableKeys) {
+            $visibleCards = [];
+            foreach ($dashboard->cards as $card) {
+                if (in_array($card->reading_key, $availableKeys, true)) {
+                    $cleanItem = DashboardSanitizer::sanitize([$card->toArray()], $availableKeys);
+                    if (!empty($cleanItem)) {
+                        $cleanCard = $card->toArray();
+                        $cleanCard['w'] = $cleanItem[0]['w'];
+                        $cleanCard['h'] = $cleanItem[0]['h'];
+                        $cleanCard['chart'] = $cleanItem[0]['chart'];
+                        $cleanCard['period'] = $cleanItem[0]['period'];
+                        $visibleCards[] = $cleanCard;
+                    }
+                }
+            }
+            $data = $dashboard->toArray();
+            $data['cards'] = $visibleCards;
+            return $data;
+        });
+
+        return response()->json(['data' => $dashboardsData]);
     }
 
     /**
