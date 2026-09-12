@@ -309,8 +309,12 @@ class PlanFeatureMatrixSeeder extends Seeder
             'report_sales_order_items'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'report_sales_party_group'   => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'report_item_by_party'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_party_by_item'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_tax_rate_breakdown'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_party_by_item'          => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_tax_rate_breakdown'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_profitability_analysis' => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_sales_analysis'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_expense_analysis'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_export'                 => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
             // Group 9 — AI, Signals & Builder
             'ai_assistant'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],

@@ -104,4 +104,133 @@ class ReportPlanGateTest extends VenQoreTestCase
         $newJournalEntries = JournalEntry::where('tenant_id', $tenant->id)->count();
         $this->assertGreaterThan($initialJournalEntries, $newJournalEntries);
     }
+
+    #[Test]
+    public function whole_report_plan_map_is_enforced_for_solo_and_allowed_for_scale(): void
+    {
+        $soloTenant = $this->createTenant(plan: 'solo', status: 'active');
+        $this->actingAsTenantUser($soloTenant, 'owner');
+
+        // Enable all modules so module gating does not block
+        $allLiveModules = array_keys(config('modules', []));
+        foreach ($allLiveModules as $mod) {
+            ModuleService::enable($soloTenant, $mod);
+        }
+
+        foreach (array_keys(\App\Support\ReportPlanMap::MAP) as $suffix) {
+            $routeName = \Illuminate\Support\Facades\Route::has("store.reports.{$suffix}")
+                ? "store.reports.{$suffix}"
+                : "store.v3.reports.{$suffix}";
+
+            $url = route($routeName, ['store_slug' => $soloTenant->slug]);
+            if ($suffix === 'export') {
+                $url .= '?report=profit_loss&format=json';
+            }
+
+            $response = $this->getJson($url);
+            $this->assertSame(
+                403,
+                $response->getStatusCode(),
+                "Expected 403 on Solo for analytical report '{$suffix}', got {$response->getStatusCode()}."
+            );
+            $this->assertSame(
+                'plan_upgrade_required',
+                $response->json('code'),
+                "Expected code 'plan_upgrade_required' on Solo for '{$suffix}', got " . json_encode($response->json())
+            );
+        }
+
+        // Scale tenant test
+        $scaleTenant = $this->createTenant(plan: 'scale', status: 'active');
+        $this->actingAsTenantUser($scaleTenant, 'owner');
+        foreach ($allLiveModules as $mod) {
+            ModuleService::enable($scaleTenant, $mod);
+        }
+
+        foreach (array_keys(\App\Support\ReportPlanMap::MAP) as $suffix) {
+            $routeName = \Illuminate\Support\Facades\Route::has("store.reports.{$suffix}")
+                ? "store.reports.{$suffix}"
+                : "store.v3.reports.{$suffix}";
+
+            $url = route($routeName, ['store_slug' => $scaleTenant->slug]);
+            if ($suffix === 'export') {
+                $url .= '?report=profit_loss&format=json';
+            }
+
+            $response = $this->getJson($url);
+            $this->assertNotSame(
+                403,
+                $response->getStatusCode(),
+                "Expected non-403 on Scale for analytical report '{$suffix}', got {$response->getStatusCode()}."
+            );
+        }
+    }
+
+    #[Test]
+    public function operational_reports_free_list_stays_free_on_solo(): void
+    {
+        $tenant = $this->createTenant(plan: 'solo', status: 'active');
+        $this->actingAsTenantUser($tenant, 'owner');
+
+        $allLiveModules = array_keys(config('modules', []));
+        foreach ($allLiveModules as $mod) {
+            ModuleService::enable($tenant, $mod);
+        }
+
+        $party = \App\Models\Party::factory()->create(['tenant_id' => $tenant->id, 'type' => 'customer']);
+
+        $freeReportSuffixes = [
+            'index',
+            'dashboard',
+            'day-book',
+            'daily-sales',
+            'sales',
+            'low-stock',
+            'expiry',
+            'all-parties',
+            'party-statement',
+            'party-ledger',
+            'aged-receivables',
+            'aged-payables',
+            'expenses',
+            'expense-by-category',
+            'purchases',
+            'purchase-returns',
+            'sale-orders',
+            'sale-order-items',
+            'inventory-movement',
+            'movement-history',
+            'item-detail',
+            'stock-summary-by-category',
+            'bank-statement',
+            'loan-statement',
+            'tax',
+        ];
+
+        foreach ($freeReportSuffixes as $suffix) {
+            $routeName = \Illuminate\Support\Facades\Route::has("store.reports.{$suffix}")
+                ? "store.reports.{$suffix}"
+                : (\Illuminate\Support\Facades\Route::has("store.v3.reports.{$suffix}")
+                    ? "store.v3.reports.{$suffix}"
+                    : null);
+
+            if (!$routeName) {
+                continue;
+            }
+
+            $params = ['store_slug' => $tenant->slug];
+            if ($suffix === 'party-ledger') {
+                $params['partyId'] = $party->id;
+            }
+
+            $url = route($routeName, $params);
+            $response = $this->get($url);
+
+            $this->assertNotSame(
+                403,
+                $response->getStatusCode(),
+                "Operational report '{$suffix}' should be accessible on Solo, but returned 403."
+            );
+        }
+    }
 }

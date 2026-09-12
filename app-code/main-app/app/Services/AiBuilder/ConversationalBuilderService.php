@@ -295,8 +295,12 @@ class ConversationalBuilderService
             if (!$aiResponse['ok']) {
                 $code = $aiResponse['code'] ?? null;
 
-                if (in_array($code, ['rate_limited', 'spend_capped'], true)) {
-                    return $this->fallbackToPreset($session, $code);
+                if (in_array($code, ['rate_limited', 'spend_capped', 'spend_cap_exceeded'], true)) {
+                    Log::warning("AI turn tripped budget ceiling ({$code}), degrading to deterministic candidate fallback", [
+                        'session_id' => $session->sessionId,
+                        'code'       => $code,
+                    ]);
+                    return $this->renderCandidateFallback($session, $candidateQuestion);
                 }
 
                 if ($code === AiScopeGuard::FAILURE_CODE) {

@@ -25,6 +25,35 @@ class ReportExportController extends Controller
         $to   = $validated['to']   ?? Carbon::today()->toDateString();
 
         $tenant = app('current.tenant');
+        if ($tenant && !\App\Services\PlanGate::check('report_export', $tenant)) {
+            $planName = $tenant->plan === 'ltd' ? $tenant->effectivePlan() : $tenant->plan;
+            $message = 'Report exports are available on Starter and higher plans.';
+
+            if ($request->expectsJson() || $request->is('api/*') || ($request->input('format') === 'json')) {
+                return response()->json([
+                    'message'      => $message,
+                    'code'         => 'plan_upgrade_required',
+                    'action'       => 'upgrade',
+                    'upgrade'      => true,
+                    'plan_feature' => 'report_export',
+                    'current_plan' => $planName,
+                ], 403);
+            }
+
+            $storeSlug = $tenant->slug;
+            $upgradeUrl = \Illuminate\Support\Facades\Route::has('store.billing.upgrade')
+                ? route('store.billing.upgrade', ['store_slug' => $storeSlug, 'feature' => 'report_export'])
+                : route('store.billing', ['store_slug' => $storeSlug]);
+
+            return redirect($upgradeUrl)->with('plan_limit', [
+                'type'         => 'plan_limit',
+                'code'         => 'plan_upgrade_required',
+                'feature'      => 'report_export',
+                'message'      => $message,
+                'current_plan' => $planName,
+            ]);
+        }
+
         $reportSuffix = str_replace('_', '-', $validated['report']);
         if ($tenant && !\App\Support\ReportModuleMap::visible($tenant, $reportSuffix)) {
             $owner = \App\Support\ReportModuleMap::OWNERS[$reportSuffix] ?? null;
