@@ -1,0 +1,1378 @@
+{
+    "solo.provision": {
+        "requested": [
+            "services",
+            "customers",
+            "invoicing",
+            "payments",
+            "expenses",
+            "reports"
+        ],
+        "enabled": [
+            "services",
+            "customers",
+            "invoicing",
+            "payments",
+            "expenses",
+            "reports"
+        ],
+        "row_count": 46,
+        "nav": [
+            {
+                "key": "invoicing",
+                "route": "store.sales.index",
+                "label": "Invoices",
+                "icon": "FileText",
+                "order": 15,
+                "group": "B"
+            },
+            {
+                "key": "customers",
+                "route": "store.customers.index",
+                "label": "Clients",
+                "icon": "Users",
+                "order": 25,
+                "group": "A"
+            },
+            {
+                "key": "payments",
+                "route": "store.payments.index",
+                "label": "Payments",
+                "icon": "Wallet",
+                "order": 27,
+                "group": "F"
+            },
+            {
+                "key": "services",
+                "route": "store.service-jobs.index",
+                "label": "Jobs",
+                "icon": "Wrench",
+                "order": 47,
+                "group": "A"
+            },
+            {
+                "key": "expenses",
+                "route": "store.expenses.index",
+                "label": "Expenses",
+                "icon": "Receipt",
+                "order": 60,
+                "group": "F"
+            },
+            {
+                "key": "reports",
+                "route": "store.reports.index",
+                "label": "Reports",
+                "icon": "BarChart3",
+                "order": 90,
+                "group": "G"
+            }
+        ],
+        "cards": [
+            "sales.revenue",
+            "sales.revenue_trend",
+            "sales.payment_breakdown",
+            "sales.live_feed",
+            "sales.revenue_trend",
+            "finance.expenses_by_category",
+            "finance.net_profit",
+            "finance.balance_sheet_ok",
+            "sales.top_products",
+            "sales.revenue",
+            "finance.net_profit",
+            "sales.revenue",
+            "inventory.stock_value"
+        ],
+        "terms": [
+            {
+                "term_key": "customer",
+                "singular": "Client",
+                "plural": "Clients"
+            },
+            {
+                "term_key": "job",
+                "singular": "Job",
+                "plural": "Jobs"
+            },
+            {
+                "term_key": "product",
+                "singular": "Material",
+                "plural": "Materials"
+            },
+            {
+                "term_key": "technician",
+                "singular": "Plumber",
+                "plural": "Plumbers"
+            }
+        ],
+        "seed_counts": {
+            "products": 0,
+            "parties": 0,
+            "warehouses": 1,
+            "bank_accounts": 1,
+            "expense_categories": 6,
+            "settings": 9
+        }
+    },
+    "retail.provision": {
+        "requested": [
+            "products",
+            "customers",
+            "pos",
+            "sales_orders",
+            "inventory",
+            "expenses",
+            "reports"
+        ],
+        "enabled": [
+            "products",
+            "customers",
+            "pos",
+            "sales_orders",
+            "inventory",
+            "expenses",
+            "reports"
+        ],
+        "row_count": 46,
+        "nav": [
+            {
+                "key": "pos",
+                "route": "store.pos",
+                "label": "Sales",
+                "icon": "ShoppingCart",
+                "order": 10,
+                "group": "B"
+            },
+            {
+                "key": "products",
+                "route": "store.inventory.index",
+                "label": "Products",
+                "icon": "Package",
+                "order": 20,
+                "group": "A"
+            },
+            {
+                "key": "customers",
+                "route": "store.customers.index",
+                "label": "Customers",
+                "icon": "Users",
+                "order": 25,
+                "group": "A"
+            },
+            {
+                "key": "inventory",
+                "route": "store.inventory.dashboard",
+                "label": "Stock",
+                "icon": "Package",
+                "order": 30,
+                "group": "C"
+            },
+            {
+                "key": "sales_orders",
+                "route": "store.sales-orders.index",
+                "label": "Orders",
+                "icon": "ClipboardList",
+                "order": 46,
+                "group": "B"
+            },
+            {
+                "key": "expenses",
+                "route": "store.expenses.index",
+                "label": "Expenses",
+                "icon": "Receipt",
+                "order": 60,
+                "group": "F"
+            },
+            {
+                "key": "reports",
+                "route": "store.reports.index",
+                "label": "Reports",
+                "icon": "BarChart3",
+                "order": 90,
+                "group": "G"
+            }
+        ],
+        "cards": [
+            "sales.revenue",
+            "finance.profit_trend",
+            "finance.net_profit",
+            "finance.net_profit",
+            "finance.expenses_by_category",
+            "sales.revenue",
+            "sales.top_products",
+            "sales.revenue",
+            "inventory.stock_value",
+            "finance.balance_sheet_ok",
+            "finance.net_profit",
+            "sales.payment_breakdown",
+            "sales.revenue_trend",
+            "sales.live_feed"
+        ],
+        "terms": [],
+        "seed_counts": {
+            "products": 0,
+            "parties": 0,
+            "warehouses": 1,
+            "bank_accounts": 1,
+            "expense_categories": 6,
+            "settings": 9
+        }
+    },
+    "wholesale.provision": {
+        "requested": [
+            "products",
+            "customers",
+            "sales_orders",
+            "inventory",
+            "multi_location",
+            "stock_transfers",
+            "expenses",
+            "reports",
+            "staff_attendance"
+        ],
+        "enabled": [
+            "products",
+            "customers",
+            "sales_orders",
+            "inventory",
+            "multi_location",
+            "stock_transfers",
+            "expenses",
+            "reports",
+            "staff_attendance"
+        ],
+        "row_count": 46,
+        "nav": [
+            {
+                "key": "products",
+                "route": "store.inventory.index",
+                "label": "Products",
+                "icon": "Package",
+                "order": 20,
+                "group": "A"
+            },
+            {
+                "key": "customers",
+                "route": "store.customers.index",
+                "label": "Customers",
+                "icon": "Users",
+                "order": 25,
+                "group": "A"
+            },
+            {
+                "key": "inventory",
+                "route": "store.inventory.dashboard",
+                "label": "Stock",
+                "icon": "Package",
+                "order": 30,
+                "group": "C"
+            },
+            {
+                "key": "multi_location",
+                "route": "store.v3.warehouses.index",
+                "label": "Locations",
+                "icon": "Building2",
+                "order": 32,
+                "group": "C"
+            },
+            {
+                "key": "stock_transfers",
+                "route": "store.stock-transfers.index",
+                "label": "Stock",
+                "icon": "ArrowLeftRight",
+                "order": 33,
+                "group": "C"
+            },
+            {
+                "key": "sales_orders",
+                "route": "store.sales-orders.index",
+                "label": "Orders",
+                "icon": "ClipboardList",
+                "order": 46,
+                "group": "B"
+            },
+            {
+                "key": "expenses",
+                "route": "store.expenses.index",
+                "label": "Expenses",
+                "icon": "Receipt",
+                "order": 60,
+                "group": "F"
+            },
+            {
+                "key": "reports",
+                "route": "store.reports.index",
+                "label": "Reports",
+                "icon": "BarChart3",
+                "order": 90,
+                "group": "G"
+            }
+        ],
+        "cards": [
+            "sales.revenue",
+            "finance.profit_trend",
+            "finance.net_profit",
+            "sales.revenue",
+            "sales.live_feed",
+            "finance.net_profit",
+            "sales.top_products",
+            "sales.revenue",
+            "inventory.stock_value",
+            "finance.net_profit",
+            "finance.expenses_by_category",
+            "sales.revenue_trend",
+            "finance.balance_sheet_ok",
+            "sales.payment_breakdown"
+        ],
+        "terms": [],
+        "seed_counts": {
+            "products": 0,
+            "parties": 0,
+            "warehouses": 1,
+            "bank_accounts": 1,
+            "expense_categories": 6,
+            "settings": 9
+        }
+    },
+    "disabled_product_fixture": {
+        "id": "01a0934b-a2d2-73bb-9489-ee902256e0b3",
+        "products_enabled": false
+    },
+    "http:/api/sync/products": {
+        "status": 200,
+        "location": null,
+        "body": [
+            {
+                "id": "01a0934b-a2d2-73bb-9489-ee902256e0b3",
+                "is_active": 1,
+                "tenant_id": "98",
+                "name": "Audit disabled product",
+                "ai_title": null,
+                "ai_description_short": null,
+                "ai_description_long": null,
+                "ai_tags": null,
+                "created_via": null,
+                "short_description": null,
+                "sku": "AUDIT-OFF",
+                "supplier_sku": null,
+                "track_serial": 0,
+                "type": "standard",
+                "service_pricing": null,
+                "default_duration": null,
+                "default_rate": null,
+                "requires_visit": 0,
+                "skill_tag": null,
+                "price": "472.8600",
+                "wholesale_price": null,
+                "wholesale_min_quantity": null,
+                "cost_price": "405.3200",
+                "unit": "pcs",
+                "quantity": "0.00",
+                "tax_rate": "0.0000",
+                "price_includes_tax": 0,
+                "is_manufactured": 0,
+                "is_expiry_tracked": 0,
+                "base_unit": "pcs",
+                "secondary_unit": null,
+                "conversion_rate": null,
+                "min_stock_alert": 5,
+                "stock_quantity": 0,
+                "created_at": "2026-09-12T01:46:42.000000Z",
+                "updated_at": "2026-09-12T01:46:42.000000Z",
+                "category_id": null,
+                "brand_id": null,
+                "hsn_code": null,
+                "is_weighted": 0,
+                "description": "Rerum magnam quasi expedita explicabo.",
+                "image_path": null,
+                "has_variants": 0,
+                "woocommerce_id": null,
+                "alert_quantity": 5,
+                "deleted_at": null,
+                "category": null,
+                "variants": []
+            }
+        ]
+    },
+    "http:/api/sync/inventory": {
+        "status": 200,
+        "location": null,
+        "body": []
+    },
+    "http:/api/sync/suppliers": {
+        "status": 200,
+        "location": null,
+        "body": []
+    },
+    "http:/api/pos/search": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "data": [
+                {
+                    "id": "01a0934b-a2d2-73bb-9489-ee902256e0b3",
+                    "name": "Audit disabled product",
+                    "sku": "AUDIT-OFF",
+                    "type": "standard",
+                    "service_pricing": null,
+                    "default_duration": null,
+                    "requires_visit": 0,
+                    "skill_tag": null,
+                    "price": 472.86,
+                    "cost_price": 405.32,
+                    "has_variants": 0,
+                    "base_unit": "pcs",
+                    "tax_rate": "0.0000",
+                    "category_id": null,
+                    "category_name": null,
+                    "stock_quantity": "0.0000",
+                    "primary_barcode": null,
+                    "image_url": null
+                }
+            ],
+            "total": 1,
+            "per_page": 30,
+            "current_page": 1,
+            "last_page": 1
+        }
+    },
+    "http:/api/work-orders": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "current_page": 1,
+            "data": [],
+            "first_page_url": "http://localhost/api/work-orders?page=1",
+            "from": null,
+            "last_page": 1,
+            "last_page_url": "http://localhost/api/work-orders?page=1",
+            "links": [
+                {
+                    "url": null,
+                    "label": "&laquo; Previous",
+                    "page": null,
+                    "active": false
+                },
+                {
+                    "url": "http://localhost/api/work-orders?page=1",
+                    "label": "1",
+                    "page": 1,
+                    "active": true
+                },
+                {
+                    "url": null,
+                    "label": "Next &raquo;",
+                    "page": null,
+                    "active": false
+                }
+            ],
+            "next_page_url": null,
+            "path": "http://localhost/api/work-orders",
+            "per_page": 25,
+            "prev_page_url": null,
+            "to": null,
+            "total": 0
+        }
+    },
+    "http:/s/audit-solo-mlf1rqwq/tables/state": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "positions": [],
+            "tickets": [],
+            "zones": [],
+            "kitchen": 0
+        }
+    },
+    "http:/s/audit-solo-mlf1rqwq/api/manufacturing-rules": {
+        "status": 200,
+        "location": null,
+        "body": []
+    },
+    "http:/s/audit-solo-mlf1rqwq/new-pos": {
+        "status": 200,
+        "location": null,
+        "body": "<!DOCTYPE html>\n\n<html lang=\"en\"\n     data-vq-theme=\"venqore-v6\"  data-vq-density=\"comfortable\"  data-vq-radius=\"default\" >\n\n<head>\n    \n        \n    <meta charset=\"utf-8\">\n    <me"
+    },
+    "http:/s/audit-solo-mlf1rqwq/new-invoice": {
+        "status": 200,
+        "location": null,
+        "body": "<!DOCTYPE html>\n\n<html lang=\"en\"\n     data-vq-theme=\"venqore-v6\"  data-vq-density=\"comfortable\"  data-vq-radius=\"default\" >\n\n<head>\n    \n        \n    <meta charset=\"utf-8\">\n    <me"
+    },
+    "http:/s/audit-solo-mlf1rqwq/inventory": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "success": false,
+            "code": "module_disabled",
+            "module": "inventory",
+            "label": "Inventory",
+            "message": "This isn't part of your system yet — add it?",
+            "action": "add_module",
+            "add_url": "http://localhost/s/audit-solo-mlf1rqwq/builder?add=inventory",
+            "upgrade": false
+        }
+    },
+    "http:/s/audit-solo-mlf1rqwq/api/reckoner/catalogue": {
+        "status": 404,
+        "location": null,
+        "body": {
+            "message": "",
+            "exception": "Symfony\\Component\\HttpKernel\\Exception\\NotFoundHttpException",
+            "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php",
+            "line": 1437,
+            "trace": [
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\helpers.php",
+                    "line": 67,
+                    "function": "abort",
+                    "class": "Illuminate\\Foundation\\Application",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\routes\\web.php",
+                    "line": 2402,
+                    "function": "abort"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\CallableDispatcher.php",
+                    "line": 39,
+                    "function": "{closure}",
+                    "class": "Illuminate\\Routing\\RouteFileRegistrar",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php",
+                    "line": 243,
+                    "function": "dispatch",
+                    "class": "Illuminate\\Routing\\CallableDispatcher",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php",
+                    "line": 214,
+                    "function": "runCallable",
+                    "class": "Illuminate\\Routing\\Route",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+                    "line": 822,
+                    "function": "run",
+                    "class": "Illuminate\\Routing\\Route",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 180,
+                    "function": "Illuminate\\Routing\\{closure}",
+                    "class": "Illuminate\\Routing\\Router",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\Require2FA.php",
+                    "line": 35,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\Require2FA",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\PreventAuthenticatedPageCaching.php",
+                    "line": 37,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\PreventAuthenticatedPageCaching",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\LastModifiedMiddleware.php",
+                    "line": 19,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\LastModifiedMiddleware",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\DemoBannerMiddleware.php",
+                    "line": 26,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\DemoBannerMiddleware",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\AddLinkHeadersForPreloadedAssets.php",
+                    "line": 32,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Http\\Middleware\\AddLinkHeadersForPreloadedAssets",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\EnsureModule.php",
+                    "line": 129,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\EnsureModule",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\GeoPricingMiddleware.php",
+                    "line": 35,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\GeoPricingMiddleware",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\inertiajs\\inertia-laravel\\src\\Middleware.php",
+                    "line": 122,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Inertia\\Middleware",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\PlatformInactivityMiddleware.php",
+                    "line": 38,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\PlatformInactivityMiddleware",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\ConfigureSystem.php",
+                    "line": 62,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\ConfigureSystem",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\DatabaseHealthCheck.php",
+                    "line": 17,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\DatabaseHealthCheck",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php",
+                    "line": 50,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Routing\\Middleware\\SubstituteBindings",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php",
+                    "line": 87,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php",
+                    "line": 48,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\View\\Middleware\\ShareErrorsFromSession",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php",
+                    "line": 120,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php",
+                    "line": 63,
+                    "function": "handleStatefulRequest",
+                    "class": "Illuminate\\Session\\Middleware\\StartSession",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Session\\Middleware\\StartSession",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php",
+                    "line": 36,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php",
+                    "line": 74,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Cookie\\Middleware\\EncryptCookies",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 137,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+                    "line": 821,
+                    "function": "then",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+                    "line": 800,
+                    "function": "runRouteWithinStack",
+                    "class": "Illuminate\\Routing\\Router",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+                    "line": 764,
+                    "function": "runRoute",
+                    "class": "Illuminate\\Routing\\Router",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php",
+                    "line": 753,
+                    "function": "dispatchToRoute",
+                    "class": "Illuminate\\Routing\\Router",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php",
+                    "line": 200,
+                    "function": "dispatch",
+                    "class": "Illuminate\\Routing\\Router",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 180,
+                    "function": "Illuminate\\Foundation\\Http\\{closure}",
+                    "class": "Illuminate\\Foundation\\Http\\Kernel",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\PreventAccessDuringUpdate.php",
+                    "line": 66,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\PreventAccessDuringUpdate",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php",
+                    "line": 21,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php",
+                    "line": 31,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php",
+                    "line": 21,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php",
+                    "line": 51,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Middleware\\TrimStrings",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php",
+                    "line": 27,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Http\\Middleware\\ValidatePostSize",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php",
+                    "line": 109,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php",
+                    "line": 61,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Http\\Middleware\\HandleCors",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php",
+                    "line": 58,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Http\\Middleware\\TrustProxies",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php",
+                    "line": 22,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php",
+                    "line": 26,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "Illuminate\\Http\\Middleware\\ValidatePathEncoding",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\app\\Http\\Middleware\\CanonicalHostMiddleware.php",
+                    "line": 34,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 219,
+                    "function": "handle",
+                    "class": "App\\Http\\Middleware\\CanonicalHostMiddleware",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php",
+                    "line": 137,
+                    "function": "Illuminate\\Pipeline\\{closure}",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php",
+                    "line": 175,
+                    "function": "then",
+                    "class": "Illuminate\\Pipeline\\Pipeline",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php",
+                    "line": 144,
+                    "function": "sendRequestThroughRouter",
+                    "class": "Illuminate\\Foundation\\Http\\Kernel",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Testing\\Concerns\\MakesHttpRequests.php",
+                    "line": 607,
+                    "function": "handle",
+                    "class": "Illuminate\\Foundation\\Http\\Kernel",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Testing\\Concerns\\MakesHttpRequests.php",
+                    "line": 573,
+                    "function": "call",
+                    "class": "Illuminate\\Foundation\\Testing\\TestCase",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Testing\\Concerns\\MakesHttpRequests.php",
+                    "line": 381,
+                    "function": "json",
+                    "class": "Illuminate\\Foundation\\Testing\\TestCase",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\docs\\prelaunch-audit-2026-09-12\\http-probes.php",
+                    "line": 37,
+                    "function": "getJson",
+                    "class": "Illuminate\\Foundation\\Testing\\TestCase",
+                    "type": "->"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\docs\\prelaunch-audit-2026-09-12\\http-probes.php",
+                    "line": 16,
+                    "function": "{closure}"
+                },
+                {
+                    "file": "E:\\AMD POS\\AMD POS\\app-code\\main-app\\docs\\prelaunch-audit-2026-09-12\\http-probes.php",
+                    "line": 37,
+                    "function": "{closure}"
+                }
+            ]
+        }
+    },
+    "http:/s/audit-solo-mlf1rqwq/reports/discount": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "success": false,
+            "code": "module_disabled",
+            "module": "pricing_tiers",
+            "label": "Pricing Tiers & Discounts",
+            "message": "This report needs Pricing Tiers & Discounts, which isn't part of your system yet. Add it?",
+            "action": "add_module",
+            "upgrade": false
+        }
+    },
+    "reckoner_off_readings": {
+        "availability": {
+            "batch_tracking.count": false,
+            "proposals.count": true,
+            "recurring_invoices.count": true,
+            "purchase_orders.count": true,
+            "sales_orders.count": false,
+            "returns.count": true,
+            "inventory.stock_value": false
+        },
+        "results": {
+            "batch_tracking.count|today|d751713988987e9331980363e24189ce": {
+                "id": "batch_tracking.count|today|d751713988987e9331980363e24189ce",
+                "key": "batch_tracking.count",
+                "ok": false,
+                "error": {
+                    "code": "not_applicable",
+                    "message": "This store does not use this yet."
+                }
+            },
+            "proposals.count|today|d751713988987e9331980363e24189ce": {
+                "id": "proposals.count|today|d751713988987e9331980363e24189ce",
+                "key": "proposals.count",
+                "ok": true,
+                "shape": "scalar",
+                "unit": "integer",
+                "precision": 0,
+                "period": {
+                    "key": "today",
+                    "label": "today",
+                    "from": "2026-09-12",
+                    "to": "2026-09-12",
+                    "compare_label": "vs yesterday"
+                },
+                "label": "Proposals",
+                "help": "Filtered by status: all, accepted, pending.",
+                "direction": "higher_is_better",
+                "data": {
+                    "value": 0,
+                    "previous": null,
+                    "change_pct": null,
+                    "compare_label": "vs yesterday"
+                },
+                "meta": {
+                    "cached": false,
+                    "computed_at": "2026-09-12T01:46:43+00:00"
+                },
+                "drill": {
+                    "route": "sales.index",
+                    "params": {
+                        "from": "2026-09-12",
+                        "to": "2026-09-12"
+                    }
+                }
+            },
+            "recurring_invoices.count|today|d751713988987e9331980363e24189ce": {
+                "id": "recurring_invoices.count|today|d751713988987e9331980363e24189ce",
+                "key": "recurring_invoices.count",
+                "ok": false,
+                "error": {
+                    "code": "invalid_period",
+                    "message": "Period 'today' is not valid for 'recurring_invoices.count'."
+                }
+            },
+            "purchase_orders.count|today|d751713988987e9331980363e24189ce": {
+                "id": "purchase_orders.count|today|d751713988987e9331980363e24189ce",
+                "key": "purchase_orders.count",
+                "ok": true,
+                "shape": "scalar",
+                "unit": "integer",
+                "precision": 0,
+                "period": {
+                    "key": "today",
+                    "label": "today",
+                    "from": "2026-09-12",
+                    "to": "2026-09-12",
+                    "compare_label": "vs yesterday"
+                },
+                "label": "Purchase Orders",
+                "help": "Filtered by status: all, pending, received.",
+                "direction": "neutral",
+                "data": {
+                    "value": 0,
+                    "previous": null,
+                    "change_pct": null,
+                    "compare_label": "vs yesterday"
+                },
+                "meta": {
+                    "cached": false,
+                    "computed_at": "2026-09-12T01:46:43+00:00"
+                },
+                "drill": {
+                    "route": "purchases.index",
+                    "params": {
+                        "from": "2026-09-12",
+                        "to": "2026-09-12"
+                    }
+                }
+            },
+            "sales_orders.count|today|d751713988987e9331980363e24189ce": {
+                "id": "sales_orders.count|today|d751713988987e9331980363e24189ce",
+                "key": "sales_orders.count",
+                "ok": false,
+                "error": {
+                    "code": "not_applicable",
+                    "message": "This store does not use this yet."
+                }
+            },
+            "returns.count|today|d751713988987e9331980363e24189ce": {
+                "id": "returns.count|today|d751713988987e9331980363e24189ce",
+                "key": "returns.count",
+                "ok": true,
+                "shape": "scalar",
+                "unit": "integer",
+                "precision": 0,
+                "period": {
+                    "key": "today",
+                    "label": "today",
+                    "from": "2026-09-12",
+                    "to": "2026-09-12",
+                    "compare_label": "vs yesterday"
+                },
+                "label": "Sales Returns",
+                "help": "Number of posted return invoices.",
+                "direction": "lower_is_better",
+                "data": {
+                    "value": 0,
+                    "previous": 0,
+                    "change_pct": null,
+                    "compare_label": "vs yesterday"
+                },
+                "meta": {
+                    "cached": false,
+                    "computed_at": "2026-09-12T01:46:43+00:00"
+                },
+                "drill": {
+                    "route": "sales.index",
+                    "params": {
+                        "from": "2026-09-12",
+                        "to": "2026-09-12"
+                    }
+                }
+            },
+            "inventory.stock_value|today|d751713988987e9331980363e24189ce": {
+                "id": "inventory.stock_value|today|d751713988987e9331980363e24189ce",
+                "key": "inventory.stock_value",
+                "ok": false,
+                "error": {
+                    "code": "not_applicable",
+                    "message": "This store does not use this yet."
+                }
+            }
+        }
+    },
+    "reapply": {
+        "first": {
+            "version": 2,
+            "enabled": [
+                "services",
+                "customers",
+                "invoicing",
+                "payments",
+                "expenses",
+                "reports"
+            ],
+            "disabled": [
+                "products",
+                "suppliers",
+                "pos",
+                "quotations",
+                "sales_orders",
+                "sales_returns",
+                "recurring_invoices",
+                "b2b_proposals",
+                "pricing_tiers",
+                "park_recall",
+                "table_service",
+                "pre_sales",
+                "inventory",
+                "multi_location",
+                "stock_transfers",
+                "stock_takes",
+                "batches_expiry",
+                "serials",
+                "variants",
+                "barcodes_labels",
+                "units_of_measure",
+                "purchases",
+                "purchase_orders",
+                "purchase_returns",
+                "landed_cost",
+                "cookbook",
+                "production_runs",
+                "composite_items",
+                "khata_credit",
+                "cash_register",
+                "bank_accounts",
+                "bank_reconciliation",
+                "accounting_workspace",
+                "tax_compliance",
+                "fixed_assets",
+                "loans",
+                "ai_insights",
+                "loyalty_gift",
+                "marketplace_sync",
+                "staff_attendance"
+            ],
+            "newly_enabled": []
+        },
+        "second": {
+            "version": 3,
+            "enabled": [
+                "services",
+                "customers",
+                "invoicing",
+                "payments",
+                "expenses",
+                "reports"
+            ],
+            "disabled": [
+                "products",
+                "suppliers",
+                "pos",
+                "quotations",
+                "sales_orders",
+                "sales_returns",
+                "recurring_invoices",
+                "b2b_proposals",
+                "pricing_tiers",
+                "park_recall",
+                "table_service",
+                "pre_sales",
+                "inventory",
+                "multi_location",
+                "stock_transfers",
+                "stock_takes",
+                "batches_expiry",
+                "serials",
+                "variants",
+                "barcodes_labels",
+                "units_of_measure",
+                "purchases",
+                "purchase_orders",
+                "purchase_returns",
+                "landed_cost",
+                "cookbook",
+                "production_runs",
+                "composite_items",
+                "khata_credit",
+                "cash_register",
+                "bank_accounts",
+                "bank_reconciliation",
+                "accounting_workspace",
+                "tax_compliance",
+                "fixed_assets",
+                "loans",
+                "ai_insights",
+                "loyalty_gift",
+                "marketplace_sync",
+                "staff_attendance"
+            ],
+            "newly_enabled": []
+        },
+        "rows": 46
+    },
+    "invalid_requires_one": {
+        "exception": "InvalidArgumentException",
+        "message": "Refusing to apply an invalid configuration: Invoicing needs one of: products or services."
+    },
+    "zero_module_provision": {
+        "requested": [],
+        "actual": [
+            "products",
+            "pos",
+            "inventory",
+            "expenses",
+            "reports"
+        ]
+    },
+    "duplicate_provision": {
+        "first": "audit-duplicate-bgy9agql",
+        "second": "audit-duplicate-bgy9agql-1",
+        "distinct": true
+    }
+}

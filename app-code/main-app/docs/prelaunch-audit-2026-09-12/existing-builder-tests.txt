@@ -1,0 +1,39 @@
+
+   PASS  Tests\Unit\AiBuilder\BusinessUnderstandingTest
+  ✓ it reads a sentence into modules with reasons                                                                0.66s  
+  ✓ solo becomes a structured fact                                                                               0.07s  
+  ✓ invented module keys never survive                                                                           0.08s  
+  ✓ a reason cannot carry markup or a link                                                                       0.12s  
+  ✓ enums and confidence are clamped                                                                             0.07s  
+  ✓ a refusal returns null so the caller falls back                                                              0.08s  
+  ✓ a thrown gateway does not take the page down                                                                 0.07s  
+  ✓ a reading that proposes nothing is not a reading                                                             0.06s  
+  ✓ the same sentence is read once                                                                               0.07s  
+  ✓ the instructions stay small and fence untrusted text                                                         0.10s  
+  ✓ the manifest only ever offers live modules                                                                   0.08s  
+
+   PASS  Tests\Unit\AiBuilder\CapabilityRegistryTest
+  ✓ all capabilities have consequences and dependencies                                                          0.17s  
+  ✓ simple retail grocery modules                                                                                0.07s  
+  ✓ unknown preset still yields a usable floor                                                                   0.08s  
+  ✓ working alone removes staff modules                                                                          0.07s  
+  ✓ ambiguous electronics selects serial or repair question                                                      0.07s  
+  ✓ explicit input calculates high readiness                                                                     0.12s  
+  ✓ multilingual fact extraction                                                                                 0.06s  
+  ✓ hallucinated and injected modules dropped strictly                                                           0.05s  
+
+   PASS  Tests\Unit\AiBuilder\DiscoverySessionTest
+  ✓ session records and revises capabilities correctly                                                           0.71s  
+
+   PASS  Tests\Unit\AiBuilder\DiscoverySkipTest
+  ✓ the selector repeats itself when nothing is resolved                                                         0.06s  
+  ✓ a skipped capability is not offered again                                                                    0.06s  
+  ✓ skipping every candidate exhausts the selector                                                               0.06s  
+  ✓ record skip costs a turn and resolves nothing                                                                0.06s  
+  ✓ record skip leaves an honest transcript row                                                                  0.08s  
+  ✓ record skip does not duplicate a capability                                                                  0.07s  
+  ✓ record skip tolerates a missing capability                                                                   0.06s  
+
+  Tests:    27 passed (211 assertions)
+  Duration: 5.38s
+
