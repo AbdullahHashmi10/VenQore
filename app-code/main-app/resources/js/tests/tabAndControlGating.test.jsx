@@ -2,9 +2,35 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-// Mock @inertiajs/react usePage and Link
+// Provide minimal document for Node SSR
+if (typeof global.document === 'undefined') {
+    global.document = { body: {} };
+}
+
+// Mock react-dom createPortal so components render inline in SSR/Node tests
+vi.mock('react-dom', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        createPortal: (children) => children,
+    };
+});
+
+// Mock @inertiajs/react usePage, useForm, and Link
 vi.mock('@inertiajs/react', () => ({
     usePage: vi.fn(),
+    useForm: vi.fn((defaults = {}) => ({
+        data: { ...defaults },
+        setData: vi.fn(),
+        post: vi.fn(),
+        processing: false,
+        errors: {},
+        reset: vi.fn(),
+    })),
+    router: {
+        post: vi.fn(),
+        get: vi.fn(),
+    },
     Link: ({ href, children, className, ...props }) => (
         React.createElement('a', { href, className, ...props }, children)
     ),
@@ -22,6 +48,7 @@ import ContactsModuleTabs from '../Components/ContactsModuleTabs.jsx';
 import SellModuleTabs from '../Components/SellModuleTabs.jsx';
 import MoneyModuleTabs from '../Components/MoneyModuleTabs.jsx';
 import PurchaseModuleTabs from '../Components/PurchaseModuleTabs.jsx';
+import ProductModal from '../Components/ProductModal.jsx';
 
 describe('P0 Verification — Tab and Control Gating (R02 & R17)', () => {
     beforeEach(() => {
@@ -127,24 +154,77 @@ describe('P0 Verification — Tab and Control Gating (R02 & R17)', () => {
     });
 
     describe('R17: Subfeature controls are gated behind their respective modules', () => {
-        it('gates variants, barcode labels, and reservations behind module checks in product interfaces', () => {
-            // Test module check predicate logic used in ProductModal / InventoryList:
-            const modules = ['products']; // variants and barcodes_labels disabled
+        it('renders ProductModal with modules: ["products"] and asserts variants tab, barcode section, and batch fields are absent from markup', () => {
+            // Tenant with ONLY products enabled (variants, barcodes_labels, batches_expiry, pre_sales disabled)
+            usePage.mockReturnValue({
+                props: {
+                    store: { slug: 'test-store', currency: 'USD' },
+                    settings: { batch_tracking_enabled: '1' },
+                    modules: ['products'],
+                    terms: {},
+                },
+            });
 
-            const isVariantsEnabled = !Array.isArray(modules) || modules.includes('variants');
-            const isBarcodesEnabled = !Array.isArray(modules) || modules.includes('barcodes_labels');
-            const isPreSalesEnabled = !Array.isArray(modules) || modules.includes('pre_sales');
-            const isBatchesEnabled = !Array.isArray(modules) || modules.includes('batches_expiry');
+            const html = renderToStaticMarkup(
+                React.createElement(ProductModal, {
+                    isOpen: true,
+                    mode: 'create',
+                    product: null,
+                    warehouses: [],
+                    categories: [],
+                    attributes: [],
+                    tools: [],
+                    onClose: () => {},
+                })
+            );
 
-            expect(isVariantsEnabled).toBe(false);
-            expect(isBarcodesEnabled).toBe(false);
-            expect(isPreSalesEnabled).toBe(false);
-            expect(isBatchesEnabled).toBe(false);
+            // Basic product form fields MUST be present
+            expect(html).toContain('Add New Product');
 
-            // When variants module is added:
-            const modulesWithVariants = ['products', 'variants'];
-            expect(!Array.isArray(modulesWithVariants) || modulesWithVariants.includes('variants')).toBe(true);
-            expect(!Array.isArray(modulesWithVariants) || modulesWithVariants.includes('barcodes_labels')).toBe(false);
+            // Variants tab MUST be absent from markup
+            expect(html).not.toContain('id="tour-tab-variants"');
+
+            // Barcode section MUST be absent from markup
+            expect(html).not.toContain('id="tour-product-barcode"');
+
+            // Batch tracking fields MUST be absent from markup (even with batch_tracking_enabled: "1")
+            expect(html).not.toContain('Batch Number');
+            expect(html).not.toContain('Expiry Date');
+
+            // Reservations tab MUST be absent from markup
+            expect(html).not.toContain('id="tour-tab-reservations"');
+        });
+
+        it('renders ProductModal with optional modules enabled and asserts controls are present in markup', () => {
+            // Tenant with all subfeature modules enabled
+            usePage.mockReturnValue({
+                props: {
+                    store: { slug: 'test-store', currency: 'USD' },
+                    settings: { batch_tracking_enabled: '1' },
+                    modules: ['products', 'variants', 'barcodes_labels', 'batches_expiry', 'pre_sales'],
+                    terms: {},
+                },
+            });
+
+            const html = renderToStaticMarkup(
+                React.createElement(ProductModal, {
+                    isOpen: true,
+                    mode: 'create',
+                    product: null,
+                    warehouses: [],
+                    categories: [],
+                    attributes: [],
+                    tools: [],
+                    onClose: () => {},
+                })
+            );
+
+            // Gated subfeatures MUST now be present in markup
+            expect(html).toContain('id="tour-tab-variants"');
+            expect(html).toContain('id="tour-product-barcode"');
+            expect(html).toContain('Batch Number');
+            expect(html).toContain('Expiry Date');
+            expect(html).toContain('id="tour-tab-reservations"');
         });
     });
 });

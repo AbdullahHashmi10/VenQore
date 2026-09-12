@@ -29,7 +29,7 @@ Status definitions:
 | R14 | P1 | Companions/dependencies are consistent and explained | `Tests\Feature\Module\EnsureModuleTest::resolving_always_produces_a_valid_configuration` & `enhancements_are_suggested_but_never_added` | PROVEN |
 | R15 | P2 | AI questions cover the live catalogue without drift | None | NOT COVERED |
 | R16 | P1 | A visible sidebar link has the same owner as its destination | None | NOT COVERED |
-| R17 | P0 | Turning off a subfeature removes its forms and controls | `resources/js/tests/tabAndControlGating.test.jsx` ("R17: Subfeature controls are gated behind their respective modules") | PROVEN |
+| R17 | P0 | Turning off a subfeature removes its forms and controls | `resources/js/tests/tabAndControlGating.test.jsx` ("R17: Subfeature controls are gated behind their respective modules" — renders `ProductModal`) | PROVEN |
 | R18 | P1 | Module changes are immediately consistent and concurrency-safe | None | NOT COVERED |
 | R19 | P1 | A retry provisions once | None | NOT COVERED |
 | R20 | P1 | Every understanding failure safely degrades | None | NOT COVERED |
@@ -37,14 +37,14 @@ Status definitions:
 | R22 | P2 | Undo restores the whole configuration | None | NOT COVERED |
 | R23 | P2 | Post-launch module walls can be measured | None | NOT COVERED |
 | R24 | P2 | Route-ownership changes are available immediately | None | NOT COVERED |
-| R25 | P0 | Only requested capabilities are shown; unwanted ones are absent | `Tests\Feature\PrelaunchP0VerificationTest::r25_blueprint_marketing_copy_uses_bounded_language` | PROVEN |
+| R25 | P0 | Only requested capabilities are shown; unwanted ones are absent | None | NOT COVERED |
 | R26 | P2 | Navigation controls have accessible names | None | NOT COVERED |
 
 ---
 
 ## Summary of P0 Verification
 
-All nine P0 findings (`R01`, `R02`, `R03`, `R04`, `R05`, `R06`, `R07`, `R17`, `R25`) have been verified with passing behavioural automated tests in this round:
+Eight of nine P0 findings (`R01`, `R02`, `R03`, `R04`, `R05`, `R06`, `R07`, `R17`) have been verified with passing behavioural automated tests. Finding `R25` is recorded as `NOT COVERED`:
 - **R01**: Asserted HTTP 403 refusal on warehouse, bank accounts, and returnable sales endpoints when parent modules are disabled for a Solo tenant.
 - **R02**: Asserted that shared sub-navigation tabs (`StockModuleTabs`, `ContactsModuleTabs`, `SellModuleTabs`, `MoneyModuleTabs`, `PurchaseModuleTabs`) fail-closed when optional modules are not enabled.
 - **R03**: Asserted that `WorkspaceBuilderController::analyze` invokes `BusinessUnderstanding` on non-empty prompts and respects extracted facts.
@@ -52,5 +52,5 @@ All nine P0 findings (`R01`, `R02`, `R03`, `R04`, `R05`, `R06`, `R07`, `R17`, `R
 - **R05**: Asserted that `StoreProvisioner::create` with explicit `modules => []` produces 0 enabled modules in `tenant_modules` rather than falling back to the 5-module default preset.
 - **R06**: Asserted that `Reckoner::checkAvailability` returns false and `Reckoner::readMany` returns `not_applicable` with refusal reason for `reminders.count`, `recurring_invoices.revenue`, `returns.qty`, and `returns.value` when owning modules are disabled.
 - **R07**: Asserted that command palette quick actions and legacy `/payments/in/create` / `/payments/out/create` routes redirect cleanly without 501 aborts.
-- **R17**: Asserted that product subfeatures (variants, barcode labels, batch expiry, reservations) are gated behind their respective module checks.
-- **R25**: Asserted that public Blueprint copy contains bounded, honest wording rather than the absolute unmeasured "Absent" promise.
+- **R17**: Asserted by rendering `ProductModal` in `resources/js/tests/tabAndControlGating.test.jsx`, proving that the variants tab, barcode section, batch tracking fields, and reservations tab are completely absent when optional modules are off (`modules: ['products']`), and present when enabled.
+- **R25**: Marked **NOT COVERED**. The copy adjustment in `Blueprint.jsx` removes the unmeasured "Absent" claim in marketing copy, but does not provide behavioural test coverage of full application capability absence.
