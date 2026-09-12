@@ -96,7 +96,9 @@ class Appearance
             // product: the build painted one theme into `:root`, this default
             // named a second, and the JS default named a third ('minimal').
             'theme' => 'venqore-v6',
-            'mode' => 'system',
+            // Must match DEFAULT_APPEARANCE.mode in resources/js/theme/appearance.js
+            // and resolveTheme()'s fallback in Contexts/ThemeContext.jsx.
+            'mode' => 'light',
             'primary' => null,   // null = use the theme's own brand ramp
             'accent' => null,
             'font' => 'theme',   // 'theme' = use the theme's own typography

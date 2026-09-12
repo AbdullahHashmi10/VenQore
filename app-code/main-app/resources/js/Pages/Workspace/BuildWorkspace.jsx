@@ -314,7 +314,14 @@ export default function BuildWorkspace({
         if (typeof pct === 'number') setAiProgress((p) => Math.max(p, Math.min(100, pct)));
     };
 
-    const handleAiComplete = (proposal, modules, preset) => {
+    /* The finished conversation, kept so the reveal can reopen it for a
+       deeper round. `turns` is how many questions were actually asked, which
+       decides whether offering more is honest or just nagging. */
+    const [aiSession, setAiSession] = useSessionState(`${STORAGE_KEY}:aiSession`, null);
+    const [deepening, setDeepening] = useState(false);
+
+    const handleAiComplete = (proposal, modules, preset, meta = {}) => {
+        if (meta.sessionId) setAiSession({ id: meta.sessionId, turns: meta.turns || 0 });
         if (modules && modules.length > 0) {
             setBaseModules(modules);
         }
@@ -353,7 +360,7 @@ export default function BuildWorkspace({
             'presetDesc', 'baseModules', 'capabilities', 'edited', 'matched',
             'converse', 'discoveryMode', 'path', 'planKey', 'planTouched',
             'businessType', 'businessLabel', 'terms', 'candidates',
-            'reasons', 'unsupported', 'blankSlate',
+            'reasons', 'unsupported', 'blankSlate', 'aiSession',
         ].forEach((slot) => {
             try {
                 window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
@@ -477,6 +484,15 @@ export default function BuildWorkspace({
             setReasons({});
             setUnsupported([]);
             setBlankSlate(false);
+            /* The trade and its vocabulary belong to the attempt that resolved
+               them. Leaving them behind is why a tab that once described a
+               plumbing business kept telling the NEXT description that its
+               workspace would say Job, Client, Plumber and Material — the
+               reveal was reading words the previous attempt had left in
+               sessionStorage. */
+            setBusinessType('');
+            setBusinessLabel('');
+            setTerms({});
             setMatched(true);
             setEdited(null);
             setQIndex(0);
@@ -800,6 +816,26 @@ export default function BuildWorkspace({
             /* Losing a demand note must never block signup. */
         } finally {
             setDemandBusy(false);
+        }
+    };
+
+    /* "Make it closer." Continues the same conversation with the questions it
+       did not get to, rather than starting again. Only offered after they have
+       seen what their first answers produced — that is the point at which
+       asking for more of someone's time is a fair trade rather than a form. */
+    const deepenQuestions = async () => {
+        if (!aiSession?.id || deepening) return;
+        setDeepening(true);
+        try {
+            const data = await postJson(route('workspace.converse.deepen'), { session_id: aiSession.id });
+            if (data?.ok && data.question) {
+                setDiscoveryMode('ai');
+                setPhase('questions');
+            }
+        } catch (e) {
+            /* Staying on the reveal is a perfectly good outcome. */
+        } finally {
+            setDeepening(false);
         }
     };
 
@@ -1332,14 +1368,6 @@ export default function BuildWorkspace({
                                         </div>
                                     )}
 
-                                    {!blankSlate && recommendedList.length > 0 && (
-                                        <RecommendedBand
-                                            items={recommendedList}
-                                            active={activeModules}
-                                            onToggle={toggleModule}
-                                        />
-                                    )}
-
                                     <div className="mt-7">
                                         <div className="mb-3 flex items-baseline justify-between gap-4">
                                             <h2 className="text-sm font-semibold text-ink">
@@ -1355,6 +1383,57 @@ export default function BuildWorkspace({
                                             locked={locked}
                                             onToggle={toggleModule}
                                         />
+                                    </div>
+
+                                    {/* Underneath the catalogue, not above it. A band
+                                        of things WE chose sitting at the top made our
+                                        suggestions the headline of a page whose whole
+                                        claim is that it was built around them. */}
+                                    {!blankSlate && recommendedList.length > 0 && (
+                                        <RecommendedBand
+                                            items={recommendedList}
+                                            active={activeModules}
+                                            onToggle={toggleModule}
+                                        />
+                                    )}
+
+                                    {/* Two things people need to know before they commit:
+                                        that they can make it sharper now, and that
+                                        nothing here is a one-time decision. The second
+                                        matters more — most of the hesitation on this
+                                        screen is someone worrying they are choosing
+                                        wrong forever. */}
+                                    <div className="mt-6 rounded-lg border border-line bg-surface p-5">
+                                        {aiSession?.id && !blankSlate && (
+                                            <div className="mb-4 border-b border-line-subtle pb-4">
+                                                <p className="text-sm font-semibold text-ink">
+                                                    Want it closer to how you actually work?
+                                                </p>
+                                                <p className="mt-1 text-xs leading-relaxed text-ink-secondary">
+                                                    We asked the short version. A few more questions
+                                                    &mdash; about your stock, your team, how people pay you
+                                                    &mdash; and this stops being a good guess.
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={deepenQuestions}
+                                                    disabled={deepening}
+                                                    className="mt-3 inline-flex h-10 items-center gap-2 rounded-md border border-accent bg-accent-quiet px-4 text-xs font-semibold text-accent-text transition-colors duration-fast ease-standard hover:bg-accent-fill hover:text-accent-on disabled:opacity-60"
+                                                >
+                                                    <MessageSquareText size={14} />
+                                                    {deepening ? 'Picking up where we left off…' : 'Ask me a few more'}
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        <p className="text-xs leading-relaxed text-ink-secondary">
+                                            <span className="font-semibold text-ink">Nothing here is final.</span>{' '}
+                                            Once you are in, everything on this page lives under{' '}
+                                            <strong className="font-semibold text-ink">Store Configuration &rarr; Builder</strong>,
+                                            where you can switch anything on or off, or answer a few
+                                            questions and have it worked out for you again. Adding a
+                                            module later costs nothing extra on your plan.
+                                        </p>
                                     </div>
 
                                     {/* Demand log — the roadmap and the warm list, in one box. */}

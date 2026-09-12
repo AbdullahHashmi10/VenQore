@@ -1003,9 +1003,12 @@ return [
             'why'        => 'Sales alone are not profit. This is the other half of the number.',
             'default_on' => false,
         ],
+        // Not default_on: insights ABOUT your money only make sense once the
+        // money is being recorded, so this rides with expenses (see §3c)
+        // rather than arriving on its own and reading as a gimmick.
         'ai_insights' => [
             'why'        => 'Tells you what changed this week without you going looking.',
-            'default_on' => true,
+            'default_on' => false,
         ],
     ],
 
@@ -1029,8 +1032,44 @@ return [
     | guessing them is how this flow used to hand a solo plumber a supplier
     | network. Resolved deterministically in code; the model never decides it.
     */
+    /*
+    |--------------------------------------------------------------------------
+    | 3d. RELEVANCE — what NOT to ask, given what we already understood
+    |--------------------------------------------------------------------------
+    | The deterministic question picker scores every unresolved capability, so
+    | a plumber was queued to be asked about batch expiry dates, dine-in table
+    | plans and recipe costing. Nothing was wrong with the scoring; it simply
+    | had no idea what the business was, because the one thing that DID know —
+    | the reading of their own sentence — was never handed to it.
+    |
+    | Keyed by the `sells` reading (goods | services | both). Listing something
+    | here does not disable the module: it means we will not spend one of very
+    | few questions asking about it. Anything here is still one tap away on the
+    | reveal, and still reachable if the visitor mentions it themselves.
+    */
+    'relevance' => [
+        'services' => [
+            'exclude_domains' => ['hospitality_dining'],
+            'exclude_caps'    => [
+                'product_variants',
+                'serial_imei_tracking',
+                'batch_expiry_tracking',
+                'recipe_and_bom',
+                'stock_volume',
+            ],
+        ],
+        'goods' => [
+            'exclude_domains' => [],
+            'exclude_caps'    => ['appointment_scheduling'],
+        ],
+    ],
+
     'packages' => [
         'pos' => ['inventory'],
+
+        // Insights are insights INTO something. Switched on with expenses,
+        // absent without it — never predicted, never on its own.
+        'expenses' => ['ai_insights'],
     ],
 
     /*

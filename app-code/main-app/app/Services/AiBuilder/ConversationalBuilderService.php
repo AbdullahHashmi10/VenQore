@@ -100,8 +100,13 @@ class ConversationalBuilderService
      * session, or the deterministic selector re-picks it immediately and hands
      * back the same question. See DiscoverySession::recordSkip().
      */
-    public function step(string $sessionId, string $userResponse, ?string $selectedOptionKey = null, bool $skip = false): array
-    {
+    public function step(
+        string $sessionId,
+        string $userResponse,
+        ?string $selectedOptionKey = null,
+        bool $skip = false,
+        array $selectedOptionKeys = []
+    ): array {
         $session = DiscoverySession::load($sessionId);
         if (!$session) {
             return [
@@ -155,6 +160,29 @@ class ConversationalBuilderService
         $confirmed = [];
         $rejected = [];
 
+        // A tick list settles everything on it. What was ticked is a yes; what
+        // was left alone is a real no, not an unknown — which is the entire
+        // reason one of these is worth several ordinary questions. Members are
+        // read from the session, never from the client, so a crafted request
+        // cannot confirm a capability that was never offered.
+        $bundleMembers = (array) ($session->currentQuestion['members'] ?? []);
+        if ($bundleMembers !== []) {
+            $ticked = [];
+            foreach ($selectedOptionKeys as $optionKey) {
+                if (is_string($optionKey) && str_starts_with($optionKey, 'cap:')) {
+                    $ticked[] = substr($optionKey, 4);
+                }
+            }
+
+            foreach ($bundleMembers as $member) {
+                if (in_array($member, $ticked, true)) {
+                    $confirmed[] = $member;
+                } else {
+                    $rejected[] = $member;
+                }
+            }
+        }
+
         // Check if user answered the target capability of the active question
         if ($session->currentQuestion && isset($session->currentQuestion['target_capability'])) {
             $cap = $session->currentQuestion['target_capability'];
@@ -187,25 +215,55 @@ class ConversationalBuilderService
         $session->systemReadinessConfidence = $readiness;
 
         // 2. Deterministic Question Selector: System picks the next candidate question
-        // Anything the visitor's own words rule out is treated as already
-        // rejected, so a one-person business is never asked to pick a staff
-        // rota and never has one switched on behind the question.
-        $ruledOut = $this->capabilityRegistry->contradictedCapabilities($session->structuredFacts);
+        // Two kinds of "do not ask". What they ruled out outright ("I work
+        // alone"), and what their kind of business makes beside the point — a
+        // services business does not need a question spent on batch expiry
+        // dates. Both are handed to the picker as already-settled, which is
+        // the only way a handful of questions can cover this much product.
+        $ruledOut = array_merge(
+            $this->capabilityRegistry->contradictedCapabilities($session->structuredFacts),
+            $this->capabilityRegistry->irrelevantCapabilities($session->structuredFacts),
+        );
+
+        $settled = array_merge($session->rejected, $ruledOut);
 
         $candidateQuestion = $this->capabilityRegistry->selectNextCandidateQuestion(
             $session->structuredFacts,
             $session->confirmed,
-            array_merge($session->rejected, $ruledOut),
+            $settled,
             $session->skipped
         );
+
+        // While a lot is still open, ask about several things at once. A tick
+        // list resolves its whole contents in one screen, which is how four
+        // questions can cover what would otherwise take a dozen — and it reads
+        // as one glance instead of an interrogation.
+        if ($candidateQuestion !== null && !$isFirstTurn) {
+            $bundle = $this->capabilityRegistry->composeBundleQuestion(
+                $session->structuredFacts,
+                $session->confirmed,
+                $settled,
+                $session->skipped
+            );
+
+            if ($bundle !== null) {
+                $candidateQuestion = $bundle;
+            }
+        }
 
         // Check completion criteria:
         //  - High system readiness >= 0.88 AND at least 2 turns completed
         //  - OR No more candidate questions exist
         //  - OR Hard turn cap reached
-        if (($readiness >= 0.88 && $session->turnCount >= 2 && !$isFirstTurn)
+        // Round one stops early once it knows enough — four questions from a
+        // stranger is already a lot. Round two was explicitly asked for, so the
+        // readiness shortcut does not apply: it runs until the questions worth
+        // asking are gone or the deeper budget is spent.
+        $readinessSatisfied = $session->depth < 2 && $readiness >= 0.88 && $session->turnCount >= 2 && !$isFirstTurn;
+
+        if ($readinessSatisfied
             || $candidateQuestion === null
-            || $session->turnCount >= DiscoverySession::MAX_TURNS) {
+            || $session->turnCount >= $session->maxTurns()) {
             return $this->finalizeProposal($session);
         }
 
@@ -272,6 +330,8 @@ class ConversationalBuilderService
                 'options'           => $turn['options'],
                 'target_capability' => $candidateQuestion['key'],
                 'consequences'      => $candidateQuestion['consequences'],
+                'is_multi'          => (bool) ($candidateQuestion['is_multi'] ?? false),
+                'members'           => (array) ($candidateQuestion['members'] ?? []),
             ];
 
             $session->currentQuestion = $currentQuestion;
@@ -283,6 +343,35 @@ class ConversationalBuilderService
             Log::error('Discovery AI exception: ' . $e->getMessage());
             return $this->fallbackToPreset($session, 'exception');
         }
+    }
+
+    /**
+     * "Make it closer." Reopens a finished session for the deeper round.
+     *
+     * Everything already answered is kept, so the second round picks up where
+     * the first stopped rather than asking the same things again — which is
+     * the only reason it is reasonable to ask for more of someone's time.
+     */
+    public function deepen(string $sessionId): array
+    {
+        $session = DiscoverySession::load($sessionId);
+        if (!$session) {
+            return [
+                'ok'            => false,
+                'is_complete'   => false,
+                'message'       => 'That session has expired. Your setup is safe — you can add anything you need from Builder once you are in.',
+                'fallback'      => true,
+                'out_of_scope'  => false,
+                'question'      => null,
+                'question_hint' => null,
+                'quick_options' => [],
+            ];
+        }
+
+        $session->deepen();
+        $session->save();
+
+        return $this->processTurn($session, '', isFirstTurn: false, skippedTurn: true);
     }
 
     /**
@@ -340,6 +429,8 @@ class ConversationalBuilderService
             'options'           => array_slice($candidateQuestion['options'], 0, self::MAX_OPTIONS),
             'target_capability' => $candidateQuestion['key'],
             'consequences'      => $candidateQuestion['consequences'],
+            'is_multi'          => (bool) ($candidateQuestion['is_multi'] ?? false),
+            'members'           => (array) ($candidateQuestion['members'] ?? []),
         ];
 
         $session->currentQuestion = $currentQuestion;
@@ -457,6 +548,9 @@ class ConversationalBuilderService
             'question'          => $current['message'],
             'question_hint'     => $this->hintFrom($current['consequences'] ?? []),
             'quick_options'     => $current['options'] ?? [],
+            // A tick list, so the client shows checkboxes and a Continue button
+            // rather than five buttons that each end the question.
+            'is_multi'          => (bool) ($current['is_multi'] ?? false),
             'target_capability' => $current['target_capability'] ?? null,
             'turn'              => $session->turnCount,
             'progress'          => $clampProgress ? max(25, min(95, $progress)) : $progress,

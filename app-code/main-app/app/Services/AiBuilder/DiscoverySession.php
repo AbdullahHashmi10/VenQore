@@ -16,7 +16,18 @@ use Illuminate\Support\Str;
 class DiscoverySession
 {
     public const TTL_SECONDS = 1800; // 30 minutes
-    public const MAX_TURNS   = 5;
+
+    /*
+    | Two rounds, and the second one is asked for.
+    |
+    | A first pass is short on purpose: four questions is a thing a stranger
+    | will finish, and at the end of it there is something real to show. The
+    | deeper round is offered only AFTER they have seen what their answers
+    | produced — at that point they have a reason to keep going, and consent to
+    | be asked more than a landing page has any right to ask up front.
+    */
+    public const MAX_TURNS      = 4;   // round one
+    public const MAX_TURNS_DEEP = 10;  // once they have asked for a closer fit
 
     public function __construct(
         public string $sessionId,
@@ -29,6 +40,8 @@ class DiscoverySession
         // nor rejected — but the question selector must not offer them again,
         // or "skip" hands back the same question forever. See recordSkip().
         public array $skipped = [],         // ['loyalty_points', ...]
+        // 1 = the short opening round, 2 = the deeper round they opted into.
+        public int $depth = 1,
         public array $history = [],
         public ?array $currentQuestion = null,
         public bool $isComplete = false,
@@ -61,6 +74,7 @@ class DiscoverySession
             confirmed: $data['confirmed'] ?? [],
             rejected: $data['rejected'] ?? [],
             skipped: $data['skipped'] ?? [],
+            depth: (int) ($data['depth'] ?? 1),
             history: $data['history'] ?? [],
             currentQuestion: $data['current_question'] ?? null,
             isComplete: (bool) ($data['is_complete'] ?? false),
@@ -98,6 +112,7 @@ class DiscoverySession
             'confirmed'                  => array_values(array_unique($this->confirmed)),
             'rejected'                   => array_values(array_unique($this->rejected)),
             'skipped'                    => array_values(array_unique($this->skipped)),
+            'depth'                      => $this->depth,
             'history'                    => $this->history,
             'current_question'           => $this->currentQuestion,
             'is_complete'                => $this->isComplete,
@@ -154,6 +169,24 @@ class DiscoverySession
         }
     }
 
+    /** How many turns this session may spend, at the depth it is currently at. */
+    public function maxTurns(): int
+    {
+        return $this->depth >= 2 ? self::MAX_TURNS_DEEP : self::MAX_TURNS;
+    }
+
+    /**
+     * They saw the first proposal and asked for a closer fit. Reopen the
+     * session at the deeper budget, keeping every answer already given — the
+     * whole point is that the second round does not repeat the first.
+     */
+    public function deepen(): void
+    {
+        $this->depth = 2;
+        $this->isComplete = false;
+        $this->proposal = null;
+    }
+
     /**
      * The visitor declined to answer the current question.
      *
@@ -206,7 +239,7 @@ class DiscoverySession
 
         return [
             'turn'                   => $this->turnCount + 1,
-            'max_turns'              => self::MAX_TURNS,
+            'max_turns'              => $this->maxTurns(),
             'language'               => $this->language,
             // EXPLICIT TRADE CONTEXT: Gemini must stay within this trade domain
             'detected_trade'         => $detectedTrade,

@@ -91,6 +91,7 @@ class CapabilityRegistry
             'service_repairs' => [
                 'repair_job_tracking' => [
                     'name'              => 'Repair & Job Status Tracking',
+                    'short'             => 'A list of your jobs',
                     'impact'            => 100,
                     'triggers'          => ['repair', 'fixing', 'workshop', 'technician', 'service', 'phone fix', 'mobile repair', 'auto repair', 'مرمت', 'ورکشاپ'],
                     'requires_caps'     => [],
@@ -105,6 +106,7 @@ class CapabilityRegistry
                 ],
                 'spare_parts_and_labour' => [
                     'name'              => 'Spare Parts & Service Labour Billing',
+                    'short'             => 'Charging parts and time',
                     'impact'            => 85,
                     'triggers'          => ['repair', 'technician', 'parts', 'labour', 'service charges', 'اسپیئر پارٹس'],
                     'requires_caps'     => ['repair_job_tracking'],
@@ -119,9 +121,85 @@ class CapabilityRegistry
                 ],
             ],
 
+            /*
+            | Added because a visitor who went through the flow was never asked
+            | any of it: not whether anyone works for him, not whether he needs
+            | a counter, not whether trade customers expect a quote first. The
+            | conversation had thirteen questions reaching twenty-three of the
+            | forty-three live modules, so two thirds of this product could
+            | never come up. These five close the gap on the things people are
+            | most often asked about in a first conversation.
+            |
+            | Wording deliberately mirrors config/ai_builder.discovery, which
+            | asks the same things on the manual path — the two sets should say
+            | the same sentence, and eventually should BE the same set.
+            */
+            'operations_scale' => [
+                'team_and_attendance' => [
+                    'name'              => 'Staff Accounts & Attendance',
+                    'short'             => 'People working with you',
+                    'impact'            => 88,
+                    'triggers'          => ['staff', 'employees', 'workers', 'team', 'cashier', 'shifts', 'عملہ', 'ملازم'],
+                    'requires_caps'     => [],
+                    'implies_modules'   => ['staff_attendance'],
+                    'consequences'      => ['Everyone gets their own login, and you can see who worked when without keeping a paper register.'],
+                    'question_template' => 'Does anyone work with you, or is it just you?',
+                    'options'           => [
+                        ['key' => 'solo', 'label' => 'Just me', 'desc' => 'One login, nothing to track.', 'implies' => 'solo_operator'],
+                        ['key' => 'yes', 'label' => 'Yes, a few of us', 'desc' => 'Separate logins and a record of who worked when.', 'implies' => 'team_and_attendance'],
+                        ['key' => 'yes_shifts', 'label' => 'Yes, on shifts', 'desc' => 'Shift hours and attendance you can check later.', 'implies' => 'team_and_attendance'],
+                    ],
+                ],
+                'counter_checkout' => [
+                    'name'              => 'Over-the-Counter Checkout',
+                    'short'             => 'Getting paid on the spot',
+                    'impact'            => 92,
+                    'triggers'          => ['counter', 'till', 'cash register', 'walk in', 'shop floor', 'کاؤنٹر'],
+                    'requires_caps'     => [],
+                    'implies_modules'   => ['pos', 'products'],
+                    'consequences'      => ['A fast till screen for serving someone standing in front of you, with a receipt at the end.'],
+                    'question_template' => 'Do people come to you and pay on the spot, or do you bill them afterwards?',
+                    'options'           => [
+                        ['key' => 'counter', 'label' => 'They pay on the spot', 'desc' => 'A till screen for serving people in person.', 'implies' => 'counter_checkout'],
+                        ['key' => 'invoice', 'label' => 'I bill them afterwards', 'desc' => 'No till — you send a bill for the work.', 'implies' => 'invoice_only'],
+                        ['key' => 'both', 'label' => 'Both, depending', 'desc' => 'A till for walk-ins and bills for the rest.', 'implies' => 'counter_checkout'],
+                    ],
+                ],
+                'trade_pricing' => [
+                    'name'              => 'Trade & Wholesale Pricing',
+                    'short'             => 'Special prices for some buyers',
+                    'impact'            => 80,
+                    'triggers'          => ['wholesale', 'trade price', 'bulk', 'b2b', 'distributor', 'تھوک'],
+                    'requires_caps'     => [],
+                    'implies_modules'   => ['pricing_tiers', 'customers'],
+                    'consequences'      => ['Some customers see their own agreed price instead of the shelf price, without you working it out each time.'],
+                    'question_template' => 'Does anyone buy from you in bulk, or at a price you agreed with them?',
+                    'options'           => [
+                        ['key' => 'yes', 'label' => 'Yes, trade prices', 'desc' => 'Agreed prices per customer, applied for you.', 'implies' => 'trade_pricing'],
+                        ['key' => 'no', 'label' => 'No, one price for all', 'desc' => 'Everyone pays what is on the shelf.', 'implies' => 'single_price'],
+                    ],
+                ],
+                'stock_volume' => [
+                    'name'              => 'How Much Stock There Is To Track',
+                    'short'             => 'Keeping track of stock',
+                    'impact'            => 84,
+                    'triggers'          => ['stock', 'sku', 'items', 'warehouse', 'shelves', 'اسٹاک'],
+                    'requires_caps'     => [],
+                    'implies_modules'   => ['inventory', 'products', 'stock_takes'],
+                    'consequences'      => ['Counts that stay right on their own, and a way to check the shelf against the system when they drift.'],
+                    'question_template' => 'How much stock do you have to keep track of?',
+                    'options'           => [
+                        ['key' => 'none', 'label' => 'None really', 'desc' => 'Nothing sitting on a shelf waiting to be sold.', 'implies' => 'no_stock'],
+                        ['key' => 'handful', 'label' => 'A handful of things', 'desc' => 'Simple counts, no stock-taking routine.', 'implies' => 'light_stock'],
+                        ['key' => 'lots', 'label' => 'Hundreds or more', 'desc' => 'Proper counts, plus a way to check them.', 'implies' => 'stock_volume'],
+                    ],
+                ],
+            ],
+
             'inventory_supply' => [
                 'multi_branch_warehouses' => [
                     'name'              => 'Multi-Branch & Inter-Store Transfers',
+                    'short'             => 'More than one place',
                     'impact'            => 95,
                     'triggers'          => ['branches', 'outlets', 'stores', 'locations', 'warehouses', 'chain', 'برانچ', 'گودام'],
                     'requires_caps'     => [],
@@ -136,6 +214,7 @@ class CapabilityRegistry
                 ],
                 'batch_expiry_tracking' => [
                     'name'              => 'Batch Numbers & Expiry Date Management',
+                    'short'             => 'Expiry dates or batches',
                     'impact'            => 95,
                     'triggers'          => ['pharmacy', 'medicine', 'drugstore', 'food', 'bakery', 'cosmetics', 'perishables', 'dairy', 'meat', 'فارمیسی', 'میڈیکل'],
                     'requires_caps'     => [],
@@ -150,6 +229,7 @@ class CapabilityRegistry
                 ],
                 'supplier_purchasing' => [
                     'name'              => 'Supplier Purchase Orders & Low Stock Reordering',
+                    'short'             => 'Buying from suppliers',
                     'impact'            => 85,
                     'triggers'          => ['suppliers', 'distributors', 'vendors', 'purchases', 'restock', 'reorder', 'سپلائر', 'ڈسٹری بیوٹر'],
                     'requires_caps'     => [],
@@ -163,6 +243,7 @@ class CapabilityRegistry
                 ],
                 'serial_imei_tracking' => [
                     'name'              => 'Individual Serial / IMEI Device Tracking',
+                    'short'             => 'Serial or IMEI numbers',
                     'impact'            => 90,
                     'triggers'          => ['electronics', 'mobile', 'phones', 'computers', 'hardware', 'appliances', 'machinery', 'موبائل', 'الیکٹرانکس'],
                     'requires_caps'     => [],
@@ -177,6 +258,7 @@ class CapabilityRegistry
                 ],
                 'product_variants' => [
                     'name'              => 'Size, Color & Style Matrix (Variants)',
+                    'short'             => 'Sizes and colours',
                     'impact'            => 75,
                     'triggers'          => ['clothing', 'apparel', 'garments', 'fashion', 'shoes', 'boutique', 'fabric', 'textiles', 'کپڑے', 'گارمنٹس'],
                     'requires_caps'     => [],
@@ -193,6 +275,7 @@ class CapabilityRegistry
             'hospitality_dining' => [
                 'table_and_kot_management' => [
                     'name'              => 'Dine-In Table Layout & Kitchen Printing (KOT)',
+                    'short'             => 'People eating in',
                     'impact'            => 95,
                     'triggers'          => ['restaurant', 'cafe', 'food', 'dining', 'bistro', 'eatery', 'bar', 'pizzeria', 'ریسٹورنٹ', 'کھانا'],
                     'requires_caps'     => [],
@@ -207,6 +290,7 @@ class CapabilityRegistry
                 ],
                 'food_delivery_dispatch' => [
                     'name'              => 'Home Delivery & Rider Dispatch',
+                    'short'             => 'Your own delivery riders',
                     'impact'            => 70,
                     'triggers'          => ['delivery', 'riders', 'dispatch', 'home delivery', 'ڈلیوری', 'رائڈر'],
                     'requires_caps'     => [],
@@ -223,6 +307,7 @@ class CapabilityRegistry
             'wholesale_b2b' => [
                 'customer_khata_credit' => [
                     'name'              => 'Customer Khata, Credit Ledger & Terms',
+                    'short'             => 'Customers who pay later',
                     'impact'            => 85,
                     'triggers'          => ['wholesale', 'distribution', 'credit', 'khata', 'terms', 'installments', 'pharmacy', 'grocery', 'کھاتہ', 'ادھار', 'ہول سیل'],
                     'requires_caps'     => [],
@@ -237,10 +322,11 @@ class CapabilityRegistry
                 ],
                 'quotations_and_orders' => [
                     'name'              => 'Formal Quotations & B2B Sales Orders',
+                    'short'             => 'Sending a price first',
                     'impact'            => 70,
                     'triggers'          => ['quotations', 'estimates', 'b2b', 'corporate', 'purchase orders', 'کوٹیشن'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['quotations', 'sales_orders', 'customers'],
+                    'implies_modules'   => ['quotations', 'b2b_proposals', 'sales_orders', 'customers'],
                     'consequences'      => ['You send a price, and when they say yes it becomes the bill — nothing gets typed twice.'],
                     'question_template' => 'Do you send a price first and only start the work once they agree to it?',
                     'options'           => [
@@ -253,6 +339,7 @@ class CapabilityRegistry
             'manufacturing_production' => [
                 'recipe_and_bom' => [
                     'name'              => 'Recipes, Bill of Materials & Production',
+                    'short'             => 'Making what you sell',
                     'impact'            => 85,
                     'triggers'          => ['bakery', 'manufacturing', 'assembly', 'production', 'recipe', 'crafting', 'raw materials', 'پروڈکشن', 'بیکری'],
                     'requires_caps'     => [],
@@ -269,6 +356,7 @@ class CapabilityRegistry
             'services_appointments' => [
                 'appointment_scheduling' => [
                     'name'              => 'Staff Booking & Client Appointments',
+                    'short'             => 'Booked appointments',
                     'impact'            => 85,
                     'triggers'          => ['salon', 'spa', 'clinic', 'barber', 'consultant', 'appointments', 'سلیون', 'بکنگ'],
                     'requires_caps'     => [],
@@ -493,6 +581,11 @@ class CapabilityRegistry
             $candidates[] = [
                 'key'               => $key,
                 'name'              => $cap['name'],
+                // The plain label a tick list shows. Carried through the
+                // projection explicitly: leaving it out is why the first tick
+                // list rendered internal names like "Customer Khata, Credit
+                // Ledger & Terms" at a visitor.
+                'short'             => $cap['short'] ?? null,
                 'impact'            => $score,
                 'consequences'      => $cap['consequences'],
                 'question_template' => $cap['question_template'],
@@ -693,6 +786,144 @@ class CapabilityRegistry
         }
 
         return $out;
+    }
+
+    /** Marks a composed multi-answer question rather than a single capability. */
+    public const BUNDLE_KEY = '__bundle__';
+    public const BUNDLE_MIN = 3;
+    public const BUNDLE_MAX = 5;
+
+    /**
+     * One question that settles several unknowns at once.
+     *
+     * ── Why this exists ───────────────────────────────────────────────────
+     * One capability per question is honest but arithmetically hopeless: with
+     * eighteen capabilities, covering what this product can do takes a dozen
+     * questions, and nobody describing their business to a website answers a
+     * dozen questions. The manual path has the same problem in a longer form —
+     * twenty-five of them — which is why neither has ever covered the product.
+     *
+     * A tick list fixes the arithmetic, because it answers in BOTH directions.
+     * Five options ticked or left alone is five capabilities resolved in one
+     * screen: ticked is a yes, and unticked is a real no, not an unknown. Four
+     * of these cover more ground than twenty single questions, and they read
+     * as one glance rather than an interrogation.
+     *
+     * The system still chooses what goes on the list — highest impact first,
+     * with everything ruled out already removed — and the model still only
+     * rewrites the wording. Neither brain does the other's job.
+     *
+     * @return array|null null when there is not enough left to be worth bundling.
+     */
+    public function composeBundleQuestion(
+        array $knownFacts,
+        array $confirmedCaps,
+        array $rejectedCaps,
+        array $skippedCaps = []
+    ): ?array {
+        $members = [];
+        $seen = array_merge($confirmedCaps, $rejectedCaps, $skippedCaps);
+
+        // Reuse the scorer so a bundle is the same ranking, taken several at a
+        // time — never a second opinion about what matters.
+        for ($i = 0; $i < self::BUNDLE_MAX; $i++) {
+            $next = $this->selectNextCandidateQuestion($knownFacts, $confirmedCaps, $seen, $skippedCaps);
+            if ($next === null) {
+                break;
+            }
+            $members[] = $next;
+            $seen[] = $next['key'];
+        }
+
+        if (count($members) < self::BUNDLE_MIN) {
+            return null;
+        }
+
+        $options = [];
+        foreach ($members as $cap) {
+            $options[] = [
+                'key'   => 'cap:' . $cap['key'],
+                'label' => $this->bundleLabel($cap),
+                'desc'  => $this->bundleDesc($cap),
+            ];
+        }
+
+        return [
+            'key'               => self::BUNDLE_KEY,
+            'is_multi'          => true,
+            'members'           => array_column($members, 'key'),
+            'name'              => 'Several at once',
+            'impact'            => 100,
+            'domain'            => 'bundle',
+            'triggers'          => [],
+            'requires_caps'     => [],
+            'implies_modules'   => [],
+            'consequences'      => ['Tick whatever applies. Anything you leave unticked we leave out — and you can add it later in one tap.'],
+            'question_template' => 'Which of these are part of how you work?',
+            'options'           => $options,
+        ];
+    }
+
+    /** A few words for a tick list — not the question that would have been asked. */
+    private function bundleLabel(array $cap): string
+    {
+        // `short` is written for a person; `name` is the internal one and reads
+        // like it ("Customer Khata, Credit Ledger & Terms"). A tick list is the
+        // first place these were ever shown to anyone, so the plain one wins
+        // and `name` is only the fallback.
+        $label = trim((string) ($cap['short'] ?? $cap['name'] ?? $cap['key']));
+
+        return mb_strlen($label) > 40 ? rtrim(mb_substr($label, 0, 39)) . '…' : $label;
+    }
+
+    private function bundleDesc(array $cap): string
+    {
+        $first = $cap['consequences'][0] ?? '';
+        $first = is_array($first) ? ($first[0] ?? '') : $first;
+        $first = trim((string) $first);
+
+        return mb_strlen($first) > 110 ? rtrim(mb_substr($first, 0, 109)) . '…' : $first;
+    }
+
+    /**
+     * Capabilities not worth spending a question on, given what we read.
+     *
+     * Distinct from contradictedCapabilities(), which is about something the
+     * visitor RULED OUT ("I work alone"). This is softer: a services business
+     * probably has no batches or dine-in tables, and with only a handful of
+     * questions available, asking anyway is how a plumber ends up being asked
+     * about kitchen tickets. Nothing here is disabled — it is one tap away on
+     * the reveal, and still reachable if they raise it themselves.
+     *
+     * @return string[] capability keys
+     */
+    public function irrelevantCapabilities(array $facts): array
+    {
+        $sells = $facts['sells']['value'] ?? null;
+        if (!is_string($sells)) {
+            return [];
+        }
+
+        $rules = (array) config("ai_builder.relevance.{$sells}", []);
+        if ($rules === []) {
+            return [];
+        }
+
+        $domains = (array) ($rules['exclude_domains'] ?? []);
+        $out = array_values(array_filter(
+            (array) ($rules['exclude_caps'] ?? []),
+            fn ($k) => is_string($k)
+        ));
+
+        if ($domains !== []) {
+            foreach ($this->allCapabilities() as $key => $cap) {
+                if (in_array($cap['domain'] ?? null, $domains, true)) {
+                    $out[] = $key;
+                }
+            }
+        }
+
+        return array_values(array_unique($out));
     }
 
     public function resolveModules(array $confirmedCaps, ?string $presetKey = null, array $facts = []): array

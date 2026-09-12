@@ -243,6 +243,27 @@
 .vq-cd-option:focus-visible { outline: 2px solid var(--vq-focus); outline-offset: 2px; }
 .vq-cd-option:disabled { opacity: .5; cursor: not-allowed; }
 
+/* A tick list answers in both directions, so an option has to read as chosen
+   or not chosen at a glance — not as a button waiting to be pressed. */
+.vq-cd-option[data-ticked="true"] {
+  border-color: var(--vq-accent);
+  background: var(--vq-accent-quiet);
+}
+.vq-cd-tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; width: 22px; height: 22px;
+  border-radius: var(--vq-r-xs);
+  border: 1.5px solid var(--vq-line);
+  background: var(--vq-surface);
+  color: transparent;
+}
+.vq-cd-tick--on {
+  border-color: var(--vq-accent);
+  background: var(--vq-accent-fill);
+  color: var(--vq-accent-on);
+}
+.vq-cd-tickcount { font-size: var(--vq-fs-caption); color: var(--vq-text-3); }
+
 .vq-cd-or {
   display: flex; align-items: center; gap: var(--vq-space-3);
   margin: var(--vq-space-6) 0 var(--vq-space-3);

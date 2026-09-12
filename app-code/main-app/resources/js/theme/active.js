@@ -122,7 +122,7 @@ export const DEFAULT_THEME_ID = 'venqore-v6';
  * A store-level setting (`dark_mode_default`) still overrides this at runtime;
  * see Contexts/ThemeContext.jsx.
  */
-export const DEFAULT_MODE = 'theme';
+export const DEFAULT_MODE = 'light';
 
 /**
  * Resolve the active theme object, failing loudly rather than silently falling

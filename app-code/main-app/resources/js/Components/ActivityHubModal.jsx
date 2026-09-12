@@ -16,8 +16,13 @@ export default function ActivityHubModal({
     visiblePurchases = [],
     currentPurchaseId,
     onSelectPurchase,
+    /* What the store actually built. Null means "unknown" — an older caller
+       that does not pass it keeps the previous behaviour rather than rendering
+       an empty panel. */
+    modules = null,
     totalActiveOps = 0
 }) {
+    const has = (key) => !Array.isArray(modules) || modules.includes(key);
     const modalRef = useRef(null);
 
     // Close on Escape key press
@@ -242,24 +247,29 @@ export default function ActivityHubModal({
                             <p className="text-xs text-ink-muted max-w-sm mx-auto mt-1 mb-6">
                                 Multiple POS sessions, in-progress invoices, and purchase drafts will appear here so you can toggle between operations seamlessly.
                             </p>
+                            {/* These were offered to every store, so a workspace
+                                built without a till or invoicing still had two
+                                buttons here leading straight into a module gate
+                                — the product inviting you somewhere and then
+                                refusing you at the door. */}
                             <div className="flex flex-wrap items-center justify-center gap-3">
-                                {store && (
-                                    <>
-                                        <Link
-                                            href={window.route('store.pos', { store_slug: store.slug })}
-                                            onClick={onClose}
-                                            className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white transition-colors flex items-center gap-1.5 shadow-sm"
-                                        >
-                                            <Zap size={14} /> Open POS
-                                        </Link>
-                                        <Link
-                                            href={window.route('store.sales.invoice.create', { store_slug: store.slug })}
-                                            onClick={onClose}
-                                            className="px-4 py-2 rounded-xl text-xs font-bold bg-surface border border-line hover:border-brand-300 text-ink transition-colors flex items-center gap-1.5 shadow-xs"
-                                        >
-                                            <Plus size={14} /> New Invoice
-                                        </Link>
-                                    </>
+                                {store && has('pos') && (
+                                    <Link
+                                        href={window.route('store.pos', { store_slug: store.slug })}
+                                        onClick={onClose}
+                                        className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white transition-colors flex items-center gap-1.5 shadow-sm"
+                                    >
+                                        <Zap size={14} /> Open POS
+                                    </Link>
+                                )}
+                                {store && has('invoicing') && (
+                                    <Link
+                                        href={window.route('store.sales.invoice.create', { store_slug: store.slug })}
+                                        onClick={onClose}
+                                        className="px-4 py-2 rounded-xl text-xs font-bold bg-surface border border-line hover:border-brand-300 text-ink transition-colors flex items-center gap-1.5 shadow-xs"
+                                    >
+                                        <Plus size={14} /> New Invoice
+                                    </Link>
                                 )}
                             </div>
                         </div>

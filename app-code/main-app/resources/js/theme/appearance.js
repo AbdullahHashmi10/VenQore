@@ -36,7 +36,9 @@ export const DEFAULT_APPEARANCE = {
     // been selectable — so every user without a saved preference was served an
     // attribute matching no emitted block.
     theme: 'venqore-v6',
-    mode: 'system',
+    // Light, not 'system'. Following the operating system meant a customer on a
+    // dark laptop met a dark ERP before they had any idea it could be either.
+    mode: 'light',
     primary: null,
     accent: null,
     font: 'theme',

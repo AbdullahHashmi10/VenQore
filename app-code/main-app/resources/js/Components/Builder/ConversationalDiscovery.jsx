@@ -48,7 +48,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { AlertTriangle, ArrowRight, ChevronDown, Info, RotateCcw, Sliders, SkipForward } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Check, ChevronDown, Info, RotateCcw, Sliders, SkipForward } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import PromptTextarea from './PromptTextarea';
 import useSessionState from './useSessionState';
@@ -217,6 +217,7 @@ export default function ConversationalDiscovery({
     const [thinkingSet, setThinkingSet] = useState(THINKING_START);
     const [error, setError] = useState(null); // { tone, text, retry?, restart? }
     const [draft, setDraft] = useState('');
+    const [ticked, setTicked] = useState([]);
     const [expanded, setExpanded] = useState(false);
     const textareaRef = useRef(null);
     const headingRef = useRef(null);
@@ -249,8 +250,15 @@ export default function ConversationalDiscovery({
                 setPhase('done');
                 setThinkingSet(THINKING_DONE);
                 setError(null);
+                /* The session id travels with the proposal so the reveal can
+                   offer a deeper round that CONTINUES this conversation rather
+                   than starting a second one. */
+                const sessionId = data.session_id || null;
+                const turns = typeof data.turn === 'number' ? data.turn : null;
                 window.setTimeout(() => {
-                    if (alive.current) cbs.current.onComplete?.(data.proposal, data.modules, data.preset);
+                    if (alive.current) {
+                        cbs.current.onComplete?.(data.proposal, data.modules, data.preset, { sessionId, turns });
+                    }
                 }, 600);
                 return true;
             }
@@ -278,6 +286,9 @@ export default function ConversationalDiscovery({
                         options: Array.isArray(data.quick_options) ? data.quick_options.slice(0, 5) : [],
                         notice: data.out_of_scope ? refusalFrom(data) : null,
                         opener: !data.session_id,
+                        /* A tick list settles everything on it at once, so it is
+                           answered with a Continue rather than by picking one. */
+                        multi: !!data.is_multi,
                     },
                 }));
                 setError(null);
@@ -410,6 +421,48 @@ export default function ConversationalDiscovery({
                 tone: 'warning',
                 text: 'That answer did not go through — nothing was lost.',
                 retry: () => answer(text, optionKey),
+            });
+        }
+    };
+
+    /* Answer a tick list. Unticked is a real answer — the server settles every
+       option on the list, ticked as a yes and untouched as a no — so sending an
+       empty selection is meaningful and must not be blocked. */
+    const answerList = async () => {
+        if (busy || !current || !convo.sessionId) return;
+
+        const prev = current;
+        const chosen = prev.options.filter((o) => ticked.includes(o.key));
+        const label = chosen.length ? chosen.map((o) => o.label).join(', ') : 'None of these';
+
+        // eslint-disable-next-line react-hooks/purity -- see the note in answer() below.
+        const entry = { id: Date.now(), q: prev.question, a: label };
+        setTicked([]);
+        setError(null);
+        setConvo((c) => ({ ...c, history: [...(c.history || []), entry], current: null }));
+        setThinkingSet(THINKING_STEP);
+        setPhase('thinking');
+
+        try {
+            const data = await postJson('/workspace/converse/step', {
+                session_id: convo.sessionId,
+                response: label,
+                selected_option_keys: chosen.map((o) => o.key),
+            });
+            if (!alive.current) return;
+            if (!apply(data, { prev })) throw new Error('Unexpected response');
+        } catch (e) {
+            if (!alive.current) return;
+            setConvo((c) => ({
+                ...c,
+                history: (c.history || []).filter((h) => h.id !== entry.id),
+                current: prev,
+            }));
+            setPhase('idle');
+            setError({
+                tone: 'warning',
+                text: 'That did not go through — nothing was lost.',
+                retry: () => answerList(),
             });
         }
     };
@@ -605,7 +658,57 @@ export default function ConversationalDiscovery({
                                 {current.hint && <p className="vq-cd-why">{current.hint}</p>}
                             </div>
 
-                            {current.options.length > 0 && (
+                            {current.options.length > 0 && current.multi && (
+                                <>
+                                    <div className="vq-cd-options" role="group" aria-label="Tick everything that applies">
+                                        {current.options.map((opt, i) => {
+                                            const on = ticked.includes(opt.key);
+                                            return (
+                                                <motion.button
+                                                    key={opt.key || i}
+                                                    type="button"
+                                                    aria-pressed={on}
+                                                    className="vq-cd-option"
+                                                    data-ticked={on ? 'true' : undefined}
+                                                    onClick={() =>
+                                                        setTicked((t) =>
+                                                            t.includes(opt.key)
+                                                                ? t.filter((k) => k !== opt.key)
+                                                                : [...t, opt.key],
+                                                        )
+                                                    }
+                                                    initial={still ? false : { opacity: 0, y: 8 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.26, delay: still ? 0 : 0.05 * i, ease: [0.22, 1, 0.36, 1] }}
+                                                >
+                                                    <span className="vq-cd-option__text">
+                                                        <span className="vq-cd-option__label">{opt.label}</span>
+                                                        {opt.desc && (
+                                                            <span className="vq-cd-option__desc">{opt.desc}</span>
+                                                        )}
+                                                    </span>
+                                                    <span className={`vq-cd-tick${on ? ' vq-cd-tick--on' : ''}`} aria-hidden="true">
+                                                        {on ? <Check size={14} strokeWidth={3} /> : null}
+                                                    </span>
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                                        <button type="button" className="vq-btn vq-btn--primary" onClick={answerList}>
+                                            Continue
+                                            <ArrowRight size={16} aria-hidden="true" />
+                                        </button>
+                                        <span className="vq-cd-tickcount">
+                                            {ticked.length === 0
+                                                ? 'Nothing ticked — we will leave all of these out'
+                                                : `${ticked.length} ticked`}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+
+                            {current.options.length > 0 && !current.multi && (
                                 <div className="vq-cd-options" role="group" aria-label="Suggested answers">
                                     {current.options.map((opt, i) => (
                                         <motion.button

@@ -901,6 +901,7 @@ Route::get('/build-workspace', [\App\Http\Controllers\WorkspaceBuilderController
 Route::post('/workspace/analyze', [\App\Http\Controllers\WorkspaceBuilderController::class, 'analyze'])->middleware('throttle:30,1')->name('workspace.analyze');
 Route::post('/workspace/converse/start', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseStart'])->middleware(['throttle:30,1', 'turnstile'])->name('workspace.converse.start');
 Route::post('/workspace/converse/step', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseStep'])->middleware('throttle:30,1')->name('workspace.converse.step');
+Route::post('/workspace/converse/deepen', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseDeepen'])->middleware('throttle:30,1')->name('workspace.converse.deepen');
 Route::post('/workspace/converse/reset', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseReset'])->middleware('throttle:30,1')->name('workspace.converse.reset');
 Route::post('/workspace/prepare-google', [\App\Http\Controllers\WorkspaceBuilderController::class, 'prepareGoogle'])->middleware('throttle:30,1')->name('workspace.prepare-google');
 Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware(['throttle:5,1', 'turnstile'])->name('workspace.provision');

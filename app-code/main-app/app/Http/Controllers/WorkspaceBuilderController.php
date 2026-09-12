@@ -708,12 +708,22 @@ class WorkspaceBuilderController extends Controller
             'skip'                => 'sometimes|boolean',
             'response'            => 'nullable|string|max:600',
             'selected_option_key' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_:\-]+$/'],
+            // A tick list returns several. Which capabilities those keys are
+            // allowed to touch is decided from the session, not from here.
+            'selected_option_keys'   => ['nullable', 'array', 'max:8'],
+            'selected_option_keys.*' => ['string', 'max:64', 'regex:/^[A-Za-z0-9_:\-]+$/'],
         ]);
 
         $skip = (bool) ($validated['skip'] ?? false);
         $response = trim((string) ($validated['response'] ?? ''));
 
-        if (!$skip && $response === '') {
+        // Ticking nothing on a tick list and pressing Continue is an ANSWER —
+        // "none of these apply" — and a valuable one, because it settles every
+        // option on the list as a no. It arrives with no response text, so the
+        // empty-answer guard below has to let it through.
+        $answeredList = $request->has('selected_option_keys');
+
+        if (!$skip && !$answeredList && $response === '') {
             return response()->json([
                 'success' => false,
                 'message' => 'Please answer the question, or skip it.',
@@ -724,10 +734,21 @@ class WorkspaceBuilderController extends Controller
             sessionId: $validated['session_id'],
             userResponse: $response,
             selectedOptionKey: $skip ? null : ($validated['selected_option_key'] ?? null),
-            skip: $skip
+            skip: $skip,
+            selectedOptionKeys: $skip ? [] : (array) ($validated['selected_option_keys'] ?? [])
         );
 
         return response()->json($result);
+    }
+
+    /**
+     * Continue a finished conversation with the deeper round of questions.
+     */
+    public function converseDeepen(Request $request, ConversationalBuilderService $service): JsonResponse
+    {
+        $validated = $request->validate(['session_id' => 'required|uuid']);
+
+        return response()->json($service->deepen($validated['session_id']));
     }
 
     /**

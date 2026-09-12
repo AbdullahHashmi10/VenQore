@@ -161,6 +161,14 @@ class EnsureModule
             "This isn't part of your system yet — add it?"
         );
 
+        // Where "add it?" actually goes. The redirect below has always known
+        // this; the JSON branch did not send it, so an in-app navigation got a
+        // toast reading "add it?" with nothing to press — a question with no
+        // answer on screen, which is worse than refusing outright.
+        $addUrl = \Illuminate\Support\Facades\Route::has('store.builder')
+            ? route('store.builder', ['store_slug' => $tenant->slug, 'add' => $primary])
+            : null;
+
         if (
             $request->expectsJson()
             || $request->wantsJson()
@@ -175,15 +183,14 @@ class EnsureModule
                 'label'   => $label,
                 'message' => $message,
                 'action'  => 'add_module',      // NOT 'upgrade' — this costs nothing
+                'add_url' => $addUrl,
                 'upgrade' => false,
             ], 403);
         }
 
         // Send them to the builder with the module pre-selected, so "add it?"
         // is one click rather than a hunt through a settings page.
-        $target = \Illuminate\Support\Facades\Route::has('store.builder')
-            ? route('store.builder', ['store_slug' => $tenant->slug, 'add' => $primary])
-            : route('store.dashboard', ['store_slug' => $tenant->slug]);
+        $target = $addUrl ?: route('store.dashboard', ['store_slug' => $tenant->slug]);
 
         return redirect($target)->with('info', "{$label} isn't part of your system yet. Add it?");
     }

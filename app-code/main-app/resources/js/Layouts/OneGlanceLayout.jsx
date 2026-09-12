@@ -762,6 +762,53 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'VenSynQ': 'marketplace_sync',
 		'WooCommerce Sync': 'marketplace_sync',
 		'Staff Attendance': 'staff_attendance',
+
+		/* ── Added 12 Sep 2026 ──────────────────────────────────────────────
+		   Thirty-three of the seventy labels in this menu had no owner, which
+		   meant they rendered whatever the customer actually built. Reports was
+		   the worst of it: every single entry under Insights was ungated, so a
+		   one-person services business that never asked for stock was still
+		   shown Stock Valuation, Low Stock, Movement History and an Expiry
+		   Report — and because a group only hides once ALL of its children are
+		   filtered out, a group full of ungated children could never hide at
+		   all. That is why a freshly built workspace looked like the whole
+		   product: not because the builder failed to save the choice, but
+		   because the shell never asked what the choice was.
+
+		   Deliberately still ungated below this map: Home, Main Dashboard, and
+		   everything under Administration and Settings. Those are how someone
+		   runs, fixes, pays for and extends their workspace — gating them on a
+		   module is how a customer loses the screen that would have let them
+		   turn the module back on. */
+		'E-Invoicing': 'invoicing',
+
+		// Insights → Financial Health
+		'Chart of Accounts': 'accounting_workspace',
+		'Profit & Loss': 'accounting_workspace',
+		'Balance Sheet': 'accounting_workspace',
+		'Cash Flow': 'accounting_workspace',
+		'Tax Report': 'tax_compliance',
+
+		// Insights → Sales / Purchase analysis
+		'Sales Report': 'reports',
+		'Discount Report': 'reports',
+		'Sale Aging': 'khata_credit',
+		'Purchase Report': 'purchases',
+		'Expense Report': 'expenses',
+		'Growth Engine': 'reports',
+
+		// Insights → Inventory. The four that gave a plumber a stock menu.
+		'Stock Valuation': 'inventory',
+		'Low Stock': 'inventory',
+		'Movement History': 'inventory',
+		'Expiry Report': 'batches_expiry',
+
+		// VenSynQ → everything in this group belongs to the sync module, so the
+		// group itself disappears for someone who never asked to sell online.
+		'Email Marketing': 'marketplace_sync',
+		'SMS Marketing': 'marketplace_sync',
+		'Campaigns': 'marketplace_sync',
+		'VenSynQ Settings': 'marketplace_sync',
 	};
 
 	const SUBITEM_ROUTES = {
@@ -844,8 +891,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 			};
 		})
 		.filter((group) => {
-			// Always keep core platform/store sections
-			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance', 'Insights'].includes(group.name)) {
+			/* Always keep the sections that are how you run, fix, pay for and
+			   extend the workspace. Insights is NOT one of them: it was in this
+			   list, so a reports menu survived even when every report in it had
+			   been filtered out — an empty group that could never empty. It now
+			   falls through to the "no children left" rule like everything
+			   else, and reappears the moment a module that reports on something
+			   is switched back on. */
+			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance'].includes(group.name)) {
 				return true;
 			}
 			// For cashiers, keep Sell if POS is enabled
@@ -1352,7 +1405,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <div className={`border-t border-line shrink-0 flex flex-col gap-3 relative z-10 ${showExpandedSidebar ? 'p-4' : 'p-2'}`} ref={userMenuRef}>
 
  {/* POS BUTTON — only show when we have a store context and NOT in platform HQ */}
- {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos')) && (
+ {/* Role AND module. This asked only "are you allowed to use a till", never
+     "did you ask for one" — so a solo plumber who built a workspace with no
+     counter still had Open POS as the biggest button on his screen. */}
+ {store && !(isPlatformAdmin && !store)
+   && (!enabledModuleSet || enabledModuleSet.has('pos'))
+   && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos')) && (
  <Link
  href={store
  ? (isPosRoute ? route('store.dashboard', {store_slug: store.slug}) : route('store.pos', {store_slug: store.slug}))
@@ -1968,6 +2026,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
      isOpen={isActivityHubModalOpen}
      onClose={() => setIsActivityHubModalOpen(false)}
      store={store}
+     modules={Array.isArray(props?.modules) ? props.modules : null}
      currentUrl={url}
      visibleInvoices={visibleInvoices}
      currentInvoiceId={currentInvoiceId}

@@ -55,10 +55,17 @@ const resolveTheme = (settings, pathname) => {
     if (tenantDefault !== null) return tenantDefault;
 
     if (isExceptionPath(pathname)) {
-        return false; // Default to light mode for excepted public pages
+        return false;
     }
 
-    return true; // Default to dark mode for landing page and app pages
+    /* Light, everywhere, until someone says otherwise.
+       This returned dark for the app and the landing page, which quietly
+       outranked the appearance system underneath it (whose own default has
+       always resolved to light) — so the product opened dark for everyone who
+       had never touched the setting, including every brand-new account on its
+       first ever screen. An explicit choice still wins, and so does a store
+       that has switched Force Dark Mode on. */
+    return false;
 };
 
 /**

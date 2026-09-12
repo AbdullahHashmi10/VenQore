@@ -150,6 +150,34 @@ window.axios.interceptors.response.use(
             return Promise.reject(error); // Stop propagation — modal handles it
         }
 
+        // ── Module gate ────────────────────────────────────────────────────
+        // A 403 with code 'module_disabled' means the customer walked into a
+        // part of the product they did not build. The message asks "add it?",
+        // so the answer has to be reachable: send them to the builder with that
+        // module pre-selected, which is exactly what a full page load already
+        // did. Costs nothing — this is not an upsell, and must never be
+        // confused with the plan-limit modal above.
+        if (error.response && error.response.status === 403
+            && error.response.data?.code === 'module_disabled') {
+            const detail = error.response.data;
+
+            window.dispatchEvent(new CustomEvent('amd:toast', {
+                detail: {
+                    message: detail.label
+                        ? `${detail.label} isn't part of your system yet — opening where you can add it.`
+                        : (detail.message || 'That is not part of your system yet.'),
+                    type: 'info',
+                },
+            }));
+
+            if (detail.add_url && typeof window !== 'undefined') {
+                // Let the toast paint before the page moves under it.
+                window.setTimeout(() => { window.location.href = detail.add_url; }, 900);
+            }
+
+            return Promise.reject(error);
+        }
+
         // Handle 503 System Update Soft Lock
         if (error.response && error.response.status === 503) {
             const errorMsg = error.response.data?.message || error.response.data?.error || '';

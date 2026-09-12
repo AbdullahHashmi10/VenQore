@@ -257,6 +257,20 @@ function getDashboardProps() {
   return {};
 }
 
+/**
+ * Is this module part of what the customer actually built?
+ *
+ * `modules` has been handed to the card builder since the board shipped and
+ * nothing ever read it, which is why the Launchpad offered Point of Sale and
+ * Purchase Order to a one-person services business that asked for neither.
+ * Unknown (no list) means yes — an older board that never received the prop
+ * should keep working rather than render an empty dashboard.
+ */
+function hasModule(key) {
+  const list = getDashboardProps().modules;
+  return !Array.isArray(list) || !key || list.includes(key);
+}
+
 function runCardBuilder(opts) {
   if (typeof window !== "undefined") {
     window.__DASHBOARD_PROPS__ = opts || {};
@@ -2316,16 +2330,18 @@ function bodyActionHub(c, geo){
      shape. The hub offers three lanes at its floor and grows to eight, so the
      space a larger card buys is spent on more of the product rather than on
      more air around the same three buttons. */
+  /* `mod` here is a TONE, not a module — the two names colliding is part of
+     why nothing on this board was ever gated. `needs` is the module. */
   const ALL = [
-    { href:'/pos',                          mod:'sales',    icon:'cart',   label:'Point of Sale' },
-    { href: storePath('/purchase-orders'),  mod:'purchase', icon:'truck',  label:'Purchase Order' },
+    { href:'/pos',                          mod:'sales',    icon:'cart',   label:'Point of Sale',  needs:'pos' },
+    { href: storePath('/purchase-orders'),  mod:'purchase', icon:'truck',  label:'Purchase Order', needs:'purchase_orders' },
     { href:null,                            mod:'actions',  icon:'plus',   label:'Quick Actions' },
-    { href: storePath('/sales'),            mod:'quiet',    icon:'file',   label:'New Invoice' },
-    { href: storePath('/inventory'),        mod:'quiet',    icon:'box',    label:'Add Product' },
-    { href: storePath('/parties'),          mod:'quiet',    icon:'users',  label:'New Customer' },
-    { href: storePath('/finance'),          mod:'quiet',    icon:'dollar', label:'Add Expense' },
-    { href: storePath('/reports'),          mod:'quiet',    icon:'chart',  label:'Reports' },
-  ];
+    { href: storePath('/sales'),            mod:'quiet',    icon:'file',   label:'New Invoice',    needs:'invoicing' },
+    { href: storePath('/inventory'),        mod:'quiet',    icon:'box',    label:'Add Product',    needs:'products' },
+    { href: storePath('/parties'),          mod:'quiet',    icon:'users',  label:'New Customer',   needs:'customers' },
+    { href: storePath('/finance'),          mod:'quiet',    icon:'dollar', label:'Add Expense',    needs:'expenses' },
+    { href: storePath('/reports'),          mod:'quiet',    icon:'chart',  label:'Reports',        needs:'reports' },
+  ].filter((i) => hasModule(i.needs));
   /* How many lanes fit, in pixels rather than by eye: the card's own height,
      less its padding, its header row and its title block, divided by a lane
      plus a gutter. Counting rows instead left a 3-row hub with one row of
@@ -2462,12 +2478,20 @@ function bodyCustomButton(c, geo){
    hub for people who found the growing lane-count unsettling. */
 function bodyLaunchpad(c, geo){
   const link = c.targetUrl || c.link || '/pos';
+  /* "Your four essentials — always the same four" was literally true: these
+     rendered whatever the customer had built, so a workspace with no till and
+     no stock still opened on Point of Sale and Add Product. Same four when you
+     have them; the ones you do not have simply are not essentials. */
   const items = [
-    { href:'/pos',                         icon:'cart',  label:'Point of Sale' },
-    { href: storePath('/sales'),           icon:'file',  label:'New Invoice' },
-    { href: storePath('/inventory'),       icon:'box',   label:'Add Product' },
-    { href: storePath('/purchase-orders'), icon:'truck', label:'Purchase Order' },
-  ];
+    { href:'/pos',                         icon:'cart',  label:'Point of Sale',  mod:'pos' },
+    { href: storePath('/sales'),           icon:'file',  label:'New Invoice',    mod:'invoicing' },
+    { href: storePath('/inventory'),       icon:'box',   label:'Add Product',    mod:'products' },
+    { href: storePath('/purchase-orders'), icon:'truck', label:'Purchase Order', mod:'purchase_orders' },
+  ].filter((i) => hasModule(i.mod));
+
+  if (items.length === 0) {
+    items.push({ href: storePath('/reports'), icon:'chart', label:'Reports', mod:null });
+  }
   const perRow = geo.w >= 4 ? 2 : 1;
   return hubHead(c, SPECIAL.launchpad.eyebrow, link) +
     (geo.h >= 3 ? `<div class="vqc-hub-title-wrap">
