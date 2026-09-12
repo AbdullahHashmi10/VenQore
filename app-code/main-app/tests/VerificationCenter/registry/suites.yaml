@@ -1,14 +1,14 @@
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 2037
+  phpunit_test_methods_total: 2046
   note: 'total = SUM of member test_methods (testX(), @test,'
 suites:
   -
     id: Feature
     path: tests/Feature
-    test_methods: 697
-    files: 115
+    test_methods: 706
+    files: 117
     members:
       -
         file: tests/Feature/ActivityLogTest.php
@@ -211,6 +211,10 @@ suites:
         test_methods: 2
         oracle_tier: T1
       -
+        file: tests/Feature/Module/ReportPlanMapParityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
         file: tests/Feature/Module/ServiceOnlySaleTest.php
         test_methods: 9
         oracle_tier: T1
@@ -290,6 +294,10 @@ suites:
         file: tests/Feature/PosFeaturesTest.php
         test_methods: 3
         oracle_tier: T2
+      -
+        file: tests/Feature/PrelaunchP0VerificationTest.php
+        test_methods: 7
+        oracle_tier: T1
       -
         file: tests/Feature/PricingConversionOptimizationTest.php
         test_methods: 1
