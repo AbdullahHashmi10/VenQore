@@ -152,9 +152,9 @@ class PlanFeatureMatrixSeeder extends Seeder
             'partial_payment_indicator'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'unified_party_ledger'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Paid Plans Only (OFF on Solo only per V11 §1.2)
-            'recurring_invoices'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'invoice_reminders'          => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            // Invoicing schedule & reminders (Included for Solo)
+            'recurring_invoices'         => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'invoice_reminders'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
             // Group 4 — Procurement & Suppliers (Universal)
             'supplier_khata'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
@@ -255,12 +255,12 @@ class PlanFeatureMatrixSeeder extends Seeder
             'charity_engine'             => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'petty_cash'                 => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Paid Plans Only Accounting/Finance (V11 §1.2)
-            'fixed_asset_depreciation'   => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'fiscal_year_closing'        => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'bank_reconciliation'        => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'e_invoicing'                => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'fund_management'            => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            // Finance & Compliance modules (Included on Solo)
+            'fixed_asset_depreciation'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'fiscal_year_closing'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'bank_reconciliation'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'e_invoicing'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'fund_management'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'google_drive_backup'        => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'adviser_seat'               => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 

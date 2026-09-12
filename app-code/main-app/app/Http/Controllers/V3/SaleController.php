@@ -23,8 +23,32 @@ class SaleController extends Controller
         try {
             $lock->block(5); // Wait up to 5 seconds to acquire the lock
 
+            $data = $request->validated();
+            $items = $data['items'] ?? [];
+            foreach ($items as $idx => $item) {
+                if (empty($item['product_id']) && (!empty($item['description']) || !empty($item['name']))) {
+                    $desc = trim($item['description'] ?? $item['name']);
+                    $adHocProduct = \App\Models\Product::firstOrCreate(
+                        [
+                            'tenant_id' => $tenantId,
+                            'name'      => $desc,
+                            'type'      => 'service',
+                        ],
+                        [
+                            'sku'        => 'SRV-' . strtoupper(substr(md5($desc . $tenantId), 0, 8)),
+                            'price'      => (float)($item['unit_price'] ?? 0),
+                            'cost_price' => 0,
+                            'tax_rate'   => (float)($item['tax_rate'] ?? 0),
+                            'is_active'  => true,
+                        ]
+                    );
+                    $items[$idx]['product_id'] = $adHocProduct->id;
+                }
+            }
+            $data['items'] = $items;
+
             // The approval PIN is verified by StoreSaleRequest; it never travels further.
-            $sale = $this->sales->post(\Illuminate\Support\Arr::except($request->validated(), ['approval_pin']));
+            $sale = $this->sales->post(\Illuminate\Support\Arr::except($data, ['approval_pin']));
         } catch (\App\Exceptions\BelowCostSaleException $e) {
             // S-011: surface as a validation error on approved_by (was an unhandled 500).
             throw \Illuminate\Validation\ValidationException::withMessages(['approved_by' => $e->getMessage()]);

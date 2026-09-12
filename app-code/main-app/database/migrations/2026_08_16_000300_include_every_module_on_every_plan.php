@@ -119,6 +119,13 @@ return new class extends Migration
     public function up(): void
     {
         (new \Database\Seeders\PlanFeatureMatrixSeeder)->run();
+
+        if (Schema::hasTable('plan_limits')) {
+            DB::table('plan_limits')
+                ->whereIn('key', self::NOW_FREE)
+                ->update(['value' => '1', 'updated_at' => now()]);
+        }
+
         \Illuminate\Support\Facades\Cache::flush();
     }
 

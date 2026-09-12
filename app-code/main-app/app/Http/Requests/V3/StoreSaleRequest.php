@@ -24,7 +24,8 @@ class StoreSaleRequest extends FormRequest
             'approval_pin'     => ['nullable', 'string', 'max:20'],
 
             'items'                        => ['required', 'array', 'min:1'],
-            'items.*.product_id'           => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'items.*.product_id'           => ['nullable', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'items.*.description'          => ['required_without:items.*.product_id', 'nullable', 'string', 'max:255'],
             'items.*.qty'                  => ['required', 'numeric', 'min:0.0001'],
             'items.*.sale_uom'             => ['required', 'string', 'max:20'],
             'items.*.unit_price'           => ['required', 'numeric', 'min:0'],

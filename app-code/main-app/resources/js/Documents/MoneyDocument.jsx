@@ -256,7 +256,7 @@ export default function MoneyDocument({
         }
     }, [totalModes, update]);
 
-    const validLines = items.filter((i) => (doc.money.lines === 'amount' ? (i.category_id || i.desc) : i.product));
+    const validLines = items.filter((i) => (doc.money.lines === 'amount' ? (i.category_id || i.desc) : (i.product || i.description || i.desc || i.name)));
 
     /* ── saving ─────────────────────────────────────────────────────────── */
 

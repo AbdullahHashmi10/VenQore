@@ -1704,13 +1704,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/accounting/balance-sheet', [\App\Http\Controllers\AccountingController::class, 'balanceSheet'])->middleware('plan.feature:report_profit_loss')->name('accounting.balance-sheet');
 
     // Recurring Invoices
-    Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.index');
-    Route::get('/recurring-invoices/create', [\App\Http\Controllers\RecurringInvoiceController::class, 'create'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.create');
-    Route::post('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'store'])->middleware('permission:sales.create')->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.store');
-    Route::get('/recurring-invoices/{id}/edit', [\App\Http\Controllers\RecurringInvoiceController::class, 'edit'])->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.edit');
-    Route::put('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'update'])->middleware('permission:sales.edit')->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.update');
-    Route::post('/recurring-invoices/{id}/toggle', [\App\Http\Controllers\RecurringInvoiceController::class, 'toggle'])->middleware('permission:sales.edit')->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.toggle');
-    Route::delete('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'destroy'])->middleware('permission:sales.void')->middleware('plan.feature:recurring_invoices')->name('recurring-invoices.destroy');
+    Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->name('recurring-invoices.index');
+    Route::get('/recurring-invoices/create', [\App\Http\Controllers\RecurringInvoiceController::class, 'create'])->name('recurring-invoices.create');
+    Route::post('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'store'])->middleware('permission:sales.create')->name('recurring-invoices.store');
+    Route::get('/recurring-invoices/{id}/edit', [\App\Http\Controllers\RecurringInvoiceController::class, 'edit'])->name('recurring-invoices.edit');
+    Route::put('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'update'])->middleware('permission:sales.edit')->name('recurring-invoices.update');
+    Route::post('/recurring-invoices/{id}/toggle', [\App\Http\Controllers\RecurringInvoiceController::class, 'toggle'])->middleware('permission:sales.edit')->name('recurring-invoices.toggle');
+    Route::delete('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'destroy'])->middleware('permission:sales.void')->name('recurring-invoices.destroy');
 
     // Stock Transfers
     Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.index');

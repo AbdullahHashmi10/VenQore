@@ -43,7 +43,8 @@ class SaleController extends Controller
         $request->validate([
             'customer_id'           => 'nullable|exists:parties,id',
             'items'                 => 'required|array|min:1',
-            'items.*.product_id'    => 'required|exists:products,id',
+            'items.*.product_id'    => 'nullable|string',
+            'items.*.description'   => 'required_without:items.*.product_id|nullable|string|max:255',
             'items.*.variant_id'    => 'nullable|exists:product_variants,id',
             'items.*.quantity'      => 'required|numeric|min:0.001',
             'items.*.free_quantity' => 'nullable|numeric|min:0',
@@ -103,8 +104,34 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
 
+            $currentTenant = app()->bound('current.tenant') ? app('current.tenant') : auth()->user()?->tenant;
+            $items = $request->items;
+
+            // Resolve ad-hoc service / labour lines (where product_id is null or empty)
+            foreach ($items as $idx => $item) {
+                if (empty($item['product_id']) && (!empty($item['description']) || !empty($item['name']))) {
+                    $desc = trim($item['description'] ?? $item['name']);
+                    $adHocProduct = Product::firstOrCreate(
+                        [
+                            'tenant_id' => $currentTenant?->id,
+                            'name'      => $desc,
+                            'type'      => 'service',
+                        ],
+                        [
+                            'sku'        => 'SRV-' . strtoupper(substr(md5($desc . ($currentTenant?->id ?? '')), 0, 8)),
+                            'price'      => (float)($item['price'] ?? 0),
+                            'cost_price' => 0,
+                            'tax_rate'   => (float)($item['tax_rate'] ?? 0),
+                            'is_active'  => true,
+                        ]
+                    );
+                    $items[$idx]['product_id'] = $adHocProduct->id;
+                }
+            }
+            $request->merge(['items' => $items]);
+
             // 1. PERFORMANCE: Pre-load products to avoid DB hits in the loop
-            $productIds = collect($request->items)->pluck('product_id')->unique();
+            $productIds = collect($items)->pluck('product_id')->filter()->unique();
             $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
             
             $isStockEnabled = \App\Helpers\SettingsHelper::isStockMaintenanceEnabled();
@@ -121,7 +148,7 @@ class SaleController extends Controller
             $globalDiscount = (float)($request->discount ?? 0);
             $lineItemsData = [];
 
-            foreach ($request->items as $itemIndex => $item) {
+            foreach ($items as $itemIndex => $item) {
                 $product = $products->get($item['product_id']);
                 if (!$product) continue;
 
@@ -266,7 +293,7 @@ class SaleController extends Controller
             //  1. The caller must supply a 'serials' array matching the quantity.
             //  2. Each serial must not already exist in product_serials with status='sold'.
             $serialErrors = [];
-            foreach ($request->items as $index => $item) {
+            foreach ($items as $index => $item) {
                 $product = $products->get($item['product_id']);
                 if (!$product || !$product->track_serial) continue;
 
