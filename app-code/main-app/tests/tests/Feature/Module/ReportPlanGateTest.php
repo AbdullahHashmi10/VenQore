@@ -233,4 +233,47 @@ class ReportPlanGateTest extends VenQoreTestCase
             );
         }
     }
+
+    #[Test]
+    public function inertia_shares_all_14_plan_features_with_proper_boolean_states_for_solo_and_scale(): void
+    {
+        $expectedKeys = array_values(array_unique(\App\Support\ReportPlanMap::REQUIRED_PLAN_FEATURES));
+        $this->assertCount(14, $expectedKeys);
+
+        // 1. Solo tenant
+        $soloTenant = $this->createTenant(plan: 'solo', status: 'active');
+        $this->actingAsTenantUser($soloTenant, 'owner');
+        ModuleService::enable($soloTenant, 'reports');
+
+        $soloResponse = $this->get("/s/{$soloTenant->slug}/reports");
+        $soloResponse->assertSuccessful();
+
+        $soloProps = $soloResponse->viewData('page')['props'] ?? [];
+        $this->assertArrayHasKey('planFeatures', $soloProps);
+        $this->assertIsArray($soloProps['planFeatures']);
+        $this->assertCount(14, $soloProps['planFeatures']);
+
+        foreach ($expectedKeys as $key) {
+            $this->assertArrayHasKey($key, $soloProps['planFeatures']);
+            $this->assertFalse($soloProps['planFeatures'][$key], "Expected {$key} to be false on Solo plan.");
+        }
+
+        // 2. Scale tenant
+        $scaleTenant = $this->createTenant(plan: 'scale', status: 'active');
+        $this->actingAsTenantUser($scaleTenant, 'owner');
+        ModuleService::enable($scaleTenant, 'reports');
+
+        $scaleResponse = $this->get("/s/{$scaleTenant->slug}/reports");
+        $scaleResponse->assertSuccessful();
+
+        $scaleProps = $scaleResponse->viewData('page')['props'] ?? [];
+        $this->assertArrayHasKey('planFeatures', $scaleProps);
+        $this->assertIsArray($scaleProps['planFeatures']);
+        $this->assertCount(14, $scaleProps['planFeatures']);
+
+        foreach ($expectedKeys as $key) {
+            $this->assertArrayHasKey($key, $scaleProps['planFeatures']);
+            $this->assertTrue($scaleProps['planFeatures'][$key], "Expected {$key} to be true on Scale plan.");
+        }
+    }
 }

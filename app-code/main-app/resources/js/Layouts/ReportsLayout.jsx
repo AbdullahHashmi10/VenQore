@@ -6,8 +6,9 @@ import {
  BarChart2, PieChart, TrendingUp, Activity, FileText, Calendar,
  AlertTriangle, Package, DollarSign, BookOpen, Scale, Users,
  History, CreditCard, ShoppingBag, Clock, ChevronRight, Settings,
- RefreshCw, Search, ArrowLeft, Layers, Hash
+ RefreshCw, Search, ArrowLeft, Layers, Hash, Lock
 } from 'lucide-react';
+import { isReportLocked } from '@/lib/reportPlanMap';
 
 const REPORT_GROUPS = [
  {
@@ -85,7 +86,8 @@ const REPORT_GROUPS = [
 
 export default function ReportsLayout({ children, title, showSidebar = true }) {
  const {
- store
+  store,
+  planFeatures = {}
  } = usePage().props;
 
  const { url } = usePage();
@@ -163,38 +165,48 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
  )}
 
  {(isExpanded || sidebarCollapsed) && (
- <div className="space-y-1">
- {group.reports.map((report, rIdx) => {
- const RIcon = report.icon;
- const isActive = isRouteActive(report.route);
+  <div className="space-y-1">
+  {group.reports.map((report, rIdx) => {
+  const RIcon = report.icon;
+  const isActive = isRouteActive(report.route);
+  const isLocked = isReportLocked(report.route, planFeatures);
 
- return (
- <Link
- key={rIdx}
- href={report.route.startsWith('platform.') ? route(report.route) : (store?.slug ? route(report.route, { store_slug: store.slug }) : '#')}
- title={sidebarCollapsed ? tt(report.title) : undefined}
- className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2 px-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
- ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
- : 'text-ink-muted hover:bg-white/5 hover:text-white border-transparent'
- }`}
- >
- {isActive && !sidebarCollapsed && (
- <div className="absolute inset-0 bg-brand-600/20 opacity-100" />
- )}
+  const targetHref = isLocked
+    ? (store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing')
+    : (report.route.startsWith('platform.') ? route(report.route) : (store?.slug ? route(report.route, { store_slug: store.slug }) : '#'));
 
- <div className={`relative z-10 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-brand-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-neutral-800/80 group-hover:bg-interactive-hover'}`}>
- <RIcon size={12} className={isActive ? 'text-white' : 'text-ink-muted group-hover:text-brand-400'} />
- </div>
+  return (
+  <Link
+  key={rIdx}
+  href={targetHref}
+  title={sidebarCollapsed ? (isLocked ? `${tt(report.title)} (Upgrade Required)` : tt(report.title)) : undefined}
+  className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2 px-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
+  ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
+  : isLocked
+  ? 'text-ink-muted/80 hover:bg-white/5 hover:text-neutral-300 border-transparent'
+  : 'text-ink-muted hover:bg-white/5 hover:text-white border-transparent'
+  }`}
+  >
+  {isActive && !sidebarCollapsed && (
+  <div className="absolute inset-0 bg-brand-600/20 opacity-100" />
+  )}
 
- {!sidebarCollapsed && (
- <div className="relative z-10 flex-1 min-w-0">
- <p className={`text-1xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-300'}`}>{tt(report.title)}</p>
- </div>
- )}
- </Link>
- );
- })}
- </div>
+  <div className={`relative z-10 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-brand-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-neutral-800/80 group-hover:bg-interactive-hover'}`}>
+  <RIcon size={12} className={isActive ? 'text-white' : isLocked ? 'text-ink-muted' : 'text-ink-muted group-hover:text-brand-400'} />
+  </div>
+
+  {!sidebarCollapsed && (
+  <div className="relative z-10 flex-1 min-w-0 flex items-center justify-between">
+  <p className={`text-1xs font-bold tracking-tight truncate ${isActive ? 'text-white' : 'text-neutral-300'}`}>{tt(report.title)}</p>
+  {isLocked && (
+    <Lock size={11} className="text-amber-500 shrink-0 ml-1.5" />
+  )}
+  </div>
+  )}
+  </Link>
+  );
+  })}
+  </div>
  )}
  </div>
  );

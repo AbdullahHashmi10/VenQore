@@ -1,0 +1,213 @@
+# Permission Debt Ratchet (blueprint Phase E.2, closes F-18 / FC-6).
+#
+# The grandfathered permission-less write routes are DEBT. This ratchet drives the
+# count down over releases and NEVER lets it rise. The guard test reads max_unprotected
+# and fails if the live count exceeds it. Lower this number as routes get protected;
+# the guard enforces the new ceiling. The dashboard charts the burndown.
+#
+# baseline_checksum locks the frozen route set: the guard FAILS if the baseline file is
+# absent or altered without updating this checksum (no silent reseed — F-18).
+#
+# 2026-08-02 review note (post-remediation-session audit):
+#   A prior edit added 26 public marketing-tool routes (POST tools/*) plus
+#   `partners-submit` to the baseline and raised max_unprotected 257 -> 285 in a
+#   single step, with no review notes and no updated tranche plan — exactly the
+#   operation this file's own docblock says must never happen ("must only ever
+#   DECREASE"). This edit corrects that:
+#     - Confirmed all 26 tools/* routes sit behind a `throttle:tools` middleware
+#       group (routes/web.php) — legitimately public, rate-limited marketing
+#       tools with no auth model. `partners-submit` is a public contact form.
+#       `POST tools/lead` additionally has its own `throttle:tool-leads`.
+#       `POST tools/lead/unsubscribe/{token}` requires a signed/unguessable
+#       token to do anything, which is why it's acceptable unauthenticated.
+#     - Also removed from the baseline in the same pass (now protected or
+#       deleted, not because of this review): `sales/get-items` (endpoint
+#       deleted — see audit item A4), `pos/open-session` + `pos/close-session`
+#       (stub endpoints deleted — item A3b), and
+#       `purchase-orders/{purchaseOrder}/receive` (now requires
+#       permission:purchases.edit — item A3a).
+#   Net effect: the 26 tools/* routes + partners-submit are accepted as
+#   permanent (public-by-design) debt with justification recorded above,
+#   rather than silently raising the ceiling. The tranche plan below is
+#   restored to a real burn-down against the new baseline of 281.
+#
+# 2026-08-10 review note (Round 2 validation):
+#   Added 6 routes to the baseline (raising max_unprotected to 294):
+#     - `POST tools/smart-capture`: A public rate-limited AI scanner tool (throttle:tools).
+#     - `POST s/{store_slug}/workspace/data`, `/layout`, `/layout/reset`: Protected by auth & tenant
+#       middleware; enables low-privilege staff to customize personal workspace UI layouts.
+#     - `POST s/{store_slug}/appearance`, `/experience`: Scoped to logged-in tenant users
+# 2026-09-10 review note (Pre-launch remediation T-25):
+#   Added 1 route to the baseline:
+#     - `POST subscribe/unsubscribe/{token}`: Public single-click newsletter unsubscription
+#       confirmation route. Requires unguessable cryptographic token from email delivery.
+#       Legitimately unauthenticated per CAN-SPAM §5(a)(3) and GDPR Art. 7(3) opt-out mandates
+#       (subscribers cannot be required to hold or authenticate an ERP account to unsubscribe).
+#       Mirrors `POST tools/lead/unsubscribe/{token}` sign-off.
+#
+schema_version: 1
+
+baseline_file: "tests/tests/Feature/Guardrails/baselines/unprotected_write_routes.json"
+# 2026-09-10 review note (pre-launch security audit, AUTH-01 / SEC-05):
+#   Added 5 authentication-flow routes to the baseline. They are public BY
+#   DESIGN — the user has no session or store yet, exactly like `POST login`:
+#     - POST verify-code, verify-code/resend, verify-code/cancel — emailed
+#       one-time code step (guest middleware, throttle 10/3 per minute, codes
+#       bound to the browser session, 5-attempt lock, send budgets).
+#     - POST 2fa/confirm, 2fa/verify — authenticator-app enrolment/verification
+#       (auth middleware, throttle 6/min; Require2FA gates everything else).
+#   max_unprotected unchanged (327 <= 330).
+# 2026-09-10 route-gap sweep (pre-launch): 209 routes protected in one pass.
+#   Every store-scoped write route now carries `permission:<key>` from
+#   config/permissions.php (192 explicit + resource middlewareFor). The ceiling
+#   drops 330 -> 118. What remains is public/auth by design (login, OTP, 2FA,
+#   webhooks with signature checks, rate-limited public tools and forms) or
+#   self-service on the member's own data (profile, own PIN, own appearance,
+#   own notifications, own dashboards layout, own attendance check-in/out,
+#   terminal heartbeat). Unmapped invite roles got least-privilege maps.
+baseline_checksum_sha256: "a8bfbcdf9d931e675de79cf12ba50a8eb7f50ebca9d30b3d57d976912ed9ce1f"
+
+# The ratchet ceiling. Must only ever DECREASE.
+max_unprotected: 118
+
+# Tranche targets — the burndown plan. Each release protects a batch; lower max_unprotected
+# to the next tranche and the guard enforces it. The ~27 intentionally-public routes
+# (26 tools/* + partners-submit) are excluded from the burn-down target itself since
+# they are sign-off'd as permanently public, not debt to be protected.
+tranche_targets:
+  - release: "E"      # this release: corrected freeze + checksum-lock, no regressions
+    ceiling: 330  # +14 new dashboard/workspace/onboarding API routes (auth-protected; recorded 2026-09-08)
+  - release: "E+1"
+    ceiling: 220
+  - release: "E+2"
+    ceiling: 140
+  - release: "E+3"
+    ceiling: 60
+  - release: "GA"
+    ceiling: 27       # floor = the intentionally-public routes with recorded sign-off above
+
+# Classification pass (blueprint E.2): each entry must be tagged
+# needs-permission | intentionally-public(sign-off). Tags live alongside the baseline
+# as review notes; unclassified routes count against the ceiling.
+classification_status: "complete"  # all entries tagged below (2026-09-10)
+
+# Classification (2026-09-10 route-gap sweep): every remaining entry is tagged.
+classification:
+  "DELETE account": "auth: authentication flow / own account"
+  "DELETE api/dashboards/{id}": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "DELETE api/dashboards/{id}/cards/{cardId}": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "DELETE horizon/api/monitoring/{tag}": "platform: horizon middleware = web,auth,superadmin"
+  "DELETE s/{store_slug}/notifications/{id}": "self: acts only on the signed-in member's own data"
+  "DELETE s/{store_slug}/profile": "self: acts only on the signed-in member's own data"
+  "PATCH account": "auth: authentication flow / own account"
+  "PATCH api/dashboards/{id}/cards/{cardId}": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "PATCH s/{store_slug}/profile": "self: acts only on the signed-in member's own data"
+  "POST 2fa/confirm": "auth: authentication flow / own account"
+  "POST 2fa/verify": "auth: authentication flow / own account"
+  "POST account/passcode": "auth: authentication flow / own account"
+  "POST account/security-pin": "auth: authentication flow / own account"
+  "POST api/dashboards": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "POST api/dashboards/{id}/cards": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "POST api/dashboards/{id}/publish": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "POST api/dashboards/{id}/reset": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "POST api/drm/validate": "public: licence validation, throttled"
+  "POST api/heartbeat": "device: paired terminal + X-Device-Secret (SEC-04)"
+  "POST api/partner-support/chat": "public: support form, throttle + Turnstile"
+  "POST api/partner-support/chat/{ticket_id}/reply": "public: support form, throttle + Turnstile"
+  "POST api/reckoner/read": "member: read-only computation, tenant-scoped"
+  "POST api/report-error": "public: error reporter, throttle + daily budget (SEC-09)"
+  "POST api/terminal/activities": "device: paired terminal + X-Device-Secret (SEC-04)"
+  "POST api/terminal/screenshot": "device: paired terminal + X-Device-Secret (SEC-04)"
+  "POST api/updater/run": "platform: UpdaterLock (off by default, CSRF enforced)"
+  "POST api/woo/handshake": "webhook/handshake: HMAC signature or one-time setup token, throttled"
+  "POST api/woo/webhook/{uuid}": "webhook/handshake: HMAC signature or one-time setup token, throttled"
+  "POST api/{store_slug}/chatbot/session": "public: visitor chat widget, VisitorChatGuard + throttle + plan feature"
+  "POST api/{store_slug}/chatbot/session/{uuid}/message": "public: visitor chat widget, VisitorChatGuard + throttle + plan feature"
+  "POST api/{store_slug}/chatbot/session/{uuid}/typing": "public: visitor chat widget, VisitorChatGuard + throttle + plan feature"
+  "POST api/{store_slug}/vena/assist": "public: visitor chat widget, VisitorChatGuard + throttle + plan feature"
+  "POST broadcasting/auth": "auth: channel authorisation (routes/channels.php)"
+  "POST confirm-password": "auth: authentication flow / own account"
+  "POST contact": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST demo/login": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST demo/logout": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST forgot-password": "auth: authentication flow / own account"
+  "POST horizon/api/batches/retry/{id}": "platform: horizon middleware = web,auth,superadmin"
+  "POST horizon/api/jobs/retry/{id}": "platform: horizon middleware = web,auth,superadmin"
+  "POST horizon/api/monitoring": "platform: horizon middleware = web,auth,superadmin"
+  "POST invite/accept": "auth: signed-in user joining or creating their own store (throttled)"
+  "POST invite/decline": "auth: signed-in user joining or creating their own store (throttled)"
+  "POST invite/validate-code": "auth: signed-in user joining or creating their own store (throttled)"
+  "POST join": "auth: signed-in user joining or creating their own store (throttled)"
+  "POST new-store": "auth: signed-in user joining or creating their own store (throttled)"
+  "POST partners-submit": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST pricing/currency-override": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST redeem": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST reset-password": "auth: authentication flow / own account"
+  "POST s/{store_slug}/api/heartbeat": "self: member presence ping"
+  "POST s/{store_slug}/appearance": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/appearance/experience": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/attendance/check-in": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/attendance/check-out": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/attendance/heartbeat": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/attendance/log-gap": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/notifications/mark-all-read": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/notifications/plan/mark-all-read": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/notifications/plan/{id}/read": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/notifications/{id}/mark-read": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/profile/passcode": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/profile/security-pin": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/profile/verify-elevated-pin": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/profile/verify-security-pin": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/workspace/data": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/workspace/layout": "self: acts only on the signed-in member's own data"
+  "POST s/{store_slug}/workspace/layout/reset": "self: acts only on the signed-in member's own data"
+  "POST staff-login": "auth: authentication flow / own account"
+  "POST subscribe": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST subscribe/unsubscribe/{token}": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST tools/barcode-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/barcode-generator/sheet": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/barcode-generator/validate": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/barcode-label/parse": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/barcode-label/sheet": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/barcode-validator/check": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/cash-drawer-count-sheet/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/credit-note-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/invoice-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/invoice-scanner": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/label-sheet-generator/parse": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/label-sheet-generator/sheet": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/lead": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/lead/unsubscribe/{token}": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/packing-slip-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/price-tag-generator/parse": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/price-tag-generator/sheet": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/product-csv-cleaner/download": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/product-csv-cleaner/parse": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/purchase-order-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/qr-code-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/qr-menu-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/quote-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/receipt-generator/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/smart-capture": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/stock-count-sheet/parse": "public: rate-limited marketing tool (throttle:tools)"
+  "POST tools/stock-count-sheet/render": "public: rate-limited marketing tool (throttle:tools)"
+  "POST verify-code": "auth: authentication flow / own account"
+  "POST verify-code/cancel": "auth: authentication flow / own account"
+  "POST verify-code/resend": "auth: authentication flow / own account"
+  "POST woocommerce/webhook/{uuid}": "webhook/handshake: HMAC signature or one-time setup token, throttled"
+  "POST workspace/analyze": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST workspace/converse/deepen": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST workspace/converse/reset": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST workspace/converse/start": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST workspace/converse/step": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST workspace/demand-log": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST workspace/prepare-google": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST workspace/provision": "public: throttled form (Turnstile where it sends email or spends AI)"
+  "POST|PUT|PATCH|DELETE batches": "legacy stub: redirect/404/410/403 only, no handler logic"
+  "POST|PUT|PATCH|DELETE reports/{any}": "legacy stub: redirect/404/410/403 only, no handler logic"
+  "POST|PUT|PATCH|DELETE serials": "legacy stub: redirect/404/410/403 only, no handler logic"
+  "POST|PUT|PATCH|DELETE stock-operations/{any}": "legacy stub: redirect/404/410/403 only, no handler logic"
+  "POST|PUT|PATCH|DELETE stock-transfers/{any?}": "legacy stub: redirect/404/410/403 only, no handler logic"
+  "PUT api/dashboards/{id}": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "PUT api/dashboards/{id}/layout": "self: own dashboards; controller enforces owner or admin.settings_manage"
+  "PUT password": "auth: authentication flow / own account"

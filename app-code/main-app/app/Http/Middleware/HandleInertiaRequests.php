@@ -184,6 +184,14 @@ class HandleInertiaRequests extends Middleware
             'modules' => fn () => app()->bound('current.tenant')
                 ? \App\Services\ModuleService::allVisible(app('current.tenant'), $request->user())
                 : [],
+            'planFeatures' => function () {
+                $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                return $tenant
+                    ? collect(array_unique(array_values(\App\Support\ReportPlanMap::REQUIRED_PLAN_FEATURES)))
+                        ->mapWithKeys(fn ($key) => [$key => \App\Services\PlanGate::check($key, $tenant)])
+                        ->all()
+                    : [];
+            },
             'nav' => fn () => app()->bound('current.tenant')
                 ? \App\Support\ModuleNavBuilder::build(app('current.tenant'), $request->user())
                 : [],

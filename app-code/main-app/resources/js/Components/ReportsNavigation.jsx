@@ -12,8 +12,10 @@ import {
     Users,
     FileText,
     BookOpen,
-    Scale
+    Scale,
+    Lock
 } from 'lucide-react';
+import { isReportLocked } from '@/lib/reportPlanMap';
 
 // Mirrors app/Support/ReportModuleMap.php for this curated tab strip only —
 // null means Qore-backed/always visible. Keep in sync if a route here moves
@@ -35,7 +37,7 @@ const REPORT_OWNER = {
 
 export default function ReportsNavigation() {
     const { url, props } = usePage();
-    const { store, modules } = props;
+    const { store, modules, planFeatures = {} } = props;
     const scrollRef = useRef(null);
     const enabledModules = Array.isArray(modules) ? modules : null;
 
@@ -88,22 +90,33 @@ export default function ReportsNavigation() {
         <div className="w-full border-b border-line bg-surface sticky top-0 z-30">
             <div className="w-full overflow-x-auto no-scrollbar" ref={scrollRef}>
                 <div className="flex items-center px-4 md:px-6 gap-2 py-2 min-w-max">
-                    {links.map((link) => (
-                        <Link
-                            key={link.route}
-                            href={route(link.route, { store_slug: store?.slug })}
-                            className={`
-                                flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-normal whitespace-nowrap
-                                ${isActive(link.route)
-                                    ? 'bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 active-report-link ring-1 ring-brand-200 dark:ring-brand-500/30'
-                                    : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover hover:text-ink dark:hover:text-neutral-200'
-                                }
-`}
-                        >
-                            <link.icon size={16} className={isActive(link.route) ? 'text-brand-600 dark:text-brand-400' : 'text-ink-muted'} />
-                            {link.label}
-                        </Link>
-                    ))}
+                    {links.map((link) => {
+                        const isLocked = isReportLocked(link.route, planFeatures);
+                        const targetHref = isLocked
+                            ? (store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing')
+                            : route(link.route, { store_slug: store?.slug });
+
+                        return (
+                            <Link
+                                key={link.route}
+                                href={targetHref}
+                                title={isLocked ? `${link.label} (Upgrade Required)` : undefined}
+                                className={`
+                                    flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-normal whitespace-nowrap
+                                    ${isActive(link.route)
+                                        ? 'bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 active-report-link ring-1 ring-brand-200 dark:ring-brand-500/30'
+                                        : isLocked
+                                        ? 'text-ink-muted hover:bg-interactive-hover hover:text-ink'
+                                        : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover hover:text-ink dark:hover:text-neutral-200'
+                                    }
+                                `}
+                            >
+                                <link.icon size={16} className={isActive(link.route) ? 'text-brand-600 dark:text-brand-400' : 'text-ink-muted'} />
+                                <span>{link.label}</span>
+                                {isLocked && <Lock size={12} className="text-amber-500 shrink-0 ml-1" />}
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
         </div>

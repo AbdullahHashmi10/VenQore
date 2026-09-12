@@ -11,9 +11,10 @@ import {
     PackageSearch, Tags, BarChart3, Tag, Hourglass, Users2, Activity, BookOpen,
     Search, Lock, PackageMinus
 } from 'lucide-react';
+import { isReportLocked } from '@/lib/reportPlanMap';
 
 const Card3D = ({ report }) => {
-    const { allowed_reports = [], report_tiers = {} } = usePage().props;
+    const { store, planFeatures = {} } = usePage().props;
 
     const cardRef = useRef(null);
     const [transform, setTransform] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
@@ -21,24 +22,22 @@ const Card3D = ({ report }) => {
     const [isHovered, setIsHovered] = useState(false);
     const Icon = report.icon;
 
-    // Extract reportKey from href
-    const getReportKey = (href) => {
+    // Extract route name from href
+    const getReportRouteName = (href) => {
         if (!href) return '';
         const parts = href.split('/reports/');
         if (parts.length > 1) {
-            return `reports.${parts[1].split('?')[0]}`;
+            return `store.reports.${parts[1].split('?')[0]}`;
         }
-        if (href.includes('/accounting')) {
-            return 'reports.chart-of-accounts';
+        if (href.includes('/v3/reports/')) {
+            const v3parts = href.split('/v3/reports/');
+            return `store.v3.reports.${v3parts[1].split('?')[0]}`;
         }
         return '';
     };
 
-    const reportKey = getReportKey(report.href);
-    const isAllowed = allowed_reports.includes(reportKey);
-    const requiredTier = Object.keys(report_tiers).find(tier => 
-        report_tiers[tier].includes(reportKey)
-    ) || 'growth';
+    const reportRouteName = getReportRouteName(report.href);
+    const isLocked = isReportLocked(reportRouteName, planFeatures);
 
     // Define color map explicitly for the glow - HIGH INTENSITY (0.7)
     const getGlowColor = (colorClass) => {
@@ -53,7 +52,7 @@ const Card3D = ({ report }) => {
         return 'rgba(99, 102, 241, 0.7)';
     };
 
-    const glowColor = getGlowColor(report.color);
+    const glowColor = getGlowColor(report.color || '');
 
     const handleMouseMove = (e) => {
         if (!cardRef.current) return;
@@ -78,10 +77,12 @@ const Card3D = ({ report }) => {
         setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
     };
 
-    if (!isAllowed) {
+    if (isLocked) {
         return (
-            <div
-                className="relative bg-surface/50 dark:bg-app rounded-2xl border border-line overflow-hidden flex flex-col h-full select-none cursor-not-allowed group/locked"
+            <Link
+                href={store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
+                className="relative bg-surface/50 dark:bg-app rounded-2xl border border-line overflow-hidden flex flex-col h-full group/locked hover:border-brand-500/40 transition-colors"
+                title="Upgrade plan to unlock this report"
             >
                 <div className="relative p-6 flex flex-col h-full z-10 opacity-50 filter blur-[0.5px]">
                     {/* Header Section */}
@@ -115,13 +116,14 @@ const Card3D = ({ report }) => {
                 {/* Lock Overlay */}
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-sunken dark:bg-black/40 backdrop-blur-[2px]">
                     <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center shadow-lg border border-line text-ink-muted group-hover/locked:scale-110 transition-transform duration-slow">
-                        <Lock size={16} />
+                        <Lock size={16} className="text-amber-500" />
                     </div>
-                    <span className="text-1xs font-bold uppercase tracking-wider text-ink-secondary px-2.5 py-1 bg-white/95 dark:bg-surface rounded-full shadow-sm border border-line">
-                        Upgrade to {planLabel(requiredTier)}
+                    <span className="text-1xs font-bold uppercase tracking-wider text-ink-secondary px-3 py-1 bg-white/95 dark:bg-surface rounded-full shadow-sm border border-line flex items-center gap-1.5">
+                        <Lock size={11} className="text-amber-500" />
+                        Upgrade to Unlock
                     </span>
                 </div>
-            </div>
+            </Link>
         );
     }
 

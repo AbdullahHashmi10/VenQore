@@ -1,7 +1,8 @@
 import React from 'react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     AlertCircle, GripVertical, HelpCircle, Minus, Pencil,
-    Trash2, TrendingDown, TrendingUp,
+    Trash2, TrendingDown, TrendingUp, Lock,
 } from 'lucide-react';
 
 import NumberRoller from './NumberRoller';
@@ -63,6 +64,9 @@ export default function DashboardCardFrame({
     // A card gated by plan or permission is not a card in an error state — it
     // is a card that does not exist for this user. It leaves no hole.
     if (isGated) return null;
+
+    const { store, planFeatures = {} } = usePage().props;
+    const isPnlLocked = (card?.key === 'finance.net_profit' || definition?.key === 'finance.net_profit' || card?.key === 'finance.profit_trend' || card?.chart === 'profit_loss_line') && planFeatures.report_profit_loss === false;
 
     const category = card?.category || 'C3';
     const accent = Boolean(card?.style?.accent);
@@ -133,7 +137,21 @@ export default function DashboardCardFrame({
         </span>
     ) : null;
 
-    const value = (
+    const value = isPnlLocked ? (
+        <div className="flex flex-col items-start gap-1">
+            <span className="vqc-value filter blur-xs select-none opacity-40 tracking-wider">
+                ••••••
+            </span>
+            <Link
+                href={window.route && store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
+                className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline z-10"
+                title="See your profit"
+            >
+                <Lock size={11} className="text-amber-500" />
+                See your profit
+            </Link>
+        </div>
+    ) : (
         <NumberRoller
             value={metric.text}
             title={metric.exact ?? undefined}

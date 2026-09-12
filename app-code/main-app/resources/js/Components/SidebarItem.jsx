@@ -1,10 +1,11 @@
 import React, { useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronRight } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+import { ChevronRight, Lock } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
 import FeatureLockBadge from '@/Components/FeatureLockBadge';
 import VenaLogo from '@/Components/VenaLogo';
 import { useNavLabel } from '@/lib/terms';
+import { isReportLocked } from '@/lib/reportPlanMap';
 
 export default function SidebarItem({
     icon: Icon,
@@ -26,6 +27,7 @@ export default function SidebarItem({
 }) {
     // Priority: use 'name' if provided, then 'label'
     const displayName = name || label;
+    const { store, planFeatures = {} } = usePage().props;
     // Store terminology on screen ("Clients", "Jobs", "Parts") — keys unchanged.
     const navLabel = useNavLabel();
     const finalRoute = targetRoute || routeName;
@@ -349,13 +351,25 @@ export default function SidebarItem({
                                         : baseRoute;
 
                                     const isComingSoon = itemName.includes('Coming Soon');
+                                    const isPlanLocked = isReportLocked(activeRouteName, planFeatures);
 
                                     return (
-                                        <FeatureLockBadge key={sIdx} isLocked={false} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
+                                        <FeatureLockBadge key={sIdx} isLocked={isPlanLocked} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
                                             {isComingSoon ? (
                                                 <span className="block pl-4 py-1.5 text-xs font-medium text-ink-muted dark:text-ink-secondary cursor-pointer">
                                                     {navLabel(itemName)}
                                                 </span>
+                                            ) : isPlanLocked ? (
+                                                <Link
+                                                    href={window.route && store?.slug ? window.route('store.billing', { store_slug: store.slug }) : '/billing'}
+                                                    className="flex items-center justify-between pl-4 pr-3 py-1.5 text-xs font-medium transition-colors text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 group/lock"
+                                                    title="Upgrade to unlock this report"
+                                                >
+                                                    <span className="flex items-center gap-1.5 truncate">
+                                                        {navLabel(itemName)}
+                                                    </span>
+                                                    <Lock size={12} className="shrink-0 text-amber-500/80 group-hover/lock:text-amber-500" />
+                                                </Link>
                                             ) : (
                                                 window.route().has(activeRouteName) && (
                                                     <Link
@@ -400,20 +414,35 @@ export default function SidebarItem({
                         ? `store.${baseRoute}`
                         : baseRoute;
 
+                    const isPlanLocked = isReportLocked(routeName, planFeatures);
+
                     return (
-                        <FeatureLockBadge key={idx} isLocked={false} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
-                            {window.route().has(routeName) && (
+                        <FeatureLockBadge key={idx} isLocked={isPlanLocked} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
+                            {isPlanLocked ? (
                                 <Link
-                                    href={window.route(routeName, routeParams || {})}
-                                    className="block pl-4 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
+                                    href={window.route && store?.slug ? window.route('store.billing', { store_slug: store.slug }) : '/billing'}
+                                    className="flex items-center justify-between pl-4 pr-3 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 group/lock"
+                                    title="Upgrade to unlock this report"
                                 >
-                                    <span className="flex items-center gap-1.5">
-                                        {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
-                                            <VenaLogo size={13} className="shrink-0" />
-                                        )}
+                                    <span className="flex items-center gap-1.5 truncate">
                                         {navLabel(itemName)}
                                     </span>
+                                    <Lock size={12} className="shrink-0 text-amber-500/80 group-hover/lock:text-amber-500" />
                                 </Link>
+                            ) : (
+                                window.route().has(routeName) && (
+                                    <Link
+                                        href={window.route(routeName, routeParams || {})}
+                                        className="block pl-4 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
+                                    >
+                                        <span className="flex items-center gap-1.5">
+                                            {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
+                                                <VenaLogo size={13} className="shrink-0" />
+                                            )}
+                                            {navLabel(itemName)}
+                                        </span>
+                                    </Link>
+                                )
                             )}
                         </FeatureLockBadge>
                     );

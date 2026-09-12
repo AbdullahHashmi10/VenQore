@@ -93,7 +93,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
  const { url, props } = usePage();
- const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo } = props;
+ const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo, planFeatures } = props;
 
  /* Counter, table service, or both. Decides whether a Tables entry exists at
  all: a counter-only shop seeing a control it can never use is the kind of

@@ -1,0 +1,1579 @@
+meta:
+  schema_version: 1
+  generated_phase: B
+  phpunit_test_methods_total: 2037
+  note: 'total = SUM of member test_methods (testX(), @test,'
+suites:
+  -
+    id: Feature
+    path: tests/Feature
+    test_methods: 697
+    files: 115
+    members:
+      -
+        file: tests/Feature/ActivityLogTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/Ai/AiControllerAccessTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Ai/AiRateLimiterTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Ai/AiScopeGuardTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Ai/GenerateProductDescriptionsJobTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Ai/SmartCaptureSpendCapTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/AllocationTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/BlogPostEngineTest.php
+        test_methods: 6
+        oracle_tier: T2
+      -
+        file: tests/Feature/ComparePagesTest.php
+        test_methods: 5
+        oracle_tier: T2
+      -
+        file: tests/Feature/CrawlHygieneTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/DebitNoteTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/DocumentConversionTest.php
+        test_methods: 8
+        oracle_tier: T2
+      -
+        file: tests/Feature/DocumentationHubTest.php
+        test_methods: 5
+        oracle_tier: T2
+      -
+        file: tests/Feature/FeaturePagesTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/FrontendSyntaxIntegrityTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/GoldenAuditTestsTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Hardening/ApproverPinTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/InertiaCsrfPropTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/InventoryDbGuardsInstalledTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/InventoryDbGuardsTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/LedgerAtomicityTest.php
+        test_methods: 12
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/LegacySalesPathsTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/PaymentsScreenAndDebitNoteTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/PlatformAiKeysTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/PosApprovalGuardTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/ProductionScreenContractTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/PurchaseAccountingTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/SalesReturnAccountingTest.php
+        test_methods: 11
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/SerialAndUomHousekeepingTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/StoreScopingHardeningTest.php
+        test_methods: 11
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/V3IdScopingTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/ImportMappingTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/InvoiceFooterViralLoopTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/LayoutAndAdminUsersRegressionTest.php
+        test_methods: 20
+        oracle_tier: T2
+      -
+        file: tests/Feature/LedgerAccountingIntegrationTest.php
+        test_methods: 14
+        oracle_tier: T1
+      -
+        file: tests/Feature/LegacyAdminPasscodeTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/Marketing/GeoPricingTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/Marketing/NewsletterSubscriptionTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/MarketingSsrTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/MigrateOpeningBalancesTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/MigrationTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/ModalValidationRegressionTest.php
+        test_methods: 10
+        oracle_tier: T2
+      -
+        file: tests/Feature/Module/BusinessTypeCatalogueTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/ConfigurationValidatorTest.php
+        test_methods: 15
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/DataPreservationInvariantTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/EnsureModuleTest.php
+        test_methods: 19
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/ModuleRegistryIntegrityTest.php
+        test_methods: 19
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/PresetSmokeTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/ReportPlanGateTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/ReportPlanMapIntegrityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/ServiceOnlySaleTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Feature/OwnersDailyPulseTest.php
+        test_methods: 13
+        oracle_tier: T2
+      -
+        file: tests/Feature/PartnersPageTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/PaymentAllocationTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase1SmartCaptureTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase2MeteringTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase3FeatureGatesTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase4PricingLiveTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase5TruthAndTrustTest.php
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase6VenSynQTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase7GrowthTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase8AppSumoTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase9InfrastructureTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Phase9OptionalFeaturesTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Plan/ActivityLogWritesOnFreshInstallTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Plan/TransactionLimitEnforcementTest.php
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Feature/PlanGatingAndLimitsTest.php
+        test_methods: 23
+        oracle_tier: T1
+      -
+        file: tests/Feature/PlanLimitsEnforcerTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/PlanManagementTest.php
+        test_methods: 5
+        oracle_tier: T2
+      -
+        file: tests/Feature/PosFeaturesTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/PricingConversionOptimizationTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/ProductDeletionTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/ProfileTest.php
+        test_methods: 5
+        oracle_tier: T2
+      -
+        file: tests/Feature/PurchasesImportTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/Reckoner/AssistantParityTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L1TenantIsolationTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L2GroupingConservationTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L3PeriodAdditivityTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L4ComparisonSymmetryTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L5EmptyTenantTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L6PermissionLawTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L7ReversalTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Laws/L8RegistryContractTest.php
+        test_methods: 14
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/PlanGateReachabilityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/ReckonerConsistencyTest.php
+        test_methods: 11
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/ReckonerGateTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/ReckonerPeriodTest.php
+        test_methods: 13
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/ReckonerRegistryTest.php
+        test_methods: 15
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/ReckonerSettingsTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/SuspendedMembershipTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/TruthGateTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/RegressionFixesTest.php
+        test_methods: 30
+        oracle_tier: T2
+      -
+        file: tests/Feature/RoadmapTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/RouteParameterRegressionTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Security/ApiTenantResolverTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/ConfigGuardCommandTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/EmailOtpAuthTest.php
+        test_methods: 17
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/PreLaunchSecurityTest.php
+        test_methods: 22
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/PrintLogoUploadTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/RouteGapSweepTest.php
+        test_methods: 16
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/StoragePathTraversalTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/SuperAdminSeederTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/TurnstileMiddlewareTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/Security/WooWebhookSecretTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/SitemapIndexAndLastModifiedTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/SitemapTest.php
+        test_methods: 4
+        oracle_tier: T2
+      -
+        file: tests/Feature/SmartFulfillmentTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/SolutionsPagesTest.php
+        test_methods: 9
+        oracle_tier: T2
+      -
+        file: tests/Feature/StoreUniqueNameTest.php
+        test_methods: 5
+        oracle_tier: T2
+      -
+        file: tests/Feature/SystemManifestTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/SystemResetTest.php
+        test_methods: 8
+        oracle_tier: T2
+      -
+        file: tests/Feature/TerminalAppIntegrationTest.php
+        test_methods: 10
+        oracle_tier: T2
+      -
+        file: tests/Feature/V11PlanGatingAndEntitlementsTest.php
+        test_methods: 12
+        oracle_tier: T1
+      -
+        file: tests/Feature/ZiggyRouteIntegrityTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Unit/SharedCatalogServiceTest.php
+        test_methods: 3
+        oracle_tier: T1
+  -
+    id: Feature.AppSumo
+    path: tests/Feature/AppSumo
+    test_methods: 1
+    files: 2
+    members:
+      -
+        file: tests/Feature/AppSumo/CodeStackingTest.php
+        test_methods: 0
+        oracle_tier: T2
+      -
+        file: tests/Feature/AppSumo/ImportAppSumoCodesTest.php
+        test_methods: 1
+        oracle_tier: T2
+  -
+    id: Feature.Auth
+    path: tests/Feature/Auth
+    test_methods: 29
+    files: 6
+    members:
+      -
+        file: tests/Feature/Auth/AuthenticationTest.php
+        test_methods: 13
+        oracle_tier: T2
+      -
+        file: tests/Feature/Auth/EmailVerificationTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/Auth/PasswordConfirmationTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/Auth/PasswordResetTest.php
+        test_methods: 4
+        oracle_tier: T2
+      -
+        file: tests/Feature/Auth/PasswordUpdateTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/Auth/RegistrationTest.php
+        test_methods: 3
+        oracle_tier: T2
+  -
+    id: Feature.Billing
+    path: tests/Feature/Billing
+    test_methods: 48
+    files: 6
+    members:
+      -
+        file: tests/Feature/Billing/GeoPricingTest.php
+        test_methods: 5
+        oracle_tier: T2
+      -
+        file: tests/Feature/Billing/PaymentHistoryTest.php
+        test_methods: 10
+        oracle_tier: T2
+      -
+        file: tests/Feature/Billing/RefundWebhookTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Billing/SubscriptionCancelTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Billing/SubscriptionStatusMappingTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Billing/TrialCreditTest.php
+        test_methods: 12
+        oracle_tier: T2
+  -
+    id: Feature.Chat
+    path: tests/Feature/Chat
+    test_methods: 60
+    files: 6
+    members:
+      -
+        file: tests/Feature/Chat/ChatInactivityAndAnonymousTest.php
+        test_methods: 4
+        oracle_tier: T2
+      -
+        file: tests/Feature/Chat/ChatbotSystemTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Chat/SmartCaptureHardeningTest.php
+        test_methods: 15
+        oracle_tier: T2
+      -
+        file: tests/Feature/Chat/SmartCaptureSafetyTest.php
+        test_methods: 13
+        oracle_tier: T2
+      -
+        file: tests/Feature/Chat/SmartCaptureTest.php
+        test_methods: 13
+        oracle_tier: T2
+      -
+        file: tests/Feature/Chat/SupportTicketsTest.php
+        test_methods: 8
+        oracle_tier: T2
+  -
+    id: Feature.Core
+    path: tests/Feature/Core
+    test_methods: 31
+    files: 11
+    members:
+      -
+        file: tests/Feature/Core/BalanceConsistencyTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/CalculatorParityTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/DashboardConsistencyTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/FifoDeterminismTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/NoSecondCalculatorTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/NumberLineageCompletenessTest.php
+        test_methods: 3
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/PlanTruthFailClosedTest.php
+        test_methods: 4
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/RecentFixesAuditTest.php
+        test_methods: 5
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/RegistryDriftTest.php
+        test_methods: 8
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/SingleWriterGuardTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Core/SuiteIntegrityTest.php
+        test_methods: 5
+        oracle_tier: T3
+  -
+    id: Feature.DemoStore
+    path: tests/Feature/DemoStore
+    test_methods: 39
+    files: 2
+    members:
+      -
+        file: tests/Feature/DemoStore/GoldenMasterResolutionTest.php
+        test_methods: 4
+        oracle_tier: T2
+      -
+        file: tests/Feature/DemoStore/PageHealthTest.php
+        test_methods: 35
+        oracle_tier: T2
+  -
+    id: Feature.Golden
+    path: tests/Feature/Golden
+    test_methods: 267
+    files: 26
+    members:
+      -
+        file: tests/Feature/Golden/AdversarialCorruptionTest.php
+        test_methods: 16
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/ArchitecturalEnforcementTest.php
+        test_methods: 13
+        oracle_tier: T3
+      -
+        file: tests/Feature/Golden/ClockPositionConsistencyTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/CogsReconciliationTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/CrossSurfaceConsistencyTest.php
+        test_methods: 11
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/DashboardOutputTest.php
+        test_methods: 10
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/DatePeriodConsistencyTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php
+        test_methods: 15
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/ExpensePaymentInputVerificationTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/FifoBatchVerificationTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/FilterMatrixTest.php
+        test_methods: 8
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/FinancialCoreVerificationTest.php
+        test_methods: 20
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/FormattingConsistencyTest.php
+        test_methods: 10
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/GoldenAuditTestsTest.php
+        test_methods: 2
+        oracle_tier: T3
+      -
+        file: tests/Feature/Golden/GoldenCompanyTest.php
+        test_methods: 60
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/LaunchGateSelfTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/LaunchGateTest.php
+        test_methods: 15
+        oracle_tier: T3
+      -
+        file: tests/Feature/Golden/LedgerTruthSweepTest.php
+        test_methods: 1
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/PurchaseInputVerificationTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/PurchaseIslandGuardTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/ReportOutputTest.php
+        test_methods: 15
+        oracle_tier: T2
+      -
+        file: tests/Feature/Golden/SaleInputVerificationTest.php
+        test_methods: 12
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/SentinelAuditTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Golden/SentinelDeltaDetectionTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Golden/V3PurchaseParityTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/GoldenAuditTestsTest.php
+        test_methods: 2
+        oracle_tier: T1
+  -
+    id: Feature.Guardrails
+    path: tests/Feature/Guardrails
+    test_methods: 49
+    files: 20
+    members:
+      -
+        file: tests/Feature/Guardrails/AccountingIntegrityGuardTest.php
+        test_methods: 2
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/AllocationTriggerTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/AstSingleWriterGuardTest.php
+        test_methods: 2
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/BuildingBlocksEngineTest.php
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Feature/Guardrails/CapabilityDependencyResolverTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Guardrails/FifoConcurrencyRaceTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/HeartbeatOwnershipGuardTest.php
+        test_methods: 4
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/LedgerCorruptionAlertTest.php
+        test_methods: 1
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/LtdPricingSingleSourceOfTruthGuardTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Guardrails/MassAssignmentGuardTest.php
+        test_methods: 2
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/NavigationParityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Guardrails/NoLegacyServiceGenerationTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Guardrails/OfflineSyncIdempotencyGuardTest.php
+        test_methods: 2
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/PaymentAllocationTriggerTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Guardrails/PermissionBypassGuardTest.php
+        test_methods: 2
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/PlanEntitlementIntegrityTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Guardrails/SaleFinancialValueGuardTest.php
+        test_methods: 4
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/TenantIsolationSweepGuardTest.php
+        test_methods: 3
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/TerminalOwnershipGuardTest.php
+        test_methods: 5
+        oracle_tier: T3
+      -
+        file: tests/Feature/Guardrails/TerminologySystemTest.php
+        test_methods: 3
+        oracle_tier: T1
+  -
+    id: Feature.Heart
+    path: tests/Feature/Heart
+    test_methods: 13
+    files: 1
+    members:
+      -
+        file: tests/Feature/Heart/OneCoreReconciliationGateTest.php
+        test_methods: 13
+        oracle_tier: T2
+  -
+    id: Feature.Module01
+    path: tests/Feature/Module01
+    test_methods: 13
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module01/AuthAndTenancyTest.php
+        test_methods: 13
+        oracle_tier: T2
+  -
+    id: Feature.Module02
+    path: tests/Feature/Module02
+    test_methods: 14
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module02/StoreCreationAndProvisioningTest.php
+        test_methods: 14
+        oracle_tier: T2
+  -
+    id: Feature.Module03
+    path: tests/Feature/Module03
+    test_methods: 12
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module03/PosTerminalTest.php
+        test_methods: 12
+        oracle_tier: T2
+  -
+    id: Feature.Module04
+    path: tests/Feature/Module04
+    test_methods: 8
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module04/PaymentProcessingTest.php
+        test_methods: 8
+        oracle_tier: T2
+  -
+    id: Feature.Module05
+    path: tests/Feature/Module05
+    test_methods: 22
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module05/FinancialEngineTest.php
+        test_methods: 22
+        oracle_tier: T2
+  -
+    id: Feature.Module06
+    path: tests/Feature/Module06
+    test_methods: 8
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module06/SalesEcosystemTest.php
+        test_methods: 8
+        oracle_tier: T2
+  -
+    id: Feature.Module07
+    path: tests/Feature/Module07
+    test_methods: 6
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module07/ProcurementTest.php
+        test_methods: 6
+        oracle_tier: T2
+  -
+    id: Feature.Module08
+    path: tests/Feature/Module08
+    test_methods: 8
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module08/InventoryTest.php
+        test_methods: 8
+        oracle_tier: T2
+  -
+    id: Feature.Module09
+    path: tests/Feature/Module09
+    test_methods: 7
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module09/ManufacturingTest.php
+        test_methods: 7
+        oracle_tier: T2
+  -
+    id: Feature.Module10
+    path: tests/Feature/Module10
+    test_methods: 6
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module10/WooCommerceTest.php
+        test_methods: 6
+        oracle_tier: T2
+  -
+    id: Feature.Module11
+    path: tests/Feature/Module11
+    test_methods: 11
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module11/BillingTest.php
+        test_methods: 11
+        oracle_tier: T2
+  -
+    id: Feature.Module12
+    path: tests/Feature/Module12
+    test_methods: 12
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module12/ReportsTest.php
+        test_methods: 12
+        oracle_tier: T2
+  -
+    id: Feature.Module13
+    path: tests/Feature/Module13
+    test_methods: 6
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module13/DashboardTest.php
+        test_methods: 6
+        oracle_tier: T2
+  -
+    id: Feature.Module14
+    path: tests/Feature/Module14
+    test_methods: 8
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module14/AiEngineTest.php
+        test_methods: 8
+        oracle_tier: T2
+  -
+    id: Feature.Module15
+    path: tests/Feature/Module15
+    test_methods: 6
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module15/PartiesLedgerTest.php
+        test_methods: 6
+        oracle_tier: T1
+  -
+    id: Feature.Module16
+    path: tests/Feature/Module16
+    test_methods: 6
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module16/StaffAttendanceTest.php
+        test_methods: 6
+        oracle_tier: T2
+  -
+    id: Feature.Module17
+    path: tests/Feature/Module17
+    test_methods: 8
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module17/SettingsTest.php
+        test_methods: 8
+        oracle_tier: T2
+  -
+    id: Feature.Module18
+    path: tests/Feature/Module18
+    test_methods: 7
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module18/OfflineDrmTest.php
+        test_methods: 7
+        oracle_tier: T2
+  -
+    id: Feature.Module19
+    path: tests/Feature/Module19
+    test_methods: 36
+    files: 4
+    members:
+      -
+        file: tests/Feature/Module19/MarketplaceClearingT17Test.php
+        test_methods: 13
+        oracle_tier: T2
+      -
+        file: tests/Feature/Module19/RealTimeNotificationTest.php
+        test_methods: 4
+        oracle_tier: T2
+      -
+        file: tests/Feature/Module19/VenSynQIntegrationT16Test.php
+        test_methods: 16
+        oracle_tier: T2
+      -
+        file: tests/Feature/Module19/VenSynQTest.php
+        test_methods: 3
+        oracle_tier: T2
+  -
+    id: Feature.Module20
+    path: tests/Feature/Module20
+    test_methods: 9
+    files: 2
+    members:
+      -
+        file: tests/Feature/Module20/FinancialExtensionTest.php
+        test_methods: 5
+        oracle_tier: T2
+      -
+        file: tests/Feature/Module20/SuperAdminTest.php
+        test_methods: 4
+        oracle_tier: T2
+  -
+    id: Feature.Module21
+    path: tests/Feature/Module21
+    test_methods: 34
+    files: 1
+    members:
+      -
+        file: tests/Feature/Module21/RealWorkflowIntegrationTest.php
+        test_methods: 34
+        oracle_tier: T2
+  -
+    id: Feature.Monetization
+    path: tests/Feature/Monetization
+    test_methods: 12
+    files: 1
+    members:
+      -
+        file: tests/Feature/Monetization/AiAndSyncEntitlementTest.php
+        test_methods: 12
+        oracle_tier: T2
+  -
+    id: Feature.Money
+    path: tests/Feature/Money
+    test_methods: 52
+    files: 21
+    members:
+      -
+        file: tests/Feature/Money/CascadeDeleteAuditTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/FractionalQtyAdjacentTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/FractionalQtyTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/GatingTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/GoldenTransactionTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/GranularPermissionTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/HistoryImmutabilityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/IdorSweepTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/LowStockWarehouseTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/PosBankAccountsPropsTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/PosOpenReturnTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/PreSaleConversionTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/PrecisionStandardTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/ReportReconciliationTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/ReturnIntegrityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/SaleHeaderInvariantTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/SalesListMonthFilterTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/SplitPaymentReconcileTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/SupplierStatementTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/TaxAfterDiscountTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Money/TenantTimezoneTest.php
+        test_methods: 2
+        oracle_tier: T1
+  -
+    id: Feature.Production
+    path: tests/Feature/Production
+    test_methods: 8
+    files: 4
+    members:
+      -
+        file: tests/Feature/Production/ExportContentVerificationTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Production/ImportJournalBalanceTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Production/LegacyPosCogsPinningTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Production/WooWebhookJournalPinningTest.php
+        test_methods: 3
+        oracle_tier: T1
+  -
+    id: Feature.Reports
+    path: tests/Feature/Reports
+    test_methods: 3
+    files: 1
+    members:
+      -
+        file: tests/Feature/Reports/CrossTenantReportLeakTest.php
+        test_methods: 3
+        oracle_tier: T2
+  -
+    id: Feature.Smoke
+    path: tests/Feature/Smoke
+    test_methods: 66
+    files: 3
+    members:
+      -
+        file: tests/Feature/Smoke/InertiaPageRenderTest.php
+        test_methods: 15
+        oracle_tier: T3
+      -
+        file: tests/Feature/Smoke/ProductionSmokeTest.php
+        test_methods: 45
+        oracle_tier: T3
+      -
+        file: tests/Feature/Smoke/SerializationDragnetTest.php
+        test_methods: 6
+        oracle_tier: T3
+  -
+    id: Feature.Tools
+    path: tests/Feature/Tools
+    test_methods: 193
+    files: 28
+    members:
+      -
+        file: tests/Feature/Tools/BarcodeLabelSheetToolTest.php
+        test_methods: 8
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/BarcodeSheetTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/BarcodeTextRenderingTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/BarcodeToolTest.php
+        test_methods: 15
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/BarcodeValidatorTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/CashDrawerToolTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/CreditNoteToolTest.php
+        test_methods: 9
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/FoodCostToolTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/InventoryHealthToolTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/InvoiceToolTest.php
+        test_methods: 8
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/LabelSheetToolTest.php
+        test_methods: 10
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/MarginCalculatorToolTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/PackingSlipToolTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/PaymentFeeToolTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/PosRoiToolTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/PriceTagToolTest.php
+        test_methods: 8
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/ProductCsvCleanerToolTest.php
+        test_methods: 13
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/PurchaseOrderToolTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/QrCodeToolTest.php
+        test_methods: 19
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/QrMenuToolTest.php
+        test_methods: 3
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/QuotationToolTest.php
+        test_methods: 12
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/QuoteToolTest.php
+        test_methods: 4
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/RateLimitTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/ReceiptToolTest.php
+        test_methods: 9
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/SkuGeneratorToolTest.php
+        test_methods: 2
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/StockCountSheetToolTest.php
+        test_methods: 7
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/ToolLeadCaptureTest.php
+        test_methods: 11
+        oracle_tier: T2
+      -
+        file: tests/Feature/Tools/ToolSeoCoverageTest.php
+        test_methods: 5
+        oracle_tier: T2
+  -
+    id: Feature.V3
+    path: tests/Feature/V3
+    test_methods: 8
+    files: 2
+    members:
+      -
+        file: tests/Feature/V3/SalesOrderTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/SmokeTest.php
+        test_methods: 7
+        oracle_tier: T1
+  -
+    id: Feature.V3.Scenarios
+    path: tests/Feature/V3/Scenarios
+    test_methods: 127
+    files: 13
+    members:
+      -
+        file: tests/Feature/V3/Scenarios/AccountingServiceTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/FifoServiceTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/InventoryAndPartyServiceTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/ManufacturingServiceTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/PartialReturnTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/PaymentServiceTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/Phase2InventoryScenariosTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/Phase3SalesScenariosTest.php
+        test_methods: 14
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/Phase4OperationsScenariosTest.php
+        test_methods: 14
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/Phase56ReportsInfraScenariosTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/ScenarioStubsTest.php
+        test_methods: 21
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/SettlementAndReportServiceTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/TaxAndUomServiceTest.php
+        test_methods: 10
+        oracle_tier: T1
+  -
+    id: Performance
+    path: tests/Performance
+    test_methods: 1
+    files: 1
+    members:
+      -
+        file: tests/Performance/SnapshotPerformanceTest.php
+        test_methods: 1
+        oracle_tier: T2
+  -
+    id: Routes
+    path: tests/Routes
+    test_methods: 6
+    files: 1
+    members:
+      -
+        file: tests/Routes/FullRouteSweepTest.php
+        test_methods: 6
+        oracle_tier: T2
+  -
+    id: Unit.Tools
+    path: tests/Unit/Tools
+    test_methods: 11
+    files: 2
+    members:
+      -
+        file: tests/Unit/SharedCatalogServiceTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Unit/Tools/CheckDigitTest.php
+        test_methods: 8
+        oracle_tier: T1
+  -
+    id: Unit.Reckoner
+    path: tests/Unit/Reckoner
+    test_methods: 100
+    files: 15
+    members:
+      -
+        file: tests/Unit/Reckoner/ChartRegistryParityTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/DashboardApiTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/DashboardLockTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/DashboardSanitizerTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/NoFabricatedDataTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerBatchKeyTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerChartsTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerComparisonTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerGateTest.php
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerLabelsTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerPeriodTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerRegistryTest.php
+        test_methods: 21
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerResultTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerRouteTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerSettingsTest.php
+        test_methods: 14
+        oracle_tier: T1
+  -
+    id: Unit
+    path: tests/Unit
+    test_methods: 30
+    files: 5
+    members:
+      -
+        file: tests/Unit/AiBuilder/BusinessUnderstandingTest.php
+        test_methods: 11
+        oracle_tier: T1
+      -
+        file: tests/Unit/AiBuilder/CapabilityRegistryTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Unit/AiBuilder/DiscoverySessionTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Unit/AiBuilder/DiscoverySkipTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Unit/SharedCatalogServiceTest.php
+        test_methods: 3
+        oracle_tier: T1
+verification_sources:
+  -
+    id: ledger-truth-sweep
+    command: 'php artisan audit:ledger-truth'
+    kind: route-sweep
+    description: 'Scans all discoverable GET routes; compares on-page financial props against FinancialReportingService.'
+    oracle_tier: T2
+    approx_verifications: 154
+    floor_key: routes_scanned_min
+  -
+    id: data-integrity
+    command: 'php artisan audit:data-integrity'
+    kind: invariant-scan
+    description: 'Double-entry / trial-balance invariants across tenants.'
+    oracle_tier: T1
+    approx_verifications: 0
+  -
+    id: verify-engines
+    command: 'php artisan verify:engines'
+    kind: engine-analysis
+    description: 'Ten verification engines consume the ClaimLogger stream (verification_claims.jsonl).'
+    oracle_tier: T2
+    approx_verifications: 0
+  -
+    id: verify-sentinel
+    command: 'php artisan verify:sentinel'
+    kind: sensitivity-probe
+    description: 'Seeds marker amounts via a ledger bypass and asserts the sweep detects the divergence (E-12 style).'
+    oracle_tier: T1
+    approx_verifications: 0
+  -
+    id: golden-verify
+    command: 'php artisan golden:verify'
+    kind: manifest-check
+    description: 'Golden Company manifest reconciliation entry point.'
+    oracle_tier: T1
+    approx_verifications: 0
+headline:
+  phpunit_test_methods: 1583
+  static_sweep_route_checks: 154
+  note: 'Remaining verifications (invariant/engine/sentinel) are counted at runtime from artifacts, not asserted statically.'

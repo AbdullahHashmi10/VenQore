@@ -1,0 +1,11 @@
+meta:
+  schema_version: 1
+  description: 'Quarantine and waiver registry for the launch gate engine.'
+# 2026-09-10: both critical waivers closed.
+#   WOO-001 — fixed: both Woo webhook receivers post through WooOrderPoster
+#             (idempotent, order totals + tax + FIFO COGS, balanced journal).
+#             Proven by tests/tests/Feature/Production/WooWebhookJournalPinningTest.
+#   POS-003 — already fixed by L006 (no cost_price fallback in SaleController);
+#             the pinning test now actually exercises the POS endpoint as a
+#             cashier and checks the ledger (LegacyPosCogsPinningTest).
+waivers: []
