@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /*
 |==============================================================================
@@ -63,10 +64,8 @@ class ModuleService
     /**
      * Is this module switched on for this tenant?
      *
-     * Returns TRUE for an unknown module key. That looks wrong and is not: an
-     * unknown key is not a module, so it cannot be "off", and the caller (the
-     * route gate) must not block a route it does not understand. The integrity
-     * test is what stops unknown keys existing in the first place.
+     * Returns FALSE for an unknown module key (fail-closed): an unknown key
+     * is not a registered module and cannot be assumed active.
      */
     public static function enabled(?Tenant $tenant, string $moduleKey): bool
     {
@@ -268,16 +267,17 @@ class ModuleService
     private static function allFor(Tenant $tenant): array
     {
         return Cache::remember("tenant_modules:{$tenant->id}", self::TTL, function () use ($tenant) {
-            try {
-                return DB::table('tenant_modules')
-                    ->where('tenant_id', $tenant->id)
-                    ->pluck('enabled', 'module_key')
-                    ->map(fn ($v) => (bool) $v)
-                    ->toArray();
-            } catch (\Throwable) {
-                // Table not migrated yet. Fail open — see the safety rail.
+            // A genuinely un-migrated table is the only case the safety rail covers.
+            // Any other database failure must surface, not silently enable everything.
+            if (!Schema::hasTable('tenant_modules')) {
                 return [];
             }
+
+            return DB::table('tenant_modules')
+                ->where('tenant_id', $tenant->id)
+                ->pluck('enabled', 'module_key')
+                ->map(fn ($v) => (bool) $v)
+                ->toArray();
         });
     }
 
