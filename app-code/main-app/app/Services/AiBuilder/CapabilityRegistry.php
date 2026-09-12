@@ -95,7 +95,7 @@ class CapabilityRegistry
                     'impact'            => 100,
                     'triggers'          => ['repair', 'fixing', 'workshop', 'technician', 'service', 'phone fix', 'mobile repair', 'auto repair', 'مرمت', 'ورکشاپ'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['repairs', 'pos', 'customers'],
+                    'implies_modules'   => ['services', 'pos', 'customers'],
                     'consequences'      => ['You get a simple job list. Each job shows who it is for, what needs doing, and whether it is booked, started or done.'],
                     'question_template' => 'Do you want a list of every job you take on, so you can see what is booked, what you are working on and what is finished?',
                     'options'           => [
@@ -110,7 +110,7 @@ class CapabilityRegistry
                     'impact'            => 85,
                     'triggers'          => ['repair', 'technician', 'parts', 'labour', 'service charges', 'اسپیئر پارٹس'],
                     'requires_caps'     => ['repair_job_tracking'],
-                    'implies_modules'   => ['repairs', 'inventory', 'expenses'],
+                    'implies_modules'   => ['services', 'inventory', 'expenses'],
                     'consequences'      => ['Your bill shows parts and labour on their own lines, and any part you use comes off your stock by itself.'],
                     'question_template' => 'When a job is done, do you charge for parts and for your time as separate things?',
                     'options'           => [
@@ -203,7 +203,7 @@ class CapabilityRegistry
                     'impact'            => 95,
                     'triggers'          => ['branches', 'outlets', 'stores', 'locations', 'warehouses', 'chain', 'برانچ', 'گودام'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['branches', 'stock_transfers', 'inventory'],
+                    'implies_modules'   => ['multi_location', 'stock_transfers', 'inventory'],
                     'consequences'      => ['Each place keeps its own stock and its own figures, and you can move items between them.'],
                     'question_template' => 'Do you work out of more than one shop, branch or storeroom?',
                     'options'           => [
@@ -247,7 +247,7 @@ class CapabilityRegistry
                     'impact'            => 90,
                     'triggers'          => ['electronics', 'mobile', 'phones', 'computers', 'hardware', 'appliances', 'machinery', 'موبائل', 'الیکٹرانکس'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['serial_numbers', 'inventory'],
+                    'implies_modules'   => ['serials', 'inventory'],
                     'consequences'      => ['Every unit is followed one by one, so you can look up where any single item came from and who bought it.'],
                     'question_template' => 'Do you need to record a serial or IMEI number for each individual item you buy and sell?',
                     'options'           => [
@@ -279,7 +279,7 @@ class CapabilityRegistry
                     'impact'            => 95,
                     'triggers'          => ['restaurant', 'cafe', 'food', 'dining', 'bistro', 'eatery', 'bar', 'pizzeria', 'ریسٹورنٹ', 'کھانا'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['tables', 'kitchen_display', 'pos'],
+                    'implies_modules'   => ['table_service', 'park_recall', 'pos'],
                     'consequences'      => ['You get a table plan, orders sent straight to the kitchen, and bills you can split between people.'],
                     'question_template' => 'Do people sit down and eat in, with their orders going through to your kitchen?',
                     'options'           => [
@@ -294,7 +294,7 @@ class CapabilityRegistry
                     'impact'            => 70,
                     'triggers'          => ['delivery', 'riders', 'dispatch', 'home delivery', 'ڈلیوری', 'رائڈر'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['delivery_orders', 'pos'],
+                    'implies_modules'   => ['sales_orders', 'pos'],
                     'consequences'      => ['You give each order to a rider and can see what is out for delivery and what has arrived.'],
                     'question_template' => 'Do you deliver to people yourself, with your own riders?',
                     'options'           => [
@@ -311,7 +311,7 @@ class CapabilityRegistry
                     'impact'            => 85,
                     'triggers'          => ['wholesale', 'distribution', 'credit', 'khata', 'terms', 'installments', 'pharmacy', 'grocery', 'کھاتہ', 'ادھار', 'ہول سیل'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['credit_sales', 'customers', 'sales_orders'],
+                    'implies_modules'   => ['khata_credit', 'customers', 'sales_orders'],
                     'consequences'      => ['Each customer gets a running balance, so you can see who owes you what, for how long, and remind them.'],
                     'question_template' => 'Do any of your customers take things now and pay you later?',
                     'options'           => [
@@ -360,7 +360,7 @@ class CapabilityRegistry
                     'impact'            => 85,
                     'triggers'          => ['salon', 'spa', 'clinic', 'barber', 'consultant', 'appointments', 'سلیون', 'بکنگ'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['appointments', 'staff_roster', 'customers'],
+                    'implies_modules'   => ['services', 'sales_orders', 'customers'],
                     'consequences'      => ['You get a diary of who is coming and when, so the same slot never goes to two people.'],
                     'question_template' => 'Do people book a time with you in advance?',
                     'options'           => [
@@ -754,8 +754,8 @@ class CapabilityRegistry
         $out = [];
 
         if (!empty($facts['solo']['value'])) {
-            // One person has no attendance to take and no roster to fill.
-            $out = array_merge($out, ['staff_attendance', 'staff_roster']);
+            // One person has no attendance to take.
+            $out = array_merge($out, ['staff_attendance']);
         }
 
         return array_values(array_unique($out));

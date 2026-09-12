@@ -40,10 +40,7 @@ class ProcessExpiredTrials extends Command
             // Drop cleanly to Solo free plan so trading and data remain functional
             \App\Services\PlanDowngradeService::dropToSolo($tenant);
 
-            $adminUser = \App\Models\User::withoutTenantScope()
-                ->where('tenant_id', $tenant->id)
-                ->where('role', 'platform_admin')
-                ->first();
+            $adminUser = $tenant->ownerUser();
 
             if ($adminUser) {
                 try {

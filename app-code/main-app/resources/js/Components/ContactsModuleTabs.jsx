@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function ContactsModuleTabs({ activeTab }) {
-    const { store } = usePage().props;
+    const { store, modules } = usePage().props;
     const { tp } = useTerms();
     const tt = useTermText();
     // Helper to safely get route
@@ -27,7 +27,7 @@ export default function ContactsModuleTabs({ activeTab }) {
         }
     };
 
-    const groups = [
+    const rawGroups = [
         {
             id: 'partners',
             label: 'Partners',
@@ -52,10 +52,32 @@ export default function ContactsModuleTabs({ activeTab }) {
         }
     ];
 
+    const itemModuleMap = {
+        'customers': ['customers'],
+        'suppliers': ['suppliers'],
+        'all': ['customers', 'suppliers'],
+        'ledgers': ['khata_credit'],
+        'attendance': ['staff_attendance'],
+        'summaries': ['staff_attendance'],
+    };
+
+    const groups = React.useMemo(() => {
+        if (!Array.isArray(modules) || modules.length === 0) {
+            return rawGroups;
+        }
+        return rawGroups.map(group => ({
+            ...group,
+            items: group.items.filter(item => {
+                const req = itemModuleMap[item.id];
+                return !req || req.some(m => modules.includes(m));
+            })
+        })).filter(group => group.items.length > 0);
+    }, [rawGroups, modules]);
+
     // Determine initial group based on activeTab
     const getInitialGroup = () => {
         const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
-        return foundGroup ? foundGroup.id : 'partners';
+        return foundGroup ? foundGroup.id : (groups[0]?.id || 'partners');
     };
 
     const [activeGroup, setActiveGroup] = useState(getInitialGroup);
@@ -65,8 +87,10 @@ export default function ContactsModuleTabs({ activeTab }) {
         const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
         if (foundGroup) {
             setActiveGroup(foundGroup.id);
+        } else if (groups[0]) {
+            setActiveGroup(groups[0].id);
         }
-    }, [activeTab]);
+    }, [activeTab, groups]);
 
     const activeGroupObj = groups.find(g => g.id === activeGroup);
     const activeItemObj = activeGroupObj?.items.find(item => item.id === activeTab);

@@ -391,7 +391,7 @@ class ConversationalBuilderService
         $rawProposalJson = json_encode([
             'modules'     => $modules,
             'preset'      => $session->preset ?: 'retail_shop',
-            'confidence'  => max(0.90, $session->systemReadinessConfidence),
+            'confidence'  => round($session->systemReadinessConfidence, 2),
             'reasoning'   => 'Configured dynamically through VenQore AI Discovery based on merchant capability requirements.',
             'terminology' => $this->resolveTerminology($session->structuredFacts),
         ]);
@@ -409,7 +409,7 @@ class ConversationalBuilderService
             'proposal'          => $validated,
             'modules'           => $validated['modules'] ?? $modules,
             'preset'            => $validated['preset'] ?? ($session->preset ?: 'retail_shop'),
-            'confidence'        => $validated['confidence'] ?? 0.92,
+            'confidence'        => $validated['confidence'] ?? round($session->systemReadinessConfidence, 2),
             'turn'              => $session->turnCount,
             'progress'          => 100,
             'question'          => null,

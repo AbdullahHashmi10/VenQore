@@ -239,7 +239,6 @@ return [
         'store.profile.*',         // owner profile
         'store.notifications.*',
         'store.activity-log.*',    // security log
-        'store.backups.*',         // backups + Google Drive sync
         'store.workspace', 'store.workspace.*',   // dashboard layouts ('store.workspace' is an exact name)
         'api.dashboards.*',
         'store.admin.*',           // tenant admin (staff, taxes, receipt)

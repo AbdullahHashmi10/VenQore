@@ -84,9 +84,7 @@ class HandleSubscriptionPaymentRefundedJob implements ShouldQueue
             PlanRepository::invalidateTenantCache($tenant->id);
         }
 
-        $adminUser = \App\Models\User::whereHas('memberships', function ($q) use ($tenant) {
-            $q->where('tenant_id', $tenant->id)->where('role', 'platform_admin');
-        })->first();
+        $adminUser = $tenant->ownerUser();
 
         if ($adminUser) {
             Mail::to($adminUser->email)

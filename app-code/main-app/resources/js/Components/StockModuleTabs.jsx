@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import FeatureLockBadge from '@/Components/FeatureLockBadge';
 import {
@@ -16,11 +16,27 @@ import {
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 
+const itemModuleMap = {
+    products: 'products',
+    categories: 'products',
+    attributes: 'variants',
+    labels: 'barcodes_labels',
+    levels: 'inventory',
+    adjustments: 'inventory',
+    warehouses: 'multi_location',
+    transfers: 'stock_transfers',
+    audit: 'stock_takes',
+    batch: 'batches_expiry',
+    serial: 'serials',
+    production: 'production_runs',
+    cookbook: 'cookbook',
+};
+
 export default function StockModuleTabs({ activeTab }) {
-    const { store } = usePage().props;
+    const { store, modules } = usePage().props;
     const tt = useTermText();
     // Define the structure
-    const groups = [
+    const rawGroups = useMemo(() => [
         {
             id: 'catalog',
             label: 'Catalog',
@@ -62,12 +78,25 @@ export default function StockModuleTabs({ activeTab }) {
                 { id: 'cookbook', label: 'Cookbook', href: route('store.cookbook.index', { store_slug: store?.slug }), icon: FileText },
             ]
         }
-    ];
+    ], [store, tt]);
+
+    const groups = useMemo(() => {
+        if (!Array.isArray(modules) || modules.length === 0) {
+            return rawGroups;
+        }
+        return rawGroups.map(group => ({
+            ...group,
+            items: group.items.filter(item => {
+                const required = itemModuleMap[item.id];
+                return !required || modules.includes(required);
+            })
+        })).filter(group => group.items.length > 0);
+    }, [rawGroups, modules]);
 
     // Determine initial group based on activeTab
     const getInitialGroup = () => {
         const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
-        return foundGroup ? foundGroup.id : 'catalog'; // Default to catalog
+        return foundGroup ? foundGroup.id : (groups[0]?.id || 'catalog');
     };
 
     const [activeGroup, setActiveGroup] = useState(getInitialGroup);
@@ -78,8 +107,10 @@ export default function StockModuleTabs({ activeTab }) {
         const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
         if (foundGroup) {
             setActiveGroup(foundGroup.id);
+        } else if (groups[0]) {
+            setActiveGroup(groups[0].id);
         }
-    }, [activeTab]);
+    }, [activeTab, groups]);
 
     return (
         <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">

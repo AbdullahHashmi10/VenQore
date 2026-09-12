@@ -44,6 +44,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ], append: [
+            \App\Http\Middleware\EnsureModule::class,
         ]);
 
         $middleware->alias([

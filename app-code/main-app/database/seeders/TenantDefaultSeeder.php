@@ -149,6 +149,11 @@ class TenantDefaultSeeder
             ]
         ];
 
+        $readingModuleMap = [
+            'sales.top_products' => 'products',
+            'inventory.stock_value' => 'inventory',
+        ];
+
         foreach ($dashboards as $d) {
             DB::table('dashboards')->updateOrInsert(
                 ['tenant_id' => $tenant->id, 'slug' => $d['slug']],
@@ -167,7 +172,15 @@ class TenantDefaultSeeder
             // Re-seed cards
             DB::table('dashboard_cards')->where('dashboard_id', $d['id'])->delete();
 
-            foreach ($d['cards'] as $c) {
+            $cards = array_values(array_filter($d['cards'], function ($c) use ($tenant, $readingModuleMap) {
+                $requiredModule = $readingModuleMap[$c['reading_key']] ?? null;
+                if (!$requiredModule) {
+                    return true;
+                }
+                return \App\Services\ModuleService::enabled($tenant, $requiredModule);
+            }));
+
+            foreach ($cards as $c) {
                 DB::table('dashboard_cards')->insert([
                     'id' => (string) Str::uuid(),
                     'tenant_id' => $tenant->id,

@@ -231,6 +231,7 @@ return [
         'enhances'     => ['invoicing', 'quotations', 'customers', 'staff_attendance', 'park_recall'],
         'routes'       => [
             'store.service-jobs.index',
+            'store.services.catalogue',
             'store.service-jobs.calendar',
             'store.service-jobs.create',
             'store.service-jobs.store',
@@ -360,8 +361,10 @@ return [
         'routes'       => [
             'store.pos',        // EXACT name — 'store.pos.*' does NOT match it
             'store.pos.*',      // store.pos.search and friends
+            'store.new-pos',
             'store.sales.store',
             'store.sales.lookup',
+            'store.v3.sales.store',
             'store.api.categories',
         ],
         'pages'        => ['Pos.jsx'],
@@ -399,9 +402,12 @@ return [
         // and Returns. Per CAPABILITIES_FILE_GUIDE Q3, shared prefixes are
         // listed as EXPLICIT NAMES so the gate cannot block a sibling module.
         'routes'       => [
+            'store.new-invoice',
             'store.sales.index',
             'store.sales.create',
             'store.sales.invoice.create',
+            'store.sales.store',
+            'store.sales.lookup',
             'store.sales.show',
             'store.sales.edit',
             'store.sales.update',
@@ -669,10 +675,8 @@ return [
         // one spanning lines 363-548 and a second at 1013-1866. These routes are
         // in the FIRST one, so they DO carry the store. prefix.
         'routes'       => [
-            'store.restaurant.dashboard',
-            'store.restaurant.kitchen',
-            'store.restaurant.table.status',
-            'store.restaurant.order.status',
+            'store.tables.*',
+            'store.restaurant.*',
             'store.api.occupancies',          // exact
             'store.api.occupancies.occupy',
             'store.api.occupancies.release',
@@ -1171,7 +1175,7 @@ return [
         'requires'     => ['cookbook'],
         'requires_one' => [],
         'enhances'     => ['multi_location', 'batches_expiry', 'staff_attendance'],
-        'routes'       => ['store.production.*', 'store.manufacturing.*', 'store.v3.production-runs.*'],
+        'routes'       => ['store.production.*', 'store.manufacturing.*', 'store.api.manufacturing-rules.*', 'store.v3.production-runs.*'],
         'pages'        => ['Manufacturing/', 'Inventory/Production'],
         'permissions'  => ['inventory.adjust', 'inventory.create'],
         'cards'        => ['production_output'],
@@ -1199,7 +1203,10 @@ return [
         'requires'     => ['cookbook'],
         'requires_one' => [],
         'enhances'     => ['pos', 'table_service'],
-        'routes'       => ['store.manufacturing.rules'],
+        'routes'       => [
+            'store.manufacturing.rules',
+            'store.api.manufacturing-rules.*',
+        ],
         'pages'        => ['Manufacturing/Rules.jsx'],
         'permissions'  => ['inventory.adjust', 'inventory.edit'],
         'cards'        => [],

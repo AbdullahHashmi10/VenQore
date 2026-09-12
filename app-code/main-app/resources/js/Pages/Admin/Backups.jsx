@@ -24,30 +24,11 @@ export default function Backups({ backups: initialBackups = [] }) {
  const [backups, setBackups] = useState(initialBackups);
  const [creating, setCreating] = useState(false);
  const [restoring, setRestoring] = useState(false);
- const [deleting, setDeleting] = useState(null);
- const [mailing, setMailing] = useState(null);
 
  const createBackup = () => {
  setCreating(true);
  router.post(route('store.backups.store', { store_slug: props.store.slug }), {}, {
  onFinish: () => setCreating(false),
- preserveScroll: true
- });
- };
-
- const deleteBackup = (filename) => {
- if (!confirm('Are you sure you want to delete this backup? This cannot be undone.')) return;
- setDeleting(filename);
- router.delete(route('store.backups.delete', { store_slug: props.store.slug, filename }), {
- onFinish: () => setDeleting(null),
- preserveScroll: true
- });
- };
-
- const emailBackup = (filename) => {
- setMailing(filename);
- router.post(route('store.backups.email', { store_slug: props.store.slug, filename }), {}, {
- onFinish: () => setMailing(null),
  preserveScroll: true
  });
  };
@@ -204,30 +185,10 @@ export default function Backups({ backups: initialBackups = [] }) {
  </span>
  </td>
  <td className="px-8 py-5">
- <div className="flex items-center justify-end gap-2">
- <a 
- href={route('store.backups.download', { store_slug: props.store.slug, filename: backup.name })}
- className="p-2.5 rounded-xl bg-surface border border-line text-ink-muted hover:text-brand-500 hover:border-brand-500 dark:hover:text-brand-400 dark:hover:border-brand-500 transition-all"
- title="Download SQL"
- >
- <Download size={18} />
- </a>
- <button 
- onClick={() => emailBackup(backup.name)}
- disabled={mailing === backup.name}
- className="p-2.5 rounded-xl bg-surface border border-line text-ink-muted hover:text-emerald-500 hover:border-emerald-500 dark:hover:text-emerald-400 dark:hover:border-emerald-500 transition-all disabled:opacity-50"
- title="Email Backup"
- >
- {mailing === backup.name ? <RefreshCw size={18} className="animate-spin" /> : <Mail size={18} />}
- </button>
- <button 
- onClick={() => deleteBackup(backup.name)}
- disabled={deleting === backup.name}
- className="p-2.5 rounded-xl bg-surface border border-line text-ink-muted hover:text-red-500 hover:border-red-500 dark:hover:text-red-400 dark:hover:border-red-500 transition-all disabled:opacity-50"
- title="Delete permanently"
- >
- {deleting === backup.name ? <RefreshCw size={18} className="animate-spin" /> : <Trash2 size={18} />}
- </button>
+ <div className="flex items-center justify-end">
+ <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-semibold">
+ Encrypted & Stored
+ </span>
  </div>
  </td>
  </tr>

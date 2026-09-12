@@ -50,10 +50,7 @@ class SendSubscriptionExpiryReminders extends Command
                 ->get();
 
             foreach ($tenants as $tenant) {
-                $adminUser = \App\Models\User::withoutTenantScope()
-                    ->where('tenant_id', $tenant->id)
-                    ->where('role', 'platform_admin')
-                    ->first();
+                $adminUser = $tenant->ownerUser();
 
                 if (!$adminUser) {
                     $this->warn("No admin user for tenant {$tenant->subdomain} — skipping");

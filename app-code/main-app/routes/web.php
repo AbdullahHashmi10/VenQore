@@ -1368,6 +1368,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // Services & Field Work Routes
     Route::get('/service-jobs', [\App\Http\Controllers\ServiceJobController::class, 'index'])
         ->middleware('permission:sales.view')->name('service-jobs.index');
+    Route::get('/services/catalogue', [\App\Http\Controllers\InventoryController::class, 'index'])
+        ->middleware('permission:sales.view')->name('services.catalogue');
     Route::get('/service-jobs/calendar', [\App\Http\Controllers\ServiceJobController::class, 'calendar'])
         ->middleware('permission:sales.view')->name('service-jobs.calendar');
     Route::get('/service-jobs/create', [\App\Http\Controllers\ServiceJobController::class, 'create'])
@@ -1850,11 +1852,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     })->name('manufacturing.rules');
 
     // Manufacturing API
-    Route::get('/api/manufacturing-rules', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'index']);
-    Route::post('/api/manufacturing-rules', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'store'])->middleware('permission:inventory.edit');
-    Route::patch('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'update'])->middleware('permission:inventory.edit');
-    Route::delete('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'destroy'])->middleware('permission:inventory.delete');
-    Route::post('/api/manufacturing-rules/{id}/simulate', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'simulate'])->middleware('permission:inventory.edit');
+    Route::get('/api/manufacturing-rules', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'index'])->name('api.manufacturing-rules.index');
+    Route::post('/api/manufacturing-rules', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'store'])->middleware('permission:inventory.edit')->name('api.manufacturing-rules.store');
+    Route::patch('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'update'])->middleware('permission:inventory.edit')->name('api.manufacturing-rules.update');
+    Route::delete('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'destroy'])->middleware('permission:inventory.delete')->name('api.manufacturing-rules.destroy');
+    Route::post('/api/manufacturing-rules/{id}/simulate', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'simulate'])->middleware('permission:inventory.edit')->name('api.manufacturing-rules.simulate');
 
     // Categories API
     Route::get('/api/categories', function () {
@@ -1951,9 +1953,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::post('/admin-panel/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
         Route::post('/admin-panel/backups/import-data', [\App\Http\Controllers\BackupController::class, 'importData'])->name('backups.import');
         Route::get('/admin-panel/backups/progress', [\App\Http\Controllers\BackupController::class, 'progress'])->name('backups.progress');
-        Route::get('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
-        Route::delete('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
-        Route::post('/admin-panel/backups/{filename}/email', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
 
         Route::get('/admin-panel/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('legacy.admin.dashboard');
         

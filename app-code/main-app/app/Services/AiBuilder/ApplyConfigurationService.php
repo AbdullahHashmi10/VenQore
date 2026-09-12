@@ -67,7 +67,9 @@ class ApplyConfigurationService
 
             // Snapshot BEFORE the write, so version N is the state you can
             // return to — not the state you just left.
-            $this->snapshot($tenant, $before, $source, $reason);
+            if ($source !== 'provisioner' && DB::table('tenant_modules')->where('tenant_id', $tenant->id)->exists()) {
+                $this->snapshot($tenant, $before, $source, $reason);
+            }
 
             $registry = array_keys(config('modules', []));
             $newlyEnabled = array_values(array_diff($modules, $before));
@@ -162,10 +164,10 @@ class ApplyConfigurationService
 
         $modules = json_decode($snapshot->modules, true) ?: [];
 
-        // Modules can be RETIRED between the snapshot and the restore. Drop
-        // anything the registry no longer knows about rather than failing the
-        // whole restore — the customer wants their system back, not a lecture.
-        $modules = array_values(array_filter($modules, fn ($k) => array_key_exists($k, config('modules', []))));
+        // Modules can be RETIRED or non-live between the snapshot and the restore.
+        // Drop anything the registry no longer knows about or is not live rather
+        // than failing the whole restore — the customer wants their system back.
+        $modules = array_values(array_filter($modules, fn ($k) => config("modules.{$k}.status") === 'live'));
 
         $result = $this->apply($tenant, [
             'modules'     => $modules,

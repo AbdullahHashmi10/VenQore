@@ -317,6 +317,11 @@ class ModuleDependencyResolver
                 continue;
             }
 
+            if (($registry[$key]['status'] ?? 'live') !== 'live') {
+                $problems[] = "{$registry[$key]['label']} is not available yet.";
+                continue;
+            }
+
             foreach ($registry[$key]['requires'] ?? [] as $dependency) {
                 if (!in_array($dependency, $modules, true)) {
                     $problems[] = "{$registry[$key]['label']} needs {$dependency}, which is not enabled.";

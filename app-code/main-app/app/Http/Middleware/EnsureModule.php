@@ -94,6 +94,13 @@ class EnsureModule
             }
         }
 
+        if (!$tenant && $request->user()) {
+            $tenant = $request->user()->tenant;
+            if ($tenant) {
+                app()->instance('current.tenant', $tenant);
+            }
+        }
+
         if (!$tenant) {
             return $next($request);
         }

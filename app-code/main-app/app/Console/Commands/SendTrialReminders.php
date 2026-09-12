@@ -33,11 +33,7 @@ class SendTrialReminders extends Command
                 ->whereDate('trial_ends_at', now()->addDays($daysLeft)->toDateString())
                 ->get();
 
-            foreach ($tenants as $tenant) {
-                $adminUser = \App\Models\User::withoutTenantScope()
-                    ->where('tenant_id', $tenant->id)
-                    ->where('role', 'platform_admin')
-                    ->first() ?? $tenant->owner();
+                $adminUser = $tenant->ownerUser();
 
                 if (!$adminUser) {
                     $this->warn("No admin/owner user for tenant {$tenant->slug} — skipping");

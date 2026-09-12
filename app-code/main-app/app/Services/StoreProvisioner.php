@@ -280,32 +280,38 @@ class StoreProvisioner
             }
 
             // Module set from the builder, through its single writer.
-            if (array_key_exists('modules', $data) && is_array($data['modules'])) {
-                $modules = array_values(array_intersect($data['modules'], array_keys(config('modules', []))));
-                if ($modules === []) {
-                    $modules = $businessType
-                        ? \App\Support\BusinessTypes::modulesFor($businessType)
-                        : ['products', 'pos', 'inventory', 'expenses', 'reports'];
-                }
+            $rawModules = (array_key_exists('modules', $data) && is_array($data['modules']))
+                ? $data['modules']
+                : [];
+            $modules = array_values(array_intersect($rawModules, array_keys(config('modules', []))));
+            if ($modules === []) {
+                $modules = $businessType
+                    ? \App\Support\BusinessTypes::modulesFor($businessType)
+                    : ['products', 'pos', 'inventory', 'expenses', 'reports'];
+            }
 
-                // Terminology from the catalogue: the store talks the way the
-                // trade does ("Clients", "Jobs", "Plumbers") from minute one.
-                app(\App\Services\AiBuilder\ApplyConfigurationService::class)->apply(
-                    $tenant,
-                    [
-                        'modules'     => $modules,
-                        'terminology' => $businessType ? \App\Support\BusinessTypes::termsFor($businessType) : [],
-                    ],
-                    'preset',
-                    'Selected during workspace provisioning.'
-                );
+            // BL-06: Filter to live modules only
+            $modules = array_values(array_filter($modules, function ($key) {
+                return (config("modules.{$key}.status") ?? 'live') === 'live';
+            }));
 
-                try {
-                    app()->instance('current.tenant', $tenant);
-                    app(\App\Http\Controllers\Api\DashboardController::class)->createDefaultDashboard($user, $tenant);
-                } catch (\Throwable $e) {
-                    report($e);
-                }
+            // Terminology from the catalogue: the store talks the way the
+            // trade does ("Clients", "Jobs", "Plumbers") from minute one.
+            app(\App\Services\AiBuilder\ApplyConfigurationService::class)->apply(
+                $tenant,
+                [
+                    'modules'     => $modules,
+                    'terminology' => $businessType ? \App\Support\BusinessTypes::termsFor($businessType) : [],
+                ],
+                'preset',
+                'Selected during workspace provisioning.'
+            );
+
+            try {
+                app()->instance('current.tenant', $tenant);
+                app(\App\Http\Controllers\Api\DashboardController::class)->createDefaultDashboard($user, $tenant);
+            } catch (\Throwable $e) {
+                report($e);
             }
 
             return $tenant;

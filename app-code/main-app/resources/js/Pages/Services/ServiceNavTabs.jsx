@@ -34,7 +34,7 @@ export default function ServiceNavTabs({ active = 'jobs' }) {
             key: 'catalog',
             label: tt('Services Catalog'),
             icon: Sparkles,
-            href: route('store.inventory.index', { store_slug: storeSlug }) + '?type=service',
+            href: route('store.services.catalogue', { store_slug: storeSlug }) + '?type=service',
             description: 'Standard services, pricing & add-ons'
         }
     ];

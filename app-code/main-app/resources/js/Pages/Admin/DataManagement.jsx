@@ -266,8 +266,6 @@ export default function DataManagement() {
  const [backupsList, setBackupsList] = useState(initialBackupsList);
  const [creatingBackup, setCreatingBackup] = useState(false);
  const [restoringBackup, setRestoringBackup] = useState(false);
- const [deletingBackup, setDeletingBackup] = useState(null);
- const [mailingBackup, setMailingBackup] = useState(null);
  const autoBackupForm = useForm({ auto_backup: !!autoBackupEnabled });
 
  const createBackupNow = () => {
@@ -278,29 +276,6 @@ export default function DataManagement() {
  showAlert({ title: 'Success', message: 'Backup created successfully.', type: 'success' });
  },
  onFinish: () => setCreatingBackup(false)
- });
- };
-
- const deleteBackupFile = (filename) => {
- showConfirm({
- title: 'Delete this backup?',
- text: `"${filename}" will be permanently deleted. This cannot be undone.`,
- icon: 'warning',
- onConfirm: () => {
- setDeletingBackup(filename);
- router.delete(route('store.backups.delete', { store_slug: store?.slug, filename }), {
- preserveScroll: true,
- onFinish: () => setDeletingBackup(null)
- });
- }
- });
- };
-
- const emailBackupFile = (filename) => {
- setMailingBackup(filename);
- router.post(route('store.backups.email', { store_slug: store?.slug, filename }), {}, {
- preserveScroll: true,
- onFinish: () => setMailingBackup(null)
  });
  };
 
@@ -982,16 +957,8 @@ export default function DataManagement() {
  <span className="px-2 py-1 bg-sunken rounded-lg text-xs font-bold text-ink-secondary">{backup.size}</span>
  </td>
  <td className="px-8 py-4">
- <div className="flex items-center justify-end gap-2">
- <a href={route('store.backups.download', { store_slug: store?.slug, filename: backup.name })} className="p-2 rounded-xl bg-surface border border-line text-ink-muted hover:text-brand-500 hover:border-brand-500 transition-all" title="Download">
- <Download size={16} />
- </a>
- <button onClick={() => emailBackupFile(backup.name)} disabled={mailingBackup === backup.name} className="p-2 rounded-xl bg-surface border border-line text-ink-muted hover:text-emerald-500 hover:border-emerald-500 transition-all disabled:opacity-50" title="Email">
- {mailingBackup === backup.name ? <RefreshCw size={16} className="animate-spin" /> : <Mail size={16} />}
- </button>
- <button onClick={() => deleteBackupFile(backup.name)} disabled={deletingBackup === backup.name} className="p-2 rounded-xl bg-surface border border-line text-ink-muted hover:text-red-500 hover:border-red-500 transition-all disabled:opacity-50" title="Delete">
- {deletingBackup === backup.name ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
- </button>
+ <div className="flex items-center justify-end">
+ <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-semibold">Encrypted & Stored</span>
  </div>
  </td>
  </tr>

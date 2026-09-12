@@ -299,8 +299,16 @@ class Tenant extends Model
      */
     public function ownerEmail(): ?string
     {
+        return $this->ownerUser()?->email;
+    }
+
+    /**
+     * Get the owner User model (for billing notifications).
+     */
+    public function ownerUser(): ?User
+    {
         $owner = $this->ownerMembership()->with('user')->first();
-        return $owner?->user?->email;
+        return $owner?->user ?? User::withoutTenantScope()->where('tenant_id', $this->id)->whereIn('role', ['owner', 'admin'])->first();
     }
 
     /**

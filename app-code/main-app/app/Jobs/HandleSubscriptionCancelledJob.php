@@ -49,10 +49,8 @@ class HandleSubscriptionCancelledJob implements ShouldQueue
         // Bind tenant to ensure model events and log files work globally
         app()->instance('current.tenant', $tenant);
 
-        // Find the admin user to email via TenantUser pivot
-        $adminUser = \App\Models\User::whereHas('memberships', function ($q) use ($tenant) {
-            $q->where('tenant_id', $tenant->id)->where('role', 'platform_admin');
-        })->first();
+        // Find the admin/owner user to email
+        $adminUser = $tenant->ownerUser();
 
         if ($adminUser) {
             Mail::to($adminUser->email)

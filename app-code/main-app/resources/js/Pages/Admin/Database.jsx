@@ -25,7 +25,6 @@ export default function AdminDatabase({ stats, backups }) {
     const safeBackups = backups || [];
 
     const [processing, setProcessing] = useState(false);
-    const [emailing, setEmailing] = useState(null); // 'filename' being emailed
 
     // Create Backup
     const handleCreateBackup = () => {
@@ -33,32 +32,6 @@ export default function AdminDatabase({ stats, backups }) {
             setProcessing(true);
             router.post(route('store.backups.store', { store_slug: store.slug }), {}, {
                 onFinish: () => setProcessing(false),
-                preserveScroll: true
-            });
-        }
-    };
-
-    // Delete Backup
-    const handleDelete = (filename) => {
-        if (confirm(`Are you sure you want to delete backup "${filename}"?`)) {
-            router.delete(route('store.backups.delete', { store_slug: store.slug, filename }), {
-                preserveScroll: true
-            });
-        }
-    };
-
-    // Download
-    const handleDownload = (filename) => {
-        window.location.href = route('store.backups.download', { store_slug: store.slug, filename });
-    };
-
-    // Email Backup
-    const handleEmail = (filename) => {
-        const email = prompt('Enter email address to send backup to:', usePage().props.auth.user.email);
-        if (email) {
-            setEmailing(filename);
-            router.post(route('store.backups.email', { store_slug: store.slug, filename }), { email }, {
-                onFinish: () => setEmailing(null),
                 preserveScroll: true
             });
         }
@@ -192,29 +165,10 @@ export default function AdminDatabase({ stats, backups }) {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={() => handleEmail(backup.name)}
-                                                            disabled={emailing === backup.name}
-                                                            className="p-2 text-ink-muted hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
-                                                            title="Email Backup"
-                                                        >
-                                                            {emailing === backup.name ? <RefreshCw className="animate-spin" size={16} /> : <Mail size={16} />}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDownload(backup.name)}
-                                                            className="p-2 text-ink-muted hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                                            title="Download"
-                                                        >
-                                                            <Download size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(backup.name)}
-                                                            className="p-2 text-ink-muted hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors"
-                                                            title="Delete"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                                    <div className="flex justify-end">
+                                                        <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-semibold">
+                                                            Encrypted & Stored
+                                                        </span>
                                                     </div>
                                                 </td>
                                             </tr>

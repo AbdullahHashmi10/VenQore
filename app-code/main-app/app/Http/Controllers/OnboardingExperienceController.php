@@ -149,9 +149,9 @@ class OnboardingExperienceController extends Controller
         // fixes "deselecting a module leaves it on" (partial writes here used
         // to only ever write ENABLED rows), the missing cache invalidation,
         // and the blocked_by hole all at once.
-        $modules = array_values(array_intersect(
-            $request->input('modules', []),
-            array_keys(config('modules', []))
+        $modules = array_values(array_filter(
+            array_intersect($request->input('modules', []), array_keys(config('modules', []))),
+            fn ($key) => (config("modules.{$key}.status") ?? 'live') === 'live'
         ));
 
         if ($modules !== []) {

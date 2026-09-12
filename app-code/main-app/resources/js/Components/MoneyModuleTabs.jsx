@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function MoneyModuleTabs({ activeTab, className = '' }) {
-    const { store } = usePage().props;
+    const { store, modules } = usePage().props;
     const { t, tp } = useTerms();
     // Helper to safely get route
     const getRoute = (name, params = {}) => {
@@ -31,7 +31,7 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
         }
     };
 
-    const groups = useMemo(() => [
+    const rawGroups = useMemo(() => [
         {
             id: 'cash-flow',
             label: 'Cash Flow',
@@ -55,12 +55,36 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             ]
         },
 
-    ], [tp]);
+    ], [tp, store]);
+
+    const itemModuleMap = {
+        'payments': ['payments'],
+        'expenses': ['expenses'],
+        'receivables': ['khata_credit'],
+        'payables': ['khata_credit'],
+        'all': ['payments', 'expenses'],
+        'funds': ['bank_accounts'],
+        'accounts': ['bank_accounts'],
+        'reconciliation': ['bank_reconciliation', 'bank_accounts'],
+    };
+
+    const groups = useMemo(() => {
+        if (!Array.isArray(modules) || modules.length === 0) {
+            return rawGroups;
+        }
+        return rawGroups.map(group => ({
+            ...group,
+            items: group.items.filter(item => {
+                const req = itemModuleMap[item.id];
+                return !req || req.some(m => modules.includes(m));
+            })
+        })).filter(group => group.items.length > 0);
+    }, [rawGroups, modules]);
 
     // Determine initial group based on activeTab
     const [activeGroup, setActiveGroup] = useState(() => {
         const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
-        return foundGroup ? foundGroup.id : 'cash-flow';
+        return foundGroup ? foundGroup.id : (groups[0]?.id || 'cash-flow');
     });
 
     const [isExpanded, setIsExpanded] = useState(false);
@@ -69,6 +93,8 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
         const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
         if (foundGroup) {
             setActiveGroup(foundGroup.id);
+        } else if (groups[0]) {
+            setActiveGroup(groups[0].id);
         }
     }, [activeTab, groups]);
 
