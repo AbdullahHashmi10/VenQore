@@ -137,6 +137,35 @@ final class ReckonerRegistry
         'plan.usage_summary',
     ];
 
+    /**
+     * Plan feature gating for analytical readings (SPEC_REPORTING_TIERS_FINAL Part F).
+     *
+     * A Solo tenant cannot obtain margins, COGS, profit-by-product or analytical breakdowns
+     * through Reckoner dashboard cards or AI assistants. Operational/free card metrics
+     * (revenue, expenses_total, total_liquidity, stock_value, low_stock_count, etc.) stay null.
+     */
+    private const PLAN_FEATURE_MAP = [
+        'sales.gross_margin_pct'       => 'report_profit_loss',
+        'finance.cogs'                 => 'report_profit_loss',
+        'finance.gross_profit'         => 'report_profit_loss',
+        'finance.net_profit'           => 'report_profit_loss',
+        'finance.net_margin_pct'       => 'report_profit_loss',
+        'finance.profit_trend'         => 'report_profit_loss',
+        'finance.cash_flow_trend'      => 'report_cash_flow',
+        'sales.top_products'           => 'report_profitability',
+        'sales.top_customers'          => 'report_party_insights',
+        'sales.revenue_trend'          => 'report_sales_analytics',
+        'sales.payment_breakdown'      => 'report_sales_analytics',
+        'sales.hourly_heatmap'         => 'report_sales_analytics',
+        'finance.expenses_by_category' => 'report_expense_analysis',
+        'finance.expense_ratio'        => 'report_expense_analysis',
+        'finance.receivables_aging'    => 'report_aging',
+        'finance.balance_sheet_ok'     => 'report_balance_sheet',
+        'inventory.overstock_count'    => 'report_aging',
+        'party.new_customers'          => 'report_party_insights',
+        'party.dormant_customers'      => 'report_party_insights',
+    ];
+
     public static function all(): array
     {
         if (self::$cache !== null) {
@@ -562,7 +591,7 @@ final class ReckonerRegistry
                 'supports_series' => false,
                 'series_granularity' => [],
                 'permissions' => ['inventory.view', 'reports.stock'],
-                'feature' => 'stock_valuation',
+                'feature' => null,
                 'capability' => 'has_inventory',
                 'scope' => 'tenant',
                 'source' => FinanceSource::class,
@@ -1728,6 +1757,7 @@ final class ReckonerRegistry
         foreach ($all as $key => &$def) {
             $def['implemented'] = $def['implemented'] ?? true;
             $def['module'] = self::MODULE_MAP[$key] ?? null;
+            $def['feature'] = $def['feature'] ?? (self::PLAN_FEATURE_MAP[$key] ?? null);
             $def['is_new'] = in_array($key, self::NEW_KEYS, true);
         }
         unset($def);

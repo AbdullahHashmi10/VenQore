@@ -420,6 +420,12 @@ class Tenant extends Model
         return (is_numeric($days) && (int) $days > 0) ? (int) $days : null;
     }
 
+    public function visibleHistoryDays(): ?int
+    {
+        $days = $this->getLimit('visible_history_days') ?? $this->getLimit('history_retention_days');
+        return (is_numeric($days) && (int) $days > 0) ? (int) $days : null;
+    }
+
     public function effectivePlan(): string
     {
         if ($this->plan !== 'ltd') {

@@ -84,6 +84,16 @@ final class InventorySource implements ReckonerSource
                         ];
                     }
 
+                    $tenant = $ctx->tenant;
+                    $isSolo = false;
+                    if ($tenant) {
+                        $planSlug = strtolower(trim($tenant->plan?->slug ?? (is_string($tenant->plan) ? $tenant->plan : '')));
+                        $isSolo = in_array($planSlug, ['solo', 'counter'], true) || (method_exists($tenant, 'visibleHistoryDays') && $tenant->visibleHistoryDays() !== null);
+                    }
+                    if ($isSolo) {
+                        $rows = array_slice($rows, 0, 10);
+                    }
+
                     return [
                         'columns' => [
                             ['key' => 'name', 'label' => 'Product', 'unit' => 'text'],

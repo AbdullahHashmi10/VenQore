@@ -32,7 +32,7 @@ class ReportPlanGateTest extends VenQoreTestCase
     }
 
     #[Test]
-    public function operational_reports_remain_free_and_accessible_on_solo(): void
+    public function reports_hub_accessible_on_solo_while_detail_reports_require_paid_tiers(): void
     {
         $tenant = $this->createTenant(plan: 'solo', status: 'active');
         $this->actingAsTenantUser($tenant, 'owner');
@@ -41,11 +41,31 @@ class ReportPlanGateTest extends VenQoreTestCase
         ModuleService::enable($tenant, 'inventory');
         ModuleService::enable($tenant, 'khata_credit');
 
-        // Operational reports return 200
-        $this->get("/s/{$tenant->slug}/reports/day-book")->assertStatus(200);
-        $this->get("/s/{$tenant->slug}/reports/low-stock")->assertStatus(200);
-        $this->get("/s/{$tenant->slug}/reports/party-statement")->assertStatus(200);
-        $this->get("/s/{$tenant->slug}/v3/reports/aged-receivables")->assertStatus(200);
+        // Reports hub is accessible on Solo (returns 200)
+        $this->get("/s/{$tenant->slug}/reports")->assertStatus(200);
+
+        // Individual report screens return 403 on Solo per SPEC_REPORTING_TIERS_FINAL Part B
+        $this->get("/s/{$tenant->slug}/reports/day-book")->assertStatus(403);
+        $this->get("/s/{$tenant->slug}/reports/low-stock")->assertStatus(403);
+        $this->get("/s/{$tenant->slug}/reports/party-statement")->assertStatus(403);
+
+        // On Starter plan, Starter reports return 200, Core reports return 403
+        $starterTenant = $this->createTenant(plan: 'starter', status: 'active');
+        $this->actingAsTenantUser($starterTenant, 'owner');
+        ModuleService::enable($starterTenant, 'reports');
+        ModuleService::enable($starterTenant, 'inventory');
+        ModuleService::enable($starterTenant, 'khata_credit');
+
+        $this->get("/s/{$starterTenant->slug}/reports/day-book")->assertStatus(200);
+        $this->get("/s/{$starterTenant->slug}/reports/low-stock")->assertStatus(200);
+        $this->get("/s/{$starterTenant->slug}/reports/party-statement")->assertStatus(200);
+        $this->get("/s/{$starterTenant->slug}/v3/reports/aged-receivables")->assertStatus(403);
+
+        // On Core plan, aged-receivables returns 200
+        $coreTenant = $this->createTenant(plan: 'core', status: 'active');
+        $this->actingAsTenantUser($coreTenant, 'owner');
+        ModuleService::enable($coreTenant, 'reports');
+        $this->get("/s/{$coreTenant->slug}/v3/reports/aged-receivables")->assertStatus(200);
     }
 
     #[Test]
@@ -57,6 +77,7 @@ class ReportPlanGateTest extends VenQoreTestCase
         ModuleService::enable($tenant, 'reports');
         ModuleService::enable($tenant, 'accounting_workspace');
 
+        // Core plan tenant can access profit-loss (Starter) and balance-sheet (Core)
         $response = $this->get("/s/{$tenant->slug}/reports/profit-loss");
         $response->assertStatus(200);
     }
@@ -122,12 +143,17 @@ class ReportPlanGateTest extends VenQoreTestCase
                 ? "store.reports.{$suffix}"
                 : "store.v3.reports.{$suffix}";
 
-            $url = route($routeName, ['store_slug' => $soloTenant->slug]);
+            $params = ['store_slug' => $soloTenant->slug];
+            if ($suffix === 'party-ledger') {
+                $params['partyId'] = 1;
+            }
+            $url = route($routeName, $params);
             if ($suffix === 'export') {
                 $url .= '?report=profit_loss&format=json';
             }
 
-            $response = $this->getJson($url);
+            $isPost = str_starts_with($suffix, 'owner-daily-pulse.') && $suffix !== 'owner-daily-pulse';
+            $response = $isPost ? $this->postJson($url) : $this->getJson($url);
             $this->assertSame(
                 403,
                 $response->getStatusCode(),
@@ -152,12 +178,17 @@ class ReportPlanGateTest extends VenQoreTestCase
                 ? "store.reports.{$suffix}"
                 : "store.v3.reports.{$suffix}";
 
-            $url = route($routeName, ['store_slug' => $scaleTenant->slug]);
+            $params = ['store_slug' => $scaleTenant->slug];
+            if ($suffix === 'party-ledger') {
+                $params['partyId'] = 1;
+            }
+            $url = route($routeName, $params);
             if ($suffix === 'export') {
                 $url .= '?report=profit_loss&format=json';
             }
 
-            $response = $this->getJson($url);
+            $isPost = str_starts_with($suffix, 'owner-daily-pulse.') && $suffix !== 'owner-daily-pulse';
+            $response = $isPost ? $this->postJson($url) : $this->getJson($url);
             $this->assertNotSame(
                 403,
                 $response->getStatusCode(),
@@ -177,34 +208,11 @@ class ReportPlanGateTest extends VenQoreTestCase
             ModuleService::enable($tenant, $mod);
         }
 
-        $party = \App\Models\Party::factory()->create(['tenant_id' => $tenant->id, 'type' => 'customer']);
-
+        // Per SPEC_REPORTING_TIERS_FINAL Part B, Solo gets no individual report screens.
+        // The Reports Hub overview/dashboard remains accessible to view locked cards.
         $freeReportSuffixes = [
             'index',
             'dashboard',
-            'day-book',
-            'daily-sales',
-            'sales',
-            'low-stock',
-            'expiry',
-            'all-parties',
-            'party-statement',
-            'party-ledger',
-            'aged-receivables',
-            'aged-payables',
-            'expenses',
-            'expense-by-category',
-            'purchases',
-            'purchase-returns',
-            'sale-orders',
-            'sale-order-items',
-            'inventory-movement',
-            'movement-history',
-            'item-detail',
-            'stock-summary-by-category',
-            'bank-statement',
-            'loan-statement',
-            'tax',
         ];
 
         foreach ($freeReportSuffixes as $suffix) {
@@ -219,10 +227,6 @@ class ReportPlanGateTest extends VenQoreTestCase
             }
 
             $params = ['store_slug' => $tenant->slug];
-            if ($suffix === 'party-ledger') {
-                $params['partyId'] = $party->id;
-            }
-
             $url = route($routeName, $params);
             $response = $this->get($url);
 
@@ -238,7 +242,7 @@ class ReportPlanGateTest extends VenQoreTestCase
     public function inertia_shares_all_14_plan_features_with_proper_boolean_states_for_solo_and_scale(): void
     {
         $expectedKeys = array_values(array_unique(\App\Support\ReportPlanMap::REQUIRED_PLAN_FEATURES));
-        $this->assertCount(14, $expectedKeys);
+        $this->assertCount(23, $expectedKeys);
 
         // 1. Solo tenant
         $soloTenant = $this->createTenant(plan: 'solo', status: 'active');
@@ -251,7 +255,7 @@ class ReportPlanGateTest extends VenQoreTestCase
         $soloProps = $soloResponse->viewData('page')['props'] ?? [];
         $this->assertArrayHasKey('planFeatures', $soloProps);
         $this->assertIsArray($soloProps['planFeatures']);
-        $this->assertCount(14, $soloProps['planFeatures']);
+        $this->assertCount(23, $soloProps['planFeatures']);
 
         foreach ($expectedKeys as $key) {
             $this->assertArrayHasKey($key, $soloProps['planFeatures']);
@@ -269,7 +273,7 @@ class ReportPlanGateTest extends VenQoreTestCase
         $scaleProps = $scaleResponse->viewData('page')['props'] ?? [];
         $this->assertArrayHasKey('planFeatures', $scaleProps);
         $this->assertIsArray($scaleProps['planFeatures']);
-        $this->assertCount(14, $scaleProps['planFeatures']);
+        $this->assertCount(23, $scaleProps['planFeatures']);
 
         foreach ($expectedKeys as $key) {
             $this->assertArrayHasKey($key, $scaleProps['planFeatures']);

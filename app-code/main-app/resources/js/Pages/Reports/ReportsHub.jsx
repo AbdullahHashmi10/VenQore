@@ -11,7 +11,27 @@ import {
     PackageSearch, Tags, BarChart3, Tag, Hourglass, Users2, Activity, BookOpen,
     Search, Lock, PackageMinus
 } from 'lucide-react';
-import { isReportLocked } from '@/lib/reportPlanMap';
+import { isReportLocked, getReportTier, getReportDecisionMessage } from '@/lib/reportPlanMap';
+
+const DummyPreviewTable = () => (
+    <div className="mt-3 rounded-lg border border-line/60 bg-subtle/70 p-2.5 font-mono text-[11px] text-ink-muted select-none">
+        <div className="flex justify-between border-b border-line/50 pb-1 font-semibold text-ink-secondary">
+            <span>Item / Account</span>
+            <span>Trend</span>
+            <span>Performance</span>
+        </div>
+        <div className="flex justify-between py-1 border-b border-line/30 opacity-85">
+            <span>Sample Metric A</span>
+            <span>Volume +12%</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">+24.5%</span>
+        </div>
+        <div className="flex justify-between pt-1 opacity-75">
+            <span>Sample Metric B</span>
+            <span>Volume -3%</span>
+            <span className="text-rose-600 dark:text-rose-400 font-medium">-4.2%</span>
+        </div>
+    </div>
+);
 
 const Card3D = ({ report }) => {
     const { store, planFeatures = {} } = usePage().props;
@@ -78,52 +98,61 @@ const Card3D = ({ report }) => {
     };
 
     if (isLocked) {
-        return (
-            <Link
-                href={store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
-                className="relative bg-surface/50 dark:bg-app rounded-2xl border border-line overflow-hidden flex flex-col h-full group/locked hover:border-brand-500/40 transition-colors"
-                title="Upgrade plan to unlock this report"
-            >
-                <div className="relative p-6 flex flex-col h-full z-10 opacity-50 filter blur-[0.5px]">
-                    {/* Header Section */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            {/* Icon */}
-                            <div className="flex items-center justify-center shrink-0">
-                                <Icon size={30} strokeWidth={1.5} className="text-ink-muted" />
-                            </div>
+        const tier = getReportTier(reportRouteName) || 'Starter';
+        const decision = getReportDecisionMessage(reportRouteName);
 
-                            {/* Title & Short Desc */}
-                            <div className="flex flex-col justify-center">
-                                <h3 className="text-base font-bold text-ink-muted leading-tight">
-                                    {report.title}
-                                </h3>
-                                <p className="text-xs text-ink-muted/80 font-medium line-clamp-1 mt-0.5">
-                                    {report.description}
-                                </p>
+        return (
+            <div className="relative bg-surface rounded-2xl border border-line overflow-hidden flex flex-col h-full shadow-xs">
+                <div className="p-6 flex flex-col h-full z-10 justify-between">
+                    <div>
+                        {/* Header: Icon, Title & Tier Badge */}
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3.5">
+                                <div className="flex items-center justify-center shrink-0 w-10 h-10 rounded-xl bg-subtle border border-line text-ink-secondary">
+                                    <Icon size={22} strokeWidth={1.5} />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-base font-bold text-ink leading-tight">
+                                            {report.title}
+                                        </h3>
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                            {tier}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-ink-muted font-medium mt-0.5 line-clamp-1">
+                                        {report.description}
+                                    </p>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Real Long Description */}
+                        <div className="mt-3 pt-3 border-t border-line">
+                            <p className="text-[12px] text-ink-secondary leading-relaxed font-normal">
+                                {report.longDescription}
+                            </p>
+                        </div>
+
+                        {/* Static 2-row dummy preview table */}
+                        <DummyPreviewTable />
                     </div>
 
-                    {/* Long Description (Bottom Area) */}
-                    <div className="mt-4 pt-4 border-t border-line flex-grow">
-                        <p className="text-[12px] text-ink-muted/80 leading-relaxed font-medium">
-                            {report.longDescription}
-                        </p>
+                    {/* Action-oriented upgrade footer */}
+                    <div className="mt-4 pt-3 border-t border-line flex items-center justify-between gap-2">
+                        <span className="text-xs font-medium text-ink-muted line-clamp-1" title={decision}>
+                            {decision}
+                        </span>
+                        <Link
+                            href={store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
+                            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition-colors shadow-xs"
+                        >
+                            <Lock size={12} />
+                            Upgrade
+                        </Link>
                     </div>
                 </div>
-
-                {/* Lock Overlay */}
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-sunken dark:bg-black/40 backdrop-blur-[2px]">
-                    <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center shadow-lg border border-line text-ink-muted group-hover/locked:scale-110 transition-transform duration-slow">
-                        <Lock size={16} className="text-amber-500" />
-                    </div>
-                    <span className="text-1xs font-bold uppercase tracking-wider text-ink-secondary px-3 py-1 bg-white/95 dark:bg-surface rounded-full shadow-sm border border-line flex items-center gap-1.5">
-                        <Lock size={11} className="text-amber-500" />
-                        Upgrade to Unlock
-                    </span>
-                </div>
-            </Link>
+            </div>
         );
     }
 

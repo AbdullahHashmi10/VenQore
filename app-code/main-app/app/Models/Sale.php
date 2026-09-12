@@ -191,7 +191,10 @@ class Sale extends Model
             return $query;
         }
 
-        $retentionDays = $t->historyRetentionDays();
+        $retentionDays = method_exists($t, 'visibleHistoryDays')
+            ? $t->visibleHistoryDays()
+            : $t->historyRetentionDays();
+
         if ($retentionDays !== null && $retentionDays > 0) {
             return $query->where('created_at', '>=', now()->subDays($retentionDays));
         }

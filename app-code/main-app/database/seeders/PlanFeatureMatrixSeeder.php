@@ -264,57 +264,35 @@ class PlanFeatureMatrixSeeder extends Seeder
             'google_drive_backup'        => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'adviser_seat'               => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            // Group 8 — Reports (Operational reports universal; Analytical reports paid from Starter up per V11)
+            // Group 8 — Reports (SPEC_REPORTING_TIERS_FINAL)
             'reports'                    => ['solo' => 'basic', 'starter' => 'advanced', 'core' => 'advanced', 'scale' => 'advanced'],
-            'report_sales_summary'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_low_stock'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_expenses_directory'  => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_party_statement'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_cash_flow'           => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'visible_history_days'       => ['solo' => '30', 'starter' => null, 'core' => null, 'scale' => null],
+            // Starter (10 keys)
+            'report_sales_records'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_purchase_records'    => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_stock_records'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'report_stock_valuation'     => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_purchases'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_daily_sales_trend'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_day_book'            => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_tax_compliance'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_general_discount'    => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_bank_statements'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_account_ledger'      => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_stock_aging'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_expiring_soon'       => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'report_profit_loss'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_trial_balance'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'discount_report'            => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'cash_flow_report'           => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'stock_valuation'            => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'point_in_time_inventory'    => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'customer_insights'          => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'supplier_insights'          => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'stock_aging'                => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_transactions_history'=> ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_item_profit'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_bill_profitability'  => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_graph_analytics'     => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_loan_statement'      => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'aged_receivables'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_sales_aging'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_sales_orders_status' => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_party_profitability' => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_expense_by_category' => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_expense_by_item'     => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_stock_by_category'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_sales_by_party'      => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_sales_by_category'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_category_pl'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_item_discounting'    => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_sales_order_items'   => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_sales_party_group'   => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_item_by_party'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_party_by_item'          => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_tax_rate_breakdown'     => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_profitability_analysis' => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_sales_analysis'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_expense_analysis'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'report_export'                 => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_cash_flow'           => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_expenses'            => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_tax'                 => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_day_book'            => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'report_party_records'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            // Core (8 keys)
+            'report_sales_analytics'     => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'report_profitability'       => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'report_discounts'           => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'report_aging'               => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'report_balance_sheet'       => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'report_expense_analysis'    => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'report_party_insights'      => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'owners_daily_pulse'         => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '1', 'ltd_3' => '1'],
+            // Scale (5 keys)
+            'report_ledger'              => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'report_point_in_time'       => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'report_cross_party'         => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'report_loans'               => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'report_export'              => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
 
             // Group 9 — AI, Signals & Builder
             'ai_assistant'               => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
@@ -325,7 +303,6 @@ class PlanFeatureMatrixSeeder extends Seeder
             'ai_system_builder'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'growth_engine'              => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '0', 'ltd_3' => '0'],
             'growth_signals'             => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '0', 'ltd_3' => '0'],
-            'owners_daily_pulse'         => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '0', 'ltd_3' => '0'],
             'bulk_upload'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'live_chat_widget'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
@@ -352,7 +329,7 @@ class PlanFeatureMatrixSeeder extends Seeder
                     // trial = core, growth = core, business = scale, ltd_1 = starter, ltd_2 = core, ltd_3 = scale
                     $baseSlug = match ($slug) {
                         'trial', 'growth' => 'core',
-                        'business'        => 'scale',
+                        'custom', 'business' => 'scale',
                         'ltd_1'           => 'starter',
                         'ltd_2'           => 'core',
                         'ltd_3'           => 'scale',
@@ -364,6 +341,11 @@ class PlanFeatureMatrixSeeder extends Seeder
                         : (array_key_exists($baseSlug, $values)
                             ? $values[$baseSlug]
                             : (array_key_exists('starter', $values) ? $values['starter'] : '0'));
+
+                    // For trial and custom, reporting keys get Scale set (all 23 reports accessible per SPEC_REPORTING_TIERS_FINAL Part C)
+                    if (($slug === 'trial' || $slug === 'custom') && (str_starts_with($key, 'report_') || $key === 'owners_daily_pulse')) {
+                        $val = $values['scale'] ?? '1';
+                    }
 
                     // LTD Specific overrides per V11 Spec §7
                     if (str_starts_with($slug, 'ltd_')) {

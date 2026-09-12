@@ -415,12 +415,13 @@ class RegressionFixesTest extends VenQoreTestCase
         $tenant = $this->createTenant('gated-reports-store', 'ltd_1');
         $this->actingAsTenantUser($tenant, 'owner');
 
-        // Under V11 Universal Spec, all reports (including sales and aging) are accessible across all tiers
+        // Under SPEC_REPORTING_TIERS_FINAL Part C, Starter (ltd_1) gets sales report (200),
+        // but sale aging requires Core (403)
         $responseSales = $this->get($this->storeUrl($tenant, 'reports/sales'));
         $responseSales->assertStatus(200);
 
         $responseAging = $this->get($this->storeUrl($tenant, 'reports/sale-aging'));
-        $responseAging->assertStatus(200);
+        $responseAging->assertStatus(403);
     }
 
     /** @test */

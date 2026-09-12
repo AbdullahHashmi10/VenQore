@@ -44,22 +44,22 @@ describe('Report Plan Gating (Fix 2)', () => {
 
         it('returns true when the required feature key is explicitly false', () => {
             expect(isReportLocked('store.reports.profit-loss', { report_profit_loss: false })).toBe(true);
-            expect(isReportLocked('store.reports.trial-balance', { report_trial_balance: false })).toBe(true);
-            expect(isReportLocked('store.reports.inventory-valuation', { stock_valuation: false })).toBe(true);
-            expect(isReportLocked('store.reports.cash-flow', { cash_flow_report: false })).toBe(true);
-            expect(isReportLocked('store.reports.discount', { discount_report: false })).toBe(true);
+            expect(isReportLocked('store.reports.trial-balance', { report_ledger: false })).toBe(true);
+            expect(isReportLocked('store.reports.inventory-valuation', { report_stock_valuation: false })).toBe(true);
+            expect(isReportLocked('store.reports.cash-flow', { report_cash_flow: false })).toBe(true);
+            expect(isReportLocked('store.reports.discount', { report_discounts: false })).toBe(true);
         });
 
         it('returns false when the required feature key is true', () => {
             expect(isReportLocked('store.reports.profit-loss', { report_profit_loss: true })).toBe(false);
-            expect(isReportLocked('store.reports.trial-balance', { report_trial_balance: true })).toBe(false);
-            expect(isReportLocked('store.reports.inventory-valuation', { stock_valuation: true })).toBe(false);
+            expect(isReportLocked('store.reports.trial-balance', { report_ledger: true })).toBe(false);
+            expect(isReportLocked('store.reports.inventory-valuation', { report_stock_valuation: true })).toBe(false);
         });
 
-        it('correctly maps all 14 plan features to their respective routes', () => {
+        it('correctly maps all 23 plan features to their respective routes', () => {
             const allFeatures = Object.values(REPORT_PLAN_FEATURES);
             const uniqueFeatures = [...new Set(allFeatures)];
-            expect(uniqueFeatures).toHaveLength(14);
+            expect(uniqueFeatures).toHaveLength(23);
 
             for (const [routeName, featureKey] of Object.entries(REPORT_PLAN_FEATURES)) {
                 // When false => locked

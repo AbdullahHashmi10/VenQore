@@ -57,9 +57,17 @@ final class PartySource implements ReckonerSource
                     ->whereBetween('created_at', [$period->start, $period->end])
                     ->count(),
                 'party.dormant_customers' => $this->dormantCustomers($ctx),
-                'sales.top_customers' => (function() use ($period) {
+                'sales.top_customers' => (function() use ($period, $ctx) {
+                    $tenant = $ctx->tenant;
+                    $isSolo = false;
+                    if ($tenant) {
+                        $planSlug = strtolower(trim($tenant->plan?->slug ?? (is_string($tenant->plan) ? $tenant->plan : '')));
+                        $isSolo = in_array($planSlug, ['solo', 'counter'], true) || (method_exists($tenant, 'visibleHistoryDays') && $tenant->visibleHistoryDays() !== null);
+                    }
+                    $limit = $isSolo ? 5 : 6;
+
                     $rows = $this->reporting->getGrossProfitByParty($period->start->toDateString(), $period->end->toDateString())
-                        ->take(6)
+                        ->take($limit)
                         ->values();
 
                     $rank = 1;

@@ -66,7 +66,24 @@ export default function DashboardCardFrame({
     if (isGated) return null;
 
     const { store, planFeatures = {} } = usePage().props;
-    const isPnlLocked = (card?.key === 'finance.net_profit' || definition?.key === 'finance.net_profit' || card?.key === 'finance.profit_trend' || card?.chart === 'profit_loss_line') && planFeatures.report_profit_loss === false;
+    const CARD_REPORT_TIERS = {
+        'sales.revenue': { feature: 'report_sales_records', tier: 'Starter' },
+        'finance.expenses_total': { feature: 'report_expenses', tier: 'Starter' },
+        'finance.net_profit': { feature: 'report_profit_loss', tier: 'Starter' },
+        'finance.profit_trend': { feature: 'report_profit_loss', tier: 'Starter' },
+        'finance.total_liquidity': { feature: 'report_cash_flow', tier: 'Starter' },
+        'inventory.stock_value': { feature: 'report_stock_valuation', tier: 'Starter' },
+        'inventory.low_stock_count': { feature: 'report_stock_records', tier: 'Starter' },
+        'inventory.low_stock_list': { feature: 'report_stock_records', tier: 'Starter' },
+        'batch_tracking.count': { feature: 'report_stock_records', tier: 'Starter' },
+        'batch_tracking.qty': { feature: 'report_stock_records', tier: 'Starter' },
+        'finance.receivables': { feature: 'report_party_records', tier: 'Starter' },
+        'finance.payables': { feature: 'report_purchase_records', tier: 'Starter' },
+    };
+    const cardKey = card?.key || definition?.key;
+    const reportInfo = CARD_REPORT_TIERS[cardKey];
+    const isReportLocked = reportInfo && planFeatures[reportInfo.feature] === false;
+    const lockedReportTier = isReportLocked ? reportInfo.tier : null;
 
     const category = card?.category || 'C3';
     const accent = Boolean(card?.style?.accent);
@@ -137,21 +154,7 @@ export default function DashboardCardFrame({
         </span>
     ) : null;
 
-    const value = isPnlLocked ? (
-        <div className="flex flex-col items-start gap-1">
-            <span className="vqc-value filter blur-xs select-none opacity-40 tracking-wider">
-                ••••••
-            </span>
-            <Link
-                href={window.route && store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
-                className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline z-10"
-                title="See your profit"
-            >
-                <Lock size={11} className="text-amber-500" />
-                See your profit
-            </Link>
-        </div>
-    ) : (
+    const value = (
         <NumberRoller
             value={metric.text}
             title={metric.exact ?? undefined}
@@ -172,6 +175,14 @@ export default function DashboardCardFrame({
                     <div className="vqc-bd vqc-bd--tile">
                         <span className="vqc-label" title={title}>{title}</span>
                         {value}
+                        {lockedReportTier && (
+                            <Link
+                                href={window.route && store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
+                                className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 hover:underline"
+                            >
+                                Full report — {lockedReportTier}
+                            </Link>
+                        )}
                         <span className="vqc-when">{when}</span>
                     </div>
                 </Body>
@@ -188,9 +199,19 @@ export default function DashboardCardFrame({
                 <Body loading={loading} error={error} category={category}>
                     <div className="vqc-bd vqc-bd--strip is-inline">
                         <span className="vqc-eyebrow" title={title}>{title}</span>
-                        <span className="vqc-head">
-                            {value}
-                            {delta && <Delta delta={delta} />}
+                        <span className="vqc-head flex-col items-end">
+                            <span className="flex items-center gap-2">
+                                {value}
+                                {delta && <Delta delta={delta} />}
+                            </span>
+                            {lockedReportTier && (
+                                <Link
+                                    href={window.route && store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
+                                    className="inline-flex items-center gap-1 text-[10px] font-medium text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 hover:underline"
+                                >
+                                    Full report — {lockedReportTier}
+                                </Link>
+                            )}
                         </span>
                         <span className="vqc-when">{when}</span>
                     </div>
@@ -234,9 +255,19 @@ export default function DashboardCardFrame({
             <Body loading={loading} error={error} category={category}>
                 {showHeadline && (
                     <>
-                        <div className="vqc-head">
-                            {value}
-                            {delta && <Delta delta={delta} />}
+                        <div className="vqc-head flex-col items-start gap-0.5">
+                            <div className="flex items-center gap-2">
+                                {value}
+                                {delta && <Delta delta={delta} />}
+                            </div>
+                            {lockedReportTier && (
+                                <Link
+                                    href={window.route && store?.slug ? route('store.billing', { store_slug: store.slug }) : '/billing'}
+                                    className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 hover:underline"
+                                >
+                                    Full report — {lockedReportTier}
+                                </Link>
+                            )}
                         </div>
                         <p className="vqc-when">{when}</p>
                     </>
