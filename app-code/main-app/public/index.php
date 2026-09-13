@@ -56,6 +56,38 @@ $bootstrapOk = is_writable($bootstrapPath);
 // If EVERYTHING is OK, let Laravel take over
 if ($phpOk && $storageOk && $bootstrapOk && empty($missingExtensions)) {
     
+    // --- AUTO-CACHE INVALIDATION ON NEW DEPLOYMENT ---
+    $buildIdFile = __DIR__ . '/build/build_id.txt';
+    $manifestFile = __DIR__ . '/build/manifest.json';
+    $cacheMarker = __DIR__ . '/../storage/framework/cache/deployed_build_id.txt';
+
+    $currentBuildId = null;
+    if (file_exists($buildIdFile)) {
+        $currentBuildId = trim((string)@file_get_contents($buildIdFile));
+    } elseif (file_exists($manifestFile)) {
+        $currentBuildId = (string)@filemtime($manifestFile);
+    }
+
+    if ($currentBuildId !== null && $currentBuildId !== '') {
+        $lastBuildId = file_exists($cacheMarker) ? trim((string)@file_get_contents($cacheMarker)) : '';
+        if ($currentBuildId !== $lastBuildId) {
+            // A new build was pulled! Clear stale compiled views and cached configs automatically
+            @unlink(__DIR__ . '/../bootstrap/cache/config.php');
+            @unlink(__DIR__ . '/../bootstrap/cache/routes-v7.php');
+            @unlink(__DIR__ . '/../bootstrap/cache/packages.php');
+            @unlink(__DIR__ . '/../bootstrap/cache/services.php');
+
+            $views = glob(__DIR__ . '/../storage/framework/views/*.php');
+            if (is_array($views)) {
+                foreach ($views as $view) {
+                    @unlink($view);
+                }
+            }
+
+            @file_put_contents($cacheMarker, $currentBuildId);
+        }
+    }
+
     // --- LARAVEL BOOTSTRAP ---
     define('LARAVEL_START', microtime(true));
 
@@ -63,7 +95,24 @@ if ($phpOk && $storageOk && $bootstrapOk && empty($missingExtensions)) {
         require $maintenance;
     }
 
-    require __DIR__.'/../vendor/autoload.php';
+    $autoloadPaths = [
+        __DIR__ . '/../vendor/autoload.php',
+        __DIR__ . '/../../../vendor/autoload.php',
+    ];
+    $autoloadFound = null;
+    foreach ($autoloadPaths as $ap) {
+        if (file_exists($ap)) {
+            $autoloadFound = $ap;
+            break;
+        }
+    }
+    if ($autoloadFound) {
+        require $autoloadFound;
+    } else {
+        http_response_code(500);
+        echo "VenQore Error: Composer dependencies missing. Please run 'composer install'.";
+        exit;
+    }
 
     /** @var \Illuminate\Foundation\Application $app */
     $app = require_once __DIR__.'/../bootstrap/app.php';

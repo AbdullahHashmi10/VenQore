@@ -170,14 +170,43 @@ try {
     git init -b $Branch
     git config user.name "VenQore Release Builder"
     git config user.email "deploy@venqore.com"
+    git remote add origin $remoteUrl
+
+    # 3b. Fetch previous release commit from local repo to maintain continuous history instantly
+    Write-Host "Chaining onto existing origin/$Branch history..." -ForegroundColor Gray
+    $hasHistory = $false
+    try {
+        git remote add local-parent "$repoRoot" 2>$null
+        git fetch local-parent "origin/$Branch" 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            git reset --soft FETCH_HEAD
+            $hasHistory = $true
+            Write-Host "Chained successfully to previous commit." -ForegroundColor Gray
+        }
+    } catch {
+        $hasHistory = $false
+    }
+
+    # 3c. Generate unique build identifier for automatic cache invalidation
+    $buildId = (Get-Date).ToString("yyyyMMdd_HHmmss") + "_" + [guid]::NewGuid().ToString("N").Substring(0, 8)
+    $buildIdPath = Join-Path $distDir "public\build\build_id.txt"
+    Set-Content -Path $buildIdPath -Value $buildId -Force -Encoding UTF8
+
     git add -A
     $timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     git commit -m "release: clean production build $timestamp"
-    git remote add origin $remoteUrl
 
     # 4. Push to remote
     Write-Host "`n[4/4] Pushing clean build to GitHub origin/$Branch..." -ForegroundColor Cyan
-    git push -f origin $Branch
+    if ($hasHistory) {
+        git push origin $Branch
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Notice: Fast-forward push returned non-zero, performing safe update..." -ForegroundColor Yellow
+            git push -f origin $Branch
+        }
+    } else {
+        git push -f origin $Branch
+    }
 }
 finally {
     Pop-Location

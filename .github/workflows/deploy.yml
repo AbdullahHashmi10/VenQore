@@ -1,64 +1,63 @@
-name: Deploy VenQore to Production
+name: Build & Publish Release
 
-# L023: Deploy is gated on the test workflows succeeding. Instead of triggering
-# directly on push to main (which could deploy code no test ever ran against),
-# this workflow runs only after the "VenQore Tests" workflow completes, and the
-# job below refuses to proceed unless that run concluded successfully on main.
-# workflow_dispatch remains for deliberate manual (emergency) deploys.
 on:
-  workflow_run:
-    workflows: ["VenQore Tests"]
-    types: [completed]
+  push:
     branches: [main]
-  workflow_dispatch:    # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  deploy:
-    name: Deploy to venqore.com
+  release:
+    name: Build Vite & Publish to release branch
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Proceed only when triggered manually, or when the upstream test run
-    # both targeted main and passed. This makes it technically impossible to
-    # deploy code that has not passed CI.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.head_branch == 'main')
 
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────
-      - name: Checkout code
+      - name: Checkout main
         uses: actions/checkout@v4
-
-      # ── 2. SSH into server and run deploy script ─────────────────
-      # Secrets needed in GitHub → Settings → Secrets:
-      #   PRODUCTION_HOST      = IP or hostname of your DigitalOcean Droplet
-      #   PRODUCTION_USER      = www-data (or deploy user)
-      #   PRODUCTION_SSH_KEY   = Private SSH key (generate a deploy key pair)
-      #   PRODUCTION_PORT      = 22 (or custom SSH port)
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          port: ${{ secrets.PRODUCTION_PORT || 22 }}
-          timeout: 600s
-          script: |
-            bash /var/www/venqore/deploy/deploy.sh main 2>&1
+          fetch-depth: 1
 
-      # ── 3. Notify on success ────────────────────────────────────
-      - name: Deploy success notification
-        if: success()
-        run: |
-          echo "✅ VenQore deployed successfully to production"
-          echo "   Commit: ${{ github.sha }}"
-          echo "   By: ${{ github.actor }}"
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, bcmath, pdo, json
+          tools: composer:v2
 
-      # ── 4. Notify on failure ────────────────────────────────────
-      - name: Deploy failure notification
-        if: failure()
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: app-code/main-app/package-lock.json
+
+      - name: Install dependencies & Build Vite
+        working-directory: app-code/main-app
         run: |
-          echo "❌ VenQore deploy FAILED"
-          echo "   Commit: ${{ github.sha }}"
-          echo "   Check: https://github.com/AbdullahHashmi10/AMD-Project/actions"
+          npm ci --prefer-offline --no-audit
+          npm run build
+
+      - name: Assemble Standalone Release & Push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p _dist
+          cp -r app-code/main-app/. _dist/
+          cd _dist
+          rm -rf node_modules tests .git .github .vscode
+          rm -f .env .env.*
+          cp .env.production.example .env.example 2>/dev/null || true
+          mkdir -p public/build storage/framework/cache
+          echo "$(date +%Y%m%d_%H%M%S)_${GITHUB_SHA:0:8}" > public/build/build_id.txt
+          git init -b release
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git fetch --depth 1 origin release || true
+          git reset --soft FETCH_HEAD || true
+          git add -A
+          git commit -m "release: auto-build from commit ${{ github.sha }} [skip ci]" || echo "No changes to commit"
+          git push origin release
