@@ -21,6 +21,25 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ── LITE mode ────────────────────────────────────────────────────────────
+     Every effect below is a scroll-scrubbed animation: it reads layout and
+     writes inline styles on each rAF tick. On desktop that is a handful of
+     elements and the compositor absorbs it. On a phone it is not.
+
+     Three of these sections are `position: sticky; height: 100vh` pins whose
+     parents run 2500-5000px tall, so on a 390px screen the page measures
+     44,100px — 52 viewports, most of it dead scroll while pinned content
+     scrubs. ScrollFloat is worse: it splits every .vq-sfloat heading into one
+     <span> per character (315 on this page), each carrying a permanent
+     `will-change: transform, opacity`, then rewrites .style.opacity and
+     .style.transform on all 315 every frame.
+
+     LITE switches the scrubbed choreography off below 900px so the same
+     content lays out as ordinary stacked sections. Nothing is hidden: each
+     effect renders its finished state instead of its scrubbed one. */
+  var LITE = reduced ||
+    (window.matchMedia && window.matchMedia('(max-width: 900px)').matches);
+
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function progressOf(el) {
     var r = el.getBoundingClientRect();
@@ -46,6 +65,32 @@
   function initScrollFloat() {
     var heads = $$('.vq-sfloat');
     if (!heads.length) return;
+
+    /* LITE: do not split at all. 315 permanently layer-promoted character
+       spans is the single most expensive thing on this page, and the payoff
+       is a per-letter rise nobody can perceive on a phone anyway. The heading
+       stays one element and gets a plain CSS fade-up via .vq-reveal. */
+    if (LITE) {
+      /* One IntersectionObserver that unobserves on first hit, rather than
+         anything per-frame. Note this cannot lean on venqore.js's .vq-reveal
+         observer: that one runs at its own load, which is before this file
+         executes, and it drives opacity through inline styles rather than a
+         class. If IO is unavailable, the heading is simply visible — the
+         failure mode has to be "no animation", never "no text". */
+      if (!window.IntersectionObserver) return;
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          en.target.classList.add('is-in');
+          obs.unobserve(en.target);
+        });
+      }, { threshold: 0.15 });
+      heads.forEach(function (h) {
+        h.classList.add('vq-sfloat--lite');
+        obs.observe(h);
+      });
+      return;
+    }
 
     heads.forEach(function (h) {
       if (h.dataset.split === '1') return;
@@ -75,13 +120,27 @@
 
     if (reduced) return;
 
+    /* Cache the character lists once. The original queried .vqch inside the
+       scroll callback, so every heading ran a fresh querySelectorAll on every
+       frame. Also cache the last progress per heading so a heading that has
+       finished (or has not started) writes nothing. */
+    var tracked = heads.map(function (h) {
+      return { el: h, chars: h.querySelectorAll('.vqch'), last: -1 };
+    });
+
     subscribe(function () {
-      heads.forEach(function (h) {
+      var vh = window.innerHeight;            /* read once, not once per heading */
+      tracked.forEach(function (t) {
+        var h = t.el;
         var r = h.getBoundingClientRect();
-        var vh = window.innerHeight;
+        /* Cull: off-screen headings cannot change appearance. */
+        if (r.bottom < -vh * 0.5 || r.top > vh * 1.5) return;
         /* start when the block's top reaches 92% of the viewport, finish at 46% */
         var p = clamp((vh * 0.98 - r.top) / (vh * 0.42), 0, 1);
-        var chars = h.querySelectorAll('.vqch');
+        /* Settled at either end — nothing to repaint. */
+        if (p === t.last) return;
+        t.last = p;
+        var chars = t.chars;
         var n = chars.length || 1;
         for (var i = 0; i < n; i++) {
           var local = clamp(p * (n + 12) - i, 0, 1);
@@ -98,7 +157,9 @@
   /* ── Parallax layers ──────────────────────────────────────────────────── */
   function initParallax() {
     var layers = $$('[data-par]');
-    if (!layers.length || reduced) return;
+    /* LITE: parallax is a per-frame transform write on decorative gradient
+       blobs. It buys nothing on a small screen and costs a layer each. */
+    if (!layers.length || LITE) return;
 
     subscribe(function () {
       var vh = window.innerHeight;
@@ -179,6 +240,22 @@
     var N = cards.length;
     cards.forEach(function (c, i) { c.style.zIndex = String(10 + i); });
 
+    /* LITE: the deck stops being a deck. CSS unpins the section and lays the
+       cards out as a normal vertical list, so every inline style this writes
+       (absolute-positioning transforms, blur, opacity, visibility) has to be
+       cleared or the cards sit blurred and invisible on top of each other. */
+    if (LITE) {
+      cards.forEach(function (c) {
+        c.style.transform = '';
+        c.style.opacity = '';
+        c.style.filter = '';
+        c.style.visibility = '';
+        c.style.zIndex = '';
+      });
+      if (counter) counter.textContent = '';
+      return;
+    }
+
     subscribe(function () {
       var p = progressOf(wrap);
       var d0 = p * (N - 1);
@@ -231,8 +308,7 @@
 
     var BEATS = 4;
 
-    subscribe(function () {
-      var p = progressOf(sec);
+    function render(p) {
       var f = p * BEATS;                     /* 0 … 4 */
       var active = Math.min(BEATS - 1, Math.floor(f));
       var local = clamp(f - active, 0, 1);
@@ -278,7 +354,13 @@
         postedBox.style.opacity = active === 3 ? clamp(local * 1.6, 0, 1).toFixed(2) : '0';
         postedBox.style.transform = 'translateY(' + (active === 3 ? (1 - clamp(local * 1.6, 0, 1)) * 10 : 10).toFixed(1) + 'px)';
       }
-    });
+    }
+
+    /* LITE: the section is unpinned, so there is no scroll range to scrub
+       against — progressOf would sit at 0 and the queue would read as empty
+       forever. Render the resolved end state once: reconnected, queue drained. */
+    if (LITE) { render(1); return; }
+    subscribe(function () { render(progressOf(sec)); });
   }
 
   /* ── Dashboard / analytics theatre ────────────────────────────────────── */
@@ -296,8 +378,7 @@
       p.style.strokeDashoffset = len;
     });
 
-    subscribe(function () {
-      var p = progressOf(sec);
+    function render(p) {
       var draw = clamp((p - 0.12) / 0.5, 0, 1);
 
       spark.forEach(function (path, i) {
@@ -318,7 +399,11 @@
         c.style.opacity = e.toFixed(3);
         c.style.transform = 'translate3d(0,' + ((1 - e) * 22).toFixed(1) + 'px,0)';
       });
-    });
+    }
+
+    /* LITE: unpinned, so draw the charts complete rather than scrubbing them. */
+    if (LITE) { render(1); return; }
+    subscribe(function () { render(progressOf(sec)); });
   }
 
   /* ── LogoLoop ─────────────────────────────────────────────────────────── */
@@ -341,13 +426,20 @@
       track.innerHTML = track.innerHTML + track.innerHTML;
       var dir = parseFloat(loop.getAttribute('data-loop')) || 1;
       var base = parseFloat(loop.getAttribute('data-loop-speed')) || 42;   /* px per second */
-      var x = 0, last = null;
+      var x = 0, last = null, running = false, rafId = 0;
+
+      /* scrollWidth was read inside the frame loop, which forces a synchronous
+         layout of the whole track 60 times a second, forever. It only changes
+         on resize, so measure it there instead. */
+      var half = 0;
+      function measure() { half = track.scrollWidth / 2; }
+      measure();
+      window.addEventListener('resize', measure);
 
       function frame(ts) {
         if (last === null) last = ts;
         var dt = Math.min(64, ts - last) / 1000;
         last = ts;
-        var half = track.scrollWidth / 2;
         if (half > 0) {
           x -= (base + Math.abs(velocity) * 1.4) * dir * dt;
           if (dir > 0 && x <= -half) x += half;
@@ -355,14 +447,35 @@
           track.style.transform = 'translate3d(' + x.toFixed(2) + 'px,0,0)';
         }
         velocity *= 0.92;
-        requestAnimationFrame(frame);
+        rafId = requestAnimationFrame(frame);
       }
-      if (!reduced) requestAnimationFrame(frame);
+
+      /* And it ran whether or not the strip was on screen. A marquee nobody
+         can see is pure battery. Start and stop it with visibility. */
+      function start() { if (running) return; running = true; last = null; rafId = requestAnimationFrame(frame); }
+      function stop()  { if (!running) return; running = false; cancelAnimationFrame(rafId); }
+
+      if (reduced) return;
+      if (window.IntersectionObserver) {
+        new IntersectionObserver(function (entries) {
+          entries[0].isIntersecting ? start() : stop();
+        }, { rootMargin: '100px' }).observe(loop);
+      } else {
+        start();
+      }
+      document.addEventListener('visibilitychange', function () {
+        document.hidden ? stop() : start();
+      });
     });
   }
 
   /* ── GradualBlur — builds the layered mask at a pinned frame's edge ───── */
   function initGradualBlur() {
+    /* Seven stacked backdrop-filter layers per host. backdrop-filter forces the
+       compositor to re-read what is behind the element on every frame it moves,
+       which is the most expensive thing you can put on a scrolling mobile page —
+       and the edges it softens belong to pins that LITE removes anyway. */
+    if (LITE) return;
     $$('.vq-gblur').forEach(function (host) {
       if (host.childElementCount) return;
       var strength = parseFloat(host.getAttribute('data-blur')) || 2;

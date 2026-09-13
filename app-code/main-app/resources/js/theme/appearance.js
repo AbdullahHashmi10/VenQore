@@ -60,7 +60,7 @@ const prefersDark = () =>
 export function resolveDarkMode(mode) {
     if (mode === 'dark') return true;
     if (mode === 'light') return false;
-    return prefersDark();
+    return false;
 }
 
 /* ------------------------------------------------------------------ *

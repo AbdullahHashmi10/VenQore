@@ -1490,6 +1490,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/reports/supplier-insights/details', [\App\Http\Controllers\ReportController::class, 'supplierInsightsDetails'])->name('reports.supplier-insights.details');
 
         // Aliases / auxiliary report endpoints
+        Route::get('/reports/discount-report', fn() => \abort(501, 'Implement reports.discount-report'))->name('reports.discount-report');
         Route::get('/reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->name('reports.aged-receivables');
         Route::get('/reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->name('reports.aged-payables');
         Route::get('/reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->name('reports.inventory-valuation');
@@ -2165,8 +2166,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/purchases/{purchase}/print', fn() => \abort(501, 'Implement purchases.print'))->name('purchases.print');
     Route::get('/sales/create', fn() => \redirect()->route('store.new-invoice', ['store_slug' => app('current.tenant')->slug]))->name('sales.create');
     Route::get('/inventory/production/{run}/edit', fn() => \abort(501, 'Implement production.edit'))->name('production.edit');
-    Route::get('/reports/discount-report', fn() => \abort(501, 'Implement reports.discount-report'))->name('reports.discount-report');
-    Route::get('/reports/inventory-valuation', fn() => \abort(501, 'Implement reports.inventory-valuation'))->name('reports.inventory-valuation');
     });
 });
 

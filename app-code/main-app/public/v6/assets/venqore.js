@@ -15,6 +15,23 @@
     return Math.max(min, Math.min(max, v));
   }
 
+  /* LITE — see the matching block in venqore-landing.js. Two sections in this
+     file are scroll-jacked: #tenx (380vh of vertical scroll that drags a row
+     sideways) and #compiler (600vh driving a five-stage theatre). Both hold a
+     `position: sticky; height: 100vh` child, and on a phone 100vh is the
+     height with browser chrome HIDDEN — so while the URL bar shows, the pin
+     overhangs the screen, and it resizes mid-gesture as the bar hides. Both
+     handlers also read scrollWidth / getBoundingClientRect on every scroll
+     event, forcing a layout of the whole row each time.
+
+     Below 900px landing.css unpins them and turns the track into a native
+     horizontal swipe strip, which is what a touch device wanted anyway. These
+     guards stop the JS fighting that layout. */
+  var LITE = !!(window.matchMedia && (
+    window.matchMedia('(max-width: 900px)').matches ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ));
+
   /* ── 1. Theme Switcher (data-theme-toggle & #theme-toggle) ─────────────── */
   function initTheme() {
     function setTheme(t) {
@@ -36,7 +53,7 @@
 
     var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
     if (!saved) {
-      saved = document.documentElement.classList.contains('dark') ? 'dark' : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      saved = 'light';
     }
     setTheme(saved);
 
@@ -326,12 +343,7 @@
       });
     }
 
-    function onScroll() {
-      var r = theater.getBoundingClientRect();
-      var h = r.height - window.innerHeight;
-      if (h <= 0) return;
-      var prog = clamp(-r.top / h, 0, 1);
-
+    function render(prog) {
       var N = 5;
       var local = prog * N * 0.999;
       var idx = clamp(Math.floor(local), 0, N - 1);
@@ -394,6 +406,23 @@
       }
 
       if (idx === 3) updateWires();
+    }
+
+    function onScroll() {
+      var r = theater.getBoundingClientRect();
+      var h = r.height - window.innerHeight;
+      if (h <= 0) return;
+      render(clamp(-r.top / h, 0, 1));
+    }
+
+    /* LITE: unpinned, so there is no scroll range to scrub and the old guard
+       (`if (h <= 0) return`) would have left the theatre frozen on stage 1
+       with the later stages still hidden. Render the last stage — the
+       compiled, running system — which is the payoff the section exists for. */
+    if (LITE) {
+      render(1);
+      updateWires();
+      return;
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -532,6 +561,17 @@
     var bar = $('[data-trackbar="1"]');
     if (!tenx || !row) return;
 
+    /* LITE: the row becomes a swipeable strip (CSS), so leave it alone. The
+       inline transform from a previous run has to go, or the strip starts
+       scrolled part-way off its own left edge. */
+    if (LITE) {
+      row.style.transform = '';
+      /* The "KEEP SCROLLING" progress bar tracked a scroll range that no
+         longer exists; its whole label block goes with it. */
+      if (bar && bar.parentElement) bar.parentElement.style.display = 'none';
+      return;
+    }
+
     function onScroll() {
       var r = tenx.getBoundingClientRect();
       var h = r.height - window.innerHeight;
@@ -556,6 +596,10 @@
   function initMarqueeScroll() {
     var mq = $('[data-marquee="1"]');
     if (!mq) return;
+
+    /* LITE: a decorative strip that repaints on every scroll event. The CSS
+       marquee animation carries it instead — same look, no scroll handler. */
+    if (LITE) { mq.style.transform = ''; mq.classList.add('vq-marquee--css'); return; }
 
     function onScroll() {
       var scrollY = window.pageYOffset || document.documentElement.scrollTop;

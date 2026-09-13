@@ -42,8 +42,7 @@
         (function () {
             try {
                 var mode = @json($vqAppearance['mode'] ?? 'system');
-                var dark = mode === 'dark'
-                    || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                var dark = mode === 'dark';
                 document.documentElement.classList.toggle('dark', dark);
             } catch (e) { /* no matchMedia, no localStorage — light stands */ }
         })();

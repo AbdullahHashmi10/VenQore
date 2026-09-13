@@ -107,7 +107,7 @@
 
 /* ── ScrollStack — pinned card stack (section 7) ──────────────────────── */
 .vq-stackwrap   { position: relative; }
-.vq-stackpin    { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; overflow: hidden; }
+.vq-stackpin    { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; overflow: hidden; }
 .vq-stackpin__in{ position: relative; width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
 .vq-stagebox    { position: relative; height: min(560px, 68vh); }
 .vq-stackcard {
@@ -193,7 +193,7 @@
 
 /* ── Offline / Sync theatre (section 10) ─────────────────────────────── */
 .vq-off        { position: relative; background: var(--vq-bg-alt); }
-.vq-off__pin   { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.vq-off__pin   { position: sticky; top: 0; height: 100svh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
 .vq-off__grid  { position: relative; width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px;
                  display: grid; grid-template-columns: 300px 1fr; gap: 44px; align-items: center; }
 .vq-off__steps { display: flex; flex-direction: column; gap: 4px; }
@@ -279,7 +279,7 @@
 /* No overflow on the section itself: an overflow other than `visible` on an
    ancestor turns it into the sticky element's scrollport, and the pin scrolls
    away instead of sticking. The clipping belongs on the pin. */
-.vq-an__pin  { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.vq-an__pin  { position: sticky; top: 0; height: 100svh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
 .vq-an__in   { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 24px; }
 .vq-board {
   position: relative; border-radius: var(--vq-r-xl); border: 1px solid var(--vq-line);
@@ -398,7 +398,148 @@
   .vq-balance > div { text-align: center !important; }
   .vq-board__grid { grid-template-columns: 1fr; }
   .vq-board__wide, .vq-board__side { grid-column: span 1; }
-  .vq-stagebox { height: 66vh; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LITE — the scroll choreography comes apart below 900px
+
+   Three sections here are scroll-driven theatres: a sticky `height: 100vh`
+   pin inside a parent 2.5-5x taller, with JS scrubbing the pinned content
+   against scroll position. On a desktop that is the whole point. On a phone
+   it produced three separate failures at once, which is why the page felt
+   laggy AND overlapped AND cramped rather than any one of them:
+
+     1. Length. The pins made the mobile page 44,100px tall — 52 viewports,
+        most of it scrolling past frozen content. That alone reads as stuck.
+
+     2. Overlap. `height: 100vh` is not the visible height on a phone: it is
+        the height with browser chrome HIDDEN. While the URL bar shows, every
+        pin is 60-100px taller than the screen, so pinned content sits under
+        the next section and under the address bar. As the bar hides and
+        reappears during a scroll, 100vh changes and the whole pin reflows
+        mid-gesture. That is the overlapping and the jumpiness — and it is
+        why it looked fine in a desktop responsive preview, because a desktop
+        window has no collapsing chrome and 100vh is simply correct there.
+
+     3. Cost. Each pinned frame carried GradualBlur's stacked backdrop-filter
+        edges, and all three wrote inline styles on every scroll frame.
+
+   Below 900px the pins are released and the content lays out as ordinary
+   stacked sections. The LITE branch in venqore-landing.js stops the matching
+   JS, so nothing is scrubbed against a scroll range that no longer exists.
+   The !important flags are there because that JS writes inline styles: a
+   cached copy of the old script must not be able to leave a card blurred and
+   invisible. Everything here reveals content; nothing here hides it.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+
+  /* ── Release the three pins ─────────────────────────────────────────── */
+  .vq-stackpin,
+  .vq-off__pin,
+  .vq-an__pin {
+    position: static;
+    height: auto;
+    overflow: visible;
+    display: block;
+    padding-block: 56px;
+  }
+
+  /* The tall parents existed only to give the pins something to scrub
+     against. Without a pin they are just empty scroll. #tenx and #compiler
+     carry their height inline (380vh and 600vh) from LandingPage.jsx, so
+     these need !important to win. */
+  .vq-stackwrap,
+  #showcase, #offline, #analytics,
+  #tenx, #compiler {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* #tenx and #compiler pin an inline-styled child rather than one of the
+     .vq-*__pin classes above, so they are released by structure. */
+  #tenx > div[style*="sticky"],
+  #compiler > div[style*="sticky"] {
+    position: static !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-block: 56px;
+  }
+
+  /* ── The 10x track becomes a swipe strip ────────────────────────────── */
+  /* It was 380vh of vertical scrolling that dragged this row sideways —
+     scroll-jacking, and on touch it fights the user's own gesture. A phone
+     already has a perfectly good horizontal scroll: let it do the work. */
+  [data-track="1"] [data-trackrow="1"] {
+    transform: none !important;
+    will-change: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-inline: 20px !important;
+    gap: 16px !important;
+  }
+  [data-track="1"] [data-trackrow="1"]::-webkit-scrollbar { display: none; }
+  [data-track="1"] [data-trackrow="1"] > * {
+    scroll-snap-align: center;
+    flex: 0 0 80vw;
+    max-width: 340px;
+  }
+
+  /* ── The card deck becomes a list ───────────────────────────────────── */
+  /* The cards were absolutely stacked on top of one another, which is only
+     legible while JS is fanning them out. Let them flow instead. */
+  .vq-stagebox {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .vq-stackcard {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: auto !important;
+    height: auto;
+  }
+  .vq-stackcount { display: none; }
+
+  /* ── Edge blurs go with the pins they softened ──────────────────────── */
+  .vq-gblur { display: none; }
+
+  /* ── Headings animate as one element, not as 315 characters ─────────── */
+  /* venqore-landing.js stops splitting .vq-sfloat in LITE and tags it
+     --lite instead. This also guards against a stale cached script having
+     split it anyway: the characters must be visible whatever inline styles
+     were left on them. */
+  .vq-sfloat .vqch {
+    will-change: auto;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .vq-sfloat--lite {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity var(--vq-dur-4) var(--vq-ease-out),
+                transform var(--vq-dur-4) var(--vq-ease-out);
+  }
+  .vq-sfloat--lite.is-in { opacity: 1; transform: none; }
+
+  /* ── Decorative parallax layers are static now ──────────────────────── */
+  [data-par] { will-change: auto; transform: none !important; }
+
+  /* ── Room to breathe ────────────────────────────────────────────────── */
+  /* Section padding here is vertical-only, so blocks that had a wide
+     gutter's worth of separation on desktop ended up nearly touching on a
+     narrow screen. That is most of the "too close together, cluttered". */
+  .vq-stackcard__say { gap: 12px; padding: 24px 20px; }
+  .vq-off__steps { gap: 12px; }
+  .vq-off__step  { min-width: 74vw; }
 }
 @media (prefers-reduced-motion: reduce) {
   .vq-sfloat .vqch { opacity: 1 !important; transform: none !important; }

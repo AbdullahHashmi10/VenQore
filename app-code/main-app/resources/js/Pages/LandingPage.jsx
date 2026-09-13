@@ -45,14 +45,27 @@ export default function LandingPage() {
 
         const initEngines = async () => {
             try {
-                // Ensure canvas is ready
+                // landing.css hides #fluid-canvas under 768px, but hiding the
+                // canvas never stopped fluid.js: the script still booted a WebGL
+                // context and ran its simulation on every animation frame, into a
+                // surface nobody could see. That is a full GPU pipeline and a
+                // permanent rAF loop competing with scrolling on the exact
+                // devices least able to afford either. Do not load it at all.
+                const wantsFluid =
+                    window.matchMedia('(min-width: 768px)').matches &&
+                    !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
                 const canvas = document.getElementById('fluid-canvas');
                 if (canvas) {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
+                    if (!wantsFluid) {
+                        canvas.remove();
+                    } else {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    }
                 }
 
-                await loadScript('/v6/assets/fluid.js');
+                if (wantsFluid) await loadScript('/v6/assets/fluid.js');
                 await loadScript('/v6/assets/venqore.js');
                 await loadScript('/v6/assets/venqore-landing.js');
                 await loadScript('/v6/assets/venqore-forms.js');

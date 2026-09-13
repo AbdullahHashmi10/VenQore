@@ -83,7 +83,7 @@ const resolveTheme = (settings, pathname) => {
  */
 export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
-        if (typeof window === 'undefined') return true;
+        if (typeof window === 'undefined') return false;
         return resolveTheme(settings, window.location.pathname);
     });
 
@@ -168,7 +168,7 @@ export const useTheme = () => {
     const context = useContext(ThemeContext);
     if (!context) {
         // Fallback for components rendered outside the provider
-        return { isDarkMode: true, setIsDarkMode: () => {}, toggleTheme: () => {} };
+        return { isDarkMode: false, setIsDarkMode: () => {}, toggleTheme: () => {} };
     }
     return context;
 };

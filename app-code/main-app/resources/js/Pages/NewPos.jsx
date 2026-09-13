@@ -134,7 +134,7 @@ export default function NewPos({
     /* ── Theme state with localStorage sync ───────────────────────────────── */
     const [theme, setTheme] = useState(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('vq-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            return localStorage.getItem('vq-theme') || localStorage.getItem('amd_theme') || 'light';
         }
         return 'light';
     });

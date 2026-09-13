@@ -18,7 +18,7 @@
 (function(){
   try {
     var saved = localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
-    if (!saved) saved = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (!saved) saved = 'light';
     document.documentElement.setAttribute('data-theme', saved);
     document.documentElement.classList.toggle('dark', saved === 'dark');
   } catch(e) {}
