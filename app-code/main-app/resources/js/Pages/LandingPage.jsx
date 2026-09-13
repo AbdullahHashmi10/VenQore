@@ -122,7 +122,7 @@ export default function LandingPage() {
   <main id="main">
 
   {/*  SECTION 1: HERO SECTION (PRESERVED)  */}
-  <section id="top" data-sec="top" data-tone="dark" className="vq-hero-section" style={{"position":"relative","minHeight":"100svh","width":"100%","display":"flex","flexDirection":"column","paddingTop":"clamp(85px,10vw,120px)","overflow":"hidden"}}>
+  <section id="top" data-sec="top" data-tone-light="light" data-tone-dark="dark" className="vq-hero-section" style={{"position":"relative","minHeight":"100svh","width":"100%","display":"flex","flexDirection":"column","paddingTop":"clamp(85px,10vw,120px)","overflow":"hidden"}}>
     <div className="hero-gradient-overlay" aria-hidden="true" style={{"position":"absolute","inset":"0","pointerEvents":"none","zIndex":"0"}}></div>
     
 

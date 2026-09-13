@@ -117,7 +117,7 @@ export default function useHeaderTone(ref) {
             raf = 0;
             const header = ref.current;
             if (!header || typeof document.elementsFromPoint !== 'function') return;
-            const isDark = document.documentElement.classList.contains('dark');
+            const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
             const rect = header.getBoundingClientRect();
             const y = Math.max(1, Math.round(rect.top + rect.height / 2));
             const w = window.innerWidth;
