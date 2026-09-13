@@ -78,12 +78,12 @@ Every one of the 40 reports in the hub is paid. The split, by the job each tier 
 ### Starter — $49 — "my records and my statements"
 A single-owner shop should feel complete here.
 
-Sales Report · Sales Orders · Sale Order Items · Purchase Report · Low Stock · Stock
+Sales Report · Sales Orders · Sale Order Items · Daily Sales · Purchase Report · Purchase Returns · Low Stock · Stock
 Movement · Stock Summary · Item Detail · Expiry · Stock Valuation · Profit & Loss · Cash
 Flow · Bank Statement · Expense Report · Tax Report · Tax Rate Report · Day Book · All
 Parties · Party Statement
 
-**19 reports.**
+**20 reports.**
 
 ### Core — $99 — "why is it happening"
 Anything that breaks a number down by product, customer, category or time.
@@ -97,12 +97,12 @@ Insights · Owner's Daily Pulse
 ### Scale — $299 — "prove it and coordinate"
 Accountant-grade ledger work, historical reconstruction, cross-party analysis.
 
-Trial Balance · Journal Entries · Chart of Accounts · All Transactions · Point-In-Time
-Inventory · Party Volume · Item Report by Party · Party Report by Item · Loan Statement
+Trial Balance · Account Ledger · Transactions · Point-In-Time
+Inventory · Sale & Purchase by Party · Item Report by Party · Party Report by Item · Loan Statement · Export
 
-**9 reports.** Plus exports and scheduled reports.
+**8 reports.** Plus exports and scheduled reports.
 
-19 + 12 + 9 = 40.
+20 + 12 + 8 = 40.
 
 **Other plans:** `trial` gets everything (the ceiling must be visible before it is lost).
 `custom` gets everything. `ltd_1` → Starter set, `ltd_2` → Core set, `ltd_3` → Scale set —
