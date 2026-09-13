@@ -5,16 +5,16 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # Prevent infinite loops on internal redirects
+    RewriteCond %{ENV:REDIRECT_STATUS} 200 [OR]
+    RewriteCond %{REQUEST_URI} ^/public/ [NC]
+    RewriteRule ^ - [L]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Ensure DirectoryIndex targets public/index.php
-    DirectoryIndex public/index.php index.php
-
-    # Send Requests To Public Folder (handles root and subpaths cleanly)
-    RewriteRule ^$ public/index.php [L]
-    RewriteCond %{REQUEST_URI} !^/public/
+    # Send Requests To Public Folder
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
