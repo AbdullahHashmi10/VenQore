@@ -35,7 +35,7 @@
     }
 
     var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
-    if (!saved) {
+    if (saved !== 'dark') {
       saved = 'light';
     }
     setTheme(saved);

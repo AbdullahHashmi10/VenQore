@@ -1392,7 +1392,8 @@ html.dark .vq-bp-empty p,
 }
 .hero-gradient-overlay,
 .vq-hero-section .hero-gradient-overlay,
-:root[data-theme="light"] .vq-hero-section .hero-gradient-overlay {
+:root[data-theme="light"] .vq-hero-section .hero-gradient-overlay,
+.vq-hero-section .hero-gradient-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -1401,32 +1402,32 @@ html.dark .vq-bp-empty p,
   height: 100%;
   pointer-events: none;
   z-index: 0;
-  background: linear-gradient(180deg, #FFFFFF 0%, #E8F8F5 45%, #F1F5F2 100%);
+  background: linear-gradient(180deg, #021416 10%, #327882 50%, #ecf9fb 90%);
   transition: background 0.4s ease;
 }
 :root[data-theme="dark"] .vq-hero-section .hero-gradient-overlay,
 html.dark .vq-hero-section .hero-gradient-overlay,
 :root[data-theme="dark"] .hero-gradient-overlay,
 html.dark .hero-gradient-overlay {
-  background: linear-gradient(180deg, #021416 0%, #06282B 50%, #021416 100%);
+  background: linear-gradient(180deg, #ecf9fb 10%, #327882 51%, #021416 90%);
   transition: background 0.4s ease;
 }
-.vq-hero-section .vq-hero-h1 { color: var(--vq-text, #17201B) !important; }
+.vq-hero-section .vq-hero-h1 { color: #fff !important; }
 :root[data-theme="dark"] .vq-hero-section .vq-hero-h1,
 html.dark .vq-hero-section .vq-hero-h1 { color: #FFFFFF !important; }
-.vq-hero-section .vq-hero-eyebrow { color: var(--vq-teal-700) !important; }
+.vq-hero-section .vq-hero-eyebrow { color: var(--vq-teal-300) !important; }
 :root[data-theme="dark"] .vq-hero-section .vq-hero-eyebrow,
 html.dark .vq-hero-section .vq-hero-eyebrow { color: var(--vq-teal-300) !important; }
-.vq-hero-section .vq-hero-subhead { color: var(--vq-text-2) !important; }
+.vq-hero-section .vq-hero-subhead { color: rgb(255 255 255 / .85) !important; }
 .vq-hero-section .vq-hero-caret,
 .vq-hero-section .vq-hero-foot p,
-.vq-hero-section .vq-hero-foot a { color: var(--vq-text-2) !important; }
+.vq-hero-section .vq-hero-foot a { color: rgb(255 255 255 / .75) !important; }
 .vq-hero-section .vq-chip--onHero {
-  background: color-mix(in srgb, var(--vq-ink-900) 6%, transparent);
-  border-color: color-mix(in srgb, var(--vq-ink-900) 14%, transparent);
-  color: var(--vq-text);
+  background: color-mix(in srgb, var(--vq-ink-0) 10%, transparent);
+  border-color: color-mix(in srgb, var(--vq-ink-0) 22%, transparent);
+  color: var(--vq-ink-0);
 }
-.vq-hero-section .vq-chip--onHero:hover { background: color-mix(in srgb, var(--vq-ink-900) 12%, transparent); }
+.vq-hero-section .vq-chip--onHero:hover { background: color-mix(in srgb, var(--vq-ink-0) 20%, transparent); }
 :root[data-theme="dark"] .vq-hero-section .vq-chip--onHero,
 html.dark .vq-hero-section .vq-chip--onHero {
   background: color-mix(in srgb, var(--vq-ink-0) 10%, transparent);
@@ -1436,10 +1437,10 @@ html.dark .vq-hero-section .vq-chip--onHero {
 :root[data-theme="dark"] .vq-hero-section .vq-chip--onHero:hover,
 html.dark .vq-hero-section .vq-chip--onHero:hover { background: color-mix(in srgb, var(--vq-ink-0) 20%, transparent); }
 .vq-hero-section .hero-pill-float {
-  background: rgba(255, 255, 255, 0.90) !important;
-  border-color: rgba(2, 20, 22, 0.12) !important;
-  color: var(--vq-ink-900, #17201B) !important;
-  box-shadow: 0 4px 16px rgba(2, 20, 22, 0.06) !important;
+  background: color-mix(in srgb, var(--vq-ink-0) 8%, transparent) !important;
+  border-color: color-mix(in srgb, var(--vq-ink-0) 20%, transparent) !important;
+  color: color-mix(in srgb, var(--vq-ink-0) 88%, transparent) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
 }
 :root[data-theme="dark"] .vq-hero-section .hero-pill-float,
 html.dark .vq-hero-section .hero-pill-float {

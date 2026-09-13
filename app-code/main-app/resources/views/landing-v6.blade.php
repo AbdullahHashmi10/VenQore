@@ -18,10 +18,10 @@
 (function(){
   try {
     var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
-    if (!saved) saved = 'light';
-    document.documentElement.setAttribute('data-theme', saved);
-    document.documentElement.setAttribute('data-vq-theme', saved);
-    document.documentElement.classList.toggle('dark', saved === 'dark');
+    var theme = (saved === 'dark') ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-vq-theme', theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
   } catch(e) {}
 })();
 </script>
@@ -191,7 +191,7 @@
   <main id="main">
 
   <!-- SECTION 1: HERO SECTION (PRESERVED) -->
-  <section id="top" data-sec="top" data-tone-light="light" data-tone-dark="dark" class="vq-hero-section" style="position:relative;min-height:100svh;width:100%;display:flex;flex-direction:column;padding-top:clamp(85px,10vw,120px);overflow:hidden">
+  <section id="top" data-sec="top" data-tone="dark" class="vq-hero-section" style="position:relative;min-height:100svh;width:100%;display:flex;flex-direction:column;padding-top:clamp(85px,10vw,120px);overflow:hidden">
     <div class="hero-gradient-overlay" aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;z-index:0;"></div>
     
 

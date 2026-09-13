@@ -2484,12 +2484,12 @@ html.dark #fluid-canvas,
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: linear-gradient(180deg, #FFFFFF 0%, #E8F8F5 45%, #F1F5F2 100%);
+  background: linear-gradient(180deg, #021416 10%, #327882 50%, #ecf9fb 90%);
   transition: background .4s ease;
 }
 :root[data-theme="dark"] .hero-gradient-overlay,
 html.dark .hero-gradient-overlay {
-  background: linear-gradient(180deg, #021416 0%, #06282B 50%, #021416 100%);
+  background: linear-gradient(180deg, #ecf9fb 10%, #327882 51%, #021416 90%);
 }
 
 .footer-bg {
@@ -2610,17 +2610,17 @@ html.dark .hero-gradient-overlay {
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black 35%, rgba(0, 0, 0, 0.75) 60%, rgba(0, 0, 0, 0.3) 80%, transparent 100%) !important;
 }
 
-.vq-header--onHero:not(.is-stuck) { --on-hero: var(--vq-text, #17201B); }
+.vq-header--onHero:not(.is-stuck) { --on-hero: #FFFFFF; }
 .vq-header--onHero:not(.is-stuck) .vq-brand,
 .vq-header--onHero:not(.is-stuck) .vq-brand__word,
 .vq-header--onHero:not(.is-stuck) .vq-nav__link,
 .vq-header--onHero:not(.is-stuck) .vq-burger {
-  color: var(--vq-text, #17201B) !important;
+  color: #FFFFFF !important;
   opacity: 0.95;
 }
 .vq-header--onHero:not(.is-stuck) .vq-nav__link:hover,
 .vq-header--onHero:not(.is-stuck) .vq-brand:hover {
-  color: var(--vq-accent, #007C65) !important;
+  color: #FFFFFF !important;
   opacity: 1.0;
 }
 
@@ -2639,14 +2639,14 @@ html.dark .vq-header--onHero:not(.is-stuck) .vq-burger {
 }
 
 .vq-header--onHero:not(.is-stuck) .vq-theme-btn {
-  background: color-mix(in srgb, var(--vq-text) 8%, transparent);
-  border-color: color-mix(in srgb, var(--vq-text) 18%, transparent);
-  color: var(--vq-text);
+  background: rgb(255 255 255 / .12);
+  border-color: rgb(255 255 255 / .24);
+  color: #FFFFFF;
   backdrop-filter: blur(8px);
 }
 .vq-header--onHero:not(.is-stuck) .vq-theme-btn:hover {
-  background: color-mix(in srgb, var(--vq-text) 16%, transparent);
-  color: var(--vq-text);
+  background: rgb(255 255 255 / .25);
+  color: #FFFFFF;
 }
 :root[data-theme="dark"] .vq-header--onHero:not(.is-stuck) .vq-theme-btn,
 html.dark .vq-header--onHero:not(.is-stuck) .vq-theme-btn {
@@ -2661,10 +2661,10 @@ html.dark .vq-header--onHero:not(.is-stuck) .vq-theme-btn:hover {
 }
 
 /* ── Hero type ────────────────────────────────────────────────────────── */
-.vq-hero-h1 { color: var(--vq-text, #17201B) !important; }
-.vq-hero-eyebrow { color: var(--vq-teal-700, #006D5B) !important; }
-.vq-hero-foot p, .vq-hero-foot a { color: var(--vq-text-2, #47544F); }
-.vq-hero-caret { color: var(--vq-text-2, #47544F); }
+.vq-hero-h1 { color: #fff !important; }
+.vq-hero-eyebrow { color: rgb(255 255 255 / .85) !important; }
+.vq-hero-foot p, .vq-hero-foot a { color: var(--vq-text-2, #C4D3CD); }
+.vq-hero-caret { color: rgb(255 255 255 / .75); }
 :root[data-theme="dark"] .vq-hero-h1, html.dark .vq-hero-h1 { color: #FFFFFF !important; }
 :root[data-theme="dark"] .vq-hero-eyebrow, html.dark .vq-hero-eyebrow { color: var(--vq-teal-300, #0BAA8F) !important; }
 :root[data-theme="dark"] .vq-hero-caret, html.dark .vq-hero-caret { color: rgb(255 255 255 / .75); }
@@ -2672,26 +2672,26 @@ html.dark .vq-header--onHero:not(.is-stuck) .vq-theme-btn:hover {
 html.dark .vq-hero-foot p, html.dark .vq-hero-foot a { color: #EDF2EF; }
 
 /* Prompt row */
-.vq-hero-rule { border-bottom: 1px solid color-mix(in srgb, var(--vq-text) 16%, transparent); }
+.vq-hero-rule { border-bottom: 1px solid rgb(255 255 255 / .30); }
 :root[data-theme="dark"] .vq-hero-rule, html.dark .vq-hero-rule { border-bottom-color: rgb(255 255 255 / .20); }
-.vq-hero-input { color: var(--vq-text, #17201B); }
+.vq-hero-input { color: #fff; }
 :root[data-theme="dark"] .vq-hero-input, html.dark .vq-hero-input { color: #fff; }
 .vq-hero-icon {
   display: grid; place-items: center; height: 40px; width: 40px; flex: none;
   border-radius: var(--vq-r-full);
-  background: color-mix(in srgb, var(--vq-text) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--vq-text) 14%, transparent);
-  color: var(--vq-text); backdrop-filter: blur(8px);
+  background: rgb(255 255 255 / .12);
+  border: 1px solid rgb(255 255 255 / .16);
+  color: #fff; backdrop-filter: blur(8px);
   transition: background-color var(--vq-dur-1) var(--vq-ease-out);
 }
-.vq-hero-icon:hover { background: color-mix(in srgb, var(--vq-text) 14%, transparent); }
+.vq-hero-icon:hover { background: rgb(255 255 255 / .22); }
 :root[data-theme="dark"] .vq-hero-icon, html.dark .vq-hero-icon {
   background: rgb(255 255 255 / .10); border-color: rgb(255 255 255 / .18); color: #fff;
 }
 .vq-hero-go {
   display: grid; place-items: center; height: 40px; width: 40px; flex: none;
   border-radius: var(--vq-r-full);
-  background: var(--vq-ink-950, #021416); color: #FFFFFF;
+  background: #fff; color: var(--vq-ink-950);
   box-shadow: var(--vq-elev-2);
   transition: transform var(--vq-dur-2) var(--vq-ease-out);
 }
@@ -2700,12 +2700,12 @@ html.dark .vq-hero-foot p, html.dark .vq-hero-foot a { color: #EDF2EF; }
 
 /* Hero chips */
 .vq-chip--onHero {
-  background: color-mix(in srgb, var(--vq-ink-900) 6%, transparent);
-  border-color: color-mix(in srgb, var(--vq-ink-900) 14%, transparent);
-  color: var(--vq-text);
+  background: rgb(255 255 255 / .10);
+  border-color: rgb(255 255 255 / .18);
+  color: rgb(255 255 255 / .88);
   backdrop-filter: blur(8px);
 }
-.vq-chip--onHero:hover { background: color-mix(in srgb, var(--vq-ink-900) 12%, transparent); color: var(--vq-text); }
+.vq-chip--onHero:hover { background: rgb(255 255 255 / .20); border-color: rgb(255 255 255 / .34); color: #fff; }
 :root[data-theme="dark"] .vq-chip--onHero, html.dark .vq-chip--onHero {
   background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .16); color: rgb(237 242 239 / .9);
 }
@@ -2833,73 +2833,7 @@ html.dark .vq-card--accent, html.dark .vq-dcard--accent {
 .vq-header--onHero:not(.is-stuck) { --vq-known-bg: skip; }
 
 
-/* ── Un-stamped "system" state — generated from the block above ── */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-  --vq-bg: #0C1211;
-  --vq-bg-alt: #0A0F0E;
-  --vq-surface: #141B19;
-  --vq-surface-2: #1A2220;
-  --vq-sunken: #080D0C;
-  --vq-raised: #1D2624;
-  --vq-scrim: rgb(3 6 5 / .66);
-  --vq-glass: rgb(20 27 25 / .72);
 
-  --vq-text: #EDF2EF;
-  --vq-text-2: #A8B4AE;
-  --vq-text-3: #8B9A93;
-  --vq-text-inverted: #0C1211;
-
-  --vq-accent: var(--vq-teal-400);
-  --vq-accent-fill: var(--vq-teal-500);
-  --vq-accent-fill-hover: var(--vq-teal-400);
-  --vq-accent-text: var(--vq-teal-300);
-  --vq-accent-quiet: rgb(35 196 166 / .14);
-  --vq-accent-quiet-line: rgb(35 196 166 / .28);
-  --vq-on-accent: #062421;
-  --vq-on-danger: #2A0705;
-
-  --vq-line: rgb(255 255 255 / .10);
-  --vq-line-soft: rgb(255 255 255 / .06);
-  --vq-line-strong: rgb(255 255 255 / .20);
-  --vq-focus: var(--vq-teal-300);
-
-  --vq-success: #4BD99B; --vq-success-bg: rgb(75 217 155 / .13); --vq-success-line: rgb(75 217 155 / .28);
-  --vq-warning: #F7C05A; --vq-warning-bg: rgb(247 192 90 / .13); --vq-warning-line: rgb(247 192 90 / .28);
-  --vq-danger:  #FF8A7E; --vq-danger-bg:  rgb(255 138 126 / .13); --vq-danger-line:  rgb(255 138 126 / .28);
-  --vq-info:    #7BD4E6; --vq-info-bg:    rgb(123 212 230 / .12); --vq-info-line:    rgb(123 212 230 / .26);
-
-  /* Dark elevation is carried by surface lightness first, a 1px top
-     highlight second. A black shadow on a near-black background is
-     invisible, and reaching for one anyway is the classic dark-mode error. */
-  --vq-elev-1: 0 1px 0 rgb(255 255 255 / .04);
-  --vq-elev-2: 0 1px 0 rgb(255 255 255 / .05), 0 12px 28px -14px rgb(0 0 0 / .7);
-  --vq-elev-3: 0 1px 0 rgb(255 255 255 / .07), 0 28px 64px -20px rgb(0 0 0 / .8);
-  --vq-elev-inset: inset 0 1px 0 rgb(255 255 255 / .06);
-  --vq-glow-accent:        0 8px 26px -8px rgb(35 196 166 / .45);
-  --vq-glow-accent-strong: 0 12px 38px -10px rgb(35 196 166 / .60);
-  --vq-ring-focus:         0 0 0 4px rgb(89 219 192 / .26);
-
-  --vq-chart-surface: #141B19;
-  --vq-chart-grid: rgb(255 255 255 / .07);
-  --vq-chart-axis: rgb(255 255 255 / .18);
-  --vq-chart-label: #8B9A93;
-  --vq-chart-track: rgb(255 255 255 / .09);
-
-  --vq-series-1: #2CD3B3; --vq-series-2: #FF8A6B; --vq-series-3: #55C4EC;
-  --vq-series-4: #FFCD5B; --vq-series-5: #A9E34B; --vq-series-6: #C98BC9;
-  --vq-series-7: #C6F5E9; --vq-series-8: #8B9A93;
-  --vq-series-1-ink: #2CD3B3;
-
-  --vq-seq-1: #0B3A35; --vq-seq-2: #076B5E; --vq-seq-3: #0BAA8F;
-  --vq-seq-4: #59DBC0; --vq-seq-5: #C6F5E9;
-  --vq-div-mid: #2A332F;
-
-  --vq-grad-hero: linear-gradient(175deg, #041816 0%, #073B36 40%, #0BAA8F 88%, #23C4A6 100%);
-  --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .22), transparent 70%),
-                  radial-gradient(50% 60% at 85% 80%, rgb(11 170 143 / .16), transparent 70%);
-  }
-}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ReactBits Components Integration (FoldText, AnimatedList, LaserFlow)

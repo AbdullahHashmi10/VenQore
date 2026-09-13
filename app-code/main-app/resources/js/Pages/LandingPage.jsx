@@ -122,7 +122,7 @@ export default function LandingPage() {
   <main id="main">
 
   {/*  SECTION 1: HERO SECTION (PRESERVED)  */}
-  <section id="top" data-sec="top" data-tone-light="light" data-tone-dark="dark" className="vq-hero-section" style={{"position":"relative","minHeight":"100svh","width":"100%","display":"flex","flexDirection":"column","paddingTop":"clamp(85px,10vw,120px)","overflow":"hidden"}}>
+  <section id="top" data-sec="top" data-tone="dark" className="vq-hero-section" style={{"position":"relative","minHeight":"100svh","width":"100%","display":"flex","flexDirection":"column","paddingTop":"clamp(85px,10vw,120px)","overflow":"hidden"}}>
     <div className="hero-gradient-overlay" aria-hidden="true" style={{"position":"absolute","inset":"0","pointerEvents":"none","zIndex":"0"}}></div>
     
 
@@ -147,7 +147,7 @@ export default function LandingPage() {
 
     <div className="vq-hero-inner" style={{"position":"relative","zIndex":"10","marginBlock":"auto","marginInline":"auto","maxWidth":"64rem","width":"100%","display":"flex","flexDirection":"column","alignItems":"center","gap":"var(--vq-space-4)","paddingInline":"var(--vq-space-6)","textAlign":"center"}}>
 
-      <span className="vq-eyebrow vq-hero-eyebrow" style={{"display":"inline-flex","alignItems":"center","gap":"8px","height":"30px","padding":"0 14px","borderRadius":"9999px","background":"rgba(255, 255, 255, 0.12)","border":"1px solid rgba(255, 255, 255, 0.22)","backdropFilter":"blur(8px)","font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-text)"}}>
+      <span className="vq-eyebrow vq-hero-eyebrow" style={{"display":"inline-flex","alignItems":"center","gap":"8px","height":"30px","padding":"0 14px","borderRadius":"9999px","background":"rgba(255, 255, 255, 0.12)","border":"1px solid rgba(255, 255, 255, 0.22)","backdropFilter":"blur(8px)","font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"#FFFFFF"}}>
         <span style={{"width":"6px","height":"6px","borderRadius":"9999px","background":"var(--vq-accent)","boxShadow":"0 0 8px var(--vq-accent)"}}></span>
         THE AI ERP BUILDER
       </span>

@@ -20,12 +20,12 @@ function ancestorTheme(el: Element | null): boolean | null {
 }
 
 function systemDark(): boolean {
-  return typeof matchMedia === 'undefined' || matchMedia('(prefers-color-scheme: dark)').matches;
+  return false;
 }
 
 /** Resolve the effective dark/light substrate for a mounted element. */
 export function useResolvedDark(theme: OrbTheme, hostRef: RefObject<Element | null>): boolean {
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
     if (theme === 'dark') {

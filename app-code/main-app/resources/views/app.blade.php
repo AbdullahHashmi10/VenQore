@@ -25,13 +25,12 @@
       (function(){
         try {
           var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
-          if (saved === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            document.documentElement.setAttribute('data-vq-theme', 'dark');
+          var theme = (saved === 'dark') ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.setAttribute('data-vq-theme', theme);
+          if (theme === 'dark') {
             document.documentElement.classList.add('dark');
-          } else if (saved === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-            document.documentElement.setAttribute('data-vq-theme', 'light');
+          } else {
             document.documentElement.classList.remove('dark');
           }
         } catch(e) {}
