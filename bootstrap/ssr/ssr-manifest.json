@@ -1,0 +1,1930 @@
+{
+  "node_modules/driver.js/dist/driver.css": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
+  "node_modules/react-grid-layout/css/styles.css": [
+    "/build/assets/Dashboard-Cf8Y117V.js",
+    "/build/assets/Dashboard-DULRuONn.css"
+  ],
+  "node_modules/react-resizable/css/styles.css": [
+    "/build/assets/Dashboard-Cf8Y117V.js",
+    "/build/assets/Dashboard-DULRuONn.css"
+  ],
+  "resources/js/Components/ActivityHubModal.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/AiIsland.jsx": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/AiSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/AlertModal.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Components/ApplicationLogo.jsx": [
+    "/build/assets/index-BhXucrH4.js"
+  ],
+  "resources/js/Components/AsyncPartyCombobox.jsx": [
+    "/build/assets/AsyncPartyCombobox-C_xHT5vA.js"
+  ],
+  "resources/js/Components/AsyncProductCombobox.jsx": [
+    "/build/assets/AsyncProductCombobox-BMa0miLw.js"
+  ],
+  "resources/js/Components/Auth/index.jsx": [
+    "/build/assets/index-BhXucrH4.js"
+  ],
+  "resources/js/Components/Bklit/Charts.jsx": [
+    "/build/assets/ExecutiveDashboard-P5OFqvQy.js",
+    "/build/assets/ExecutiveDashboard-DogrKNTQ.css"
+  ],
+  "resources/js/Components/BottomNavBar.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/Builder/BuilderShell.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/BusinessTypePicker.jsx": [
+    "/build/assets/BuildWorkspace-CK0maKFx.js"
+  ],
+  "resources/js/Components/Builder/ConversationalDiscovery.jsx": [
+    "/build/assets/BuildWorkspace-CK0maKFx.js"
+  ],
+  "resources/js/Components/Builder/HandoffTips.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/LiveStack.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/MeshBackdrop.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/ModuleGrid.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/OptionCard.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/PromptTextarea.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/QuestionStep.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/RecommendedBand.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/StackPill.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/ThemeSegment.jsx": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/icons.js": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/matchBusinessTypes.js": [
+    "/build/assets/BuildWorkspace-CK0maKFx.js"
+  ],
+  "resources/js/Components/Builder/useDiscovery.js": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/useSessionState.js": [
+    "/build/assets/useDiscovery-C7LWdK07.js"
+  ],
+  "resources/js/Components/Builder/useTurnstile.js": [
+    "/build/assets/useTurnstile-4WiJ80s8.js"
+  ],
+  "resources/js/Components/BusinessSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/CharityButton.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/Charts/animation.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/area-gradient-defs.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/area.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-child-passthrough.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-config-context.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-context.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-defs.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-formatters.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-legend-hover.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-phase.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/chart-reveal-clip.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/composed-chart.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/dash-tail-stroke.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/decimate-time-series.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/fade-edges.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/filter-data-by-x-domain.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/generate-chart-skeleton-data.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/grid.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/highlight-segment-bounds.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/highlight-segment.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/indicator-fade.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/line-loading-pulse.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/line-loading-timing.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/line.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/loading-sweep.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/motion-utils.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/path-stroke-utils.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/projection-config.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/projection-utils.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/reference-area-config.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/reference-area-registration-context.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-bar-layout.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-bar.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-dash-tail-overlay.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-highlight-layer.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-hover-dim.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-markers.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-path-utils.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/series-point-marker.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/static-chart-preview-context.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/time-series-chart-shell.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/tooltip/chart-tooltip.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/tooltip/date-ticker.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/tooltip/tooltip-box.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/tooltip/tooltip-content.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/tooltip/tooltip-dot.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/tooltip/tooltip-indicator.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/use-animated-series-path.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/use-animated-y-domains.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/use-chart-interaction.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/use-chart-phase-orchestrator.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/use-grid-shimmer.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/use-highlight-segment.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/use-scheduled-tooltip.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/x-axis.tsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/y-axis-scales.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/Charts/y-domain-utils.ts": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Components/ChatWidget.jsx": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/CommandPalette.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/ConfirmModal.jsx": [
+    "/build/assets/ConfirmModal-DaQlI6mj.js"
+  ],
+  "resources/js/Components/ContactsModuleTabs.jsx": [
+    "/build/assets/ContactsModuleTabs-jV-75rTJ.js"
+  ],
+  "resources/js/Components/CookieConsent.jsx": [
+    "/build/assets/CookieConsent-DgIWvNoO.js"
+  ],
+  "resources/js/Components/DangerSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/DashboardTourGuide.jsx": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Components/DataTable.jsx": [
+    "/build/assets/ParkedSales-DmUnGFi0.js"
+  ],
+  "resources/js/Components/DemoBanner.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/Dropdown.jsx": [
+    "/build/assets/Dropdown-DD4TL5Ab.js"
+  ],
+  "resources/js/Components/ElevatedPinModal.jsx": [
+    "/build/assets/FundManagement-Cl8Kgz-s.js"
+  ],
+  "resources/js/Components/ExpenseTourGuide.jsx": [
+    "/build/assets/ExpensesList-CNAyck9h.js"
+  ],
+  "resources/js/Components/FeatureLockBadge.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/FilterPanel.jsx": [
+    "/build/assets/ReportPage-2DW3nAtZ.js"
+  ],
+  "resources/js/Components/FormModal.jsx": [],
+  "resources/js/Components/GeneralSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/GlobalOnboardingWidget.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/ImpersonationBanner.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/InputModal.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Components/InvoiceTourGuide.jsx": [
+    "/build/assets/CreateInvoice-B-EfXKiW.js"
+  ],
+  "resources/js/Components/Island/IslandShell.jsx": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/Island/motion.js": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/Island/suggestions.js": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/Island/useDictation.js": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/KeyboardShortcutsModal.jsx": [],
+  "resources/js/Components/Landing/BusinessPickerModal.jsx": [
+    "/build/assets/LandingPage-B3OgGiUp.js"
+  ],
+  "resources/js/Components/Landing/HeroPrompt.jsx": [
+    "/build/assets/LandingPage-B3OgGiUp.js"
+  ],
+  "resources/js/Components/LimitGraceBanner.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/LockedFeature.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/MidnightNebula.jsx": [
+    "/build/assets/MidnightNebula-BQ5hjMmA.js"
+  ],
+  "resources/js/Components/Modal.jsx": [],
+  "resources/js/Components/MoneyModuleTabs.jsx": [
+    "/build/assets/MoneyModuleTabs-7dqO8VCJ.js"
+  ],
+  "resources/js/Components/OfflineLockScreen.jsx": [],
+  "resources/js/Components/OfflineWarningBanner.jsx": [
+    "/build/assets/StockSummaryByCategory-C8VQ-2R2.js"
+  ],
+  "resources/js/Components/OnboardingDriver.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/PageHeader.jsx": [
+    "/build/assets/PageHeader-qaWJfzfS.js"
+  ],
+  "resources/js/Components/Pagination.jsx": [
+    "/build/assets/Pagination-DQc3dU-Z.js"
+  ],
+  "resources/js/Components/PasscodeModal.jsx": [],
+  "resources/js/Components/PaymentModal.jsx": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Components/PlanGate.jsx": [
+    "/build/assets/PartiesList-DfRTQhcC.js"
+  ],
+  "resources/js/Components/PlanUsageBanner.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/Pos/ApprovalPinModal.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Components/Pos/PaymentModal.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Components/Pos/RegisterPreview.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Components/Pos/RegisterSettings.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Components/PosTourGuide.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Components/PremiumButton.jsx": [
+    "/build/assets/PremiumButton-BUDyjGi2.js"
+  ],
+  "resources/js/Components/PremiumSelect.jsx": [
+    "/build/assets/PremiumSelect-BaeCSgsA.js"
+  ],
+  "resources/js/Components/PrintButton.jsx": [
+    "/build/assets/PrintButton-DBeq4QSv.js"
+  ],
+  "resources/js/Components/PrintPreview.jsx": [
+    "/build/assets/PrintPreview-CmXEPl-w.js"
+  ],
+  "resources/js/Components/PrintSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/ProductModal.jsx": [
+    "/build/assets/ProductModal-DTGv60aX.js"
+  ],
+  "resources/js/Components/ProductTourGuide.jsx": [
+    "/build/assets/InventoryList-Bod2Ek0n.js"
+  ],
+  "resources/js/Components/PurchaseModuleTabs.jsx": [
+    "/build/assets/PurchaseModuleTabs-Cu1z0Kdx.js"
+  ],
+  "resources/js/Components/PwaInstallPrompt.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/QuickPartyModal.jsx": [
+    "/build/assets/QuickPartyModal-BjRmNiLb.js"
+  ],
+  "resources/js/Components/ReactBits/GlassIcons.css": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Components/ReactBits/GlassIcons.jsx": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Components/ReactBits/LaserFlow.css": [
+    "/build/assets/ExecutiveDashboard-P5OFqvQy.js",
+    "/build/assets/ExecutiveDashboard-DogrKNTQ.css"
+  ],
+  "resources/js/Components/Reports/MasterReport.jsx": [
+    "/build/assets/MasterReport-DM-pFLtH.js"
+  ],
+  "resources/js/Components/SecondaryButton.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/SectionHeader.jsx": [
+    "/build/assets/SectionHeader-CPHLUsd1.js"
+  ],
+  "resources/js/Components/SellModuleTabs.jsx": [
+    "/build/assets/SellModuleTabs-C_2BbRa0.js"
+  ],
+  "resources/js/Components/Settings/TerminalPairingSection.jsx": [
+    "/build/assets/SettingsPanel-CtCB-Ztr.js"
+  ],
+  "resources/js/Components/SidebarItem.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/Site/BusinessTypes.jsx": [
+    "/build/assets/BusinessTypes-r4_4fFX7.js"
+  ],
+  "resources/js/Components/Site/SiteChrome.jsx": [
+    "/build/assets/SiteChrome-CBP-bGRL.js"
+  ],
+  "resources/js/Components/Site/SiteFooter.jsx": [
+    "/build/assets/CookieConsent-DgIWvNoO.js"
+  ],
+  "resources/js/Components/Site/SiteHeader.jsx": [
+    "/build/assets/CookieConsent-DgIWvNoO.js"
+  ],
+  "resources/js/Components/Site/sectorCatalog.js": [
+    "/build/assets/CookieConsent-DgIWvNoO.js"
+  ],
+  "resources/js/Components/Site/siteMap.js": [
+    "/build/assets/CookieConsent-DgIWvNoO.js"
+  ],
+  "resources/js/Components/Site/useHeaderTone.js": [
+    "/build/assets/CookieConsent-DgIWvNoO.js"
+  ],
+  "resources/js/Components/SmartCapturePanel.jsx": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/SmartCombobox.jsx": [
+    "/build/assets/SmartCombobox-DfdFIseQ.js"
+  ],
+  "resources/js/Components/SmoothCaretInput.jsx": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/StatCard.jsx": [
+    "/build/assets/ParkedSales-DmUnGFi0.js"
+  ],
+  "resources/js/Components/StockModuleTabs.jsx": [
+    "/build/assets/StockModuleTabs-0gR4Jbnu.js"
+  ],
+  "resources/js/Components/StoreSwitcherModal.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/SubscriptionExpiryBanner.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/SuperAdmin/DemoStoreTab.jsx": [
+    "/build/assets/Views-CqG5WmkK.js"
+  ],
+  "resources/js/Components/SuperAdmin/SmokeTestRunner.jsx": [
+    "/build/assets/Views-CqG5WmkK.js"
+  ],
+  "resources/js/Components/SystemSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/TaxSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/ThinkingOrb.tsx": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/braid.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/core.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/lattice.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/morph.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/orbits.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/profiles.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/registry.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/ribbon.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/engine/web.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/presets.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/ThinkingOrbs/theme.ts": [
+    "/build/assets/ThinkingOrb-DGYTy5s1.js"
+  ],
+  "resources/js/Components/Toast.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/Toggle.jsx": [
+    "/build/assets/Toggle-Djmy2ap1.js"
+  ],
+  "resources/js/Components/TransactionSettingsSection.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Components/UpgradeModal.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/V6FinancialSidebar.jsx": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Components/VenaLogo.jsx": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Components/VersionChecker.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Components/WelcomeTourModal.jsx": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Components/WheelInput.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Components/Workspace/AddCardSheet.jsx": [
+    "/build/assets/Overview-BW_tbBfV.js"
+  ],
+  "resources/js/Components/Workspace/WidgetCard.jsx": [
+    "/build/assets/Dashboard-Cf8Y117V.js",
+    "/build/assets/Dashboard-DULRuONn.css"
+  ],
+  "resources/js/Components/Workspace/WidgetLibrary.jsx": [
+    "/build/assets/Dashboard-Cf8Y117V.js",
+    "/build/assets/Dashboard-DULRuONn.css"
+  ],
+  "resources/js/Components/Workspace/widgets.jsx": [
+    "/build/assets/Dashboard-Cf8Y117V.js",
+    "/build/assets/Dashboard-DULRuONn.css"
+  ],
+  "resources/js/Components/ds/core/Button.jsx": [
+    "/build/assets/Input-BO7OpFmF.js"
+  ],
+  "resources/js/Components/ds/forms/Checkbox.jsx": [
+    "/build/assets/index-BhXucrH4.js"
+  ],
+  "resources/js/Components/ds/forms/Input.jsx": [
+    "/build/assets/Input-BO7OpFmF.js"
+  ],
+  "resources/js/Contexts/AlertContext.jsx": [],
+  "resources/js/Contexts/AppearanceContext.jsx": [],
+  "resources/js/Contexts/AttendanceContext.jsx": [],
+  "resources/js/Contexts/ThemeContext.jsx": [],
+  "resources/js/Contexts/WorkspaceContext.jsx": [],
+  "resources/js/DB/LocalDB.js": [],
+  "resources/js/Data/AppRegistry.js": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/Data/businessTypes.json": [
+    "/build/assets/CookieConsent-DgIWvNoO.js"
+  ],
+  "resources/js/Data/competitors.js": [
+    "/build/assets/Show-D5wYnZNb.js"
+  ],
+  "resources/js/Data/featurePages.js": [
+    "/build/assets/Show-vEHb-kTW.js"
+  ],
+  "resources/js/Data/solutions.js": [
+    "/build/assets/solutions-iwYK5Alp.js"
+  ],
+  "resources/js/Documents/DocumentLines.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/DocumentQuickRow.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/DocumentScan.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/DocumentSettings.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/DocumentShell.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/DocumentTotals.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/MoneyDocument.jsx": [
+    "/build/assets/MoneyDocument-DTHxEW3W.js"
+  ],
+  "resources/js/Documents/VqSelect.jsx": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/document-law.css": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/documentLaw.js": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/documentMoney.js": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/documentTypes.js": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/useDocumentAccounts.js": [
+    "/build/assets/MoneyDocument-DTHxEW3W.js"
+  ],
+  "resources/js/Documents/useDocumentChrome.js": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Documents/useDocumentDrafts.js": [
+    "/build/assets/MoneyDocument-DTHxEW3W.js"
+  ],
+  "resources/js/Documents/usePartyBalance.js": [
+    "/build/assets/useDocumentChrome-DON8WQ-L.js",
+    "/build/assets/useDocumentChrome-DXMsbsYq.css"
+  ],
+  "resources/js/Domain/pos/approval.js": [
+    "/build/assets/approval-COrxd3AL.js",
+    "/build/assets/approval-DdESHQeE.css"
+  ],
+  "resources/js/Domain/production/runPayload.js": [
+    "/build/assets/Create-DjQX21QD.js"
+  ],
+  "resources/js/Domain/purchase/settlement.js": [
+    "/build/assets/Show-C868zjeh.js"
+  ],
+  "resources/js/Hooks/useGlobalShortcuts.js": [],
+  "resources/js/Hooks/useOfflineSync.js": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Hooks/usePermission.js": [
+    "/build/assets/Dashboard-Cf8Y117V.js",
+    "/build/assets/Dashboard-DULRuONn.css"
+  ],
+  "resources/js/Hooks/usePlan.js": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Hooks/useStoreRoute.js": [
+    "/build/assets/PurchaseModuleTabs-Cu1z0Kdx.js"
+  ],
+  "resources/js/Layout/usePosLayout.js": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Layout/venqoreLayoutEngine.js": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/LayoutLaw/engine.js": [
+    "/build/assets/engine-Cd795qy4.js"
+  ],
+  "resources/js/LayoutLaw/law.js": [
+    "/build/assets/engine-Cd795qy4.js"
+  ],
+  "resources/js/LayoutLaw/ui.jsx": [
+    "/build/assets/ui-_8sZpHCB.js"
+  ],
+  "resources/js/Layouts/AuthLayout.jsx": [
+    "/build/assets/index-BhXucrH4.js"
+  ],
+  "resources/js/Layouts/GlobalProviderLayout.jsx": [],
+  "resources/js/Layouts/OneGlanceLayout.jsx": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Layouts/PlatformLayout.jsx": [
+    "/build/assets/PlatformLayout-By7HlVQA.js"
+  ],
+  "resources/js/Layouts/PlatformShell.jsx": [
+    "/build/assets/PlatformShell-Cgr7ZgUy.js"
+  ],
+  "resources/js/Layouts/ReportsLayout.jsx": [
+    "/build/assets/ReportsLayout-C08V7Mxf.js"
+  ],
+  "resources/js/NewInvoice/SettingsDrawer.jsx": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/NewInvoice/fields.js": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/NewInvoice/mock.js": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/NewInvoice/newinvoice.css": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/NewInvoice/settings.js": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/NewInvoice/sheets.jsx": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/NewInvoice/zones.jsx": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/NewPos/ApprovalSheet.jsx": [
+    "/build/assets/NewPos-C2isG5xJ.js"
+  ],
+  "resources/js/NewPos/LayoutPickerModal.jsx": [
+    "/build/assets/NewPos-C2isG5xJ.js"
+  ],
+  "resources/js/NewPos/LayoutPreviewShell.jsx": [
+    "/build/assets/approval-COrxd3AL.js",
+    "/build/assets/approval-DdESHQeE.css"
+  ],
+  "resources/js/NewPos/SettingsDrawer.jsx": [
+    "/build/assets/NewPos-C2isG5xJ.js"
+  ],
+  "resources/js/NewPos/SetupWizardModal.jsx": [
+    "/build/assets/approval-COrxd3AL.js",
+    "/build/assets/approval-DdESHQeE.css"
+  ],
+  "resources/js/NewPos/newpos.css": [
+    "/build/assets/approval-COrxd3AL.js",
+    "/build/assets/approval-DdESHQeE.css"
+  ],
+  "resources/js/NewPos/pos-law.css": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/NewPos/settings.js": [
+    "/build/assets/approval-COrxd3AL.js",
+    "/build/assets/approval-DdESHQeE.css"
+  ],
+  "resources/js/NewPos/sheets.jsx": [
+    "/build/assets/NewPos-C2isG5xJ.js"
+  ],
+  "resources/js/Pages/Accounting/BalanceSheet.jsx": [
+    "/build/assets/BalanceSheet-DqwkFMZD.js"
+  ],
+  "resources/js/Pages/Accounting/ChartOfAccounts.jsx": [
+    "/build/assets/ChartOfAccounts-C5rfw2GU.js"
+  ],
+  "resources/js/Pages/Accounting/Dashboard.jsx": [
+    "/build/assets/Dashboard-gZdvQjhN.js"
+  ],
+  "resources/js/Pages/Accounting/ProfitLoss.jsx": [
+    "/build/assets/ProfitLoss-BLWx3Dge.js"
+  ],
+  "resources/js/Pages/Admin/AgentInbox.jsx": [
+    "/build/assets/AgentInbox-Qicj6OcI.js"
+  ],
+  "resources/js/Pages/Admin/Backups.jsx": [
+    "/build/assets/Backups-DIjZmGSl.js"
+  ],
+  "resources/js/Pages/Admin/DataManagement.jsx": [
+    "/build/assets/DataManagement-DKiiUy60.js"
+  ],
+  "resources/js/Pages/Admin/DataMapping.jsx": [
+    "/build/assets/DataMapping-BwryFJGw.js"
+  ],
+  "resources/js/Pages/Admin/Database.jsx": [
+    "/build/assets/Database-Bn6AkUcW.js"
+  ],
+  "resources/js/Pages/Admin/ExecutiveDashboard.jsx": [
+    "/build/assets/ExecutiveDashboard-P5OFqvQy.js",
+    "/build/assets/ExecutiveDashboard-DogrKNTQ.css"
+  ],
+  "resources/js/Pages/Admin/Logs.jsx": [
+    "/build/assets/Logs-CuP5KXim.js"
+  ],
+  "resources/js/Pages/Admin/Migration.jsx": [
+    "/build/assets/Migration-BrKMoeYf.js"
+  ],
+  "resources/js/Pages/Admin/Settings.jsx": [
+    "/build/assets/Settings-B_frXWUc.js"
+  ],
+  "resources/js/Pages/Admin/Users.jsx": [
+    "/build/assets/Users-BGgMrpvk.js"
+  ],
+  "resources/js/Pages/Admin/VenaTicketDetail.jsx": [
+    "/build/assets/VenaTicketDetail-Cg-P8CLm.js"
+  ],
+  "resources/js/Pages/Admin/VenaTickets.jsx": [
+    "/build/assets/VenaTickets-BzoiX1Ry.js"
+  ],
+  "resources/js/Pages/Auth/AcceptInvite.jsx": [
+    "/build/assets/AcceptInvite-CSBrPlAR.js"
+  ],
+  "resources/js/Pages/Auth/ConfirmPassword.jsx": [
+    "/build/assets/ConfirmPassword-BoMUBYZj.js"
+  ],
+  "resources/js/Pages/Auth/ForgotPassword.jsx": [
+    "/build/assets/ForgotPassword-CjT3-kZd.js"
+  ],
+  "resources/js/Pages/Auth/Login.jsx": [
+    "/build/assets/Login-Bz6FQzis.js"
+  ],
+  "resources/js/Pages/Auth/Register.jsx": [
+    "/build/assets/Register-CARiiCb6.js"
+  ],
+  "resources/js/Pages/Auth/ResetPassword.jsx": [
+    "/build/assets/ResetPassword-COUhxlcv.js"
+  ],
+  "resources/js/Pages/Auth/StaffLogin.jsx": [
+    "/build/assets/StaffLogin-D5-wTDoz.js"
+  ],
+  "resources/js/Pages/Auth/TwoFactorSetup.jsx": [
+    "/build/assets/TwoFactorSetup-DBQV1q7n.js"
+  ],
+  "resources/js/Pages/Auth/TwoFactorVerify.jsx": [
+    "/build/assets/TwoFactorVerify-D39XUemQ.js"
+  ],
+  "resources/js/Pages/Auth/VerifyCode.jsx": [
+    "/build/assets/VerifyCode-B6YInqTm.js"
+  ],
+  "resources/js/Pages/Auth/VerifyEmail.jsx": [
+    "/build/assets/VerifyEmail-Dn9_aqex.js"
+  ],
+  "resources/js/Pages/BankAccounts/BankAccountsList.jsx": [
+    "/build/assets/BankAccountsList-VjE1aJym.js"
+  ],
+  "resources/js/Pages/BankAccounts/Transactions.jsx": [
+    "/build/assets/Transactions-CDxkpnte.js"
+  ],
+  "resources/js/Pages/BankReconciliation/BankReconciliation.jsx": [
+    "/build/assets/BankReconciliation-Bgkojkyl.js"
+  ],
+  "resources/js/Pages/BatchTracking/BatchTracking.jsx": [
+    "/build/assets/BatchTracking--G2Ws4_B.js"
+  ],
+  "resources/js/Pages/Billing/Index.jsx": [
+    "/build/assets/Index-U4Y2IUow.js"
+  ],
+  "resources/js/Pages/Builder/Index.jsx": [
+    "/build/assets/Index-9kiDpKGa.js"
+  ],
+  "resources/js/Pages/Cookbook/Create.jsx": [
+    "/build/assets/Create-C9WHkWzn.js"
+  ],
+  "resources/js/Pages/Cookbook/RecipesList.jsx": [
+    "/build/assets/RecipesList-C75RBUYf.js"
+  ],
+  "resources/js/Pages/Dashboards/AccountantDashboard.jsx": [
+    "/build/assets/AccountantDashboard-DDJz4Wbf.js"
+  ],
+  "resources/js/Pages/Dashboards/CashierDashboard.jsx": [
+    "/build/assets/CashierDashboard-CnwOlOao.js"
+  ],
+  "resources/js/Pages/Dashboards/PurchasingDashboard.jsx": [
+    "/build/assets/PurchasingDashboard-ClEEph2E.js"
+  ],
+  "resources/js/Pages/Dashboards/ViewerDashboard.jsx": [
+    "/build/assets/ViewerDashboard-DI2csxPz.js"
+  ],
+  "resources/js/Pages/DebitNotes/Create.jsx": [
+    "/build/assets/Create-JkQeprVF.js"
+  ],
+  "resources/js/Pages/DebitNotes/DebitNotes.jsx": [
+    "/build/assets/DebitNotes-De4f1vnM.js"
+  ],
+  "resources/js/Pages/DebitNotes/Show.jsx": [
+    "/build/assets/Show-DxZMSWm4.js"
+  ],
+  "resources/js/Pages/Demo/Landing.jsx": [
+    "/build/assets/Landing-CIUvUJTe.js"
+  ],
+  "resources/js/Pages/EInvoicing/EInvoicing.jsx": [
+    "/build/assets/EInvoicing-Esy7XxWl.js"
+  ],
+  "resources/js/Pages/Error.jsx": [
+    "/build/assets/Error-DNjOlORS.js"
+  ],
+  "resources/js/Pages/Errors/StoreSuspended.jsx": [
+    "/build/assets/StoreSuspended-CmGLWnXn.js"
+  ],
+  "resources/js/Pages/Errors/TrialExpired.jsx": [
+    "/build/assets/TrialExpired-CgcBTiLr.js"
+  ],
+  "resources/js/Pages/Expenses/Create.jsx": [
+    "/build/assets/Create-DpfBfKQl.js"
+  ],
+  "resources/js/Pages/Expenses/ExpensesList.jsx": [
+    "/build/assets/ExpensesList-CNAyck9h.js"
+  ],
+  "resources/js/Pages/Finance/FinanceDashboard.jsx": [
+    "/build/assets/FinanceDashboard-biURkcyX.js"
+  ],
+  "resources/js/Pages/Finance/Payables.jsx": [
+    "/build/assets/Payables-CAF-S1Ku.js"
+  ],
+  "resources/js/Pages/Finance/Receivables.jsx": [
+    "/build/assets/Receivables-DRnmhaSd.js"
+  ],
+  "resources/js/Pages/Funds/CashHistory.jsx": [
+    "/build/assets/CashHistory-BYiEbxal.js"
+  ],
+  "resources/js/Pages/Funds/FundManagement.jsx": [
+    "/build/assets/FundManagement-Cl8Kgz-s.js"
+  ],
+  "resources/js/Pages/Gift/Invalid.jsx": [
+    "/build/assets/Invalid-pwYBxb5y.js"
+  ],
+  "resources/js/Pages/Gift/Show.jsx": [
+    "/build/assets/Show-BJqiNeMc.js"
+  ],
+  "resources/js/Pages/GrowthEngine/GrowthDashboard.jsx": [
+    "/build/assets/GrowthDashboard-Bx6vVQgr.js"
+  ],
+  "resources/js/Pages/GrowthEngine/Settings.jsx": [
+    "/build/assets/Settings-CxUhfIN0.js"
+  ],
+  "resources/js/Pages/Help/Index.jsx": [
+    "/build/assets/Index-DsebAHdB.js"
+  ],
+  "resources/js/Pages/Help/Show.jsx": [
+    "/build/assets/Show-D2Q4JeHK.js"
+  ],
+  "resources/js/Pages/Home.jsx": [
+    "/build/assets/Home-CxdaWNJ7.js"
+  ],
+  "resources/js/Pages/Hub/Index.jsx": [
+    "/build/assets/Index-I4ovLjAz.js"
+  ],
+  "resources/js/Pages/Installer/Index.jsx": [
+    "/build/assets/Index-Bikc3e9q.js"
+  ],
+  "resources/js/Pages/Inventory/Attributes/AttributesList.jsx": [
+    "/build/assets/AttributesList-Dv0gbQgW.js"
+  ],
+  "resources/js/Pages/Inventory/Categories.jsx": [
+    "/build/assets/Categories-_-wsTT9z.js"
+  ],
+  "resources/js/Pages/Inventory/Dashboard.jsx": [
+    "/build/assets/Dashboard-BepLn3vU.js"
+  ],
+  "resources/js/Pages/Inventory/InventoryList.jsx": [
+    "/build/assets/InventoryList-Bod2Ek0n.js"
+  ],
+  "resources/js/Pages/Inventory/Production/Create.jsx": [
+    "/build/assets/Create-DjQX21QD.js"
+  ],
+  "resources/js/Pages/Inventory/Production/ProductionRuns.jsx": [
+    "/build/assets/ProductionRuns-PLTpfXLQ.js"
+  ],
+  "resources/js/Pages/Inventory/Production/Show.jsx": [
+    "/build/assets/Show-BhTl1EkR.js"
+  ],
+  "resources/js/Pages/Inventory/StockLevels.jsx": [
+    "/build/assets/StockLevels-Z5ThGnCE.js"
+  ],
+  "resources/js/Pages/Inventory/Variants/VariantsList.jsx": [
+    "/build/assets/VariantsList-0jxTFVrj.js"
+  ],
+  "resources/js/Pages/Invite/Accept.jsx": [
+    "/build/assets/Accept-DxQX3lfT.js"
+  ],
+  "resources/js/Pages/Invite/Invalid.jsx": [
+    "/build/assets/Invalid-DAmFLJqr.js"
+  ],
+  "resources/js/Pages/Labels/LabelPrinter.jsx": [
+    "/build/assets/LabelPrinter-Bhh57F0N.js"
+  ],
+  "resources/js/Pages/LandingPage.jsx": [
+    "/build/assets/LandingPage-B3OgGiUp.js"
+  ],
+  "resources/js/Pages/Manufacturing/Rules.jsx": [
+    "/build/assets/Rules-DwN38lJt.js"
+  ],
+  "resources/js/Pages/Marketing/About.jsx": [
+    "/build/assets/About-CujfWjBK.js"
+  ],
+  "resources/js/Pages/Marketing/Blog/Index.jsx": [
+    "/build/assets/Index-CdNRzNMC.js"
+  ],
+  "resources/js/Pages/Marketing/Blog/Show.jsx": [
+    "/build/assets/Show-J6TSjam9.js"
+  ],
+  "resources/js/Pages/Marketing/Blueprint.jsx": [
+    "/build/assets/Blueprint-Dl8QbZMl.js"
+  ],
+  "resources/js/Pages/Marketing/Campaigns.jsx": [
+    "/build/assets/Campaigns-BPDMcpeQ.js"
+  ],
+  "resources/js/Pages/Marketing/Compare/Index.jsx": [
+    "/build/assets/Index-B6kpncJQ.js"
+  ],
+  "resources/js/Pages/Marketing/Compare/Show.jsx": [
+    "/build/assets/Show-D5wYnZNb.js"
+  ],
+  "resources/js/Pages/Marketing/Contact.jsx": [
+    "/build/assets/Contact-CB-ZKWi9.js"
+  ],
+  "resources/js/Pages/Marketing/DashboardPreview.jsx": [
+    "/build/assets/DashboardPreview-CuviPk_h.js"
+  ],
+  "resources/js/Pages/Marketing/DigitalProducts.jsx": [
+    "/build/assets/DigitalProducts-BlaAJMP9.js"
+  ],
+  "resources/js/Pages/Marketing/Docs/Show.jsx": [
+    "/build/assets/Show-BrsLcGn4.js"
+  ],
+  "resources/js/Pages/Marketing/Documents.jsx": [
+    "/build/assets/Documents-CSsVB_D2.js"
+  ],
+  "resources/js/Pages/Marketing/Features.jsx": [
+    "/build/assets/Features-CWX7ZLWz.js"
+  ],
+  "resources/js/Pages/Marketing/Features/Show.jsx": [
+    "/build/assets/Show-vEHb-kTW.js"
+  ],
+  "resources/js/Pages/Marketing/KnownIssues.jsx": [
+    "/build/assets/KnownIssues-3I3J8iOT.js"
+  ],
+  "resources/js/Pages/Marketing/Ledger.jsx": [
+    "/build/assets/Ledger-NAkVmQ7a.js"
+  ],
+  "resources/js/Pages/Marketing/Newsletter.jsx": [
+    "/build/assets/Newsletter-CkMSBkBM.js"
+  ],
+  "resources/js/Pages/Marketing/NewsletterConfirm.jsx": [
+    "/build/assets/NewsletterConfirm-_xDn_2qU.js"
+  ],
+  "resources/js/Pages/Marketing/NewsletterUnsubscribe.jsx": [
+    "/build/assets/NewsletterUnsubscribe-Dni7tXaL.js"
+  ],
+  "resources/js/Pages/Marketing/Onboarding.jsx": [
+    "/build/assets/Onboarding-cARAmwWf.js"
+  ],
+  "resources/js/Pages/Marketing/PartnerSupport.jsx": [
+    "/build/assets/PartnerSupport-wio4uRIA.js"
+  ],
+  "resources/js/Pages/Marketing/Partners.jsx": [
+    "/build/assets/Partners-DrgF7PSq.js"
+  ],
+  "resources/js/Pages/Marketing/PosShowcase.jsx": [
+    "/build/assets/PosShowcase-DoUC2-aw.js"
+  ],
+  "resources/js/Pages/Marketing/Pricing.jsx": [
+    "/build/assets/Pricing-D0Xyn1VK.js"
+  ],
+  "resources/js/Pages/Marketing/Reckoner.jsx": [
+    "/build/assets/Reckoner-DfJMR_Nv.js"
+  ],
+  "resources/js/Pages/Marketing/Roadmap.jsx": [
+    "/build/assets/Roadmap-BGDuP-O9.js"
+  ],
+  "resources/js/Pages/Marketing/Security.jsx": [
+    "/build/assets/Security-DFn8pjZw.js"
+  ],
+  "resources/js/Pages/Marketing/Shared/FeatureDemos.jsx": [
+    "/build/assets/FeatureDemos-CARWNhF9.js"
+  ],
+  "resources/js/Pages/Marketing/Shared/MarketingLayout.jsx": [
+    "/build/assets/MarketingLayout-cwTDSbNB.js"
+  ],
+  "resources/js/Pages/Marketing/SmartCapture.jsx": [
+    "/build/assets/SmartCapture-6AggLuvE.js"
+  ],
+  "resources/js/Pages/Marketing/Solutions/Index.jsx": [
+    "/build/assets/Index-yEZ3joXQ.js"
+  ],
+  "resources/js/Pages/Marketing/Solutions/Show.jsx": [
+    "/build/assets/Show-BLjf968s.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Barcode.jsx": [
+    "/build/assets/Barcode-CpdyFsgg.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/BarcodeLabelSheet.jsx": [
+    "/build/assets/BarcodeLabelSheet-BAt40iV8.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/BarcodeValidator.jsx": [
+    "/build/assets/BarcodeValidator-NYlg-ce_.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/CashDrawer.jsx": [
+    "/build/assets/CashDrawer-BxZRxjKN.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/CashDrawerCountSheet.jsx": [
+    "/build/assets/CashDrawerCountSheet-DMZ-H2TO.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/CreditNote.jsx": [
+    "/build/assets/CreditNote-Y2HvgcuW.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/FoodCostCalculator.jsx": [
+    "/build/assets/FoodCostCalculator-B8uWbixr.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Index.jsx": [
+    "/build/assets/Index-CnUxIpSR.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/InventoryHealth.jsx": [
+    "/build/assets/InventoryHealth-vE8kpm3y.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Invoice.jsx": [
+    "/build/assets/Invoice-Dqmha5Af.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/LabelSheet.jsx": [
+    "/build/assets/LabelSheet-DicxwEvc.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/LeadConfirm.jsx": [
+    "/build/assets/LeadConfirm-DPQpvSDJ.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/LeadUnsubscribe.jsx": [
+    "/build/assets/LeadUnsubscribe-oSs_S9Ib.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/MarginCalculator.jsx": [
+    "/build/assets/MarginCalculator-DxkIREJL.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/PackingSlip.jsx": [
+    "/build/assets/PackingSlip-BrI9kSO6.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/PaymentFeeCalculator.jsx": [
+    "/build/assets/PaymentFeeCalculator-7LsO1d5D.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/PosRoiCalculator.jsx": [
+    "/build/assets/PosRoiCalculator-CaI9AkLu.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/PriceTag.jsx": [
+    "/build/assets/PriceTag-C2frwS_T.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/ProductCsvCleaner.jsx": [
+    "/build/assets/ProductCsvCleaner-Cmm55DGX.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/PurchaseOrder.jsx": [
+    "/build/assets/PurchaseOrder-D_SU9f__.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/QrCode.jsx": [
+    "/build/assets/QrCode-BLVqA5df.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/QrMenu.jsx": [
+    "/build/assets/QrMenu-CVmjEugj.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/QrMenuPublic.jsx": [
+    "/build/assets/QrMenuPublic-DGlkSBuS.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Quote.jsx": [
+    "/build/assets/Quote-DtYYm2PU.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Receipt.jsx": [
+    "/build/assets/Receipt-BhBrU4z3.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Shared/EditableText.jsx": [
+    "/build/assets/EditableText-CAR9rgbH.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Shared/EmailGate.jsx": [
+    "/build/assets/EmailGate-BsTy97if.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Shared/HousePromo.jsx": [
+    "/build/assets/HousePromo-DidRidkH.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Shared/Select.jsx": [
+    "/build/assets/Select-BvHKwZfu.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Shared/SmartCaptureNudge.jsx": [
+    "/build/assets/SmartCaptureNudge-VrUccUol.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Shared/ToolShell.jsx": [
+    "/build/assets/ToolShell-zAP3LLHC.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/Shared/ToolsSidebar.jsx": [
+    "/build/assets/ToolsSidebar-UoByrcvz.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/SkuGenerator.jsx": [
+    "/build/assets/SkuGenerator-BA1MbXJf.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/SmartCapture.jsx": [
+    "/build/assets/SmartCapture-BMg-0Pzo.js"
+  ],
+  "resources/js/Pages/Marketing/Tools/StockCountSheet.jsx": [
+    "/build/assets/StockCountSheet-BIyeeIzZ.js"
+  ],
+  "resources/js/Pages/Marketing/VenSynQ.jsx": [
+    "/build/assets/VenSynQ-mguveOUw.js"
+  ],
+  "resources/js/Pages/NewDashboard.css": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Pages/NewDashboard.jsx": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Pages/NewInvoice.jsx": [
+    "/build/assets/NewInvoice-B0AiEHtF.js",
+    "/build/assets/NewInvoice--3xNviF1.css"
+  ],
+  "resources/js/Pages/NewPos.jsx": [
+    "/build/assets/NewPos-C2isG5xJ.js"
+  ],
+  "resources/js/Pages/Next/Dashboard.jsx": [
+    "/build/assets/Dashboard-DBroK4wo.js"
+  ],
+  "resources/js/Pages/Notifications/NotificationCenter.jsx": [
+    "/build/assets/NotificationCenter-zqXsqEst.js"
+  ],
+  "resources/js/Pages/Onboarding/Components/HistoryUnlockedModal.jsx": [
+    "/build/assets/HistoryUnlockedModal-0KHHDlE2.js"
+  ],
+  "resources/js/Pages/Onboarding/Wizard.jsx": [
+    "/build/assets/Wizard-TQzJpnoH.js"
+  ],
+  "resources/js/Pages/OnlineStore/OnlineStore.jsx": [
+    "/build/assets/OnlineStore-GPVag0St.js"
+  ],
+  "resources/js/Pages/Parties/Ledger.jsx": [
+    "/build/assets/Ledger-BygNTOxD.js"
+  ],
+  "resources/js/Pages/Parties/PartiesList.jsx": [
+    "/build/assets/PartiesList-DfRTQhcC.js"
+  ],
+  "resources/js/Pages/Payments/In.jsx": [
+    "/build/assets/In-CvLEejcU.js"
+  ],
+  "resources/js/Pages/Payments/Out.jsx": [
+    "/build/assets/Out-CnTxAYY9.js"
+  ],
+  "resources/js/Pages/Payments/PaymentsList.jsx": [
+    "/build/assets/PaymentsList-BhhzpgX0.js"
+  ],
+  "resources/js/Pages/Payments/Show.jsx": [
+    "/build/assets/Show-8YfDHBWh.js"
+  ],
+  "resources/js/Pages/Platform/BlogPosts/Index.jsx": [
+    "/build/assets/Index-B3JEZ0AX.js"
+  ],
+  "resources/js/Pages/Platform/Overview.jsx": [
+    "/build/assets/Overview-DCJANJ_M.js"
+  ],
+  "resources/js/Pages/Platform/Views.jsx": [
+    "/build/assets/Views-CqG5WmkK.js"
+  ],
+  "resources/js/Pages/PlatformOwner/Login.jsx": [
+    "/build/assets/Login-qMnnjgib.js"
+  ],
+  "resources/js/Pages/Pos.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Pages/PrivacyPolicy.jsx": [
+    "/build/assets/PrivacyPolicy-DTTi9phd.js"
+  ],
+  "resources/js/Pages/Profile/Edit.jsx": [
+    "/build/assets/Edit-ByBrouzc.js"
+  ],
+  "resources/js/Pages/Proposals/Create.jsx": [
+    "/build/assets/Create-jbsIkovN.js"
+  ],
+  "resources/js/Pages/Proposals/ProposalsList.jsx": [
+    "/build/assets/ProposalsList-B2QY7qUF.js"
+  ],
+  "resources/js/Pages/Proposals/Show.jsx": [
+    "/build/assets/Show-C3wV26CM.js"
+  ],
+  "resources/js/Pages/PurchaseOrders/Create.jsx": [
+    "/build/assets/Create-WU5ACqnR.js"
+  ],
+  "resources/js/Pages/PurchaseOrders/PurchaseOrdersList.jsx": [
+    "/build/assets/PurchaseOrdersList-CQ4GppDw.js"
+  ],
+  "resources/js/Pages/PurchaseOrders/Show.jsx": [
+    "/build/assets/Show-BQz4Fiut.js"
+  ],
+  "resources/js/Pages/Purchases/PurchasesList.jsx": [
+    "/build/assets/PurchasesList-txdYjFrW.js"
+  ],
+  "resources/js/Pages/ReckonerCatalog.json": [
+    "/build/assets/NewDashboard-nNuKrJd3.js",
+    "/build/assets/NewDashboard-BjYfkq74.css"
+  ],
+  "resources/js/Pages/RecurringInvoices/Create.jsx": [
+    "/build/assets/Create-Bxdvn2H7.js"
+  ],
+  "resources/js/Pages/RecurringInvoices/Edit.jsx": [
+    "/build/assets/Edit-BtVrhRt4.js"
+  ],
+  "resources/js/Pages/RecurringInvoices/RecurringForm.jsx": [
+    "/build/assets/RecurringForm-Cj0-Rc6v.js"
+  ],
+  "resources/js/Pages/RecurringInvoices/RecurringInvoices.jsx": [
+    "/build/assets/RecurringInvoices-Dod2mAxu.js"
+  ],
+  "resources/js/Pages/RecycleBin.jsx": [
+    "/build/assets/RecycleBin-Cv3wA55t.js"
+  ],
+  "resources/js/Pages/Redeem.jsx": [
+    "/build/assets/Redeem-vwDzd5uy.js"
+  ],
+  "resources/js/Pages/RefundPolicy.jsx": [
+    "/build/assets/RefundPolicy-BqY9TuyK.js"
+  ],
+  "resources/js/Pages/Reminders/Create.jsx": [
+    "/build/assets/Create-CpcQyVeI.js"
+  ],
+  "resources/js/Pages/Reminders/InvoiceReminders.jsx": [
+    "/build/assets/InvoiceReminders-C7J8n88Q.js"
+  ],
+  "resources/js/Pages/Reports/AccountLedger.jsx": [
+    "/build/assets/AccountLedger-C9lMT8g5.js"
+  ],
+  "resources/js/Pages/Reports/AllParties.jsx": [
+    "/build/assets/AllParties-CTdI9kZS.js"
+  ],
+  "resources/js/Pages/Reports/BankStatement.jsx": [
+    "/build/assets/BankStatement-Dbm8Bfjg.js"
+  ],
+  "resources/js/Pages/Reports/BillWiseProfit.jsx": [
+    "/build/assets/BillWiseProfit-DJmzme2u.js"
+  ],
+  "resources/js/Pages/Reports/CashFlow.jsx": [
+    "/build/assets/CashFlow-DY2YFqEy.js"
+  ],
+  "resources/js/Pages/Reports/CategoryProfitability.jsx": [
+    "/build/assets/CategoryProfitability-C5gxpabv.js"
+  ],
+  "resources/js/Pages/Reports/Components/ReportPage.jsx": [
+    "/build/assets/ReportPage-2DW3nAtZ.js"
+  ],
+  "resources/js/Pages/Reports/CustomerInsights.jsx": [
+    "/build/assets/CustomerInsights-CW8zj_Fx.js"
+  ],
+  "resources/js/Pages/Reports/DayBook.jsx": [
+    "/build/assets/DayBook-xwkuGJPl.js"
+  ],
+  "resources/js/Pages/Reports/DiscountReport.jsx": [
+    "/build/assets/DiscountReport-hm-HiJbu.js"
+  ],
+  "resources/js/Pages/Reports/ExpenseByCategory.jsx": [
+    "/build/assets/ExpenseByCategory-C0a2jE5Q.js"
+  ],
+  "resources/js/Pages/Reports/ExpenseByItem.jsx": [
+    "/build/assets/ExpenseByItem-BBWZmOxY.js"
+  ],
+  "resources/js/Pages/Reports/Expenses.jsx": [
+    "/build/assets/Expenses-DVPHAvI9.js"
+  ],
+  "resources/js/Pages/Reports/ExpiryReport.jsx": [
+    "/build/assets/ExpiryReport-Uskb8QOb.js"
+  ],
+  "resources/js/Pages/Reports/GenericReport.jsx": [
+    "/build/assets/GenericReport-CDZw7hkZ.js"
+  ],
+  "resources/js/Pages/Reports/GraphAnalytics.jsx": [
+    "/build/assets/GraphAnalytics-ujUSi_Y8.js"
+  ],
+  "resources/js/Pages/Reports/ItemCategoryWiseProfitLoss.jsx": [
+    "/build/assets/ItemCategoryWiseProfitLoss-DhyEjD5l.js"
+  ],
+  "resources/js/Pages/Reports/ItemDetail.jsx": [
+    "/build/assets/ItemDetail-CZ2IugFv.js"
+  ],
+  "resources/js/Pages/Reports/ItemReportByParty.jsx": [
+    "/build/assets/ItemReportByParty-drchgBr2.js"
+  ],
+  "resources/js/Pages/Reports/ItemWiseDiscount.jsx": [
+    "/build/assets/ItemWiseDiscount-DmrOmxk2.js"
+  ],
+  "resources/js/Pages/Reports/ItemWiseProfit.jsx": [
+    "/build/assets/ItemWiseProfit-8zsilzYl.js"
+  ],
+  "resources/js/Pages/Reports/LoanStatement.jsx": [
+    "/build/assets/LoanStatement-Ar06FdAp.js"
+  ],
+  "resources/js/Pages/Reports/LowStock.jsx": [
+    "/build/assets/LowStock-CXJK4HuX.js"
+  ],
+  "resources/js/Pages/Reports/MovementHistory.jsx": [
+    "/build/assets/MovementHistory-Cb3mv-Uh.js"
+  ],
+  "resources/js/Pages/Reports/OwnersDailyPulse.jsx": [
+    "/build/assets/OwnersDailyPulse-CHqKyNV6.js"
+  ],
+  "resources/js/Pages/Reports/PartyReportByItem.jsx": [
+    "/build/assets/PartyReportByItem-Cso0Gt8d.js"
+  ],
+  "resources/js/Pages/Reports/PartyStatement.jsx": [
+    "/build/assets/PartyStatement-DZ7kh9-F.js"
+  ],
+  "resources/js/Pages/Reports/PartyWiseProfitLoss.jsx": [
+    "/build/assets/PartyWiseProfitLoss-DN3cQJlj.js"
+  ],
+  "resources/js/Pages/Reports/PointInTimeInventory.jsx": [
+    "/build/assets/PointInTimeInventory-C46viJoJ.js"
+  ],
+  "resources/js/Pages/Reports/ProfitLoss.jsx": [
+    "/build/assets/ProfitLoss-DJB9Gws9.js"
+  ],
+  "resources/js/Pages/Reports/PurchaseReturns.jsx": [
+    "/build/assets/PurchaseReturns-NPeV7D2J.js"
+  ],
+  "resources/js/Pages/Reports/Purchases.jsx": [
+    "/build/assets/Purchases-lWTdM5gI.js"
+  ],
+  "resources/js/Pages/Reports/RefundReasons.jsx": [
+    "/build/assets/RefundReasons-qPUbmMNk.js"
+  ],
+  "resources/js/Pages/Reports/ReportsHub.jsx": [
+    "/build/assets/ReportsHub-9EYpjbeY.js"
+  ],
+  "resources/js/Pages/Reports/SaleAging.jsx": [
+    "/build/assets/SaleAging-D17l4pdD.js"
+  ],
+  "resources/js/Pages/Reports/SaleOrderItems.jsx": [
+    "/build/assets/SaleOrderItems-CiQC6SRR.js"
+  ],
+  "resources/js/Pages/Reports/SaleOrders.jsx": [
+    "/build/assets/SaleOrders-Bzeqw5Mn.js"
+  ],
+  "resources/js/Pages/Reports/SalePurchaseByItemCategory.jsx": [
+    "/build/assets/SalePurchaseByItemCategory-CvI3jfeo.js"
+  ],
+  "resources/js/Pages/Reports/SalePurchaseByParty.jsx": [
+    "/build/assets/SalePurchaseByParty-D1YPmJz7.js"
+  ],
+  "resources/js/Pages/Reports/SalePurchaseByPartyGroup.jsx": [
+    "/build/assets/SalePurchaseByPartyGroup-ww5IHNK1.js"
+  ],
+  "resources/js/Pages/Reports/Sales.jsx": [
+    "/build/assets/Sales-Oj4EzRjo.js"
+  ],
+  "resources/js/Pages/Reports/StockAging.jsx": [
+    "/build/assets/StockAging-DLW2zlFy.js"
+  ],
+  "resources/js/Pages/Reports/StockSummaryByCategory.jsx": [
+    "/build/assets/StockSummaryByCategory-C8VQ-2R2.js"
+  ],
+  "resources/js/Pages/Reports/StockValuation.jsx": [
+    "/build/assets/StockValuation-CiR1-JU3.js"
+  ],
+  "resources/js/Pages/Reports/SupplierInsights.jsx": [
+    "/build/assets/SupplierInsights-DDXSKCSn.js"
+  ],
+  "resources/js/Pages/Reports/Tax.jsx": [
+    "/build/assets/Tax-TrvQ8KVs.js"
+  ],
+  "resources/js/Pages/Reports/TaxRateReport.jsx": [
+    "/build/assets/TaxRateReport-Dc9jH2RN.js"
+  ],
+  "resources/js/Pages/Reports/Transactions.jsx": [
+    "/build/assets/Transactions-BiBKYKpQ.js"
+  ],
+  "resources/js/Pages/Reports/TrialBalance.jsx": [
+    "/build/assets/TrialBalance-De2bjesm.js"
+  ],
+  "resources/js/Pages/Restaurant/Dashboard.jsx": [
+    "/build/assets/Dashboard-yVuZnsug.js"
+  ],
+  "resources/js/Pages/Restaurant/Kitchen.jsx": [
+    "/build/assets/Kitchen-DXw60CeR.js",
+    "/build/assets/Kitchen-B36IHG7A.css"
+  ],
+  "resources/js/Pages/Returns/Create.jsx": [
+    "/build/assets/Create-DY__GSEi.js"
+  ],
+  "resources/js/Pages/Returns/ReturnsHistory.jsx": [
+    "/build/assets/ReturnsHistory-D_Pp944K.js"
+  ],
+  "resources/js/Pages/Returns/Show.jsx": [
+    "/build/assets/Show-DPALxywH.js"
+  ],
+  "resources/js/Pages/Sales/Analytics.jsx": [
+    "/build/assets/Analytics-B2yBaKM-.js"
+  ],
+  "resources/js/Pages/Sales/CreateInvoice.jsx": [
+    "/build/assets/CreateInvoice-B-EfXKiW.js"
+  ],
+  "resources/js/Pages/Sales/CreatePreSale.jsx": [
+    "/build/assets/CreatePreSale-C06ZHuw1.js"
+  ],
+  "resources/js/Pages/Sales/Customers/CustomersList.jsx": [
+    "/build/assets/CustomersList-ctvDRTgY.js"
+  ],
+  "resources/js/Pages/Sales/Dashboard.jsx": [
+    "/build/assets/Dashboard-BL_aZRDR.js"
+  ],
+  "resources/js/Pages/Sales/MasterSales.jsx": [
+    "/build/assets/MasterSales-BSHNAO6p.js"
+  ],
+  "resources/js/Pages/Sales/ParkedSales.jsx": [
+    "/build/assets/ParkedSales-DmUnGFi0.js"
+  ],
+  "resources/js/Pages/Sales/SalesHistory.jsx": [
+    "/build/assets/SalesHistory-BpXPDE0N.js"
+  ],
+  "resources/js/Pages/Sales/Show.jsx": [
+    "/build/assets/Show-B74bXhep.js"
+  ],
+  "resources/js/Pages/SalesOrders/CreatePreSale.jsx": [
+    "/build/assets/CreatePreSale-BKGQgwWh.js"
+  ],
+  "resources/js/Pages/SalesOrders/PreSales.jsx": [
+    "/build/assets/PreSales-SweKeYFc.js"
+  ],
+  "resources/js/Pages/SerialTracking/SerialTracking.jsx": [
+    "/build/assets/SerialTracking-Cm17_5hr.js"
+  ],
+  "resources/js/Pages/SerialTracking/Show.jsx": [
+    "/build/assets/Show-B5-iyAE3.js"
+  ],
+  "resources/js/Pages/Services/CreateServiceJob.jsx": [
+    "/build/assets/CreateServiceJob-fykGzNjI.js"
+  ],
+  "resources/js/Pages/Services/ServiceCalendar.jsx": [
+    "/build/assets/ServiceCalendar-ecWgdxFL.js"
+  ],
+  "resources/js/Pages/Services/ServiceJobDetail.jsx": [
+    "/build/assets/ServiceJobDetail-BQEIZ634.js"
+  ],
+  "resources/js/Pages/Services/ServiceJobs.jsx": [
+    "/build/assets/ServiceJobs-D9wEta-U.js"
+  ],
+  "resources/js/Pages/Services/ServiceNavTabs.jsx": [
+    "/build/assets/ServiceNavTabs-C0mnPWx8.js"
+  ],
+  "resources/js/Pages/Services/Tools.jsx": [
+    "/build/assets/Tools-5q6txIUu.js"
+  ],
+  "resources/js/Pages/Settings/Appearance.jsx": [
+    "/build/assets/Appearance-vNrIl2WK.js"
+  ],
+  "resources/js/Pages/Settings/ChatbotSettings.jsx": [
+    "/build/assets/ChatbotSettings-DwZrKENj.js"
+  ],
+  "resources/js/Pages/Settings/SettingsPanel.jsx": [
+    "/build/assets/SettingsPanel-CtCB-Ztr.js"
+  ],
+  "resources/js/Pages/SetupWizard.jsx": [
+    "/build/assets/SetupWizard-CnbiApSG.js"
+  ],
+  "resources/js/Pages/Staff/Hub.jsx": [
+    "/build/assets/Hub-Cl_9PI29.js"
+  ],
+  "resources/js/Pages/StaffAttendance/Show.jsx": [
+    "/build/assets/Show-CQj2Y0Pn.js"
+  ],
+  "resources/js/Pages/StaffAttendance/StaffAttendance.jsx": [
+    "/build/assets/StaffAttendance-D5ak-QST.js"
+  ],
+  "resources/js/Pages/StockOperations.jsx": [
+    "/build/assets/StockOperations-Dtzppk7H.js"
+  ],
+  "resources/js/Pages/StockTake/Create.jsx": [
+    "/build/assets/Create-DQ7nJZ1F.js"
+  ],
+  "resources/js/Pages/StockTake/Show.jsx": [
+    "/build/assets/Show-DtCfdVAb.js"
+  ],
+  "resources/js/Pages/StockTake/StockTake.jsx": [
+    "/build/assets/StockTake-6roMwoeg.js"
+  ],
+  "resources/js/Pages/StockTransfers/Create.jsx": [
+    "/build/assets/Create-Bylhof2l.js"
+  ],
+  "resources/js/Pages/StockTransfers/Show.jsx": [
+    "/build/assets/Show-By-itCId.js"
+  ],
+  "resources/js/Pages/StockTransfers/StockTransfers.jsx": [
+    "/build/assets/StockTransfers-B0klK6as.js"
+  ],
+  "resources/js/Pages/Store/CreateOrJoin.jsx": [
+    "/build/assets/CreateOrJoin-k27ITkSk.js"
+  ],
+  "resources/js/Pages/Store/Join.jsx": [
+    "/build/assets/Join-DL3UTFCl.js"
+  ],
+  "resources/js/Pages/Store/Staff/Index.jsx": [
+    "/build/assets/Index-DBA4yehd.js"
+  ],
+  "resources/js/Pages/SuperAdmin/AccessGrants/Index.jsx": [
+    "/build/assets/Index-MUC-Q3zC.js"
+  ],
+  "resources/js/Pages/SuperAdmin/AppSumo/Index.jsx": [
+    "/build/assets/Index-DGqesv5T.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Coupons/Index.jsx": [
+    "/build/assets/Index-DEoeOSX5.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Dashboard.jsx": [
+    "/build/assets/Dashboard-CLHeEcrM.js"
+  ],
+  "resources/js/Pages/SuperAdmin/DigitalHub/Index.jsx": [
+    "/build/assets/Index-BUdLC5_f.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Health/Contacts.jsx": [
+    "/build/assets/Contacts-BCHUxNQn.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Health/Errors.jsx": [
+    "/build/assets/Errors-B8lCoiUl.js"
+  ],
+  "resources/js/Pages/SuperAdmin/NewsletterHub/Index.jsx": [
+    "/build/assets/Index-B4gp2Q_k.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Plans/Index.jsx": [
+    "/build/assets/Index-5kBiiEfE.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Plans/featureGroups.js": [
+    "/build/assets/Index-5kBiiEfE.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Platforms/Index.jsx": [
+    "/build/assets/Index-DMd2N02G.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Stores.jsx": [
+    "/build/assets/Stores-C8vn2WLY.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Tenants/OverrideDetail.jsx": [
+    "/build/assets/OverrideDetail-RzSAId9B.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Tenants/Overrides.jsx": [
+    "/build/assets/Overrides-DSTujXSJ.js"
+  ],
+  "resources/js/Pages/SuperAdmin/Users.jsx": [
+    "/build/assets/Users-DUBAgoKs.js"
+  ],
+  "resources/js/Pages/Suppliers/SuppliersList.jsx": [
+    "/build/assets/SuppliersList-DhTmjV22.js"
+  ],
+  "resources/js/Pages/TableService/FloorBuilder.jsx": [
+    "/build/assets/FloorBuilder-Da2K5brG.js",
+    "/build/assets/FloorBuilder-BIum0dBP.css"
+  ],
+  "resources/js/Pages/TermsOfService.jsx": [
+    "/build/assets/TermsOfService-DXH7SG6q.js"
+  ],
+  "resources/js/Pages/Transactions/TransactionsList.jsx": [
+    "/build/assets/TransactionsList-Cj1aK0uW.js"
+  ],
+  "resources/js/Pages/Updater/Index.jsx": [
+    "/build/assets/Index-DHcflhN-.js"
+  ],
+  "resources/js/Pages/V3/Products/Create.jsx": [
+    "/build/assets/Create-C8A3QWxd.js"
+  ],
+  "resources/js/Pages/V3/Products/Edit.jsx": [
+    "/build/assets/Edit-CsatcJM8.js"
+  ],
+  "resources/js/Pages/V3/Products/Index.jsx": [
+    "/build/assets/Index-Bqm2bfhI.js"
+  ],
+  "resources/js/Pages/V3/Products/PriceTiers.jsx": [
+    "/build/assets/PriceTiers-cscVpgLL.js"
+  ],
+  "resources/js/Pages/V3/Products/UomConversions.jsx": [
+    "/build/assets/UomConversions-BUrB0blx.js"
+  ],
+  "resources/js/Pages/V3/Purchases/Create.jsx": [
+    "/build/assets/Create-C2VZhWjc.js"
+  ],
+  "resources/js/Pages/V3/Purchases/Edit.jsx": [
+    "/build/assets/Edit-CFEOMzXQ.js"
+  ],
+  "resources/js/Pages/V3/Purchases/PurchaseForm.jsx": [
+    "/build/assets/PurchaseForm-BLXo9PS0.js"
+  ],
+  "resources/js/Pages/V3/Purchases/Receive.jsx": [
+    "/build/assets/Receive-qp4A7BP4.js"
+  ],
+  "resources/js/Pages/V3/Purchases/Return.jsx": [
+    "/build/assets/Return-BfR_pOA1.js"
+  ],
+  "resources/js/Pages/V3/Purchases/Show.jsx": [
+    "/build/assets/Show-C868zjeh.js"
+  ],
+  "resources/js/Pages/V3/Warehouses/Create.jsx": [
+    "/build/assets/Create-CRLauPFD.js"
+  ],
+  "resources/js/Pages/V3/Warehouses/Edit.jsx": [
+    "/build/assets/Edit-DFHm8cks.js"
+  ],
+  "resources/js/Pages/V3/Warehouses/Index.jsx": [
+    "/build/assets/Index-COauViNc.js"
+  ],
+  "resources/js/Pages/VenSynQ/Components/AmazonSetupWizard.jsx": [
+    "/build/assets/AmazonSetupWizard-B7Prq2Nk.js"
+  ],
+  "resources/js/Pages/VenSynQ/Components/MoneyPipeline.jsx": [
+    "/build/assets/MoneyPipeline-CKynBDg7.js"
+  ],
+  "resources/js/Pages/VenSynQ/Components/SyncHealthPanel.jsx": [
+    "/build/assets/SyncHealthPanel-DPKax49H.js"
+  ],
+  "resources/js/Pages/VenSynQ/Dashboard.jsx": [
+    "/build/assets/Dashboard-CHbzYkmF.js"
+  ],
+  "resources/js/Pages/VenSynQ/Payouts.jsx": [
+    "/build/assets/Payouts-DkmmtH0D.js"
+  ],
+  "resources/js/Pages/VenSynQ/Settings.jsx": [
+    "/build/assets/Settings-DFJt7W9U.js"
+  ],
+  "resources/js/Pages/Welcome.jsx": [
+    "/build/assets/Welcome-B7imBE_c.js"
+  ],
+  "resources/js/Pages/WhatIsIncluded.jsx": [
+    "/build/assets/WhatIsIncluded-B3hTAjn1.js"
+  ],
+  "resources/js/Pages/WooCommerce/ConnectionSetup.jsx": [
+    "/build/assets/ConnectionSetup-CZM2YxFl.js"
+  ],
+  "resources/js/Pages/WooCommerce/Connections.jsx": [
+    "/build/assets/Connections-CSS26c6j.js"
+  ],
+  "resources/js/Pages/WooCommerce/SyncPage.jsx": [
+    "/build/assets/SyncPage-CZJ6V-SG.js"
+  ],
+  "resources/js/Pages/WooCommerce/WooCommerce.jsx": [
+    "/build/assets/WooCommerce-BmSehB96.js"
+  ],
+  "resources/js/Pages/Workspace/BuildWorkspace.jsx": [
+    "/build/assets/BuildWorkspace-CK0maKFx.js"
+  ],
+  "resources/js/Pages/Workspace/Dashboard.jsx": [
+    "/build/assets/Dashboard-Cf8Y117V.js",
+    "/build/assets/Dashboard-DULRuONn.css"
+  ],
+  "resources/js/Pages/Workspace/Overview.jsx": [
+    "/build/assets/Overview-BW_tbBfV.js"
+  ],
+  "resources/js/Platform/nav.js": [
+    "/build/assets/PlatformLayout-By7HlVQA.js"
+  ],
+  "resources/js/Platform/theme.js": [
+    "/build/assets/ui-CcDUonPh.js"
+  ],
+  "resources/js/Platform/ui.jsx": [
+    "/build/assets/ui-CcDUonPh.js"
+  ],
+  "resources/js/Pos/Table/FloorPane.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Pos/Table/ModifierSheet.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Pos/Table/SplitSheet.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Pos/Table/TableBar.jsx": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Pos/Table/floorbuilder.css": [
+    "/build/assets/FloorBuilder-Da2K5brG.js",
+    "/build/assets/FloorBuilder-BIum0dBP.css"
+  ],
+  "resources/js/Pos/Table/kds.css": [
+    "/build/assets/Kitchen-DXw60CeR.js",
+    "/build/assets/Kitchen-B36IHG7A.css"
+  ],
+  "resources/js/Pos/Table/table.css": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Pos/Table/useTableService.js": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Registry/features.js": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/Services/SyncService.js": [],
+  "resources/js/Utils/AMDStation.js": [
+    "/build/assets/PrintService-L_d7O0gK.js"
+  ],
+  "resources/js/Utils/GlobalDialogOverride.jsx": [],
+  "resources/js/Utils/PrintService.jsx": [
+    "/build/assets/PrintService-L_d7O0gK.js"
+  ],
+  "resources/js/Utils/db.js": [
+    "/build/assets/Pos-CoS6KSDw.js",
+    "/build/assets/Pos-BsLJt7Iv.css"
+  ],
+  "resources/js/Utils/format.js": [
+    "/build/assets/format-131Nyq79.js"
+  ],
+  "resources/js/Utils/settings.js": [
+    "/build/assets/settings-DUqQ1JdE.js"
+  ],
+  "resources/js/lib/lemonCheckout.js": [
+    "/build/assets/AiIsland-Ccw9HuV0.js"
+  ],
+  "resources/js/lib/plans.js": [
+    "/build/assets/plans-CxabWI_P.js"
+  ],
+  "resources/js/lib/reportPlanMap.js": [
+    "/build/assets/OneGlanceLayout-D0x15wPs.js",
+    "/build/assets/OneGlanceLayout-DB0Q8XAf.css"
+  ],
+  "resources/js/lib/terms.js": [
+    "/build/assets/terms-DwYjlWsV.js"
+  ],
+  "resources/js/lib/utils.ts": [
+    "/build/assets/utils-H80jjgLf.js"
+  ],
+  "resources/js/ssr.jsx": [],
+  "resources/js/theme/active.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/appearance.js": [],
+  "resources/js/theme/color.js": [],
+  "resources/js/theme/contract.js": [],
+  "resources/js/theme/runtime.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/themes/_kit.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/themes/classic.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/themes/colour.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/themes/daylight-calm.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/themes/midnight-nebula.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/themes/minimal.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/theme/themes/venqore-v6.js": [
+    "/build/assets/runtime-DwSFgQZq.js"
+  ],
+  "resources/js/ziggy.js": [],
+  "vendor/tightenco/ziggy/dist/index.esm.js": []
+}

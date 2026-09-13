@@ -1,0 +1,55 @@
+import React from 'react';
+import ReportPage from './Components/ReportPage';
+import { Box } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { formatCurrency, formatNumber } from '@/Utils/format';
+import { useTermText } from '@/lib/terms';
+
+export default function ItemDetail({ products }) {
+    const { store } = usePage().props;
+    const tt = useTermText();
+    return (
+        <ReportPage
+            title="Item Detail Report"
+            subtitle={tt('Comprehensive details of all products in inventory')}
+            icon={Box}
+        >
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-app border-b border-line">
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">{tt('Product')}</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">SKU</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Avg FIFO Cost</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Sale Price</th>
+                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-center">Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                        {products.map((product) => (
+                            <tr key={product.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="font-bold text-ink">{product.name}</div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-ink-muted">{product.sku || 'N/A'}</td>
+                                <td className="px-6 py-4">
+                                    <span className="px-2 py-1 rounded-lg bg-sunken text-2xs font-bold text-ink-secondary uppercase">
+                                        {product.category?.name || 'Uncategorized'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 text-right text-sm text-ink-secondary">{formatCurrency(product.avg_unit_cost ?? product.cost_price)}</td>
+                                <td className="px-6 py-4 text-right text-sm font-bold text-brand-600 dark:text-brand-400">{formatCurrency(product.price)}</td>
+                                <td className="px-6 py-4 text-center">
+                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${(product.fifo_qty ?? product.stock_quantity) > 10 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                                        {formatNumber(product.fifo_qty ?? product.stock_quantity ?? 0)}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </ReportPage>
+    );
+}

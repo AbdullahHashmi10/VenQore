@@ -1,0 +1,2298 @@
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { usePage, router, Link } from '@inertiajs/react';
+import {
+    X, Camera, Mic, Upload, Loader2, Sparkles, FileText, CheckCircle2,
+    AlertTriangle, Plus, ChevronRight, User, Type, Lock, Settings2,
+    Trash2, FilePlus2, Layers, KeyRound, TestTube2, Brain, Clock,
+    RefreshCw, Eye, Zap, ChevronDown, Check, Search
+} from 'lucide-react';
+import axios from 'axios';
+import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
+import { preprocessImage } from '@/lib/imagePreprocess';
+import { ThinkingOrb } from '@/Components/ThinkingOrbs';
+import { useTermText } from '@/lib/terms';
+
+/**
+ * SmartCapturePanel — the "AI Scan" intake panel.
+ *
+ * Inputs:  up to 5 photos/PDF pages, a voice memo (recorded OR uploaded), or raw text.
+ * Outputs: a fully user-confirmed transaction (sale, purchase, expense, return,
+ *          proposal, pre-invoice, pre-purchase, recurring invoice, purchase return)
+ *          — created new, or appended to an existing open/draft document.
+ */
+export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image', embedded = false }) {
+    const { store, ai_tiers: aiTiers = {} } = usePage().props;
+    const tt = useTermText();
+    const [activeTab, setActiveTab] = useState(initialTab);
+
+    useEffect(() => {
+        if (initialTab) setActiveTab(initialTab);
+    }, [initialTab]);
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Panel context (entitlement, parties, categories, open docs, limits)
+    const [ctx, setCtx] = useState(null);
+    const [ctxLoading, setCtxLoading] = useState(false);
+
+    // Image state — up to N files
+    const [dragActive, setDragActive] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState([]); // [{file, preview}]
+
+    // Audio state
+    const [recording, setRecording] = useState(false);
+    const [audioBlob, setAudioBlob] = useState(null);
+    const [audioSource, setAudioSource] = useState(null); // 'recorded' | 'uploaded'
+    const [recordingTime, setRecordingTime] = useState(0);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const timerRef = useRef(null);
+
+    // Text state
+    const [textInput, setTextInput] = useState('');
+
+    // Who the document belongs to, chosen BEFORE scanning. Optional, but it is
+    // passed to the AI as context (better party + price matching) and pre-fills
+    // the review screen, so the user is never asked this for the first time at
+    // the very end.
+    const [capturePartyId, setCapturePartyId] = useState('');
+    const [capturePartySide, setCapturePartySide] = useState('customer'); // customer | supplier
+
+    // Fork shown before anything that would write a document that cannot be
+    // edited afterwards. See config/smartcapture.php document_policy.
+    const [forkDialog, setForkDialog] = useState(null);
+    const [acknowledgeLocked, setAcknowledgeLocked] = useState(false);
+
+    // Intake options
+    const [targetType, setTargetType] = useState('');
+    const [customCommand, setCustomCommand] = useState('');
+    const [isHandwritten, setIsHandwritten] = useState(false);
+    const [expenseCategoryId, setExpenseCategoryId] = useState('');
+    const [dictating, setDictating] = useState(false);
+    const [appendMode, setAppendMode] = useState(false);
+    const [appendDocType, setAppendDocType] = useState('pre_invoice');
+    const [appendDocId, setAppendDocId] = useState('');
+
+    const startDictation = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Browser dictation is not supported in this browser. Use Chrome, Edge, or Safari.');
+            return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = store?.locale === 'ur' ? 'ur-PK' : (store?.locale === 'hi' ? 'hi-IN' : (store?.locale === 'ar' ? 'ar-SA' : 'en-US'));
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setDictating(true);
+        recognition.onend = () => setDictating(false);
+        recognition.onerror = () => setDictating(false);
+        recognition.onresult = (e) => {
+            const transcript = e.results[0]?.[0]?.transcript;
+            if (transcript) {
+                setTextInput((prev) => (prev ? prev + ' ' + transcript : transcript));
+            }
+        };
+        recognition.start();
+    };
+
+    // Review state
+    const [extractedData, setExtractedData] = useState(null);
+    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [selectedPartyId, setSelectedPartyId] = useState('');
+    const [selectedCategoryId, setSelectedCategoryId] = useState('');
+    const [confirming, setConfirming] = useState(false);
+    const [successData, setSuccessData] = useState(null);
+
+    // Settings drawer (BYOK)
+    const [showSettings, setShowSettings] = useState(false);
+    const [settings, setSettings] = useState(null);
+    const [settingsForm, setSettingsForm] = useState({ provider: 'gemini', api_key: '', model: '' });
+    const [settingsBusy, setSettingsBusy] = useState(false);
+    const [settingsMsg, setSettingsMsg] = useState(null);
+    const [availableModels, setAvailableModels] = useState(null); // null = not fetched yet
+    const [modelsBusy, setModelsBusy] = useState(false);
+
+    // Rate limiting: when the provider says "too fast", we show a countdown
+    // instead of retrying. Retrying automatically is what drained the quota.
+    const [rateLimit, setRateLimit] = useState(null); // { seconds, message, daily }
+
+    // Guards a scan against double submission. One document = one API request.
+    const extractInFlight = useRef(false);
+
+    // Makes a re-submitted confirmation idempotent server-side, so a flaky
+    // network or an impatient second click cannot post the document twice.
+    const idempotencyKeyRef = useRef(null);
+
+    const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
+
+    // Handle checkout for AI or Sync add-ons.
+    // Lemon Squeezy must host the card form (they are our Merchant of Record),
+    // but it opens as an overlay on top of this panel — the user never leaves
+    // VenQore and never loses the scan they were in the middle of.
+    const handlePurchaseAddon = (addonType) => {
+        setIsPurchasingAddon(addonType);
+        axios.post(`/store/${store?.slug}/billing/checkout-addon`, { addon_type: addonType })
+            .then(res => {
+                if (!res.data.url) {
+                    alert(res.data.error || 'Failed to create checkout.');
+                    setIsPurchasingAddon(null);
+                    return;
+                }
+
+                openLemonCheckout(res.data.url, {
+                    onSuccess: () => {
+                        setTimeout(async () => {
+                            // Don't wait on the webhook — pull the entitlement
+                            // from Lemon Squeezy so the add-on unlocks now.
+                            await axios
+                                .post(`/store/${store?.slug}/billing/sync-subscription`)
+                                .catch(() => { /* reload below still reflects webhook if it lands */ });
+                            closeLemonCheckout();
+                            router.reload({ preserveScroll: true });
+                            setIsPurchasingAddon(null);
+                        }, 2200);
+                    },
+                    onClose: () => setIsPurchasingAddon(null),
+                    onError: () => setIsPurchasingAddon(null),
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to generate checkout link. Please check your network connection.');
+                setIsPurchasingAddon(null);
+            });
+    };
+
+    // Base URL for all smart-capture endpoints (derived so new endpoints work
+    // even before the Ziggy route cache is regenerated)
+    const baseUrl = useMemo(() => {
+        try {
+            return route('store.smart-capture.extract', { store_slug: store?.slug }).replace(/\/extract$/, '');
+        } catch (e) {
+            // Must match the route group prefix in routes/web.php: s/{store_slug}.
+            // This was '/store/...' previously, which 404s whenever the Ziggy
+            // cache is stale — exactly when the fallback is needed.
+            return `/s/${store?.slug}/smart-capture`;
+        }
+    }, [store?.slug]);
+
+    const maxFiles = ctx?.limits?.max_files ?? 5;
+    const locked = ctx && !ctx.entitlement?.allowed;
+
+    // ── Load context when the panel opens ────────────────────────────────────
+    useEffect(() => {
+        if (!isOpen) return;
+        setCtxLoading(true);
+        axios.get(`${baseUrl}/context`)
+            .then(res => setCtx(res.data))
+            .catch(() => setCtx(null))
+            .finally(() => setCtxLoading(false));
+    }, [isOpen, baseUrl]);
+
+    // Rate-limit countdown. Purely a display timer — nothing is auto-retried.
+    useEffect(() => {
+        if (!rateLimit || rateLimit.seconds <= 0) return;
+        const id = setInterval(() => {
+            setRateLimit(prev => {
+                if (!prev) return null;
+                if (prev.seconds <= 1) return null;
+                return { ...prev, seconds: prev.seconds - 1 };
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [rateLimit]);
+
+    // Recording timer
+    useEffect(() => {
+        if (recording) {
+            timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+        } else {
+            if (timerRef.current) clearInterval(timerRef.current);
+            setRecordingTime(0);
+        }
+        return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    }, [recording]);
+
+    if (!isOpen) return null;
+
+    const formatTime = (secs) => {
+        const m = Math.floor(secs / 60).toString().padStart(2, '0');
+        const s = (secs % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    };
+
+    // ── File handling (multi) ────────────────────────────────────────────────
+    const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+        else if (e.type === 'dragleave') setDragActive(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files?.length) addFiles(Array.from(e.dataTransfer.files));
+    };
+
+    const handleFileChange = (e) => {
+        if (e.target.files?.length) addFiles(Array.from(e.target.files));
+        e.target.value = '';
+    };
+
+    const addFiles = (files) => {
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        const maxMb = ctx?.limits?.max_image_mb ?? 10;
+        const next = [...selectedFiles];
+
+        for (const file of files) {
+            if (next.length >= maxFiles) {
+                setError(`Maximum ${maxFiles} files per scan.`);
+                break;
+            }
+            if (!validTypes.includes(file.type)) {
+                setError('Unsupported file format. Please upload JPG, PNG, WEBP or PDF.');
+                continue;
+            }
+            if (file.size > maxMb * 1024 * 1024) {
+                setError(`"${file.name}" exceeds the ${maxMb}MB limit.`);
+                continue;
+            }
+            const entry = { file, preview: null };
+            if (file.type.startsWith('image/')) {
+                entry.preview = URL.createObjectURL(file);
+            }
+            next.push(entry);
+            setError(null);
+        }
+        setSelectedFiles(next);
+    };
+
+    const removeFile = (idx) => {
+        setSelectedFiles(prev => {
+            const next = [...prev];
+            if (next[idx]?.preview) URL.revokeObjectURL(next[idx].preview);
+            next.splice(idx, 1);
+            return next;
+        });
+    };
+
+    // ── Audio: record ────────────────────────────────────────────────────────
+    const startRecording = async () => {
+        try {
+            setError(null);
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            let options = { mimeType: 'audio/webm' };
+            if (!MediaRecorder.isTypeSupported('audio/webm')) options = { mimeType: 'audio/mp4' };
+
+            const recorder = new MediaRecorder(stream, options);
+            mediaRecorderRef.current = recorder;
+            audioChunksRef.current = [];
+
+            recorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data);
+            };
+            recorder.onstop = () => {
+                const blob = new Blob(audioChunksRef.current, { type: options.mimeType });
+                setAudioBlob(blob);
+                setAudioSource('recorded');
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            recorder.start();
+            setRecording(true);
+        } catch (err) {
+            console.error('Audio capture failed:', err);
+            setError('Permission denied. Could not access microphone.');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && recording) {
+            mediaRecorderRef.current.stop();
+            setRecording(false);
+        }
+    };
+
+    // ── Audio: upload ────────────────────────────────────────────────────────
+    const handleAudioUpload = (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+
+        const validTypes = ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/aac', 'audio/x-m4a', 'audio/m4a'];
+        const maxMb = ctx?.limits?.max_audio_mb ?? 25;
+
+        if (!validTypes.includes(file.type) && !file.type.startsWith('audio/')) {
+            setError('Unsupported audio format. Use MP3, WAV, M4A, OGG or WEBM.');
+            return;
+        }
+        if (file.size > maxMb * 1024 * 1024) {
+            setError(`Audio exceeds the ${maxMb}MB limit.`);
+            return;
+        }
+        setAudioBlob(file);
+        setAudioSource('uploaded');
+        setError(null);
+    };
+
+    const convertToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+    });
+
+    // ── Extraction ───────────────────────────────────────────────────────────
+    // One scan costs exactly one AI request. The ref guard (rather than the
+    // `loading` state) closes the gap where two rapid clicks both read the old
+    // state value before React re-renders.
+    const handleExtract = async () => {
+        if (extractInFlight.current || loading) return;
+        if (rateLimit) return;
+
+        extractInFlight.current = true;
+        setLoading(true);
+        setError(null);
+        setExtractedData(null);
+
+        try {
+            const payload = {
+                type: activeTab,
+                target_type: targetType || null,
+                custom_command: customCommand || null,
+                // Told to the model so it does not invent a party from a
+                // letterhead, and used to pre-fill the review screen.
+                party_id: capturePartyId || null,
+            };
+
+            if (activeTab === 'image') {
+                if (selectedFiles.length === 0) {
+                    setError('Please add at least one photo or PDF first.');
+                    setLoading(false);
+                    return;
+                }
+                payload.files = [];
+                for (const entry of selectedFiles) {
+                    const data = await convertToBase64(entry.file);
+                    payload.files.push({ base64: data.split(',')[1], mime: entry.file.type });
+                }
+            } else if (activeTab === 'audio') {
+                if (!audioBlob) {
+                    setError('Please record or upload a voice memo first.');
+                    setLoading(false);
+                    return;
+                }
+                const data = await convertToBase64(audioBlob);
+                payload.base64 = data.split(',')[1];
+                payload.mime_type = audioBlob.type;
+            } else {
+                if (!textInput.trim()) {
+                    setError('Please type or paste some text first.');
+                    setLoading(false);
+                    return;
+                }
+                payload.text = textInput;
+            }
+
+            const response = await axios.post(`${baseUrl}/extract`, payload);
+
+            if (response.data.success) {
+                setExtractedData(response.data);
+                setSelectedPartyId(response.data.suggested_party_id || '');
+                setSelectedCategoryId(response.data.suggested_category_id || '');
+                setPaymentMethod(response.data.action === 'purchase' ? 'credit' : 'cash');
+                // A fresh key for this document, so confirming it twice is safe.
+                idempotencyKeyRef.current = (crypto?.randomUUID?.() || `sc-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+            } else {
+                setError(response.data.message || 'Failed to extract transaction details.');
+            }
+        } catch (err) {
+            const status = err.response?.status;
+            const data = err.response?.data;
+
+            if (status === 402) {
+                // Entitlement changed — refresh lock state
+                axios.get(`${baseUrl}/context`).then(res => setCtx(res.data)).catch(() => {});
+                setError(data?.message || 'AI Scan is locked for this store.');
+            } else if (status === 429) {
+                // Provider (or our pacer) says slow down. We deliberately do NOT
+                // retry — a retry storm is what exhausted the free-tier quota.
+                setRateLimit({
+                    seconds: Math.max(1, parseInt(data?.retry_after ?? 30, 10)),
+                    message: data?.message || 'The AI provider is rate limiting this key.',
+                    daily: !!data?.daily,
+                });
+                setError(null);
+            } else if (status === 409) {
+                setError(data?.message || 'A scan is already running for this store. Give it a moment.');
+            } else {
+                setError(data?.message || 'AI extraction failed. Please check your AI settings and try again.');
+            }
+        } finally {
+            extractInFlight.current = false;
+            setLoading(false);
+        }
+    };
+
+    // ── Review helpers ───────────────────────────────────────────────────────
+    const handleItemChange = (idx, field, value) => {
+        setExtractedData(prev => {
+            const updatedItems = [...prev.items];
+            updatedItems[idx] = { ...updatedItems[idx], [field]: value };
+            return { ...prev, items: updatedItems };
+        });
+    };
+
+    const handleProductPick = (idx, value) => {
+        setExtractedData(prev => {
+            const updatedItems = [...prev.items];
+            const item = { ...updatedItems[idx] };
+            if (value === '__create_new__') {
+                item.product_id = null;
+                item.create_new = {
+                    name: item.raw_name,
+                    price: item.unit_price || 0,
+                    cost_price: 0,
+                };
+            } else {
+                item.product_id = value;
+                item.create_new = null;
+                const candidate = (item.candidates || []).find(c => String(c.id) === String(value));
+                if (candidate && (item.unit_price === null || item.unit_price === undefined || item.unit_price === '')) {
+                    item.unit_price = candidate.sale_price;
+                }
+            }
+            updatedItems[idx] = item;
+            return { ...prev, items: updatedItems };
+        });
+    };
+
+    const removeItem = (idx) => {
+        setExtractedData(prev => {
+            const updatedItems = prev.items.filter((_, i) => i !== idx);
+            return { ...prev, items: updatedItems };
+        });
+    };
+
+    const isExpense = extractedData?.action === 'expense';
+    const partyType = extractedData ? (['purchase', 'pre_purchase', 'purchase_return'].includes(extractedData.action) ? 'supplier' : 'customer') : 'customer';
+    const partyList = partyType === 'supplier' ? (ctx?.parties?.suppliers || []) : (ctx?.parties?.customers || []);
+    const candidateIds = new Set((extractedData?.party_candidates || []).map(c => String(c.id)));
+
+    const itemsReady = extractedData?.items?.length > 0 && extractedData.items.every(i =>
+        isExpense ? true : (i.product_id || (i.create_new && i.create_new.name?.trim()))
+    );
+    const isAppending = appendMode && !!appendDocId;
+    // Appending: the target document already has its party — no selection needed.
+    const partyReady = isAppending ? true : (isExpense ? !!selectedCategoryId : !!selectedPartyId);
+    const appendReady = !appendMode || (appendDocType && appendDocId);
+
+    // ── Document policy ──────────────────────────────────────────────────────
+    // Some documents cannot be edited once written. A posted sales invoice is
+    // financially immutable: correcting it means issuing a credit note. So AI
+    // Scan never writes one directly — the user either finalises it on the
+    // normal creation screen, or makes the editable draft version instead.
+    const policyFor = (action) => ctx?.document_policy?.[action] || null;
+    const currentPolicy = extractedData ? policyFor(extractedData.action) : null;
+
+    // ── Confirm ──────────────────────────────────────────────────────────────
+    const handleConfirmTransaction = async (options = {}) => {
+        if (!extractedData || confirming) return;
+
+        const action = options.overrideAction || extractedData.action;
+        const policy = policyFor(action);
+        const isAppending2 = appendMode && !!appendDocId;
+
+        // Ask before writing anything irreversible, unless this call is already
+        // the answer to that question.
+        if (!options.resolved && !isAppending2 && policy?.locking) {
+            setAcknowledgeLocked(false);
+            setForkDialog({
+                action,
+                label: policy.label,
+                handoffUrl: policy.handoff_url,
+                draftAction: policy.draft_action,
+                draftLabel: policy.draft_label,
+            });
+            return;
+        }
+
+        setConfirming(true);
+        setError(null);
+
+        const postItems = extractedData.items.map(item => ({
+            product_id: item.create_new ? null : item.product_id,
+            create_new: item.create_new ? {
+                name: item.create_new.name,
+                price: parseFloat(item.create_new.price || 0),
+                cost_price: parseFloat(item.create_new.cost_price || 0),
+            } : null,
+            qty: parseFloat(item.qty || 1),
+            unit_price: parseFloat(item.unit_price || 0),
+            name: item.raw_name,
+            // The exact wording the AI read. The server pairs it with whatever
+            // product the user settled on, and remembers it for this store.
+            raw_name: item.raw_name,
+        }));
+
+        const payload = {
+            action,
+            mode: options.mode || 'create',
+            acknowledge_locked: !!options.acknowledgeLocked,
+            party_id: isExpense ? null : selectedPartyId,
+            party: extractedData.party,
+            notes: extractedData.notes || null,
+            payment_method: isExpense && paymentMethod === 'credit' ? 'cash' : paymentMethod,
+            expense_category: isExpense ? (extractedData.expense_category || null) : null,
+            expense_category_id: isExpense ? selectedCategoryId : null,
+            date: extractedData.date || null,
+            reference: extractedData.reference || null,
+            append_to: appendMode && appendDocId ? { type: appendDocType, id: appendDocId } : null,
+            // Same key on a retry => the server returns the original result
+            // instead of posting a second transaction.
+            idempotency_key: idempotencyKeyRef.current,
+            items: postItems,
+        };
+
+        try {
+            const response = await axios.post(`${baseUrl}/confirm`, payload);
+
+            if (response.data.success && response.data.mode === 'handoff') {
+                // Nothing was written. Everything the user reviewed is waiting
+                // on the creation screen, where they press Save to finalise.
+                setForkDialog(null);
+                onClose();
+                router.visit(response.data.redirect);
+                return;
+            }
+
+            if (response.data.success) {
+                setForkDialog(null);
+                setSuccessData({
+                    ...response.data.data,
+                    message: response.data.message,
+                    duplicate: response.data.duplicate,
+                    createdProducts: response.data.created_products || [],
+                });
+                // Refresh the learned-item counter shown in the header.
+                axios.get(`${baseUrl}/context`).then(r => setCtx(r.data)).catch(() => {});
+            } else {
+                setError(response.data.message || 'Failed to post transaction.');
+            }
+        } catch (err) {
+            const data = err.response?.data;
+
+            // The server refused to write a locking document without a choice.
+            // Surface the same fork rather than a raw error.
+            if (data?.code === 'requires_review' || data?.code === 'requires_acknowledgement') {
+                const policy = policyFor(action);
+                setAcknowledgeLocked(false);
+                setForkDialog({
+                    action,
+                    label: data.label || policy?.label,
+                    handoffUrl: policy?.handoff_url,
+                    draftAction: data.draft_action ?? policy?.draft_action,
+                    draftLabel: policy?.draft_label,
+                });
+            } else {
+                setForkDialog(null);
+                setError(data?.message || 'Transaction creation failed. Check the details and try again.');
+            }
+        } finally {
+            setConfirming(false);
+        }
+    };
+
+    const calculateGrossTotal = () => {
+        if (!extractedData) return '0.00';
+        return extractedData.items
+            .reduce((sum, item) => sum + (parseFloat(item.qty || 1) * parseFloat(item.unit_price || 0)), 0)
+            .toFixed(2);
+    };
+
+    const resetAll = () => {
+        setSuccessData(null);
+        setExtractedData(null);
+        setSelectedFiles([]);
+        setAudioBlob(null);
+        setAudioSource(null);
+        setTextInput('');
+        setSelectedPartyId('');
+        setSelectedCategoryId('');
+        setAppendDocId('');
+        setError(null);
+        setRateLimit(null);
+        setForkDialog(null);
+        setAcknowledgeLocked(false);
+        idempotencyKeyRef.current = null;
+        // capturePartyId is deliberately kept: scanning a stack of bills from
+        // one supplier should not mean re-picking them every time.
+    };
+
+    const navigateToSuccessDoc = () => {
+        if (!successData) return;
+        onClose();
+
+        let path = null;
+        try {
+            if (successData.type === 'purchase') {
+                path = route('store.v3.purchases.show', { store_slug: store.slug, purchase: successData.id });
+            } else if (successData.type === 'sale' || successData.type === 'invoice') {
+                path = route('store.sales.dashboard', { store_slug: store.slug });
+            } else if (successData.type === 'expense') {
+                path = route('store.expenses.index', { store_slug: store.slug });
+            } else if (successData.type === 'return') {
+                path = route('store.returns-history.index', { store_slug: store.slug });
+            } else if (successData.type === 'proposal') {
+                path = route('store.proposals.show', { store_slug: store.slug, proposal: successData.id });
+            } else if (successData.type === 'pre_invoice') {
+                path = route('store.sales-orders.show', { store_slug: store.slug, sales_order: successData.id });
+            } else if (successData.type === 'pre_purchase') {
+                path = route('store.purchase-orders.show', { store_slug: store.slug, purchase_order: successData.id });
+            } else if (successData.type === 'recurring_invoice') {
+                path = route('store.recurring-invoices.index', { store_slug: store.slug });
+            } else if (successData.type === 'purchase_return') {
+                path = route('store.debit-notes.show', { store_slug: store.slug, id: successData.id });
+            }
+        } catch (e) { /* route not in cache */ }
+
+        if (path) router.visit(path);
+    };
+
+    // ── Settings drawer ──────────────────────────────────────────────────────
+    const openSettings = () => {
+        setShowSettings(true);
+        setSettingsMsg(null);
+        setAvailableModels(null);
+        axios.get(`${baseUrl}/settings`)
+            .then(res => {
+                setSettings(res.data);
+                setSettingsForm({
+                    provider: res.data.provider || 'gemini',
+                    api_key: res.data.api_key_masked || '',
+                    model: res.data.model || '',
+                });
+            })
+            .catch(err => setSettingsMsg({ ok: false, text: err.response?.data?.message || 'Could not load settings.' }));
+    };
+
+    // Ask the provider which models this key may actually use. Beats a
+    // hardcoded list, which goes stale every time Google ships a new Flash.
+    const discoverModels = async () => {
+        setModelsBusy(true);
+        setSettingsMsg(null);
+        try {
+            const res = await axios.post(`${baseUrl}/settings/models`, {
+                provider: settingsForm.provider,
+                api_key: settingsForm.api_key,
+            });
+            setAvailableModels(res.data.models || []);
+            if (!res.data.models?.length) {
+                setSettingsMsg({ ok: false, text: 'No models were returned for this key.' });
+            }
+        } catch (err) {
+            setSettingsMsg({ ok: false, text: err.response?.data?.message || 'Could not load the model list.' });
+        } finally {
+            setModelsBusy(false);
+        }
+    };
+
+    const saveSettings = async () => {
+        setSettingsBusy(true);
+        setSettingsMsg(null);
+        try {
+            const res = await axios.post(`${baseUrl}/settings`, settingsForm);
+            setSettingsMsg({ ok: true, text: res.data.message || 'Saved.' });
+            // refresh context so lock state updates immediately
+            axios.get(`${baseUrl}/context`).then(r => setCtx(r.data)).catch(() => {});
+        } catch (err) {
+            setSettingsMsg({ ok: false, text: err.response?.data?.message || 'Failed to save settings.' });
+        } finally {
+            setSettingsBusy(false);
+        }
+    };
+
+    const testSettings = async () => {
+        setSettingsBusy(true);
+        setSettingsMsg(null);
+        try {
+            const res = await axios.post(`${baseUrl}/settings/test`, settingsForm);
+            setSettingsMsg({ ok: res.data.success, text: res.data.message });
+        } catch (err) {
+            setSettingsMsg({ ok: false, text: err.response?.data?.message || 'Connection test failed.' });
+        } finally {
+            setSettingsBusy(false);
+        }
+    };
+
+    const providerLabels = { gemini: 'Google Gemini', openai: 'OpenAI', anthropic: 'Anthropic (Claude)', deepseek: 'DeepSeek' };
+    const providerCaps = ctx?.settings?.providers || {};
+
+    // ── Intake option controls ───────────────────────────────────────────────
+    const openDocs = ctx?.open_documents?.[appendDocType] || [];
+
+    const renderAdvancedControls = () => {
+        const pagesUsed = ctx?.entitlement?.pages_used ?? 0;
+        const pagesLimit = ctx?.entitlement?.pages_limit ?? 0;
+        const usagePercent = (pagesLimit > 0) ? Math.min(100, Math.round((pagesUsed / pagesLimit) * 100)) : 0;
+
+        return (
+            <div className="mb-6 space-y-4 text-left bg-white/[0.03] backdrop-blur-md p-5 rounded-2xl border border-white/[0.08] relative z-20 font-sans shadow-lg">
+                {/* Quota Warning & Block Banners (T2-4) */}
+                {pagesLimit > 0 && usagePercent >= 80 && (
+                    <div className={`p-3.5 rounded-2xl text-xs font-medium flex items-center justify-between gap-3 border ${usagePercent >= 100
+                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle size={16} className="shrink-0" />
+                            <span>
+                                {usagePercent >= 100
+                                    ? `100% Quota Exceeded (${pagesUsed}/${pagesLimit} pages used). Upgrade tier or switch to BYOK.`
+                                    : `Quota Warning: ${usagePercent}% of monthly AI pages used (${pagesUsed}/${pagesLimit} pages).`}
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={openSettings}
+                            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-2xs font-bold whitespace-nowrap text-white transition-colors"
+                        >
+                            BYOK / Upgrade
+                        </button>
+                    </div>
+                )}
+
+                {/* Create new vs append */}
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setAppendMode(false)}
+                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${!appendMode
+                            ? 'bg-[#23C4A6] border-[#23C4A6] text-[#062421] shadow-[0_2px_12px_rgba(35,196,166,0.25)]'
+                            : 'bg-white/[0.04] border-white/[0.08] text-[rgba(241,245,242,0.7)] hover:text-white hover:bg-white/[0.08]'}`}
+                    >
+                        <FilePlus2 size={14} />
+                        Create New Document
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setAppendMode(true)}
+                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${appendMode
+                            ? 'bg-[#23C4A6] border-[#23C4A6] text-[#062421] shadow-[0_2px_12px_rgba(35,196,166,0.25)]'
+                            : 'bg-white/[0.04] border-white/[0.08] text-[rgba(241,245,242,0.7)] hover:text-white hover:bg-white/[0.08]'}`}
+                    >
+                        <Layers size={14} />
+                        Add to Existing Document
+                    </button>
+                </div>
+
+                {appendMode ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-append-doc-type" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">Document Type</label>
+                            <CustomSelect
+                                id="capture-append-doc-type"
+                                value={appendDocType}
+                                onChange={e => { setAppendDocType(e.target.value); setAppendDocId(''); }}
+                                options={[
+                                    { value: 'pre_invoice', label: tt('Sales Order (Pre-Invoice)') },
+                                    { value: 'pre_purchase', label: tt('Purchase Order (Pre-Purchase)') },
+                                    { value: 'proposal', label: 'Proposal / Quote' },
+                                    { value: 'recurring_invoice', label: 'Recurring Invoice' }
+                                ]}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-append-doc-id" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">Target Document</label>
+                            <CustomSelect
+                                id="capture-append-doc-id"
+                                value={appendDocId}
+                                onChange={e => setAppendDocId(e.target.value)}
+                                placeholder="-- Select an open document --"
+                                options={[
+                                    { value: '', label: '-- Select an open document --' },
+                                    ...openDocs.map(doc => ({
+                                        value: doc.id,
+                                        label: `${doc.reference || doc.id?.slice(0, 8)} — ${doc.party || 'No party'}${doc.total !== undefined && doc.total !== null ? ` — ${parseFloat(doc.total).toFixed(2)}` : ''} (${doc.status})`
+                                    }))
+                                ]}
+                            />
+                            {openDocs.length === 0 && (
+                                <p className="text-2xs text-amber-400 font-semibold ml-1">No open documents of this type found.</p>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Asked up front, not at the end. Telling the AI whose
+                            document this is stops it inventing a party from a
+                            letterhead, and the user is never surprised by the
+                            question after the scan has already run. */}
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label htmlFor="capture-party-select" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">
+                                Who is this document for? <span className="normal-case font-bold text-[rgba(241,245,242,0.4)]">(optional — helps the AI a lot)</span>
+                            </label>
+                            <div className="flex gap-2">
+                                <CustomSelect
+                                    id="capture-party-side"
+                                    value={capturePartySide}
+                                    onChange={e => { setCapturePartySide(e.target.value); setCapturePartyId(''); }}
+                                    className="w-36 shrink-0"
+                                    options={[
+                                        { value: 'customer', label: tt('Customer') },
+                                        { value: 'supplier', label: tt('Supplier') }
+                                    ]}
+                                />
+                                <CustomSelect
+                                    id="capture-party-select"
+                                    value={capturePartyId}
+                                    onChange={e => setCapturePartyId(e.target.value)}
+                                    placeholder="Let the AI read it from the document"
+                                    className="flex-1"
+                                    options={[
+                                        { value: '', label: 'Let the AI read it from the document' },
+                                        ...((capturePartySide === 'supplier'
+                                            ? (ctx?.parties?.suppliers || [])
+                                            : (ctx?.parties?.customers || [])
+                                        ).map(p => ({ value: p.id, label: p.name })))
+                                    ]}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-target-type" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">What would you like to create?</label>
+                            <CustomSelect
+                                id="capture-target-type"
+                                value={targetType}
+                                onChange={e => setTargetType(e.target.value)}
+                                placeholder="No Preference (Auto-Detect)"
+                                options={[
+                                    { value: '', label: 'No Preference (Auto-Detect)' },
+                                    {
+                                        groupLabel: 'Editable afterwards — safest',
+                                        options: [
+                                            { value: 'pre_invoice', label: tt('Pre-Sale (Sales Order)') },
+                                            { value: 'pre_purchase', label: tt('Purchase Order') },
+                                            { value: 'proposal', label: 'Proposal / Quote' },
+                                            { value: 'recurring_invoice', label: 'Recurring Invoice' }
+                                        ]
+                                    },
+                                    {
+                                        groupLabel: 'Final — cannot be edited once posted',
+                                        options: [
+                                            { value: 'sale', label: 'Sales Invoice' },
+                                            { value: 'purchase', label: 'Purchase Bill' },
+                                            { value: 'expense', label: 'Operating Expense' },
+                                            { value: 'return', label: 'Sales Return' },
+                                            { value: 'purchase_return', label: 'Purchase Return (Debit Note)' }
+                                        ]
+                                    }
+                                ]}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label htmlFor="capture-custom-commands" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">Text Commands / Instructions (Optional)</label>
+                            <input
+                                id="capture-custom-commands"
+                                type="text"
+                                value={customCommand}
+                                onChange={e => setCustomCommand(e.target.value)}
+                                placeholder="e.g. 'Use wholesale prices', 'Skip tax'"
+                                className="w-full px-4 py-2.5 bg-white/[0.05] border border-white/[0.12] focus:border-teal-400/50 focus:ring-1 focus:ring-teal-400/20 rounded-xl text-xs outline-none text-[#F1F5F2] placeholder:text-white/30 font-medium transition-colors"
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // ── Settings drawer UI ───────────────────────────────────────────────────
+    const renderSettingsDrawer = () => (
+        <div className="absolute inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-md animate-in fade-in duration-fast" onClick={() => setShowSettings(false)}>
+            <div className="w-full max-w-md h-full bg-[#0D1412] border-l border-white/10 p-6 overflow-y-auto animate-in slide-in-from-right duration-normal text-[#F1F5F2]" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                        <KeyRound size={18} className="text-[#23C4A6]" />
+                        <h3 className="text-base font-bold text-[#F1F5F2]">AI Settings (Bring Your Own Key)</h3>
+                    </div>
+                    <button onClick={() => setShowSettings(false)} className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+                        <X size={14} />
+                    </button>
+                </div>
+
+                <p className="text-xs text-[rgba(241,245,242,0.6)] mb-6 leading-relaxed">
+                    Use your own API key from any major AI provider. Your key is stored only for this store and is never shared with other stores.
+                </p>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block mb-1.5">Provider</label>
+                        <CustomSelect
+                            value={settingsForm.provider}
+                            onChange={e => setSettingsForm(f => ({ ...f, provider: e.target.value, model: '' }))}
+                            options={Object.keys(providerLabels || {}).map(p => ({
+                                value: p,
+                                label: providerLabels[p]
+                            }))}
+                        />
+                        {providerCaps[settingsForm.provider] && (
+                            <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-1.5 ml-1">
+                                Supports: {['image', 'audio', 'text'].filter(t => providerCaps[settingsForm.provider][t]).map(t => t === 'image' ? 'Photos' : t === 'audio' ? 'Voice' : 'Text').join(', ')}
+                                {!providerCaps[settingsForm.provider].image && ' — no photo scanning!'}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block mb-1.5">API Key</label>
+                        <input
+                            type="text"
+                            value={settingsForm.api_key}
+                            onChange={e => setSettingsForm(f => ({ ...f, api_key: e.target.value }))}
+                            placeholder="Paste your API key"
+                            className="w-full px-4 py-2.5 bg-white/[0.05] border border-white/[0.12] focus:border-teal-400/50 rounded-xl text-xs font-mono outline-none text-[#F1F5F2] placeholder:text-white/30"
+                        />
+                    </div>
+
+                    <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)]">Model (optional)</label>
+                            <button
+                                type="button"
+                                onClick={discoverModels}
+                                disabled={modelsBusy}
+                                className="text-2xs font-bold uppercase tracking-wider text-[#23C4A6] hover:text-[#2dd4bf] flex items-center gap-1 disabled:opacity-40"
+                            >
+                                {modelsBusy ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+                                Load available models
+                            </button>
+                        </div>
+
+                        {availableModels?.length ? (
+                            <CustomSelect
+                                value={settingsForm.model}
+                                onChange={e => setSettingsForm(f => ({ ...f, model: e.target.value }))}
+                                options={[
+                                    { value: '', label: `Recommended default (${settings?.default_models?.[settingsForm.provider]})` },
+                                    ...availableModels.map(m => ({
+                                        value: m.id,
+                                        label: `${m.label} — ${m.id}`
+                                    }))
+                                ]}
+                            />
+                        ) : (
+                            <input
+                                type="text"
+                                value={settingsForm.model}
+                                onChange={e => setSettingsForm(f => ({ ...f, model: e.target.value }))}
+                                placeholder={settings?.default_models?.[settingsForm.provider] || 'Default model'}
+                                className="w-full px-4 py-2.5 bg-white/[0.05] border border-white/[0.12] focus:border-teal-400/50 rounded-xl text-xs font-mono outline-none text-[#F1F5F2] placeholder:text-white/30"
+                            />
+                        )}
+
+                        <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-1.5 ml-1 leading-relaxed">
+                            Leave empty for the recommended default. Newer Flash models read handwriting better and
+                            usually cost less — press "Load available models" to see what your key can use.
+                        </p>
+                    </div>
+
+                    {settingsMsg && (
+                        <div className={`p-3 rounded-xl text-xs font-bold ${settingsMsg.ok ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                            {settingsMsg.text}
+                        </div>
+                    )}
+
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            onClick={testSettings}
+                            disabled={settingsBusy}
+                            className="flex-1 px-4 py-2.5 border border-white/15 hover:bg-white/10 rounded-xl text-xs font-bold text-white transition-all flex items-center justify-center gap-1.5 disabled:opacity-40"
+                        >
+                            {settingsBusy ? <Loader2 className="animate-spin" size={14} /> : <TestTube2 size={14} />}
+                            Test Connection
+                        </button>
+                        <button
+                            onClick={saveSettings}
+                            disabled={settingsBusy}
+                            className="flex-1 px-4 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all disabled:opacity-40"
+                        >
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    // ── Finalise-vs-draft fork ───────────────────────────────────────────────
+    // Shown before AI Scan would write anything that cannot be edited later.
+    // The user either goes to the normal creation screen to finalise it, or
+    // makes the editable draft version instead.
+    const renderForkDialog = () => {
+        if (!forkDialog) return null;
+
+        const { label, handoffUrl, draftAction, draftLabel } = forkDialog;
+        const canHandoff = !!handoffUrl;
+
+        return (
+            <div
+                className="absolute inset-0 z-sticky flex items-center justify-center bg-black/75 backdrop-blur-md p-6 animate-in fade-in duration-fast"
+                onClick={() => !confirming && setForkDialog(null)}
+            >
+                <div
+                    className="w-full max-w-lg bg-[#0D1412] border border-white/10 rounded-2xl p-7 shadow-2xl animate-in zoom-in-95 duration-normal text-[#F1F5F2]"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <div className="flex items-start gap-3 mb-4">
+                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                            <Lock size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-[#F1F5F2] tracking-tight">
+                                A {label} cannot be edited later
+                            </h3>
+                            <p className="text-xs text-[rgba(241,245,242,0.6)] mt-1 leading-relaxed">
+                                Once posted it becomes a permanent accounting record. Fixing a mistake then means
+                                issuing a return or credit note — you cannot simply change it.
+                            </p>
+                        </div>
+                    </div>
+
+                    {canHandoff ? (
+                        <p className="text-xs text-[rgba(241,245,242,0.7)] leading-relaxed mb-5 bg-white/[0.03] border border-white/10 rounded-2xl p-4">
+                            Choosing <span className="font-bold text-[#F1F5F2]">Continue</span> takes you
+                            to the {label} screen with everything already filled in from this scan. Nothing is saved until
+                            you press Save there, so you get one last look at every line.
+                        </p>
+                    ) : (
+                        <label className="flex items-start gap-2.5 text-xs text-[rgba(241,245,242,0.8)] leading-relaxed mb-5 bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={acknowledgeLocked}
+                                onChange={e => setAcknowledgeLocked(e.target.checked)}
+                                className="mt-0.5 w-4 h-4 rounded accent-[#23C4A6] shrink-0"
+                            />
+                            <span>
+                                There is no draft version of a {label}, so this will post straight to your ledger.
+                                I have checked every line and understand it cannot be edited afterwards.
+                            </span>
+                        </label>
+                    )}
+
+                    <div className="flex flex-col gap-2.5">
+                        {canHandoff && (
+                            <button
+                                onClick={() => handleConfirmTransaction({ resolved: true, mode: 'handoff' })}
+                                disabled={confirming}
+                                className="w-full px-5 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
+                            >
+                                {confirming ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={14} />}
+                                Continue — review on the {label} screen
+                            </button>
+                        )}
+
+                        {draftAction && (
+                            <button
+                                onClick={() => handleConfirmTransaction({ resolved: true, overrideAction: draftAction, mode: 'create' })}
+                                disabled={confirming}
+                                className="w-full px-5 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-[#F1F5F2] hover:border-teal-400/40 transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
+                            >
+                                <FilePlus2 size={14} />
+                                Make a {draftLabel} instead — I can still change it
+                            </button>
+                        )}
+
+                        {!canHandoff && (
+                            <button
+                                onClick={() => handleConfirmTransaction({ resolved: true, mode: 'create', acknowledgeLocked: true })}
+                                disabled={confirming || !acknowledgeLocked}
+                                className="w-full px-5 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-[0.99] disabled:opacity-30"
+                            >
+                                {confirming ? 'Posting…' : `Post this ${label} now`}
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => setForkDialog(null)}
+                            disabled={confirming}
+                            className="w-full px-5 py-2.5 text-xs font-bold text-[rgba(241,245,242,0.5)] hover:text-white transition-colors disabled:opacity-40"
+                        >
+                            No, take me back to the review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ── Locked screen ────────────────────────────────────────────────────────
+    const renderLocked = () => (
+        <div className="flex-1 flex flex-col justify-center p-8 overflow-y-auto max-h-full text-[#F1F5F2]">
+            <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-3 shrink-0">
+                    <Lock size={28} />
+                </div>
+                <h3 className="text-lg font-bold text-[#F1F5F2] tracking-tight">AI Scan is Locked</h3>
+                <p className="text-xs text-[rgba(241,245,242,0.6)] mt-2 max-w-md leading-relaxed">
+                    {ctx?.entitlement?.message || 'AI Scan requires the AI add-on. Every store gets 10 free credits to test out the capabilities.'}
+                </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto w-full">
+                {/* Option 1: BYOK */}
+                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between text-left">
+                    <div>
+                        <div className="flex justify-between items-start mb-3">
+                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/25">
+                                BYOK Lifetime
+                            </span>
+                            <div className="text-lg font-bold text-[#F1F5F2]">$5 <span className="text-2xs font-normal text-[rgba(241,245,242,0.5)]">once</span></div>
+                        </div>
+                        <h5 className="text-xs font-bold text-[#F1F5F2] mb-1.5">Bring Your Own Key</h5>
+                        <p className="text-2xs text-[rgba(241,245,242,0.55)] leading-relaxed">
+                            Provide your own Gemini, OpenAI, Claude, or DeepSeek API key. Bypass platform fees forever.
+                        </p>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                        {ctx?.entitlement?.reason === 'no_key' ? (
+                            <button
+                                onClick={openSettings}
+                                className="w-full py-2 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-lg text-2xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                            >
+                                <KeyRound size={12} /> Configure API Key
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => handlePurchaseAddon('ai_byok')}
+                                disabled={isPurchasingAddon !== null}
+                                className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-2xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                            >
+                                {isPurchasingAddon === 'ai_byok' ? <Loader2 size={12} className="animate-spin" /> : 'Buy BYOK Unlock'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Option 2: Managed Plans */}
+                <div className="md:col-span-2 p-5 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between text-left">
+                    <div>
+                        <div className="flex justify-between items-start mb-3">
+                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-[#23C4A6]/15 text-[#93EBD6] border border-[#23C4A6]/25">
+                                Managed API
+                            </span>
+                            <span className="text-2xs text-[rgba(241,245,242,0.5)]">Monthly Tiers</span>
+                        </div>
+                        <h5 className="text-xs font-bold text-[#F1F5F2] mb-1.5">Managed AI Subscriptions</h5>
+                        <p className="text-2xs text-[rgba(241,245,242,0.55)] leading-relaxed mb-3">
+                            No API keys or developer setup needed. Access our premium high-speed models instantly. Select a volume:
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-2">
+                            {Object.entries(aiTiers).map(([key, tier]) => (
+                                <div
+                                    key={key}
+                                    onClick={() => handlePurchaseAddon(`ai_${key}`)}
+                                    className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:border-teal-400/40 hover:bg-teal-400/[0.05] cursor-pointer transition-all flex flex-col justify-between group"
+                                >
+                                    <div className="flex justify-between items-center mb-0.5">
+                                        <span className="text-1xs font-bold text-[#F1F5F2] group-hover:text-[#93EBD6] transition-colors">AI {tier.name || key.toUpperCase()}</span>
+                                        <span className="text-1xs font-bold text-[#23C4A6]">${tier.price_monthly}</span>
+                                    </div>
+                                    <div className="text-4xs text-[rgba(241,245,242,0.45)]">
+                                        {(tier.pages || 0).toLocaleString()} scans / {(tier.queries || 0).toLocaleString()} queries
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    if (typeof document === 'undefined') return null;
+
+    const captureBody = (
+            <div
+                className={embedded
+                    ? "w-full h-full bg-transparent flex flex-col overflow-hidden relative font-sans text-[#F1F5F2]"
+                    : "w-full max-w-4xl border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative font-sans text-[#F1F5F2]"}
+                style={embedded ? {} : { background: 'var(--vq-mesh-capture, #080D0C)' }}
+            >
+                {/* glow blobs */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-[#23C4A6]/5 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#23C4A6]/5 rounded-full blur-[100px] pointer-events-none" />
+
+                {showSettings && renderSettingsDrawer()}
+                {renderForkDialog()}
+
+                {/* Header — hidden when the island hosts this panel: it already
+                    carries the Capture title, and the settings/close buttons belong to a
+                    dialog this is no longer. */}
+                {!embedded && (<>
+                <div className="p-6 bg-black/40 text-[#F1F5F2] shrink-0 flex items-center justify-between border-b border-white/10 relative z-10 backdrop-blur-md">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-[#23C4A6]/20 border border-[#23C4A6]/30 flex items-center justify-center text-[#93EBD6]">
+                            <Sparkles size={20} className="animate-pulse" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold tracking-tight text-[#F1F5F2]">AI Scan</h2>
+                            <p className="text-2xs text-[#93EBD6] font-bold uppercase tracking-wider mt-0.5 flex flex-wrap items-center gap-x-2">
+                                <span>AI-Powered Transaction Entry</span>
+                                {(ctx?.entitlement?.mode === 'managed' || ctx?.entitlement?.mode === 'free') && ctx?.entitlement?.scans_limit > 0 && (
+                                    <span className="text-[rgba(241,245,242,0.6)] normal-case">({ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans used)</span>
+                                )}
+                                {ctx?.learning?.total > 0 && (
+                                    <span
+                                        className="text-[#93EBD6] normal-case flex items-center gap-1"
+                                        title="Corrections your team has made. AI Scan reuses them automatically."
+                                    >
+                                        <Brain size={11} /> {ctx.learning.total} learned
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={openSettings}
+                            title="AI Settings (BYOK)"
+                            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-[rgba(241,245,242,0.65)] hover:text-white transition-all active:scale-95"
+                        >
+                            <Settings2 size={16} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-[rgba(241,245,242,0.65)] hover:text-white transition-all active:scale-95"
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                </div></>)}
+
+                {/* Main Body */}
+                <div className="flex-1 overflow-hidden flex flex-col relative z-10">
+                    {ctxLoading && !ctx ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <Loader2 className="animate-spin text-[#23C4A6]" size={28} />
+                        </div>
+                    ) : locked && !extractedData && !successData ? (
+                        renderLocked()
+                    ) : rateLimit && !extractedData && !successData ? (
+                        /* RATE LIMITED — we wait, we never auto-retry */
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-normal text-[#F1F5F2]">
+                            <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-5">
+                                <Clock size={30} />
+                            </div>
+                            <h3 className="text-lg font-bold text-[#F1F5F2] tracking-tight">
+                                {rateLimit.daily ? 'Daily AI quota reached' : 'Sending a little too fast'}
+                            </h3>
+                            <p className="text-xs text-[rgba(241,245,242,0.6)] mt-2 max-w-sm leading-relaxed">{rateLimit.message}</p>
+
+                            {!rateLimit.daily && (
+                                <div className="mt-6 flex flex-col items-center gap-2">
+                                    <div className="text-4xl font-bold text-[#F1F5F2] tabular-nums">{rateLimit.seconds}s</div>
+                                    <p className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)]">Ready again shortly</p>
+                                </div>
+                            )}
+
+                            <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-6 max-w-sm leading-relaxed">
+                                Your document is still here — nothing was lost, and no request was wasted.
+                                We never retry automatically, because that is what burns through a free-tier key.
+                            </p>
+
+                            <div className="mt-6 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setRateLimit(null)}
+                                    className="px-6 py-2.5 border border-white/15 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all active:scale-95"
+                                >
+                                    Back to my document
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={openSettings}
+                                    className="px-6 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5"
+                                >
+                                    <KeyRound size={13} /> Use a different key
+                                </button>
+                            </div>
+                        </div>
+                    ) : successData ? (
+                        /* SUCCESS STATE */
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-slow text-[#F1F5F2]">
+                            <div className="w-20 h-20 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 shadow-inner animate-bounce">
+                                <CheckCircle2 size={44} />
+                            </div>
+                            <h3 className="text-2xl font-bold text-[#F1F5F2] tracking-tight">
+                                {successData.appended ? 'Items Added!' : 'Transaction Created!'}
+                            </h3>
+                            <p className="text-sm text-[rgba(241,245,242,0.65)] mt-2 max-w-sm">
+                                {successData.message || `Structured ${successData.type} transaction successfully processed.`}
+                            </p>
+
+                            <div className="mt-8 bg-white/[0.03] p-6 rounded-2xl border border-white/10 max-w-sm w-full space-y-2 text-left">
+                                <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
+                                    <span>Type:</span>
+                                    <span className="text-[#F1F5F2] uppercase font-bold">{successData.type?.replace(/_/g, ' ')}</span>
+                                </div>
+                                <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
+                                    <span>Reference:</span>
+                                    <span className="text-[#F1F5F2] font-mono">{successData.reference}</span>
+                                </div>
+                                {successData.appended ? (
+                                    <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
+                                        <span>Lines Added:</span>
+                                        <span className="text-[#F1F5F2] font-bold">{successData.appended}</span>
+                                    </div>
+                                ) : null}
+                                <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
+                                    <span>Total:</span>
+                                    <span className="text-[#23C4A6] font-bold" style={{ fontFamily: 'var(--vq-font-numeric)' }}>Rs. {Math.abs(successData.total || 0).toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            {/* New catalogue products should never appear silently */}
+                            {successData.createdProducts?.length > 0 && (
+                                <div className="mt-5 max-w-sm w-full text-left bg-white/[0.03] border border-[#23C4A6]/25 rounded-2xl p-4">
+                                    <p className="text-2xs font-bold uppercase tracking-wider text-[#23C4A6] mb-2 flex items-center gap-1.5">
+                                        <Plus size={11} />
+                                        {successData.createdProducts.length} {tt(successData.createdProducts.length > 1 ? 'new products' : 'new product')} added to your catalogue
+                                    </p>
+                                    <ul className="space-y-1">
+                                        {successData.createdProducts.map(p => (
+                                            <li key={p.id} className="text-1xs text-[rgba(241,245,242,0.8)] font-semibold">
+                                                {p.name} <span className="text-[rgba(241,245,242,0.45)] font-mono">({p.sku})</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <p className="text-2xs text-[rgba(241,245,242,0.5)] mt-2 leading-relaxed">
+                                        Check the spelling — a misread name creates a near-duplicate that splits your reports.
+                                        You can find these under {tt('Products')}, filtered by "created by AI Scan".
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="mt-8 flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={resetAll}
+                                    className="px-6 py-3 border border-white/15 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all active:scale-95"
+                                >
+                                    Scan Another
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={navigateToSuccessDoc}
+                                    className="px-8 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-1.5"
+                                >
+                                    <span>View Document</span>
+                                    <ChevronRight size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    ) : extractedData ? (
+                        /* AI REVIEW & CONFIRMATION */
+                        <div className="flex-1 flex flex-col overflow-hidden animate-in fade-in duration-normal">
+                            {/* Settings strip */}
+                            <div className="px-8 py-4 bg-white/[0.03] border-b border-white/[0.08] backdrop-blur-md flex flex-wrap items-end gap-5 justify-between">
+                                <div className="flex flex-wrap items-end gap-5">
+                                    {/* Action Intent */}
+                                    <div>
+                                        <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">Transaction Intent</label>
+                                        <CustomSelect
+                                            value={extractedData.action}
+                                            onChange={(e) => {
+                                                const action = e.target.value;
+                                                setExtractedData({ ...extractedData, action });
+                                                setSelectedPartyId('');
+                                            }}
+                                            disabled={appendMode && !!appendDocId}
+                                            className="min-w-[160px]"
+                                            options={[
+                                                { value: 'sale', label: 'Sales Invoice' },
+                                                { value: 'purchase', label: 'Purchase' },
+                                                { value: 'expense', label: 'Operating Expense' },
+                                                { value: 'return', label: 'Sales Return' },
+                                                { value: 'proposal', label: 'Proposal' },
+                                                { value: 'pre_invoice', label: tt('Pre-Invoice (Sales Order)') },
+                                                { value: 'pre_purchase', label: tt('Pre-Purchase (Purchase Order)') },
+                                                { value: 'recurring_invoice', label: 'Recurring Invoice' },
+                                                { value: 'purchase_return', label: 'Purchase Return (Debit Note)' }
+                                            ]}
+                                        />
+                                    </div>
+
+                                    {/* Party or Expense Category — explicit, user-confirmed */}
+                                    {isExpense ? (
+                                        <div>
+                                            <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">
+                                                Expense Category <span className="text-rose-400">*</span>
+                                            </label>
+                                            <CustomSelect
+                                                value={selectedCategoryId}
+                                                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                                                placeholder="-- Select category --"
+                                                isError={!selectedCategoryId}
+                                                className="min-w-[180px]"
+                                                options={[
+                                                    { value: '', label: '-- Select category --' },
+                                                    ...(ctx?.expense_categories || []).map(cat => ({
+                                                        value: cat.id,
+                                                        label: cat.name
+                                                    }))
+                                                ]}
+                                            />
+                                            {extractedData.expense_category && (
+                                                <p className="text-3xs text-[#23C4A6] font-bold mt-1">AI suggested: {extractedData.expense_category}</p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">
+                                                {partyType === 'supplier' ? tt('Supplier') : tt('Customer')} <span className="text-rose-400">*</span>
+                                            </label>
+                                            <div className="flex items-center gap-1.5 font-sans">
+                                                <User size={12} className="text-[rgba(241,245,242,0.45)]" />
+                                                <CustomSelect
+                                                    value={selectedPartyId}
+                                                    onChange={(e) => setSelectedPartyId(e.target.value)}
+                                                    placeholder={`-- Select ${partyType} --`}
+                                                    isError={!selectedPartyId}
+                                                    className="min-w-[200px]"
+                                                    options={[
+                                                        { value: '', label: `-- Select ${partyType} --` },
+                                                        ...((extractedData.party_candidates || []).length > 0 ? [{
+                                                            groupLabel: `AI matches for "${extractedData.party}"`,
+                                                            options: extractedData.party_candidates.map(c => ({
+                                                                value: c.id,
+                                                                label: c.name,
+                                                                confidence: c.confidence
+                                                            }))
+                                                        }] : []),
+                                                        {
+                                                            groupLabel: `All ${partyType}s`,
+                                                            options: partyList.filter(p => !candidateIds.has(String(p.id))).map(p => ({
+                                                                value: p.id,
+                                                                label: p.name
+                                                            }))
+                                                        }
+                                                    ]}
+                                                />
+                                            </div>
+                                            {extractedData.party && (
+                                                <p className="text-3xs text-[#23C4A6] font-bold mt-1">AI read: "{extractedData.party}"</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Payment Method */}
+                                <div>
+                                    <label className="block text-3xs font-bold uppercase text-[rgba(241,245,242,0.55)] mb-1">Payment Method</label>
+                                    <div className="flex gap-1.5">
+                                        {(isExpense ? ['cash', 'bank'] : ['cash', 'credit', 'bank']).map((method) => (
+                                            <button
+                                                key={method}
+                                                type="button"
+                                                onClick={() => setPaymentMethod(method)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all border ${paymentMethod === method
+                                                    ? 'bg-[#23C4A6] border-[#23C4A6] text-[#062421] shadow-[0_0_10px_rgba(35,196,166,0.3)]'
+                                                    : 'bg-white/[0.04] border-white/[0.08] text-[rgba(241,245,242,0.7)] hover:bg-white/[0.08] hover:text-[#F1F5F2]'}`}
+                                            >
+                                                {method}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Append banner */}
+                            {appendMode && appendDocId && (
+                                <div className="px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
+                                    <Layers size={13} />
+                                    Items will be ADDED to the selected existing {appendDocType.replace(/_/g, ' ')} — no new document will be created.
+                                </div>
+                            )}
+
+                            {/* Wrong side of the ledger — they picked a customer but this is a supplier bill */}
+                            {extractedData.party_preselected?.type_mismatch && (
+                                <div className="px-8 py-2.5 bg-rose-500/10 border-b border-rose-500/20 flex items-center gap-2 text-xs font-bold text-rose-400">
+                                    <AlertTriangle size={13} />
+                                    You chose the {extractedData.party_preselected.type} "{extractedData.party_preselected.name}",
+                                    but this looks like a {partyType} document. Pick the right {partyType} below.
+                                </div>
+                            )}
+
+                            {/* What pressing the button will actually do */}
+                            {!isAppending && currentPolicy?.locking && (
+                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
+                                    <Lock size={13} />
+                                    {currentPolicy.handoff_url
+                                        ? `A ${currentPolicy.label} cannot be edited once posted — you will get a final review on the ${currentPolicy.label} screen before anything is saved.`
+                                        : `A ${currentPolicy.label} posts a permanent ledger entry that cannot be edited afterwards.`}
+                                </div>
+                            )}
+
+                            {/* Learning banner — shows the memory paying off */}
+                            {extractedData.meta?.learned_lines > 0 && (
+                                <div className="px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
+                                    <Brain size={13} />
+                                    {extractedData.meta.learned_lines} line{extractedData.meta.learned_lines > 1 ? 's were' : ' was'} matched
+                                    from what your store taught AI Scan previously — already filled in below.
+                                </div>
+                            )}
+
+                            {/* Low-legibility warning */}
+                            {typeof extractedData.document_confidence === 'number' && extractedData.document_confidence < 70 && (
+                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
+                                    <Eye size={13} />
+                                    This document was hard to read ({extractedData.document_confidence}% legible).
+                                    Check the amber and red lines carefully before posting.
+                                </div>
+                            )}
+
+                            {/* Extracted meta */}
+                            {(extractedData.date || extractedData.reference || extractedData.notes || extractedData.meta) && (
+                                <div className="px-8 py-2.5 border-b border-white/[0.08] bg-black/20 flex flex-wrap items-center gap-4 text-2xs font-semibold text-[rgba(241,245,242,0.5)]">
+                                    {extractedData.date && <span>Date read: <span className="text-[#F1F5F2] font-semibold">{extractedData.date}</span></span>}
+                                    {extractedData.reference && <span>Ref: <span className="text-[#F1F5F2] font-mono">{extractedData.reference}</span></span>}
+                                    {extractedData.notes && <span className="truncate max-w-md">Notes: <span className="text-[#F1F5F2]">{extractedData.notes}</span></span>}
+                                    {extractedData.meta?.api_requests ? (
+                                        <span className="ml-auto flex items-center gap-1 text-[#23C4A6]" title="One scan costs exactly one AI request">
+                                            <Zap size={11} />
+                                            {extractedData.meta.api_requests} API request{extractedData.meta.api_requests > 1 ? 's' : ''}
+                                            {extractedData.meta.model ? ` · ${extractedData.meta.model}` : ''}
+                                        </span>
+                                    ) : null}
+                                </div>
+                            )}
+
+                            {/* Items */}
+                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                                {error && (
+                                    <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs font-bold flex items-start gap-2">
+                                        <AlertTriangle size={16} className="text-rose-400 mt-0.5 shrink-0" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
+
+                                <div className="space-y-3">
+                                    {extractedData.items.map((item, idx) => {
+                                        const isNew = !!item.create_new;
+                                        const isLearned = !!item.learned && !isNew;
+                                        const isHigh = item.confidence >= 90;
+                                        const isMedium = item.confidence >= 60 && item.confidence < 90;
+                                        // The model told us it struggled to READ this line — a different
+                                        // problem from being unsure which product it maps to.
+                                        const unclearReading = item.needs_review || (item.read_confidence !== null && item.read_confidence < 70);
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`p-4 rounded-2xl border backdrop-blur-sm transition-all flex flex-col gap-3 ${isLearned ? 'bg-[#23C4A6]/[0.04] border-[#23C4A6]/30' :
+                                                    isNew ? 'bg-sky-500/[0.04] border-sky-500/30' :
+                                                        isHigh ? 'bg-emerald-500/[0.03] border-emerald-500/20' :
+                                                            isMedium ? 'bg-amber-500/[0.03] border-amber-500/20' :
+                                                                'bg-rose-500/[0.03] border-rose-500/20'}`}
+                                            >
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex-1">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span className="text-2xs font-bold text-[rgba(241,245,242,0.55)] uppercase tracking-wider">AI read: <span className="text-[#F1F5F2]">"{item.raw_name}"</span></span>
+                                                            {unclearReading && (
+                                                                <span className="px-1.5 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                                                    <Eye size={9} /> Check this reading
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {isLearned && item.match_reason && (
+                                                            <span className="text-2xs font-bold text-[#23C4A6] flex items-center gap-1 mt-0.5">
+                                                                <Brain size={10} /> Remembered — {item.match_reason}
+                                                            </span>
+                                                        )}
+
+                                                        {!isExpense ? (
+                                                            <div className="mt-2 space-y-2">
+                                                                <CustomSelect
+                                                                    value={isNew ? '__create_new__' : (item.product_id || '')}
+                                                                    onChange={(e) => handleProductPick(idx, e.target.value)}
+                                                                    placeholder={tt('-- Match a store product --')}
+                                                                    options={[
+                                                                        { value: '', label: tt('-- Match a store product --'), disabled: true },
+                                                                        ...(item.candidates || []).map(c => ({
+                                                                            value: c.id,
+                                                                            label: c.name,
+                                                                            learned: c.learned,
+                                                                            confidence: c.confidence,
+                                                                            sku: c.sku
+                                                                        })),
+                                                                        { value: '__create_new__', label: tt('＋ Create as NEW product…') }
+                                                                    ]}
+                                                                />
+
+                                                                {isNew && (
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 bg-black/30 rounded-xl border border-white/10">
+                                                                        <div className="sm:col-span-3">
+                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">{tt('New Product Name')}</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={item.create_new.name}
+                                                                                onChange={(e) => handleItemChange(idx, 'create_new', { ...item.create_new, name: e.target.value })}
+                                                                                className="w-full mt-1 px-2.5 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">Sale Price</label>
+                                                                            <input
+                                                                                type="number" min="0" step="any"
+                                                                                value={item.create_new.price}
+                                                                                onChange={(e) => handleItemChange(idx, 'create_new', { ...item.create_new, price: e.target.value })}
+                                                                                className="w-full mt-1 px-2.5 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <label className="block text-3xs font-bold text-[#23C4A6] uppercase">Cost Price</label>
+                                                                            <input
+                                                                                type="number" min="0" step="any"
+                                                                                value={item.create_new.cost_price}
+                                                                                onChange={(e) => handleItemChange(idx, 'create_new', { ...item.create_new, cost_price: e.target.value })}
+                                                                                className="w-full mt-1 px-2.5 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                {!isNew && (!item.candidates || item.candidates.length === 0) && (
+                                                                    <span className="text-rose-400 text-xs font-bold flex items-center gap-1 mt-1">
+                                                                        <AlertTriangle size={12} />
+                                                                        {tt('No matches found — use "Create as NEW product".')}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="mt-1 text-xs font-bold text-[#F1F5F2]">{item.raw_name}</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-3 shrink-0">
+                                                        <div>
+                                                            <label className="block text-3xs font-bold text-[rgba(241,245,242,0.5)] uppercase">Quantity</label>
+                                                            <input
+                                                                type="number"
+                                                                value={item.qty}
+                                                                onChange={(e) => handleItemChange(idx, 'qty', e.target.value)}
+                                                                className="w-20 px-2 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-center text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
+                                                                min="0.0001" step="any"
+                                                                style={{ fontFamily: 'var(--vq-font-numeric)' }}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-3xs font-bold text-[rgba(241,245,242,0.5)] uppercase">Unit Price</label>
+                                                            <input
+                                                                type="number"
+                                                                value={item.unit_price ?? 0}
+                                                                onChange={(e) => handleItemChange(idx, 'unit_price', e.target.value)}
+                                                                className="w-24 px-2 py-1.5 bg-white/[0.05] border border-white/10 rounded-lg text-xs font-bold text-center text-[#F1F5F2] outline-none focus:border-[#23C4A6] focus:ring-1 focus:ring-[#23C4A6]"
+                                                                min="0" step="any"
+                                                                style={{ fontFamily: 'var(--vq-font-numeric)' }}
+                                                            />
+                                                        </div>
+                                                        <div className="pt-4 flex items-center gap-2">
+                                                            <span className={`px-2 py-1 text-4xs font-bold uppercase rounded-full border ${isLearned ? 'bg-[#23C4A6]/15 text-[#23C4A6] border-[#23C4A6]/30' :
+                                                                isNew ? 'bg-sky-500/15 text-sky-300 border-sky-500/30' :
+                                                                    isHigh ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                                                                        isMedium ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' :
+                                                                            'bg-rose-500/15 text-rose-300 border-rose-500/30'}`}>
+                                                                {isLearned ? 'Learned' : isNew ? tt('New Product') : `${item.confidence}% Match`}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => removeItem(idx)}
+                                                                title="Remove line"
+                                                                className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center text-[rgba(241,245,242,0.5)] hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10 transition-all"
+                                                            >
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-6 border-t border-white/[0.08] shrink-0 flex items-center justify-between bg-black/40 backdrop-blur-md">
+                                <div className="text-sm">
+                                    <span className="text-[rgba(241,245,242,0.5)] font-medium">Estimated Gross:</span>
+                                    <span className="font-bold text-[#F1F5F2] text-base ml-1.5" style={{ fontFamily: 'var(--vq-font-numeric)' }}>Rs. {calculateGrossTotal()}</span>
+                                    {!partyReady ? (
+                                        <span className="block text-2xs text-rose-400 font-bold mt-0.5">
+                                            {isExpense ? 'Select an expense category to continue.' : `Select the ${partyType} to continue.`}
+                                        </span>
+                                    ) : (
+                                        <span className="block text-2xs text-[#23C4A6] font-bold mt-0.5 flex items-center gap-1">
+                                            <Brain size={10} /> Your choices here are remembered for this store — next scan will fill them in for you.
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => { setExtractedData(null); setError(null); }}
+                                        className="px-6 py-2.5 border border-white/15 rounded-xl text-xs font-bold text-[rgba(241,245,242,0.8)] hover:bg-white/10 transition-all active:scale-95"
+                                    >
+                                        Re-Intake
+                                    </button>
+                                    <button
+                                        onClick={() => handleConfirmTransaction()}
+                                        disabled={confirming || !itemsReady || !partyReady || !appendReady}
+                                        className="px-8 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all active:scale-95 disabled:opacity-30 disabled:shadow-none"
+                                    >
+                                        {confirming ? (
+                                            <div className="flex items-center gap-1.5">
+                                                <Loader2 className="animate-spin" size={14} />
+                                                <span>Working...</span>
+                                            </div>
+                                        ) : (
+                                            <span>
+                                                {isAppending
+                                                    ? 'Add to Document'
+                                                    /* A locking document is never posted from here — the label
+                                                       says so, rather than promising something it will not do. */
+                                                    : currentPolicy?.locking
+                                                        ? (currentPolicy.handoff_url ? 'Review & Finalise…' : 'Post Transaction…')
+                                                        : `Create ${currentPolicy?.label || 'Document'}`}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : loading ? (
+                        /* LOADING */
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-normal">
+                            <div className="relative mb-6 flex items-center justify-center">
+                                <ThinkingOrb state="shaping" size={68} theme="dark" />
+                            </div>
+                            <h3 className="text-lg font-bold text-[#F1F5F2] tracking-tight">AI Intake in Progress...</h3>
+                            <p className="text-xs text-[rgba(241,245,242,0.6)] mt-2 max-w-[320px] leading-relaxed">
+                                Reading your {activeTab === 'image' ? `document (${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''})` : activeTab === 'audio' ? 'voice memo' : 'text'} and matching items against your catalog...
+                            </p>
+                        </div>
+                    ) : (
+                        /* INTAKE */
+                        <div className="flex-1 flex flex-col overflow-hidden">
+                            {/* Tabs — V6 dark glass segmented control */}
+                            <div className="flex items-center justify-between gap-4 px-8 pt-5 pb-4 shrink-0 border-b border-white/[0.08]">
+                                <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
+                                    {[
+                                        { key: 'image', icon: Camera, label: 'Photos / PDF' },
+                                        { key: 'audio', icon: Mic, label: 'Voice Memo' },
+                                        { key: 'text', icon: Type, label: 'Text' },
+                                    ].map(tab => {
+                                        const on = activeTab === tab.key;
+                                        return (
+                                            <button
+                                                key={tab.key}
+                                                onClick={() => { setActiveTab(tab.key); setError(null); }}
+                                                className={`flex items-center gap-2 rounded-xl transition-all h-10 px-4 text-xs font-bold ${
+                                                    on
+                                                        ? 'bg-[#23C4A6]/15 text-[#93EBD6] border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.2)]'
+                                                        : 'text-[rgba(241,245,242,0.6)] hover:text-[#F1F5F2] hover:bg-white/[0.03] border border-transparent'
+                                                }`}
+                                            >
+                                                <tab.icon size={15} />
+                                                <span>{tab.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {(ctx?.entitlement?.mode === 'managed' || ctx?.entitlement?.mode === 'free') && ctx?.entitlement?.scans_limit > 0 && (
+                                    <span className="text-xs text-[rgba(241,245,242,0.55)] px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08]" style={{ fontFamily: 'var(--vq-font-numeric)' }}>
+                                        {ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                                {error && (
+                                    <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs font-bold flex items-start gap-2 animate-in slide-in-from-top-2">
+                                        <AlertTriangle size={16} className="text-rose-400 mt-0.5 shrink-0" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
+
+                                {renderAdvancedControls()}
+
+                                {activeTab === 'image' ? (
+                                    /* MULTI-PHOTO TAB */
+                                    <div className="flex-1 flex flex-col justify-between min-h-[300px]">
+                                        <div
+                                            onDragEnter={handleDrag}
+                                            onDragOver={handleDrag}
+                                            onDragLeave={handleDrag}
+                                            onDrop={handleDrop}
+                                            className={`flex-1 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-8 transition-all min-h-[260px] ${dragActive
+                                                ? 'border-[#23C4A6] bg-[#23C4A6]/10 scale-[0.99]'
+                                                : selectedFiles.length > 0
+                                                    ? 'border-white/15 bg-black/20 backdrop-blur-sm'
+                                                    : 'border-white/15 hover:border-[#23C4A6]/50 bg-white/[0.02] hover:bg-white/[0.04]'}`}
+                                        >
+                                            {selectedFiles.length > 0 ? (
+                                                <div className="w-full">
+                                                    <div className="flex flex-wrap gap-3 justify-center">
+                                                        {selectedFiles.map((entry, idx) => (
+                                                            <div key={idx} className="relative w-28 h-28 rounded-2xl overflow-hidden border border-white/15 bg-black/30 flex items-center justify-center shadow-md">
+                                                                {entry.preview ? (
+                                                                    <img src={entry.preview} alt={`Page ${idx + 1}`} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="text-center px-2">
+                                                                        <FileText className="text-[#23C4A6] mx-auto mb-1" size={26} />
+                                                                        <p className="text-4xs font-bold text-[rgba(241,245,242,0.7)] truncate max-w-[96px]">{entry.file.name}</p>
+                                                                    </div>
+                                                                )}
+                                                                <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-black/70 border border-white/10 text-white text-4xs font-bold rounded-md">{idx + 1}</span>
+                                                                <button
+                                                                    onClick={() => removeFile(idx)}
+                                                                    className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/70 hover:bg-rose-600 text-white rounded-full flex items-center justify-center transition-colors"
+                                                                >
+                                                                    <X size={10} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+
+                                                        {selectedFiles.length < maxFiles && (
+                                                            <label htmlFor="capture-file-picker" className="w-28 h-28 rounded-2xl border-2 border-dashed border-white/20 hover:border-[#23C4A6]/60 flex flex-col items-center justify-center text-[rgba(241,245,242,0.6)] hover:text-[#23C4A6] cursor-pointer transition-all bg-white/[0.02]">
+                                                                <Plus size={22} />
+                                                                <span className="text-3xs font-bold mt-1">Add More</span>
+                                                            </label>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-center text-2xs text-[rgba(241,245,242,0.5)] font-semibold mt-4">
+                                                        {selectedFiles.length}/{maxFiles} files — multiple photos are treated as pages of ONE document.
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center max-w-xs">
+                                                    <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[#23C4A6] mx-auto mb-4 shadow-[0_0_15px_rgba(35,196,166,0.15)]">
+                                                        <Upload size={28} />
+                                                    </div>
+                                                    <p className="text-sm font-bold text-[#F1F5F2]">Upload invoice / receipt / handwritten note</p>
+                                                    <p className="text-xs text-[rgba(241,245,242,0.6)] mt-1.5 leading-relaxed">
+                                                        Drag & drop up to {maxFiles} photos or PDFs (printed OR handwritten), or click to browse. Long receipt? Snap it in sections.
+                                                    </p>
+                                                    <label
+                                                        htmlFor="capture-file-picker"
+                                                        className="mt-6 inline-block px-6 py-2.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/15 text-[#F1F5F2] rounded-xl text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-md"
+                                                    >
+                                                        Browse Files
+                                                    </label>
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp,.pdf"
+                                                multiple
+                                                onChange={handleFileChange}
+                                                className="hidden"
+                                                id="capture-file-picker"
+                                            />
+                                        </div>
+
+                                        <div className="pt-6 shrink-0 text-right">
+                                            <button
+                                                onClick={handleExtract}
+                                                disabled={selectedFiles.length === 0 || loading || !!rateLimit}
+                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
+                                            >
+                                                {loading ? 'Scanning…' : `Scan ${selectedFiles.length || ''} ${selectedFiles.length === 1 ? 'page' : 'pages'} — 1 AI request`}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : activeTab === 'audio' ? (
+                                    /* VOICE TAB — record OR upload */
+                                    <div className="flex-1 flex flex-col justify-between min-h-[300px]">
+                                        <div className="flex-1 border border-white/10 rounded-2xl flex flex-col items-center justify-center p-8 bg-white/[0.02] backdrop-blur-sm">
+                                            {audioBlob ? (
+                                                <div className="text-center">
+                                                    <div className="w-16 h-16 bg-[#23C4A6]/10 border border-[#23C4A6]/25 rounded-2xl flex items-center justify-center text-[#23C4A6] mx-auto mb-4 animate-pulse shadow-[0_0_15px_rgba(35,196,166,0.2)]">
+                                                        <Mic size={30} />
+                                                    </div>
+                                                    <p className="text-sm font-bold text-[#F1F5F2]">
+                                                        {audioSource === 'uploaded' ? 'Audio File Ready' : 'Voice Memo Recorded'}
+                                                    </p>
+                                                    <p className="text-2xs text-[rgba(241,245,242,0.6)] mt-1">
+                                                        {audioSource === 'uploaded' && audioBlob.name ? audioBlob.name : 'Audio capture ready for analysis'}
+                                                    </p>
+
+                                                    <audio src={URL.createObjectURL(audioBlob)} controls className="mt-4 mx-auto max-w-[260px] h-9" />
+
+                                                    <button
+                                                        onClick={() => { setAudioBlob(null); setAudioSource(null); }}
+                                                        className="mt-6 px-4 py-2 border border-rose-500/30 rounded-xl text-2xs font-bold text-rose-300 hover:bg-rose-500/10 transition-all"
+                                                    >
+                                                        Delete Audio
+                                                    </button>
+                                                </div>
+                                            ) : recording ? (
+                                                <div className="text-center space-y-4">
+                                                    <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+                                                        <div className="absolute w-20 h-20 bg-rose-500/20 rounded-full animate-ping opacity-60" />
+                                                        <div className="absolute w-16 h-16 bg-rose-500/30 rounded-full animate-pulse" />
+                                                        <div className="w-12 h-12 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-[0_0_15px_rgba(244,63,94,0.4)] relative z-20">
+                                                            <div className="w-4 h-4 bg-white rounded-sm" />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-lg font-bold text-rose-400 tracking-tight" style={{ fontFamily: 'var(--vq-font-numeric)' }}>{formatTime(recordingTime)}</p>
+                                                        <p className="text-xs text-[rgba(241,245,242,0.6)] mt-1.5">Microphone active. Speak transaction items...</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={stopRecording}
+                                                        className="px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95"
+                                                    >
+                                                        Stop Recording
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center max-w-sm space-y-4">
+                                                    <div className="w-16 h-16 bg-white/[0.04] border border-white/10 rounded-2xl flex items-center justify-center text-[#23C4A6] mx-auto shadow-[0_0_15px_rgba(35,196,166,0.15)]">
+                                                        <Mic size={26} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-[#F1F5F2]">Voice memo</p>
+                                                        <p className="text-xs text-[rgba(241,245,242,0.6)] leading-relaxed mt-1">
+                                                            Record now, or upload an existing audio file (e.g. "Invoice received from Vendor XYZ: 10 Cokes, 3 units of Pepsi")
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center justify-center gap-3 pt-2">
+                                                        <button
+                                                            onClick={startRecording}
+                                                            className="px-5 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold transition-all active:scale-95 shadow-[0_0_15px_rgba(35,196,166,0.3)] flex items-center gap-1.5"
+                                                        >
+                                                            <Mic size={14} />
+                                                            <span>Start Recording</span>
+                                                        </button>
+                                                        <label
+                                                            htmlFor="capture-audio-picker"
+                                                            className="px-5 py-3 border border-white/15 bg-white/[0.04] rounded-xl text-xs font-bold text-[#F1F5F2] hover:bg-white/[0.08] cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
+                                                        >
+                                                            <Upload size={14} />
+                                                            <span>Upload Audio</span>
+                                                        </label>
+                                                        <input
+                                                            type="file"
+                                                            accept="audio/*"
+                                                            onChange={handleAudioUpload}
+                                                            className="hidden"
+                                                            id="capture-audio-picker"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-6 shrink-0 text-right">
+                                            <button
+                                                onClick={handleExtract}
+                                                disabled={!audioBlob || loading || !!rateLimit}
+                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
+                                            >
+                                                Proceed to Extract
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* TEXT TAB */
+                                    <div className="flex-1 flex flex-col justify-between min-h-[300px]">
+                                        <div className="flex-1 border border-white/10 rounded-2xl p-6 bg-white/[0.02] backdrop-blur-sm flex flex-col">
+                                            <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.55)] block mb-2.5">
+                                                Type or paste your transaction text
+                                            </label>
+                                            <textarea
+                                                value={textInput}
+                                                onChange={e => setTextInput(e.target.value)}
+                                                placeholder={"e.g.\nBought from Ali Traders:\n10 x Coca Cola 1.5L @ 180\n5 x Lays Masala @ 50\n2 cartons Nestle Water"}
+                                                maxLength={20000}
+                                                className="flex-1 min-h-[180px] w-full p-4 bg-black/25 border border-white/10 rounded-2xl text-sm text-[#F1F5F2] placeholder-[rgba(241,245,242,0.3)] outline-none resize-none focus:ring-2 focus:ring-[#23C4A6]/30 focus:border-[#23C4A6]/60 font-medium leading-relaxed"
+                                            />
+                                            <p className="text-2xs text-[rgba(241,245,242,0.5)] font-semibold mt-2.5">
+                                                Works with item lists, copied invoices, WhatsApp order messages — any language.
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-6 shrink-0 text-right">
+                                            <button
+                                                onClick={handleExtract}
+                                                disabled={!textInput.trim() || loading || !!rateLimit}
+                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
+                                            >
+                                                Proceed to Extract
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+    );
+
+    // Hosted inside the island: no portal, no scrim, no z-index to lose.
+    if (embedded) return captureBody;
+
+    return createPortal(
+        <div className="fixed inset-0 z-toast flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-md animate-in fade-in duration-normal font-sans">
+            {captureBody}
+        </div>,
+        document.body
+    );
+}
+
+function CustomSelect({
+    value,
+    onChange,
+    options,
+    placeholder = 'Select an option',
+    disabled = false,
+    className = '',
+    searchThreshold = 5,
+    disabledOptions = [],
+    isError = false,
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const containerRef = useRef(null);
+
+    // Flatten options for easy searching and indexing
+    const flatOptions = useMemo(() => {
+        const list = [];
+        if (!options) return list;
+        options.forEach(opt => {
+            if (opt.groupLabel) {
+                (opt.options || []).forEach(subOpt => {
+                    list.push({ ...subOpt, groupLabel: opt.groupLabel });
+                });
+            } else {
+                list.push(opt);
+            }
+        });
+        return list;
+    }, [options]);
+
+    // Close when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
+
+    // Filter options based on search query
+    const filteredOptions = useMemo(() => {
+        if (!options) return [];
+        if (!search.trim()) return options;
+
+        const query = search.toLowerCase();
+
+        return options.map(opt => {
+            if (opt.groupLabel) {
+                const subFiltered = (opt.options || []).filter(subOpt =>
+                    String(subOpt.label || '').toLowerCase().includes(query) ||
+                    String(subOpt.value || '').toLowerCase().includes(query) ||
+                    String(subOpt.sku || '').toLowerCase().includes(query)
+                );
+                return subFiltered.length > 0 ? { ...opt, options: subFiltered } : null;
+            } else {
+                const matches = String(opt.label || '').toLowerCase().includes(query) ||
+                                String(opt.value || '').toLowerCase().includes(query) ||
+                                String(opt.sku || '').toLowerCase().includes(query);
+                return matches ? opt : null;
+            }
+        }).filter(Boolean);
+    }, [options, search]);
+
+    const totalOptionsCount = flatOptions.length;
+    const selectedOption = flatOptions.find(o => String(o.value) === String(value));
+
+    // Handle keypresses when trigger is focused
+    const handleKeyDown = (e) => {
+        if (disabled) return;
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            setIsOpen(true);
+        }
+    };
+
+    return (
+        <div ref={containerRef} className={`relative select-none ${className}`}>
+            <button
+                type="button"
+                disabled={disabled}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                onKeyDown={handleKeyDown}
+                className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white/[0.04] hover:bg-white/[0.07] border rounded-xl text-xs font-semibold text-[#F1F5F2] transition-all text-left outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                    isError
+                        ? 'border-rose-500/60'
+                        : isOpen
+                        ? 'border-[#23C4A6]/60 bg-white/[0.08] shadow-[0_0_12px_rgba(35,196,166,0.15)] ring-1 ring-[#23C4A6]/30'
+                        : 'border-white/10 hover:border-white/20'
+                }`}
+            >
+                <div className="flex-1 truncate">
+                    {selectedOption ? (
+                        <div className="flex items-center gap-1.5 truncate">
+                            {selectedOption.learned && <Brain size={12} className="text-[#23C4A6] shrink-0" />}
+                            <span className="truncate">{selectedOption.label}</span>
+                            {selectedOption.confidence !== undefined && (
+                                <span className="text-3xs bg-[#23C4A6]/15 text-[#23C4A6] border border-[#23C4A6]/30 px-1 py-0.5 rounded font-bold shrink-0">
+                                    {selectedOption.confidence}%
+                                </span>
+                            )}
+                            {selectedOption.sku && (
+                                <span className="text-3xs text-[rgba(241,245,242,0.45)] font-mono shrink-0">
+                                    (SKU: {selectedOption.sku})
+                                </span>
+                            )}
+                        </div>
+                    ) : (
+                        <span className="text-[rgba(241,245,242,0.4)] font-normal">{placeholder}</span>
+                    )}
+                </div>
+                <ChevronDown size={14} className={`text-[rgba(241,245,242,0.5)] transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-[#23C4A6]' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute left-0 mt-1.5 min-w-full w-max max-w-[340px] max-h-72 bg-[#0c1412]/95 border border-white/15 rounded-[14px] shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(35,196,166,0.06)] backdrop-blur-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-1.5">
+                    {totalOptionsCount > searchThreshold && (
+                        <div className="p-2 mb-1 border border-white/10 rounded-[10px] flex items-center gap-2 bg-white/[0.04]">
+                            <Search size={12} className="text-[rgba(241,245,242,0.45)] shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                className="w-full bg-transparent border-0 p-0 text-xs text-[#F1F5F2] placeholder-[rgba(241,245,242,0.4)] focus:ring-0 outline-none"
+                                autoFocus
+                            />
+                            {search && (
+                                <button type="button" onClick={() => setSearch('')} className="text-[rgba(241,245,242,0.5)] hover:text-white transition-colors">
+                                    <X size={10} />
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    <div className="overflow-y-auto flex-1 max-h-56 space-y-0.5 scrollbar-thin scrollbar-thumb-white/10 pr-0.5">
+                        {filteredOptions.length === 0 ? (
+                            <div className="px-3 py-4 text-center text-xs text-[rgba(241,245,242,0.45)]">No results found</div>
+                        ) : (
+                            filteredOptions.map((opt, groupIdx) => {
+                                if (opt.groupLabel) {
+                                    return (
+                                        <div key={groupIdx} className="mb-1.5 last:mb-0">
+                                            <div className="px-2.5 py-1 text-3xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.4)]">
+                                                {opt.groupLabel}
+                                            </div>
+                                            <div className="mt-0.5 space-y-0.5">
+                                                {(opt.options || []).map((subOpt) => {
+                                                    const isSelected = String(subOpt.value) === String(value);
+                                                    const isOptDisabled = disabledOptions.includes(subOpt.value) || subOpt.disabled;
+                                                    return (
+                                                        <button
+                                                            key={subOpt.value}
+                                                            type="button"
+                                                            disabled={isOptDisabled}
+                                                            onClick={() => {
+                                                                if (!isOptDisabled) {
+                                                                    onChange({ target: { value: subOpt.value } });
+                                                                    setIsOpen(false);
+                                                                    setSearch('');
+                                                                }
+                                                            }}
+                                                            className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
+                                                                isSelected
+                                                                    ? 'bg-[#23C4A6]/15 text-[#93EBD6] font-bold border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.1)]'
+                                                                    : 'text-[rgba(241,245,242,0.85)] hover:bg-white/[0.07] hover:text-white border border-transparent'
+                                                            } ${isOptDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                                        >
+                                                            <div className="flex flex-col gap-0.5 truncate mr-2">
+                                                                <div className="flex items-center gap-1.5 truncate">
+                                                                    {subOpt.learned && <Brain size={11} className={isSelected ? 'text-[#93EBD6]' : 'text-[#23C4A6]'} />}
+                                                                    <span className="truncate">{subOpt.label}</span>
+                                                                    {subOpt.confidence !== undefined && (
+                                                                        <span className={`text-3xs px-1.5 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-[#23C4A6]/25 text-[#93EBD6]' : 'bg-[#23C4A6]/15 text-[#23C4A6]'}`}>
+                                                                            {subOpt.confidence}%
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {subOpt.subtext && <span className={`text-2xs ${isSelected ? 'text-[#93EBD6]/70' : 'text-[rgba(241,245,242,0.5)]'}`}>{subOpt.subtext}</span>}
+                                                            </div>
+                                                            {isSelected && <Check size={13} className="shrink-0 text-[#23C4A6]" />}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                } else {
+                                    const isSelected = String(opt.value) === String(value);
+                                    const isOptDisabled = disabledOptions.includes(opt.value) || opt.disabled;
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            disabled={isOptDisabled}
+                                            onClick={() => {
+                                                if (!isOptDisabled) {
+                                                    onChange({ target: { value: opt.value } });
+                                                    setIsOpen(false);
+                                                    setSearch('');
+                                                }
+                                            }}
+                                            className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
+                                                isSelected
+                                                    ? 'bg-[#23C4A6]/15 text-[#93EBD6] font-bold border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.1)]'
+                                                    : 'text-[rgba(241,245,242,0.85)] hover:bg-white/[0.07] hover:text-white border border-transparent'
+                                            } ${isOptDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className="flex flex-col gap-0.5 truncate mr-2">
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    {opt.learned && <Brain size={11} className={isSelected ? 'text-[#93EBD6]' : 'text-[#23C4A6]'} />}
+                                                    <span className="truncate">{opt.label}</span>
+                                                    {opt.confidence !== undefined && (
+                                                        <span className={`text-3xs px-1.5 py-0.5 rounded font-bold shrink-0 ${isSelected ? 'bg-[#23C4A6]/25 text-[#93EBD6]' : 'bg-[#23C4A6]/15 text-[#23C4A6]'}`}>
+                                                            {opt.confidence}%
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {opt.subtext && <span className={`text-2xs ${isSelected ? 'text-[#93EBD6]/70' : 'text-[rgba(241,245,242,0.5)]'}`}>{opt.subtext}</span>}
+                                            </div>
+                                            {isSelected && <Check size={13} className="shrink-0 text-[#23C4A6]" />}
+                                        </button>
+                                    );
+                                }
+                            })
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

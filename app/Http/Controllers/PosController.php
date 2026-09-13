@@ -1,0 +1,165 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Models\Product;
+use App\Helpers\SettingsHelper;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class PosController extends Controller
+{
+    public function index(Request $request)
+    {
+        // ── Phase 3.1: The POS Timebomb Fix ───────────────────────────────
+        // We no longer load ALL products here. Loading 1,942 products × 5
+        // eager-loaded relations on every page open was the single biggest
+        // memory/CPU bottleneck in the application.
+        //
+        // Products are now fetched by the React POS via:
+        //   GET /api/pos/featured      → initial 50 products for the grid
+        //   GET /api/pos/search?q=     → debounced search (300ms)
+        //   GET /api/pos/barcode/{code} → exact barcode scanner lookup
+        // ──────────────────────────────────────────────────────────────────
+
+        // Only load the recalled sale if requested (inline bill recall)
+        $recalledSale = null;
+        if ($request->has('recall')) {
+            $recalledSale = \App\Models\Sale::with([
+                'items.product.category',
+                'items.product.stocks',
+                'items.productVariant',
+                'customer'
+            ])->find($request->recall);
+
+            // Fix image paths in recalled items
+            if ($recalledSale) {
+                $recalledSale->items->transform(function ($item) {
+                    if ($item->product && $item->product->image_path) {
+                        $item->product->image_path = Storage::url($item->product->image_path);
+                    }
+                    return $item;
+                });
+            }
+        }
+
+        /* ── SETTLING A TABLE ─────────────────────────────────────────────
+           Table Service does not own money. When a waiter settles, that screen
+           saves the table's order and sends the operator here with the
+           occupancy id, so the tender panel, the journal posting and the
+           offline queue stay in one place for the whole product. The register
+           loads the cart, takes the payment, and closes the occupancy on
+           success. Copy-pasting a second tender flow into the floor screen is
+           the mistake CLAUDE.md records against the purchase island. */
+        $occupancy = null;
+        if ($request->filled('occupancy')) {
+            $occ = \App\Models\Occupancy::with('position')
+                ->where('tenant_id', app('current.tenant')->id)
+                ->whereNull('closed_at')
+                ->find($request->occupancy);
+
+            if ($occ) {
+                $session = $occ->session_data ?? [];
+
+                /* UNPAID LINES ONLY.
+                   Once a bill can be split, the table's cart contains rows that
+                   have already been paid for and carry the sale that paid them.
+                   Handing the whole cart to the register would put a settled
+                   plate of food back in the tender panel and charge for it a
+                   second time. `price` is the line's EFFECTIVE unit price —
+                   base plus its modifiers — which TableServiceController stamps
+                   on as `unit_price` when the order is saved, so the register
+                   and the floor can never disagree about what a line costs. */
+                $lines = array_values(array_filter($session['cart'] ?? [], fn ($l) => empty($l['paid_sale_id'])));
+                $lines = array_map(function ($l) {
+                    $l['base_price'] = (float) ($l['price'] ?? 0);
+                    $l['price']      = (float) ($l['unit_price'] ?? $l['price'] ?? 0);
+                    $l['mods']       = array_values($l['mods'] ?? []);
+                    return $l;
+                }, $lines);
+
+                $occupancy = [
+                    'id'         => $occ->id,
+                    'label'      => $occ->label ?: $occ->position?->label,
+                    'party_id'   => $occ->party_id,
+                    'order_type' => $session['order_type'] ?? 'dine_in',
+                    'covers'     => (int) ($session['covers'] ?? 0),
+                    'note'       => $session['note'] ?? '',
+                    'cart'       => $lines,
+                    /* The part currently at the till, if the waiter sent one.
+                       For mode = covers or amount there are no lines to load —
+                       the register charges pending_settle.amount and posts the
+                       part_id back to tables.settled. */
+                    'pending_settle' => $session['pending_settle'] ?? null,
+                ];
+            }
+        }
+
+        // Bank accounts: small, stable, filter out cash accounts
+        $bankAccounts = \App\Models\BankAccount::where(function ($query) {
+                $query->whereNull('account_type')
+                      ->orWhere('account_type', '!=', 'cash');
+            })
+            ->where(function ($query) {
+                $query->whereNull('type')
+                      ->orWhere('type', '!=', 'cash');
+            })
+            ->get(['id', 'name', 'account_number as code', 'account_number']);
+
+        return Inertia::render('Pos', [
+            // ⬇ No more products prop — React fetches on mount
+            'recalledSale' => $recalledSale,
+            'occupancy'    => $occupancy,
+            'bankAccounts' => $bankAccounts,
+            'warehouses'   => \App\Models\Warehouse::all(['id', 'name', 'is_default']),
+            'ecommerceChannels' => \App\Models\EcommerceChannel::where('tenant_id', app('current.tenant')->id)->get(['id', 'name', 'platform', 'default_fulfillment_type']),
+            'settings'     => \App\Models\Setting::all()->pluck('value', 'key'),
+        ]);
+    }
+
+
+    public function getCategories()
+    {
+        $categories = \App\Models\Category::withCount('products')
+            ->has('products')
+            ->get();
+
+        // Custom Sort: Phones first, then alphabetically
+        $sorted = $categories->sortBy(function ($category) {
+            if ($category->name === 'Phones') {
+                return 0; // Top priority
+            }
+            return 1 . $category->name; // Alphabetical for others
+        })->values();
+
+        return response()->json($sorted);
+    }
+
+    public function store(Request $request, \App\Engines\InventoryService $inventoryService)
+    {
+        $request->validate([
+            'cart' => 'required|array',
+            'cart.*.id' => 'required|exists:products,id',
+            'cart.*.quantity' => 'required|numeric|min:0.0001',
+        ]);
+
+        try {
+            $total = $inventoryService->processSale($request->cart);
+            return response()->json(['success' => true, 'total' => $total]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // NOTE: openSession()/closeSession() were removed 2026-08-02. They were stub
+    // methods added only to satisfy a route-existence sweep — no cash-drawer /
+    // opening-float data model exists yet, and no frontend page calls the
+    // pos.open / pos.close routes that used to point here. Returning a fake
+    // 'success: true' with no side effect is worse than a 404: it tells a
+    // cashier their drawer was opened/closed when nothing happened. If a real
+    // POS cash-session feature is built, it needs its own migration
+    // (opening float, expected vs counted cash, variance) before these routes
+    // come back. See LAUNCH_VERIFICATION_AUDIT_2026-08-02.md, item A3b.
+}

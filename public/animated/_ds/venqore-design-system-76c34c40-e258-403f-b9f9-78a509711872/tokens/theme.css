@@ -1,0 +1,119 @@
+/* ── Semantic layer — LIGHT (default) ─────────────────────────────────────
+   The light theme is not white-on-white. The page is a soft green-grey and
+   cards are pure white, so every card floats. That contrast is where the
+   "lively" comes from — v2 put grey cards on a white page and everything
+   sank. */
+:root {
+  --vq-bg: #F1F5F2;              /* page — never pure white */
+  --vq-bg-alt: #E9EFEB;          /* alternating marketing band */
+  --vq-surface: #FFFFFF;         /* cards, panels — the floaters */
+  --vq-surface-2: var(--vq-ink-25);
+  --vq-sunken: var(--vq-ink-100);
+  --vq-raised: #FFFFFF;          /* menus, popovers, modals */
+  --vq-scrim: rgb(13 20 18 / .40);
+  --vq-glass: rgb(255 255 255 / .72);
+  --vq-glass-blur: 18px; /* @kind other */
+
+  --vq-text: var(--vq-ink-900);
+  --vq-text-2: var(--vq-ink-600);
+  --vq-text-3: var(--vq-ink-500);   /* lightest legal text */
+  --vq-text-inverted: #FFFFFF;
+
+  --vq-accent: var(--vq-teal-500);        /* the identity colour */
+  --vq-accent-fill: var(--vq-teal-600);   /* solid buttons — white on it */
+  --vq-accent-fill-hover: var(--vq-teal-700);
+  --vq-accent-text: var(--vq-teal-700);   /* links, inline accent */
+  --vq-accent-quiet: var(--vq-teal-50);   /* tint wash — takes ink text */
+  --vq-accent-quiet-line: var(--vq-teal-200);
+  --vq-on-accent: #FFFFFF;
+  --vq-on-danger: #FFFFFF;
+
+  --vq-line: var(--vq-ink-200);
+  --vq-line-soft: var(--vq-ink-100);
+  --vq-line-strong: var(--vq-ink-300);
+  --vq-focus: var(--vq-teal-400);
+
+  --vq-success: #12855C; --vq-success-bg: #E4F6EC; --vq-success-line: #A9E0C4;
+  --vq-warning: #A6690A; --vq-warning-bg: #FFF3D6; --vq-warning-line: #F2D08A;
+  --vq-danger:  #C4443A; --vq-danger-bg:  #FDEAE7; --vq-danger-line:  #F3B7AF;
+  --vq-info:    #1B7096; --vq-info-bg:    #DDF2FB; --vq-info-line:    #A8DCF0;
+
+  --vq-chart-surface: #FFFFFF;
+  --vq-chart-grid: var(--vq-ink-100);
+  --vq-chart-axis: var(--vq-ink-300);
+  --vq-chart-label: var(--vq-ink-500);
+  --vq-chart-track: var(--vq-ink-100);   /* the unfilled part of a bar/ring */
+
+  /* The signature marketing gradient: deep pine → mint → page. */
+  --vq-grad-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%); /* @kind color */
+  --vq-grad-mint: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%); /* @kind color */
+  --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%),
+                  radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%); /* @kind color */
+  --vq-grad-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%); /* @kind color */
+}
+
+/* ── Semantic layer — DARK ────────────────────────────────────────────────
+   Selected, not inverted. The v4 dark mode failed because everything was
+   green: green surfaces, green text, green chrome. Here the surfaces are
+   near-neutral charcoal with only a whisper of green, the TEXT is off-white,
+   and mint appears only on the things you can act on. */
+:root[data-theme="dark"], .vq-dark {
+  --vq-bg: #0C1211;
+  --vq-bg-alt: #0A0F0E;
+  --vq-surface: #141B19;
+  --vq-surface-2: #1A2220;
+  --vq-sunken: #080D0C;
+  --vq-raised: #1D2624;
+  --vq-scrim: rgb(3 6 5 / .66);
+  --vq-glass: rgb(20 27 25 / .72);
+
+  --vq-text: #EDF2EF;
+  --vq-text-2: #A8B4AE;
+  --vq-text-3: #8B9A93;
+  --vq-text-inverted: #0C1211;
+
+  --vq-accent: var(--vq-teal-400);
+  --vq-accent-fill: var(--vq-teal-500);
+  --vq-accent-fill-hover: var(--vq-teal-400);
+  --vq-accent-text: var(--vq-teal-300);
+  --vq-accent-quiet: rgb(35 196 166 / .14);
+  --vq-accent-quiet-line: rgb(35 196 166 / .28);
+  --vq-on-accent: #062421;
+  --vq-on-danger: #2A0705;
+
+  --vq-line: rgb(255 255 255 / .10);
+  --vq-line-soft: rgb(255 255 255 / .06);
+  --vq-line-strong: rgb(255 255 255 / .20);
+  --vq-focus: var(--vq-teal-300);
+
+  --vq-success: #4BD99B; --vq-success-bg: rgb(75 217 155 / .13); --vq-success-line: rgb(75 217 155 / .28);
+  --vq-warning: #F7C05A; --vq-warning-bg: rgb(247 192 90 / .13); --vq-warning-line: rgb(247 192 90 / .28);
+  --vq-danger:  #FF8A7E; --vq-danger-bg:  rgb(255 138 126 / .13); --vq-danger-line:  rgb(255 138 126 / .28);
+  --vq-info:    #7BD4E6; --vq-info-bg:    rgb(123 212 230 / .12); --vq-info-line:    rgb(123 212 230 / .26);
+
+  --vq-elev-1: 0 1px 0 rgb(255 255 255 / .04);
+  --vq-elev-2: 0 1px 0 rgb(255 255 255 / .05), 0 12px 28px -14px rgb(0 0 0 / .7);
+  --vq-elev-3: 0 1px 0 rgb(255 255 255 / .07), 0 28px 64px -20px rgb(0 0 0 / .8);
+  --vq-elev-inset: inset 0 1px 0 rgb(255 255 255 / .06);
+  --vq-glow-accent: 0 8px 26px -8px rgb(35 196 166 / .45);
+  --vq-glow-accent-strong: 0 12px 38px -10px rgb(35 196 166 / .60);
+  --vq-ring-focus: 0 0 0 4px rgb(89 219 192 / .26);
+
+  --vq-chart-surface: #141B19;
+  --vq-chart-grid: rgb(255 255 255 / .07);
+  --vq-chart-axis: rgb(255 255 255 / .18);
+  --vq-chart-label: #8B9A93;
+  --vq-chart-track: rgb(255 255 255 / .09);
+
+  --vq-series-1: #2CD3B3; --vq-series-2: #FF8A6B; --vq-series-3: #55C4EC;
+  --vq-series-4: #FFCD5B; --vq-series-5: #A9E34B; --vq-series-6: #C98BC9;
+  --vq-series-7: #C6F5E9; --vq-series-8: #8B9A93;
+
+  --vq-seq-1: #0B3A35; --vq-seq-2: #076B5E; --vq-seq-3: #0BAA8F;
+  --vq-seq-4: #59DBC0; --vq-seq-5: #C6F5E9;
+  --vq-div-mid: #2A332F;
+
+  --vq-grad-hero: linear-gradient(175deg, #041816 0%, #073B36 40%, #0BAA8F 88%, #23C4A6 100%); /* @kind color */
+  --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .22), transparent 70%),
+                  radial-gradient(50% 60% at 85% 80%, rgb(11 170 143 / .16), transparent 70%); /* @kind color */
+}

@@ -1,0 +1,479 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   VenQore — Landing page section components (18-section structure)
+   Loaded AFTER venqore.css. Tokens only: no raw hex except brand ramp steps
+   already declared in the V6 design system.
+   Every component here is a vanilla port of a react-bits pattern:
+     ScrollStack · SpotlightCard · ScrollFloat · CountUp · LogoLoop
+     GradualBlur · AnimatedContent · MagicBento
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared section furniture ─────────────────────────────────────────── */
+.vq-sec            { position: relative; padding: clamp(80px, 9vw, 120px) 24px; }
+.vq-sec--alt       { background: var(--vq-bg-alt); }
+.vq-sec--base      { background: var(--vq-bg); }
+.vq-sec__in        { position: relative; max-width: 1240px; margin: 0 auto; }
+.vq-sec__in--narrow{ max-width: 940px; }
+.vq-head           { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+.vq-head--center   { margin-inline: auto; align-items: center; text-align: center; }
+.vq-kicker {
+  font: 700 11px/1 var(--vq-font-numeric);
+  letter-spacing: .14em;
+  color: var(--vq-accent-text);
+}
+.vq-head h2 {
+  margin: 0;
+  font: 600 var(--vq-fs-display)/var(--vq-lh-display) var(--vq-font-display);
+  font-size: clamp(30px, 5vw, var(--vq-fs-display));
+  letter-spacing: var(--vq-ls-display);
+  color: var(--vq-text);
+  text-wrap: balance;
+}
+.vq-head p {
+  margin: 0; max-width: 62ch;
+  font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans);
+  color: var(--vq-text-2);
+}
+
+/* ── ScrollFloat — per-character scroll-scrubbed headline ─────────────── */
+.vq-sfloat        { overflow: hidden; display: block; }
+.vq-sfloat .vqch  { display: inline-block; will-change: transform, opacity; }
+
+/* ── Parallax layers ──────────────────────────────────────────────────── */
+[data-par]        { will-change: transform; }
+
+/* ── GradualBlur — a soft fade at a pinned frame's edge ───────────────── */
+.vq-gblur { position: absolute; left: 0; right: 0; pointer-events: none; z-index: 6; }
+.vq-gblur > i {
+  display: block; width: 100%; height: 14.28%;
+  -webkit-backdrop-filter: blur(var(--b)); backdrop-filter: blur(var(--b));
+  mask-image: linear-gradient(to bottom, var(--m0), var(--m1), var(--m2), var(--m3));
+  -webkit-mask-image: linear-gradient(to bottom, var(--m0), var(--m1), var(--m2), var(--m3));
+}
+
+/* ── SpotlightCard — pointer-tracked radial highlight ─────────────────── */
+.vq-spot {
+  position: relative; overflow: hidden;
+  border-radius: var(--vq-r-lg);
+  border: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+  box-shadow: var(--vq-elev-1);
+  --mx: 50%; --my: 50%;
+  transition: border-color var(--vq-dur-2, 220ms) var(--vq-ease-out),
+              transform  var(--vq-dur-2, 220ms) var(--vq-ease-out),
+              box-shadow var(--vq-dur-2, 220ms) var(--vq-ease-out);
+}
+.vq-spot::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(340px circle at var(--mx) var(--my),
+              var(--vq-accent-quiet), transparent 72%);
+  opacity: 0; transition: opacity 420ms var(--vq-ease-out);
+}
+.vq-spot:hover { transform: translateY(-3px); border-color: var(--vq-accent-quiet-line); box-shadow: var(--vq-elev-2); }
+.vq-spot:hover::before, .vq-spot:focus-within::before { opacity: 1; }
+.vq-spot > * { position: relative; }
+
+/* ── Trust band (section 3) ───────────────────────────────────────────── */
+.vq-trust      { padding: clamp(52px, 6vw, 76px) 24px; background: var(--vq-bg); position: relative; overflow: hidden; }
+.vq-trust__row {
+  display: grid; gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  background: var(--vq-line-soft);
+  border: 1px solid var(--vq-line-soft);
+  border-radius: var(--vq-r-lg);
+  overflow: hidden;
+}
+.vq-trust__cell {
+  background: var(--vq-bg);
+  padding: 26px 24px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.vq-trust__n {
+  font: 600 clamp(30px, 3.4vw, 40px)/1 var(--vq-font-numeric);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.03em; color: var(--vq-accent-text);
+}
+.vq-trust__l { font: 700 10.5px/1.3 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3); }
+.vq-trust__s { font: 500 13px/1.5 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-trust__note {
+  margin: 22px 0 0; max-width: 74ch;
+  font: 400 15px/1.62 var(--vq-font-sans); color: var(--vq-text-2);
+}
+.vq-seal {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 30px; padding: 0 13px; border-radius: var(--vq-r-full);
+  border: 1px solid var(--vq-accent-quiet-line); background: var(--vq-accent-quiet);
+  font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .12em; color: var(--vq-accent-text);
+}
+
+/* ── ScrollStack — pinned card stack (section 7) ──────────────────────── */
+.vq-stackwrap   { position: relative; }
+.vq-stackpin    { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; overflow: hidden; }
+.vq-stackpin__in{ position: relative; width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.vq-stagebox    { position: relative; height: min(560px, 68vh); }
+.vq-stackcard {
+  position: absolute; inset: 0;
+  transform-origin: top center;
+  will-change: transform, filter, opacity;
+  border-radius: var(--vq-r-xl);
+  border: 1px solid var(--vq-line);
+  background: var(--vq-surface);
+  box-shadow: var(--vq-elev-3);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.vq-stackcard__bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 13px 18px; border-bottom: 1px solid var(--vq-line-soft);
+  flex: none;
+}
+.vq-stackcard__dot { width: 9px; height: 9px; border-radius: var(--vq-r-full); }
+.vq-stackcard__ttl {
+  margin-left: 10px; font: 600 11px/1 var(--vq-font-numeric);
+  letter-spacing: .12em; color: var(--vq-text-3);
+}
+.vq-stackcard__body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1.15fr; gap: 0; }
+.vq-stackcard__say  { padding: clamp(24px, 3vw, 40px); display: flex; flex-direction: column; gap: 14px; justify-content: center; border-right: 1px solid var(--vq-line-soft); }
+.vq-stackcard__see  { padding: clamp(20px, 2.4vw, 30px); display: flex; flex-direction: column; gap: 10px; justify-content: center; background: var(--vq-sunken); min-width: 0; }
+.vq-stackcard h3    { margin: 0; font: 600 var(--vq-fs-h2)/var(--vq-lh-h2) var(--vq-font-display); font-size: clamp(23px, 2.6vw, var(--vq-fs-h2)); letter-spacing: var(--vq-ls-h2); color: var(--vq-text); text-wrap: balance; }
+.vq-stackcard p     { margin: 0; font: 400 15px/1.62 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-stackcard__n    { font: 600 12px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text); }
+.vq-stackcount {
+  position: absolute; right: 24px; top: -34px;
+  font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .12em; color: var(--vq-text-3);
+}
+
+/* Small mock rows used inside the showcase / analytics frames */
+.vq-mockrow {
+  display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+  padding: 10px 12px; border-radius: var(--vq-r-sm);
+  background: var(--vq-surface); border: 1px solid var(--vq-line-soft);
+  font: 500 12.5px/1.35 var(--vq-font-sans); color: var(--vq-text-2);
+}
+.vq-mockrow b { display: block; font: 600 13px/1.3 var(--vq-font-sans); color: var(--vq-text); }
+.vq-mocknum   { font: 600 13px/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; color: var(--vq-text); }
+.vq-mocktag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: var(--vq-r-full);
+  border: 1px solid var(--vq-line); background: var(--vq-surface);
+  font: 500 11.5px/1 var(--vq-font-sans); color: var(--vq-text-2);
+}
+
+/* ── MagicBento — the module grid (section 8) ─────────────────────────── */
+.vq-bento {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+}
+.vq-bento .vq-spot { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.vq-bento__hd { display: flex; align-items: center; gap: 10px; min-height: 54px; }
+.vq-bento__ic {
+  width: 32px; height: 32px; flex: none;
+  display: grid; place-items: center;
+  border-radius: var(--vq-r-sm);
+  background: var(--vq-accent-quiet); color: var(--vq-accent-text);
+}
+.vq-bento h3 { margin: 0; font: 600 var(--vq-fs-h3)/1.2 var(--vq-font-display); letter-spacing: var(--vq-ls-h3); color: var(--vq-text); }
+.vq-bento ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.vq-bento li {
+  padding: 5px 10px; border-radius: var(--vq-r-full);
+  background: var(--vq-sunken); border: 1px solid var(--vq-line-soft);
+  font: 500 12px/1.25 var(--vq-font-sans); color: var(--vq-text-2);
+}
+
+/* ── AI capability blocks (section 9) ─────────────────────────────────── */
+.vq-ai      { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.vq-ai__card{ padding: 26px; display: flex; flex-direction: column; gap: 15px; border-radius: var(--vq-r-lg); }
+.vq-ai__name{ font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text); }
+.vq-ai__card h3 { margin: 0; font: 600 var(--vq-fs-h3)/var(--vq-lh-h3) var(--vq-font-display); letter-spacing: var(--vq-ls-h3); color: var(--vq-text); }
+.vq-ai__card p  { margin: 0; font: 400 14.5px/1.62 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-quotebox {
+  padding: 14px 16px; border-radius: var(--vq-r-md);
+  background: var(--vq-sunken); border: 1px solid var(--vq-line-soft);
+  font: 500 14px/1.5 var(--vq-font-sans); color: var(--vq-text);
+}
+
+/* ── Offline / Sync theatre (section 10) ─────────────────────────────── */
+.vq-off        { position: relative; background: var(--vq-bg-alt); }
+.vq-off__pin   { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.vq-off__grid  { position: relative; width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px;
+                 display: grid; grid-template-columns: 300px 1fr; gap: 44px; align-items: center; }
+.vq-off__steps { display: flex; flex-direction: column; gap: 4px; }
+.vq-off__step  { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 11px 0; opacity: .3;
+                 transition: opacity var(--vq-dur-3) var(--vq-ease-out); }
+.vq-off__step[data-on="1"] { opacity: 1; }
+.vq-off__step i{ font: 600 12px/1.6 var(--vq-font-numeric); color: var(--vq-text-3); font-style: normal; }
+.vq-off__step b{ display: block; font: 600 15px/1.2 var(--vq-font-display); letter-spacing: -.02em; color: var(--vq-text); }
+.vq-off__step s{ display: block; margin-top: 3px; text-decoration: none; font: 500 12.5px/1.45 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-off__track { display: block; height: 2px; margin-top: 8px; border-radius: var(--vq-r-full); background: var(--vq-line); overflow: hidden; }
+.vq-off__bar   { display: block; height: 100%; width: 0%; border-radius: var(--vq-r-full); background: var(--vq-grad-mint); }
+
+.vq-till {
+  position: relative; border-radius: var(--vq-r-xl); border: 1px solid var(--vq-line);
+  background: var(--vq-surface); box-shadow: var(--vq-elev-3);
+  height: min(452px, 58vh); overflow: hidden; display: flex; flex-direction: column;
+}
+.vq-till__bar {
+  display: flex; align-items: center; gap: 10px; flex: none;
+  padding: 13px 18px; border-bottom: 1px solid var(--vq-line-soft);
+  font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .12em;
+}
+.vq-till__sig { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; }
+.vq-till__led { width: 8px; height: 8px; border-radius: var(--vq-r-full); background: var(--vq-success);
+                box-shadow: 0 0 8px var(--vq-success); transition: background 260ms var(--vq-ease-out), box-shadow 260ms var(--vq-ease-out); }
+.vq-till[data-net="down"] .vq-till__led { background: var(--vq-warning); box-shadow: 0 0 8px var(--vq-warning); }
+.vq-till__body{ flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 300px; }
+.vq-till__left{ padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: hidden; }
+.vq-till__right{ padding: 18px; background: var(--vq-sunken); border-left: 1px solid var(--vq-line-soft);
+                 display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.vq-q {
+  display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+  padding: 9px 12px; border-radius: var(--vq-r-sm);
+  border: 1px solid var(--vq-line-soft); background: var(--vq-surface);
+  font: 500 12.5px/1.3 var(--vq-font-sans); color: var(--vq-text-2);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 320ms var(--vq-ease-out), transform 320ms var(--vq-ease-spring), border-color 320ms linear;
+}
+.vq-q[data-in="1"] { opacity: 1; transform: none; }
+.vq-q[data-state="queued"] { border-color: var(--vq-warning-line, var(--vq-line)); }
+.vq-q__st { font: 600 10.5px/1 var(--vq-font-numeric); letter-spacing: .1em; color: var(--vq-warning); }
+.vq-q[data-state="posted"] .vq-q__st { color: var(--vq-success); }
+
+/* ── Industry presets (section 11) ────────────────────────────────────── */
+.vq-presets { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.vq-presets .vq-spot { padding: 26px; display: flex; flex-direction: column; gap: 12px; min-height: 190px; }
+.vq-presets h3 { margin: 0; font: 600 var(--vq-fs-h3)/1.25 var(--vq-font-display); letter-spacing: var(--vq-ls-h3); color: var(--vq-text); }
+.vq-presets p  { margin: 0; font: 400 14.5px/1.6 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-presets__k { font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3); }
+.vq-presets__go{ margin-top: auto; padding-top: 14px; border-top: 1px solid var(--vq-line-soft);
+                 font: 600 12.5px/1 var(--vq-font-sans); color: var(--vq-accent-text);
+                 display: inline-flex; align-items: center; gap: 7px; }
+
+/* ── LogoLoop — integrations marquee (section 12) ─────────────────────── */
+.vq-loop { position: relative; overflow: hidden; padding: 10px 0; }
+.vq-loop::before, .vq-loop::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: clamp(56px, 10%, 140px); z-index: 2; pointer-events: none;
+}
+.vq-loop::before { left: 0;  background: linear-gradient(90deg, var(--vq-bg-alt), transparent); }
+.vq-loop::after  { right: 0; background: linear-gradient(270deg, var(--vq-bg-alt), transparent); }
+.vq-loop__track { display: flex; gap: 14px; width: max-content; will-change: transform; }
+.vq-loop__item {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 54px; padding: 0 20px; border-radius: var(--vq-r-md);
+  border: 1px solid var(--vq-line); background: var(--vq-surface);
+  font: 600 14px/1 var(--vq-font-sans); color: var(--vq-text); white-space: nowrap;
+}
+.vq-loop__item span { font: 500 11.5px/1 var(--vq-font-numeric); letter-spacing: .08em; color: var(--vq-text-3); }
+.vq-loop__item[data-soon="1"] { opacity: .55; }
+
+.vq-synq {
+  margin-top: 44px; display: grid; gap: 22px; grid-template-columns: 1.05fr 1fr;
+  padding: clamp(26px, 3vw, 40px); border-radius: var(--vq-r-xl);
+  border: 1px solid var(--vq-line); background: var(--vq-surface); box-shadow: var(--vq-elev-1);
+  align-items: center;
+}
+.vq-synq h3 { margin: 0; font: 600 var(--vq-fs-h1)/var(--vq-lh-h1) var(--vq-font-display); font-size: clamp(26px, 3.4vw, var(--vq-fs-h1)); letter-spacing: var(--vq-ls-h1); color: var(--vq-text); text-wrap: balance; }
+.vq-synq p  { margin: 0; font: 400 15.5px/1.62 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-synq__viz { display: flex; flex-direction: column; gap: 9px; }
+
+/* ── Dashboard / analytics theatre (section 13) ───────────────────────── */
+.vq-an       { position: relative; background: var(--vq-bg); }
+/* No overflow on the section itself: an overflow other than `visible` on an
+   ancestor turns it into the sticky element's scrollport, and the pin scrolls
+   away instead of sticking. The clipping belongs on the pin. */
+.vq-an__pin  { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.vq-an__in   { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+.vq-board {
+  position: relative; border-radius: var(--vq-r-xl); border: 1px solid var(--vq-line);
+  background: var(--vq-surface); box-shadow: var(--vq-elev-3); overflow: hidden;
+}
+.vq-board__bar {
+  display: flex; align-items: center; gap: 10px; padding: 14px 20px;
+  border-bottom: 1px solid var(--vq-line-soft);
+  font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .12em; color: var(--vq-text-3);
+}
+.vq-board__grid { display: grid; gap: 14px; padding: clamp(16px, 2vw, 24px); grid-template-columns: repeat(4, 1fr); }
+.vq-kpi {
+  padding: 18px; border-radius: var(--vq-r-md); border: 1px solid var(--vq-line-soft);
+  background: var(--vq-sunken); display: flex; flex-direction: column; gap: 7px;
+}
+.vq-kpi__l { font: 700 10px/1.3 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3); }
+.vq-kpi__v { font: 600 clamp(20px, 2.2vw, 28px)/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: var(--vq-text); }
+.vq-kpi__d { font: 600 11.5px/1 var(--vq-font-numeric); color: var(--vq-success); }
+.vq-kpi__d[data-dir="down"] { color: var(--vq-danger); }
+.vq-board__wide { grid-column: span 3; }
+.vq-board__side { grid-column: span 1; }
+.vq-chartbox {
+  padding: 18px; border-radius: var(--vq-r-md); border: 1px solid var(--vq-line-soft);
+  background: var(--vq-sunken); display: flex; flex-direction: column; gap: 12px; min-height: 0;
+}
+.vq-chartbox svg { width: 100%; height: clamp(120px, 17vh, 180px); overflow: visible; display: block; }
+.vq-spark path  { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); }
+.vq-bars        { display: flex; align-items: flex-end; gap: 8px; height: clamp(120px, 17vh, 180px); }
+.vq-bars i      { flex: 1; border-radius: 6px 6px 0 0; background: var(--vq-grad-mint); height: 0%; transition: height 620ms var(--vq-ease-out); display: block; }
+.vq-legend      { display: flex; flex-wrap: wrap; gap: 14px; font: 500 11.5px/1 var(--vq-font-sans); color: var(--vq-text-3); }
+.vq-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.vq-legend i    { width: 8px; height: 8px; border-radius: 3px; display: block; }
+
+/* ── Proof wall (section 14) ──────────────────────────────────────────── */
+.vq-proof   { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(214px, 1fr)); }
+.vq-proof .vq-spot { padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+.vq-proof__n{ font: 600 clamp(30px, 3.6vw, 40px)/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: var(--vq-accent-text); }
+.vq-proof__l{ font: 700 10.5px/1.35 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3); }
+.vq-proof__s{ font: 500 13px/1.55 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-founder {
+  margin-top: 26px; padding: clamp(24px, 3vw, 34px);
+  border-radius: var(--vq-r-lg); border: 1px solid var(--vq-line);
+  background: var(--vq-surface); display: flex; flex-direction: column; gap: 12px; max-width: 78ch;
+}
+.vq-founder p { margin: 0; font: 400 16px/1.66 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-founder b { font: 600 13px/1.4 var(--vq-font-sans); color: var(--vq-text); }
+
+.vq-balance {
+  display: flex; align-items: center; justify-content: center; gap: clamp(16px, 4vw, 48px);
+  padding: 32px 28px; border-radius: var(--vq-r-xl);
+  border: 1px solid var(--vq-line); background: var(--vq-surface);
+  max-width: 760px; margin-inline: auto;
+}
+.vq-balance__l { font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3); }
+.vq-balance__v { font: 600 clamp(21px, 3vw, 34px)/1 var(--vq-font-numeric); font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: var(--vq-text); }
+.vq-balance__eq{ font: 600 32px/1 var(--vq-font-numeric); color: var(--vq-accent-text); }
+
+/* ── Pricing (section 15) ─────────────────────────────────────────────── */
+.vq-plans { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); align-items: stretch; }
+.vq-toggle {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px;
+  border-radius: var(--vq-r-full); border: 1px solid var(--vq-line); background: var(--vq-sunken);
+}
+.vq-toggle button {
+  appearance: none; border: 0; cursor: pointer; background: transparent;
+  height: 34px; padding: 0 16px; border-radius: var(--vq-r-full);
+  font: 600 13px/1 var(--vq-font-sans); color: var(--vq-text-2);
+  transition: background 200ms var(--vq-ease-out), color 200ms var(--vq-ease-out);
+}
+.vq-toggle button.is-on { background: var(--vq-raised); color: var(--vq-text); box-shadow: var(--vq-elev-1); }
+.vq-save { font: 600 12px/1 var(--vq-font-numeric); letter-spacing: .06em; color: var(--vq-accent-text); }
+.vq-included {
+  margin-top: 26px; padding: 24px 26px; border-radius: var(--vq-r-lg);
+  border: 1px dashed var(--vq-accent-quiet-line); background: var(--vq-accent-quiet);
+}
+.vq-included b { display: block; margin-bottom: 10px; font: 600 14px/1.4 var(--vq-font-sans); color: var(--vq-text); }
+.vq-included div { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Final CTA (section 17) ───────────────────────────────────────────── */
+.vq-finale { position: relative; overflow: hidden; padding: clamp(90px, 11vw, 150px) 24px; background: var(--vq-bg); }
+.vq-finale__glow {
+  position: absolute; left: 50%; top: 42%; width: min(1100px, 130vw); aspect-ratio: 1;
+  transform: translate(-50%, -50%); pointer-events: none;
+  background: radial-gradient(circle, var(--vq-accent-quiet), transparent 62%);
+}
+.vq-finale__in { position: relative; max-width: 840px; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.vq-finale h2 {
+  margin: 0; font: 600 var(--vq-fs-hero)/var(--vq-lh-hero) var(--vq-font-display);
+  font-size: clamp(34px, 6.4vw, 68px); letter-spacing: var(--vq-ls-hero);
+  color: var(--vq-text); text-wrap: balance;
+}
+.vq-finale p { margin: 0; max-width: 54ch; font: 400 var(--vq-fs-lede)/var(--vq-lh-lede) var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-finale__acts { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+.vq-finale__meta { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; font: 500 13px/1 var(--vq-font-sans); color: var(--vq-text-3); }
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .vq-board__grid { grid-template-columns: repeat(2, 1fr); }
+  .vq-board__wide { grid-column: span 2; }
+  .vq-board__side { grid-column: span 2; }
+  .vq-synq { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .vq-off__grid   { grid-template-columns: 1fr; gap: 24px; }
+  .vq-off__steps  { flex-direction: row; overflow-x: auto; gap: 14px; }
+  .vq-off__step   { min-width: 190px; }
+  .vq-till__body  { grid-template-columns: 1fr; }
+  .vq-till__right { border-left: 0; border-top: 1px solid var(--vq-line-soft); }
+  .vq-stackcard__body { grid-template-columns: 1fr; }
+  .vq-stackcard__see  { display: none; }
+  .vq-stackcard__say  { border-right: 0; }
+}
+@media (max-width: 700px) {
+  .vq-sec { padding: 72px 20px; }
+  .vq-balance { flex-direction: column; gap: 14px; text-align: center; }
+  .vq-balance > div { text-align: center !important; }
+  .vq-board__grid { grid-template-columns: 1fr; }
+  .vq-board__wide, .vq-board__side { grid-column: span 1; }
+  .vq-stagebox { height: 66vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vq-sfloat .vqch { opacity: 1 !important; transform: none !important; }
+  [data-par] { transform: none !important; }
+  .vq-loop__track { animation: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BOX MODEL — defensive, and why
+
+   venqore.css line 296 declares the reset the whole design system assumes:
+       *, *::before, *::after { box-sizing: border-box; }
+   It never reaches the browser. The dark-theme block at line 215 is closed
+   early by a `}` on line 258, which leaves lines 260-288 (dark elevation,
+   glows, chart colours, the dark series palette, --vq-grad-hero/spot) as
+   orphaned declarations and puts a stray `}` on line 289. The parser drops
+   everything up to and including the reset, so the entire marketing site is
+   currently rendering content-box.
+
+   That is a two-character fix in venqore.css — but it moves the hero and the
+   footer, which are signed off, so it is reported rather than applied here.
+   Until it is made, every component added by this file states its own box
+   model. Nothing outside these sections is touched.
+   ══════════════════════════════════════════════════════════════════════════ */
+#trust, #trust *, #trust *::before, #trust *::after,
+#showcase, #showcase *, #showcase *::before, #showcase *::after,
+#offline, #offline *, #offline *::before, #offline *::after,
+#industries, #industries *, #industries *::before, #industries *::after,
+#integrations, #integrations *, #integrations *::before, #integrations *::after,
+#analytics, #analytics *, #analytics *::before, #analytics *::after,
+#pricing, #pricing *, #pricing *::before, #pricing *::after,
+#cta, #cta *, #cta *::before, #cta *::after,
+.vq-sec, .vq-head, .vq-sfloat, .vq-spot, .vq-spot *,
+.vq-bento, .vq-bento *, .vq-ai, .vq-ai *, .vq-proof, .vq-proof *,
+.vq-presets, .vq-presets *, .vq-balance, .vq-balance *,
+.vq-founder, .vq-founder *, .vq-mockrow, .vq-mockrow *,
+.vq-mocktag, .vq-quotebox, .vq-gblur, .vq-gblur * {
+  box-sizing: border-box;
+}
+
+/* The preserved engine-set selector is a fixed 1.55fr/1fr pair; it needs to
+   stack before it runs out of room. */
+@media (max-width: 900px) {
+  #tailored [data-indgrid="1"] { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 560px) {
+  .vq-trust__row  { grid-template-columns: 1fr; }
+  .vq-plans       { grid-template-columns: 1fr; }
+  .vq-proof       { grid-template-columns: 1fr 1fr; }
+  .vq-finale__acts .vq-btn { width: 100%; }
+}
+
+/* ScrollFloat words stay whole; only the characters inside them animate. */
+.vq-sfloat .vqw { display: inline-block; white-space: nowrap; }
+
+/* Final-CTA step list — the "what happens next" beat under the closing line. */
+.vq-steps4 {
+  list-style: none; margin: 12px 0 4px; padding: 0;
+  display: grid; gap: 14px; width: 100%; text-align: left;
+  grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
+}
+.vq-steps4 li {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 18px; border-radius: var(--vq-r-md);
+  border: 1px solid var(--vq-line); background: var(--vq-surface);
+}
+.vq-steps4__n { font: 600 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text); }
+.vq-steps4 b  { font: 600 15px/1.25 var(--vq-font-display); letter-spacing: -.02em; color: var(--vq-text); }
+.vq-steps4 s  { text-decoration: none; font: 400 13px/1.5 var(--vq-font-sans); color: var(--vq-text-2); }
+.vq-steps4, .vq-steps4 * { box-sizing: border-box; }
+
+/* Nine pillars and six presets both want three columns on a wide screen —
+   auto-fit gives 4+4+1 and 4+2, which reads as a mistake rather than a grid. */
+@media (min-width: 1040px) {
+  .vq-bento    { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vq-presets  { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vq-ai       { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

@@ -1,0 +1,78 @@
+.vq-stepper-container {
+  width: 100%;
+  padding: 0 4px 14px;
+}
+
+.vq-stepper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+}
+
+.vq-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  z-index: 2;
+  user-select: none;
+}
+
+.vq-step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--vq-surface, #ffffff);
+  border: 1.5px solid var(--vq-line, var(--vq-ink-200));
+  color: var(--vq-text-3, var(--vq-ink-500));
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vq-step-indicator.is-active .vq-step-circle {
+  background: var(--vq-teal-500, #0baa8f);
+  border-color: var(--vq-teal-500, #0baa8f);
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(11, 170, 143, 0.25);
+  transform: scale(1.08);
+}
+
+.vq-step-indicator.is-complete .vq-step-circle {
+  background: var(--vq-teal-600, #088975);
+  border-color: var(--vq-teal-600, #088975);
+  color: #ffffff;
+}
+
+.vq-step-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--vq-text-3, var(--vq-ink-500));
+  transition: color 0.2s ease;
+}
+
+.vq-step-indicator.is-active .vq-step-label {
+  color: var(--vq-text, var(--vq-ink-900));
+  font-weight: 700;
+}
+
+.vq-step-indicator.is-complete .vq-step-label {
+  color: var(--vq-teal-700, #076b5e);
+}
+
+.vq-step-connector {
+  flex: 1 1 0%;
+  height: 2px;
+  background: var(--vq-line, var(--vq-ink-200));
+  margin: 0 12px;
+  transition: background 0.3s ease;
+}
+
+.vq-step-connector.is-complete {
+  background: var(--vq-teal-500, #0baa8f);
+}

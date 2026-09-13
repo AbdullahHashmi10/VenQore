@@ -1,0 +1,27 @@
+import{r as a,u as C,j as e,f as k}from"./app-BvgCgp1N.js";import{P as S}from"./PrintService-VS-_7gnI.js";import{R as h}from"./receipt-hqv4EJYy.js";import{P as j}from"./printer-CFYO11ll.js";import{C as E}from"./chevron-down-IoqX2Q_k.js";import{F as O}from"./file-text-CoJ_YySF.js";function A({sale:y,settings:N=null,label:o="Print",showThermal:n=!0,showRegular:l=!0,defaultType:$=null,variant:r="primary",size:t="md",onPrint:p=null,className:v=""}){const[d,c]=a.useState(!1),[b,u]=a.useState(null),x=a.useRef(null),{settings:w}=C().props,m=N||w||window.amdSettings||{},g=$||m.default_print_type||"regular",f=g==="thermal";a.useEffect(()=>{const s=P=>{x.current&&!x.current.contains(P.target)&&c(!1)};return document.addEventListener("mousedown",s),()=>document.removeEventListener("mousedown",s)},[]);const i=s=>{S.printInvoice(y,m,s),u(s),c(!1),p&&p(s),setTimeout(()=>u(null),3e3)};if(n&&!l||!n&&l){const s=n?"thermal":"regular";return e.jsxs("button",{onClick:()=>i(s),className:`
+                    inline-flex items-center gap-2 font-semibold rounded-xl transition-all active:scale-95
+                    ${r==="primary"?"bg-brand-600 text-white hover:bg-brand-700 shadow-md ":""}
+                    ${r==="secondary"?"bg-surface text-ink-secondary dark:text-ink border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover":""}
+                    ${r==="ghost"?"text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover":""}
+                    ${t==="sm"?"px-3 py-1.5 text-xs":""}
+                    ${t==="md"?"px-4 py-2.5 text-sm":""}
+                    ${t==="lg"?"px-6 py-3 text-base":""}
+                    ${v}
+`,children:[s==="thermal"?e.jsx(h,{size:t==="sm"?14:18}):e.jsx(j,{size:t==="sm"?14:18}),o]})}return e.jsxs("div",{className:"relative",ref:x,children:[e.jsxs("div",{className:"flex",children:[e.jsxs("button",{onClick:()=>i(g),className:`
+                        inline-flex items-center gap-2 font-semibold rounded-l-xl transition-all active:scale-95
+                        ${r==="primary"?"bg-brand-600 text-white hover:bg-brand-700":""}
+                        ${r==="secondary"?"bg-surface text-ink-secondary dark:text-ink border border-r-0 border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover":""}
+                        ${r==="ghost"?"text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover":""}
+                        ${t==="sm"?"px-3 py-1.5 text-xs":""}
+                        ${t==="md"?"px-4 py-2.5 text-sm":""}
+                        ${t==="lg"?"px-5 py-3 text-base":""}
+                        ${v}
+`,children:[f?e.jsx(h,{size:t==="sm"?14:18}):e.jsx(j,{size:t==="sm"?14:18}),e.jsx("span",{className:"ml-1",children:f?`${o} (Thermal)`:o})]}),e.jsx("button",{onClick:()=>c(!d),className:`
+                        inline-flex items-center justify-center rounded-r-xl transition-all border-l
+                        ${r==="primary"?"bg-brand-600 text-white hover:bg-brand-700 border-brand-500":""}
+                        ${r==="secondary"?"bg-surface text-ink-secondary dark:text-ink border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover":""}
+                        ${r==="ghost"?"text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover border-line":""}
+                        ${t==="sm"?"px-2 py-1.5":""}
+                        ${t==="md"?"px-2.5 py-2.5":""}
+                        ${t==="lg"?"px-3 py-3":""}
+`,children:e.jsx(E,{size:t==="sm"?12:16,className:`transition-transform ${d?"rotate-180":""}`})})]}),d&&e.jsxs("div",{className:"absolute right-0 top-full mt-2 w-56 bg-surface rounded-[14px] shadow-xl border border-line overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-fast",children:[e.jsxs("div",{className:"p-1",children:[l&&e.jsxs("button",{onClick:()=>i("regular"),className:"w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group",children:[e.jsx("div",{className:"w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 transition-transform",children:e.jsx(O,{size:20})}),e.jsxs("div",{className:"flex-1",children:[e.jsxs("div",{className:"font-bold text-ink text-sm flex items-center gap-2",children:["Regular Print",b==="regular"&&e.jsx(k,{size:14,className:"text-emerald-500"})]}),e.jsx("div",{className:"text-xs text-ink-muted",children:"A4 / Letter paper invoice"})]})]}),n&&e.jsxs("button",{onClick:()=>i("thermal"),className:"w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group",children:[e.jsx("div",{className:"w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 transition-transform",children:e.jsx(h,{size:20})}),e.jsxs("div",{className:"flex-1",children:[e.jsxs("div",{className:"font-bold text-ink text-sm flex items-center gap-2",children:["Thermal Receipt",b==="thermal"&&e.jsx(k,{size:14,className:"text-emerald-500"})]}),e.jsxs("div",{className:"text-xs text-ink-muted",children:[m.thermal_page_size==="2inch"?"58mm":"80mm"," receipt paper"]})]})]})]}),e.jsx("div",{className:"px-4 py-2 bg-app border-t border-line",children:e.jsx("p",{className:"text-2xs text-ink-muted",children:"Configure paper size in Settings → Print"})})]})]})}export{A as P};

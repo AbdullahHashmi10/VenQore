@@ -1,0 +1,230 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\JsonResponse;
+
+class OnboardingExperienceController extends Controller
+{
+    /**
+     * Display the 7-step onboarding wizard.
+     */
+    public function index(Request $request): Response
+    {
+        $tenant = app('current.tenant');
+        $modulesConfig = config('modules', []);
+        $qoreConfig = config('qore', []);
+        $aiBuilderConfig = config('ai_builder', []);
+
+        $presets = $aiBuilderConfig['presets'] ?? [];
+
+        // The full live catalogue, in the same shape the public builder gets, so
+        // both screens can run the same proposal component. Before this, the
+        // in-app proposal could only REMOVE modules — there was no list of
+        // inactive ones to add from, which made "add anything you like" false.
+        $allModules = collect($modulesConfig)
+            ->filter(fn ($m) => ($m['status'] ?? null) === 'live')
+            ->map(fn ($m, $key) => [
+                'key'         => $key,
+                'label'       => $m['label'] ?? ucfirst(str_replace('_', ' ', $key)),
+                'description' => $m['description'] ?? '',
+                'requires'    => array_values($m['requires'] ?? []),
+                'icon'        => $m['nav'][0]['icon'] ?? null,
+            ])
+            ->values();
+
+        return Inertia::render('Onboarding/Wizard', [
+            'storeSlug'    => $tenant->slug,
+            'tenantName'   => $tenant->name,
+            'currentStep'  => $tenant->onboarding_step ?? 'welcome',
+            'modules'      => $modulesConfig,
+            'qore'         => $qoreConfig,
+            'presets'      => $presets,
+            'allModules'   => $allModules,
+
+            // The question set itself. Previously this prop was called
+            // 'questions' and read config('ai_builder.questions'), a key that has
+            // never existed — so it arrived empty every time and the wizard
+            // rendered three hard-coded dropdowns instead, two of which the
+            // server did not even validate.
+            'discovery'    => app(\App\Services\AiBuilder\DiscoveryResolver::class)->questionSet(),
+            'recommended'  => app(\App\Services\AiBuilder\DiscoveryResolver::class)->recommendations(),
+        ]);
+    }
+
+    /**
+     * Submit AI discovery questionnaire or free prompt.
+     */
+    public function aiDiscovery(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'prompt'     => 'nullable|string|max:1000',
+            // Question key => option key, or an ARRAY of them for a multi.
+            // DiscoveryResolver normalises both and drops anything that is not
+            // a real option on a visible question.
+            'answers'    => 'nullable|array',
+            'industry'   => 'nullable|string',
+        ]);
+
+        $aiBuilderConfig = config('ai_builder', []);
+        $presets = $aiBuilderConfig['presets'] ?? [];
+        $isShippable = fn (string $key) => isset($presets[$key]) && empty($presets[$key]['blocked_by']);
+
+        // Match against the best-fitting SHIPPABLE preset, or fall back to
+        // ConfigurationAIService::guessPreset() — the deterministic, alias-scored
+        // matcher already written for exactly this. Real preset keys only
+        // (solo_cafe / wholesaler / retail_grocery never existed in config).
+        $promptLower = strtolower($request->input('prompt', '') . ' ' . $request->input('industry', ''));
+
+        $guess = app(\App\Services\AiBuilder\ConfigurationAIService::class)
+            ->guessPresetDetailed(['what' => $promptLower]);
+
+        $matchedKey = $guess['preset'];
+        $matched    = $guess['matched'];
+
+        if (!$isShippable($matchedKey)) {
+            $matchedKey = 'retail_shop';
+        }
+
+        // Same honesty as the pre-signup builder (WorkspaceBuilderController::
+        // analyze()) — a tenant exists here, so this goes on their own demand
+        // log entry rather than an anonymous one.
+        if (!$matched && trim($promptLower) !== '') {
+            try {
+                \Illuminate\Support\Facades\DB::table(config('ai_builder.demand_log.table', 'feature_requests'))->insert([
+                    'tenant_id'  => app('current.tenant')->id ?? null,
+                    'source'     => 'ai_unsupported',
+                    'raw_text'   => $request->input('prompt', ''),
+                    'normalised' => trim($promptLower),
+                    'status'     => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                // Never let a demand-log write take onboarding down with it.
+            }
+        }
+
+        $chosenPreset = $presets[$matchedKey] ?? reset($presets);
+
+        // Same resolver, same config, same arithmetic as the public builder and
+        // as the client. Three places used to decide this independently; now
+        // none of them decides it, they all ask.
+        $answers  = (array) ($validated['answers'] ?? []);
+        $resolver = app(\App\Services\AiBuilder\DiscoveryResolver::class);
+        $modules  = $resolver->merge(
+            $chosenPreset['modules'] ?? ['products', 'pos', 'inventory', 'expenses', 'reports'],
+            $answers,
+            true,
+            $matchedKey,
+        );
+
+        return response()->json([
+            'success'           => true,
+            'preset_key'        => $matchedKey,
+            'matched'           => $matched,
+            'preset'            => $chosenPreset,
+            'suggested_modules' => $modules,
+            'headline'          => $resolver->headline($answers, $matchedKey),
+            'recommended'       => $resolver->recommendations(),
+        ]);
+    }
+
+    /**
+     * Save chosen onboarding module stack & proceed.
+     */
+    public function applyPreset(Request $request): JsonResponse
+    {
+        $request->validate([
+            'preset_key' => 'nullable|string',
+            'modules'    => 'required|array',
+        ]);
+
+        $tenant = app('current.tenant');
+
+        // Real preset keys only, and routed through the single writer — this
+        // fixes "deselecting a module leaves it on" (partial writes here used
+        // to only ever write ENABLED rows), the missing cache invalidation,
+        // and the blocked_by hole all at once.
+        $modules = array_values(array_filter(
+            array_intersect($request->input('modules', []), array_keys(config('modules', []))),
+            fn ($key) => (config("modules.{$key}.status") ?? 'live') === 'live'
+        ));
+
+        if ($modules !== []) {
+            app(\App\Services\AiBuilder\ApplyConfigurationService::class)->apply(
+                $tenant,
+                ['modules' => $modules],
+                'preset',
+                'Selected during onboarding wizard.'
+            );
+        }
+
+        // Same rule as WorkspaceBuilderController::provision(): business_type
+        // only ever becomes a real, shippable preset key, never trusted raw —
+        // it drives the tenant's first dashboard board via
+        // config/dashboard_presets.php. A tenant who reconfigures through a
+        // different preset later gets their board re-keyed the same way.
+        $presetKey = $request->input('preset_key');
+        $presets = config('ai_builder.presets', []);
+        if ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by'])) {
+            $tenant->business_type = $presetKey;
+        }
+
+        $tenant->onboarding_step = 'building';
+        $tenant->save();
+
+        return response()->json([
+            'success' => true,
+            'next_step' => 'building',
+        ]);
+    }
+
+    /**
+     * Complete onboarding and unlock "It was recording all along" history probe.
+     */
+    public function completeOnboarding(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $tenant->onboarding_completed = true;
+        $tenant->onboarding_step = 'completed';
+        $tenant->save();
+
+        // Real historical insights only. months_tracked / stock_value used to be
+        // hardcoded (8 months, PKR 847,300) regardless of the tenant — never
+        // fabricate numbers shown back to the customer as their own data.
+        $recordedSales = \App\Models\Sale::where('tenant_id', $tenant->id)->count();
+        $recordedParties = \App\Models\Party::where('tenant_id', $tenant->id)->count();
+        $recordedProducts = \App\Models\Product::where('tenant_id', $tenant->id)->count();
+
+        $firstSaleAt = \App\Models\Sale::where('tenant_id', $tenant->id)->min('created_at');
+        $monthsTracked = $firstSaleAt
+            ? max(1, (int) ceil(\Illuminate\Support\Carbon::parse($firstSaleAt)->diffInDays(now()) / 30))
+            : 0;
+
+        $stockValue = \Illuminate\Support\Facades\Schema::hasColumn('products', 'stock_quantity')
+                   && \Illuminate\Support\Facades\Schema::hasColumn('products', 'cost_price')
+            ? (float) \App\Models\Product::where('tenant_id', $tenant->id)
+                ->selectRaw('COALESCE(SUM(stock_quantity * cost_price), 0) as total')
+                ->value('total')
+            : 0.0;
+
+        $historyProbe = [
+            'has_history'       => $recordedSales > 0 || $recordedParties > 0 || $recordedProducts > 0,
+            'months_tracked'    => $monthsTracked,
+            'recorded_sales'    => $recordedSales,
+            'recorded_parties'  => $recordedParties,
+            'recorded_products' => $recordedProducts,
+            'stock_value'       => $stockValue,
+        ];
+
+        return response()->json([
+            'success'       => true,
+            'history_probe' => $historyProbe,
+            'redirect'      => route('store.dashboard', ['store_slug' => $tenant->slug]),
+        ]);
+    }
+}

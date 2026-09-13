@@ -1,0 +1,52 @@
+:root {
+  --vq-font-display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+  --vq-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --vq-font-numeric: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+  --vq-font-mono: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+
+  /* Display voice — Bricolage, weight 600, tracking pulled tight. */
+  --vq-fs-hero: 76px;
+  --vq-lh-hero: 0.98; /* @kind other */
+  --vq-ls-hero: -0.038em; /* @kind other */
+  --vq-fs-display: 56px;
+  --vq-lh-display: 1.02; /* @kind other */
+  --vq-ls-display: -0.032em; /* @kind other */
+  --vq-fs-h1: 40px;
+  --vq-lh-h1: 1.08; /* @kind other */
+  --vq-ls-h1: -0.028em; /* @kind other */
+  --vq-fs-h2: 30px;
+  --vq-lh-h2: 1.16; /* @kind other */
+  --vq-ls-h2: -0.024em; /* @kind other */
+  --vq-fs-h3: 21px;
+  --vq-lh-h3: 1.30; /* @kind other */
+  --vq-ls-h3: -0.016em; /* @kind other */
+
+  /* Text voice — Plus Jakarta Sans. */
+  --vq-fs-lede: 19px;
+  --vq-lh-lede: 1.55; /* @kind other */
+  --vq-ls-lede: -0.008em; /* @kind other */
+  --vq-fs-body: 16px;
+  --vq-lh-body: 1.6; /* @kind other */
+  --vq-ls-body: -0.002em; /* @kind other */
+  --vq-fs-small: 14px;
+  --vq-lh-small: 1.5; /* @kind other */
+  --vq-ls-small: 0em; /* @kind other */
+  --vq-fs-caption: 13px;
+  --vq-lh-caption: 1.45; /* @kind other */
+  --vq-ls-caption: 0em; /* @kind other */
+
+  /* Numeric voice — Space Grotesk, tabular. */
+  --vq-fs-metric: 38px;
+  --vq-lh-metric: 1.0; /* @kind other */
+  --vq-ls-metric: -0.03em; /* @kind other */
+  --vq-fs-metric-sm: 26px;
+  --vq-fs-eyebrow: 11px;
+  --vq-lh-eyebrow: 1.2; /* @kind other */
+  --vq-ls-eyebrow: 0.12em; /* @kind other */
+
+  --vq-fw-regular: 400; /* @kind other */
+  --vq-fw-medium: 500; /* @kind other */
+  --vq-fw-semi: 600; /* @kind other */
+  --vq-fw-bold: 700; /* @kind other */
+  --vq-measure: 68ch; /* @kind other */
+}

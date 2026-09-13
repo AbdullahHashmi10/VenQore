@@ -1,0 +1,483 @@
+{
+    "sectors": [
+        {
+            "key": "services",
+            "name": "Services, repairs & field trades",
+            "short": "Services & trades"
+        },
+        {
+            "key": "retail",
+            "name": "Retail & merchandising",
+            "short": "Retail"
+        },
+        {
+            "key": "food",
+            "name": "Food, beverage & hospitality",
+            "short": "Food & hospitality"
+        },
+        {
+            "key": "wholesale",
+            "name": "Wholesale, trade & B2B distribution",
+            "short": "Wholesale & B2B"
+        },
+        {
+            "key": "manufacturing",
+            "name": "Light manufacturing & assembly",
+            "short": "Light manufacturing"
+        }
+    ],
+    "types": [
+        {
+            "key": "phone_repair",
+            "sector": "services",
+            "name": "Gadget & phone repair shops",
+            "note": "Job cards, IMEI intake, parts deduction, repair warranty"
+        },
+        {
+            "key": "computer_repair",
+            "sector": "services",
+            "name": "Computer & laptop repair centres"
+        },
+        {
+            "key": "auto_repair",
+            "sector": "services",
+            "name": "Auto repair & mechanic garages",
+            "note": "Parts and technician labour on one invoice"
+        },
+        {
+            "key": "appliance_repair",
+            "sector": "services",
+            "name": "Appliance repair (AC, fridges, washers)"
+        },
+        {
+            "key": "bike_service",
+            "sector": "services",
+            "name": "Bicycle & motorcycle service centres"
+        },
+        {
+            "key": "salon_barber",
+            "sector": "services",
+            "name": "Hair salons & barber shops",
+            "note": "Staff commission, appointments, repeat-client khata"
+        },
+        {
+            "key": "nail_spa",
+            "sector": "services",
+            "name": "Nail salons & spas"
+        },
+        {
+            "key": "pet_care",
+            "sector": "services",
+            "name": "Pet grooming & veterinary clinics"
+        },
+        {
+            "key": "freelance_creative",
+            "sector": "services",
+            "name": "Freelance designers & developers",
+            "note": "Milestone invoices, zero-inventory ledger"
+        },
+        {
+            "key": "marketing_agency",
+            "sector": "services",
+            "name": "Digital marketing & SEO agencies",
+            "note": "Monthly retainers on recurring invoices"
+        },
+        {
+            "key": "consultant",
+            "sector": "services",
+            "name": "Consultants & business coaches",
+            "note": "Hourly and session billing"
+        },
+        {
+            "key": "accounting_firm",
+            "sector": "services",
+            "name": "Accountants, tax consultants & auditors"
+        },
+        {
+            "key": "law_firm",
+            "sector": "services",
+            "name": "Lawyers & legal practices"
+        },
+        {
+            "key": "architect_interior",
+            "sector": "services",
+            "name": "Architects & interior designers",
+            "note": "Quotation to final bill"
+        },
+        {
+            "key": "photo_video",
+            "sector": "services",
+            "name": "Photographers & videographers",
+            "note": "Equipment hire and shoot booking"
+        },
+        {
+            "key": "electrician",
+            "sector": "services",
+            "name": "Electricians & electrical contractors",
+            "note": "Tool management and technician dispatch"
+        },
+        {
+            "key": "plumber",
+            "sector": "services",
+            "name": "Plumbing & sanitary contractors"
+        },
+        {
+            "key": "carpenter",
+            "sector": "services",
+            "name": "Carpentry & woodwork services"
+        },
+        {
+            "key": "painter_renovation",
+            "sector": "services",
+            "name": "Painters & renovation contractors"
+        },
+        {
+            "key": "cleaning",
+            "sector": "services",
+            "name": "Cleaning & janitorial companies"
+        },
+        {
+            "key": "hvac",
+            "sector": "services",
+            "name": "HVAC installation & maintenance"
+        },
+        {
+            "key": "pest_control",
+            "sector": "services",
+            "name": "Pest control services"
+        },
+        {
+            "key": "equipment_rental",
+            "sector": "services",
+            "name": "Equipment & tool rental",
+            "note": "Tool check-out and check-in"
+        },
+        {
+            "key": "event_hire",
+            "sector": "services",
+            "name": "Event decorators & sound hire"
+        },
+        {
+            "key": "gym_fitness",
+            "sector": "services",
+            "name": "Gyms, fitness studios & trainers",
+            "note": "Recurring memberships"
+        },
+        {
+            "key": "tuition_academy",
+            "sector": "services",
+            "name": "Tuition centres & music/art academies"
+        },
+        {
+            "key": "grocery",
+            "sector": "retail",
+            "name": "Grocery & kiryana stores",
+            "note": "Loose weights, pack units, quick-pick"
+        },
+        {
+            "key": "supermarket",
+            "sector": "retail",
+            "name": "Supermarkets & minimarts",
+            "note": "High-speed scanning, scale barcodes"
+        },
+        {
+            "key": "pharmacy",
+            "sector": "retail",
+            "name": "Pharmacies & medical stores",
+            "note": "Batches, expiry alerts, FEFO, drug registers"
+        },
+        {
+            "key": "surgical_supplies",
+            "sector": "retail",
+            "name": "Surgical & medical equipment suppliers"
+        },
+        {
+            "key": "mobile_retail",
+            "sector": "retail",
+            "name": "Mobile phone & gadget retailers",
+            "note": "IMEI serials, instant warranty cards"
+        },
+        {
+            "key": "electronics",
+            "sector": "retail",
+            "name": "Consumer electronics & home appliances"
+        },
+        {
+            "key": "fashion",
+            "sector": "retail",
+            "name": "Fashion & garment boutiques",
+            "note": "Size/colour matrix, WooCommerce sync"
+        },
+        {
+            "key": "footwear",
+            "sector": "retail",
+            "name": "Shoe & footwear stores"
+        },
+        {
+            "key": "jewellery",
+            "sector": "retail",
+            "name": "Jewellery & watch shops"
+        },
+        {
+            "key": "cosmetics",
+            "sector": "retail",
+            "name": "Cosmetics & perfume stores"
+        },
+        {
+            "key": "hardware",
+            "sector": "retail",
+            "name": "Hardware & paint stores",
+            "note": "Sold by length, weight or piece"
+        },
+        {
+            "key": "sanitary_supply",
+            "sector": "retail",
+            "name": "Sanitary & plumbing supply stores"
+        },
+        {
+            "key": "building_materials",
+            "sector": "retail",
+            "name": "Building materials, cement & steel"
+        },
+        {
+            "key": "furniture_store",
+            "sector": "retail",
+            "name": "Furniture & home décor stores"
+        },
+        {
+            "key": "books_stationery",
+            "sector": "retail",
+            "name": "Bookstores & stationery shops"
+        },
+        {
+            "key": "toys",
+            "sector": "retail",
+            "name": "Toy & hobby stores"
+        },
+        {
+            "key": "pet_supply",
+            "sector": "retail",
+            "name": "Pet supply stores"
+        },
+        {
+            "key": "auto_parts",
+            "sector": "retail",
+            "name": "Auto spare parts & accessories"
+        },
+        {
+            "key": "tyre_battery",
+            "sector": "retail",
+            "name": "Tyre & battery dealers",
+            "note": "Serial and warranty tracking"
+        },
+        {
+            "key": "optical",
+            "sector": "retail",
+            "name": "Eyewear & optical boutiques"
+        },
+        {
+            "key": "gift_flower",
+            "sector": "retail",
+            "name": "Gift, flower & craft shops"
+        },
+        {
+            "key": "vape_tobacco",
+            "sector": "retail",
+            "name": "Vape & tobacco stores"
+        },
+        {
+            "key": "sports",
+            "sector": "retail",
+            "name": "Sports & outdoor equipment"
+        },
+        {
+            "key": "electrical_lighting",
+            "sector": "retail",
+            "name": "Electrical & lighting stores"
+        },
+        {
+            "key": "kitchenware",
+            "sector": "retail",
+            "name": "Kitchenware & crockery stores"
+        },
+        {
+            "key": "restaurant",
+            "sector": "food",
+            "name": "Dine-in restaurants",
+            "note": "Floor plan, table service, split bills, kitchen tickets"
+        },
+        {
+            "key": "cafe",
+            "sector": "food",
+            "name": "Cafés & coffee houses",
+            "note": "Rapid counter POS, ingredient deduction"
+        },
+        {
+            "key": "tea_shop",
+            "sector": "food",
+            "name": "Chai & tea shops"
+        },
+        {
+            "key": "bakery",
+            "sector": "food",
+            "name": "Artisan bakeries & cake shops",
+            "note": "Advance orders, batch recipes"
+        },
+        {
+            "key": "fast_food",
+            "sector": "food",
+            "name": "Fast food, burger & pizza outlets"
+        },
+        {
+            "key": "dessert",
+            "sector": "food",
+            "name": "Ice cream & dessert parlours"
+        },
+        {
+            "key": "juice_bar",
+            "sector": "food",
+            "name": "Juice, shake & smoothie bars"
+        },
+        {
+            "key": "food_truck",
+            "sector": "food",
+            "name": "Food trucks & kiosks",
+            "note": "Offline-first operation"
+        },
+        {
+            "key": "sweets",
+            "sector": "food",
+            "name": "Sweet & mithai shops",
+            "note": "Weighing scale and box packs"
+        },
+        {
+            "key": "catering",
+            "sector": "food",
+            "name": "Catering businesses",
+            "note": "Event quotes, bulk recipes"
+        },
+        {
+            "key": "cloud_kitchen",
+            "sector": "food",
+            "name": "Cloud & dark kitchens"
+        },
+        {
+            "key": "pub_lounge",
+            "sector": "food",
+            "name": "Pubs, bistros & lounges"
+        },
+        {
+            "key": "fmcg_wholesale",
+            "sector": "wholesale",
+            "name": "FMCG & packaged-goods wholesalers",
+            "note": "Tiered prices, cartons to pieces"
+        },
+        {
+            "key": "grain_commodities",
+            "sector": "wholesale",
+            "name": "Grain, flour & bulk commodities"
+        },
+        {
+            "key": "fabric_stockist",
+            "sector": "wholesale",
+            "name": "Garment & fabric stockists"
+        },
+        {
+            "key": "hardware_wholesale",
+            "sector": "wholesale",
+            "name": "Hardware & tools wholesalers"
+        },
+        {
+            "key": "electrical_wholesale",
+            "sector": "wholesale",
+            "name": "Electrical supplies wholesalers"
+        },
+        {
+            "key": "pharma_wholesale",
+            "sector": "wholesale",
+            "name": "Pharmaceutical wholesalers & stockists"
+        },
+        {
+            "key": "tech_distributor",
+            "sector": "wholesale",
+            "name": "Mobile & tech distributors"
+        },
+        {
+            "key": "auto_parts_distributor",
+            "sector": "wholesale",
+            "name": "Auto parts distributors"
+        },
+        {
+            "key": "packaging",
+            "sector": "wholesale",
+            "name": "Packaging & box suppliers"
+        },
+        {
+            "key": "office_supplies",
+            "sector": "wholesale",
+            "name": "Stationery & office supplies"
+        },
+        {
+            "key": "chemicals",
+            "sector": "wholesale",
+            "name": "Chemical & industrial cleaning"
+        },
+        {
+            "key": "import_export",
+            "sector": "wholesale",
+            "name": "Import / export trading firms"
+        },
+        {
+            "key": "commercial_bakery",
+            "sector": "manufacturing",
+            "name": "Commercial bakeries & confectioneries",
+            "note": "Flour and sugar to bread, deducted automatically"
+        },
+        {
+            "key": "tailoring",
+            "sector": "manufacturing",
+            "name": "Tailoring & custom stitching workshops"
+        },
+        {
+            "key": "furniture_maker",
+            "sector": "manufacturing",
+            "name": "Furniture makers & woodworking",
+            "note": "Wood and hardware into a finished table"
+        },
+        {
+            "key": "coffee_spice",
+            "sector": "manufacturing",
+            "name": "Coffee roasters, spice blenders & craft drinks"
+        },
+        {
+            "key": "signage_print",
+            "sector": "manufacturing",
+            "name": "Signage & custom print shops"
+        },
+        {
+            "key": "soap_candle",
+            "sector": "manufacturing",
+            "name": "Soap & candle makers"
+        },
+        {
+            "key": "kit_assembly",
+            "sector": "manufacturing",
+            "name": "Hardware assembly & kit packing"
+        },
+        {
+            "key": "aluminium_glass",
+            "sector": "manufacturing",
+            "name": "Aluminium & glass fabrication"
+        },
+        {
+            "key": "leather_goods",
+            "sector": "manufacturing",
+            "name": "Leather goods & bag makers"
+        },
+        {
+            "key": "custom_merch",
+            "sector": "manufacturing",
+            "name": "Custom gift & merchandise assembly"
+        }
+    ]
+}

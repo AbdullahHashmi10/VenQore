@@ -1,0 +1,1175 @@
+/**
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║  V6 — the dashboard card layer                                            ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
+ *
+ * Ported from `extras/Cards/v6/VenQore Card Builder (LIVE).html`, which is the
+ * output of the three-round design loop and the visual spec this file is built
+ * against. The builder proved the card system in a standalone page; this is the
+ * same system as a stylesheet the product can actually load.
+ *
+ * ── Why a stylesheet and not inline styles ──────────────────────────────────
+ *
+ * The previous DashboardCardFrame carried ~350 lines of inline style objects.
+ * Inline styles cannot express `:hover`, `:focus-within`, `@keyframes`,
+ * `@media (prefers-reduced-motion)` or a descendant selector, so every one of
+ * those had to be re-implemented in JavaScript — which is how the card ended up
+ * with four `onMouseEnter` handlers mutating `style.boxShadow` by hand, and why
+ * its dropdown opened on hover and had no way to close. A card face is a
+ * styling problem. It belongs here.
+ *
+ * ── The seven mechanisms ────────────────────────────────────────────────────
+ *
+ * M1  Exactly one accent-filled card per board, and it is the headline metric.
+ * M2  Three type sizes in the number block. Never two, never four.
+ * M3  The delta is a pill with a glyph, and it is the smallest thing on the card.
+ * M4  Top-aligned content. The fit decides the box; the content sits in it.
+ * M5  One hue in a plot area — accent plus neutrals. No axis spines.
+ * M6  Dark mode is a re-render, not an inversion: the accent card BLOOMS there.
+ * M7  Draw-in on mount, once, then still.
+ *
+ * Everything here is a token. No hex, no raw radius, no raw duration, no
+ * `hover:scale` — that last one is a named, fixed bug (DESIGN-RULES §2.1).
+ */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · THE FRAME
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    background: var(--vq-surface);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-lg);
+    box-shadow: var(--vq-elev-1);
+    padding: var(--vq-space-5);
+    font-family: var(--vq-font-sans);
+    color: var(--vq-text);
+    /* The glare sweep and the accent card's star border both paint to the
+       card's own bounds; without this they run past the corner radius. */
+    overflow: hidden;
+    user-select: none;
+    transition:
+        border-color var(--vq-dur-2) var(--vq-ease-out),
+        box-shadow   var(--vq-dur-2) var(--vq-ease-out),
+        background   var(--vq-dur-2) var(--vq-ease-out),
+        opacity      var(--vq-dur-2) var(--vq-ease-out);
+}
+
+/* Hover moves the border and the shadow. It never scales. */
+.vqc:hover {
+    border-color: var(--vq-line-strong);
+    box-shadow: var(--vq-elev-2);
+}
+
+.vqc:focus-visible,
+.vqc a:focus-visible,
+.vqc button:focus-visible {
+    outline: 2px solid var(--vq-focus);
+    outline-offset: 2px;
+    border-radius: var(--vq-r-sm);
+}
+
+/* ── M1 · the one filled card ─────────────────────────────────────────────
+   The board has to say which number matters. Exactly one card per board takes
+   the fill, and it is the headline — that is enforced server-side by the
+   accent budget, not here. */
+.vqc--accent {
+    background: var(--vq-accent-card);
+    border-color: transparent;
+    color: var(--vq-on-accent-text);
+    box-shadow: var(--vq-glow-accent);
+}
+.vqc--accent:hover {
+    border-color: transparent;
+    box-shadow: var(--vq-glow-accent-strong);
+}
+.vqc--accent .vqc-eyebrow,
+.vqc--accent .vqc-when,
+.vqc--accent .vqc-unit,
+.vqc--accent .vqc-ctx { color: var(--vq-on-accent-muted); }
+.vqc--accent .vqc-value { color: var(--vq-on-accent-text); }
+
+/* M6 · dark is a re-render. The accent card gains an accent edge and the
+   strong bloom, so it separates from a near-black surface without the fill
+   lightening far enough to drop white text under 4.5:1. */
+:root[data-theme="dark"] .vqc--accent,
+html.dark .vqc--accent,
+.vq-dark .vqc--accent {
+    border-color: var(--vq-teal-600);
+    box-shadow: var(--vq-glow-accent-strong);
+}
+:root[data-theme="dark"] .vqc--accent:hover,
+html.dark .vqc--accent:hover,
+.vq-dark .vqc--accent:hover { border-color: var(--vq-teal-500); }
+
+/* States the board puts a card into while it is being moved. */
+.vqc.is-going   { opacity: 0; }
+.vqc.is-dragging { opacity: .55; cursor: grabbing; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · HEADER
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vq-space-3);
+    /* The action buttons were optically 6px below the eyebrow's cap centre
+       until the row was given the button's own height to centre against. */
+    min-height: 26px;
+    flex-shrink: 0;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.vqc-eyebrow {
+    display: block;
+    font-family: var(--vq-font-sans);
+    font-size: var(--vq-fs-eyebrow);
+    line-height: var(--vq-lh-eyebrow);
+    letter-spacing: var(--vq-ls-eyebrow);
+    text-transform: uppercase;
+    font-weight: var(--vq-fw-semi);
+    /* §11: ink-500 measures 4.33:1 at 11px and fails. text-2 is the lightest
+       ink an eyebrow may legally take. */
+    color: var(--vq-text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.vqc-hd-r {
+    display: flex;
+    align-items: center;
+    gap: var(--vq-space-2);
+    flex-shrink: 0;
+}
+
+/* ── Help ──────────────────────────────────────────────────────────────── */
+.vqc-help {
+    display: inline-grid;
+    place-items: center;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--vq-text-3);
+    cursor: help;
+    flex-shrink: 0;
+    transition: color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqc-help:hover { color: var(--vq-accent-text); }
+.vqc--accent .vqc-help { color: var(--vq-on-accent-muted); }
+.vqc--accent .vqc-help:hover { color: var(--vq-on-accent-text); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · TOOLS — grip, edit, delete
+   Rank-1 actions only, and they appear on approach rather than sitting on the
+   face at rest. A board of nine cards showing 27 buttons is 27 things to read
+   before you get to a number.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-tools {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity var(--vq-dur-2) var(--vq-ease-out);
+}
+.vqc:hover .vqc-tools,
+.vqc:focus-within .vqc-tools { opacity: 1; }
+
+.vqc-act {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    border-radius: var(--vq-r-full);
+    background: var(--vq-accent-quiet);
+    color: var(--vq-accent-text);
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqc-act:hover { background: var(--vq-accent-quiet-line); }
+.vqc-act.vqc-grip { cursor: grab; }
+.vqc-act.vqc-grip:active { cursor: grabbing; }
+.vqc-act.vqc-del {
+    background: var(--vq-danger-bg);
+    color: var(--vq-danger-ink);
+}
+.vqc-act.vqc-del:hover { background: var(--vq-danger-line); }
+
+.vqc--accent .vqc-act {
+    background: var(--vq-on-accent-quiet);
+    color: var(--vq-on-accent-text);
+}
+.vqc--accent .vqc-act:hover { background: var(--vq-on-accent-quiet-2); }
+
+/* On the one- and two-row cards there is no header row to hang them off, so
+   they float over the face instead. */
+.vqc--c1 .vqc-tools,
+.vqc--c2 .vqc-tools { position: absolute; top: 6px; right: 6px; z-index: 6; }
+.vqc--c2 .vqc-tools {
+    top: 50%;
+    transform: translateY(-50%);
+    right: 8px;
+    background: var(--vq-surface);
+    border-radius: var(--vq-r-full);
+    padding: 2px;
+}
+.vqc--c2.vqc--accent .vqc-tools { background: transparent; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · PERIOD PICKER — Day / Week / Month / Quarter / Year, on the card face
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-per { position: relative; }
+
+.vqc-per-b {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--vq-font-sans);
+    font-size: var(--vq-fs-caption);
+    font-weight: var(--vq-fw-medium);
+    color: var(--vq-text-2);
+    background: var(--vq-sunken);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-full);
+    padding: 3px var(--vq-space-2) 3px var(--vq-space-3);
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+        border-color var(--vq-dur-2) var(--vq-ease-out),
+        color var(--vq-dur-2) var(--vq-ease-out);
+}
+.vqc-per-b:hover { border-color: var(--vq-line-strong); color: var(--vq-text); }
+.vqc-per-b svg { transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.vqc-per-b[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+.vqc--accent .vqc-per-b {
+    background: var(--vq-on-accent-quiet);
+    border-color: transparent;
+    color: var(--vq-on-accent-text);
+}
+.vqc--accent .vqc-per-b:hover { background: var(--vq-on-accent-quiet-2); }
+
+.vqc-per-m {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    z-index: var(--vq-z-dropdown);
+    display: flex;
+    flex-direction: column;
+    min-width: 104px;
+    background: var(--vq-raised);
+    border: 1px solid var(--vq-line);
+    border-radius: var(--vq-r-md);
+    box-shadow: var(--vq-elev-3);
+    overflow: hidden;
+    animation: vqc-menu-in var(--vq-dur-2) var(--vq-ease-out);
+}
+@keyframes vqc-menu-in {
+    from { opacity: 0; transform: translateY(-5px) scale(.97); }
+    to   { opacity: 1; transform: none; }
+}
+
+.vqc-per-i {
+    text-align: left;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    font-family: var(--vq-font-sans);
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text);
+    padding: var(--vq-space-2) var(--vq-space-3);
+    white-space: nowrap;
+    transition: background var(--vq-dur-1) var(--vq-ease-out);
+}
+.vqc-per-i:hover { background: var(--vq-sunken); }
+.vqc-per-i.is-on {
+    color: var(--vq-accent-text);
+    font-weight: var(--vq-fw-semi);
+    background: var(--vq-accent-quiet);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · THE NUMBER BLOCK — M2, exactly three sizes
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--vq-space-3);
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.vqc-value {
+    font-family: var(--vq-font-numeric);
+    font-size: var(--vq-fs-metric);          /* 38px */
+    font-weight: var(--vq-fw-bold);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    /* Proportional figures in a money column are a typo you can see from
+       across the room. */
+    font-variant-numeric: tabular-nums;
+    color: var(--vq-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+}
+.vqc-value--sm { font-size: var(--vq-fs-metric-sm); }   /* 26px — C2 */
+.vqc-value--xs { font-size: var(--vq-fs-h3); }          /* C1 tile */
+
+.vqc-unit {
+    font-family: var(--vq-font-sans);
+    font-size: var(--vq-fs-small);
+    font-weight: var(--vq-fw-medium);
+    color: var(--vq-text-2);
+    flex-shrink: 0;
+}
+
+/* Negative money gets a minus AND parentheses. Never colour alone — roughly
+   1 in 12 men cannot reliably separate the red from the green. */
+.vqc-value--neg::before { content: "(\2212"; }
+.vqc-value--neg::after  { content: ")"; }
+
+/* The window the figure covers. Never tinted — only the pill carries semantic
+   colour; this is metadata. */
+.vqc-when {
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    margin: 2px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.vqc--accent .vqc-when { color: var(--vq-on-accent-muted); }
+
+/* ── M3 · the delta ────────────────────────────────────────────────────── */
+.vqc-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--vq-font-numeric);
+    font-size: var(--vq-fs-eyebrow);
+    font-weight: var(--vq-fw-bold);
+    font-variant-numeric: tabular-nums;
+    padding: 3px var(--vq-space-2);
+    border-radius: var(--vq-r-full);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.vqc-delta svg { width: 10px; height: 10px; flex-shrink: 0; }
+.vqc-delta--up   { color: var(--vq-success-ink); background: var(--vq-success-bg); }
+.vqc-delta--down { color: var(--vq-danger-ink);  background: var(--vq-danger-bg); }
+.vqc-delta--flat { color: var(--vq-text-2);      background: var(--vq-sunken); }
+/* A pale green pill on a mint fill is invisible, so on the accent card the
+   pill goes to a dark scrim and the GLYPH keeps carrying the direction —
+   which is what M3 actually requires. */
+.vqc--accent .vqc-delta {
+    background: var(--vq-on-accent-wash);
+    color: var(--vq-on-accent-text);
+}
+
+.vqc-ctx {
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · BODY — M4, top-aligned
+   `space-between` on a column pushes the header up and the body down, so a
+   card holding one number stretched that number across whatever height the
+   grid gave it. The fit decides the box; the content sits at the top of it.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-bd {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+}
+
+/* C1 · Tile — icon and label on one line */
+.vqc--c1 { padding: var(--vq-space-4); }
+.vqc--c1 .vqc-bd { justify-content: center; gap: 1px; }
+.vqc--c1 .vqc-label {
+    font-size: var(--vq-fs-small);
+    font-weight: var(--vq-fw-semi);
+    color: var(--vq-text);
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vqc--c1 .vqc-when,
+.vqc--c2 .vqc-when { font-size: var(--vq-fs-eyebrow); }
+
+.vqc-glyph {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--vq-r-md);
+    background: var(--vq-accent-quiet);
+    color: var(--vq-accent-text);
+}
+
+/* C2 · Strip — one KPI on one line.
+   Priority when space runs short: the value never shrinks, the period
+   truncates next, the label gives way first. */
+.vqc--c2 { padding: 0 var(--vq-space-4); justify-content: center; }
+.vqc--c2 .vqc-bd { flex: 0 1 auto; justify-content: center; gap: 1px; }
+.vqc-bd--strip.is-inline {
+    display: grid;
+    align-items: center;
+    grid-template-columns: minmax(0, max-content) max-content minmax(0, 1fr);
+    gap: var(--vq-space-4);
+}
+.vqc-bd--strip.is-inline > * { min-width: 0; }
+.vqc-bd--strip.is-inline .vqc-head { flex: 0 0 auto; flex-wrap: nowrap; white-space: nowrap; }
+.vqc-bd--strip.is-inline .vqc-eyebrow,
+.vqc-bd--strip.is-inline .vqc-when {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
+}
+.vqc-bd--strip.is-inline .vqc-when { text-align: right; }
+/* Make room for the tools rather than letting them land on the number. */
+.vqc--c2:hover .vqc-bd--strip.is-inline .vqc-when { opacity: 0; }
+.vqc-bd--strip.is-inline .vqc-when {
+    transition: opacity var(--vq-dur-1) var(--vq-ease-out);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · CHART HOST
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-host {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    margin-top: var(--vq-space-2);
+}
+/* bklit measures its parent, so the parent has to have one. */
+.vqc-host > * { width: 100%; height: 100%; }
+
+.vqc-host.is-swapping {
+    opacity: .25;
+    transition: opacity var(--vq-dur-1) var(--vq-ease-out);
+}
+
+/* Legend under a multi-series plot. Clicking a key dims its series. */
+.vqc-leg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vq-space-2) var(--vq-space-4);
+    margin-top: var(--vq-space-3);
+    flex-shrink: 0;
+}
+.vqc-leg-i {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vq-space-2);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--vq-font-sans);
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    transition: opacity var(--vq-dur-3) var(--vq-ease-out);
+}
+.vqc-leg-i.is-dim { opacity: .35; }
+.vqc-leg-d { width: 9px; height: 9px; border-radius: var(--vq-r-full); flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · BODY LAYOUTS bklit does not draw
+   A ranking, a feed and a status are not charts. They are lists, and drawing
+   them as SVG was how the old renderers ended up with hand-rolled text nodes.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Ranked rows ───────────────────────────────────────────────────────── */
+.vqc-tb {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vq-space-1);
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+.vqc-tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: var(--vq-space-2) var(--vq-space-3);
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    padding: var(--vq-space-2) 0;
+    border-bottom: 1px solid var(--vq-line-soft);
+    animation: vqc-slide var(--vq-dur-4) var(--vq-ease-out) backwards;
+    animation-delay: var(--d, 0ms);
+}
+.vqc-tr:last-child { border-bottom: 0; }
+@keyframes vqc-slide {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+.vqc-rank {
+    font-family: var(--vq-font-numeric);
+    font-weight: var(--vq-fw-bold);
+    color: var(--vq-text-2);
+    min-width: 16px;
+}
+.vqc-tn {
+    font-weight: var(--vq-fw-medium);
+    color: var(--vq-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vqc-tv {
+    font-family: var(--vq-font-numeric);
+    color: var(--vq-text);
+    font-variant-numeric: tabular-nums;
+}
+/* A fixed rail, so every bar shares one scale — otherwise length stops
+   encoding value and the chart is decoration. */
+.vqc-tbar {
+    width: 64px;
+    height: 5px;
+    border-radius: var(--vq-r-full);
+    background: var(--vq-chart-track-data);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.vqc-tbar i {
+    display: block;
+    height: 100%;
+    border-radius: var(--vq-r-full);
+    background: var(--chart-1);
+    transform-origin: left;
+    animation: vqc-grow var(--vq-dur-4) var(--vq-ease-out) backwards;
+}
+@keyframes vqc-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ── Feed ──────────────────────────────────────────────────────────────── */
+.vqc-fd { width: 8px; height: 8px; border-radius: var(--vq-r-full); flex-shrink: 0; }
+.vqc-ft { font-size: var(--vq-fs-eyebrow); opacity: .75; white-space: nowrap; }
+
+/* ── Breakdown legend, with its own proportional rail ──────────────────── */
+.vqc-blg {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
+    overflow-y: auto;
+}
+.vqc-blg-r {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: var(--vq-space-2) var(--vq-space-3);
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--vq-r-sm);
+    padding: var(--vq-space-2);
+    font-family: var(--vq-font-sans);
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    transition:
+        background var(--vq-dur-2) var(--vq-ease-out),
+        opacity var(--vq-dur-3) var(--vq-ease-out);
+}
+.vqc-blg-r.is-on  { background: var(--vq-sunken); }
+.vqc-blg-r.is-dim { opacity: .4; }
+.vqc-blg-d { width: 9px; height: 9px; border-radius: var(--vq-r-full); }
+.vqc-blg-n {
+    font-weight: var(--vq-fw-semi);
+    color: var(--vq-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vqc-blg-v,
+.vqc-blg-p { font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; }
+.vqc-blg-p { color: var(--vq-text-2); min-width: 34px; text-align: right; }
+/* The groove behind a proportional fill that is already labelled with its own
+   number encodes nothing, so §11 exempts it — but this one IS the whole
+   reading for slices too small to label, so it takes the data track. */
+.vqc-blg-bar {
+    grid-column: 1 / -1;
+    height: 4px;
+    border-radius: var(--vq-r-full);
+    background: var(--vq-chart-track-data);
+    overflow: hidden;
+}
+.vqc-blg-bar i {
+    display: block;
+    height: 100%;
+    border-radius: var(--vq-r-full);
+    transform-origin: left;
+    animation: vqc-grow var(--vq-dur-4) var(--vq-ease-out) backwards;
+}
+
+/* ── Status ────────────────────────────────────────────────────────────── */
+.vqc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--vq-fs-eyebrow);
+    font-weight: var(--vq-fw-semi);
+    padding: 3px var(--vq-space-2);
+    border-radius: var(--vq-r-full);
+    white-space: nowrap;
+}
+.vqc-chip svg { width: 10px; height: 10px; }
+.vqc-chip--ok   { color: var(--vq-success-ink); background: var(--vq-success-bg); }
+.vqc-chip--warn { color: var(--vq-warning);     background: var(--vq-warning-bg); }
+.vqc-chip--bad  { color: var(--vq-danger-ink);  background: var(--vq-danger-bg); }
+
+/* The status card's own headline: a dot with a ripple, and a word. Never the
+   dot alone — colour is not a label. */
+.vqc-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vq-space-3);
+    font-size: var(--vq-fs-h3);
+    font-weight: var(--vq-fw-semi);
+    color: var(--vq-text);
+}
+.vqc-dot i { width: 12px; height: 12px; border-radius: var(--vq-r-full); position: relative; }
+.vqc-dot--ok i   { background: var(--vq-success-ink); }
+.vqc-dot--warn i { background: var(--vq-warning); }
+.vqc-dot--bad i  { background: var(--vq-danger-ink); }
+.vqc-dot i::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: var(--vq-r-full);
+    border: 2px solid currentColor;
+    opacity: .3;
+    animation: vqc-ripple var(--vq-dur-amb) var(--vq-ease-out) infinite;
+    animation-duration: 2400ms;
+}
+.vqc-dot--ok i::after   { color: var(--vq-success-ink); }
+.vqc-dot--warn i::after { color: var(--vq-warning); }
+.vqc-dot--bad i::after  { color: var(--vq-danger-ink); }
+@keyframes vqc-ripple {
+    0%   { transform: scale(.75); opacity: .5; }
+    100% { transform: scale(1.5);  opacity: 0; }
+}
+
+/* ── Scroll, where a body genuinely overflows ──────────────────────────── */
+.vqc-tb, .vqc-blg { scrollbar-width: thin; }
+.vqc-tb::-webkit-scrollbar,
+.vqc-blg::-webkit-scrollbar { width: 6px; }
+.vqc-tb::-webkit-scrollbar-thumb,
+.vqc-blg::-webkit-scrollbar-thumb {
+    background: var(--vq-line-strong);
+    border-radius: var(--vq-r-full);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   9 · STATES — loading, empty, error, locked
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-skel {
+    border-radius: var(--vq-r-sm);
+    background: var(--vq-sunken);
+    position: relative;
+    overflow: hidden;
+}
+.vqc-skel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--vq-line-soft), transparent);
+    animation: vqc-shim var(--vq-dur-shimmer) var(--vq-ease-in-out) infinite;
+}
+@keyframes vqc-shim { to { transform: translateX(100%); } }
+.vqc-skel--eyebrow { height: 11px; width: 40%; }
+.vqc-skel--value   { height: 34px; width: 62%; margin-top: var(--vq-space-3); }
+.vqc-skel--foot    { height: 14px; width: 46%; margin-top: var(--vq-space-3); }
+.vqc-skel--plot    { height: 100%; width: 100%; min-height: 80px; margin-top: var(--vq-space-4); }
+
+/* Empty, error and locked share one centred stack — three states, one shape,
+   so the card does not appear to change size when it changes mood. */
+.vqc-state {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--vq-space-2);
+    padding: var(--vq-space-3) 0;
+}
+.vqc-state-ic {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--vq-r-full);
+    background: var(--vq-sunken);
+    color: var(--vq-text-3);
+}
+.vqc-state-t {
+    font-size: var(--vq-fs-small);
+    font-weight: var(--vq-fw-semi);
+    color: var(--vq-text-2);
+}
+.vqc-state-d {
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    max-width: 30ch;
+    line-height: var(--vq-lh-caption);
+}
+.vqc--error .vqc-state-ic { background: var(--vq-danger-bg); color: var(--vq-danger-ink); }
+/* Plan-locked is a STATUS, not the brand. Teal is reserved. */
+.vqc--locked { border-style: dashed; }
+.vqc--locked .vqc-state-ic { background: var(--vq-sunken); color: var(--vq-text-2); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   10 · ROLLING NUMERALS
+   A figure that changes should be seen to change. Each digit column scrolls to
+   its new glyph; the shape of the number (where the commas and the currency
+   sit) is rebuilt only when it actually differs, so "Rs 1,240 → Rs 1,310"
+   rolls two columns rather than re-rendering the string.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.nf {
+    display: inline-flex;
+    align-items: baseline;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+.nf-c { display: inline-block; }
+.nf-d { height: 1em; overflow: hidden; }
+.nf-col {
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--vq-dur-4) var(--vq-ease-out);
+    will-change: transform;
+}
+.nf-col i { display: block; height: 1em; line-height: 1em; font-style: normal; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   11 · REACTBITS — glare, star border, staggered arrival
+   Three effects from the ReactBits set, adapted to the card surface. They are
+   the difference between a board that looks rendered and a board that looks
+   built, and all three respect reduced motion.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* GlareHover — a light sweeps the face on approach. */
+.vqc-glare {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    border-radius: inherit;
+    background: linear-gradient(-38deg,
+        hsl(0 0% 100% / 0) 60%,
+        var(--vq-glare) 70%,
+        hsl(0 0% 100% / 0) 78%,
+        hsl(0 0% 100% / 0) 100%);
+    background-size: 250% 250%, 100% 100%;
+    background-repeat: no-repeat;
+    background-position: -160% -160%, 0 0;
+    transition: background-position var(--vq-dur-4) var(--vq-ease-out);
+}
+.vqc:hover .vqc-glare { background-position: 160% 160%, 0 0; }
+
+/* StarBorder — only on the one accent card, because it is the one card that
+   is allowed to ask for attention. */
+.vqc--accent::before,
+.vqc--accent::after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    width: 300%;
+    height: 50%;
+    opacity: .55;
+    /* 50%, not --vq-r-full. This is an ELLIPSE, not a surface: the shape is
+       three times wider than the card, so a 999px radius resolves to a stadium
+       with flat sides and the soft sweep renders as two hard slabs across the
+       fill. A percentage radius is the only way to say "ellipse", and the
+       surface-radius scale does not apply to a decorative mask. */
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, var(--vq-on-accent-text) 0%, transparent 62%);
+}
+.vqc--accent::before {
+    top: -13px;
+    left: -250%;
+    animation: vqc-star-top 7s linear infinite alternate;
+}
+.vqc--accent::after {
+    bottom: -13px;
+    right: -250%;
+    animation: vqc-star-bottom 7s linear infinite alternate;
+}
+@keyframes vqc-star-top {
+    0%   { transform: translate(0, 0);    opacity: .7; }
+    100% { transform: translate(100%, 0); opacity: 0; }
+}
+@keyframes vqc-star-bottom {
+    0%   { transform: translate(0, 0);     opacity: .7; }
+    100% { transform: translate(-100%, 0); opacity: 0; }
+}
+.vqc--accent > * { position: relative; z-index: 1; }
+
+/* AnimatedContent — cards arrive in sequence rather than all at once. */
+.vqc {
+    animation: vqc-in var(--vq-dur-4) var(--vq-ease-out) backwards;
+    animation-delay: calc(var(--i, 0) * 45ms);
+}
+@keyframes vqc-in {
+    from { opacity: 0; transform: translateY(16px) scale(.985); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   11b · PLOT SHELLS
+   The frames the bklit charts and the two hand-built bodies sit in.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* A chart component that decides it has nothing to draw returns null. Without
+   this the empty host still claims its flex share and leaves a hole under the
+   number. */
+.vqc-host:empty { display: none; }
+
+/* ── Sparkline under a stat ────────────────────────────────────────────── */
+.vqc-spark-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--vq-space-2);
+    height: 100%;
+    min-height: 0;
+}
+.vqc-spark { flex: 1 1 auto; min-height: 36px; width: 100%; }
+
+/* ── Dial + legend ─────────────────────────────────────────────────────── */
+.vqc-radial {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--vq-space-3);
+    height: 100%;
+    min-height: 0;
+}
+.vqc-dial {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    /* The centre readout scales with the dial rather than the viewport, so a
+       donut in a 3-column card and one in a 6-column card both read. */
+    container-type: inline-size;
+}
+.vqc-dial > * { max-height: 100%; }
+/* The legend takes at most a bit under half, so the dial is never squeezed to
+   a ring of nothing by a breakdown with eight slices. */
+.vqc-radial .vqc-blg { max-height: 46%; flex: 0 1 auto; }
+
+/* Ours, not the library's — absolutely centred over the dial so the resting
+   and hovered readouts are the same element in the same type. */
+.vqc-centre {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-width: 100%;
+    padding: 0 12%;
+}
+.vqc-centre-v {
+    font-family: var(--vq-font-numeric);
+    font-weight: var(--vq-fw-bold);
+    font-variant-numeric: tabular-nums;
+    /* Clamped rather than fixed: an SVG <text> scaling with its viewBox is how
+       a card ends up with a fourth metric size (M2). */
+    font-size: clamp(0.95rem, 20cqw, 1.7rem);
+    color: var(--vq-text);
+    line-height: 1;
+}
+.vqc-centre-k {
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    margin-top: 3px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Gauge ─────────────────────────────────────────────────────────────── */
+.vqc-gauge {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* The library's aspect box is width-driven (`width: 100%` against a fixed
+   ratio). Given a definite height and an auto width it derives the other way
+   round, which is what a card needs — the fit decides the box. */
+.vqc-gauge > div {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+}
+
+/* ── Status ────────────────────────────────────────────────────────────── */
+.vqc-status {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vq-space-3);
+    justify-content: center;
+    height: 100%;
+    min-height: 0;
+}
+.vqc-checks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--vq-space-2);
+    overflow-y: auto;
+}
+.vqc-checks li {
+    display: flex;
+    align-items: center;
+    gap: var(--vq-space-2);
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+}
+.vqc-checks li svg { color: var(--vq-success-ink); flex-shrink: 0; }
+.vqc-checks li.is-bad svg { color: var(--vq-danger-ink); }
+
+/* ── Heatmap ───────────────────────────────────────────────────────────── */
+.vqc-hm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vq-space-2);
+    height: 100%;
+    min-height: 0;
+}
+.vqc-hm-x {
+    display: grid;
+    grid-template-columns: 38px repeat(var(--cols), minmax(0, 1fr));
+    gap: 3px;
+    flex-shrink: 0;
+}
+.vqc-hm-x b,
+.vqc-hm-y b {
+    font-size: var(--vq-fs-eyebrow);
+    font-weight: var(--vq-fw-medium);
+    color: var(--vq-chart-label);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.vqc-hm-b { display: flex; gap: 3px; flex: 1 1 auto; min-height: 0; }
+.vqc-hm-y {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 38px;
+    flex-shrink: 0;
+}
+.vqc-hm-y b { text-align: right; }
+.vqc-hm-g {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 3px;
+    min-width: 0;
+}
+.vqc-hc {
+    border-radius: 3px;
+    min-height: 12px;
+    cursor: default;
+    transition: transform var(--vq-dur-2) var(--vq-ease-out);
+}
+/* Kept small so the lift stays inside the card and never clips its own edge. */
+.vqc-hc:hover { transform: scale(1.045); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   12 · REDUCED MOTION
+   Entrance animations resolve instantly; nothing loops. Not shortened — a 1ms
+   animation still schedules a frame and still moves.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+    .vqc,
+    .vqc-act,
+    .vqc-glare,
+    .vqc-per-m,
+    .vqc--accent::before,
+    .vqc--accent::after,
+    .vqc-dot i::after,
+    .vqc-tr,
+    .vqc-tbar i,
+    .vqc-blg-bar i,
+    .vqc-skel::after,
+    .vqc-hc,
+    .nf-col {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Stat card bodies — the three reads under a number that are not a sparkline.
+
+   A figure with no context cannot be acted on. `spark` answers "which way";
+   these answer "against what" and "how far it ranged". The frame states the
+   label, the value and the window above all of them, so each of these draws
+   only the part the frame does not.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc-stat {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--vq-space-3);
+    height: 100%;
+    min-height: 0;
+}
+
+.vqc-stat-note {
+    margin: 0;
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+    line-height: 1.45;
+}
+
+.vqc-cmp {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) max-content;
+    align-items: center;
+    gap: var(--vq-space-3);
+    font-size: var(--vq-fs-caption);
+    color: var(--vq-text-2);
+}
+
+.vqc-cmp-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vqc-cmp-track {
+    height: 8px;
+    border-radius: var(--vq-r-full);
+    background: var(--vq-chart-track-data);
+    overflow: hidden;
+}
+
+.vqc-cmp-track i {
+    display: block;
+    height: 100%;
+    border-radius: var(--vq-r-full);
+    transform-origin: left;
+    animation: vqcBarGrow var(--vq-dur-4) var(--vq-ease-out) backwards;
+}
+
+.vqc-cmp-value {
+    font-family: var(--vq-font-numeric);
+    font-variant-numeric: tabular-nums;
+    color: var(--vq-text);
+}
+
+@keyframes vqcBarGrow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+
+.vqc-stat--facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--vq-space-3);
+    align-content: center;
+}
+
+.vqc-fact {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    padding: var(--vq-space-2) var(--vq-space-3);
+    background: var(--vq-sunken);
+    border-radius: var(--vq-r-md);
+}
+
+.vqc-fact span {
+    font-size: var(--vq-fs-eyebrow);
+    letter-spacing: var(--vq-ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--vq-text-2);
+}
+
+.vqc-fact b {
+    font-family: var(--vq-font-numeric);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--vq-fs-small);
+    color: var(--vq-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vqc-fact em {
+    font-style: normal;
+    font-size: var(--vq-fs-eyebrow);
+    color: var(--vq-text-2);
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vqc-cmp-track i { animation: none; }
+}

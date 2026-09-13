@@ -1,0 +1,697 @@
+<?php
+
+namespace App\Services\SmartCapture;
+
+use App\Exceptions\SmartCapture\AiModelUnavailableException;
+use App\Exceptions\SmartCapture\AiRateLimitException;
+use App\Models\Setting;
+use App\Services\Ai\AiUsageRecorder;
+use App\Services\Ai\Providers\SmartCaptureExtractionBridge;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * AiExtractionService — multi-provider AI extraction engine for SmartCapture (AI Scan).
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * REQUEST BUDGET CONTRACT (read this before changing anything in here)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * ONE SCAN == ONE UPSTREAM API REQUEST.
+ *
+ * Every image/PDF page, the catalog, the party list and the learned aliases are
+ * packed into a single multimodal call. There is no per-file call, no retry
+ * loop, and no speculative model chain.
+ *
+ * The only case where a second request may be sent is when the provider replies
+ * "this model does not exist for your key" (404 / 400 model-not-found), because
+ * substituting the model is the actual fix. Rate limits (429), server errors
+ * (5xx), timeouts and JSON parse failures are surfaced to the user directly.
+ * Retrying those was the cause of free-tier quota exhaustion.
+ *
+ * Concurrency: calls sharing one API key can optionally be paced
+ * (config smartcapture.pace_ms) so several staff scanning simultaneously never
+ * burst past a free-tier per-minute limit.
+ *
+ * Tenant isolation: the store's API key is read with an explicit tenant_id
+ * query — never via the shared settings cache — so a key can never bleed
+ * across tenants.
+ *
+ * Supports: Gemini, OpenAI, Anthropic (Claude), DeepSeek.
+ * Inputs:
+ *  - image : one to N (config max_files) base64 images / PDFs, pages of ONE document
+ *  - audio : a single base64 audio clip (recorded or uploaded)
+ *  - text  : raw pasted / typed text
+ */
+class AiExtractionService
+{
+    /** Number of upstream HTTP calls made by the last extract() invocation. */
+    public int $lastRequestCount = 0;
+
+    /** Model that actually produced the last successful result. */
+    public ?string $lastModelUsed = null;
+
+    /** Token usage reported by the provider for the last call, if any. */
+    public array $lastUsage = [];
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Configuration resolution
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Read a SmartCapture setting for the CURRENT tenant only.
+     *
+     * Deliberately bypasses SettingsHelper: that helper caches per tenant but
+     * also falls back to global (tenant_id = null) rows, which would let a
+     * platform-level row masquerade as a store's own BYOK key. API keys must be
+     * resolved strictly, with no fallback and no shared cache.
+     */
+    private function tenantSetting(string $key): ?string
+    {
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        if (!$tenant) {
+            return null;
+        }
+
+        $value = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', $key)
+            ->value('value');
+
+        $value = is_string($value) ? trim($value) : $value;
+
+        return ($value === '' || $value === null) ? null : $value;
+    }
+
+    /**
+     * Resolve the effective AI configuration for the current tenant.
+     *
+     * @param  string|null  $feature  Which prompt/model to use (e.g. 'scan'). Purely
+     *                                a model-selection hint — NEVER used to decide
+     *                                which API key to bill. That decision belongs to
+     *                                $entitlementMode alone (see the platform-fallback
+     *                                branch below): a free-tier tenant's scan must
+     *                                always hit SMART_CAPTURE_FREE_API_KEY, regardless
+     *                                of which feature string the caller passes.
+     * @param  string|null  $entitlementMode  The 'mode' from AiEntitlementService::check()
+     *                                — 'free' | 'managed' | 'byok' | 'staff'. Pass this
+     *                                explicitly from every real request path; omitting it
+     *                                now defaults to the SAFEST option (free key) rather
+     *                                than silently falling back to the paid key.
+     * @return array{provider:string, api_key:?string, model:string, byok:bool}
+     */
+    public function resolveConfig(?string $feature = null, ?string $entitlementMode = null): array
+    {
+        // 1. Dedicated per-store SmartCapture settings (BYOK) — strictly tenant-scoped
+        $tenantKey = $this->tenantSetting('smartcapture_api_key');
+
+        if ($tenantKey !== null) {
+            $provider = $this->normalizeProvider($this->tenantSetting('smartcapture_provider') ?: 'gemini');
+            $model = $this->tenantSetting('smartcapture_model');
+            if (!$model && $feature) {
+                $model = config("smartcapture.feature_models.{$feature}");
+            }
+            return [
+                'provider' => $provider,
+                'api_key'  => $tenantKey,
+                'model'    => $model ?: config("smartcapture.default_models.{$provider}"),
+                'byok'     => true,
+            ];
+        }
+
+        // 2. Legacy tenant chatbot key (historically a Gemini key) — also tenant-scoped
+        $legacyKey = $this->tenantSetting('chatbot_api_key') ?? $this->tenantSetting('openai_api_key');
+        if ($legacyKey !== null) {
+            $model = null;
+            if ($feature) {
+                $model = config("smartcapture.feature_models.{$feature}");
+            }
+            return [
+                'provider' => 'gemini',
+                'api_key'  => $legacyKey,
+                'model'    => $model ?: config('smartcapture.default_models.gemini'),
+                'byok'     => true,
+            ];
+        }
+
+        // 3. Platform-level fallback (managed / free tiers)
+        //
+        // Branch on ENTITLEMENT MODE, not feature name. The feature string
+        // ('scan', 'match_fallback', ...) only ever selects a model/prompt —
+        // it says nothing about whether the tenant is paying. Keying the free
+        // key off $feature === 'public_tool' meant every real scan (feature
+        // 'scan') silently fell through to the paid key, so free-tier tenants
+        // burned the platform's dedicated Gemini key on every one of their 10
+        // free scans. 'staff' also gets the free key: staff previews must
+        // never spend the paid key either.
+        // Platform keys come from the Hashmi Dashboard (free pool + paid pool
+        // per provider), falling back to .env. See App\Support\PlatformAiKeys.
+        $keys = new \App\Support\PlatformAiKeys();
+        $defaultProvider = $this->normalizeProvider(config('smartcapture.provider', 'gemini'));
+
+        $usesFreeKey = in_array($entitlementMode, ['free', 'staff', 'public_tool'], true)
+            || $feature === 'public_tool'   // explicit public (unauthenticated) tool surfaces
+            || $entitlementMode === null;   // unknown entitlement — default to the SAFE key, never the paid one
+
+        $dashboardModel = null;
+        if ($usesFreeKey) {
+            [$key, $keyProvider, $fromFreePool] = $keys->freeTierKey('gemini');
+            $provider = $keyProvider ?: 'gemini';
+            $dashboardModel = $fromFreePool ? $keys->freeModel() : null;
+        } else {
+            // 'managed' (paid usage-based) and any other explicitly-paying mode
+            $provider = $this->normalizeProvider($keys->paidProvider() ?: $defaultProvider);
+            $key = $keys->paidKey($provider);
+            $dashboardModel = $keys->paidModel();
+        }
+
+        // Feature models are Gemini model names; only use them for Gemini.
+        $featureModel = ($feature && $provider === 'gemini') ? config("smartcapture.feature_models.{$feature}") : null;
+        $fallbackModel = $provider === 'gemini'
+            ? (config('smartcapture.model') ?: config("smartcapture.default_models.gemini"))
+            : config("smartcapture.default_models.{$provider}");
+
+        return [
+            'provider' => $provider,
+            'api_key'  => $key ?: null,
+            'model'    => $dashboardModel ?: ($featureModel ?: $fallbackModel),
+            'byok'     => false,
+        ];
+    }
+
+    /** Whether the current tenant has ANY usable key (own key or platform fallback). */
+    public function hasKey(): bool
+    {
+        return !empty($this->resolveConfig()['api_key']);
+    }
+
+    /** Whether the current tenant configured their own key. */
+    public function hasOwnKey(): bool
+    {
+        return (bool) $this->resolveConfig()['byok'];
+    }
+
+    /** Whether the resolved provider supports the given input type. */
+    public function supports(string $inputType): bool
+    {
+        $provider = $this->resolveConfig()['provider'];
+        return (bool) config("smartcapture.capabilities.{$provider}.{$inputType}", false);
+    }
+
+    private function normalizeProvider(?string $provider): string
+    {
+        $p = strtolower(trim((string) $provider));
+        return in_array($p, ['gemini', 'openai', 'anthropic', 'deepseek'], true) ? $p : 'gemini';
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Extraction
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Extract structured transaction data. Costs exactly one upstream request
+     * (see the request budget contract in the class docblock).
+     *
+     * @param string $inputType 'image' | 'audio' | 'text'
+     * @param array  $payload   image => [['base64'=>..,'mime'=>..], ...]
+     *                          audio => ['base64'=>..,'mime'=>..]
+     *                          text  => ['text'=>..]
+     * @param array  $context   ['existing_products'=>[], 'parties'=>[],
+     *                           'expense_categories'=>[], 'learned_aliases'=>[]]
+     *
+     * @throws AiRateLimitException when the key is rate limited / out of quota
+     */
+    public function extract(
+        string $inputType,
+        array $payload,
+        ?string $targetType = null,
+        ?string $customCommand = null,
+        array $context = []
+    ): array {
+        $this->lastRequestCount = 0;
+        $this->lastModelUsed = null;
+        $this->lastUsage = [];
+
+        // entitlement_mode MUST come from the caller's AiEntitlementService
+        // check for this request — never inferred from $context['feature'].
+        $config = $this->resolveConfig($context['feature'] ?? 'scan', $context['entitlement_mode'] ?? null);
+
+        if (empty($config['api_key'])) {
+            throw new \Exception('No AI API key is configured. Add your own key in AI Scan settings.');
+        }
+
+        if (!config("smartcapture.capabilities.{$config['provider']}.{$inputType}", false)) {
+            $pretty = ucfirst($config['provider']);
+            throw new \Exception("{$pretty} does not support {$inputType} input. Switch the AI provider in AI Scan settings (Gemini supports photos, audio and text).");
+        }
+
+        $prompt = $this->buildPrompt($inputType, $targetType, $customCommand, $context);
+
+        // Server-side image verification (T0-5): reject images under 400px
+        if ($inputType === 'image' && is_array($payload)) {
+            foreach ($payload as $file) {
+                if (!empty($file['base64'])) {
+                    $rawBinary = @base64_decode($file['base64']);
+                    if ($rawBinary) {
+                        $info = @getimagesizefromstring($rawBinary);
+                        if ($info && isset($info[0], $info[1])) {
+                            if ($info[0] < 400 || $info[1] < 400) {
+                                throw new \Exception("Image resolution ({$info[0]}x{$info[1]}px) is too low. Please upload a clear photo of at least 400x400 pixels.");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Attempt 1 — the configured model. This is the ONLY request in the
+        // overwhelming majority of scans.
+        try {
+            return $this->parseJson($this->dispatch($config, $config['model'], $inputType, $payload, $prompt));
+        } catch (AiModelUnavailableException $e) {
+            // The configured model genuinely does not exist for this key.
+            // Substituting is the fix, so one extra request is justified here.
+            if (!config('smartcapture.substitute_on_missing_model', true)) {
+                throw new \Exception($e->getMessage());
+            }
+
+            $substitute = $this->firstSubstituteModel($config);
+
+            if ($substitute === null) {
+                throw new \Exception(
+                    "The model '{$config['model']}' is not available for your API key, and no substitute is configured. "
+                    . 'Pick a different model in AI Scan settings.'
+                );
+            }
+
+            Log::warning("SmartCapture: model '{$config['model']}' unavailable, substituting '{$substitute}'.");
+
+            try {
+                $result = $this->parseJson($this->dispatch($config, $substitute, $inputType, $payload, $prompt));
+                $this->rememberWorkingModel($substitute);
+                return $result;
+            } catch (AiModelUnavailableException $inner) {
+                throw new \Exception(
+                    "Neither '{$config['model']}' nor the substitute '{$substitute}' is available for your API key. "
+                    . 'Open AI Scan settings and choose a model from the discovered list.'
+                );
+            }
+        }
+    }
+
+    /**
+     * Batch match-fallback call for unmatched line items (T1-5).
+     * Sends unmatched names + top 10 candidate shortlists in ONE single Flash-Lite call.
+     */
+    public function matchFallback(array $unmatchedItems, array $candidateLists): array
+    {
+        if (empty($unmatchedItems)) {
+            return [];
+        }
+
+        $config = $this->resolveConfig('match_fallback');
+        $prompt = "You are matching unmatched receipt line items to candidate store products.\n"
+            . "Unmatched items and candidate options:\n"
+            . json_encode(['unmatched' => $unmatchedItems, 'candidates' => $candidateLists]) . "\n"
+            . "Return a JSON object mapping each unmatched item name to best matched product_id or null.";
+
+        try {
+            $raw = $this->dispatch($config, $config['model'], 'text', ['text' => $prompt], $prompt);
+            return $this->parseJson($raw);
+        } catch (\Throwable $e) {
+            Log::warning("Match fallback call failed: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Validate audio file duration and calculate page credit consumption (T1-7).
+     * Max duration 180s on server. Returns credits to deduct (1 credit per 30s started).
+     */
+    public function validateAudioDuration(int $durationSeconds): int
+    {
+        if ($durationSeconds > 180) {
+            throw new \Exception("Audio memo exceeds maximum duration of 180 seconds. Please upload a shorter recording.");
+        }
+
+        return (int) ceil(max(1, $durationSeconds) / 30.0);
+    }
+
+    /**
+     * Inspect PDF page count and chunk into documents of max 5 pages (T1-8).
+     */
+    public function validatePdfPages(int $pageCount): array
+    {
+        if ($pageCount <= 0) {
+            $pageCount = 1;
+        }
+
+        $chunks = (int) ceil($pageCount / 5.0);
+
+        return [
+            'total_pages'  => $pageCount,
+            'chunks_count' => $chunks,
+            'credits_cost' => $pageCount,
+        ];
+    }
+
+    /**
+     * First substitute model that differs from the one that just failed.
+     */
+    private function firstSubstituteModel(array $config): ?string
+    {
+        $chain = (array) config("smartcapture.fallback_models.{$config['provider']}", []);
+
+        foreach ($chain as $candidate) {
+            if ($candidate !== $config['model']) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Persist a model that proved to work, so the next scan starts with it and
+     * does not pay the substitution request again.
+     */
+    private function rememberWorkingModel(string $model): void
+    {
+        try {
+            $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+            if (!$tenant || $this->tenantSetting('smartcapture_api_key') === null) {
+                return; // only rewrite a store's own explicit configuration
+            }
+
+            Setting::withoutGlobalScopes()->updateOrCreate(
+                ['tenant_id' => $tenant->id, 'key' => 'smartcapture_model'],
+                ['value' => $model]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('SmartCapture: could not persist working model — ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Route to the right provider transport via SmartCaptureExtractionBridge,
+     * applying key pacing and counting the request against the budget.
+     *
+     * All upstream HTTP calls and provider URLs live in SmartCaptureExtractionBridge
+     * (app/Services/Ai/Providers/) — AiExtractionService contains zero endpoint URLs.
+     */
+    private function dispatch(array $config, string $model, string $inputType, array $payload, string $prompt): string
+    {
+        $this->awaitKeyTurn($config['api_key']);
+
+        $this->lastRequestCount++;
+        $this->lastModelUsed = $model;
+
+        $bridge   = app(SmartCaptureExtractionBridge::class);
+        $recorder = app(AiUsageRecorder::class);
+
+        $raw = match ($config['provider']) {
+            'gemini'    => $bridge->callGemini($config['api_key'], $model, $inputType, $payload, $prompt, $recorder),
+            'openai'    => $bridge->callOpenAi($config['api_key'], $model, $inputType, $payload, $prompt, $recorder),
+            'anthropic' => $bridge->callAnthropic($config['api_key'], $model, $inputType, $payload, $prompt, $recorder),
+            'deepseek'  => $bridge->callDeepSeek($config['api_key'], $model, $inputType, $payload, $prompt, $recorder),
+            default     => throw new \Exception("Unsupported provider: {$config['provider']}"),
+        };
+
+        // Sync lastUsage from bridge — bridge records telemetry internally but
+        // AiExtractionService exposes lastUsage for SmartCaptureController.
+        // We trust the bridge recorded the correct values; a future refactor
+        // can expose them via return type if needed.
+        return $raw;
+    }
+
+
+    /**
+     * Space out calls that share one API key so simultaneous users on a
+     * free-tier key never burst past its per-minute allowance.
+     *
+     * No-op when smartcapture.pace_ms is 0 (the setting for a paid key).
+     */
+    private function awaitKeyTurn(string $apiKey): void
+    {
+        $paceMs = (int) config('smartcapture.pace_ms', 0);
+        if ($paceMs <= 0) {
+            return;
+        }
+
+        $maxWaitMs = (int) config('smartcapture.pace_max_wait_ms', 30000);
+        $slot      = 'smartcapture:pace:' . substr(hash('sha256', $apiKey), 0, 32);
+        $waitedMs  = 0;
+
+        while (true) {
+            $lastAt = (float) Cache::get($slot, 0);
+            $now    = microtime(true);
+            $dueAt  = $lastAt + ($paceMs / 1000);
+
+            if ($now >= $dueAt) {
+                // Claim the slot before sleeping ends so a parallel request queues behind us.
+                Cache::put($slot, $now, now()->addSeconds(120));
+                return;
+            }
+
+            $sleepMs = (int) min(500, ceil(($dueAt - $now) * 1000));
+
+            if ($waitedMs + $sleepMs > $maxWaitMs) {
+                throw new AiRateLimitException(
+                    'Several scans are already queued on this API key. Please try again in a moment.',
+                    retryAfterSeconds: (int) ceil($paceMs / 1000)
+                );
+            }
+
+            usleep($sleepMs * 1000);
+            $waitedMs += $sleepMs;
+        }
+    }
+
+    /**
+     * Lightweight connectivity test for the settings screen.
+     * Costs exactly one request. Returns ['ok'=>bool,'message'=>string].
+     */
+    public function testConnection(string $provider, string $apiKey, ?string $model = null): array
+    {
+        $provider = $this->normalizeProvider($provider);
+        $model = $model ?: config("smartcapture.default_models.{$provider}");
+        $probe = 'Reply with exactly this JSON and nothing else: {"ok": true}';
+
+        try {
+            $raw = match ($provider) {
+                'gemini'    => $this->callGemini($apiKey, $model, 'text', ['text' => 'ping'], $probe),
+                'openai'    => $this->callOpenAi($apiKey, $model, 'text', ['text' => 'ping'], $probe),
+                'anthropic' => $this->callAnthropic($apiKey, $model, 'text', ['text' => 'ping'], $probe),
+                'deepseek'  => $this->callDeepSeek($apiKey, $model, 'text', ['text' => 'ping'], $probe),
+            };
+
+            return ['ok' => true, 'message' => "Connected to {$provider} ({$model}) successfully."];
+        } catch (AiRateLimitException $e) {
+            return ['ok' => false, 'message' => 'The key is valid but currently rate limited: ' . $e->getMessage()];
+        } catch (AiModelUnavailableException $e) {
+            return ['ok' => false, 'message' => "The key works, but the model '{$model}' is not available to it. Choose another model from the list."];
+        } catch (\Exception $e) {
+            return ['ok' => false, 'message' => 'Connection failed: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Discover the models this key may actually use, so the settings drawer can
+     * offer a live list instead of a hardcoded one that goes stale.
+     *
+     * Delegates to SmartCaptureExtractionBridge — all discovery URLs live there.
+     *
+     * @return array<int, array{id:string, label:string}>
+     */
+    public function listModels(string $provider, string $apiKey): array
+    {
+        return app(SmartCaptureExtractionBridge::class)->listModels($provider, $apiKey);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Prompt & parsing
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function parseJson(string $text): array
+    {
+        $clean = trim($text);
+
+        if (str_starts_with($clean, '```')) {
+            $clean = preg_replace('/^```(?:json)?/i', '', $clean);
+            $clean = preg_replace('/```$/', '', $clean);
+            $clean = trim($clean);
+        }
+
+        // Salvage: grab the outermost JSON object if the model added prose around it
+        if (!str_starts_with($clean, '{')) {
+            $start = strpos($clean, '{');
+            $end   = strrpos($clean, '}');
+            if ($start !== false && $end !== false && $end > $start) {
+                $clean = substr($clean, $start, $end - $start + 1);
+            }
+        }
+
+        $decoded = json_decode($clean, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            throw new \Exception('The AI response could not be read as structured data. Try scanning again with a clearer photo.');
+        }
+
+        return $this->normalizeTerseResult($decoded);
+    }
+
+    /**
+     * Map short terse schema keys (a, pt, d, rf, dc, it, n, q, p, t, sc, c)
+     * back to normalized internal shape.
+     */
+    private function normalizeTerseResult(array $data): array
+    {
+        $itemsRaw = $data['it'] ?? $data['items'] ?? [];
+        $items = [];
+
+        foreach ($itemsRaw as $item) {
+            $items[] = [
+                'name'          => $item['n'] ?? $item['name'] ?? '',
+                'qty'           => isset($item['q']) ? (float) $item['q'] : (isset($item['qty']) ? (float) $item['qty'] : 1.0),
+                'unit_price'    => isset($item['p']) ? (float) $item['p'] : (isset($item['unit_price']) ? (float) $item['unit_price'] : null),
+                'line_total'    => isset($item['t']) ? (float) $item['t'] : (isset($item['line_total']) ? (float) $item['line_total'] : null),
+                'supplier_code' => $item['sc'] ?? $item['supplier_code'] ?? null,
+                'confidence'    => (int) ($item['c'] ?? $item['confidence'] ?? 80),
+            ];
+        }
+
+        return [
+            'action'              => $data['a'] ?? $data['action'] ?? 'purchase',
+            'party'               => $data['pt'] ?? $data['party'] ?? null,
+            'date'                => $data['d'] ?? $data['date'] ?? null,
+            'reference'           => $data['rf'] ?? $data['reference'] ?? null,
+            'document_confidence' => (int) ($data['dc'] ?? $data['document_confidence'] ?? 80),
+            'items'               => $items,
+        ];
+    }
+
+    private function buildPrompt(string $inputType, ?string $targetType, ?string $customCommand, array $context): string
+    {
+        $sourceDescription = match ($inputType) {
+            'image' => "You will receive one or more photos/scans (up to 5) that together form ONE business document — a printed OR HANDWRITTEN receipt, invoice, bill, delivery note, order list, ledger page or scribbled note. Multiple images are pages/sections of the SAME document: merge them into a single result and do NOT duplicate line items that appear across overlapping photos.",
+            'audio' => "You will receive a voice memo. Transcribe it carefully (it may be in any language or mix languages) and extract the transaction it describes.",
+            default => "You will receive raw text (typed or pasted) describing a business transaction — it may be an itemised list, a copied invoice, chat message, or free-form note.",
+        };
+
+        $prompt = "You are a precise data extraction engine for a retail POS and ERP system.\n"
+            . $sourceDescription . "\n"
+            . "Return ONLY a valid JSON object. No explanation. No markdown fences.\n"
+            . "Output structure using terse short keys:\n"
+            . "{\n"
+            . "  \"a\": \"purchase\" | \"sale\" | \"expense\" | \"return\" | \"proposal\" | \"pre_invoice\" | \"pre_purchase\" | \"recurring_invoice\" | \"purchase_return\",\n"
+            . "  \"pt\": \"supplier or customer name, or null\",\n"
+            . "  \"d\": \"YYYY-MM-DD or null\",\n"
+            . "  \"rf\": \"invoice/bill/receipt number or null\",\n"
+            . "  \"dc\": 0-100 — document confidence,\n"
+            . "  \"it\": [\n"
+            . "    {\n"
+            . "      \"n\": \"item name as written\",\n"
+            . "      \"q\": number,\n"
+            . "      \"p\": number or null,\n"
+            . "      \"t\": number or null,\n"
+            . "      \"sc\": supplier item code or null,\n"
+            . "      \"c\": 0-100 — confidence\n"
+            . "    }\n"
+            . "  ]\n"
+            . "}\n\n"
+            . "ACTION MAPPING RULES:\n"
+            . "- 'purchase'          : bill/invoice FROM a supplier (goods received).\n"
+            . "- 'sale'              : checkout ticket / customer receipt / invoice TO a customer.\n"
+            . "- 'expense'           : operating expense (electricity, rent, internet, fuel, salaries, fees).\n"
+            . "- 'return'            : customer return / credit note.\n"
+            . "- 'proposal'          : quote/estimate for a customer.\n"
+            . "- 'pre_invoice'       : sales order / booking confirmation.\n"
+            . "- 'pre_purchase'      : purchase order TO a supplier (goods not yet received).\n"
+            . "- 'recurring_invoice' : recurring/subscription invoice template.\n"
+            . "- 'purchase_return'   : debit note / return to supplier.\n\n"
+            . "HANDWRITING PROTOCOL (apply to every handwritten source):\n"
+            . "1. Establish the column layout first — most handwritten bills are [item] [qty] [rate] [amount], but some are [item] [amount] only. Decide which before reading values.\n"
+            . "2. Read the whole column top-to-bottom before committing to any digit. A writer's '7' is consistent down the page; use their other digits as a key.\n"
+            . "3. Arithmetic is your proof-reader. For each row check qty x unit_price = line_total. If it does not hold, re-read the least legible of the three numbers and correct it so the row balances.\n"
+            . "4. Cross-check the column sum against any written subtotal/total. If your extracted lines do not add up to the written total, re-examine the lines rather than inventing an adjustment.\n"
+            . "5. Common handwriting confusions to resolve using row arithmetic and the catalog: 1/7, 0/6/8, 3/8, 5/6, 2/7, 4/9, and a trailing '/-' or '=' meaning 'rupees'.\n"
+            . "6. Local numeral forms (Urdu/Arabic-Indic ٠١٢٣٤٥٦٧٨٩, Devanagari ०१२३४५६७८९) must be converted to Western digits.\n"
+            . "7. Do not merge two short lines into one item, and do not split one item across two lines because it wrapped.\n\n"
+            . "EXTRACTION ACCURACY RULES (CRITICAL):\n"
+            . "- If a line total and quantity are visible but unit price is not, derive unit_price = line_total / qty.\n"
+            . "- If quantity is not visible/spoken, use 1. If unit price is truly unknown, use null.\n"
+            . "- Capture EVERY line item. Do not skip small or partially legible lines; extract your best reading.\n"
+            . "- Never invent products, parties, prices or quantities that are not in the source.\n"
+            . "- Ignore non-item lines like subtotal, tax, total, discount, thank-you notes and shop slogans — but use them to validate your numbers.\n"
+            . "- Dates: interpret ambiguous formats using the day-first convention unless the document clearly shows otherwise, and never return a date in the future.\n"
+            . "- Set confidence per item honestly. A confident wrong answer costs the user money; an honest low score simply asks them to glance at it.";
+
+        if ($targetType) {
+            $prompt .= "\n\n[TARGET DOCUMENT TYPE]\nThe user explicitly requested to create a '{$targetType}'. You MUST set \"action\" to exactly '{$targetType}'.";
+        }
+
+        if (!empty($context['document_type'])) {
+            $docType = $context['document_type'];
+            $prompt .= "\n\n[DOCUMENT FORMAT HINT]\nThe user specified this document is a '{$docType}'. Tailor your extraction specifically for a {$docType}.";
+        }
+
+        if (!empty($context['is_handwritten'])) {
+            $prompt .= "\n\n[PRIORITY NOTICE: HANDWRITTEN DOCUMENT]\nThis document is explicitly flagged as HANDWRITTEN. Apply extra scrutiny using the HANDWRITING PROTOCOL above.";
+        }
+
+        if ($customCommand) {
+            $prompt .= "\n\n[USER INSTRUCTIONS]\nRespect these additional user instructions while extracting:\n\"{$customCommand}\"";
+        }
+
+        // ── Learned aliases: this store's own corrections, highest authority ──
+        $learned = $context['learned_aliases'] ?? [];
+        if (!empty($learned)) {
+            $prompt .= "\n\n[THIS STORE'S CONFIRMED VOCABULARY]\n"
+                . "Staff at this store previously corrected the following readings. These mappings are GROUND TRUTH for this store — they outrank your own guess and the catalog search.\n"
+                . json_encode($learned) . "\n"
+                . "If a source line matches a \"heard\" value (exactly, phonetically, or as an obvious variant/abbreviation), output that entry's \"name\" verbatim.";
+        }
+
+        $existingProducts = $context['existing_products'] ?? [];
+        if (!empty($existingProducts)) {
+            $prompt .= "\n\n[STORE PRODUCT CATALOG]\n"
+                . "This store's catalog:\n"
+                . json_encode($existingProducts) . "\n\n"
+                . "TRANSLATION & CATALOG MAPPING RULES:\n"
+                . "1. The source may be in any language (Urdu, Hindi, Arabic, French, Spanish...) or use local/colloquial words ('pani' = water, 'doodh' = milk, 'aloo' = potato). Translate all item names, party names and descriptions to English.\n"
+                . "2. Before finalizing each item name, cross-reference it against the catalog above (exact, phonetic or semantic match).\n"
+                . "3. A catalog match must be a genuine match. If guessing, lower item confidence.\n"
+                . "4. If no catalog product corresponds, translate the name to English and output it as-is.";
+        } else {
+            $prompt .= "\n\nTRANSLATION RULES:\nThe source may be in any language. Translate all extracted item names, party names and descriptions to English.";
+        }
+
+        $parties = $context['parties'] ?? [];
+        if (!empty($parties)) {
+            $prompt .= "\n\n[KNOWN CUSTOMERS & SUPPLIERS]\n"
+                . json_encode($parties) . "\n"
+                . "If the party in the source matches one of these (including phonetic/partial matches), output the EXACT name from this list as \"party\".";
+        }
+
+        $categories = $context['expense_categories'] ?? [];
+        if (!empty($categories)) {
+            $prompt .= "\n\n[EXPENSE CATEGORIES]\n"
+                . json_encode($categories) . "\n"
+                . "If action is 'expense', set \"expense_category\" to the closest category name from this list (or null if none fits).";
+        }
+
+        // ── Party chosen by the user before scanning (SmartCaptureController) ──
+        // Telling the model who the document belongs to stops it inventing a
+        // party from a letterhead or a slogan, and lets the controller flag a
+        // mismatch (e.g. a supplier bill scanned against a chosen customer)
+        // instead of silently using the model's own guess.
+        $knownParty = $context['known_party'] ?? null;
+        if (!empty($knownParty)) {
+            $prompt .= "\n\n[PARTY CHOSEN BEFORE SCANNING]\n"
+                . "The user has already told us this document belongs to: "
+                . json_encode($knownParty) . "\n"
+                . "Use this as the party unless the document clearly names a different party — in that case, extract what the document actually says and let the app flag the mismatch.";
+        }
+
+        return $prompt;
+    }
+}

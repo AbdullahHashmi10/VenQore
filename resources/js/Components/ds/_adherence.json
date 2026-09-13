@@ -1,0 +1,477 @@
+{
+  "$generated": "scripts/ds-adherence.mjs — do not hand-edit. Source: resources/js/Components/ds/**/*.d.ts",
+  "modules": [
+    "@/Components/ds"
+  ],
+  "modulePrefix": "@/Components/ds/",
+  "universal": [
+    "key",
+    "ref"
+  ],
+  "components": {
+    "Avatar": {
+      "source": "core/Avatar.d.ts",
+      "props": [
+        "name",
+        "src",
+        "size",
+        "ring",
+        "style"
+      ],
+      "required": []
+    },
+    "AvatarStack": {
+      "source": "core/Avatar.d.ts",
+      "props": [
+        "people",
+        "size",
+        "max"
+      ],
+      "required": []
+    },
+    "Badge": {
+      "source": "core/Badge.d.ts",
+      "props": [
+        "children",
+        "tone",
+        "dot",
+        "icon",
+        "style"
+      ],
+      "required": [],
+      "enums": {
+        "tone": [
+          "neutral",
+          "accent",
+          "success",
+          "warning",
+          "danger",
+          "info"
+        ]
+      }
+    },
+    "Button": {
+      "source": "core/Button.d.ts",
+      "props": [
+        "children",
+        "variant",
+        "size",
+        "icon",
+        "iconAfter",
+        "full",
+        "disabled",
+        "onClick",
+        "type",
+        "style"
+      ],
+      "required": [],
+      "enums": {
+        "variant": [
+          "primary",
+          "secondary",
+          "soft",
+          "ghost",
+          "danger"
+        ],
+        "size": [
+          "sm",
+          "md",
+          "lg"
+        ],
+        "type": [
+          "button",
+          "submit",
+          "reset"
+        ]
+      }
+    },
+    "Chip": {
+      "source": "core/Chip.d.ts",
+      "props": [
+        "children",
+        "selected",
+        "onClick",
+        "count",
+        "style"
+      ],
+      "required": []
+    },
+    "IconButton": {
+      "source": "core/IconButton.d.ts",
+      "props": [
+        "children",
+        "label",
+        "variant",
+        "size",
+        "active",
+        "onClick",
+        "style"
+      ],
+      "required": [
+        "label"
+      ],
+      "enums": {
+        "variant": [
+          "secondary",
+          "ghost"
+        ]
+      }
+    },
+    "ActivityRow": {
+      "source": "data/ActivityRow.d.ts",
+      "props": [
+        "title",
+        "meta",
+        "amount",
+        "tone",
+        "icon",
+        "onClick",
+        "style"
+      ],
+      "required": [
+        "title"
+      ],
+      "enums": {
+        "tone": [
+          "in",
+          "out",
+          "neutral"
+        ]
+      }
+    },
+    "AreaChart": {
+      "source": "data/AreaChart.d.ts",
+      "props": [
+        "data",
+        "labels",
+        "height",
+        "color",
+        "showGrid",
+        "valueFormat",
+        "style"
+      ],
+      "required": []
+    },
+    "BarChart": {
+      "source": "data/BarChart.d.ts",
+      "props": [
+        "data",
+        "labels",
+        "height",
+        "color",
+        "highlight",
+        "style"
+      ],
+      "required": []
+    },
+    "BarMeter": {
+      "source": "data/BarMeter.d.ts",
+      "props": [
+        "label",
+        "value",
+        "max",
+        "display",
+        "color",
+        "style"
+      ],
+      "required": [
+        "label",
+        "value"
+      ]
+    },
+    "DataTable": {
+      "source": "data/DataTable.d.ts",
+      "props": [
+        "columns",
+        "rows",
+        "onRowClick",
+        "totals",
+        "style"
+      ],
+      "required": []
+    },
+    "ProgressRing": {
+      "source": "data/ProgressRing.d.ts",
+      "props": [
+        "value",
+        "size",
+        "thickness",
+        "label",
+        "sublabel",
+        "color",
+        "track",
+        "style"
+      ],
+      "required": []
+    },
+    "StatCard": {
+      "source": "data/StatCard.d.ts",
+      "props": [
+        "label",
+        "value",
+        "unit",
+        "delta",
+        "deltaTone",
+        "caption",
+        "icon",
+        "tone",
+        "onClick",
+        "style"
+      ],
+      "required": [
+        "label",
+        "value"
+      ],
+      "enums": {
+        "deltaTone": [
+          "up",
+          "down",
+          "flat"
+        ],
+        "tone": [
+          "surface",
+          "accent"
+        ]
+      }
+    },
+    "Alert": {
+      "source": "feedback/Alert.d.ts",
+      "props": [
+        "children",
+        "tone",
+        "icon",
+        "action",
+        "onDismiss",
+        "style"
+      ],
+      "required": [],
+      "enums": {
+        "tone": [
+          "info",
+          "success",
+          "warning",
+          "danger"
+        ]
+      }
+    },
+    "EmptyState": {
+      "source": "feedback/EmptyState.d.ts",
+      "props": [
+        "title",
+        "body",
+        "action",
+        "icon",
+        "style"
+      ],
+      "required": [
+        "title"
+      ]
+    },
+    "Skeleton": {
+      "source": "feedback/EmptyState.d.ts",
+      "props": [
+        "width",
+        "height",
+        "radius",
+        "style"
+      ],
+      "required": []
+    },
+    "Modal": {
+      "source": "feedback/Modal.d.ts",
+      "props": [
+        "open",
+        "title",
+        "description",
+        "children",
+        "footer",
+        "onClose",
+        "width"
+      ],
+      "required": []
+    },
+    "Toast": {
+      "source": "feedback/Toast.d.ts",
+      "props": [
+        "title",
+        "description",
+        "tone",
+        "onDismiss",
+        "visible",
+        "style"
+      ],
+      "required": [
+        "title"
+      ],
+      "enums": {
+        "tone": [
+          "success",
+          "warning",
+          "danger"
+        ]
+      }
+    },
+    "Tooltip": {
+      "source": "feedback/Tooltip.d.ts",
+      "props": [
+        "label",
+        "children",
+        "side",
+        "style"
+      ],
+      "required": [
+        "label"
+      ],
+      "enums": {
+        "side": [
+          "top",
+          "right"
+        ]
+      }
+    },
+    "Checkbox": {
+      "source": "forms/Checkbox.d.ts",
+      "props": [
+        "label",
+        "checked",
+        "onChange",
+        "disabled",
+        "id",
+        "style"
+      ],
+      "required": []
+    },
+    "Input": {
+      "source": "forms/Input.d.ts",
+      "props": [
+        "label",
+        "hint",
+        "error",
+        "value",
+        "onChange",
+        "placeholder",
+        "type",
+        "prefix",
+        "suffix",
+        "size",
+        "disabled",
+        "id",
+        "style"
+      ],
+      "required": [],
+      "enums": {
+        "size": [
+          "md",
+          "lg"
+        ]
+      }
+    },
+    "SearchField": {
+      "source": "forms/SearchField.d.ts",
+      "props": [
+        "value",
+        "onChange",
+        "placeholder",
+        "shortcut",
+        "width",
+        "style"
+      ],
+      "required": []
+    },
+    "Select": {
+      "source": "forms/Select.d.ts",
+      "props": [
+        "label",
+        "value",
+        "onChange",
+        "options",
+        "size",
+        "disabled",
+        "id",
+        "style"
+      ],
+      "required": [],
+      "enums": {
+        "size": [
+          "sm",
+          "md"
+        ]
+      }
+    },
+    "Switch": {
+      "source": "forms/Switch.d.ts",
+      "props": [
+        "label",
+        "checked",
+        "onChange",
+        "disabled",
+        "id",
+        "style"
+      ],
+      "required": []
+    },
+    "SidebarItem": {
+      "source": "navigation/SidebarItem.d.ts",
+      "props": [
+        "icon",
+        "label",
+        "active",
+        "collapsed",
+        "badge",
+        "onClick",
+        "style"
+      ],
+      "required": [
+        "label"
+      ]
+    },
+    "Tabs": {
+      "source": "navigation/Tabs.d.ts",
+      "props": [
+        "tabs",
+        "value",
+        "onChange",
+        "size",
+        "style"
+      ],
+      "required": [],
+      "enums": {
+        "size": [
+          "sm",
+          "md"
+        ]
+      }
+    },
+    "ThemeToggle": {
+      "source": "navigation/ThemeToggle.d.ts",
+      "props": [
+        "size",
+        "storageKey",
+        "style"
+      ],
+      "required": []
+    },
+    "Card": {
+      "source": "surfaces/Card.d.ts",
+      "props": [
+        "title",
+        "eyebrow",
+        "action",
+        "children",
+        "pad",
+        "tone",
+        "lift",
+        "radius",
+        "style"
+      ],
+      "required": [],
+      "enums": {
+        "tone": [
+          "surface",
+          "accent",
+          "ink"
+        ]
+      }
+    }
+  }
+}

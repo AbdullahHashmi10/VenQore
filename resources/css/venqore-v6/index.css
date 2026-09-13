@@ -1,0 +1,93 @@
+/**
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║  VenQore V6 — the token layer                                             ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
+ *
+ * `tokens/` is the V6 design system, copied verbatim from
+ * `extras/Design System/VenQore Design System/tokens/`. It is the single place
+ * a colour, size, radius, duration or spacing value may be typed.
+ *
+ * ── Two things read these tokens ────────────────────────────────────────────
+ *
+ *   1. Components, directly:  `var(--vq-r-lg)` → 20px.
+ *   2. Tailwind, indirectly:  `rounded-lg` → `var(--vq-radius-lg)`, a different
+ *      name emitted into `theme.generated.css` by the theme engine.
+ *
+ * Path 2 is generated FROM path 1 — `resources/js/theme/build/from-v6-tokens.js`
+ * parses these files into `resources/js/theme/themes/venqore-v6.js`, which
+ * `generate.js` then turns into CSS. So both paths carry the same numbers by
+ * construction rather than by anyone remembering to update two places.
+ *
+ * That is the bug this replaced: the token file said `--vq-r-lg: 20px` while
+ * the variable Tailwind actually read said `0.5rem`, so `rounded-lg` shipped at
+ * 8px on all 312 pages.
+ *
+ *     Edit a token  →  npm run theme:from-v6  →  npm run theme:build
+ *
+ * Both run automatically inside `npm run dev` and `npm run build`.
+ *
+ * ── Load order is not arbitrary ─────────────────────────────────────────────
+ *
+ * It is the order in the design system's own `_ds_manifest.json` →
+ * `globalCssPaths`. Raw ramps must land before the semantic layer that
+ * references them, and `theme.css` must land before `base.css` applies them to
+ * elements. Do not reorder.
+ *
+ * ── Three local corrections to the source ───────────────────────────────────
+ *
+ * `tokens/spacing.css` carried three values that contradict VENQORE_LAYOUT_LAW
+ * v2.0, which outranks the token files on geometry. All three are corrected in
+ * place and annotated:
+ *
+ *   --vq-gutter     20px → 24px   size(n) = n·64 + (n−1)·24 depends on it
+ *   --vq-topbar-h   68px → 64px   header_h == row
+ *   --vq-rail-w     248  → 264    and rail-w-min 76 → 72
+ *
+ * `--vq-row-unit` and `--vq-grid-cols` are additions: the Layout Law needs both
+ * and V6 stated neither.
+ *
+ * ── Fonts ───────────────────────────────────────────────────────────────────
+ *
+ * `tokens/fonts.css` declares Bricolage Grotesque, Plus Jakarta Sans and
+ * Space Grotesk SELF-HOSTED under `resources/fonts/`. V6 ships that file as a
+ * single `@import` of the Google Fonts API; a terminal with no network
+ * resolves it to nothing and paints in `system-ui`, whose figures are
+ * proportional — so every currency column stops aligning, silently. The faces
+ * are vendored by `scripts/fonts-vendor.mjs` and design-check.sh blocks any
+ * reference to the font CDN reappearing in resources/css or resources/views.
+ */
+
+@import './tokens/fonts.css';
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+@import './tokens/radius.css';
+@import './tokens/elevation.css';
+@import './tokens/motion.css';
+@import './tokens/theme.css';
+
+/* Values the card layer needs that V6 does not declare. Additions ON the
+   design system, so deliberately not inside tokens/ — see the file header. */
+@import './card-layer.css';
+
+@import './tokens/base.css';
+
+/* The dashboard card layer — the .vqc card face, ported from the v6 card
+   builder. Loaded after base.css so it can override element defaults. */
+@import './cards.css';
+
+/* Deprecated v2.0 names, aliased onto V6. Shrinks to nothing — see the file. */
+@import './compat.css';
+
+/* The V6 public-site layer, ported from public/v6/assets/venqore.css.
+   site-base.css is scoped to .vq-site; components.css is .vq-* namespaced. */
+@import './site-base.css';
+@import './components.css';
+@import './landing.css';
+/* The one public header / footer / cookie UI — see Components/Site. */
+@import './site-chrome.css';
+@import './mkt-content.css';
+@import './mkt-tools.css';
+
+/* Public AI builder — PromptTextarea + ConversationalDiscovery. */
+@import './builder.css';

@@ -1,0 +1,2112 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, usePage, router } from '@inertiajs/react';
+import SidebarItem from '@/Components/SidebarItem';
+import CommandPalette from '@/Components/CommandPalette';
+import OmniSearch from '@/Components/OmniSearch';
+import AiIsland from '@/Components/AiIsland';
+import OnboardingDriver from '@/Components/OnboardingDriver';
+import DemoBanner from '@/Components/DemoBanner';
+import {
+ Activity,
+ Monitor,
+ User,
+ Type,
+ LogOut,
+ Menu,
+ Search,
+ Sun,
+ Moon,
+ Bell,
+ Home,
+ LayoutDashboard,
+ BarChart2,
+ Box,
+ CreditCard,
+ HardDrive,
+ Settings,
+ Trash2,
+ History,
+ RefreshCcw,
+ ChevronLeft,
+ ChevronRight,
+ ChevronUp,
+ BookOpen,
+ FileText,
+ ShieldCheck,
+ Database,
+ ShoppingCart,
+ Users,
+ Clock,
+ Sparkles,
+ MessageSquare,
+ Check,
+ X,
+ ArrowRight,
+ ShoppingBag,
+ Package,
+ Settings2,
+ Wallet,
+ TrendingUp,
+ Ticket,
+ Rss,
+ UserCog,
+ Layers,
+ Zap,
+ MoreVertical,
+ Plus,
+ Factory,
+ Mail,
+ Palette,
+ Armchair,
+ Store,
+ PenLine,
+ PanelRight,
+ RotateCcw,
+ HeartHandshake
+} from 'lucide-react';
+import { useWorkspace } from '@/Contexts/WorkspaceContext';
+import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
+import CharityButton from '@/Components/CharityButton';
+import VersionChecker from '@/Components/VersionChecker';
+import TerminalStatusBadge from '@/Components/TerminalStatusBadge';
+import Toast from '@/Components/Toast';
+import UpgradeModal from '@/Components/UpgradeModal';
+import GlobalOnboardingWidget from '@/Components/GlobalOnboardingWidget';
+import ImpersonationBanner from '@/Components/ImpersonationBanner';
+import PlanUsageBanner from '@/Components/PlanUsageBanner';
+import SubscriptionExpiryBanner from '@/Components/SubscriptionExpiryBanner';
+import PlanNotificationBell from '@/Components/PlanNotificationBell';
+import { useTheme } from '@/Contexts/ThemeContext';
+import { useAppearance } from '@/Contexts/AppearanceContext';
+import LimitGraceBanner from '@/Components/LimitGraceBanner';
+import ActivityHubModal from '@/Components/ActivityHubModal';
+import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
+import { useTermText } from '@/lib/terms';
+import BottomNavBar from '@/Components/BottomNavBar';
+
+export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
+ const {
+ store
+ } = usePage().props;
+ const tt = useTermText();
+
+ const isStarterOrLtd1 = store?.plan === 'starter' || store?.plan === 'ltd_1';
+
+ const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
+ const { url, props } = usePage();
+ const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo, planFeatures } = props;
+
+ /* Counter, table service, or both. Decides whether a Tables entry exists at
+ all: a counter-only shop seeing a control it can never use is the kind of
+ noise that makes people stop reading a menu. */
+ const serviceMode = settings?.service_mode || 'counter';
+
+    // Global Toast State
+    const [toasts, setToasts] = useState([]);
+    const addToast = (message, type = 'info') => {
+        if (!message || typeof message !== 'string') return;
+        const id = Date.now() + Math.random().toString(36).substr(2, 9);
+        setToasts(prev => {
+            // Deduplicate: ignore if identical message and type already in view
+            if (prev.some(t => t.message === message && t.type === type)) {
+                return prev;
+            }
+            const updated = [...prev, { id, message, type }];
+            // Cap at 3 visible toasts to keep UI clean and prevent screen crowding
+            return updated.length > 3 ? updated.slice(updated.length - 3) : updated;
+        });
+    };
+    const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
+
+ // Activity Hub Modal State
+ const [isActivityHubModalOpen, setIsActivityHubModalOpen] = useState(false);
+
+ // Store Switcher Modal State
+ const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
+
+ // Live Header Clock State (Default off per Launch Readiness Mandate)
+ const [showClock, setShowClock] = useState(() => {
+     try {
+         return localStorage.getItem('venqore_header_clock_visible') === 'true';
+     } catch (e) {
+         return false;
+     }
+ });
+ const toggleClockVisibility = () => {
+     const next = !showClock;
+     setShowClock(next);
+     try {
+         localStorage.setItem('venqore_header_clock_visible', String(next));
+     } catch (e) {}
+ };
+
+ const [currentTime, setCurrentTime] = useState(new Date());
+ useEffect(() => {
+     if (!showClock) return;
+     const clockInterval = setInterval(() => {
+         setCurrentTime(new Date());
+     }, 1000);
+     return () => clearInterval(clockInterval);
+ }, [showClock]);
+
+ // Listen for flash messages from backend
+ useEffect(() => {
+ if (flash?.success) {
+ addToast(flash.success, 'success');
+ }
+ if (flash?.error) {
+ addToast(flash.error, 'error');
+ }
+ if (flash?.warning) {
+ addToast(flash.warning, 'warning');
+ }
+ if (flash?.info) {
+ addToast(flash.info, 'info');
+ }
+ }, [flash?.success, flash?.error, flash?.warning, flash?.info]);
+
+ // Listen for AJAX toast events (from axios interceptor in bootstrap.js)
+ useEffect(() => {
+ const handleToast = (e) => {
+ if (e.detail && e.detail.message) {
+ addToast(e.detail.message, e.detail.type || 'info');
+ }
+ };
+
+ const handleNetworkError = (e) => {
+ if (e.detail && e.detail.message) {
+ // Persistent error toast for network issues
+ addToast(e.detail.message, 'error');
+ }
+ };
+
+ window.addEventListener('amd:toast', handleToast);
+ window.addEventListener('amd:network-error', handleNetworkError);
+
+ return () => {
+ window.removeEventListener('amd:toast', handleToast);
+ window.removeEventListener('amd:network-error', handleNetworkError);
+ };
+ }, []);
+
+ // Auto-retract sidebar for invoice/purchase creation
+ const isInvoiceCreate = url.includes('/sales/invoice/create') || url.includes('/purchases/create');
+ const isPosRoute = url.includes('/pos');
+
+ // Make settings available globally for legacy/utility functions (Synchronous population)
+ // Definitive Plan: merge store-level currency so formatCurrency() auto-uses per-store currency
+ if (typeof window !== 'undefined') {
+ window.amdSettings = {
+ ...(settings || {}),
+ // Unified metadata: prioritize store-level (synced) values, then settings
+ currency: settings?.currency || store?.currency_code,
+ currency_code: store?.currency_code || settings?.currency_code,
+ currency_symbol: store?.currency_symbol || settings?.currency_symbol,
+ store_name: store?.name || settings?.store_name || settings?.business_name,
+ decimal_places: parseInt(settings?.decimal_places || 2)
+ };
+ }
+
+ // Trial state is decided by status ALONE — never by the date.
+ //
+ // trial_ends_at is deliberately not cleared when a store converts to a paid
+ // plan (it is useful history, and TrialCreditService reads it to credit
+ // unused days). So "the trial end date is still in the future" says nothing
+ // about whether the store is trialling. Reading the date here is what made
+ // a fully paid store keep flashing a "10 Days Left" trial countdown in the
+ // header. The status column is the single source of truth.
+ const isTrial = store?.status === 'trial';
+ const trialDaysLeft = isTrial && store?.trial_ends_at
+ ? Math.max(0, Math.ceil((new Date(store.trial_ends_at) - new Date()) / 86400000))
+ : null;
+
+ const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+ const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+ const [isMobileFabsOpen, setIsMobileFabsOpen] = useState(false);
+ const [budIconType, setBudIconType] = useState('setup'); // 'setup' or 'chat'
+
+ useEffect(() => {
+ const interval = setInterval(() => {
+ setBudIconType(prev => prev === 'setup' ? 'chat' : 'setup');
+ }, 2000);
+ return () => clearInterval(interval);
+ }, []);
+
+ useEffect(() => {
+ if (isMobileFabsOpen) {
+ document.body.classList.add('mobile-fabs-expanded');
+ } else {
+ document.body.classList.remove('mobile-fabs-expanded');
+ }
+ }, [isMobileFabsOpen]);
+
+ useEffect(() => {
+ const handleClickOutside = (event) => {
+ if (!isMobileFabsOpen) return;
+ const target = event.target;
+ const isClickOnBud = target.closest('#mobile-fabs-toggle-bud');
+ const isClickOnFloatingPanel = target.closest('.fixed.right-6.z-\\[55\\]') || target.closest('.fixed.right-6.z-\\[95\\]') || target.closest('#tour-chat-widget-btn');
+
+ if (!isClickOnBud && !isClickOnFloatingPanel) {
+ setIsMobileFabsOpen(false);
+ }
+ };
+
+ document.addEventListener('click', handleClickOutside);
+ document.addEventListener('touchstart', handleClickOutside);
+ return () => {
+ document.removeEventListener('click', handleClickOutside);
+ document.removeEventListener('touchstart', handleClickOutside);
+ };
+ }, [isMobileFabsOpen]);
+
+ const showExpandedSidebar = isSidebarOpen || mobileSidebarOpen;
+ const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+ const { isDarkMode, setIsDarkMode } = useTheme();
+ const { appearance, update: updateAppearance, isDark } = useAppearance();
+
+ const isEffectiveDarkMode = store ? isDark : isDarkMode;
+
+ const toggleAppTheme = (targetMode) => {
+     const nextMode = typeof targetMode === 'string' ? targetMode : (isEffectiveDarkMode ? 'light' : 'dark');
+     setIsDarkMode(nextMode === 'dark');
+     try {
+         localStorage.setItem('amd_theme', nextMode);
+     } catch (e) {}
+     if (store) {
+         updateAppearance({ theme: 'venqore-v6', mode: nextMode });
+     }
+ };
+
+ const handleEditLayout = () => {
+ if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+ window.dispatchEvent(new CustomEvent('vq:edit-layout'));
+ } else if (store?.slug) {
+ router.visit(route('store.new-dashboard', { store_slug: store.slug, edit: 1 }));
+ } else {
+ router.visit('/new-dashboard?edit=1');
+ }
+ };
+
+ const handleAddCard = () => {
+ if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+ window.dispatchEvent(new CustomEvent('vq:add-card'));
+ } else if (store?.slug) {
+ router.visit(route('store.new-dashboard', { store_slug: store.slug, add_card: 1 }));
+ } else {
+ router.visit('/new-dashboard?add_card=1');
+ }
+ };
+
+  const handleToggleSidePanel = () => {
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+      window.dispatchEvent(new CustomEvent('vq:open-side-panel'));
+      window.dispatchEvent(new CustomEvent('vq:toggle-side-panel'));
+    } else if (store?.slug) {
+      router.visit(route('store.new-dashboard', { store_slug: store.slug, side_panel: 1 }));
+    } else {
+      router.visit('/new-dashboard?side_panel=1');
+    }
+  };
+
+ const handleStartFresh = () => {
+ if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
+ window.dispatchEvent(new CustomEvent('vq:start-fresh'));
+ } else if (store?.slug) {
+ router.visit(route('store.new-dashboard', { store_slug: store.slug, reset: 1 }));
+ } else {
+ router.visit('/new-dashboard?reset=1');
+ }
+ };
+
+ const [isLargeText, setIsLargeText] = useState(false);
+ const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+ const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+ const [expandedMenu, setExpandedMenu] = useState(null);
+ const userMenuRef = useRef(null);
+ const notificationRef = useRef(null);
+ const growthRef = useRef(null);
+ const displayMenuRef = useRef(null);
+ const mobileMenuRef = useRef(null);
+ const [isDisplayMenuOpen, setIsDisplayMenuOpen] = useState(false);
+
+ // Dynamic Mobile Bottom Nav Bar visibility check
+ const showMobileNavBar = (() => {
+ if (!props.auth?.user) return false;
+ if (fullScreen) return false;
+
+ const path = url.toLowerCase();
+
+ // 1. Explicitly check if returns history list page (should show navbar)
+ const isReturnsHistoryList = path.includes('/returns-history') &&
+ !path.includes('/create') &&
+ !path.includes('/edit') &&
+ !path.includes('/return-detail');
+
+ if (isReturnsHistoryList) return true;
+
+ // 2. Block on POS screen
+ if (path.includes('/pos')) return false;
+
+ // 3. Block on creation, editing, return making, or refunds
+ const isCreateFlow = path.includes('/create');
+ const isEditFlow = path.includes('/edit');
+ const isReturnFlow = path.includes('/return') && !path.includes('/returns-history');
+ const isRefundFlow = path.includes('/refund');
+ const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start') || path.includes('/build-workspace');
+
+ if (isCreateFlow || isEditFlow || isReturnFlow || isRefundFlow || isSetupFlow) {
+ return false;
+ }
+
+ return true;
+ })();
+
+ // Active status for mobile navigation bar tabs
+ const isSaleInvoiceActive = route().current('store.sales.dashboard') || route().current('store.sales.*') || route().current('store.orders.*') || route().current('store.sales.index');
+ const isPurchaseActive = route().current('store.purchases.*') || route().current('store.purchases.index');
+ const isHomeActive = route().current('store.dashboard') || route().current('store.home');
+ const isExpenseActive = route().current('store.expenses.*') || route().current('store.expenses.index');
+ const isStockActive = route().current('store.inventory.*') || route().current('store.inventory.dashboard') || route().current('store.products.*');
+
+ const getMobileTabUrl = (routeName) => {
+ if (!store) return '#';
+ if (route().has(routeName)) {
+ return route(routeName, { store_slug: store.slug });
+ }
+ return '#';
+ };
+
+ // Tap-and-hold / Long-press handling state for Dropdowns
+ const [activeDropdown, setActiveDropdown] = useState(null); // 'sales' | 'purchases' | 'dashboard' | 'expenses' | 'stock' | null
+ const pressTimerRef = useRef(null);
+ const wasLongPressRef = useRef(false);
+
+ const startPress = (menuKey) => {
+ wasLongPressRef.current = false;
+ pressTimerRef.current = setTimeout(() => {
+ wasLongPressRef.current = true;
+ setActiveDropdown(menuKey);
+ }, 400); // 400ms long-press duration
+ };
+
+ const cancelPress = () => {
+ if (pressTimerRef.current) {
+ clearTimeout(pressTimerRef.current);
+ }
+ };
+
+ const handleLinkClick = (menuKey, defaultRouteName) => (e) => {
+ if (wasLongPressRef.current) {
+ e.preventDefault();
+ e.stopPropagation();
+ wasLongPressRef.current = false;
+ return;
+ }
+ // Direct click normal behavior
+ router.visit(getMobileTabUrl(defaultRouteName));
+ };
+
+ const getDropdownOptions = (menuKey) => {
+ switch (menuKey) {
+ case 'sales':
+ return [
+ { label: 'Invoices List', href: 'store.sales.index', icon: <FileText size={14} /> },
+ { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
+ { label: tt('Sales Orders'), href: 'store.pre-sales.index', icon: <ShoppingCart size={14} /> },
+ { label: 'Proposals', href: 'store.proposals.index', icon: <FileText size={14} /> },
+ { label: 'Return History', href: 'store.returns-history.index', icon: <History size={14} /> },
+ { label: 'Invoice Reminders', href: 'store.invoice-reminders.index', icon: <Clock size={14} /> },
+ { label: 'Recurring Invoices', href: 'store.recurring-invoices.index', icon: <RefreshCcw size={14} /> },
+ ];
+ case 'purchases':
+ return [
+ { label: 'Purchases List', href: 'store.purchases.index', icon: <ShoppingBag size={14} /> },
+ { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
+ { label: tt('Purchase Orders'), href: 'store.purchase-orders.index', icon: <FileText size={14} /> },
+ { label: 'Debit Notes', href: 'store.debit-notes.index', icon: <CreditCard size={14} /> },
+ ];
+ case 'dashboard':
+ return [
+ { label: 'Business Dashboard', href: 'store.dashboard', icon: <LayoutDashboard size={14} /> },
+ { label: 'Point of Sale (POS)', href: 'store.pos', icon: <Monitor size={14} /> },
+ /* Table service is a separate screen, and it only appears for a
+ business that runs one. A counter-only shop seeing a Tables
+ entry it can never use is the kind of noise that makes people
+ stop reading a menu. */
+ ...(['tables', 'both'].includes(serviceMode)
+ ? [{ label: tt('Tables'), href: 'store.tables.index', icon: <Armchair size={14} /> }]
+ : []),
+ { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
+ { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
+ { label: 'New Expense', action: 'expense-modal', icon: <CreditCard size={14} /> },
+ { label: 'All Parties', href: 'store.parties.index', icon: <Users size={14} /> },
+ { label: 'All Inventory', href: 'store.inventory.index', icon: <Box size={14} /> },
+ ];
+ case 'expenses':
+ return [
+ { label: 'Expenses List', href: 'store.expenses.index', icon: <CreditCard size={14} /> },
+ { label: 'New Expense', action: 'expense-modal', icon: <Plus size={14} /> },
+ ];
+ case 'stock':
+ return [
+ { label: tt('Products List'), href: 'store.inventory.index', icon: <Box size={14} /> },
+ { label: 'Categories', href: 'store.categories.index', icon: <Layers size={14} /> },
+ { label: 'Attributes', href: 'store.attributes.index', icon: <Settings size={14} /> },
+ { label: 'Stock Levels', href: 'store.inventory.stock-levels', icon: <BarChart2 size={14} /> },
+ { label: 'Stock Adjustments', href: 'store.stock-operations', query: { tab: 'adjustments' }, icon: <Layers size={14} /> },
+ { label: 'Warehouses', href: 'store.stock-operations', query: { tab: 'warehouses' }, icon: <Box size={14} /> },
+ { label: 'Stock Transfers', href: 'store.stock-transfers.index', icon: <RefreshCcw size={14} /> },
+ { label: 'Stock Audit', href: 'store.stock-takes.index', icon: <Search size={14} /> },
+ { label: 'Batch Tracking', href: 'store.batches.index', icon: <Package size={14} /> },
+ { label: 'Serial Tracking', href: 'store.serials.index', icon: <Package size={14} /> },
+ { label: 'Production', href: 'store.production.index', icon: <Factory size={14} /> },
+ { label: 'Cookbook', href: 'store.cookbook.index', icon: <BookOpen size={14} /> },
+ ];
+ default:
+ return [];
+ }
+ };
+
+ const handleOptionClick = (option) => {
+ setActiveDropdown(null);
+ if (option.action === 'expense-modal') {
+ router.visit(route('store.expenses.index', { store_slug: store?.slug }) + '?action=add');
+ return;
+ }
+ if (option.href) {
+ const url = route(option.href, { store_slug: store?.slug, ...(option.query || {}) });
+ router.visit(url);
+ }
+ };
+
+ // Track if sidebar was expanded via hover (vs manual click)
+ const wasHoverExpandedRef = useRef(false);
+ const sidebarRef = useRef(null);
+
+ // Global Search State - REMOVED (Replaced by OmniSearch)
+
+
+ // AI Modal State (Phase 4)
+ const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+ const [isAiMinimized, setIsAiMinimized] = useState(false);
+ const [aiModalQuery, setAiModalQuery] = useState('');
+ const [aiMessageCount, setAiMessageCount] = useState(0);
+
+ // REMOVED: Exit Authorization Logic moved to GlobalProviderLayout to prevent duplicates
+
+ // Track message count from sessionStorage
+ useEffect(() => {
+ const checkMessages = () => {
+ const saved = sessionStorage.getItem('amd_ai_messages');
+ if (saved) {
+ try {
+ const messages = JSON.parse(saved);
+ setAiMessageCount(messages.length);
+ } catch (e) { }
+ }
+ };
+ checkMessages();
+ const interval = setInterval(checkMessages, 1000);
+ return () => clearInterval(interval);
+ }, []);
+
+ // Auto-expand sidebar & menu during onboarding steps
+ useEffect(() => {
+ const handleTourStep = (e) => {
+ const step = e.detail;
+ if (step === 'sidebar_stock') {
+ setIsSidebarOpen(true);
+ setExpandedMenu('Stock');
+ } else if (step === 'purchase_tour_sidebar') {
+ setIsSidebarOpen(true);
+ setExpandedMenu('Purchase');
+ }
+ };
+ window.addEventListener('onboarding-step-changed', handleTourStep);
+
+ // Also check initial load step
+ if (window.activeOnboardingStep === 'sidebar_stock') {
+ setIsSidebarOpen(true);
+ setExpandedMenu('Stock');
+ } else if (window.activeOnboardingStep === 'purchase_tour_sidebar') {
+ setIsSidebarOpen(true);
+ setExpandedMenu('Purchase');
+ }
+
+ return () => {
+ window.removeEventListener('onboarding-step-changed', handleTourStep);
+ };
+ }, [store]);
+
+ // Growth Engine AI Popup State
+ const [isGrowthOpen, setIsGrowthOpen] = useState(false);
+ const [showAiPopup, setShowAiPopup] = useState(false);
+
+ useEffect(() => {
+ const timer = setTimeout(() => {
+ setShowAiPopup(true);
+ }, 5000);
+ return () => clearTimeout(timer);
+ }, []);
+
+
+
+ useEffect(() => {
+ if (isInvoiceCreate) {
+ setIsSidebarOpen(false);
+ }
+ }, [isInvoiceCreate]);
+
+ // Idle Detection (uses auto_logout setting, default 60 minutes)
+ const [isIdle, setIsIdle] = useState(false);
+ const idleTimerRef = useRef(null);
+
+ const resetIdleTimer = () => {
+ if (isIdle) setIsIdle(false);
+ if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+
+ // Get auto_logout from settings (in minutes), default to 60
+ const autoLogoutMinutes = parseInt(settings?.auto_logout) || 60;
+ const timeoutMs = autoLogoutMinutes * 60 * 1000;
+
+ idleTimerRef.current = setTimeout(() => {
+ setIsIdle(true);
+ }, timeoutMs);
+ };
+
+ useEffect(() => {
+ // Initial start
+ resetIdleTimer();
+
+ // Listen for activity
+ const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
+ const handler = () => resetIdleTimer();
+
+ events.forEach(event => window.addEventListener(event, handler));
+
+ return () => {
+ if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+ events.forEach(event => window.removeEventListener(event, handler));
+ };
+ }, [isIdle]);
+
+ const userRole = my_role || userRoleProp || props.auth?.user?.role;
+ const isPlatformAdmin = !!props.auth?.user?.is_platform_admin;
+ 	const userPerms = props.auth?.user?.permissions || [];
+	const hasAnyPerm = (...keys) => keys.some(k => userPerms.some(p => p === k || p.startsWith(k + '.')));
+
+	const userPosSessions = posSessions?.filter(pos => userRole === 'cashier' ? pos.user_id === props.auth?.user?.id : true) || [];
+	const visibleInvoices = (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') ? (activeInvoices || []) : [];
+	const visiblePurchases = (activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases'))) ? activePurchases : [];
+	const totalActiveOps = visibleInvoices.length + userPosSessions.length + visiblePurchases.length;
+
+ const appMenuItemsRaw = [
+ {
+ name: 'Dashboard',
+ icon: LayoutDashboard,
+ subs: [
+ { group: 'Overview', items: ['Home', 'Main Dashboard'] }
+ ],
+ route: store ? 'store.dashboard' : 'dashboard',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
+ {
+ 		name: 'Sell',
+		icon: ShoppingCart,
+		// PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
+		subs: userRole === 'cashier' ? [] : [
+			{ group: 'Transactions', items: ['Orders', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
+			{ group: 'Post-Sale', items: ['Returns History', 'Invoice Reminders', 'Recurring Invoices'] },
+			{ group: 'Config', items: ['E-Invoicing'] }
+		],
+		route: store ? 'store.sales.dashboard' : 'sales.dashboard',
+		routeParams: store ? { store_slug: store.slug } : {}
+	},
+ {
+ name: 'Purchase',
+ icon: ShoppingBag,
+ subs: [
+ { group: 'Transactions', items: ['Purchases', 'Purchase Orders'] },
+ { group: 'Post-Purchase', items: ['Purchase Returns'] }
+ ],
+ route: store ? 'store.purchases.index' : 'purchases.index',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
+ {
+ name: 'Stock',
+ icon: Box,
+ subs: [
+ { group: 'Catalog', items: ['Products', 'Categories', 'Attributes', 'Labels'] },
+ { group: 'Operations', items: ['Stock Levels', 'Stock Operations', 'Stock Transfers', 'Stock Audit'] },
+ { group: 'Tracking', items: ['Batch Tracking', 'Serial Tracking'] },
+ { group: 'Manufacturing', items: ['Production', 'Cookbook'] }
+ ],
+ route: store ? 'store.inventory.dashboard' : 'inventory.dashboard',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
+ {
+ name: 'Contacts',
+ icon: Users,
+ subs: [
+ { group: 'Partners', items: ['Customers', 'Suppliers', 'Parties'] },
+ ],
+ route: store ? 'store.parties.index' : 'parties.index',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
+ {
+ name: 'Money',
+ icon: Wallet,
+ subs: [
+ { group: 'Cash Flow', items: ['Payments', 'Expenses', 'To Receive', 'To Pay'] },
+ { group: 'Banking', items: ['Fund Management', 'Bank Accounts', 'Bank Reconciliation'] },
+ ],
+ route: store ? 'store.transactions.index' : 'transactions.index',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
+ {
+ name: 'VenSynQ',
+ icon: RefreshCcw,
+ subs: [
+ { group: 'Multi-Channel', items: ['VenSynQ'] },
+ { group: 'Promotion', items: ['Email Marketing', 'SMS Marketing', 'Campaigns'] },
+ { group: 'Integrations', items: [woocommerce_enabled ? 'WooCommerce Sync' : null].filter(Boolean) },
+ { group: 'Configuration', items: ['VenSynQ Settings'] }
+ ],
+ route: store ? 'store.vensynq.index' : 'vensynq.index',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
+ {
+ name: 'Insights',
+ icon: TrendingUp,
+ subs: [
+ { group: 'Growth', items: ['Growth Engine'] },
+ { group: 'Financial Health', items: ['Chart of Accounts', 'Profit & Loss', 'Balance Sheet', 'Cash Flow', 'Tax Report'] },
+ { group: 'Sales Analysis', items: ['Sales Report', 'Discount Report', 'Sale Aging'] },
+ { group: 'Purchase Analysis', items: ['Purchase Report', 'Expense Report'] },
+ { group: 'Inventory', items: ['Stock Valuation', 'Low Stock', 'Movement History', 'Expiry Report'] },
+ { group: 'Operational', items: ['Activity Log'] }
+ ],
+ route: store ? 'store.reports.index' : 'reports.index',
+ routeParams: store ? { store_slug: store.slug } : {}
+ },
+ store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage', 'users.manage', 'audit')) ? {
+ name: 'Administration',
+ icon: ShieldCheck,
+ subs: [
+ { group: 'Executive', items: ['Executive Dashboard'] },
+ { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
+ { group: 'System & Data', items: ['Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
+ { group: 'AI Support', items: ['Agent Inbox'] }
+ ],
+ route: store ? 'store.admin.dashboard' : null,
+ routeParams: store ? { store_slug: store.slug } : {}
+ } : null,
+ store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage')) ? {
+ name: 'Settings',
+ icon: Settings,
+ subs: [
+ { group: 'Store Configuration', items: ['Store Settings', 'System Settings', 'Builder'] },
+ { group: 'AI & Automation', items: ['Chatbot Settings'] }
+ ],
+ route: store ? 'store.settings' : null,
+ routeParams: store ? { store_slug: store.slug } : {}
+ } : null,
+ ].filter(Boolean);
+
+ 	// ── Dynamic Terminology Support ──────────────────────────────────────────
+	const terms = props?.terms || {};
+	const term = (key, fallback, type = 'singular') => {
+		return terms[key]?.[type] || fallback;
+	};
+
+	// ── Module-aware sub-items ──────────────────────────────────────────────
+	// Maps leaf navigation items to their owning module and route.
+	// When a module is turned off for the active tenant, its sub-item is removed.
+	// When all sub-items in a top-level group are gone, the entire group hides.
+	const SUBITEM_MODULE = {
+		'Orders': 'sales_orders',
+		'Service Jobs': 'services',
+		'Dispatch Calendar': 'services',
+		'Tools & Equipment': 'services',
+		'Services': 'services',
+		'Quotations / Pre-Sales': 'pre_sales',
+		'Proposals': 'b2b_proposals',
+		'Returns History': 'sales_returns',
+		'Invoice Reminders': 'recurring_invoices',
+		'Recurring Invoices': 'recurring_invoices',
+		'Purchases': 'purchases',
+		'Purchase Orders': 'purchase_orders',
+		'Purchase Returns': 'purchase_returns',
+		'Products': 'products',
+		'Categories': 'products',
+		'Attributes': 'variants',
+		'Labels': 'barcodes_labels',
+		'Stock Levels': 'inventory',
+		'Stock Operations': 'inventory',
+		'Stock Transfers': 'stock_transfers',
+		'Stock Audit': 'stock_takes',
+		'Batch Tracking': 'batches_expiry',
+		'Serial Tracking': 'serials',
+		'Production': 'production_runs',
+		'Cookbook': 'cookbook',
+		'Customers': 'customers',
+		'Suppliers': 'suppliers',
+		'Parties': 'khata_credit',
+		'Payments': 'payments',
+		'Expenses': 'expenses',
+		'To Receive': 'khata_credit',
+		'To Pay': 'khata_credit',
+		'Fund Management': 'bank_accounts',
+		'Bank Accounts': 'bank_accounts',
+		'Bank Reconciliation': 'bank_reconciliation',
+		'VenSynQ': 'marketplace_sync',
+		'WooCommerce Sync': 'marketplace_sync',
+		'Staff Attendance': 'staff_attendance',
+
+		/* ── Added 12 Sep 2026 ──────────────────────────────────────────────
+		   Thirty-three of the seventy labels in this menu had no owner, which
+		   meant they rendered whatever the customer actually built. Reports was
+		   the worst of it: every single entry under Insights was ungated, so a
+		   one-person services business that never asked for stock was still
+		   shown Stock Valuation, Low Stock, Movement History and an Expiry
+		   Report — and because a group only hides once ALL of its children are
+		   filtered out, a group full of ungated children could never hide at
+		   all. That is why a freshly built workspace looked like the whole
+		   product: not because the builder failed to save the choice, but
+		   because the shell never asked what the choice was.
+
+		   Deliberately still ungated below this map: Home, Main Dashboard, and
+		   everything under Administration and Settings. Those are how someone
+		   runs, fixes, pays for and extends their workspace — gating them on a
+		   module is how a customer loses the screen that would have let them
+		   turn the module back on. */
+		'E-Invoicing': 'invoicing',
+
+		// Insights → Financial Health
+		'Chart of Accounts': 'accounting_workspace',
+		'Profit & Loss': 'accounting_workspace',
+		'Balance Sheet': 'accounting_workspace',
+		'Cash Flow': 'accounting_workspace',
+		'Tax Report': 'tax_compliance',
+
+		// Insights → Sales / Purchase analysis
+		'Sales Report': 'reports',
+		'Discount Report': 'pricing_tiers',
+		'Sale Aging': 'khata_credit',
+		'Purchase Report': 'purchases',
+		'Expense Report': 'expenses',
+		'Growth Engine': 'reports',
+		'Invoices': 'invoicing',
+		'Invoices List': 'invoicing',
+		'New Sale': 'invoicing',
+		'Sales Orders': 'sales_orders',
+		'Return History': 'sales_returns',
+		'Purchases List': 'purchases',
+		'New Purchase': 'purchases',
+		'Debit Notes': 'purchase_returns',
+
+		// Insights → Inventory. The four that gave a plumber a stock menu.
+		'Stock Valuation': 'inventory',
+		'Low Stock': 'inventory',
+		'Movement History': 'inventory',
+		'Expiry Report': 'batches_expiry',
+
+		// VenSynQ → everything in this group belongs to the sync module, so the
+		// group itself disappears for someone who never asked to sell online.
+		'Email Marketing': 'marketplace_sync',
+		'SMS Marketing': 'marketplace_sync',
+		'Campaigns': 'marketplace_sync',
+		'VenSynQ Settings': 'marketplace_sync',
+	};
+
+	const SUBITEM_ROUTES = {
+		'Orders': ['store.sales-orders.index', 'store.sales.index'],
+		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
+		'Dispatch Calendar': ['store.service-jobs.calendar'],
+		'Tools & Equipment': ['store.tools.index'],
+		'Services': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar', 'store.tools.index'],
+		'Quotations / Pre-Sales': ['store.pre-sales.index', 'store.quotations.index'],
+		'Proposals': ['store.proposals.index'],
+		'Returns History': ['store.returns-history.index'],
+		'Invoice Reminders': ['store.recurring-invoices.index'],
+		'Recurring Invoices': ['store.recurring-invoices.index'],
+		'Purchases': ['store.purchases.index'],
+		'Purchase Orders': ['store.purchase-orders.index'],
+		'Purchase Returns': ['store.debit-notes.index'],
+		'Products': ['store.inventory.index'],
+		'Categories': ['store.inventory.index'],
+		'Attributes': ['store.inventory.index'],
+		'Labels': ['store.labels.index'],
+		'Stock Levels': ['store.inventory.dashboard'],
+		'Stock Operations': ['store.inventory.dashboard'],
+		'Stock Transfers': ['store.stock-transfers.index'],
+		'Stock Audit': ['store.stock-takes.index'],
+		'Batch Tracking': ['store.batches.index'],
+		'Serial Tracking': ['store.serials.index'],
+		'Production': ['store.production.index'],
+		'Cookbook': ['store.cookbook.index'],
+		'Customers': ['store.customers.index'],
+		'Suppliers': ['store.suppliers.index'],
+		'Parties': ['store.parties.ledger'],
+		'Payments': ['store.payments.index'],
+		'Expenses': ['store.expenses.index'],
+		'To Receive': ['store.parties.ledger'],
+		'To Pay': ['store.parties.ledger'],
+		'Fund Management': ['store.funds.index', 'store.bank-accounts.index'],
+		'Bank Accounts': ['store.bank-accounts.index'],
+		'Bank Reconciliation': ['store.bank-reconciliation.index'],
+		'VenSynQ': ['store.vensynq.index'],
+		'WooCommerce Sync': ['store.vensynq.index', 'store.woocommerce.index'],
+	};
+
+	const enabledModuleSet = Array.isArray(props?.modules) ? new Set(props.modules) : null;
+	const derivedNavRoutes = Array.isArray(props?.nav) ? new Set(props.nav.map(n => n.route)) : null;
+
+	const subitemModuleVisible = (item) => {
+		const label = typeof item === 'string' ? item : item?.label;
+		if (!label) return true;
+
+		// 1. Module key check against enabledModuleSet
+		const owner = SUBITEM_MODULE[label];
+		if (owner && enabledModuleSet && !enabledModuleSet.has(owner)) {
+			return false;
+		}
+
+		// 2. Dual check: route check against derivedNavRoutes
+		const routes = SUBITEM_ROUTES[label];
+		if (routes && derivedNavRoutes && derivedNavRoutes.size > 0) {
+			const routePresent = routes.some(r => derivedNavRoutes.has(r));
+			if (!routePresent) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	const appMenuItems = appMenuItemsRaw
+		.map((group) => {
+			if (!group?.subs) return group;
+			const filteredSubs = group.subs
+				.map((sub) => ({
+					...sub,
+					items: (sub.items || []).filter(subitemModuleVisible),
+				}))
+				.filter((sub) => sub.items.length > 0);
+			return {
+				...group,
+				subs: filteredSubs,
+			};
+		})
+		.filter((group) => {
+			/* Always keep the sections that are how you run, fix, pay for and
+			   extend the workspace. Insights is NOT one of them: it was in this
+			   list, so a reports menu survived even when every report in it had
+			   been filtered out — an empty group that could never empty. It now
+			   falls through to the "no children left" rule like everything
+			   else, and reappears the moment a module that reports on something
+			   is switched back on. */
+			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance'].includes(group.name)) {
+				return true;
+			}
+			// For cashiers, keep Sell if POS is enabled
+			if (userRole === 'cashier' && group.name === 'Sell') {
+				return enabledModuleSet ? enabledModuleSet.has('pos') : true;
+			}
+			// If all sub-groups in this menu have 0 items remaining, hide the top-level group
+			if (group.subs && group.subs.length === 0) {
+				return false;
+			}
+			return true;
+		});
+
+ // ── CRITICAL SECURITY: If no store context and user landed here via a legacy bare route,
+ // redirect to /hub immediately. NEVER show platform links to store users.
+ // The store prop is set by TenantMiddleware — if it's missing, we're in the wrong zone.
+ if (!store && mode !== 'admin') {
+ // Use a deferred redirect to avoid React render errors
+ if (typeof window !== 'undefined') {
+ window.location.href = '/hub';
+ }
+ return null;
+ }
+
+ // ── Admin mode sidebar (only rendered when mode='admin') ──
+ // Platform HQ mode (isPlatformAdmin): shows Platform HQ links
+ // Store Admin Panel mode (!isPlatformAdmin OR store context): shows the full store Admin Panel
+ const adminMenuItems = (mode === 'admin' && isPlatformAdmin && !store) ? [
+ // ── Platform HQ (Unified SuperAdmin Experience) ─────────────────────────
+ { name: 'Overview', icon: LayoutDashboard, subs: [], route: 'platform.dashboard' },
+ { name: 'System Health', icon: Activity, subs: [], route: 'platform.health.errors' },
+ { name: 'Plans & Limits', icon: Layers, subs: [], route: 'platform.plans.index' },
+ { name: 'Platforms', icon: Database, subs: [], route: 'platform.platforms.index' },
+ { name: 'Coupons', icon: Ticket, subs: [], route: 'platform.coupons.index' },
+ { name: 'Tenant Overrides', icon: Zap, subs: [], route: 'platform.tenants.overrides' },
+ { name: 'Stores', icon: ShoppingBag, subs: [], route: 'platform.stores' },
+ { name: 'Platform Users', icon: UserCog, subs: [], route: 'platform.users' },
+ { name: 'Revenue', icon: TrendingUp, subs: [], route: 'platform.dashboard', routeParams: { tab: 'revenue' } },
+ { name: 'Support', icon: Ticket, subs: [], route: 'platform.tickets' },
+ { name: 'Activity Feed', icon: Rss, subs: [], route: 'platform.dashboard', routeParams: { tab: 'feed' } },
+ { name: 'Demo Store', icon: Monitor, subs: [], route: 'platform.dashboard', routeParams: { tab: 'demo' } },
+ { name: 'Agent Inbox', icon: MessageSquare, subs: [], route: 'platform.chatbot.inbox' },
+ { name: 'Chatbot Settings', icon: Sparkles, subs: [], route: 'platform.chatbot.settings' },
+ { name: 'VenSynQ', icon: RefreshCcw, subs: [], route: 'platform.dashboard', routeParams: { tab: 'vensynq' } },
+ { name: 'Settings', icon: Settings, subs: [], route: 'platform.dashboard', routeParams: { tab: 'settings' } },
+ { name: 'System Update', icon: Package, subs: [], route: 'updater.index' },
+ { name: 'Digital Products', icon: Package, subs: [], route: 'platform.digital-hub' },
+ { name: 'Newsletter Hub', icon: Mail, subs: [], route: 'platform.newsletter-hub' },
+ ] : [
+ // ── Store Admin Panel — Restored Full Legacy Experience ──────────────
+ // Scoped to /s/{store_slug}/admin/... to maintain SaaS isolation.
+ 	{ name: 'Home', icon: Home, subs: [],
+	route: store ? 'store.home' : null,
+	routeParams: store ? { store_slug: store.slug } : {} },
+
+ { name: 'Executive Dashboard', icon: LayoutDashboard, subs: [],
+ route: store ? 'store.admin.dashboard' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
+ { name: 'User Management', icon: Users, subs: [],
+ route: store ? 'store.admin.users' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
+ { name: 'System Settings', icon: Settings, subs: [],
+ route: store ? 'store.admin.settings' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
+ { name: 'Data & Backup', icon: HardDrive, subs: [],
+ route: store ? 'store.admin.data' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
+
+ // OVERRIDE: Backups feature strictly removed from tenant admin panel for structural security.
+ { name: 'Activity Log', icon: History, subs: [],
+ route: store ? 'store.admin.logs' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
+ { name: 'Recycle Bin', icon: Trash2, subs: [],
+ route: store ? 'store.admin.recycle-bin.index' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
+ // Subscription page is hidden in demo stores — they have no billing
+ ...(!is_demo ? [{ name: 'Subscription', icon: CreditCard, subs: [],
+ route: store ? 'store.billing' : null,
+ routeParams: store ? { store_slug: store.slug } : {} }] : []),
+
+ { name: 'Agent Inbox', icon: MessageSquare, subs: [],
+ route: store ? 'store.admin.chatbot.inbox' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
+ { name: 'Chatbot Settings', icon: Sparkles, subs: [],
+ route: store ? 'store.admin.chatbot.settings' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+ ];
+
+ // RBAC Permission Map
+ const MENU_PERMISSIONS = {
+ 'Home': [],
+ 'Dashboard': [],
+ 'Administration': ['admin.settings_manage', 'users.manage'],
+ 'Settings': ['admin.settings_manage'],
+ 'AI Scan': ['pos', 'sales', 'purchases'],
+ // Sell: only roles that can actually create sales or open POS sessions
+ 'Sell': ['sales.create', 'sales.view'],
+ // Purchase: only roles that can create purchase orders
+ 'Purchase': ['purchases.create'],
+ // Stock: only roles that can manage/adjust inventory (not read-only view)
+ 'Stock': ['inventory.create', 'inventory.adjust', 'inventory.edit'],
+ // Contacts: owner/admin/manager bypass above; others need purchases.suppliers
+ 'Contacts': ['purchases.suppliers', 'admin.staff_view'],
+ // Money: anyone with finance access
+ 'Money': ['finance.balances', 'finance.transactions', 'finance.expenses'],
+ 'VenSynQ': ['sales.create', 'inventory.adjust'],
+ 'Insights': ['reports'],
+ 'Activity Log': ['audit'],
+ 'Recycle Bin': ['settings'],
+ 'Agent Inbox': ['settings'],
+ 'Chatbot Settings': ['settings'],
+ // 'Settings': ['settings'], // Removed
+ // 'System': ['settings', 'audit'], // Removed
+ 'Overview': [],
+ 'System Health': [],
+ 'Plans & Limits': [],
+ 'Platforms': [],
+ 'Coupons': [],
+ 'Tenant Overrides': [],
+ 'Stores': [],
+ 'Platform Users': [],
+ 'Revenue': [],
+ 'Support': [],
+ 'Activity Feed': [],
+ 'Demo Store': [],
+ 'System Update': [],
+ 'Staff Summaries': ['users'],
+ 'Staff Attendance': ['users'],
+ 'System Settings': ['settings'],
+ 'Database': ['settings']
+ };
+
+ const rawMenuItems = (mode === 'admin' && isPlatformAdmin && !store) ? adminMenuItems : appMenuItems;
+
+ const menuItems = rawMenuItems.filter(item => {
+ // Exclude VenSynQ if disabled platform-wide
+ if (item.name === 'VenSynQ' && !vensynq_enabled) {
+ return false;
+ }
+
+ // Exclude chatbot links for non-platform-staff
+ if (item.name === 'Agent Inbox' || item.name === 'Chatbot Settings') {
+ const isStaff = isPlatformAdmin || !!props.auth?.user?.is_platform_staff;
+ if (!isStaff) return false;
+ // Hide if the plan is Starter or LTD 1
+ if (isStarterOrLtd1) return false;
+ }
+
+ // Platform admin sees all items in any mode
+ if (isPlatformAdmin) return true;
+
+ // Store owner, admin, and manager: see all store menu items
+ if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') return true;
+
+ const required = MENU_PERMISSIONS[item.name];
+ // Home is always visible; everything else requires explicit permission for non-named roles.
+ // Appearance joins it: it is a personal display preference that grants no
+ // access to anything, and a cashier is exactly the person most likely to
+ // need a larger, higher-contrast interface on a shop-floor screen.
+ if (item.name === 'Home' || item.name === 'Appearance') return true;
+ if (!required || required.length === 0) return false;
+
+ // Prefix-aware permission check:
+ // stored permissions are namespaced (e.g. 'pos.open_session', 'sales.view')
+ // but MENU_PERMISSIONS uses short prefixes (e.g. 'pos', 'sales')
+ // so we match if any stored permission equals OR starts with the required prefix
+ return required.some(req =>
+ userPerms.some(p => p === req || p.startsWith(req + '.'))
+ );
+ });
+
+ // Helper to check if a menu item is active
+ const isMenuItemActive = (item) => {
+ if (activeMenu) return activeMenu === item.name;
+
+ // Check if current route matches the item's main route
+ if (item.route && route().current(item.route)) return true;
+
+ // Custom mapping for Insights -> reports.*
+ if (item.name === 'Insights' && route().current('store.reports.*')) return true;
+
+ // Check if current route matches any related routes (basic heuristic)
+ // For example, if item.name is 'Sales', match 'sales.*'
+ const prefix = item.name.toLowerCase();
+ if (route().current(`store.${prefix}.*`)) return true;
+
+ return false;
+ };
+
+ const toggleMenu = (menuName) => {
+ if (expandedMenu === menuName) {
+ setExpandedMenu(null);
+ } else {
+ setExpandedMenu(menuName);
+ }
+ };
+
+ // Handle hover-to-expand: expand sidebar AND open the specific menu
+ const handleHoverExpand = useCallback((menuKey) => {
+ if (!isSidebarOpen) {
+ wasHoverExpandedRef.current = true; // Mark as hover-expanded
+ setIsSidebarOpen(true);
+ setExpandedMenu(menuKey);
+ }
+ }, [isSidebarOpen]);
+
+ // Handle sidebar mouse leave - auto-collapse if it was hover-expanded
+ const handleSidebarMouseLeave = useCallback(() => {
+ if (wasHoverExpandedRef.current && isSidebarOpen) {
+ // Small delay to prevent accidental collapse during quick movements
+ setTimeout(() => {
+ if (wasHoverExpandedRef.current) {
+ setIsSidebarOpen(false);
+ setExpandedMenu(null);
+ wasHoverExpandedRef.current = false;
+ }
+ }, 300);
+ }
+ }, [isSidebarOpen]);
+
+ // Handle manual sidebar toggle - mark as NOT hover-expanded
+ const handleManualToggle = useCallback(() => {
+ wasHoverExpandedRef.current = false; // User clicked, so don't auto-collapse
+ setIsSidebarOpen(!isSidebarOpen);
+ }, [isSidebarOpen]);
+
+ // Handle any click inside sidebar - cancel auto-collapse
+ const handleSidebarInteraction = useCallback(() => {
+ wasHoverExpandedRef.current = false; // User interacted, keep sidebar open
+ }, []);
+
+ // REMOVED LOCAL THEME EFFECT - Handled by ThemeContext
+
+ // Bumped by the 'vq:pos-senior-mode-changed' listener below so the font-size
+ // effect re-runs the instant the POS screen's own toggle fires, rather than
+ // waiting for isLargeText/settings to change (they won't -- see that effect).
+ const [posSeniorModeTick, setPosSeniorModeTick] = useState(0);
+ useEffect(() => {
+ const handlePosSeniorModeChanged = () => setPosSeniorModeTick((t) => t + 1);
+ window.addEventListener('vq:pos-senior-mode-changed', handlePosSeniorModeChanged);
+ return () => window.removeEventListener('vq:pos-senior-mode-changed', handlePosSeniorModeChanged);
+ }, []);
+
+ useEffect(() => {
+ // UI Scale logic: senior_mode (20px) > ui_scale setting (%)
+ //
+ // Single writer of documentElement.style.fontSize for the whole app.
+ // The POS screen's "Large text mode" toggle (Pos.jsx) used to write this
+ // same property itself, independently and in a different unit (percent
+ // vs this effect's px) -- whichever effect last re-ran won, so the POS
+ // toggle could silently get reverted by an unrelated re-render here.
+ // Pos.jsx now only persists its choice to sessionStorage under
+ // 'pos_senior_mode'; this is the one place that reads it and applies it,
+ // so a POS-local override still takes effect immediately without racing
+ // a second writer, and without waiting on a DB round-trip.
+ let posSeniorOverride = null;
+ try {
+ const raw = sessionStorage.getItem('pos_senior_mode');
+ if (raw !== null) posSeniorOverride = JSON.parse(raw);
+ } catch (_) { /* ignore malformed/inaccessible storage */ }
+
+ let fontSize = '16px';
+ let scale = (parseInt(settings?.ui_scale) || 100) / 100;
+
+ const seniorActive = posSeniorOverride !== null
+ ? posSeniorOverride
+ : settings?.senior_mode === '1';
+
+ if (seniorActive) {
+ fontSize = '20px';
+ } else if (isLargeText) {
+ fontSize = '18px';
+ }
+
+ document.documentElement.style.fontSize = fontSize;
+ document.documentElement.style.setProperty('--ui-scale', scale.toString());
+
+ // Apply transform only if not default to avoid potential layout issues
+ if (scale !== 1) {
+ document.body.style.transform = `scale(${scale})`;
+ document.body.style.transformOrigin = 'top left';
+ document.body.style.width = `${100 / scale}%`;
+ document.body.style.height = `${100 / scale}%`;
+ } else {
+ document.body.style.transform = '';
+ document.body.style.width = '';
+ document.body.style.height = '';
+ }
+ }, [isLargeText, settings?.senior_mode, settings?.ui_scale, posSeniorModeTick]);
+
+ 	useEffect(() => {
+		function handleClickOutside(event) {
+			if (displayMenuRef.current && !displayMenuRef.current.contains(event.target)) {
+				setIsDisplayMenuOpen(false);
+			}
+			if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+				setIsUserMenuOpen(false);
+			}
+			if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+				setIsNotificationsOpen(false);
+			}
+			if (growthRef.current && !growthRef.current.contains(event.target)) {
+				setIsGrowthOpen(false);
+			}
+			if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+				setIsMobileMenuOpen(false);
+			}
+		}
+		document.addEventListener("mousedown", handleClickOutside);
+		document.addEventListener("touchstart", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+			document.removeEventListener("touchstart", handleClickOutside);
+		};
+	}, []);
+
+ return (
+ <>
+ <CommandPalette />
+ {/* Phase 4.4 — Global plan limit upgrade modal (triggered by axios interceptor) */}
+ <UpgradeModal />
+ <ImpersonationBanner />
+ <div className={`fixed inset-0 overflow-hidden flex bg-surface text-ink font-sans transition-colors duration-slow`}>
+ <style>{`
+ .custom-scrollbar::-webkit-scrollbar {
+ display: none;
+ }
+ .custom-scrollbar {
+ -ms-overflow-style: none;
+ scrollbar-width: none;
+ }
+ @media (max-width: 1023px) {
+ ::-webkit-scrollbar {
+ display: none !important;
+ }
+ * {
+ -ms-overflow-style: none !important;
+ scrollbar-width: none !important;
+ }
+ }
+ @keyframes fadeIn {
+ from { opacity: 0; transform: translateY(10px); }
+ to { opacity: 1; transform: translateY(0); }
+ }
+ :root {
+ --ui-scale: ${settings?.ui_scale ? settings.ui_scale / 100 : 1};
+ }
+ /* Draggable region for custom title bar */
+ .amd-draggable {
+ -webkit-app-region: drag;
+ }
+ .amd-no-drag {
+ -webkit-app-region: no-drag;
+ }
+`}</style>
+
+
+
+ {/* --- SIDEBAR --- */}
+ {mobileSidebarOpen && (
+ <div className="fixed inset-0 bg-black/50 z-drawer lg:hidden" onClick={() => setMobileSidebarOpen(false)} />
+ )}
+ {!fullScreen && !hideSidebar && (
+ <aside
+ ref={sidebarRef}
+ onMouseLeave={handleSidebarMouseLeave}
+ onClick={handleSidebarInteraction}
+ className={`
+ fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer lg:z-40
+ transform lg:transform-none transition-all duration-slow lg:duration-slower lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
+ flex flex-col amd-no-drag
+ ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+ ${isPlatformAdmin && !store
+ ? (isDarkMode ? 'bg-neutral-950/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-line')
+ : 'bg-surface border-r border-line dark:border-line'}
+ ${showExpandedSidebar ? 'w-[280px]' : 'w-[280px] lg:w-[88px]'}
+ ${isPlatformAdmin && !store
+ ? (isDarkMode ? 'm-4 rounded-xl h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-line shadow-sm transition-all')
+ : ''}
+`}
+ >
+
+
+ {/* Logo */}
+ <div className="h-24 flex items-center justify-center shrink-0 relative z-10">
+ <div className="flex items-center justify-center">
+ <img 
+ src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"} 
+ alt="Logo" 
+ className="w-16 h-16 object-contain drop-shadow-md transition-all duration-normal" 
+ />
+ </div>
+ </div>
+
+ <button
+ onClick={handleManualToggle}
+ className={`
+ hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-surface border border-line rounded-full shadow-md z-50 items-center justify-center text-ink-muted hover:text-brand-500 transition-all group
+ ${!showExpandedSidebar && 'rotate-180'}
+`}
+ >
+ <ChevronLeft size={14} className="transition-transform" />
+ </button>
+
+ {/* Menu */}
+ <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10" onClick={() => setMobileSidebarOpen(false)}>
+ {menuItems.map((item) => (
+ <SidebarItem
+ key={item.name}
+ id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
+ name={tt(item.name)}
+ icon={item.icon}
+ subItems={item.subs}
+ route={item.route}
+ routeParams={item.routeParams || { store_slug: store?.slug }}
+ menuKey={item.name}
+ onHoverExpand={handleHoverExpand}
+ isPlatformHQ={isPlatformAdmin && !store}
+ isExpanded={showExpandedSidebar}
+ isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && activeMenu === 'Home' && item.name === 'Dashboard')}
+ isActive={activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home')}
+ onToggle={() => {
+ if (item.onClick) {
+ item.onClick();
+ return;
+ }
+ toggleMenu(item.name);
+ if (!showExpandedSidebar) setIsSidebarOpen(true);
+ }}
+ onClick={item.onClick}
+ />
+ ))}
+
+						{/* Activity Hub Button — opens centered pop-up modal */}
+						{!(isPlatformAdmin && !store) && (
+							<div className="mt-4 pt-4 border-t border-line px-1">
+								<button
+									onClick={() => setIsActivityHubModalOpen(true)}
+									className={`
+										w-full flex items-center justify-between p-2.5 rounded-xl transition-all border group
+										${totalActiveOps > 0
+											? 'bg-brand-50/80 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/30 shadow-xs'
+											: 'bg-surface text-ink-muted border-line hover:text-ink hover:bg-interactive-hover'
+										}
+										${!showExpandedSidebar && 'justify-center'}
+									`}
+									title={`Activity Hub (${totalActiveOps} active operations)`}
+								>
+									<div className="flex items-center gap-2.5">
+										<div className="relative">
+											<Activity size={18} className={totalActiveOps > 0 ? "text-brand-500 animate-pulse" : "text-ink-muted"} />
+											{totalActiveOps > 0 && (
+												<span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+											)}
+										</div>
+										{showExpandedSidebar && (
+											<span className="text-xs font-bold uppercase tracking-wider">
+												Activity Hub
+											</span>
+										)}
+									</div>
+									{showExpandedSidebar && (
+										<span className={`px-2 py-0.5 rounded-full text-2xs font-bold transition-all ${
+											totalActiveOps > 0
+												? 'bg-brand-500 text-white shadow-xs'
+												: 'bg-sunken text-ink-muted'
+										}`}>
+											{totalActiveOps}
+										</span>
+									)}
+								</button>
+							</div>
+						)}
+
+ {/* Back to Shop Button (Admin Mode Only) - Hide in Platform HQ */}
+ {mode === 'admin' && !(isPlatformAdmin && !store) && (
+ <div className="mt-4 px-2">
+ <Link
+ href={store
+ ? route('store.dashboard', { store_slug: store.slug })
+ : '#'
+ }
+ className={`
+ flex items-center gap-3 w-full p-3 rounded-xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-all font-medium border border-brand-100 dark:border-brand-800
+ ${!showExpandedSidebar && 'justify-center'}
+`}
+ title="Back to Store"
+ >
+ <LogOut size={20} className="rotate-180" />
+ {showExpandedSidebar && <span>Back to Store</span>}
+ </Link>
+ </div>
+ )}
+ </div>
+
+ {/* User & POS Button */}
+ <div className={`border-t border-line shrink-0 flex flex-col gap-3 relative z-10 ${showExpandedSidebar ? 'p-4' : 'p-2'}`} ref={userMenuRef}>
+
+ {/* POS BUTTON — only show when we have a store context and NOT in platform HQ */}
+ {/* Role AND module. This asked only "are you allowed to use a till", never
+     "did you ask for one" — so a solo plumber who built a workspace with no
+     counter still had Open POS as the biggest button on his screen. */}
+ {store && !(isPlatformAdmin && !store)
+   && (!enabledModuleSet || enabledModuleSet.has('pos'))
+   && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos')) && (
+ <Link
+ href={store
+ ? (isPosRoute ? route('store.dashboard', {store_slug: store.slug}) : route('store.pos', {store_slug: store.slug}))
+ : '#'
+ }
+ className={`
+ flex items-center justify-center gap-3 w-full py-4 rounded-2xl transition-all duration-slow group relative overflow-hidden shadow-lg
+ ${showExpandedSidebar ? 'px-4' : 'px-0'}
+`}
+ >
+ {/* Premium Background */}
+ <div className="absolute inset-0 bg-neutral-900 z-0">
+ <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/40 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+ <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-600/30 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3"></div>
+ <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20"></div>
+ <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-50"></div>
+ </div>
+
+ <div className="relative z-10 flex items-center gap-3 text-white">
+ <Monitor size={24} className="transition-transform duration-slow" />
+ <span className={`font-bold tracking-wide whitespace-nowrap transition-all duration-slow ${showExpandedSidebar ? 'w-auto opacity-100' : 'w-0 opacity-0 hidden'}`}>
+ {isPosRoute ? 'Close POS' : 'Open POS'}
+ </span>
+ </div>
+ </Link>
+ )}
+
+ {/* USER MENU POPUP */}
+ {isUserMenuOpen && (
+ <div className="absolute bottom-20 left-4 w-56 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+ 						{props.auth?.my_stores_count > 1 && (
+							<button
+								onClick={() => {
+									setIsUserMenuOpen(false);
+									setIsStoreSwitcherModalOpen(true);
+								}}
+								className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink group mb-1"
+							>
+								<div className="flex items-center gap-2.5">
+									<Store size={16} className="text-brand-500 group-hover:scale-110 transition-transform" />
+									<span>Switch Store</span>
+								</div>
+								<span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 max-w-[75px] truncate">
+									{store?.name}
+								</span>
+							</button>
+						)}
+ {store && (
+ <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+ <User size={16} /> Profile Settings
+ </Link>
+ )}
+ <button
+ onClick={() => {
+ localStorage.removeItem('amd_onboarding_driver_complete');
+ window.location.reload();
+ }}
+ className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-sm font-medium text-brand-600 dark:indigo-400"
+ >
+ <Sparkles size={16} /> Take a Tour
+ </button>
+ {(userRole === 'platform_admin') && (
+ <Link href="/updater" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-sm font-medium text-amber-600 dark:text-amber-400">
+ <Package size={16} /> System Update
+ </Link>
+ )}
+ <div className="h-px bg-sunken my-1"></div>
+ <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
+ <LogOut size={16} /> Logout
+ </Link>
+ </div>
+ )}
+
+ <button
+ className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent hover:border-line dark:hover:border-line-strong`}
+ onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+ >
+ <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md ring-2 ring-white dark:ring-line">
+ {(() => {
+ const name = props.auth?.user?.name || '';
+ const email = props.auth?.user?.email || '?';
+ if (name) {
+ const parts = name.split(' ');
+ if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+ return name.substring(0, 2).toUpperCase();
+ }
+ return email.substring(0, 2).toUpperCase();
+ })()}
+ </div>
+ <div className={`text-left transition-all duration-slow overflow-hidden ${showExpandedSidebar ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+ <p className="text-sm font-bold text-ink truncate max-w-[120px]">
+ {props.auth?.user?.name || props.auth?.user?.email}
+ </p>
+ <p className="text-2xs font-semibold text-ink-muted uppercase tracking-wider">
+ {props.auth?.user?.role === 'platform_admin' ? 'Hashmi Dashboard' : (props.auth?.user?.role || 'User')}
+ </p>
+ </div>
+ </button>
+ </div>
+ </aside>
+ )}
+
+ {/* --- MAIN CONTENT --- */}
+ <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-[var(--vq-bg)] transition-opacity duration-slower ease-in-out opacity-100`}>
+ <DemoBanner />
+
+ {/* Limit Grace Countdown Banner */}
+ <LimitGraceBanner />
+
+ {/* Subscription/Trial Banner — hidden for demo stores */}
+ {(() => {
+ if (!store || is_demo) return null;
+
+ let daysLeft = null;
+ let isTrial = store.status === 'trial';
+ let targetDate = isTrial ? store.trial_ends_at : store.subscription_ends_at;
+
+ if (targetDate) {
+ const diffMs = new Date(targetDate).getTime() - new Date().getTime();
+ daysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 3600 * 24)));
+ }
+
+ // Only show if subscription has 7 or fewer days left, and is not a trial (trial has its own header badge)
+ if (daysLeft !== null && !isTrial && daysLeft <= 7 && store.status !== 'suspended') {
+ const isUrgent = daysLeft <= 3;
+ const isWarning = daysLeft > 3 && daysLeft <= 7;
+
+ let bannerColor = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30';
+ let btnColor = 'bg-emerald-500 hover:bg-emerald-600';
+ if (isWarning) {
+ bannerColor = 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 border-amber-100 dark:border-amber-900/30';
+ btnColor = 'bg-amber-500 hover:bg-amber-600';
+ }
+ if (isUrgent) {
+ bannerColor = 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-100 dark:border-red-900/30';
+ btnColor = 'bg-red-500 hover:bg-red-600';
+ }
+
+ return (
+ <div className={`w-full px-4 py-2 text-sm font-medium flex items-center justify-between shrink-0 border-b ${bannerColor}`}>
+ <div className="flex items-center gap-2">
+ <Activity size={16} className={isUrgent ? 'animate-pulse' : ''} />
+ <span>
+ {isTrial
+ ? `Your free trial expires in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}.`
+ : `Your subscription expires in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}.`}
+ </span>
+ </div>
+ <Link href={`/s/${store.slug}/billing`} className={`px-3 py-1 rounded-md text-xs font-bold text-white transition-colors ${btnColor}`}>
+ Upgrade Now
+ </Link>
+ </div>
+ );
+ }
+
+ // If suspended (e.g. they somehow bypassed the middleware or it's degraded mode)
+ if (store.status === 'suspended') {
+ return (
+ <div className="w-full px-4 py-2 text-sm font-bold bg-neutral-900 text-white flex items-center justify-between shrink-0">
+ <div className="flex items-center gap-2">
+ <X size={16} className="text-red-500" />
+ <span>Your subscription has expired. The system is in locked mode.</span>
+ </div>
+ <Link href={`/s/${store.slug}/billing`} className="px-3 py-1 rounded-md text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 transition-colors">
+ Upgrade Plan
+ </Link>
+ </div>
+ );
+ }
+
+ return null;
+ })()}
+
+  {/* Plan Usage Warning Banner — AppSumo LTD (80% / 95% / 100% threshold) */}
+  <PlanUsageBanner />
+
+  {/* Subscription / Gift Access Link expiry — 7-day / 2-day warnings + locked state */}
+  <SubscriptionExpiryBanner />
+
+  {/* Fullscreen Floating Squeezed AI Island */}
+  {(fullScreen || hideHeader) && (
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-nav pointer-events-none flex items-center justify-center">
+          <div className="pointer-events-auto">
+              <AiIsland compact />
+          </div>
+      </div>
+  )}
+
+  {/* Header */}
+  {!hideHeader && !fullScreen && (
+  <header className="h-16 px-6 flex items-center justify-between z-nav relative shrink-0">
+  {/* LEFT SECTION */}
+  <div className="flex items-center gap-3 text-ink-muted min-w-[100px] z-10">
+  <button className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors border border-line"
+  onClick={() => setMobileSidebarOpen(true)}>
+  <Menu size={20} />
+  </button>
+
+  {/* Header Link: When on store admin subpages, quick link Back to Home */}
+  {store && !(isPlatformAdmin && !store) && mode === 'admin' && (
+  <Link
+  id="tour-sidebar-admin"
+  href={store ? route('store.home', {store_slug: store.slug}) : '#'}
+  className="hidden sm:flex group relative items-center gap-2 h-11 px-3.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
+  >
+  <Home size={16} className="text-brand-500" />
+  <span className="text-sm font-bold text-ink">
+  Home
+  </span>
+  </Link>
+  )}
+  </div>
+
+  {/* CENTER SECTION - THE AI ISLAND (Always Dead-Center of the Screen) */}
+  <div id="tour-omnisearch" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center justify-center">
+      <div className="pointer-events-auto">
+          <AiIsland />
+      </div>
+  </div>
+
+  {/* RIGHT SECTION */}
+  <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-[100px] z-10">
+  {isTrial && !is_demo && (
+  <Link
+  href={route('store.billing', { store_slug: store?.slug })}
+  className="hidden sm:flex items-center gap-2 h-11 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all group shadow-sm "
+  >
+  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+  <span className="text-2xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-[0.15em] leading-none">
+  {trialDaysLeft}d Left
+  </span>
+  </Link>
+  )}
+
+  {/* Optional Live Header Clock (Toggled in Header Settings) */}
+  {showClock && (
+  <div className="hidden xl:flex items-center gap-2 h-11 px-3.5 rounded-xl bg-surface border border-line text-xs font-bold text-ink-secondary dark:text-ink shrink-0 font-mono shadow-sm">
+  <Clock size={14} className="text-brand-500 dark:text-brand-400 animate-[pulse_2s_infinite]" />
+  <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+  </div>
+  )}
+
+  <div className="hidden lg:block">
+  <CharityButton />
+  </div>
+
+  {/* Display & Dashboard Customization Settings Dropdown */}
+  <div className="hidden lg:block relative" ref={displayMenuRef}>
+      <button
+          onClick={() => setIsDisplayMenuOpen(!isDisplayMenuOpen)}
+          className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
+              ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
+              : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
+          title="Theme & Header Preferences"
+      >
+          <Settings2 size={18} />
+      </button>
+
+      {isDisplayMenuOpen && (
+          <div className="absolute right-0 top-full mt-2 w-72 bg-surface rounded-[14px] shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2.5 space-y-2">
+              {/* Theme Selector */}
+              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                  Theme Appearance
+              </div>
+              <div className="flex items-center p-1 bg-sunken rounded-xl gap-1">
+                  {[
+                      { id: 'light', label: 'Light' },
+                      { id: 'dark', label: 'Dark' },
+                      { id: 'system', label: 'System' },
+                  ].map((t) => (
+                      <button
+                          key={t.id}
+                          onClick={() => toggleAppTheme(t.id)}
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold capitalize transition-all ${
+                              (appearance?.mode === t.id || (!appearance?.mode && t.id === (isEffectiveDarkMode ? 'dark' : 'light')))
+                                  ? 'bg-surface shadow-sm text-brand-600 font-bold'
+                                  : 'text-ink-muted hover:text-ink'
+                          }`}
+                      >
+                          {t.label}
+                      </button>
+                  ))}
+              </div>
+
+              <div className="h-px bg-line my-1" />
+
+              {/* Header Controls */}
+              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                  Header Preferences
+              </div>
+
+              <button
+                  onClick={toggleClockVisibility}
+                  className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+              >
+                  <div className="flex items-center gap-2.5">
+                      <Clock size={16} className="text-brand-500 shrink-0" />
+                      <span className="text-sm font-semibold">Digital Clock</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative transition-colors ${showClock ? 'bg-brand-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${showClock ? 'left-4.5' : 'left-0.5'}`} />
+                  </div>
+              </button>
+
+              <button
+                  onClick={() => {
+                      const newValue = settings?.senior_mode === '1' ? '0' : '1';
+                      router.post(route("store.settings.update", {
+                          store_slug: store.slug
+                      }), {
+                          settings: { ...settings, senior_mode: newValue }
+                      }, { preserveScroll: true });
+                  }}
+                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${settings?.senior_mode === '1'
+                      ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                      : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+              >
+                  <div className="flex items-center gap-2.5">
+                      <Type size={16} className="shrink-0" />
+                      <span className="text-sm font-semibold">Senior Mode</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
+                  </div>
+              </button>
+
+              <button
+                  onClick={() => {
+                      const newValue = (String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? '0' : '1';
+                      router.post(route("store.settings.update", {
+                          store_slug: store.slug
+                      }), {
+                          settings: { ...settings, charity_enabled: newValue }
+                      }, { preserveScroll: true });
+                  }}
+                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true)
+                      ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
+                      : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+              >
+                  <div className="flex items-center gap-2.5">
+                      <HeartHandshake size={16} className="text-rose-500 shrink-0" />
+                      <span className="text-sm font-semibold">Charity Donations</span>
+                  </div>
+                  <div className={`w-8 h-4 rounded-full relative transition-colors ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? 'bg-rose-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? 'left-4.5' : 'left-0.5'}`}></div>
+                  </div>
+              </button>
+
+              <div className="h-px bg-line my-1" />
+
+              {/* Dashboard Layout Actions */}
+              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                  <span>Dashboard Customizer</span>
+              </div>
+
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleEditLayout();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+              >
+                  <PenLine size={16} className="text-brand-500 shrink-0" />
+                  <span className="flex-1 text-left">Edit Layout</span>
+              </button>
+
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleAddCard();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+              >
+                  <Plus size={16} className="text-emerald-500 shrink-0" />
+                  <span className="flex-1 text-left">Add Card</span>
+              </button>
+
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleToggleSidePanel();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+              >
+                  <PanelRight size={16} className="text-indigo-500 shrink-0" />
+                  <span className="flex-1 text-left">Side Panel</span>
+              </button>
+
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      handleStartFresh();
+                  }}
+                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
+              >
+                  <RotateCcw size={16} className="text-amber-500 shrink-0" />
+                  <span className="flex-1 text-left">Start Fresh…</span>
+              </button>
+
+              {props.auth?.my_stores_count > 1 && (
+                  <button
+                      onClick={() => {
+                          setIsDisplayMenuOpen(false);
+                          setIsStoreSwitcherModalOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+                  >
+                      <div className="flex items-center gap-2.5">
+                          <Store size={16} className="text-brand-500 shrink-0" />
+                          <span className="text-sm font-semibold">Switch Store</span>
+                      </div>
+                      <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 max-w-[80px] truncate">
+                          {store?.name}
+                      </span>
+                  </button>
+              )}
+          </div>
+      )}
+  </div>
+
+  {/* Mobile Options Dropdown (lg:hidden) */}
+  <div className="lg:hidden relative" ref={mobileMenuRef}>
+      <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isMobileMenuOpen
+              ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
+              : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
+          title="More Options"
+      >
+          <MoreVertical size={18} />
+      </button>
+
+      {isMobileMenuOpen && (
+          <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-[14px] shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
+              {/* Store Switcher & Charity Button Row */}
+              {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+                  <div className="p-2 border-b border-line flex items-center justify-between gap-3">
+                      {props.auth?.my_stores_count > 1 ? (
+                          <button
+                              onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  setIsStoreSwitcherModalOpen(true);
+                              }}
+                              className="flex-1 flex items-center justify-between p-2 rounded-xl bg-app border border-line hover:border-brand-400 text-ink-secondary hover:text-brand-600 transition-all text-left"
+                          >
+                              <div className="flex items-center gap-2">
+                                  <Store size={15} className="text-brand-500" />
+                                  <span className="text-xs font-bold truncate max-w-[100px]">{store?.name}</span>
+                              </div>
+                              <span className="text-2xs font-bold text-brand-600">Switch</span>
+                          </button>
+                      ) : (
+                          <span className="text-xs font-semibold text-ink-secondary pl-2">Charity Donations</span>
+                      )}
+                      {(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+                          <div className="flex-none">
+                              <CharityButton />
+                          </div>
+                      )}
+                  </div>
+              )}
+
+              {/* Dashboard Layout Actions */}
+              <div className="space-y-1 border-b border-line pb-2">
+                  <div className="px-2 pt-1 pb-0.5 text-3xs font-bold uppercase tracking-wider text-ink-muted">
+                      Dashboard Layout
+                  </div>
+
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleEditLayout();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                      <PenLine size={16} className="text-brand-500 shrink-0" />
+                      <span className="flex-1 text-left">Edit Layout</span>
+                  </button>
+
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleAddCard();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                      <Plus size={16} className="text-emerald-500 shrink-0" />
+                      <span className="flex-1 text-left">Add Card</span>
+                  </button>
+
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleToggleSidePanel();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
+                  >
+                      <PanelRight size={16} className="text-indigo-500 shrink-0" />
+                      <span className="flex-1 text-left">Side Panel</span>
+                  </button>
+
+                  <button
+                      onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleStartFresh();
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-amber-600 dark:text-amber-400 transition-all text-sm font-semibold"
+                  >
+                      <RotateCcw size={16} className="text-amber-500 shrink-0" />
+                      <span className="flex-1 text-left">Start Fresh…</span>
+                  </button>
+              </div>
+
+              {/* Display Settings */}
+              <div className="space-y-1">
+                  <button
+                      onClick={() => {
+                          const newValue = settings?.senior_mode === '1' ? '0' : '1';
+                          router.post(route("store.settings.update", {
+                              store_slug: store.slug
+                          }), {
+                              settings: { ...settings, senior_mode: newValue }
+                          }, { preserveScroll: true });
+                      }}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${settings?.senior_mode === '1'
+                          ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                          : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+                  >
+                      <div className="flex items-center gap-2">
+                          <Type size={16} />
+                          <span className="text-sm font-semibold">Senior Mode</span>
+                      </div>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-brand-500' : 'bg-sunken'}`}>
+                          <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
+                      </div>
+                  </button>
+
+                  <button
+                      onClick={toggleAppTheme}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
+                          ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
+                          : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
+                  >
+                      <div className="flex items-center gap-2">
+                          {isEffectiveDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                          <span className="text-sm font-semibold">{isEffectiveDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                      </div>
+                      <div className={`w-8 h-4 rounded-full relative transition-colors ${isEffectiveDarkMode ? 'bg-brand-500' : 'bg-sunken'}`}>
+                          <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isEffectiveDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
+                      </div>
+                  </button>
+              </div>
+
+              {/* User Settings */}
+              <div className="border-t border-line pt-2 space-y-1">
+                  {store && (
+                      <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+                          <User size={16} /> Profile Settings
+                      </Link>
+                  )}
+                  <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
+                      <LogOut size={16} /> Logout
+                  </Link>
+              </div>
+          </div>
+      )}
+  </div>
+  </div>
+  </header>
+  )}
+
+
+ {/* DYNAMIC CONTENT AREA */}
+ <div className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-6'}`}>
+ {children}
+ {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
+ {showMobileNavBar && (
+ <div className="lg:hidden w-full shrink-0" style={{ height: '80px' }} aria-hidden="true" />
+ )}
+ </div>
+ </main >
+
+ {/* IDLE OVERLAY */}
+ {
+ isIdle && (
+ <div className="fixed inset-0 z-drawer bg-neutral-900/90 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-slower">
+ <div className="text-center text-white space-y-6 max-w-lg p-8">
+ <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+ <Clock size={48} className="text-brand-400" />
+ </div>
+ <h2 className="text-4xl font-bold tracking-tight">Session Paused</h2>
+ <p className="text-xl text-neutral-300">
+ We haven't detected any activity for {parseInt(settings?.auto_logout) || 60} minutes.
+ Your session has been paused to secure your work.
+ </p>
+ <button
+ onClick={() => setIsIdle(false)}
+ className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold text-lg shadow-lg transition-all"
+ >
+ I'm Back, Resume Work
+ </button>
+ </div>
+ </div>
+ )
+ }
+
+ </div >
+ <PwaInstallPrompt />
+ <VersionChecker />
+ <OnboardingDriver />
+ <GlobalOnboardingWidget store={store} />
+ <ActivityHubModal
+     isOpen={isActivityHubModalOpen}
+     onClose={() => setIsActivityHubModalOpen(false)}
+     store={store}
+     modules={Array.isArray(props?.modules) ? props.modules : null}
+     currentUrl={url}
+     visibleInvoices={visibleInvoices}
+     currentInvoiceId={currentInvoiceId}
+     onSelectInvoice={(id) => {
+         setCurrentInvoiceId(id);
+         setIsActivityHubModalOpen(false);
+         if (!url.includes('/sales/invoice/create')) {
+             router.visit(route('store.sales.invoice.create', { store_slug: store?.slug }));
+         }
+     }}
+     userPosSessions={userPosSessions}
+     currentPosId={currentPosId}
+     onSelectPos={(id) => {
+         setCurrentPosId(id);
+         setIsActivityHubModalOpen(false);
+         if (!url.startsWith('/pos')) {
+             router.visit(route('store.pos', { store_slug: store?.slug }));
+         }
+     }}
+     visiblePurchases={visiblePurchases}
+     currentPurchaseId={currentPurchaseId}
+     onSelectPurchase={(id) => {
+         setCurrentPurchaseId(id);
+         setIsActivityHubModalOpen(false);
+         if (!url.includes('/purchases/create')) {
+             router.visit(route('store.purchases.create', { store_slug: store?.slug }));
+         }
+     }}
+     totalActiveOps={totalActiveOps}
+ />
+
+	{/* Store Switcher Centered Pop-up Modal */}
+	<StoreSwitcherModal
+		isOpen={isStoreSwitcherModalOpen}
+		onClose={() => setIsStoreSwitcherModalOpen(false)}
+	/>
+
+ {/* Mobile Bottom Navigation Bar */}
+				{showMobileNavBar && (
+					<BottomNavBar
+						store={store}
+						modules={props?.modules}
+						onOpenMore={() => setMobileSidebarOpen(true)}
+					/>
+				)}
+
+				{/* Global Toast Notifications */}
+ <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
+
+ {/* Global Style Injections for Mobile FABs Drawer */}
+ <style>{`
+ @media (max-width: 1023px) {
+ /* Hide FABs by translating down */
+ div[class*="z-sticky"],
+ div[class*="z-drawer"],
+ div[class*="z-modal"] {
+ transform: translateY(400px) !important;
+ opacity: 0 !important;
+ pointer-events: none !important;
+ transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease !important;
+ }
+ /* Slide up when active and offset slightly higher to clear bottom bar/bud overlap */
+ body.mobile-fabs-expanded div[class*="z-sticky"],
+ body.mobile-fabs-expanded div[class*="z-drawer"],
+ body.mobile-fabs-expanded div[class*="z-modal"] {
+ transform: translateY(-20px) !important;
+ opacity: 1 !important;
+ pointer-events: auto !important;
+ }
+ }
+`}</style>
+ </>
+ );
+}

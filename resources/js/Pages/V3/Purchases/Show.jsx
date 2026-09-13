@@ -1,0 +1,360 @@
+import { usePage, Link, router } from '@inertiajs/react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { purchaseStanding } from '@/Domain/purchase/settlement';
+import { useTermText } from '@/lib/terms';
+
+/**
+ * V3 CONSOLIDATION Phase 2 — parity with the legacy Purchases/Show screen.
+ *
+ * Adds: edit / receive / void actions, landed costs, returns, derived paid
+ * amount, and the FULL journal history including reversals.
+ *
+ * The journal section shows every entry the document ever raised — original,
+ * reversal and payment — because "which entries are live?" is exactly the
+ * question an editable posted document has to be able to answer.
+ */
+
+const paymentBadge = (status) => ({
+    paid: 'bg-green-100 text-green-700',
+    partial: 'bg-yellow-100 text-yellow-700',
+}[status] ?? 'bg-red-100 text-red-700');
+
+const workflowBadge = (status) => ({
+    received: 'bg-blue-100 text-blue-700',
+    partial: 'bg-amber-100 text-amber-700',
+    pending: 'bg-neutral-100 text-ink-secondary',
+    cancelled: 'bg-neutral-200 text-ink-muted',
+}[status] ?? 'bg-neutral-100 text-ink-secondary');
+
+export default function PurchaseShow({
+    purchase,
+    items,
+    journalEntries = [],
+    journalLines = [],
+    landedCosts = [],
+    returns = [],
+    paidAmount = 0,
+    settlement = null,
+}) {
+    const { store } = usePage().props;
+    const tt = useTermText();
+    const isCancelled = purchase.workflow_status === 'cancelled';
+    const canReceive = ['pending', 'partial'].includes(purchase.workflow_status);
+    /* From the server's settlement summary — the badge's own reading — so a
+       bill with goods sent back does not show their value as still owed. */
+    const standing = purchaseStanding({ purchase, settlement, paidAmount });
+    const outstanding = standing.outstanding;
+
+    const linesFor = (entryId) => journalLines.filter(l => l.journal_entry_id === entryId);
+
+    const voidPurchase = () => {
+        const reason = window.prompt(
+            'Voiding reverses this purchase\'s journal entries and releases its stock batches.\n\n' +
+            'The record is kept, never deleted. Reason (optional):'
+        );
+        if (reason === null) return;
+
+        router.delete(
+            route('store.v3.purchases.destroy', { store_slug: store.slug, purchase: purchase.id }),
+            { data: { reason } }
+        );
+    };
+
+    return (
+        <div className="p-6 max-w-5xl">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                <div className="flex items-center gap-4">
+                    <Link
+                        href={route('store.v3.purchases.index', { store_slug: store.slug })}
+                        className="text-ink-muted hover:text-ink"
+                    >
+                        ← Purchases
+                    </Link>
+                    <h1 className="text-2xl font-bold">Purchase — {purchase.invoice_number}</h1>
+                </div>
+
+                <div className="flex gap-2">
+                    {canReceive && !isCancelled && (
+                        <Link
+                            href={route('store.v3.purchases.receive', { store_slug: store.slug, purchase: purchase.id })}
+                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-medium"
+                        >
+                            Receive Goods
+                        </Link>
+                    )}
+                    {!isCancelled && (
+                        <Link
+                            href={route('store.v3.purchases.edit', { store_slug: store.slug, purchase: purchase.id })}
+                            className="border px-4 py-2 rounded hover:bg-interactive-hover font-medium"
+                        >
+                            Edit
+                        </Link>
+                    )}
+                    {!isCancelled && (
+                        <Link
+                            href={route('store.v3.purchases.return.create', { store_slug: store.slug, purchaseId: purchase.id })}
+                            className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded hover:bg-red-100 font-medium"
+                        >
+                            Return
+                        </Link>
+                    )}
+                    {!isCancelled && (
+                        <button
+                            type="button"
+                            onClick={voidPurchase}
+                            className="border border-line text-ink-secondary px-4 py-2 rounded hover:bg-interactive-hover font-medium"
+                        >
+                            Void
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {isCancelled && (
+                <div className="mb-6 bg-sunken border border-line rounded p-3 text-sm text-ink-secondary">
+                    <strong>This purchase is voided.</strong> Its journal entries have been reversed and its
+                    stock batches released. The record is retained for the audit trail.
+                </div>
+            )}
+
+            {/* Header info */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-sunken rounded border">
+                <div>
+                    <p className="text-sm text-ink-muted">{tt('Supplier')}</p>
+                    <p className="font-medium">{purchase.supplier_name}</p>
+                </div>
+                <div>
+                    <p className="text-sm text-ink-muted">Date</p>
+                    <p className="font-medium">{purchase.purchase_date}</p>
+                </div>
+                <div>
+                    <p className="text-sm text-ink-muted">Due</p>
+                    <p className="font-medium">{purchase.due_date ?? '—'}</p>
+                </div>
+                <div>
+                    <p className="text-sm text-ink-muted">Reference</p>
+                    <p className="font-medium">{purchase.reference ?? '—'}</p>
+                </div>
+
+                <div>
+                    <p className="text-sm text-ink-muted">Total</p>
+                    <p className="font-bold text-lg">{formatCurrency(purchase.total, store)}</p>
+                </div>
+                <div>
+                    <p className="text-sm text-ink-muted">Paid <span className="text-xs">(from ledger)</span></p>
+                    <p className="font-medium">{formatCurrency(standing.paid, store)}</p>
+                    {standing.returned > 0.005 && (
+                        <p className="text-xs text-ink-muted">Returned {formatCurrency(standing.returned, store)}</p>
+                    )}
+                </div>
+                <div>
+                    <p className="text-sm text-ink-muted">Outstanding</p>
+                    <p className={`font-medium ${outstanding > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+                        {formatCurrency(outstanding, store)}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-sm text-ink-muted">Status</p>
+                    <div className="flex gap-1 flex-wrap">
+                        <span className={`text-xs px-2 py-1 rounded ${workflowBadge(purchase.workflow_status)}`}>
+                            {purchase.workflow_status}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded ${paymentBadge(purchase.payment_status)}`}>
+                            {purchase.payment_status}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {purchase.notes && (
+                <div className="mb-6 text-sm">
+                    <p className="text-ink-muted mb-1">Notes</p>
+                    <p className="whitespace-pre-wrap border rounded p-3 bg-white">{purchase.notes}</p>
+                </div>
+            )}
+
+            {/* Items */}
+            <h2 className="font-semibold mb-2">Line Items</h2>
+            <table className="w-full border-collapse border border-line mb-6">
+                <thead className="bg-sunken">
+                    <tr>
+                        <th className="border border-line px-4 py-2 text-left">{tt('Product')}</th>
+                        <th className="border border-line px-4 py-2 text-right">Qty</th>
+                        <th className="border border-line px-4 py-2 text-right">Received</th>
+                        <th className="border border-line px-4 py-2 text-right">Unit Cost</th>
+                        <th className="border border-line px-4 py-2 text-right">Tax</th>
+                        <th className="border border-line px-4 py-2 text-right">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {items.map(item => (
+                        <tr key={item.id}>
+                            <td className="border border-line px-4 py-2">
+                                {item.product_name}
+                                <span className="text-ink-muted text-xs ml-2">{item.sku}</span>
+                            </td>
+                            <td className="border border-line px-4 py-2 text-right">
+                                {item.qty} {item.base_unit}
+                            </td>
+                            <td className="border border-line px-4 py-2 text-right text-sm">
+                                {item.received_qty ?? 0}
+                            </td>
+                            <td className="border border-line px-4 py-2 text-right">
+                                {getCurrencySymbol(store)} {parseFloat(item.unit_cost).toFixed(4)}
+                            </td>
+                            <td className="border border-line px-4 py-2 text-right text-sm">
+                                {item.tax_rate}%
+                            </td>
+                            <td className="border border-line px-4 py-2 text-right font-medium">
+                                {formatCurrency(item.line_total, store)}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+                <tfoot className="bg-sunken text-sm">
+                    <tr>
+                        <td colSpan={5} className="border border-line px-4 py-1 text-right">Subtotal</td>
+                        <td className="border border-line px-4 py-1 text-right">{formatCurrency(purchase.subtotal, store)}</td>
+                    </tr>
+                    {Number(purchase.discount) > 0 && (
+                        <tr>
+                            <td colSpan={5} className="border border-line px-4 py-1 text-right">Discount</td>
+                            <td className="border border-line px-4 py-1 text-right">−{formatCurrency(purchase.discount, store)}</td>
+                        </tr>
+                    )}
+                    <tr>
+                        <td colSpan={5} className="border border-line px-4 py-1 text-right">Tax</td>
+                        <td className="border border-line px-4 py-1 text-right">{formatCurrency(purchase.tax, store)}</td>
+                    </tr>
+                    {Number(purchase.round_off) !== 0 && (
+                        <tr>
+                            <td colSpan={5} className="border border-line px-4 py-1 text-right">Round off</td>
+                            <td className="border border-line px-4 py-1 text-right">{formatCurrency(purchase.round_off, store)}</td>
+                        </tr>
+                    )}
+                </tfoot>
+            </table>
+
+            {/* Landed costs */}
+            {landedCosts.length > 0 && (
+                <>
+                    <h2 className="font-semibold mb-2">Landed Costs</h2>
+                    <p className="text-xs text-ink-muted mb-2">
+                        Capitalised into the unit cost of the goods above, so they reach COGS through FIFO.
+                    </p>
+                    <table className="w-full border-collapse border border-line mb-6 text-sm">
+                        <thead className="bg-sunken">
+                            <tr>
+                                <th className="border border-line px-4 py-2 text-left">Category</th>
+                                <th className="border border-line px-4 py-2 text-left">Description</th>
+                                <th className="border border-line px-4 py-2 text-left">Allocation</th>
+                                <th className="border border-line px-4 py-2 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {landedCosts.map(cost => (
+                                <tr key={cost.id}>
+                                    <td className="border border-line px-4 py-2">{cost.category}</td>
+                                    <td className="border border-line px-4 py-2 text-ink-muted">{cost.description}</td>
+                                    <td className="border border-line px-4 py-2 capitalize">{cost.allocation_method}</td>
+                                    <td className="border border-line px-4 py-2 text-right">
+                                        {formatCurrency(cost.amount, store)}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            )}
+
+            {/* Returns */}
+            {returns.length > 0 && (
+                <>
+                    <h2 className="font-semibold mb-2">Returns</h2>
+                    <table className="w-full border-collapse border border-line mb-6 text-sm">
+                        <thead className="bg-sunken">
+                            <tr>
+                                <th className="border border-line px-4 py-2 text-left">Date</th>
+                                <th className="border border-line px-4 py-2 text-left">Reason</th>
+                                <th className="border border-line px-4 py-2 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {returns.map(r => (
+                                <tr key={r.id}>
+                                    <td className="border border-line px-4 py-2">{r.return_date}</td>
+                                    <td className="border border-line px-4 py-2">{r.reason}</td>
+                                    <td className="border border-line px-4 py-2 text-right">
+                                        {formatCurrency(r.total_amount, store)}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            )}
+
+            {/* Journal history */}
+            <h2 className="font-semibold mb-2">Journal History</h2>
+            {journalEntries.length === 0 && (
+                <p className="text-sm text-ink-muted border rounded p-4">
+                    No journal entries yet. This purchase posts to the ledger when the goods are received.
+                </p>
+            )}
+
+            <div className="space-y-4">
+                {journalEntries.map(entry => (
+                    <div
+                        key={entry.id}
+                        className={`border rounded overflow-hidden ${
+                            Number(entry.is_reversed) === 1 ? 'opacity-60' : ''
+                        }`}
+                    >
+                        <div className="bg-sunken px-4 py-2 text-sm text-ink-secondary border-b flex justify-between items-center gap-3">
+                            <span>{entry.description} — {entry.entry_date}</span>
+                            <span className="flex gap-2 shrink-0">
+                                <span className="text-xs px-2 py-1 rounded bg-white border capitalize">
+                                    {String(entry.reference_type).replace('_', ' ')}
+                                </span>
+                                {Number(entry.is_reversed) === 1 && (
+                                    <span className="text-xs px-2 py-1 rounded bg-sunken text-ink-secondary">
+                                        reversed
+                                    </span>
+                                )}
+                            </span>
+                        </div>
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-sunken text-sm">
+                                    <th className="px-4 py-2 text-left">Account</th>
+                                    <th className="px-4 py-2 text-right">Debit</th>
+                                    <th className="px-4 py-2 text-right">Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {linesFor(entry.id).map((line, i) => (
+                                    <tr key={i} className="border-t">
+                                        <td className="px-4 py-2 text-sm">
+                                            <span className="font-mono text-ink-muted mr-2">{line.code}</span>
+                                            {line.account_name}
+                                        </td>
+                                        <td className="px-4 py-2 text-right text-sm">
+                                            {parseFloat(line.debit) > 0
+                                                ? `${getCurrencySymbol(store)} ${parseFloat(line.debit).toFixed(2)}`
+                                                : '—'}
+                                        </td>
+                                        <td className="px-4 py-2 text-right text-sm">
+                                            {parseFloat(line.credit) > 0
+                                                ? `${getCurrencySymbol(store)} ${parseFloat(line.credit).toFixed(2)}`
+                                                : '—'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}

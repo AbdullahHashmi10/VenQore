@@ -1,0 +1,2393 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\ProductAttributeController;
+use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\FundController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Inertia\Inertia;
+
+
+// ── Public Marketing Pages (Dynamic Inertia / V6) ──────────────────────────
+Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
+Route::get('/features/{slug}', [\App\Http\Controllers\Marketing\FeaturesController::class, 'show'])->name('marketing.features.show');
+
+Route::get('/roadmap', [\App\Http\Controllers\Marketing\RoadmapController::class, 'index'])->name('marketing.roadmap');
+Route::get('/solutions', [\App\Http\Controllers\Marketing\SolutionsController::class, 'index'])->name('marketing.solutions.index');
+Route::get('/solutions/{slug}', [\App\Http\Controllers\Marketing\SolutionsController::class, 'show'])->name('marketing.solutions.show');
+Route::get('/compare', [\App\Http\Controllers\Marketing\CompareController::class, 'index'])->name('marketing.compare.index');
+Route::get('/compare/{slug}', [\App\Http\Controllers\Marketing\CompareController::class, 'show'])->name('marketing.compare.show');
+Route::get('/pricing', function () {
+    try {
+        $plans = \App\Models\Plan::with(['limits', 'features'])
+            ->where('is_active', true)
+            ->where('is_visible', true)
+            ->where('slug', 'not like', 'ltd%')
+            ->orderBy('sort_order')
+            ->get();
+    } catch (\Throwable $e) {
+        $plans = collect();
+    }
+    return Inertia::render('Marketing/Pricing', [
+        'plans'   => $plans,
+        'pricing' => config('pricing'),
+    ]);
+})->name('marketing.pricing');
+Route::middleware('throttle:20,1')->post('/pricing/currency-override', function (\Illuminate\Http\Request $request) {
+    $request->validate(['country' => 'required|string|size:2']);
+    $country = strtoupper($request->country);
+    
+    if ($country === 'PK') {
+        session(['geo_country_override' => 'PK']);
+    } else {
+        session(['geo_country_override' => 'US']);
+    }
+    
+    return back()->with('success', 'Region updated successfully.');
+})->name('marketing.pricing.override');
+Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marketing.about');
+Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
+Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.contact.submit');
+
+// Product lines & V6 showcases
+Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('marketing.vensynq');
+Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('marketing.smartcapture');
+Route::get('/documents', fn() => Inertia::render('Marketing/Documents'))->name('marketing.documents');
+Route::get('/reckoner', fn() => Inertia::render('Marketing/Reckoner'))->name('marketing.reckoner');
+Route::get('/ledger', fn() => Inertia::render('Marketing/Ledger'))->name('marketing.ledger');
+Route::get('/blueprint', fn() => Inertia::render('Marketing/Blueprint'))->name('marketing.blueprint');
+Route::get('/security', fn() => Inertia::render('Marketing/Security'))->name('marketing.security');
+Route::get('/onboarding', fn() => Inertia::render('Marketing/Onboarding'))->name('marketing.onboarding');
+Route::get('/dashboard-preview', fn() => Inertia::render('Marketing/DashboardPreview'))->name('marketing.dashboard-preview');
+
+Route::get('/pos', fn () => Inertia::render('Marketing/PosShowcase'))->name('marketing.pos');
+
+// ── Direct .html Legacy URL 301 Redirects ──────────────────────────────
+Route::get('/{page}.html', fn (string $page) => redirect("/{$page}", 301))
+    ->where('page', '[A-Za-z0-9\-]+');
+
+// Newsletter subscription
+Route::get('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'index'])->name('marketing.newsletter');
+Route::post('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.newsletter.submit');
+Route::get('/subscribe/confirm/{token}', [\App\Http\Controllers\Marketing\NewsletterController::class, 'confirm'])->name('marketing.newsletter.confirm');
+Route::get('/subscribe/unsubscribe/{token}', [\App\Http\Controllers\Marketing\NewsletterController::class, 'unsubscribe'])->name('marketing.newsletter.unsubscribe');
+Route::post('/subscribe/unsubscribe/{token}', [\App\Http\Controllers\Marketing\NewsletterController::class, 'unsubscribeConfirm'])->middleware('throttle:10,1')->name('marketing.newsletter.unsubscribe.confirm');
+
+// Digital products list page
+Route::get('/digital-products', [\App\Http\Controllers\Marketing\DigitalProductsPublicController::class, 'index'])->name('marketing.digital-products');
+
+// Secret Support Desk (accessed via VenQore.html link)
+Route::get('/partner-support', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'index'])->name('marketing.partner-support');
+Route::post('/api/partner-support/chat', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'startChat'])->middleware(['throttle:5,1', 'turnstile'])->name('partner-support.start');
+Route::get('/api/partner-support/chat/{ticket_id}', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'getMessages'])->middleware('throttle:60,1')->name('partner-support.messages');
+Route::post('/api/partner-support/chat/{ticket_id}/reply', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'reply'])->middleware('throttle:15,1')->name('partner-support.reply');
+
+// Documentation
+Route::get('/docs', [\App\Http\Controllers\Marketing\DocsController::class, 'index'])->name('marketing.docs.index');
+Route::get('/docs/{slug}', [\App\Http\Controllers\Marketing\DocsController::class, 'show'])->name('marketing.docs.show');
+
+// Public preview route for Liquid Next Dashboard
+Route::get('/next-dashboard', function () {
+    // Design preview only — never a public page in production. It renders a
+    // fabricated "Enterprise Store" with hard-coded revenue figures, which is
+    // not something a visitor or a crawler should ever be shown.
+    abort_if(app()->environment('production') && ! auth()->user()?->is_platform_admin, 404);
+
+    return Inertia::render('Next/Dashboard', [
+        'store' => ['name' => 'Demo Enterprise Store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
+        'auth' => ['user' => ['name' => 'Demo Admin', 'role' => 'admin']],
+        'settings' => [
+            'plan_tier' => 'Growth',
+            'business_type' => 'general'
+        ],
+        'performance' => ['revenue' => 45000, 'grossProfit' => 12500, 'margin' => 27.7],
+        'outstanding' => ['toReceive' => 8400, 'toPay' => 3200, 'overdue' => 0],
+        'netProfit' => ['amount' => 9300, 'balance' => 42100],
+        'inventoryValue' => 68500,
+        'cashAccounts' => [['name' => 'Main Register Till', 'balance' => 15400]],
+    ]);
+})->name('public.next-dashboard');
+
+// VenQore New Dashboard with Live Card Builder (v6)
+Route::get('/new-dashboard', function () {
+    // Design preview only — never a public page in production. It renders a
+    // fabricated "Enterprise Store" with hard-coded revenue figures, which is
+    // not something a visitor or a crawler should ever be shown.
+    abort_if(app()->environment('production') && ! auth()->user()?->is_platform_admin, 404);
+
+    return Inertia::render('NewDashboard', [
+        'store' => ['name' => 'VenQore Enterprise Store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
+        'auth' => ['user' => ['name' => 'Store Owner', 'role' => 'admin']],
+        'readings' => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+    ]);
+})->name('new-dashboard');
+
+Route::get('/new-dashbaord', function () {
+    return redirect('/new-dashboard', 301);
+});
+
+
+
+// Barcode Generator (Module 03) — internal Code128B SVG endpoint, used inside the
+// app (e.g. product labels). NOT the public /tools/barcode-generator tool below.
+Route::get('/barcode/generate', [\App\Http\Controllers\BarcodeController::class, 'generate'])->name('barcode.generate');
+
+// ── Public Free Tools (TOFU / GEO) ──────────────────────────────────────
+// Public, unauthenticated, NOT tenant-scoped. See SEO/SEO Tools/VENQORE_FREE_TOOLS_IMPLEMENTATION_PLAN.md §3.3.
+Route::prefix('tools')->name('tools.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Marketing\Tools\ToolsHubController::class, 'index'])->name('index');
+
+    // T1 — Barcode Generator
+    Route::get('/barcode-generator', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'index'])->name('barcode');
+    Route::get('/barcode-generator/{format}', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'format'])
+        ->where('format', 'code128|code39|code93|ean-13|ean-8|upc-a|upc-e|itf-14|codabar')
+        ->name('barcode.format');
+    Route::post('/barcode-generator/render', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('barcode.render');
+    Route::post('/barcode-generator/validate', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'validateExisting'])
+        ->middleware('throttle:tools')->name('barcode.validate');
+    Route::post('/barcode-generator/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('barcode.sheet');
+
+    // Smart Capture Tool (T7-2) / Invoice Scanner
+    Route::get('/smart-capture', [\App\Http\Controllers\PublicToolController::class, 'showSmartCapture'])->name('smart-capture');
+    Route::post('/smart-capture', [\App\Http\Controllers\PublicToolController::class, 'submitSmartCapture'])->middleware('throttle:tools')->name('smart-capture.submit');
+
+    // T2 — Invoice Generator
+    Route::get('/invoice-generator', [\App\Http\Controllers\Marketing\Tools\InvoiceToolController::class, 'index'])->name('invoice');
+    Route::post('/invoice-generator/render', [\App\Http\Controllers\Marketing\Tools\InvoiceToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('invoice.render');
+
+
+    // Credit Note Generator
+    Route::get('/credit-note-generator', [\App\Http\Controllers\Marketing\Tools\CreditNoteToolController::class, 'index'])->name('credit-note');
+    Route::post('/credit-note-generator/render', [\App\Http\Controllers\Marketing\Tools\CreditNoteToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('credit-note.render');
+
+    // T3 — Receipt Generator
+    Route::get('/receipt-generator', [\App\Http\Controllers\Marketing\Tools\ReceiptToolController::class, 'index'])->name('receipt');
+    Route::post('/receipt-generator/render', [\App\Http\Controllers\Marketing\Tools\ReceiptToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('receipt.render');
+
+    // Packing Slip Generator — Documents group (no prices/totals by design)
+    Route::get('/packing-slip-generator', [\App\Http\Controllers\Marketing\Tools\PackingSlipToolController::class, 'index'])->name('packing-slip');
+    Route::post('/packing-slip-generator/render', [\App\Http\Controllers\Marketing\Tools\PackingSlipToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('packing-slip.render');
+
+    // Price Tag Generator — Barcodes & Labels group
+    Route::get('/price-tag-generator', [\App\Http\Controllers\Marketing\Tools\PriceTagToolController::class, 'index'])->name('price-tag');
+    Route::post('/price-tag-generator/sheet', [\App\Http\Controllers\Marketing\Tools\PriceTagToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('price-tag.sheet');
+    Route::post('/price-tag-generator/parse', [\App\Http\Controllers\Marketing\Tools\PriceTagToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('price-tag.parse');
+
+    // Label Sheet Generator — Barcodes & Labels group (general-purpose text labels)
+    Route::get('/label-sheet-generator', [\App\Http\Controllers\Marketing\Tools\LabelSheetToolController::class, 'index'])->name('label-sheet');
+    Route::post('/label-sheet-generator/sheet', [\App\Http\Controllers\Marketing\Tools\LabelSheetToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('label-sheet.sheet');
+    Route::post('/label-sheet-generator/parse', [\App\Http\Controllers\Marketing\Tools\LabelSheetToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('label-sheet.parse');
+
+    // QR Code Generator — Barcodes & Labels group
+    Route::get('/qr-code-generator', [\App\Http\Controllers\Marketing\Tools\QrCodeToolController::class, 'index'])->name('qr');
+    Route::post('/qr-code-generator/render', [\App\Http\Controllers\Marketing\Tools\QrCodeToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('qr.render');
+
+    // QR Menu Generator — Barcodes & Labels group
+    Route::get('/qr-menu-generator', [\App\Http\Controllers\Marketing\Tools\QrMenuToolController::class, 'index'])->name('qr-menu');
+    Route::post('/qr-menu-generator/render', [\App\Http\Controllers\Marketing\Tools\QrMenuToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('qr-menu.render');
+
+    // Product CSV Cleaner — Inventory & Data group
+    Route::get('/product-csv-cleaner', [\App\Http\Controllers\Marketing\Tools\ProductCsvCleanerToolController::class, 'index'])->name('csv-cleaner');
+    Route::post('/product-csv-cleaner/parse', [\App\Http\Controllers\Marketing\Tools\ProductCsvCleanerToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('csv-cleaner.parse');
+    Route::post('/product-csv-cleaner/download', [\App\Http\Controllers\Marketing\Tools\ProductCsvCleanerToolController::class, 'download'])
+        ->middleware('throttle:tools')->name('csv-cleaner.download');
+
+    // Purchase Order Generator — Documents group
+    Route::get('/purchase-order-generator', [\App\Http\Controllers\Marketing\Tools\PurchaseOrderToolController::class, 'index'])->name('purchase-order');
+    Route::post('/purchase-order-generator/render', [\App\Http\Controllers\Marketing\Tools\PurchaseOrderToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('purchase-order.render');
+
+    // Quotation Generator — Documents group
+    Route::get('/quote-generator', [\App\Http\Controllers\Marketing\Tools\QuotationToolController::class, 'index'])->name('quote');
+    Route::post('/quote-generator/render', [\App\Http\Controllers\Marketing\Tools\QuotationToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('quote.render');
+
+    // Stock Count Sheet — Inventory & Data group
+    Route::get('/stock-count-sheet', [\App\Http\Controllers\Marketing\Tools\StockCountSheetToolController::class, 'index'])->name('stock-count');
+    Route::post('/stock-count-sheet/render', [\App\Http\Controllers\Marketing\Tools\StockCountSheetToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('stock-count.render');
+    Route::post('/stock-count-sheet/parse', [\App\Http\Controllers\Marketing\Tools\StockCountSheetToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('stock-count.parse');
+
+    // Cash Drawer Count Sheet — Inventory & Data group
+    Route::get('/cash-drawer-count-sheet', [\App\Http\Controllers\Marketing\Tools\CashDrawerToolController::class, 'index'])->name('cash-drawer');
+    Route::post('/cash-drawer-count-sheet/render', [\App\Http\Controllers\Marketing\Tools\CashDrawerToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('cash-drawer.render');
+
+    // Profit Margin & Markup Calculator — Calculators group. Pure client-side
+    // math tool, no POST endpoint needed at all.
+    Route::get('/margin-calculator', [\App\Http\Controllers\Marketing\Tools\MarginCalculatorToolController::class, 'index'])->name('margin-calculator');
+
+    // Inventory Health Toolkit — Inventory & Data group. Pure client-side
+    // math tool (reorder point, safety stock, EOQ, GMROI, turnover), no
+    // POST endpoint needed at all.
+    Route::get('/inventory-health', [\App\Http\Controllers\Marketing\Tools\InventoryHealthToolController::class, 'index'])->name('inventory-health');
+
+    // POS ROI Calculator — Calculators group. Pure client-side math tool,
+    // no POST endpoint needed at all.
+    Route::get('/pos-roi-calculator', [\App\Http\Controllers\Marketing\Tools\PosRoiToolController::class, 'index'])->name('pos-roi');
+
+    // Composition Costing Calculator — Calculators group. Pure client-side math
+    // tool (ingredient unit conversion, cost per portion, target food-cost
+    // % pricing), no POST endpoint needed at all.
+    Route::get('/food-cost-calculator', [\App\Http\Controllers\Marketing\Tools\FoodCostToolController::class, 'index'])->name('food-cost');
+
+    // Payment Processing Fee Calculator — Calculators group. Pure
+    // client-side math tool, no POST endpoint needed at all.
+    Route::get('/payment-fee-calculator', [\App\Http\Controllers\Marketing\Tools\PaymentFeeCalculatorToolController::class, 'index'])->name('payment-fee');
+
+    // Bulk SKU Generator — Inventory & Data group. Pure client-side scheme
+    // builder + bulk generation, no POST endpoint needed at all.
+    Route::get('/sku-generator', [\App\Http\Controllers\Marketing\Tools\SkuGeneratorToolController::class, 'index'])->name('sku-generator');
+
+    // T10 — Barcode Validator
+    Route::get('/barcode-validator', [\App\Http\Controllers\Marketing\Tools\BarcodeValidatorToolController::class, 'index'])->name('barcode-validator');
+    Route::post('/barcode-validator/check', [\App\Http\Controllers\Marketing\Tools\BarcodeValidatorToolController::class, 'validateGtin'])
+        ->middleware('throttle:tools')->name('barcode-validator.check');
+
+    // Barcode Label Sheet Generator
+    Route::get('/barcode-label', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'index'])->name('barcode-label');
+    Route::post('/barcode-label/parse', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('barcode-label.parse');
+    Route::post('/barcode-label/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('barcode-label.sheet');
+
+    // Shared lead capture (plan §4.4, §6.3)
+    Route::post('/lead', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'store'])
+        ->middleware('throttle:tool-leads')->name('lead.store');
+    Route::get('/lead/confirm/{token}', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'confirm'])->name('lead.confirm');
+    Route::get('/lead/unsubscribe/{token}', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'unsubscribe'])->name('lead.unsubscribe');
+    Route::post('/lead/unsubscribe/{token}', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'unsubscribeConfirm'])->name('lead.unsubscribe.confirm');
+
+    // Signed, expiring download of a generated artifact (plan §4.6)
+    Route::get('/download/{uuid}', [\App\Http\Controllers\Marketing\Tools\ToolsHubController::class, 'download'])
+        ->middleware('signed')->name('download');
+});
+
+// Invoice Scanner alias (Phase 7 compatibility)
+Route::get('/tools/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'showSmartCapture'])->name('public.invoice-scanner');
+Route::post('/tools/invoice-scanner', [\App\Http\Controllers\PublicToolController::class, 'submitSmartCapture'])->middleware('throttle:tools')->name('public.invoice-scanner.submit');
+
+// Public static WordPress plugin download route (compiles on-the-fly)
+Route::get('/downloads/venqore-sync.zip', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadStaticPlugin']);
+Route::get('/api/woo/plugin/check-update', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'checkPluginUpdate']);
+
+
+
+// Blog Routes
+Route::get('/blog',              [\App\Http\Controllers\Marketing\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}',       [\App\Http\Controllers\Marketing\BlogController::class, 'show'])->name('blog.show');
+
+// NOTE (2026-07-05): previously pointed at Inertia::render('Legal/Terms') / ('Legal/Privacy'),
+// but resources/js/Pages/Legal/ does not exist — every real visit to /terms or /privacy
+// threw a client-side "page not found" error in the browser after Inertia resolved the
+// response. Fixed to render the actual components (also removed a dead duplicate pair of
+// these two routes further down the file that pointed at the correct components but was
+// unreachable because a route registered earlier always wins).
+Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
+Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
+Route::get('/refund-policy', fn() => Inertia::render('RefundPolicy'))->name('refund-policy');
+Route::get('/help', [\App\Http\Controllers\HelpCenterController::class, 'index'])->name('help.index');
+Route::get('/help/articles/{slug}', [\App\Http\Controllers\HelpCenterController::class, 'show'])->name('help.show');
+Route::get('/known-issues', [\App\Http\Controllers\KnownIssuesController::class, 'show'])->name('known-issues.show');
+Route::get('/partners', [\App\Http\Controllers\Marketing\PartnersPublicController::class, 'index'])->name('marketing.partners');
+Route::post('/partners-submit', [\App\Http\Controllers\Marketing\PartnersPublicController::class, 'store'])->middleware(['throttle:5,1', 'turnstile'])->name('marketing.partners.store');
+Route::get('/sitemap.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-{type}.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'showSubSitemap'])
+    ->where('type', 'pages|blog|compare|solutions|tools')
+    ->name('sitemap.sub');
+// ── Demo Sandbox Routes ───────────────────────────────────────────────
+// /demo landing stays indexable (marketing page, covered by MarketingSeo).
+// Login/logout are transactional entry points into the sandbox — noindex them.
+Route::get('/demo', [\App\Http\Controllers\DemoController::class, 'landing'])->name('demo.landing');
+Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
+    Route::match(['get', 'post'], '/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->middleware('throttle:10,1')->name('demo.login');
+    Route::post('/demo/logout', [\App\Http\Controllers\DemoController::class, 'logout'])->name('demo.logout');
+});
+
+
+// ── VenSynQ Universal OAuth Callbacks ────────────────────────────────────────
+// These fixed URLs are registered in Amazon / TikTok / eBay developer portals.
+// They capture the auth code and session state, then redirect to the correct
+// tenant store's callback handler automatically.
+//
+//   Amazon:  https://venqore.com/amazon/callback
+//   TikTok:  https://venqore.com/tiktok/callback
+//   eBay:    https://venqore.com/ebay/callback
+//
+Route::get('/amazon/callback', [\App\Http\Controllers\VenSynQController::class, 'universalCallback'])
+    ->name('vensynq.universal.callback.amazon')
+    ->defaults('platform', 'amazon');
+
+Route::get('/tiktok/callback', [\App\Http\Controllers\VenSynQController::class, 'universalCallback'])
+    ->name('vensynq.universal.callback.tiktok')
+    ->defaults('platform', 'tiktok');
+
+Route::get('/ebay/callback', [\App\Http\Controllers\VenSynQController::class, 'universalCallback'])
+    ->name('vensynq.universal.callback.ebay')
+    ->defaults('platform', 'ebay');
+
+// T16 — WooCommerce is now a first-class VenSynQ platform. The VenQore Sync
+// plugin redirects here after the key-pair handshake completes.
+Route::get('/woocommerce/callback', [\App\Http\Controllers\VenSynQController::class, 'universalCallback'])
+    ->name('vensynq.universal.callback.woocommerce')
+    ->defaults('platform', 'woocommerce');
+
+Route::get('/google/callback', [\App\Http\Controllers\GoogleDriveAuthController::class, 'handleGoogleCallback'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('google.callback');
+
+// ── Auth (no store context) ──────────────────────────────────────────────
+Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
+    // Store hub (shown to users with 2+ stores)
+    Route::get('/hub', [\App\Http\Controllers\HubController::class, 'index'])->name('hub');
+    Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
+
+    // Staff Hub (unified dashboard for store employees)
+    Route::get('/staff/hub', [\App\Http\Controllers\StaffHubController::class, 'index'])->name('staff.hub');
+
+    // Create / Join store
+    Route::get('/start',     [\App\Http\Controllers\StoreController::class, 'createOrJoin'])->name('store.create-or-join');
+    Route::get('/new-store', [\App\Http\Controllers\StoreController::class, 'create'])->name('store.create');
+    Route::post('/new-store',[\App\Http\Controllers\StoreController::class, 'store'])->name('store.store');
+
+    // AppSumo Code Redemption
+    Route::get('/redeem',    [\App\Http\Controllers\AppSumoController::class, 'index'])->name('appsumo.redeem');
+    Route::post('/redeem',   [\App\Http\Controllers\AppSumoController::class, 'redeem'])->middleware('throttle:5,1')->name('appsumo.redeem.submit');
+
+    // Join by store code
+    Route::get('/join',  [\App\Http\Controllers\StaffController::class, 'joinForm'])->name('store.join');
+    Route::post('/join', [\App\Http\Controllers\StaffController::class, 'joinWithCode'])->middleware('throttle:5,1')->name('store.join.submit');
+
+    // ── V1 Staff Invite: Magic Link (Path A) ─────────────────
+    Route::get('/invite/accept',          [\App\Http\Controllers\StaffInvitationController::class, 'acceptByToken'])->name('invite.accept');
+    Route::post('/invite/accept',         [\App\Http\Controllers\StaffInvitationController::class, 'accept'])->name('invite.submit');
+    Route::post('/invite/decline',        [\App\Http\Controllers\StaffInvitationController::class, 'declineByToken'])->name('invite.decline');
+
+    // ── Gift Access Links: Accept (requires auth — see /gift/{token} below
+    // for the public preview page any visitor can see before logging in) ──
+    Route::post('/gift/{token}', [\App\Http\Controllers\GiftRedemptionController::class, 'accept'])->name('gift.accept');
+
+    // ── V1 Staff Invite: Code Validation (Path B — Hub) ───────────
+    Route::post('/invite/validate-code',  [\App\Http\Controllers\StaffInvitationController::class, 'validateCode'])->name('invite.validate-code');
+
+    // Global account settings (not store-specific)
+    Route::get('/account',   [ProfileController::class, 'edit'])->name('account.edit');
+    Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
+    Route::post('/account/passcode', [ProfileController::class, 'updatePasscode'])->name('account.passcode');
+    Route::post('/account/security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'updateSecurityPin'])->name('account.security-pin');
+    Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
+
+    // Notifications summary global auth endpoint (AI Island / Header)
+    Route::get('/api/notifications/summary', [\App\Http\Controllers\NotificationController::class, 'summary'])->name('global.notifications.summary');
+});
+
+// ── Store Context Routes ─────────────────────────────────────────────────
+// All routes under /s/{store_slug}/ require auth + valid store membership
+Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class, \App\Http\Middleware\EnsureModule::class])
+    ->prefix('s/{store_slug}')
+    ->name('store.')
+    ->group(function () {
+        Route::get('/', function () {
+            $tenant = app('current.tenant');
+            if (\App\Services\ModuleService::enabled($tenant, 'pos')) {
+                return \redirect()->route('store.pos', ['store_slug' => $tenant->slug]);
+            }
+            return \redirect()->route('store.dashboard', ['store_slug' => $tenant->slug]);
+        })->name('root');
+
+        // Setup wizard (no plan gate — always accessible)
+        Route::get('/setup',  [\App\Http\Controllers\SetupController::class, 'index'])->name('setup');
+        Route::post('/setup', [\App\Http\Controllers\SetupController::class, 'complete'])->middleware('permission:admin.settings_manage')->name('setup.complete');
+
+        // L032: Terminal pairing tokens (tenant admin issues these; a new
+        // terminal presents one on first heartbeat to prove authorization).
+        Route::get('/terminal-pairing-tokens',        [\App\Http\Controllers\TerminalPairingController::class, 'index'])->middleware('permission:admin.settings_manage')->name('terminal-pairing.index');
+        Route::post('/terminal-pairing-tokens',       [\App\Http\Controllers\TerminalPairingController::class, 'store'])->middleware('permission:admin.settings_manage')->name('terminal-pairing.store');
+        Route::delete('/terminal-pairing-tokens/{id}', [\App\Http\Controllers\TerminalPairingController::class, 'destroy'])->middleware('permission:admin.settings_manage')->name('terminal-pairing.destroy');
+        Route::get('/terminals',                      [\App\Http\Controllers\TerminalPairingController::class, 'terminals'])->middleware('permission:admin.settings_manage')->name('terminals.index');
+        Route::post('/terminals/{id}/revoke',         [\App\Http\Controllers\TerminalPairingController::class, 'revoke'])->middleware('permission:admin.settings_manage')->name('terminals.revoke');
+
+        // POS (on-demand API, no full catalog pre-load)
+        // GAP 1 FIX: Dead route removed. POS sales go through the legacy SaleController via Route::post('sales', ...) at line 1101.
+        // Route::post('/pos/sale', ...) was wired to PosController::completeSale() which does not exist.
+        Route::get('/pos/products',            [\App\Http\Controllers\Api\PosSearchController::class, 'search'])->name('pos.search');
+        Route::get('/pos/products/featured',   [\App\Http\Controllers\Api\PosSearchController::class, 'featured'])->name('pos.featured');
+        Route::get('/pos/categories',          [\App\Http\Controllers\Api\PosSearchController::class, 'categories'])->name('pos.categories');
+        Route::get('/pos/barcode/{code}',      [\App\Http\Controllers\Api\PosSearchController::class, 'findByBarcode'])->name('pos.barcode');
+        Route::get('/pos/recent-sales',        [\App\Http\Controllers\Api\PosSearchController::class, 'recentSales'])->name('pos.recent-sales');
+        // Modifier groups for one product, fetched when the line is added rather
+        // than shipped with the catalog — same reason nothing else here is
+        // pre-loaded: a 2,000-product menu's modifiers is a payload nobody reads.
+        Route::get('/pos/modifiers',           [\App\Http\Controllers\Api\PosSearchController::class, 'modifiers'])->name('pos.modifiers');
+        // pos.open / pos.close removed 2026-08-02 — see PosController note above.
+
+        // Staff management (within this store)
+        Route::get('/staff',              [\App\Http\Controllers\StaffController::class, 'index'])->middleware('permission:users.manage')->name('staff');
+        Route::post('/staff/invite',      [\App\Http\Controllers\StaffController::class, 'invite'])->middleware('permission:users.manage')->name('staff.invite');
+
+        // Store billing
+        Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
+        Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
+        Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
+        // Live payment history from Lemon Squeezy. Lazy-loaded by the Payment
+        // History tab so the billing page never blocks on an external API.
+        Route::get('/billing/payment-history', [\App\Http\Controllers\BillingController::class, 'paymentHistory'])->name('billing.payment-history');
+        Route::get('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
+        Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->middleware(['permission:admin.data_recovery', 'throttle:5,1'])->name('backup.import');
+        Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->middleware('permission:admin.billing_store')->name('billing.cancel-trial');
+        // In-app subscription cancel / resume. Without these the only route to
+        // cancelling was the Lemon Squeezy portal, which requires a separate
+        // login and is a dead end for guest checkouts.
+        Route::post('/billing/cancel-subscription', [\App\Http\Controllers\BillingController::class, 'cancelSubscription'])->middleware('permission:admin.billing_store')->name('billing.cancel-subscription');
+        Route::post('/billing/resume-subscription', [\App\Http\Controllers\BillingController::class, 'resumeSubscription'])->middleware('permission:admin.billing_store')->name('billing.resume-subscription');
+        Route::post('/billing/checkout-addon', [\App\Http\Controllers\BillingController::class, 'checkoutAddon'])->middleware('permission:admin.billing_store')->name('billing.checkout-addon');
+        Route::post('/billing/change-plan',  [\App\Http\Controllers\BillingController::class, 'changePlan'])->middleware('permission:admin.billing_store')->name('billing.change-plan');
+        Route::post('/billing/deactivate-feature', [\App\Http\Controllers\BillingController::class, 'deactivateFeature'])->middleware('permission:admin.billing_store')->name('billing.deactivate-feature');
+        Route::post('/billing/checkout-upload-service', [\App\Http\Controllers\BillingController::class, 'checkoutUploadService'])->middleware('permission:admin.billing_store')->name('billing.checkout-upload-service');
+        // Webhook safety net — pulls subscription state from the Lemon Squeezy API
+        // when the webhook never arrived (local dev, delay, or dropped delivery).
+        Route::post('/billing/sync-subscription', [\App\Http\Controllers\BillingController::class, 'syncSubscription'])->middleware('permission:admin.billing_store')->name('billing.sync-subscription');
+
+        // Google Drive Backups
+        Route::get('/google/redirect',      [\App\Http\Controllers\GoogleDriveAuthController::class, 'redirectToGoogle'])->middleware('permission:admin.data_recovery')->name('google.redirect');
+        Route::post('/google/disconnect',   [\App\Http\Controllers\GoogleDriveAuthController::class, 'disconnect'])->middleware('permission:admin.data_recovery')->name('google.disconnect');
+        Route::post('/google/settings',     [\App\Http\Controllers\GoogleDriveAuthController::class, 'updateSettings'])->middleware('permission:admin.data_recovery')->name('google.settings');
+        Route::post('/google/sync-now',     [\App\Http\Controllers\VqBackupController::class, 'syncToGoogleDrive'])->middleware(['permission:admin.data_recovery', 'throttle:5,1'])->name('google.sync-now');
+        Route::get('/google/backup/download/{fileId}', [\App\Http\Controllers\VqBackupController::class, 'downloadFromGoogleDrive'])->middleware('permission:admin.data_recovery')->name('google.backup.download');
+        Route::post('/google/backup/delete/{fileId}',   [\App\Http\Controllers\VqBackupController::class, 'deleteFromGoogleDrive'])->middleware('permission:admin.data_recovery')->name('google.backup.delete');
+        Route::post('/google/backup/restore/{fileId}',  [\App\Http\Controllers\VqBackupController::class, 'restoreFromGoogleDrive'])->middleware(['permission:admin.data_recovery', 'throttle:5,1'])->name('google.backup.restore');
+
+        // Store settings
+        Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->middleware('permission:admin.settings_view,admin.settings_manage')->name('settings');
+        Route::post('/settings',                   [\App\Http\Controllers\SettingsController::class, 'update'])->middleware('permission:admin.settings_manage')->name('settings.update');
+
+        // SmartCapture (AI Scan) API
+        // NOTE: /extract costs exactly one upstream AI request per call. The
+        // throttle here is a blunt safety net; the real protection is the
+        // per-store single-flight lock inside the controller.
+        Route::prefix('smart-capture')
+            ->middleware(\App\Http\Middleware\EnsureSmartCaptureAccess::class)
+            ->group(function () {
+            Route::get('/context',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'context'])->name('smart-capture.context');
+            Route::post('/extract',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'extract'])->middleware('permission:purchases.create,finance.expenses')->middleware('throttle:20,1')->name('smart-capture.extract');
+            Route::post('/bulk-extract', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'bulkExtract'])->middleware('permission:purchases.create,finance.expenses')->middleware('throttle:10,1')->name('smart-capture.bulk-extract');
+            Route::get('/status/{job_id}', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'jobStatus'])->name('smart-capture.job-status');
+            Route::post('/confirm',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'confirm'])->middleware('permission:purchases.create,finance.expenses')->middleware('throttle:30,1')->name('smart-capture.confirm');
+            Route::get('/settings',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'settings'])->name('smart-capture.settings');
+            Route::post('/settings', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'saveSettings'])->middleware('permission:admin.settings_manage')->name('smart-capture.settings.save');
+            Route::post('/settings/test', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'testSettings'])->middleware('permission:admin.settings_manage')->middleware('throttle:10,1')->name('smart-capture.settings.test');
+            Route::post('/settings/models', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'models'])->middleware('permission:admin.settings_manage')->middleware('throttle:10,1')->name('smart-capture.settings.models');
+            // Learning memory (per-store, shared by all staff)
+            Route::get('/aliases',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'aliases'])->name('smart-capture.aliases');
+            Route::post('/aliases/forget', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'forgetAlias'])->middleware('permission:admin.settings_manage')->middleware('throttle:60,1')->name('smart-capture.aliases.forget');
+        });
+
+        // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
+        Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
+        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->name('restaurant.kitchen');
+        // The same queue as JSON. A pass screen is left open all service, so it
+        // polls rather than reloading an Inertia page every few seconds.
+        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->name('restaurant.kitchen.state');
+        Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.table.status');
+
+        // Occupancy API endpoints
+        Route::get('/api/occupancies', [\App\Http\Controllers\RestaurantDashboardController::class, 'getOccupancies'])->name('api.occupancies');
+        Route::post('/api/occupancies/occupy', [\App\Http\Controllers\RestaurantDashboardController::class, 'occupyPosition'])->middleware('permission:pos.checkout')->name('api.occupancies.occupy');
+        Route::post('/api/occupancies/release', [\App\Http\Controllers\RestaurantDashboardController::class, 'releasePosition'])->middleware('permission:pos.checkout')->name('api.occupancies.release');
+        Route::post('/restaurant/order/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateOrderStatus'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.status');
+        // Bump and recall, so the pass never has to name a status. One button
+        // forward, one back — which is the whole vocabulary of a kitchen screen.
+        Route::post('/restaurant/order/{id}/bump',   [\App\Http\Controllers\RestaurantDashboardController::class, 'bump'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.bump');
+        Route::post('/restaurant/order/{id}/recall', [\App\Http\Controllers\RestaurantDashboardController::class, 'recall'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.recall');
+
+        // Trial expired landing (within store context)
+        Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
+
+        // ── Plan Change Notifications ────────────────────────────────────
+        Route::group(['prefix' => 'notifications/plan', 'as' => 'notifications.plan.'], function () {
+            Route::get('/unread',         [\App\Http\Controllers\PlanNotificationController::class, 'unread'])->name('unread');
+            Route::post('/mark-all-read', [\App\Http\Controllers\PlanNotificationController::class, 'markAllRead'])->name('markAllRead');
+            Route::post('/{id}/read',     [\App\Http\Controllers\PlanNotificationController::class, 'markRead'])->name('read');
+        });
+
+        // ── Device & Session Management (§3) ──────────────────────────────
+        Route::get('/api/devices',                     [\App\Http\Controllers\DeviceController::class, 'index'])->name('devices.index');
+        Route::post('/api/devices/{id}/deactivate',    [\App\Http\Controllers\DeviceController::class, 'deactivate'])->middleware('permission:admin.settings_manage')->name('devices.deactivate');
+        Route::get('/api/session/eviction-status',     [\App\Http\Controllers\DeviceController::class, 'evictionStatus'])->name('session.eviction-status');
+
+        // ── Store Admin Panel (Restored Legacy Experience) ──────────────────
+        Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['permission:admin.settings_manage']], function () {
+            Route::get('/',            [\App\Http\Controllers\AdminController::class, 'index'])->name('home');
+            Route::get('/dashboard',   [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+            Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
+            Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('settings.update');
+            Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
+            // Member management — single source of truth
+            Route::patch('/users/{member}',  [\App\Http\Controllers\AdminController::class, 'updateMember'])->middleware('permission:users.manage')->name('users.update');
+            Route::delete('/users/{member}', [\App\Http\Controllers\AdminController::class, 'removeMember'])->middleware('permission:users.manage')->name('users.remove');
+            Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('users.store');
+            Route::get('/staff',       function () { return redirect()->route('store.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('staff');
+
+            // ── V1 Staff Invitation System ─────────────────────────────────
+            Route::post('/invitations',                        [\App\Http\Controllers\StaffInvitationController::class, 'store'])->middleware('permission:users.manage')->name('invitations.store');
+            Route::post('/invitations/{invitation}/approve',   [\App\Http\Controllers\StaffInvitationController::class, 'approve'])->middleware('permission:users.manage')->name('invitations.approve');
+            Route::post('/invitations/{invitation}/decline',   [\App\Http\Controllers\StaffInvitationController::class, 'decline'])->middleware('permission:users.manage')->name('invitations.decline');
+            Route::post('/invitations/{invitation}/revoke',    [\App\Http\Controllers\StaffInvitationController::class, 'revoke'])->middleware('permission:users.manage')->name('invitations.revoke');
+            Route::post('/invitations/{invitation}/resend',    [\App\Http\Controllers\StaffInvitationController::class, 'resend'])->middleware('permission:users.manage')->name('invitations.resend');
+            Route::get('/attendance',  function () { return redirect()->route('store.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('attendance');
+            
+            Route::get('/logs',        [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
+
+            // Data & Disaster Recovery
+            Route::get('/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('data');
+            Route::post('/data/export',    [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('data.export');
+            Route::post('/data/import',    [\App\Http\Controllers\DataManagementController::class, 'import'])->middleware('permission:admin.settings_manage')->middleware('plan.feature:bulk_upload')->name('data.import');
+            Route::post('/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->middleware('permission:admin.settings_manage')->middleware('plan.feature:bulk_upload')->name('data.upload-mapping');
+            Route::post('/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->middleware('permission:admin.settings_manage')->middleware('plan.feature:bulk_upload')->name('data.process-import');
+            Route::post('/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->middleware('permission:admin.settings_manage')->middleware('plan.feature:bulk_upload')->name('data.validate-import');
+            Route::get('/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('data.template');
+            
+            // OVERRIDE: Removed. Raw SQL Backup/Restore strictly locked to Platform Admin.
+            // Route::get('/backups',             [\App\Http\Controllers\BackupController::class, 'index'])->name('backups');
+            // Route::post('/backups',            [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+            // Route::get('/backups/download/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+            // Route::delete('/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
+            // Route::post('/backups/email/{filename}', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
+            // Route::post('/backups/restore',    [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+
+            // Recycle Bin
+            Route::get('/recycle-bin',         [\App\Http\Controllers\RecycleBinController::class, 'index'])->name('recycle-bin.index');
+            Route::post('/recycle-bin/{id}/restore', [\App\Http\Controllers\RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
+            Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->middleware('permission:records.force_delete')->name('recycle-bin.force-delete');
+
+            Route::prefix('chatbot')->name('chatbot.')->middleware(\App\Http\Middleware\StoreChatbotMiddleware::class)->group(function () {
+                // Chatbot Settings (API key + custom rules for this store's bot)
+                Route::get('/settings',        [\App\Http\Controllers\StoreChatbotSettingsController::class, 'index'])->name('settings');
+                Route::post('/settings',       [\App\Http\Controllers\StoreChatbotSettingsController::class, 'update'])->middleware('permission:admin.settings_manage')->name('settings.update');
+                Route::post('/settings/test',  [\App\Http\Controllers\StoreChatbotSettingsController::class, 'testConnection'])->name('ai.test');
+
+                // Agent Inbox (Inertia page)
+                Route::get('/inbox', function () {
+                    return \Inertia\Inertia::render('Admin/AgentInbox');
+                })->name('inbox');
+
+                // Agent API — chat session management for this store
+                Route::get('/sessions',                       [\App\Http\Controllers\AgentChatController::class, 'sessions'])->name('sessions');
+                Route::post('/sessions/{uuid}/claim',         [\App\Http\Controllers\AgentChatController::class, 'claim'])->name('claim');
+                Route::post('/sessions/{uuid}/reply',         [\App\Http\Controllers\AgentChatController::class, 'reply'])->name('reply');
+                Route::post('/sessions/{uuid}/typing',        [\App\Http\Controllers\AgentChatController::class, 'typing'])->name('typing.agent');
+                Route::post('/sessions/{uuid}/release',       [\App\Http\Controllers\AgentChatController::class, 'release'])->name('release');
+                Route::post('/sessions/{uuid}/resolve',       [\App\Http\Controllers\AgentChatController::class, 'resolve'])->name('resolve');
+                Route::post('/sessions/{uuid}/handoff-to-ai', [\App\Http\Controllers\AgentChatController::class, 'handoffToAi'])->name('handoff-to-ai');
+                Route::post('/sessions/{uuid}/refer',         [\App\Http\Controllers\AgentChatController::class, 'refer'])->name('refer');
+                Route::post('/sessions/{uuid}/set-status',     [\App\Http\Controllers\AgentChatController::class, 'setStatus'])->name('set-status');
+                Route::post('/sessions/{uuid}/log-learning',   [\App\Http\Controllers\AgentChatController::class, 'logLearning'])->name('log-learning');
+                Route::get('/sessions/{uuid}/assist-suggestion', [\App\Http\Controllers\AgentChatController::class, 'assistSuggestion'])->name('assist-suggestion');
+                Route::post('/sessions/{uuid}/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist'])->name('assist');
+                Route::get('/canned-responses',               [\App\Http\Controllers\AgentChatController::class, 'cannedResponses'])->name('canned-responses');
+                Route::delete('/sessions/{uuid}',             [\App\Http\Controllers\AgentChatController::class, 'destroy'])->name('destroy');
+            });
+
+            // ── Vena Chat Tickets — store-level view (customers of THIS store only) ─
+            Route::get('/vena-tickets',                  [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeIndex'])->name('vena.tickets');
+            Route::post('/vena-tickets/create',          [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeCreateTicket'])->name('vena.ticket.create');
+            Route::get('/vena-tickets/{ticket}',         [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeShow'])->name('vena.ticket.show');
+            Route::post('/vena-tickets/{ticket}/status', [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeUpdateStatus'])->name('vena.ticket.status');
+        });
+    });
+
+
+// ── PK Verifications Submit (accessible by authenticated store owners) ─────
+Route::middleware(['auth'])
+    ->prefix('VenQore')
+    ->name('platform.')
+    ->group(function () {
+        Route::post('/pk-verifications/submit', [\App\Http\Controllers\Admin\PkVerificationController::class, 'submit'])->name('pk-verifications.submit');
+    });
+
+// ── Platform Owner ───────────────────────────────────────────────────────────
+Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
+    ->prefix('VenQore')
+    ->name('platform.')
+    ->group(function () {
+        Route::get('/',                   [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('dashboard');
+
+        // Digital Hub (Etsy Partner Support & Product Registry CRUD)
+        Route::get('/digital-hub', [\App\Http\Controllers\Admin\DigitalHubController::class, 'index'])->name('digital-hub');
+        Route::get('/digital-hub/chats', [\App\Http\Controllers\Admin\DigitalHubController::class, 'chats'])->name('digital-hub.chats');
+        Route::post('/digital-hub/chats/{ticket_id}/reply', [\App\Http\Controllers\Admin\DigitalHubController::class, 'reply'])->name('digital-hub.chats.reply');
+        Route::post('/digital-hub/chats/{ticket_id}/status', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateStatus'])->name('digital-hub.chats.status');
+        Route::get('/digital-hub/products', [\App\Http\Controllers\Admin\DigitalHubController::class, 'getProducts'])->name('digital-hub.products');
+        Route::post('/digital-hub/products', [\App\Http\Controllers\Admin\DigitalHubController::class, 'createProduct'])->name('digital-hub.products.create');
+        Route::post('/digital-hub/products/{id}/update', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateProduct'])->name('digital-hub.products.update');
+        Route::delete('/digital-hub/products/{id}', [\App\Http\Controllers\Admin\DigitalHubController::class, 'deleteProduct'])->name('digital-hub.products.delete');
+
+        // Newsletter Hub (Platform Newsletters & Subscribers lists)
+        Route::get('/newsletter-hub', [\App\Http\Controllers\Admin\NewsletterHubController::class, 'index'])->name('newsletter-hub');
+        Route::get('/newsletter-hub/subscribers', [\App\Http\Controllers\Admin\NewsletterHubController::class, 'subscribers'])->name('newsletter-hub.subscribers');
+
+
+        // Chatbot Settings
+        Route::get('/chatbot/settings',            [\App\Http\Controllers\ChatbotSettingsController::class, 'index'])->name('chatbot.settings');
+        Route::post('/chatbot/settings',           [\App\Http\Controllers\ChatbotSettingsController::class, 'update'])->name('chatbot.settings.update');
+        Route::post('/chatbot/settings/test',      [\App\Http\Controllers\ChatbotSettingsController::class, 'testConnection'])->name('ai.test');
+
+        // Agent Inbox page (Inertia React view)
+        Route::get('/chatbot/inbox', function () {
+            return Inertia::render('Admin/AgentInbox');
+        })->name('chatbot.inbox');
+
+        // Chatbot Admin API
+        Route::get('/api/chatbot/sessions', [\App\Http\Controllers\AgentChatController::class, 'sessions'])->name('chatbot.sessions');
+        Route::post('/api/chatbot/sessions/{uuid}/claim', [\App\Http\Controllers\AgentChatController::class, 'claim'])->name('chatbot.claim');
+        Route::post('/api/chatbot/sessions/{uuid}/reply', [\App\Http\Controllers\AgentChatController::class, 'reply'])->name('chatbot.reply');
+        Route::post('/api/chatbot/sessions/{uuid}/typing', [\App\Http\Controllers\AgentChatController::class, 'typing'])->name('chatbot.typing.agent');
+        Route::post('/api/chatbot/sessions/{uuid}/release', [\App\Http\Controllers\AgentChatController::class, 'release'])->name('chatbot.release');
+        Route::post('/api/chatbot/sessions/{uuid}/resolve', [\App\Http\Controllers\AgentChatController::class, 'resolve'])->name('chatbot.resolve');
+        Route::post('/api/chatbot/sessions/{uuid}/handoff-to-ai', [\App\Http\Controllers\AgentChatController::class, 'handoffToAi'])->name('chatbot.handoff-to-ai');
+        Route::post('/api/chatbot/sessions/{uuid}/refer', [\App\Http\Controllers\AgentChatController::class, 'refer'])->name('chatbot.refer');
+        Route::post('/api/chatbot/sessions/{uuid}/set-status', [\App\Http\Controllers\AgentChatController::class, 'setStatus'])->name('chatbot.set-status');
+        Route::post('/api/chatbot/sessions/{uuid}/log-learning', [\App\Http\Controllers\AgentChatController::class, 'logLearning'])->name('chatbot.log-learning');
+        Route::get('/api/chatbot/sessions/{uuid}/assist-suggestion', [\App\Http\Controllers\AgentChatController::class, 'assistSuggestion'])->name('chatbot.assist-suggestion');
+        Route::post('/api/chatbot/sessions/{uuid}/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist'])->name('chatbot.assist');
+        Route::get('/api/chatbot/canned-responses', [\App\Http\Controllers\AgentChatController::class, 'cannedResponses'])->name('chatbot.canned-responses');
+        Route::delete('/api/chatbot/sessions/{uuid}', [\App\Http\Controllers\AgentChatController::class, 'destroy'])->name('chatbot.destroy');
+
+        // Vena Autonomy Dashboard stats and promote endpoints
+        Route::get('/api/platform/vena/autonomy-stats', [\App\Http\Controllers\VenaAssistController::class, 'autonomyStats'])->name('chatbot.autonomy-stats');
+        Route::post('/api/platform/vena/autonomy-stats/promote', [\App\Http\Controllers\VenaAssistController::class, 'promoteCategory'])->name('chatbot.autonomy-stats.promote');
+
+        // NOTE: The GET /run-migrations browser route was removed (Roadmap T1.7).
+        // Migrations run only via the Updater flow / CLI, never from a URL.
+
+        Route::get('/stores',             [\App\Http\Controllers\Admin\SuperAdminController::class, 'stores'])->name('stores');
+        Route::get('/users',              [\App\Http\Controllers\Admin\SuperAdminController::class, 'users'])->name('users');
+        Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->name('store.suspend');
+        Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
+        Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
+        Route::post('/stores/{tenant}/toggle-internal', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleInternal'])->name('store.toggle-internal');
+
+        // Trash Management
+        Route::delete('/stores/{tenant}/destroy',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyStore'])->name('store.destroy');
+        Route::post('/stores/bulk-destroy',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyStores'])->name('stores.bulk-destroy');
+        Route::post('/stores/{id}/restore',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreStore'])->name('store.restore');
+        Route::delete('/stores/{id}/purge',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeStore'])->name('store.purge');
+        
+        Route::delete('/users/{user}/destroy',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyUser'])->name('user.destroy');
+        Route::post('/users/bulk-destroy',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyUsers'])->name('users.bulk-destroy');
+        Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
+        Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
+
+        // AppSumo routes gated dynamically via database setting in controller (T3.8)
+        Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
+        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
+        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+        Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
+        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+
+        // ── V1 Support Inbox ──────────────────────────────────────────────
+        Route::get('/tickets',                              [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets');
+        Route::get('/tickets/{ticket}',                     [\App\Http\Controllers\Admin\SupportController::class, 'showTicket'])->name('ticket.show');
+        Route::post('/tickets/{ticket}/reply',              [\App\Http\Controllers\Admin\SupportController::class, 'reply'])->name('ticket.reply');
+        Route::post('/tickets/{ticket}/status',             [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->name('ticket.status');
+
+        // ── Vena Chat Tickets (auto-generated from Vena widget escalations) ───
+        Route::get('/vena-tickets',              [\App\Http\Controllers\Admin\VenaTicketsController::class, 'index'])->name('vena.tickets');
+        Route::get('/vena-tickets/{ticket}',     [\App\Http\Controllers\Admin\VenaTicketsController::class, 'show'])->name('vena.ticket.show');
+        Route::post('/vena-tickets/{ticket}/status', [\App\Http\Controllers\Admin\VenaTicketsController::class, 'updateStatus'])->name('vena.ticket.status');
+
+        // ── Webhook Logs ──────────────────────────────────────────────────
+        Route::get('/webhooks',                             [\App\Http\Controllers\Admin\SupportController::class, 'webhooks'])->name('webhooks');
+
+        // ── Feature Flags (per-store overrides) ───────────────────────────
+        Route::post('/stores/{tenant}/feature-flag',        [\App\Http\Controllers\Admin\SupportController::class, 'toggleFeatureFlag'])->name('store.feature-flag');
+
+        // ── System Health & Monitoring ────────────────────────────────────
+        Route::get('/health/check',                          [\App\Http\Controllers\Admin\HealthCheckController::class, 'check'])->name('health.check');
+        Route::get('/health/errors',                         [\App\Http\Controllers\Admin\SuperAdminController::class, 'errorLogs'])->name('health.errors');
+        Route::post('/health/errors/resolve-all',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveAllErrors'])->name('health.errors.resolve-all');
+        Route::post('/health/errors/detect-fixes',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'detectFixes'])->name('health.errors.detect-fixes');
+        Route::post('/health/errors/{error}/resolve',        [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveError'])->name('health.errors.resolve');
+        Route::get('/health/contacts',                       [\App\Http\Controllers\Admin\SuperAdminController::class, 'contactSubmissions'])->name('health.contacts');
+        Route::post('/health/contacts/{contact}/read',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'readContact'])->name('health.contacts.read');
+
+        // ── Jobs & Queues (T4.4) ──────────────────────────────────────────────
+        Route::get('/jobs/metrics',          [\App\Http\Controllers\Admin\JobsController::class, 'metrics'])->name('jobs.metrics');
+        Route::post('/jobs/failed/{id}/retry', [\App\Http\Controllers\Admin\JobsController::class, 'retryFailed'])->name('jobs.retry');
+        Route::delete('/jobs/failed/{id}',   [\App\Http\Controllers\Admin\JobsController::class, 'deleteFailed'])->name('jobs.delete-failed');
+        Route::post('/jobs/failed/flush',    [\App\Http\Controllers\Admin\JobsController::class, 'flushFailed'])->name('jobs.flush-failed');
+
+
+        // ── Impersonation ─────────────────────────────────────────────────
+        Route::post('/impersonate/{user}',                  [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
+        Route::post('/impersonate/end',                     [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonate.end');
+
+        // ── Platform Owner Security & Profile ─────────────────────────────
+        Route::post('/security/set-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setPasscode'])->name('set-passcode');
+        Route::post('/security/clear-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearPasscode'])->name('clear-passcode');
+        Route::post('/security/change-password',[\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'changePassword'])->name('change-password');
+        Route::post('/security/set-action-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setActionPasscode'])->name('set-action-passcode');
+        Route::post('/security/clear-action-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearActionPasscode'])->name('clear-action-passcode');
+
+        // ── VenSynQ Module Control ─────────────────────────────────────────
+        Route::post('/vensynq/toggle', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleVenSynQ'])->name('vensynq.toggle');
+        Route::post('/settings/save',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'saveSettings'])->name('settings.save');
+
+        // ── Partners & Equity Drawings (T1.6) ──────────────────────────────
+        Route::post('/partners',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'addPartner'])->name('partners.store');
+        Route::delete('/partners/{partner}',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'removePartner'])->name('partners.destroy');
+        Route::post('/drawings',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'logDrawing'])->name('drawings.store');
+        Route::post('/drawings/clear-history',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'clearAllDrawings'])->name('drawings.clear-history');
+
+        // ── Monetization — Plans & Platforms ──────────────────────────────
+        Route::prefix('plans')->name('plans.')->group(function () {
+            Route::get('/',                  [\App\Http\Controllers\SuperAdmin\PlanController::class, 'index'])->name('index');
+            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\PlanController::class, 'store'])->name('store');
+            Route::put('/bulk-update',       [\App\Http\Controllers\SuperAdmin\PlanController::class, 'bulkUpdate'])->name('bulk-update');
+            Route::put('/{plan}',            [\App\Http\Controllers\SuperAdmin\PlanController::class, 'update'])->name('update');
+            Route::post('/{plan}/duplicate', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'duplicate'])->name('duplicate');
+            Route::delete('/{plan}',         [\App\Http\Controllers\SuperAdmin\PlanController::class, 'destroy'])->name('destroy');
+            Route::post('/{plan}/archive',   [\App\Http\Controllers\SuperAdmin\PlanController::class, 'archive'])->name('archive');
+            Route::post('/{plan}/unarchive', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'unarchive'])->name('unarchive');
+        });
+
+        Route::prefix('platforms')->name('platforms.')->group(function () {
+            Route::get('/',           [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'index'])->name('index');
+            Route::post('/',          [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'store'])->name('store');
+            Route::put('/{platform}', [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'update'])->name('update');
+        });
+
+        Route::prefix('blog-posts')->name('blog-posts.')->group(function () {
+            Route::get('/',              [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'index'])->name('index');
+            Route::post('/',             [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'store'])->name('store');
+            Route::put('/{blogPost}',    [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'update'])->name('update');
+            Route::delete('/{blogPost}', [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('coupons')->name('coupons.')->group(function () {
+            Route::get('/',         [\App\Http\Controllers\SuperAdmin\CouponController::class, 'index'])->name('index');
+            Route::post('/',        [\App\Http\Controllers\SuperAdmin\CouponController::class, 'store'])->name('store');
+            Route::put('/{coupon}', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'update'])->name('update');
+        });
+
+        // ── Monetization — Gift Access Links ──────────────────────────────
+        Route::prefix('access-grants')->name('access-grants.')->group(function () {
+            Route::get('/',                  [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'index'])->name('index');
+            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'store'])->name('store');
+            Route::post('/{grant}/revoke',   [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'revoke'])->name('revoke');
+            Route::post('/{grant}/unrevoke', [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'unrevoke'])->name('unrevoke');
+            Route::delete('/{grant}',        [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'destroy'])->name('destroy');
+        });
+
+        // ── Monetization — Tenant Overrides ───────────────────────────────
+        Route::prefix('tenant-overrides')->name('tenants.')->group(function () {
+            Route::get('/',              [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'index'])->name('overrides');
+            Route::get('/{tenant}',      [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'show'])->name('overrides.show');
+            Route::patch('/{tenant}',    [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'updateTenant'])->name('overrides.update');
+            Route::post('/{tenant}',     [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'apply'])->name('overrides.apply');
+            Route::delete('/{tenant}/{override}', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'remove'])->name('overrides.remove');
+        });
+
+        // ── PK Verifications (T3.7) ────────────────────────────────────────
+        Route::post('/pk-verifications/{verification}/approve',        [\App\Http\Controllers\Admin\PkVerificationController::class, 'approve'])->name('pk-verifications.approve');
+        Route::post('/pk-verifications/{verification}/reject',         [\App\Http\Controllers\Admin\PkVerificationController::class, 'reject'])->name('pk-verifications.reject');
+        Route::get('/pk-verifications/{verification}/download/{side}',  [\App\Http\Controllers\Admin\PkVerificationController::class, 'downloadImage'])->name('pk-verifications.download');
+
+        // Added Category D Platform Admin Routes
+        Route::post('/admin/migration/analyze', fn() => \abort(501, 'Not yet implemented'))->name('admin.migration.analyze');
+
+        // NOTE: Debug & repair routes removed before production launch (security hardening).
+        // NOTE: Second duplicate GET /run-migrations browser route removed (Roadmap T1.7 / bug #14).
+
+        Route::prefix('demo-store')->name('demo-store.')->group(function () {
+            Route::get('/status',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'status'])->name('status');
+            Route::post('/reset',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'reset'])->name('reset');
+            Route::post('/deploy',              [\App\Http\Controllers\Admin\DemoStoreController::class, 'deploy'])->name('deploy');
+            Route::get('/deploy/status/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'deployStatus'])->name('deploy.status');
+            Route::delete('/deploy/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'deployCleanup'])->name('deploy.cleanup');
+            Route::post('/tests/run',           [\App\Http\Controllers\Admin\DemoStoreController::class, 'runTests'])->name('tests.run');
+            Route::get('/tests/status/{jobId}',  [\App\Http\Controllers\Admin\DemoStoreController::class, 'testStatus'])->name('tests.status');
+            Route::delete('/tests/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'testCleanup'])->name('tests.cleanup');
+        });
+
+        Route::prefix('smoke-tests')->name('smoke-tests.')->group(function () {
+            Route::post('/run',                 [\App\Http\Controllers\Admin\SmokeTestController::class, 'run'])->name('run');
+            Route::get('/{job_id}',             [\App\Http\Controllers\Admin\SmokeTestController::class, 'status'])->name('status');
+            Route::delete('/{job_id}',          [\App\Http\Controllers\Admin\SmokeTestController::class, 'cleanup'])->name('cleanup');
+        });
+    });
+
+Route::get('/', function () {
+    // 1. Check Database Connection First
+    // SEC-07 follow-up (2026-09-10): only send visitors to the browser installer
+    // when it is actually enabled (never in production). A lost storage/installed
+    // marker on a live site must not turn the homepage into an installer link.
+    $webInstaller = config('venqore.web_installer_enabled') && !app()->environment('production');
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+    } catch (\Exception $e) {
+        if ($webInstaller) {
+            return \redirect()->route('installer.index');
+        }
+        abort(503, 'VenQore is temporarily unavailable. Please try again shortly.');
+    }
+
+    // 2. Check if Installed (Table exists)
+    if (!\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+        if ($webInstaller) {
+            return \redirect()->route('installer.index');
+        }
+        abort(503, 'VenQore is being set up. Please try again shortly.');
+    }
+    if (!file_exists(storage_path('installed')) && $webInstaller) {
+        return \redirect()->route('installer.index');
+    }
+
+    // 3. Auto-logout demo users when they navigate back to the main site.
+    // Demo accounts use the pattern demo-{role}@venqore-demo.internal.
+    // Rather than bouncing them to /hub (which is confusing), we cleanly
+    // end their session so they land on the marketing page as a visitor.
+    if (Auth::check()) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (str_ends_with($user->email, '@venqore-demo.internal')) {
+            \Illuminate\Support\Facades\Cache::decrement('demo_visit_live');
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            // Fall through to render the landing page below
+        } elseif ($user->isPlatformAdmin()) {
+            return \redirect()->route('platform.dashboard');
+        } else {
+            return \redirect()->route('hub');
+        }
+    }
+
+    // 4. Show the dynamic landing page to unauthenticated visitors
+    return Inertia::render('LandingPage');
+})->name('welcome');
+
+
+
+// Post-setup welcome splash (internal, not a marketing page)
+Route::get('/welcome-splash', function () {
+    return Inertia::render('Welcome');
+})->middleware('auth')->name('welcome-splash');
+
+// ── "Build Your Workspace" — AI-Driven Frictionless Experience ────────────
+// provision() creates a tenant + user unauthenticated, so it is throttled
+// separately (and more tightly) than the read-only analyze() endpoint to stop
+// mass tenant creation.
+Route::get('/build-workspace', [\App\Http\Controllers\WorkspaceBuilderController::class, 'show'])->name('workspace.build');
+Route::post('/workspace/analyze', [\App\Http\Controllers\WorkspaceBuilderController::class, 'analyze'])->middleware('throttle:30,1')->name('workspace.analyze');
+Route::post('/workspace/converse/start', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseStart'])->middleware(['throttle:10,1', 'turnstile'])->name('workspace.converse.start');
+Route::post('/workspace/converse/step', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseStep'])->middleware('throttle:15,1')->name('workspace.converse.step');
+Route::post('/workspace/converse/deepen', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseDeepen'])->middleware(['throttle:10,1', 'turnstile'])->name('workspace.converse.deepen');
+Route::post('/workspace/converse/reset', [\App\Http\Controllers\WorkspaceBuilderController::class, 'converseReset'])->middleware('throttle:10,1')->name('workspace.converse.reset');
+Route::post('/workspace/prepare-google', [\App\Http\Controllers\WorkspaceBuilderController::class, 'prepareGoogle'])->middleware('throttle:30,1')->name('workspace.prepare-google');
+Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware(['throttle:5,1', 'turnstile'])->name('workspace.provision');
+Route::post('/workspace/demand-log', [\App\Http\Controllers\WorkspaceBuilderController::class, 'logDemand'])->middleware('throttle:10,1')->name('workspace.demand');
+
+
+
+// ── Gift Access Links: public preview page ────────────────────────────────────
+// Anyone with the link can see what they're being offered before deciding to
+// log in / register. The actual grant (POST /gift/{token}) requires auth —
+// see the 'gift.accept' route in the authenticated group above.
+Route::get('/gift/{token}', [\App\Http\Controllers\GiftRedemptionController::class, 'show'])->name('gift.show');
+
+// ── Phase 7: AppSumo LTD Code Redemption ──────────────────────────────────────
+// Public routes — no auth required (buyers arrive from AppSumo email)
+// Launch toggle (2026-07-03): set APPSUMO_PUBLIC=true in .env to open /redeem publicly — config change, not a deploy.
+$hideAppSumoPublic = !config('venqore.appsumo_public', false) && !app()->runningUnitTests();
+Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () use ($hideAppSumoPublic) {
+    if ($hideAppSumoPublic) {
+        Route::get('/redeem',  fn() => abort(404))->name('redeem');
+        Route::post('/redeem', fn() => abort(404))->name('redeem.submit');
+        Route::get('/what-is-included', fn() => abort(404))->name('what-is-included');
+    } else {
+        Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('redeem');
+        Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->middleware('throttle:5,1')->name('redeem.submit');
+        Route::get('/what-is-included', function () {
+            return Inertia::render('WhatIsIncluded');
+        })->name('what-is-included');
+    }
+});
+
+// Refund policy is a public trust page regardless of AppSumo launch state (2026-07-03)
+Route::get('/refund-policy', function () {
+    return Inertia::render('RefundPolicy');
+})->name('refund-policy');
+
+// (duplicate /terms and /privacy route registrations removed 2026-07-05 — see the
+// single definitions near the top of this file, fixed to render the real components)
+
+// ── Pre-Launch §14: Health Check ─────────────────────────────────────────────
+// Public — no auth. Checks DB, Redis, cache, storage, and Horizon queue health.
+// Returns HTTP 200 (all ok) or HTTP 503 (any component failing).
+// Monitor this with UptimeRobot every 5 minutes.
+Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');
+
+
+// Image fallback for shared hosting where `storage:link` is unavailable.
+// TODO(T-03b): This endpoint has no per-tenant authorization. Tenant-scoped
+// uploads should move to a signed-URL controller after launch.
+// SECURITY: the {path} parameter is attacker-controlled. realpath() both
+// resolves ../ segments and confirms existence; the prefix assertion is what
+// keeps the read inside the public disk. Do not remove either.
+Route::get('/storage/{path}', function (string $path) {
+    $base = realpath(storage_path('app/public'));
+    abort_unless($base !== false, 404);
+
+    $real = realpath($base . DIRECTORY_SEPARATOR . $path);
+
+    // Not found, or resolved outside the public disk -> 404 (never 403; do not
+    // confirm to a prober that a path exists).
+    abort_unless(
+        $real !== false && str_starts_with($real, $base . DIRECTORY_SEPARATOR),
+        404
+    );
+
+    abort_unless(is_file($real), 404);
+
+    // Even inside the public disk, never serve executable/config/database logs.
+    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'pdf', 'ico'];
+    $ext = strtolower(pathinfo($real, PATHINFO_EXTENSION));
+    abort_unless(in_array($ext, $allowed, true), 404);
+
+    return response()->file($real, [
+        'Content-Type' => File::mimeType($real),
+        'X-Content-Type-Options' => 'nosniff',
+    ]);
+})->where('path', '.*');
+
+// --- INSTALLER ROUTES ---
+Route::prefix('installer')->middleware(\App\Http\Middleware\InstallerLock::class)->group(function () {
+    Route::get('/', [\App\Http\Controllers\InstallerController::class, 'index'])->name('installer.index');
+    // API Routes for Installer
+});
+
+Route::prefix('api/installer')->middleware(\App\Http\Middleware\InstallerLock::class)->group(function () {
+    Route::get('/requirements', [\App\Http\Controllers\InstallerController::class, 'checkRequirements']);
+    Route::post('/check-license', [\App\Http\Controllers\InstallerController::class, 'checkLicense']);
+    Route::post('/test-db', [\App\Http\Controllers\InstallerController::class, 'testDatabase']);
+    Route::post('/run', [\App\Http\Controllers\InstallerController::class, 'install']);
+    Route::post('/restart-server', [\App\Http\Controllers\InstallerController::class, 'restartServer']);
+
+    // DIAGNOSTIC ENDPOINT: Visit /api/installer/diagnose in browser to see what's wrong
+    Route::get('/diagnose', function () {
+        $results = [];
+
+        // 1. Check .env exists and read DB values
+        $envPath = base_path('.env');
+        $results['env_exists'] = file_exists($envPath);
+        if ($results['env_exists']) {
+            $envContent = file_get_contents($envPath);
+            $envVars = [];
+            foreach (explode("\n", $envContent) as $line) {
+                $line = trim($line);
+                if ($line && !str_starts_with($line, '#') && str_contains($line, '=')) {
+                    [$key, $value] = explode('=', $line, 2);
+                    $envVars[trim($key)] = trim($value, " \t\n\r\0\x0B\"'");
+                }
+            }
+            $results['db_host'] = $envVars['DB_HOST'] ?? 'NOT SET';
+            $results['db_name'] = $envVars['DB_DATABASE'] ?? 'NOT SET';
+            $results['db_user'] = $envVars['DB_USERNAME'] ?? 'NOT SET';
+            $results['db_pass_set'] = !empty($envVars['DB_PASSWORD']) ? 'YES' : 'NO';
+            $results['cache_store'] = $envVars['CACHE_STORE'] ?? 'NOT SET (default from config)';
+            $results['session_driver'] = $envVars['SESSION_DRIVER'] ?? 'NOT SET (default from config)';
+            $results['app_key_set'] = !empty($envVars['APP_KEY']) ? 'YES' : 'NO';
+        }
+
+        // 2. Check runtime config
+        $results['runtime_cache_driver'] = config('cache.default');
+        $results['runtime_session_driver'] = config('session.driver');
+        $results['runtime_db_host'] = config('database.connections.mysql.host');
+        $results['runtime_db_name'] = config('database.connections.mysql.database');
+        $results['runtime_db_user'] = config('database.connections.mysql.username');
+
+        // 3. Test DB connection
+        try {
+            \Illuminate\Support\Facades\DB::purge('mysql');
+            \Illuminate\Support\Facades\DB::reconnect('mysql');
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+            $results['db_connection'] = 'SUCCESS';
+            $results['db_version'] = \Illuminate\Support\Facades\DB::connection()->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION);
+        } catch (\Throwable $e) {
+            $results['db_connection'] = 'FAILED: ' . $e->getMessage();
+        }
+
+        // 4. Check directories
+        $results['storage_writable'] = is_writable(storage_path());
+        $results['views_dir_exists'] = is_dir(storage_path('framework/views'));
+        $results['cache_dir_exists'] = is_dir(storage_path('framework/cache/data'));
+        $results['sessions_dir_exists'] = is_dir(storage_path('framework/sessions'));
+        $results['bootstrap_cache_writable'] = is_writable(base_path('bootstrap/cache'));
+
+        // 5. PHP info
+        $results['php_version'] = PHP_VERSION;
+        $results['max_execution_time'] = ini_get('max_execution_time');
+        $results['memory_limit'] = ini_get('memory_limit');
+
+        // 6. Check laravel.log for recent errors
+        $logPath = storage_path('logs/laravel.log');
+        if (file_exists($logPath)) {
+            $logContent = file_get_contents($logPath);
+            $results['log_size'] = strlen($logContent) . ' bytes';
+            $results['log_tail'] = substr($logContent, -2000); // Last 2000 chars
+        } else {
+            $results['log_tail'] = 'No log file found';
+        }
+
+        return \response()->json($results, 200, [], JSON_PRETTY_PRINT);
+    });
+});
+
+// CSRF Refresh (Global)
+Route::get('/refresh-csrf', [\App\Http\Controllers\CsrfController::class, 'refresh'])->name('csrf.refresh');
+
+// --- UPDATER ROUTES ---
+// Page (auth + platform_admin only)
+Route::get('/updater', [\App\Http\Controllers\UpdaterController::class, 'index'])
+    ->middleware(['auth', \App\Http\Middleware\UpdaterLock::class])
+    ->name('updater.index');
+
+// API (auth + platform_admin only, no InstallerLock — app must be installed)
+Route::prefix('api/updater')
+    ->middleware(['auth', \App\Http\Middleware\UpdaterLock::class])
+    ->group(function () {
+        Route::get('/info', [\App\Http\Controllers\UpdaterController::class, 'info']);
+        Route::post('/run', [\App\Http\Controllers\UpdaterController::class, 'run']);
+    });
+
+Route::get('/dashboard', function() {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    if ($user->isPlatformAdmin()) {
+        return \redirect()->route('platform.dashboard');
+    }
+    return \redirect()->route('hub');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Error Reporting API
+Route::post('/api/report-error', [\App\Http\Controllers\Api\ErrorReporterController::class, 'store'])->middleware('throttle:20,1')->name('api.report-error');
+
+// Placeholder for future routes
+Route::get('/ping', fn() => \response()->json(['ok' => true]));
+
+
+// ═══════════════════════════════════════════════════════════
+// LEGACY ROUTE MAPPINGS — SEALED 2026-03-07
+// ═══════════════════════════════════════════════════════════
+Route::middleware([])->group(function () {
+    // Stock Legacy Routing
+    Route::any('/stock-operations/{any}',    fn() => \redirect('/stock-operations'))->where('any', '.+');
+    // Route-gap sweep (2026-09-10): this used to dispatch StockTransferController@store
+    // with NO auth, tenant or permission middleware at all. Store-scoped transfers
+    // live at /s/{store_slug}/stock-operations/transfer and /v3/stock-transfers.
+    Route::any('/stock-transfers/{any?}',    fn() => \abort(410, 'Moved: use the store-scoped stock transfer screen.'))->where('any', '.*');
+    Route::any('/batches',                   fn() => \response()->json(['message' => 'Managed internally by FifoService'], 404));
+    Route::any('/serials',                   fn() => \response()->json(['message' => 'Managed internally by FifoService'], 404));
+
+    // Reports are mostly mapped, but let's keep the block for anything that didn't match the specific ones
+    Route::any('/reports/{any}',            fn() => \abort(403, 'DEPRECATED: Use /v3/reports/*'))
+         ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|purchase-returns|item-wise-discount|daily-sales|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-party-group)).*');
+});
+
+Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class, \App\Http\Middleware\EnsureModule::class])
+    ->prefix('s/{store_slug}')
+    ->group(function () {
+        // Compatibility Aliases for POS & AJAX (Resolves Ziggy 'route not found' while keeping URL isolation)
+        Route::get('/inventory/search', [InventoryController::class, 'search'])->name('inventory.search');
+        Route::get('/customers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('customers.search');
+        Route::get('/api/pos/categories', [\App\Http\Controllers\PosController::class, 'getCategories'])->name('api.categories');
+        Route::get('/sales/parked', [\App\Http\Controllers\SaleController::class, 'getParkedSales'])->name('sales.parked');
+        Route::get('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'recall'])->name('sales.recall');
+        Route::delete('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'deleteParked'])->middleware('permission:pos.checkout,sales.create')->name('sales.parked.delete');
+        Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'parkBill'])->name('sales.park');
+
+        Route::name('store.')->group(function () {
+    Route::get('/new-dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('new-dashboard');
+    Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug], 301))->name('new-dashboard.legacy');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/onboarding/step', function ($store_slug) {
+        return redirect()->route('store.dashboard', ['store_slug' => $store_slug]);
+    })->name('onboarding.step.legacy');
+    Route::post('/onboarding/step', [\App\Http\Controllers\OnboardingController::class, 'updateStep'])->middleware('permission:admin.settings_view,pos.checkout,sales.view,inventory.view,purchases.view,reports.summary')->name('onboarding.step');
+
+    // 7 Core Onboarding Screens (STEP 13)
+    Route::get('/onboarding/v2', [\App\Http\Controllers\OnboardingExperienceController::class, 'index'])->name('onboarding.v2');
+    Route::post('/onboarding/v2/ai-discovery', [\App\Http\Controllers\OnboardingExperienceController::class, 'aiDiscovery'])->middleware('permission:admin.settings_manage')->name('onboarding.v2.ai-discovery');
+    Route::post('/onboarding/v2/apply-preset', [\App\Http\Controllers\OnboardingExperienceController::class, 'applyPreset'])->middleware('permission:admin.settings_manage')->name('onboarding.v2.apply-preset');
+    Route::post('/onboarding/v2/complete', [\App\Http\Controllers\OnboardingExperienceController::class, 'completeOnboarding'])->middleware('permission:admin.settings_manage')->name('onboarding.v2.complete');
+
+    // Builder — "add modules any time" (Break 5). EnsureModule::refuse() and
+    // ReportModuleMap-gated reports both redirect to route('store.builder')
+    // the moment a customer hits something they haven't switched on.
+    Route::get('/builder', [\App\Http\Controllers\BuilderController::class, 'show'])->name('builder');
+    Route::post('/builder/preview', [\App\Http\Controllers\BuilderController::class, 'preview'])->middleware('permission:admin.settings_manage')->name('builder.preview');
+    Route::get('/builder/data-at-stake/{module}', [\App\Http\Controllers\BuilderController::class, 'dataAtStake'])->name('builder.data-at-stake');
+    Route::post('/builder/apply', [\App\Http\Controllers\BuilderController::class, 'apply'])->middleware('permission:admin.settings_manage')->name('builder.apply');
+    Route::post('/builder/modify', [\App\Http\Controllers\BuilderController::class, 'modify'])->middleware('permission:admin.settings_manage')->name('builder.modify');
+
+    Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
+    Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
+
+    // ── New Experience — HIDDEN 2026-08-09, not removed ─────────────────────
+    // See Appearance::NEW_EXPERIENCE_ENABLED. Every controller behind these
+    // eight routes now starts with `abort_unless(NEW_EXPERIENCE_ENABLED, 404)`,
+    // so all of them 404 for everyone regardless of role.
+    //
+    // The route names stay registered on purpose rather than being commented
+    // out here: resources/js/scratch/audit_ziggy_routes.cjs walks every .jsx
+    // file for `route(...)` calls and fails the production build if any name
+    // it finds is missing from ziggy.js, and the pages behind these routes
+    // still contain calls like `route('store.appearance.update', ...)`. That
+    // scan can't tell "unreachable because a controller 404s it" from "unreachable
+    // because it doesn't exist" — so removing the name here would break
+    // `npm run build` over code that is already inert. The nav link that
+    // pointed here is commented out in OneGlanceLayout.jsx, so nothing in the
+    // product currently generates a link to any of the eight.
+    //
+    // `store.dashboard` above still renders the classic dashboard for
+    // everyone, and `store.dashboard-v1` remains an unconditional escape hatch
+    // back to it.
+    Route::get('/overview', [\App\Http\Controllers\OverviewDashboardController::class, 'index'])->name('overview');
+
+    Route::get('/workspace', [\App\Http\Controllers\WorkspaceDashboardController::class, 'index'])->name('workspace');
+    Route::get('/next-dashboard', function () {
+        $store = app()->has('currentTenant') ? app('currentTenant') : \App\Models\Tenant::first();
+        return Inertia::render('Next/Dashboard', [
+            'store' => $store ?: ['name' => 'My Business Store', 'slug' => 'demo-store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
+            'auth' => ['user' => Auth::user() ?: ['name' => 'Admin User', 'role' => 'admin']],
+            'settings' => [
+                'plan_tier' => 'Growth',
+                'business_type' => $store->business_type ?? 'general'
+            ],
+            'performance' => ['revenue' => 45000, 'grossProfit' => 12500, 'margin' => 27.7],
+            'outstanding' => ['toReceive' => 8400, 'toPay' => 3200, 'overdue' => 0],
+            'netProfit' => ['amount' => 9300, 'balance' => 42100],
+            'inventoryValue' => 68500,
+            'cashAccounts' => [['name' => 'Main Register Till', 'balance' => 15400]],
+        ]);
+    })->name('next-dashboard');
+    Route::post('/workspace/layout', [\App\Http\Controllers\WorkspaceDashboardController::class, 'save'])->name('workspace.layout.save');
+    Route::post('/workspace/layout/reset', [\App\Http\Controllers\WorkspaceDashboardController::class, 'reset'])->name('workspace.layout.reset');
+    Route::post('/workspace/data', [\App\Http\Controllers\WorkspaceDashboardController::class, 'data'])->name('workspace.data');
+
+    // Appearance. Presentation only — see AppearanceController for why none of
+    // this can touch business configuration.
+    Route::get('/appearance', [\App\Http\Controllers\AppearanceSettingsController::class, 'index'])->name('appearance');
+    Route::post('/appearance', [\App\Http\Controllers\AppearanceController::class, 'update'])->name('appearance.update');
+    Route::post('/appearance/experience', [\App\Http\Controllers\AppearanceController::class, 'switchExperience'])->name('appearance.experience');
+    Route::post('/appearance/store-default', [\App\Http\Controllers\AppearanceController::class, 'updateTenantDefault'])
+        ->middleware('permission:admin.settings_manage')
+        ->name('appearance.store-default');
+
+    Route::get('/pos', [\App\Http\Controllers\PosController::class, 'index'])->middleware('permission:pos.checkout')->name('pos');
+
+    /* ── TABLE SERVICE ───────────────────────────────────────────────────
+       A separate screen from the register, on purpose: the unit of work is
+       the table, not the sale, and for most of a table's life there is no
+       sale yet. Separate screens, ONE engine -- settling hands the table's
+       cart to /pos so there is a single tender path, a single journal
+       posting and a single offline queue.
+
+       Backed by the `positions` and `occupancies` tables that already
+       existed. The POS's old in-register floor ran on six hard-coded mock
+       tables and wrote nowhere. */
+    Route::prefix('tables')->name('tables.')->middleware('permission:pos.checkout')->group(function () {
+        Route::get('/',            [\App\Http\Controllers\TableServiceController::class, 'index'])->name('index');
+        Route::get('/state',       [\App\Http\Controllers\TableServiceController::class, 'state'])->name('state');
+        Route::post('/open',       [\App\Http\Controllers\TableServiceController::class, 'open'])->name('open');
+        Route::post('/order',      [\App\Http\Controllers\TableServiceController::class, 'saveOrder'])->name('order');
+        Route::post('/send',       [\App\Http\Controllers\TableServiceController::class, 'sendToKitchen'])->name('send');
+        Route::post('/transfer',   [\App\Http\Controllers\TableServiceController::class, 'transfer'])->name('transfer');
+        Route::post('/merge',      [\App\Http\Controllers\TableServiceController::class, 'merge'])->name('merge');
+        Route::post('/close',      [\App\Http\Controllers\TableServiceController::class, 'close'])->name('close');
+        Route::post('/status',     [\App\Http\Controllers\TableServiceController::class, 'setStatus'])->name('status');
+        /* Splitting a bill. The split is a claim on part of the table's cart,
+           held ON the table so a second device sees the lock -- it never becomes
+           a second order. Settling the part still goes through /pos like every
+           other tender; tables.settled just learns to close half a bill. */
+        Route::post('/split',        [\App\Http\Controllers\TableServiceController::class, 'split'])->name('split');
+        Route::post('/split/cancel', [\App\Http\Controllers\TableServiceController::class, 'splitCancel'])->name('split.cancel');
+        Route::post('/settled',    [\App\Http\Controllers\TableServiceController::class, 'settled'])->name('settled');
+        Route::post('/service-mode', [\App\Http\Controllers\TableServiceController::class, 'setServiceMode'])
+            ->middleware('permission:admin.settings_manage')->name('service-mode');
+        // Store-wide, same as service-mode and gated the same way: what the house
+        // charges is not a per-till decision.
+        Route::post('/service-charge', [\App\Http\Controllers\TableServiceController::class, 'setServiceCharge'])
+            ->middleware('permission:admin.settings_manage')->name('service-charge');
+
+        /* Takeaway and delivery. An occupancy with NO position: a bag on the
+           counter is an open bill with a cart, a server and a kitchen ticket
+           and no place, and giving it a fake table would put phantom seats on
+           the floor plan and break every covers number on it. */
+        Route::post('/lane/open', [\App\Http\Controllers\TableServiceController::class, 'laneOpen'])->name('lane.open');
+
+        /* "The bill is printed and they have not paid yet." A stamp, not a
+           status: the escalation state on the floor is derived from it. */
+        Route::post('/check',     [\App\Http\Controllers\TableServiceController::class, 'check'])->name('check');
+
+        /* ── THE FLOOR BUILDER ────────────────────────────────────────────
+           Until this, Position::create existed in exactly one place in the
+           whole application -- the demo seeder -- so a restaurant could look
+           at its floor and never change it. Gated on admin.settings_manage on
+           top of the group's pos.checkout, like service-mode: rearranging the
+           building is not a decision a till makes mid-service. */
+        Route::middleware('permission:admin.settings_manage')->group(function () {
+            Route::get('/plan',                [\App\Http\Controllers\TableServiceController::class, 'plan'])->name('plan');
+            Route::post('/plan/zone/add',      [\App\Http\Controllers\TableServiceController::class, 'planZoneAdd'])->name('plan.zone.add');
+            Route::post('/plan/zone/rename',   [\App\Http\Controllers\TableServiceController::class, 'planZoneRename'])->name('plan.zone.rename');
+            Route::post('/plan/zone/remove',   [\App\Http\Controllers\TableServiceController::class, 'planZoneRemove'])->name('plan.zone.remove');
+            Route::post('/plan/tables/bulk',   [\App\Http\Controllers\TableServiceController::class, 'planTablesBulk'])->name('plan.tables.bulk');
+            Route::post('/plan/table',         [\App\Http\Controllers\TableServiceController::class, 'planTableAdd'])->name('plan.table.add');
+            Route::post('/plan/table/update',  [\App\Http\Controllers\TableServiceController::class, 'planTableUpdate'])->name('plan.table.update');
+            Route::post('/plan/table/remove',  [\App\Http\Controllers\TableServiceController::class, 'planTableRemove'])->name('plan.table.remove');
+            Route::post('/plan/reorder',       [\App\Http\Controllers\TableServiceController::class, 'planReorder'])->name('plan.reorder');
+            Route::post('/plan/lanes',         [\App\Http\Controllers\TableServiceController::class, 'planLanes'])->name('plan.lanes');
+        });
+    });
+
+    // New POS — the composed register. Layout Law v2.0 geometry, V6 tokens, and a
+    // settings drawer that composes the terminal per user and per device.
+    // STRUCTURE ONLY for now: it runs on resources/js/NewPos/mock.js and posts
+    // nothing. Wiring notes are at the top of NewPosController.
+    Route::get('/new-pos', [\App\Http\Controllers\NewPosController::class, 'index'])->middleware('permission:pos.checkout')->name('new-pos');
+
+    // New invoice — one editor, thirteen document types. Layout Law v2.0
+    // document composer, V6 tokens, one payload builder. STRUCTURE ONLY for
+    // now: it runs on resources/js/NewInvoice/mock.js and posts nothing.
+    // Wiring notes are at the top of NewInvoiceController.
+    Route::get('/new-invoice', [\App\Http\Controllers\NewInvoiceController::class, 'index'])->middleware('permission:sales.create')->name('new-invoice');
+
+    // Inventory
+    Route::get('/inventory', [InventoryController::class, 'dashboard'])->middleware('permission:inventory.view')->name('inventory.dashboard');
+    Route::get('/inventory/list', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/{id}/stats', [InventoryController::class, 'stats'])->name('inventory.stats');
+    Route::post('/inventory', [InventoryController::class, 'store'])->middleware('permission:inventory.create')->name('inventory.store');
+    Route::post('/inventory/bulk-destroy', [InventoryController::class, 'bulkDestroy'])->middleware('permission:inventory.delete')->name('inventory.bulk-destroy');
+    Route::post('/inventory/check-dependencies', [InventoryController::class, 'checkDependencies'])->middleware('permission:inventory.view')->name('inventory.check-dependencies');
+    Route::get('/inventory/search', [InventoryController::class, 'search'])->name('inventory.search');
+    
+    Route::get('/inventory/{id}/reservations', [InventoryController::class, 'getReservations'])->name('inventory.reservations');
+    Route::get('/inventory/{id}/history', [InventoryController::class, 'getHistory'])->name('inventory.history');
+    // Must precede POST /inventory/{id}, which otherwise captures it as id="production" (→ 404 on every New Production Run submit).
+    Route::post('/inventory/production', [\App\Http\Controllers\V3\ProductionRunController::class, 'store'])->middleware('permission:inventory.adjust')->middleware('plan.feature:production')->name('production.store');
+    Route::post('/inventory/{id}', [InventoryController::class, 'update'])->middleware('permission:inventory.edit')->name('inventory.update');
+    Route::delete('/inventory/{id}', [InventoryController::class, 'destroy'])->middleware('permission:inventory.delete')->name('inventory.destroy');
+
+
+    // Stock Operations
+    Route::get('/stock-operations', [\App\Http\Controllers\StockOperationsController::class, 'index'])->name('stock-operations');
+    Route::post('/stock-operations/transfer', [\App\Http\Controllers\StockOperationsController::class, 'transfer'])->middleware('permission:inventory.transfer')->name('stock-operations.transfer');
+    Route::post('/stock-operations/adjust', [\App\Http\Controllers\StockOperationsController::class, 'adjust'])->middleware('permission:inventory.adjust')->name('stock-operations.adjust');
+    Route::post('/stock-operations/audit', [\App\Http\Controllers\StockOperationsController::class, 'audit'])->middleware('permission:inventory.adjust')->name('stock-operations.audit');
+    Route::post('/stock-operations/warehouse', [\App\Http\Controllers\StockOperationsController::class, 'storeWarehouse'])->middleware('permission:admin.warehouses')->name('stock-operations.warehouse.store');
+    Route::put('/stock-operations/warehouse/{id}', [\App\Http\Controllers\StockOperationsController::class, 'updateWarehouse'])->middleware('permission:admin.warehouses')->name('stock-operations.warehouse.update');
+
+
+    // Activity Log
+    Route::get('/activity-log', [\App\Http\Controllers\ActivityLogController::class, 'index'])->middleware('permission:reports.audit')->name('activity-log.index');
+
+    // Background Sync API (Internal)
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('/sync/users', [\App\Http\Controllers\Api\SyncController::class, 'users'])->name('sync.users');
+        Route::get('/sync/products', [\App\Http\Controllers\Api\SyncController::class, 'products'])->name('sync.products');
+        Route::get('/sync/customers', [\App\Http\Controllers\Api\SyncController::class, 'customers'])->name('sync.customers');
+        Route::get('/sync/suppliers', [\App\Http\Controllers\Api\SyncController::class, 'suppliers'])->name('sync.suppliers');
+        Route::get('/sync/inventory', [\App\Http\Controllers\Api\SyncController::class, 'inventory'])->name('sync.inventory');
+        Route::get('/sync/taxes', [\App\Http\Controllers\Api\SyncController::class, 'taxes'])->name('sync.taxes');
+        Route::post('/sync/orders/batch', [\App\Http\Controllers\Api\SyncController::class, 'batchOrders'])->middleware('permission:sales.create,pos.checkout')->name('sync.orders.batch');
+        Route::post('/heartbeat', [\App\Http\Controllers\Api\HeartbeatController::class, 'store'])->name('heartbeat');
+        Route::get('/check-connection', [\App\Http\Controllers\Api\SyncController::class, 'checkConnection'])->name('check-connection');
+    });
+
+    // Suppliers
+
+    // Suppliers
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['index'])->middleware(['permission:purchases.view', 'plan.feature:suppliers_directory']);
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['store', 'update', 'destroy'])->middleware(['permission:purchases.suppliers', 'plan.feature:suppliers_directory']);
+
+    // Purchase Orders
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['create', 'store'])->middleware(['permission:purchases.create', 'plan.feature:purchase_orders']);
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['index', 'show'])->middleware(['permission:purchases.view', 'plan.feature:purchase_orders']);
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['edit', 'update'])->middleware(['permission:purchases.edit', 'plan.feature:purchase_orders']);
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->only(['destroy'])->middleware(['permission:purchases.void', 'plan.feature:purchase_orders']);
+    Route::post('/purchase-orders/{purchaseOrder}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receive'])->middleware(['permission:purchases.edit', 'plan.feature:purchase_orders'])->name('purchase-orders.receive');
+    Route::get('/purchase-orders/{purchaseOrder}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->middleware(['permission:purchases.view', 'plan.feature:purchase_orders'])->name('purchase-orders.print');
+
+    // Proposals
+    Route::resource('proposals', \App\Http\Controllers\ProposalController::class)->middleware('plan.feature:b2b_proposal_builder')
+        ->middlewareFor(['index', 'show', 'create', 'edit'], 'permission:sales.view,sales.quotations')
+        ->middlewareFor(['store', 'update', 'destroy'], 'permission:sales.quotations');
+    Route::post('/proposals/{proposal}/convert', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->middleware('permission:sales.create')->middleware('plan.feature:b2b_proposal_builder')->name('proposals.convert');
+    Route::post('/proposals/{proposal}/convert-to-sale', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->middleware('permission:sales.create')->middleware('plan.feature:b2b_proposal_builder')->name('proposals.convert-to-sale');
+    Route::post('/proposals/{proposal}/convert-to-presale', [\App\Http\Controllers\ProposalController::class, 'convertToPreSale'])->middleware('permission:sales.quotations')->middleware('plan.feature:b2b_proposal_builder')->name('proposals.convert-to-presale');
+    Route::get('/proposals/{proposal}/print', [\App\Http\Controllers\ProposalController::class, 'print'])->middleware('plan.feature:b2b_proposal_builder')->name('proposals.print');
+
+    // Sales Orders (Pre-orders with Hold)
+    Route::resource('sales-orders', \App\Http\Controllers\SalesOrderController::class)->parameters([
+        'sales-orders' => 'order'
+    ])->middleware('plan.feature:pre_sales_reservation')->except(['edit'])
+        ->middlewareFor('store', 'permission:sales.create')
+        ->middlewareFor('update', 'permission:sales.edit')
+        ->middlewareFor('destroy', 'permission:sales.void');
+    Route::post('/sales-orders/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->middleware('permission:sales.create')->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.convert');
+    Route::get('/sales-orders/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware(['permission:data.export', 'plan.feature:pre_sales_reservation'])->name('sales-orders.export');
+    Route::get('/sales-orders/{salesOrder}/print', [\App\Http\Controllers\SalesOrderController::class, 'print'])->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.print');
+    Route::post('/sales-orders/{salesOrder}/cancel', [\App\Http\Controllers\SalesOrderController::class, 'cancel'])->middleware('permission:sales.void')->middleware('plan.feature:pre_sales_reservation')->name('sales-orders.cancel');
+
+    // Service Jobs (field service / repair work orders) — the web screens for
+    // App\Engines\ServiceEngine, mirroring Api\WorkOrderController's contract.
+    // 'services' stays 'building' in config/modules.php until
+    // ServiceOnlySaleTest is green — these routes are real and reachable
+    // directly, they are just not yet offered from the sidebar or to a new
+    // tenant. See ServiceJobController's own class doc for exact scope.
+    // Services & Field Work Routes
+    Route::get('/service-jobs', [\App\Http\Controllers\ServiceJobController::class, 'index'])
+        ->middleware('permission:sales.view')->name('service-jobs.index');
+    Route::get('/services/catalogue', [\App\Http\Controllers\InventoryController::class, 'index'])
+        ->middleware('permission:sales.view')->name('services.catalogue');
+    Route::get('/service-jobs/calendar', [\App\Http\Controllers\ServiceJobController::class, 'calendar'])
+        ->middleware('permission:sales.view')->name('service-jobs.calendar');
+    Route::get('/service-jobs/create', [\App\Http\Controllers\ServiceJobController::class, 'create'])
+        ->middleware('permission:sales.create')->name('service-jobs.create');
+    Route::post('/service-jobs', [\App\Http\Controllers\ServiceJobController::class, 'store'])
+        ->middleware('permission:sales.create')->name('service-jobs.store');
+    Route::post('/service-jobs/quick-book', [\App\Http\Controllers\ServiceJobController::class, 'quickBook'])
+        ->middleware('permission:sales.create')->name('service-jobs.quick-book');
+    Route::get('/service-jobs/{serviceJob}', [\App\Http\Controllers\ServiceJobController::class, 'show'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.view')->name('service-jobs.show');
+    Route::post('/service-jobs/{serviceJob}/status', [\App\Http\Controllers\ServiceJobController::class, 'updateStatus'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.status');
+    Route::post('/service-jobs/{serviceJob}/assign', [\App\Http\Controllers\ServiceJobController::class, 'assign'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.assign');
+    Route::delete('/service-jobs/{serviceJob}/assign/{employeeId}', [\App\Http\Controllers\ServiceJobController::class, 'removeAssignment'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.unassign');
+    Route::post('/service-jobs/{serviceJob}/schedule', [\App\Http\Controllers\ServiceJobController::class, 'updateSchedule'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.update-schedule');
+    Route::post('/service-jobs/{serviceJob}/checkout-tool', [\App\Http\Controllers\ServiceJobController::class, 'checkoutTool'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.checkout-tool');
+    Route::post('/service-jobs/{serviceJob}/return-tool/{toolId}', [\App\Http\Controllers\ServiceJobController::class, 'returnTool'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.return-tool');
+    Route::post('/service-jobs/{serviceJob}/convert-invoice', [\App\Http\Controllers\ServiceJobController::class, 'convertInvoice'])
+        ->whereNumber('serviceJob')
+        ->middleware('permission:sales.create')->name('service-jobs.convert-invoice');
+
+    // Tools & Field Equipment Management
+    Route::get('/tools', [\App\Http\Controllers\ToolController::class, 'index'])
+        ->middleware('permission:sales.view')->name('tools.index');
+    Route::post('/tools', [\App\Http\Controllers\ToolController::class, 'store'])
+        ->middleware('permission:sales.create')->name('tools.store');
+    Route::put('/tools/{tool}', [\App\Http\Controllers\ToolController::class, 'update'])
+        ->middleware('permission:sales.create')->name('tools.update');
+    Route::post('/tools/{tool}/maintenance', [\App\Http\Controllers\ToolController::class, 'logMaintenance'])
+        ->middleware('permission:sales.create')->name('tools.maintenance');
+    Route::post('/tools/{tool}/checkout', [\App\Http\Controllers\ToolController::class, 'checkout'])
+        ->middleware('permission:sales.create')->name('tools.checkout');
+    Route::post('/tools/{tool}/checkin', [\App\Http\Controllers\ToolController::class, 'checkin'])
+        ->middleware('permission:sales.create')->name('tools.checkin');
+    Route::delete('/tools/{tool}', [\App\Http\Controllers\ToolController::class, 'destroy'])
+        ->middleware('permission:sales.create')->name('tools.destroy');
+
+    // Labels
+    Route::get('/labels', [\App\Http\Controllers\LabelController::class, 'index'])->middleware('plan.feature:barcode_label_print')->name('labels.index');
+    Route::post('/labels/print', [\App\Http\Controllers\LabelController::class, 'print'])->middleware('permission:inventory.barcodes,inventory.view')->middleware('plan.feature:barcode_label_print')->name('labels.print');
+
+    // Reports
+    Route::middleware(['permission:reports.summary', 'plan.report'])->group(function () {
+        Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/dashboard', [\App\Http\Controllers\ReportController::class, 'dashboard'])->name('reports.dashboard');
+        Route::get('/reports/daily-sales', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('reports.daily-sales');
+        Route::get('/reports/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
+        Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->name('reports.purchases');
+        Route::get('/reports/purchase-returns', [\App\Http\Controllers\ReportController::class, 'purchaseReturns'])->name('reports.purchase-returns');
+        Route::get('/reports/day-book', [\App\Http\Controllers\ReportController::class, 'dayBook'])->name('reports.day-book');
+        Route::get('/reports/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+        Route::get('/reports/party-statement', [\App\Http\Controllers\ReportController::class, 'partyStatement'])->name('reports.party-statement');
+        Route::get('/reports/transactions', [\App\Http\Controllers\ReportController::class, 'transactions'])->name('reports.transactions');
+        Route::get('/reports/expenses', [\App\Http\Controllers\ReportController::class, 'expenses'])->name('reports.expenses');
+        Route::get('/reports/account-ledger', [\App\Http\Controllers\ReportController::class, 'accountLedger'])->name('reports.account-ledger');
+        Route::get('/reports/tax', [\App\Http\Controllers\ReportController::class, 'tax'])->name('reports.tax');
+        Route::get('/reports/bank-statement', [\App\Http\Controllers\ReportController::class, 'bankStatement'])->name('reports.bank-statement');
+
+        // Existing Reports
+        Route::get('/reports/stock-valuation', [\App\Http\Controllers\ReportController::class, 'stockValuation'])->name('reports.stock-valuation');
+        Route::get('/reports/low-stock', [\App\Http\Controllers\ReportController::class, 'lowStock'])->name('reports.low-stock');
+        Route::get('/reports/movement-history', [\App\Http\Controllers\ReportController::class, 'movementHistory'])->name('reports.movement-history');
+        Route::get('/reports/expiry', [\App\Http\Controllers\ReportController::class, 'expiryReport'])->name('reports.expiry');
+
+        // Additional 24 Reports (completing 38 total)
+        Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+        Route::get('/reports/all-parties', [\App\Http\Controllers\ReportController::class, 'allParties'])->name('reports.all-parties');
+        Route::get('/reports/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+        Route::get('/reports/item-wise-profit', [\App\Http\Controllers\ReportController::class, 'itemWiseProfit'])->name('reports.item-wise-profit');
+        Route::get('/reports/party-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'partyWiseProfitLoss'])->name('reports.party-wise-profit-loss');
+        Route::get('/reports/discount', [\App\Http\Controllers\ReportController::class, 'discountReport'])->name('reports.discount');
+        Route::get('/reports/cash-flow', [\App\Http\Controllers\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
+        Route::get('/reports/sale-aging', [\App\Http\Controllers\ReportController::class, 'saleAging'])->name('reports.sale-aging');
+        Route::get('/reports/sale-orders', [\App\Http\Controllers\ReportController::class, 'saleOrders'])->name('reports.sale-orders');
+        Route::get('/reports/bill-wise-profit', [\App\Http\Controllers\ReportController::class, 'billWiseProfit'])->name('reports.bill-wise-profit');
+        Route::get('/reports/expense-by-category', [\App\Http\Controllers\ReportController::class, 'expenseByCategory'])->name('reports.expense-by-category');
+        Route::get('/reports/expense-by-item', [\App\Http\Controllers\ReportController::class, 'expenseByItem'])->name('reports.expense-by-item');
+        Route::get('/reports/stock-summary-by-category', [\App\Http\Controllers\ReportController::class, 'stockSummaryByCategory'])->name('reports.stock-summary-by-category');
+        Route::get('/reports/item-detail', [\App\Http\Controllers\ReportController::class, 'itemDetailReport'])->name('reports.item-detail');
+        Route::get('/reports/loan-statement', [\App\Http\Controllers\ReportController::class, 'loanStatement'])->name('reports.loan-statement');
+        Route::get('/reports/tax-rate', [\App\Http\Controllers\ReportController::class, 'taxRateReport'])->name('reports.tax-rate');
+        Route::get('/reports/sale-purchase-by-party', [\App\Http\Controllers\ReportController::class, 'salePurchaseByParty'])->name('reports.sale-purchase-by-party');
+        Route::get('/reports/item-report-by-party', [\App\Http\Controllers\ReportController::class, 'itemReportByParty'])->name('reports.item-report-by-party');
+        Route::get('/reports/party-report-by-item', [\App\Http\Controllers\ReportController::class, 'partyReportByItem'])->name('reports.party-report-by-item');
+        Route::get('/reports/sale-purchase-by-item-category', [\App\Http\Controllers\ReportController::class, 'salePurchaseByItemCategory'])->name('reports.sale-purchase-by-item-category');
+        Route::get('/reports/item-category-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'itemCategoryWiseProfitLoss'])->name('reports.item-category-wise-profit-loss');
+        Route::get('/reports/item-wise-discount', [\App\Http\Controllers\ReportController::class, 'itemWiseDiscount'])->name('reports.item-wise-discount');
+        Route::get('/reports/sale-order-items', [\App\Http\Controllers\ReportController::class, 'saleOrderItems'])->name('reports.sale-order-items');
+        Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->name('reports.stock-aging');
+        Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->name('reports.sale-purchase-by-party-group');
+        Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'analytics'])->name('reports.analytics');
+        Route::get('/reports/refund-reasons', [\App\Http\Controllers\ReportController::class, 'refundReasons'])->name('reports.refund-reasons');
+
+        // New reports: Point-In-Time Inventory, Customer Insights, Supplier Insights
+        Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->name('reports.point-in-time-inventory');
+        Route::get('/reports/point-in-time-inventory/details', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventoryDetails'])->name('reports.point-in-time-inventory.details');
+        Route::get('/reports/customer-insights', [\App\Http\Controllers\ReportController::class, 'customerInsights'])->name('reports.customer-insights');
+        Route::get('/reports/customer-insights/details', [\App\Http\Controllers\ReportController::class, 'customerInsightsDetails'])->name('reports.customer-insights.details');
+        Route::get('/reports/supplier-insights', [\App\Http\Controllers\ReportController::class, 'supplierInsights'])->name('reports.supplier-insights');
+        Route::get('/reports/supplier-insights/details', [\App\Http\Controllers\ReportController::class, 'supplierInsightsDetails'])->name('reports.supplier-insights.details');
+
+        // Aliases / auxiliary report endpoints
+        Route::get('/reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->name('reports.aged-receivables');
+        Route::get('/reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->name('reports.aged-payables');
+        Route::get('/reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->name('reports.inventory-valuation');
+        Route::get('/reports/cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs'])->name('reports.cogs');
+        Route::get('/reports/gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->name('reports.gross-profit');
+        Route::get('/reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
+        Route::get('/reports/inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('reports.inventory-movement');
+        Route::get('/reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->middleware('permission:data.export')->name('reports.export');
+
+        // Owner's Daily Pulse (Secure Vault Dashboard)
+        Route::get('/reports/owner-daily-pulse', [\App\Http\Controllers\OwnerDailyPulseController::class, 'index'])->name('reports.owner-daily-pulse');
+        Route::post('/reports/owner-daily-pulse/verify', [\App\Http\Controllers\OwnerDailyPulseController::class, 'verifyPasscode'])->name('reports.owner-daily-pulse.verify');
+        Route::post('/reports/owner-daily-pulse/setup', [\App\Http\Controllers\OwnerDailyPulseController::class, 'setup'])->name('reports.owner-daily-pulse.setup');
+        Route::post('/reports/owner-daily-pulse/lock', [\App\Http\Controllers\OwnerDailyPulseController::class, 'lock'])->name('reports.owner-daily-pulse.lock');
+        Route::post('/reports/owner-daily-pulse/note', [\App\Http\Controllers\OwnerDailyPulseController::class, 'saveNote'])->name('reports.owner-daily-pulse.note');
+    });
+
+    // Cookbook
+    Route::get('/cookbook', [\App\Http\Controllers\CookbookController::class, 'index'])->middleware('plan.feature:bill_of_materials')->name('cookbook.index');
+    Route::get('/cookbook/create', [\App\Http\Controllers\CookbookController::class, 'create'])->middleware('plan.feature:bill_of_materials')->name('cookbook.create');
+    Route::post('/cookbook', [\App\Http\Controllers\CookbookController::class, 'store'])->middleware('permission:inventory.edit')->middleware('plan.feature:bill_of_materials')->name('cookbook.store');
+    Route::get('/cookbook/{id}/edit', [\App\Http\Controllers\CookbookController::class, 'edit'])->middleware('plan.feature:bill_of_materials')->name('cookbook.edit');
+    Route::put('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'update'])->middleware('permission:inventory.edit')->middleware('plan.feature:bill_of_materials')->name('cookbook.update');
+    Route::delete('/cookbook/{id}', [\App\Http\Controllers\CookbookController::class, 'destroy'])->middleware('permission:inventory.delete')->middleware('plan.feature:bill_of_materials')->name('cookbook.destroy');
+    Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->middleware('permission:inventory.view')->middleware('plan.feature:bill_of_materials')->name('cookbook.simulate');
+
+    // growth-engine
+    Route::middleware(['permission:reports.summary', 'plan.feature:growth_engine'])->group(function () {
+        Route::get('/growth-engine', [\App\Http\Controllers\GrowthEngineController::class, 'index'])->name('growth-engine.index');
+        Route::post('/growth-engine/refresh', [\App\Http\Controllers\GrowthEngineController::class, 'refresh'])->name('growth-engine.refresh');
+        Route::get('/growth-engine/dashboard', [\App\Http\Controllers\GrowthEngineController::class, 'dashboard'])->name('growth-engine.dashboard');
+        Route::get('/growth-engine/whatsapp/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'generateWhatsApp'])->name('growth-engine.whatsapp');
+        Route::post('/growth-engine/dismiss/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'dismiss'])->name('growth-engine.dismiss');
+        Route::post('/growth-engine/mark-read/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'markRead'])->name('growth-engine.mark-read');
+
+        Route::get('/growth-engine/signal/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'show'])->name('growth-engine.show');
+        Route::post('/growth-engine/act/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'act'])->name('growth-engine.act');
+        Route::post('/growth-engine/snooze/{id}', [\App\Http\Controllers\GrowthEngineController::class, 'snooze'])->name('growth-engine.snooze');
+        Route::get('/growth-engine/scorecard', [\App\Http\Controllers\GrowthEngineController::class, 'scorecard'])->name('growth-engine.scorecard');
+        Route::post('/growth-engine/unmute', [\App\Http\Controllers\GrowthEngineController::class, 'unmute'])->name('growth-engine.unmute');
+        Route::get('/growth-engine/settings', [\App\Http\Controllers\GrowthEngineController::class, 'settings'])->name('growth-engine.settings');
+        Route::post('/growth-engine/settings', [\App\Http\Controllers\GrowthEngineController::class, 'updateSettings'])->name('growth-engine.update-settings');
+    });
+
+    // Global Search
+    Route::get('/global-search', [\App\Http\Controllers\SearchController::class, 'search'])->name('global.search');
+    // AI Query
+    Route::get('/ai/query', [\App\Http\Controllers\AiController::class, 'query'])->name('ai.query');
+    Route::post('/ai/test-connection', [\App\Http\Controllers\AiController::class, 'testConnection'])->middleware('permission:admin.settings_manage')->name('ai.test');
+    Route::get('/ai/recommendations', [\App\Http\Controllers\AiController::class, 'recommendations'])->name('ai.recommendations');
+    Route::get('/ai/smart-reorder', [\App\Http\Controllers\AiController::class, 'smartReorder'])->name('ai.smart-reorder');
+    Route::get('/ai/cash-flow-forecast', [\App\Http\Controllers\AiController::class, 'cashFlowForecast'])->name('ai.cash-flow-forecast');
+
+
+
+    // Variants
+    Route::get('/products/{product}/variants', [\App\Http\Controllers\ProductVariantController::class, 'index'])->middleware('permission:inventory.view')->name('products.variants.index');
+    Route::post('/products/{product}/variants', [\App\Http\Controllers\ProductVariantController::class, 'store'])->middleware('permission:inventory.create')->name('products.variants.store');
+    Route::put('/variants/{variant}', [\App\Http\Controllers\ProductVariantController::class, 'update'])->middleware('permission:inventory.edit')->name('variants.update');
+    Route::delete('/variants/{variant}', [\App\Http\Controllers\ProductVariantController::class, 'destroy'])->middleware('permission:inventory.delete')->name('variants.destroy');
+
+    // Attributes
+    Route::get('/attributes', [ProductAttributeController::class, 'index'])->middleware('permission:inventory.view')->name('attributes.index');
+    Route::post('/attributes', [ProductAttributeController::class, 'store'])->middleware('permission:inventory.create')->name('attributes.store');
+    Route::put('/attributes/{attribute}', [ProductAttributeController::class, 'update'])->middleware('permission:inventory.edit')->name('attributes.update');
+    Route::delete('/attributes/{attribute}', [ProductAttributeController::class, 'destroy'])->middleware('permission:inventory.delete')->name('attributes.destroy');
+
+    // Categories (Phase 1 - Unification)
+    Route::get('/inventory/categories', [InventoryController::class, 'categories'])->middleware('permission:inventory.view')->name('categories.index');
+    Route::post('/categories', [InventoryController::class, 'storeCategory'])->middleware('permission:inventory.create')->name('categories.store');
+    Route::put('/categories/{category}', [InventoryController::class, 'updateCategory'])->middleware('permission:inventory.edit')->name('categories.update');
+    Route::delete('/categories/{category}', [InventoryController::class, 'destroyCategory'])->middleware('permission:inventory.delete')->name('categories.destroy');
+
+    // Stock Levels
+    Route::get('/inventory/stock-levels', [InventoryController::class, 'stockLevels'])->name('inventory.stock-levels');
+
+    // Bank Accounts (Phase 1 - Unification)
+    Route::get('/bank-accounts', [FinanceController::class, 'bankAccounts'])->name('bank-accounts.index');
+    Route::post('/bank-accounts', [FinanceController::class, 'storeBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.store');
+    Route::put('/bank-accounts/{bankAccount}', [FinanceController::class, 'updateBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.update');
+    Route::delete('/bank-accounts/{bankAccount}', [FinanceController::class, 'destroyBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.destroy');
+    Route::get('/bank-accounts/{bankAccount}/transactions', [FinanceController::class, 'bankAccountTransactions'])->name('bank-accounts.transactions');
+
+    // ============================================
+    // PHASE 2 - Party & Transaction Management
+    // ============================================
+
+    // Parties (Customers/Suppliers unified)
+    Route::get('/parties', [\App\Http\Controllers\PartyController::class, 'index'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.index');
+    Route::post('/parties', [\App\Http\Controllers\PartyController::class, 'store'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.store');
+    Route::put('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'update'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.update');
+    Route::delete('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'destroy'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.destroy');
+    Route::delete('/parties', [\App\Http\Controllers\PartyController::class, 'bulkDestroy'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.bulk-destroy');
+    Route::get('/parties/ledgers', [\App\Http\Controllers\PartyController::class, 'index'])->middleware('plan.feature:unified_party_ledger')->name('parties.ledgers');
+    Route::get('/parties/{party}/ledger', [\App\Http\Controllers\PartyController::class, 'ledger'])->middleware('plan.feature:unified_party_ledger')->name('parties.ledger');
+    Route::get('/parties/{party}', fn($party) => redirect()->route('store.parties.ledger', ['store_slug' => app('current.tenant')->slug, 'party' => $party]))->name('parties.show');
+
+    // Expenses
+    Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.index');
+    Route::get('/expenses/create', [\App\Http\Controllers\ExpenseController::class, 'create'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.create');
+    Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.store');
+    Route::post('/expenses/category', [\App\Http\Controllers\ExpenseController::class, 'storeCategory'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.category.store');
+    Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.destroy');
+
+    // ─── VenSynQ — Multi-Channel Fulfillment Engine ───────────────────────────
+    Route::prefix('vensynq')->name('vensynq.')
+        ->middleware(\App\Http\Middleware\EnsureVenSynQAccess::class)
+        ->group(function () {
+        // Command Center Dashboard
+        Route::get('/', [\App\Http\Controllers\VenSynQController::class, 'index'])->name('index');
+
+        // Channel Management (CRUD)
+        Route::post('/channels', [\App\Http\Controllers\VenSynQController::class, 'storeChannel'])->middleware('permission:vensynq.manage')->name('channels.store');
+        Route::patch('/channels/{channel}', [\App\Http\Controllers\VenSynQController::class, 'updateChannel'])->middleware('permission:vensynq.manage')->name('channels.update');
+        Route::delete('/channels/{channel}', [\App\Http\Controllers\VenSynQController::class, 'destroyChannel'])->middleware('permission:vensynq.manage')->name('channels.destroy');
+
+        // Order Processing
+        Route::post('/preview', [\App\Http\Controllers\VenSynQController::class, 'previewOrder'])->middleware('permission:vensynq.manage')->name('preview');
+        Route::post('/process', [\App\Http\Controllers\VenSynQController::class, 'processOrder'])->middleware('permission:vensynq.manage')->name('process');
+
+        // Dispatch & Tracking
+        Route::post('/sync-tracking', [\App\Http\Controllers\VenSynQController::class, 'syncTracking'])->middleware('permission:vensynq.manage')->name('sync-tracking');
+
+        // JIT Draft Approval
+        Route::patch('/jit-drafts/{purchase}/approve', [\App\Http\Controllers\VenSynQController::class, 'approveJitDraft'])->middleware('permission:vensynq.manage')->name('jit.approve');
+
+        // VenSynQ Settings
+        Route::get('/settings', [\App\Http\Controllers\VenSynQController::class, 'settings'])->name('settings');
+
+        // OAuth Connections & Handshakes
+        Route::get('/connect/{platform}', [\App\Http\Controllers\VenSynQController::class, 'connectChannel'])->name('connect');
+        Route::get('/callback/{platform}', [\App\Http\Controllers\VenSynQController::class, 'callbackChannel'])->name('callback');
+        Route::delete('/channels/{channel}/disconnect', [\App\Http\Controllers\VenSynQController::class, 'disconnectChannel'])->middleware('permission:vensynq.manage')->name('channels.disconnect');
+
+        // Live Order Fetch Sync
+        Route::post('/sync-orders', [\App\Http\Controllers\VenSynQController::class, 'fetchLiveOrders'])->middleware('permission:vensynq.manage')->name('sync-orders');
+
+        // ── T16: Amazon SP-API 3-Step Credential Wizard ───────────────────────
+        // Kept alongside the OAuth redirect above, not replacing it — sellers with
+        // self-authorized apps hold LWA credentials directly and never see a
+        // consent screen.
+        Route::post('/amazon/test-credentials', [\App\Http\Controllers\VenSynQController::class, 'testAmazonCredentials'])->middleware('permission:vensynq.manage')->name('amazon.test');
+        Route::post('/amazon/credentials', [\App\Http\Controllers\VenSynQController::class, 'storeAmazonCredentials'])->middleware('permission:vensynq.manage')->name('amazon.store');
+
+        // ── T16: Health, Error Inspector & Retry ──────────────────────────────
+        Route::get('/health', [\App\Http\Controllers\VenSynQController::class, 'healthStatus'])->name('health');
+        Route::post('/channels/{channel}/test', [\App\Http\Controllers\VenSynQController::class, 'testChannelConnection'])->middleware('permission:vensynq.manage')->name('channels.test');
+        Route::post('/channels/{channel}/retry', [\App\Http\Controllers\VenSynQController::class, 'retryChannelSync'])->middleware('permission:vensynq.manage')->name('channels.retry');
+
+        // ── T17: Marketplace Clearing / Money Pipeline ────────────────────────
+        // Online sales are held in 1205 Marketplace Clearing until the owner
+        // confirms the platform actually paid out. See MarketplaceSettlementService.
+        Route::get('/money-pipeline', [\App\Http\Controllers\VenSynQController::class, 'moneyPipeline'])->name('money-pipeline');
+        Route::get('/payouts', [\App\Http\Controllers\VenSynQController::class, 'payouts'])->name('payouts');
+        Route::post('/payouts/{payout}/confirm', [\App\Http\Controllers\VenSynQController::class, 'confirmPayout'])->middleware('permission:vensynq.manage')->name('payouts.confirm');
+        Route::post('/clearing/toggle', [\App\Http\Controllers\VenSynQController::class, 'enableClearing'])->middleware('permission:vensynq.manage')->name('clearing.toggle');
+    });
+
+    // Phase 7 Growth: AI Product Descriptions & Listing Image Processing
+    Route::post('/products/ai-descriptions/generate', [\App\Http\Controllers\ProductDescriptionController::class, 'generate'])->middleware('permission:inventory.edit')->name('products.ai-descriptions.generate');
+    Route::post('/products/ai-descriptions/apply', [\App\Http\Controllers\ProductDescriptionController::class, 'apply'])->middleware('permission:inventory.edit')->name('products.ai-descriptions.apply');
+    Route::post('/listing-images/process', [\App\Http\Controllers\ListingImageController::class, 'process'])->middleware('permission:inventory.edit')->name('listing-images.process');
+
+    // Payments
+    // Payments
+    Route::get('/payments', [\App\Http\Controllers\PaymentController::class, 'index'])->middleware('permission:finance.transactions')->name('payments.index');
+    Route::get('/payments/in', [\App\Http\Controllers\PaymentController::class, 'createIn'])->name('payments.in');
+    Route::get('/payments/out', [\App\Http\Controllers\PaymentController::class, 'createOut'])->name('payments.out');
+    Route::post('/payments', [\App\Http\Controllers\PaymentController::class, 'store'])->middleware('permission:finance.receive_payment,finance.send_payment')->name('payments.store');
+    Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
+
+    // Purchases
+    // V3 CONSOLIDATION Phase 5 — these point at PurchaseRouterController, which
+    // forwards to legacy or V3 per tenant. Route NAMES are unchanged, so no
+    // frontend route() call changes. Rollback = VENQORE_PURCHASE_CUTOVER=false.
+    // See V3_CONSOLIDATION_PLAN.md and config/venqore.php.
+    Route::get('/purchases', [\App\Http\Controllers\V3\PurchaseController::class, 'index'])->name('purchases.index');
+    Route::get('/purchases/create', [\App\Http\Controllers\V3\PurchaseController::class, 'create'])->name('purchases.create');
+    Route::post('/purchases', [\App\Http\Controllers\V3\PurchaseController::class, 'store'])->middleware('permission:purchases.create')->name('purchases.store');
+    Route::get('/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'show'])->name('purchases.show');
+    Route::get('/purchases/{purchase}/edit', [\App\Http\Controllers\V3\PurchaseController::class, 'edit'])->name('purchases.edit');
+    Route::match(['put', 'patch'], '/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'update'])->middleware('permission:purchases.edit')->name('purchases.update');
+    Route::delete('/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'destroy'])->middleware('permission:purchases.void')->name('purchases.destroy');
+    Route::get('/purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'receive'])->middleware('permission:purchases.edit')->name('purchases.receive');
+
+    // All Transactions
+    Route::get('/transactions', [\App\Http\Controllers\TransactionController::class, 'index'])->name('transactions.index');
+
+    // ============================================
+    // PHASE 3 - Enhanced Inventory & Orders
+    // ============================================
+
+    // Stock Levels
+    Route::get('/inventory/stock', [InventoryController::class, 'stockLevels'])->name('inventory.stock');
+
+    // Sales Orders
+    Route::get('/sales/pre-sales', [\App\Http\Controllers\SalesOrderController::class, 'index'])->name('pre-sales.index');
+    Route::get('/sales/pre-sales/create', [\App\Http\Controllers\SalesOrderController::class, 'create'])->name('pre-sales.create');
+    Route::post('/sales/pre-sales', [\App\Http\Controllers\SalesOrderController::class, 'store'])->middleware('permission:sales.create')->name('pre-sales.store');
+    Route::get('/sales/pre-sales/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware('permission:data.export')->name('pre-sales.export');
+    Route::get('/sales/orders/{order}', [\App\Http\Controllers\SalesOrderController::class, 'show'])->name('sales.orders.show');
+    Route::put('/sales/orders/{order}', [\App\Http\Controllers\SalesOrderController::class, 'update'])->middleware('permission:sales.edit')->name('sales.orders.update');
+    Route::post('/sales/pre-sales/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->middleware('permission:sales.create')->name('pre-sales.convert');
+    Route::delete('/sales/pre-sales/{order}', [\App\Http\Controllers\SalesOrderController::class, 'destroy'])->middleware('permission:sales.void')->name('pre-sales.destroy');
+
+
+    // Production Runs
+    Route::get('/inventory/production', [\App\Http\Controllers\ProductionController::class, 'index'])->middleware('plan.feature:production')->name('production.index');
+    Route::get('/inventory/production/create', [\App\Http\Controllers\ProductionController::class, 'create'])->middleware('plan.feature:production')->name('production.create');
+    // Active BOMs for the New Production Run screen (it posts bom_id to production.store). Before /inventory/production/{run}.
+    Route::get('/inventory/production/boms', [\App\Http\Controllers\ProductionBomListController::class, 'index'])->middleware('permission:inventory.adjust')->middleware('plan.feature:production')->name('production.boms');
+    // production.store is registered above POST /inventory/{id} (it was shadowed by it).
+    Route::get('/inventory/production/{run}', [\App\Http\Controllers\ProductionController::class, 'show'])->middleware('plan.feature:production')->name('production.show');
+    Route::post('/inventory/production/{run}/complete', [\App\Http\Controllers\V3\ProductionRunController::class, 'complete'])->middleware('permission:inventory.adjust')->middleware('plan.feature:production')->name('production.complete');
+
+    // Fund Management (Owner Capital, Transfers, Adjustments)
+    Route::get('/funds', [FundController::class, 'index'])->middleware(['permission:finance.balances', 'plan.feature:fund_management'])->name('funds.index');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.receive_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.send_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.send_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.journal')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.adjust');
+
+    // Accounting Routes
+    Route::get('/accounting', [\App\Http\Controllers\AccountingController::class, 'dashboard'])->middleware('plan.feature:double_entry_ledger')->name('accounting.dashboard');
+    Route::get('/accounting/chart', [\App\Http\Controllers\AccountingController::class, 'index'])->middleware('plan.feature:report_ledger')->name('accounting.index');
+    Route::get('/accounting/p-and-l', [\App\Http\Controllers\AccountingController::class, 'profitAndLoss'])->middleware('plan.feature:report_profit_loss')->name('accounting.pnl');
+    Route::get('/accounting/balance-sheet', [\App\Http\Controllers\AccountingController::class, 'balanceSheet'])->middleware('plan.feature:report_balance_sheet')->name('accounting.balance-sheet');
+    Route::get('/accounting/api/accounts', [\App\Http\Controllers\AccountingController::class, 'apiIndex'])->middleware('plan.feature:report_ledger')->name('accounting.accounts.api');
+
+    // Recurring Invoices
+    Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->name('recurring-invoices.index');
+    Route::get('/recurring-invoices/create', [\App\Http\Controllers\RecurringInvoiceController::class, 'create'])->name('recurring-invoices.create');
+    Route::post('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'store'])->middleware('permission:sales.create')->name('recurring-invoices.store');
+    Route::get('/recurring-invoices/{id}/edit', [\App\Http\Controllers\RecurringInvoiceController::class, 'edit'])->name('recurring-invoices.edit');
+    Route::put('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'update'])->middleware('permission:sales.edit')->name('recurring-invoices.update');
+    Route::post('/recurring-invoices/{id}/toggle', [\App\Http\Controllers\RecurringInvoiceController::class, 'toggle'])->middleware('permission:sales.edit')->name('recurring-invoices.toggle');
+    Route::delete('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'destroy'])->middleware('permission:sales.void')->name('recurring-invoices.destroy');
+
+    // Stock Transfers
+    Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.index');
+    Route::get('/stock-transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.create');
+    Route::post('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.store');
+    Route::get('/stock-transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'show'])->middleware(['permission:inventory.transfer', 'plan.feature:multi_branch'])->name('stock-transfers.show');
+
+    // Debit Notes
+    Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.index');
+    Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.create');
+    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.edit')->middleware('plan.feature:debit_credit_notes')->name('debit-notes.store');
+    Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.show');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.refund');
+
+    // Bank Reconciliation
+    Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->middleware('plan.feature:bank_reconciliation')->name('bank-reconciliation.index');
+    Route::post('/bank-reconciliation/import', [\App\Http\Controllers\BankReconciliationController::class, 'import'])->middleware('permission:finance.journal')->middleware('plan.feature:bank_reconciliation')->name('bank-reconciliation.import');
+
+    // Invoice Reminders
+    Route::get('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'index'])->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.index');
+    Route::get('/invoice-reminders/create', [\App\Http\Controllers\InvoiceReminderController::class, 'create'])->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.create');
+    Route::post('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'store'])->middleware('permission:sales.edit')->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.store');
+    Route::post('/invoice-reminders/{id}/send', [\App\Http\Controllers\InvoiceReminderController::class, 'send'])->middleware('permission:sales.edit')->middleware('plan.feature:invoice_reminders')->name('invoice-reminders.send');
+
+    // Marketing Campaigns
+    Route::get('/marketing/campaigns', [\App\Http\Controllers\MarketingCampaignController::class, 'index'])->middleware('plan.feature:marketing_campaigns')->name('marketing-campaigns.index');
+    Route::get('/marketing/campaigns/create', [\App\Http\Controllers\MarketingCampaignController::class, 'create'])->middleware('plan.feature:marketing_campaigns')->name('marketing-campaigns.create');
+    Route::post('/marketing/campaigns', [\App\Http\Controllers\MarketingCampaignController::class, 'store'])->middleware('permission:admin.settings_manage')->middleware('plan.feature:marketing_campaigns')->name('marketing-campaigns.store');
+
+    // WooCommerce Sync
+    Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug') ?? request()->segment(2)]))
+        ->middleware('plan.feature:woocommerce')
+        ->name('woocommerce.index');
+    Route::prefix('woo')->name('woo.')->middleware('plan.feature:woocommerce')->group(function () {
+        Route::get('/connections/{connection}/download', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadPlugin'])->name('plugin.download');
+        Route::get('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'index'])->name('connections.index');
+        Route::post('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'store'])->middleware('permission:vensynq.manage')->name('connections.store');
+        Route::get('/connections/{connection}/setup', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'setup'])->name('connections.setup');
+        Route::get('/connections/{connection}/status', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'statusJson'])->name('connections.status-json');
+        Route::put('/connections/{connection}/settings', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'updateSettings'])->middleware('permission:vensynq.manage')->name('connections.settings');
+        Route::delete('/connections/{connection}', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'destroy'])->middleware('permission:vensynq.manage')->name('connections.destroy');
+        Route::get('/connections/{connection}/sync', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'syncPage'])->name('connections.sync');
+        Route::post('/connections/{connection}/approve', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'approveSync'])->middleware('permission:vensynq.manage')->name('connections.approve');
+        Route::post('/connections/{connection}/push', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'forcePush'])->middleware('permission:vensynq.manage')->name('connections.push');
+        Route::post('/connections/{connection}/pull', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'forcePull'])->middleware('permission:vensynq.manage')->name('connections.pull');
+        Route::post('/connections/{connection}/scan', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'scanCatalog'])->middleware('permission:vensynq.manage')->name('connections.scan');
+        Route::post('/connections/{connection}/resolve', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'resolveConflict'])->middleware('permission:vensynq.manage')->name('connections.resolve');
+        Route::post('/connections/{connection}/ignore', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'ignore'])->middleware('permission:vensynq.manage')->name('connections.ignore');
+        Route::get('/connections/{connection}/logs', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'logs'])->name('connections.logs');
+    });
+
+    // E-Invoicing
+    Route::get('/e-invoicing', [\App\Http\Controllers\EInvoicingController::class, 'index'])->middleware('plan.feature:e_invoicing')->name('e-invoicing.index');
+    Route::post('/e-invoicing/generate', [\App\Http\Controllers\EInvoicingController::class, 'generate'])->middleware('permission:sales.edit')->middleware('plan.feature:e_invoicing')->name('e-invoicing.generate');
+    Route::post('/e-invoicing/waybill', [\App\Http\Controllers\EInvoicingController::class, 'generateWaybill'])->middleware('permission:sales.edit')->middleware('plan.feature:e_invoicing')->name('e-invoicing.waybill');
+
+    // Parked Sales
+    Route::get('/sales/parked-items', [\App\Http\Controllers\ParkedSaleController::class, 'index'])->name('parked-sales.index');
+    Route::delete('/sales/parked-items/{sale}', [\App\Http\Controllers\ParkedSaleController::class, 'destroy'])->middleware('permission:pos.checkout,sales.create')->name('parked-sales.destroy');
+
+    // Enhanced Purchase Receive — routed through the Phase 5 cutover switch.
+    Route::post('/purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'storeReceive'])->middleware('permission:purchases.edit')->name('purchases.receive.store');
+
+    // Customers
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->except(['show', 'edit'])
+        ->middlewareFor('store', 'permission:sales.create,pos.checkout')
+        ->middlewareFor(['update', 'destroy'], 'permission:sales.edit');
+    // Customers & Suppliers Search
+    Route::get('/customers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('customers.search');
+    Route::get('/suppliers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('suppliers.search');
+    Route::get('/parties-search',   [\App\Http\Controllers\PartyController::class, 'search'])->name('parties.search');
+
+    // Sales
+    Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'dashboard'])->middleware('permission:sales.view')->name('sales.dashboard');
+    Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
+    Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
+    Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(['permission:sales.create,pos.checkout', \App\Http\Middleware\EnforceTransactionLimit::class])->name('sales.store');
+    // S-011 / S-044: owners/admins/managers who can approve a POS sale (POS approval modal). Before /sales/{sale}.
+    Route::get('/sales/approvers', [\App\Http\Controllers\SaleController::class, 'approvers'])->middleware('permission:sales.create,pos.checkout')->name('sales.approvers');
+    Route::get('/attendance/status', [\App\Http\Controllers\AttendanceController::class, 'status'])->name('attendance.status');
+    Route::post('/attendance/check-in', [\App\Http\Controllers\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
+    Route::post('/attendance/heartbeat', [\App\Http\Controllers\AttendanceController::class, 'heartbeat'])->name('attendance.heartbeat');
+    Route::post('/attendance/check-out', [\App\Http\Controllers\AttendanceController::class, 'checkOut'])->name('attendance.check-out');
+    Route::post('/attendance/log-gap', [\App\Http\Controllers\AttendanceController::class, 'logGap'])->name('attendance.log-gap');
+
+    Route::get('/sales/{sale}/print', [\App\Http\Controllers\SaleController::class, 'printReceipt'])->name('sales.print');
+
+    Route::get('/sales/lookup', [\App\Http\Controllers\SaleController::class, 'lookup'])->name('sales.lookup');
+
+    // Parked Sales (Hold Bill) - MUST BE BEFORE /sales/{sale}
+    Route::post('/sales/bulk-destroy', [\App\Http\Controllers\SaleController::class, 'bulkDestroy'])->middleware('permission:sales.void')->name('sales.bulk-destroy');
+    Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'park'])->middleware('permission:pos.checkout,sales.create')->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.park');
+    Route::get('/sales/parked', [\App\Http\Controllers\SaleController::class, 'getParkedSales'])->name('sales.parked');
+    Route::get('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'recall'])->name('sales.recall');
+    Route::delete('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'deleteParked'])->middleware('permission:pos.checkout,sales.create')->name('sales.parked.delete');
+    // sales.get-items removed 2026-08-02 — no frontend caller, returned full
+    // Product rows (including cost_price/purchase_price) to any authenticated
+    // user with no validation on the ids array. See audit item A4.
+
+    Route::get('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'show'])->name('sales.show');
+    Route::get('/sales/{sale}/edit', [\App\Http\Controllers\SaleController::class, 'edit'])->name('sales.edit');
+    Route::put('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'update'])->middleware('permission:sales.edit')->name('sales.update');
+    Route::post('/sales/{sale}/cancel', [\App\Http\Controllers\SaleController::class, 'cancel'])->middleware('permission:sales.void')->name('sales.cancel');
+    Route::post('/pos/return', [\App\Http\Controllers\PosReturnController::class, 'store'])->middleware('permission:pos.refund,sales.returns')->name('pos.return.store');
+    Route::post('/sales/{sale}/return', [\App\Http\Controllers\SaleController::class, 'returnSale'])->middleware('permission:sales.returns,pos.refund')->name('sales.return');
+    Route::delete('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'destroy'])->middleware('permission:sales.void')->name('sales.destroy');
+
+    // POS API Routes
+    Route::get('/api/pos/categories', [\App\Http\Controllers\PosController::class, 'getCategories'])->name('api.categories');
+
+    // Detailed Invoice
+    // `?ai_prefill=<key>` opens this screen pre-filled from an AI Scan. AI Scan
+    // never posts a sale itself (a posted sale is immutable — see SaleObserver),
+    // so the user always finalises it here.
+    Route::get('/sales/invoice/create', function (\Illuminate\Http\Request $request) {
+        return Inertia::render('Sales/CreateInvoice', [
+            'aiPrefill' => app(\App\Services\SmartCapture\PrefillService::class)
+                ->pull($request->query('ai_prefill')),
+        ]);
+    })->name('sales.invoice.create');
+
+    // Master Sales Console (Atomic Analysis)
+    Route::get('/sales/master', function () {
+        return Inertia::render('Sales/MasterSales');
+    })->name('sales.master');
+
+    // Pre-Sale Page (Proof of Concept - Stock Check OFF)
+    Route::get('/sales/presale/create', function () {
+        return Inertia::render('Sales/CreatePreSale');
+    })->name('presales.create');
+
+
+
+
+    // Manufacturing Rules
+    Route::get('/manufacturing/rules', function () {
+        return Inertia::render('Manufacturing/Rules');
+    })->name('manufacturing.rules');
+
+    // Manufacturing API
+    Route::get('/api/manufacturing-rules', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'index'])->name('api.manufacturing-rules.index');
+    Route::post('/api/manufacturing-rules', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'store'])->middleware('permission:inventory.edit')->name('api.manufacturing-rules.store');
+    Route::patch('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'update'])->middleware('permission:inventory.edit')->name('api.manufacturing-rules.update');
+    Route::delete('/api/manufacturing-rules/{id}', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'destroy'])->middleware('permission:inventory.delete')->name('api.manufacturing-rules.destroy');
+    Route::post('/api/manufacturing-rules/{id}/simulate', [\App\Http\Controllers\Api\ManufacturingRuleController::class, 'simulate'])->middleware('permission:inventory.edit')->name('api.manufacturing-rules.simulate');
+
+    // Categories API
+    Route::get('/api/categories', function () {
+        return \response()->json(\App\Models\Category::all());
+    })->name('api.categories.general');
+
+    Route::get('/api/warehouses', function () {
+        return \response()->json(\App\Models\Warehouse::all());
+    })->name('api.warehouses');
+
+    // Finance Routes
+    Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.balances')->name('finance');
+    Route::get('/finance/receivables', [FinanceController::class, 'receivables'])->name('finance.receivables');
+    Route::get('/finance/payables', [FinanceController::class, 'payables'])->name('finance.payables');
+
+    // Fund Management (Owner Capital, Transfers, Adjustments)
+    Route::get('/funds', [FundController::class, 'index'])->middleware('permission:finance.balances')->name('funds.index');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.receive_payment')->middleware('throttle:10,1')->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.send_payment')->middleware('throttle:10,1')->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.send_payment')->middleware('throttle:10,1')->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.journal')->middleware('throttle:10,1')->name('funds.adjust');
+    Route::get('/funds/cash-history', [FundController::class, 'history'])->name('funds.history.ledger');
+    Route::get('/funds/api/history', [FundController::class, 'getCashHistory'])->name('funds.cash-history');
+
+    // Custom Charges
+    Route::get('/api/custom-charges', function () {
+        return \response()->json(\App\Models\AdHocLine::active()->get());
+    })->name('api.custom-charges');
+
+    Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->name('api.bank-accounts');
+
+    /* A party's position with the shop, read from the ledger rather than from
+       the cached `parties.current_balance` — which several code paths write,
+       which means the opposite thing for a customer and a supplier, and which
+       is why a purchase from a customer showed their balance going the wrong
+       way. Every document screen reads this one. */
+    Route::get('/api/parties/{party}/balance', \App\Http\Controllers\Api\PartyBalanceController::class)->name('api.party-balance');
+
+    /* What is still returnable against a sale. A cap enforced only in a browser
+       is not a cap, so the screen loads from here and the server checks it
+       again on save. */
+    /* The bills a debit note can be raised against. */
+    Route::get('/api/parties/{party}/purchases', [\App\Http\Controllers\Api\PurchaseLookupController::class, 'forParty'])->name('api.purchases.for-party');
+    Route::get('/api/sales/returnable', [\App\Http\Controllers\Api\SaleReturnLookupController::class, 'index'])->name('api.sales.returnable');
+    Route::get('/api/sales/{sale}/returnable', [\App\Http\Controllers\Api\SaleReturnLookupController::class, 'show'])->name('api.sales.returnable.show');
+
+    // Custom Charges
+    Route::post('/settings/charges', [\App\Http\Controllers\SettingsController::class, 'storeCharge'])->middleware('permission:admin.settings_manage')->name('settings.charges.store');
+    Route::put('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'updateCharge'])->middleware('permission:admin.settings_manage')->name('settings.charges.update');
+    Route::delete('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'deleteCharge'])->middleware('permission:admin.settings_manage')->name('settings.charges.delete');
+    Route::post('/settings/data-privacy', [\App\Http\Controllers\SettingsController::class, 'updateDataPrivacy'])->middleware('permission:admin.settings_manage')->name('settings.data-privacy.update');
+
+    // Charity Routes
+    Route::get('/charity/stats', [\App\Http\Controllers\CharityController::class, 'stats'])->name('charity.stats');
+    Route::post('/charity/add', [\App\Http\Controllers\CharityController::class, 'add'])->middleware('permission:pos.checkout,sales.create')->name('charity.add');
+    Route::post('/charity/update-default', [\App\Http\Controllers\CharityController::class, 'updateDefault'])->middleware('permission:admin.settings_manage')->name('charity.update-default');
+
+    // Communication Routes
+    Route::post('/sales/{id}/send-email', [\App\Http\Controllers\CommunicationController::class, 'sendEmail'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-email');
+    Route::post('/sales/{id}/send-whatsapp', [\App\Http\Controllers\CommunicationController::class, 'sendWhatsApp'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-whatsapp');
+
+
+
+    // Admin Panel (Hub) — DEPRECATED
+    // Now protected by permission:admin.settings_manage middleware to prevent access gaps
+    Route::group(['middleware' => ['permission:admin.settings_manage']], function () {
+        Route::get('/admin-panel', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.panel');
+
+        // Data Management (Import/Export)
+        Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('legacy.admin.data');
+        Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('legacy.admin.data.export');
+        Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('legacy.admin.data.import');
+        Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.data.upload-mapping.redirect');
+        Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('legacy.admin.data.upload-mapping');
+        Route::get('/admin-panel/data/process-import', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.data.process-import.redirect');
+        Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('legacy.admin.data.process-import');
+        Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('legacy.admin.data.validate-import');
+        Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('legacy.admin.data.template');
+
+        // Backups
+        Route::get('/admin-panel/backups', function () {
+            return redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug, 'tab' => 'backups']);
+        })->name('backups.index');
+        Route::post('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+        Route::post('/admin-panel/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+        Route::post('/admin-panel/backups/import-data', [\App\Http\Controllers\BackupController::class, 'importData'])->name('backups.import');
+        Route::get('/admin-panel/backups/progress', [\App\Http\Controllers\BackupController::class, 'progress'])->name('backups.progress');
+
+        Route::get('/admin-panel/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('legacy.admin.dashboard');
+        
+        // Migration / Backup Import
+        Route::get('/admin-panel/migration', function () {
+            return redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug, 'tab' => 'migrate']);
+        })->name('legacy.admin.migration.index');
+        Route::post('/admin-panel/migration/analyze', [\App\Http\Controllers\MigrationController::class, 'analyze'])->name('legacy.admin.migration.analyze');
+        Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->name('legacy.admin.migration.execute');
+
+        Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:admin.staff_manage')->name('legacy.admin.users');
+        Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('legacy.admin.users.store');
+        Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->middleware('permission:users.manage')->name('legacy.admin.users.update');
+        Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->middleware('permission:users.manage')->name('legacy.admin.users.destroy');
+        Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->name('legacy.admin.settings');
+        Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
+        Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:reports.audit')->name('legacy.admin.logs');
+        Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->name('legacy.admin.database');
+        Route::get('/admin-panel/staff', function () { return redirect()->route('store.legacy.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.staff');
+    });
+
+    // Staff Attendance
+    Route::get('/staff-attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
+    Route::get('/terminal-activities/screenshot/{id}', [\App\Http\Controllers\Api\TerminalActivityController::class, 'viewScreenshot'])->name('terminal-activities.screenshot');
+    Route::get('/staff-attendance/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'show'])->name('staff-attendance.show');
+    Route::post('/staff-attendance/approve-gap/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'approveGap'])->middleware('permission:admin.staff_manage')->name('staff-attendance.approve-gap');
+    Route::post('/staff-attendance/reject-gap/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'rejectGap'])->middleware('permission:admin.staff_manage')->name('staff-attendance.reject-gap');
+
+
+
+
+    Route::middleware('permission:pos.checkout')->group(function () {
+        Route::get('/api/loyalty/{partyId}', [\App\Http\Controllers\GrowthEngineController::class, 'customerLoyalty'])->name('loyalty.info');
+        Route::post('/api/loyalty/award', [\App\Http\Controllers\GrowthEngineController::class, 'awardPoints'])->name('loyalty.award');
+        Route::post('/api/loyalty/redeem', [\App\Http\Controllers\GrowthEngineController::class, 'redeemPoints'])->name('loyalty.redeem');
+
+        // Gift Cards
+        Route::post('/api/gift-cards', [\App\Http\Controllers\GrowthEngineController::class, 'createGiftCard'])->name('gift-cards.create');
+        Route::get('/api/gift-cards/{code}', [\App\Http\Controllers\GrowthEngineController::class, 'checkGiftCard'])->name('gift-cards.check');
+        Route::post('/api/gift-cards/use', [\App\Http\Controllers\GrowthEngineController::class, 'useGiftCard'])->name('gift-cards.use');
+
+        // Store Credit
+        Route::post('/api/store-credit/add', [\App\Http\Controllers\GrowthEngineController::class, 'addStoreCredit'])->name('store-credit.add');
+        Route::post('/api/store-credit/use', [\App\Http\Controllers\GrowthEngineController::class, 'useStoreCredit'])->name('store-credit.use');
+    });
+    // Notifications
+    Route::get('/api/notifications/summary', [App\Http\Controllers\NotificationController::class, 'summary'])->name('notifications.summary');
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/{id}/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::delete('/notifications/{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Profile Routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/passcode', [ProfileController::class, 'updatePasscode'])->name('profile.passcode');
+    Route::post('/profile/security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'updateSecurityPin'])->name('profile.security-pin');
+    Route::post('/profile/verify-security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'verifySecurityPin'])->name('profile.verify-security-pin');
+    Route::post('/profile/verify-elevated-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'verifyElevatedPin'])->name('profile.verify-elevated-pin');
+    Route::get('/profile/store-members', [\App\Http\Controllers\ProfileSecurityController::class, 'storeMembers'])->name('profile.store-members');
+    // ============================================
+    // NEW FEATURES ROUTES (Returns, StockOps, etc)
+    // ============================================
+
+    // Returns History — PROBLEM 10 FIX: Permission middleware added
+    // returns.create/store: requires 'returns' (owner, admin, manager, cashier)
+    // returns-history: requires 'returns' or 'sales_view' (accountant read-only)
+    Route::get('/returns-history', [\App\Http\Controllers\ReturnController::class, 'index'])->name('returns-history.index')->middleware('permission:sales.returns,sales.view');
+    Route::get('/returns/create', [\App\Http\Controllers\ReturnController::class, 'create'])->name('returns.create')->middleware('permission:sales.returns');
+    Route::post('/returns', [\App\Http\Controllers\ReturnController::class, 'store'])->name('returns.store')->middleware('permission:sales.returns');
+    Route::get('/returns-history/{id}', [\App\Http\Controllers\ReturnController::class, 'show'])->name('returns-history.show')->middleware('permission:sales.returns,sales.view');
+
+    // Recurring Invoices
+    Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->name('recurring-invoices.index');
+    Route::get('/recurring-invoices/create', [\App\Http\Controllers\RecurringInvoiceController::class, 'create'])->name('recurring-invoices.create');
+    Route::post('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'store'])->middleware('permission:sales.create')->name('recurring-invoices.store');
+    Route::get('/recurring-invoices/{id}/edit', [\App\Http\Controllers\RecurringInvoiceController::class, 'edit'])->name('recurring-invoices.edit');
+    Route::put('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'update'])->middleware('permission:sales.edit')->name('recurring-invoices.update');
+    Route::post('/recurring-invoices/{id}/toggle', [\App\Http\Controllers\RecurringInvoiceController::class, 'toggle'])->middleware('permission:sales.edit')->name('recurring-invoices.toggle');
+    Route::delete('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'destroy'])->middleware('permission:sales.void')->name('recurring-invoices.destroy');
+
+    // Stock Transfers
+    Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->middleware('permission:inventory.transfer')->name('stock-transfers.index');
+    Route::get('/stock-transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->middleware('permission:inventory.transfer')->name('stock-transfers.create');
+    Route::post('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->middleware('permission:inventory.transfer')->name('stock-transfers.store');
+    Route::get('/stock-transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'show'])->middleware('permission:inventory.transfer')->name('stock-transfers.show');
+    Route::get('/stock-transfers/{id}/edit', function () { /* Placeholder */})->name('stock-transfers.edit');
+
+    // Stock Take / Audit
+    Route::get('/stock-audit', [\App\Http\Controllers\StockTakeController::class, 'index'])->middleware('permission:inventory.adjust')->name('stock-takes.index');
+    Route::get('/stock-audit/create', [\App\Http\Controllers\StockTakeController::class, 'create'])->middleware('permission:inventory.adjust')->name('stock-takes.create');
+    Route::post('/stock-audit', [\App\Http\Controllers\StockTakeController::class, 'store'])->middleware('permission:inventory.adjust')->name('stock-takes.store');
+    Route::get('/stock-audit/{id}', [\App\Http\Controllers\StockTakeController::class, 'show'])->middleware('permission:inventory.adjust')->name('stock-takes.show');
+
+    // Batch Tracking
+    Route::get('/batches', [\App\Http\Controllers\BatchTrackingController::class, 'index'])->middleware('permission:inventory.view')->name('batches.index');
+    Route::get('/batches/{id}', [\App\Http\Controllers\BatchTrackingController::class, 'show'])->middleware('permission:inventory.view')->name('batches.show');
+
+    // Serial Tracking
+    Route::get('/serials', [\App\Http\Controllers\SerialTrackingController::class, 'index'])->middleware('permission:inventory.view')->name('serials.index');
+    Route::get('/serials/{id}', [\App\Http\Controllers\SerialTrackingController::class, 'show'])->middleware('permission:inventory.view')->name('serials.show');
+
+    // Debit Notes
+    Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->name('debit-notes.index');
+    Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->name('debit-notes.create');
+    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.edit')->name('debit-notes.store');
+    Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->name('debit-notes.show');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:purchases.edit')->name('debit-notes.refund');
+
+    // Bank Reconciliation
+    Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
+    Route::post('/bank-reconciliation/import', [\App\Http\Controllers\BankReconciliationController::class, 'import'])->middleware('permission:finance.journal')->name('bank-reconciliation.import');
+
+    // Invoice Reminders
+    Route::get('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'index'])->name('invoice-reminders.index');
+    Route::get('/invoice-reminders/create', [\App\Http\Controllers\InvoiceReminderController::class, 'create'])->name('invoice-reminders.create');
+    Route::post('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'store'])->middleware('permission:sales.edit')->name('invoice-reminders.store');
+    Route::post('/invoice-reminders/{id}/send', [\App\Http\Controllers\InvoiceReminderController::class, 'send'])->middleware('permission:sales.edit')->name('invoice-reminders.send');
+
+    // Staff Attendance
+    Route::get('/staff/attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff.attendance.index');
+    Route::get('/staff/attendance/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'show'])->name('staff.attendance.show');
+    Route::post('/staff/attendance/gap/{id}/approve', [\App\Http\Controllers\StaffAttendanceController::class, 'approveGap'])->middleware('permission:admin.staff_manage')->name('staff.attendance.approve-gap');
+    Route::post('/staff/attendance/gap/{id}/reject', [\App\Http\Controllers\StaffAttendanceController::class, 'rejectGap'])->middleware('permission:admin.staff_manage')->name('staff.attendance.reject-gap');
+
+    // Marketing Campaigns
+    Route::get('/marketing/campaigns', [\App\Http\Controllers\MarketingCampaignController::class, 'index'])->name('marketing-campaigns.index');
+    Route::get('/marketing/campaigns/create', [\App\Http\Controllers\MarketingCampaignController::class, 'create'])->name('marketing-campaigns.create');
+    Route::post('/marketing/campaigns', [\App\Http\Controllers\MarketingCampaignController::class, 'store'])->middleware('permission:admin.settings_manage')->name('marketing-campaigns.store');
+
+    // Online Store
+    Route::get('/online-store-manager', [\App\Http\Controllers\OnlineStoreController::class, 'index'])->name('online-store.index');
+    Route::post('/online-store-manager', [\App\Http\Controllers\OnlineStoreController::class, 'update'])->middleware('permission:admin.settings_manage')->name('online-store.update');
+
+    // ── WooCommerce Sync (Full System) ────────────────────────────────────────
+    // Entry point: redirects to the new connection list
+    Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug') ?? request()->segment(2)]))
+        ->middleware('plan.feature:woocommerce')
+        ->name('woocommerce.index');
+    // WooSync — Connection Management & Sync Operations
+    Route::prefix('woo')->name('woo.')->middleware('plan.feature:woocommerce')->group(function () {
+        // Plugin download (public within auth context)
+        Route::get('/connections/{connection}/download', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadPlugin'])
+            ->name('plugin.download');
+
+        // Connections CRUD
+        Route::get('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'index'])
+            ->name('connections.index');
+        Route::post('/connections', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'store'])->middleware('permission:vensynq.manage')
+            ->name('connections.store');
+        Route::get('/connections/{connection}/setup', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'setup'])
+            ->name('connections.setup');
+        Route::get('/connections/{connection}/status', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'statusJson'])
+            ->name('connections.status-json');
+        Route::put('/connections/{connection}/settings', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'updateSettings'])->middleware('permission:vensynq.manage')
+            ->name('connections.settings');
+        Route::delete('/connections/{connection}', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'destroy'])->middleware('permission:vensynq.manage')
+            ->name('connections.destroy');
+
+        // Sync Page (per connection)
+        Route::get('/connections/{connection}/sync', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'syncPage'])
+            ->name('connections.sync');
+
+        // Sync Actions
+        Route::post('/connections/{connection}/approve', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'approveSync'])->middleware('permission:vensynq.manage')
+            ->name('connections.approve');
+        Route::post('/connections/{connection}/push', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'forcePush'])->middleware('permission:vensynq.manage')
+            ->name('connections.push');
+        Route::post('/connections/{connection}/pull', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'forcePull'])->middleware('permission:vensynq.manage')
+            ->name('connections.pull');
+        Route::post('/connections/{connection}/scan', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'scanCatalog'])->middleware('permission:vensynq.manage')
+            ->name('connections.scan');
+        Route::post('/connections/{connection}/resolve', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'resolveConflict'])->middleware('permission:vensynq.manage')
+            ->name('connections.resolve');
+        Route::post('/connections/{connection}/ignore', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'ignore'])->middleware('permission:vensynq.manage')
+            ->name('connections.ignore');
+
+        // Logs
+        Route::get('/connections/{connection}/logs', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'logs'])
+            ->name('connections.logs');
+    });
+
+    // E-Invoicing
+    Route::get('/e-invoicing', [\App\Http\Controllers\EInvoicingController::class, 'index'])->name('e-invoicing.index');
+    Route::post('/e-invoicing/generate', [\App\Http\Controllers\EInvoicingController::class, 'generate'])->middleware('permission:sales.edit')->name('e-invoicing.generate');
+    Route::post('/e-invoicing/waybill', [\App\Http\Controllers\EInvoicingController::class, 'generateWaybill'])->middleware('permission:sales.edit')->name('e-invoicing.waybill');
+
+    // System Reset (Admin Only)
+    Route::post('/api/system/reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'factoryReset'])->middleware('permission:admin.billing_store')->middleware('throttle:5,1')->name('system.reset');
+    Route::post('/api/system/reset/{entity}', [\App\Http\Controllers\Admin\SystemResetController::class, 'deleteEntity'])->middleware('permission:admin.billing_store')->middleware('throttle:5,1')->name('system.delete-entity');
+
+    // Added Category D Store Routes
+    Route::get('/finance/accounts', fn() => \abort(501, 'Implement finance.accounts'))->name('finance.accounts');
+    Route::get('/finance/journal', fn() => \abort(501, 'Implement finance.journal'))->name('finance.journal');
+    Route::get('/payments/in/create', fn() => \redirect()->route('store.payments.in', ['store_slug' => app('current.tenant')->slug]))->name('payment-in.create');
+    Route::get('/payments/out/create', fn() => \redirect()->route('store.payments.out', ['store_slug' => app('current.tenant')->slug]))->name('payment-out.create');
+    Route::get('/sales/pre-sales/{order}/print', fn() => \abort(501, 'Implement pre-sales.print'))->name('pre-sales.print');
+    /* Both of these were abort(501) closures, so a debit note could be raised
+       and then neither corrected nor printed. */
+    Route::get('/debit-notes/{id}/print', [\App\Http\Controllers\DebitNoteController::class, 'print'])->name('debit-notes.print');
+    Route::put('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'update'])->middleware('permission:purchases.edit')->name('debit-notes.update');
+    Route::get('/purchases/{purchase}/print', fn() => \abort(501, 'Implement purchases.print'))->name('purchases.print');
+    Route::get('/sales/create', fn() => \redirect()->route('store.new-invoice', ['store_slug' => app('current.tenant')->slug]))->name('sales.create');
+    Route::get('/inventory/production/{run}/edit', fn() => \abort(501, 'Implement production.edit'))->name('production.edit');
+    Route::get('/reports/discount-report', fn() => \abort(501, 'Implement reports.discount-report'))->name('reports.discount-report');
+    Route::get('/reports/inventory-valuation', fn() => \abort(501, 'Implement reports.inventory-valuation'))->name('reports.inventory-valuation');
+    });
+});
+
+Route::post('/woocommerce/webhook/{uuid}', [\App\Http\Controllers\WooCommerceController::class, 'webhook']);
+
+// ── Phase 4.3 & 4.4: Billing + Plan Usage ─────────────────────────────────
+// MIGRATED: Added to tenant specific block above to prevent 403 context loss.
+
+// Plan Usage API (read current tenant resource usage vs plan limits)
+// Used by: React Billing page, upgrade modal, near-limit warnings
+Route::middleware(['auth', 'throttle:api'])->get(
+    '/api/plan/usage',
+    [\App\Http\Controllers\Api\PlanUsageController::class, 'usage']
+)->name('api.plan.usage');
+
+// ── Reckoner API (§9 Phase 5) ──────────────────────────────────────────────
+// Deliberately the SAME middleware as /api/plan/usage directly above — just
+// ['auth', 'throttle:api'], no 'tenant' middleware. That middleware expects
+// a {store_slug} route parameter (see the 's/{store_slug}' group above) which
+// a bare /api/... route does not have; adding it here would 404/500 every
+// request. current.tenant for routes shaped like this one is bound by
+// whatever already makes /api/plan/usage work outside the {store_slug}
+// prefix (this session did not trace that mechanism — see the final
+// problems report) — ReckonerController itself checks
+// app()->bound('current.tenant') and returns 400 rather than assume it, so
+// this route fails safely either way.
+Route::middleware(['auth', \App\Http\Middleware\ApiTenantResolver::class, 'throttle:api'])->group(function () {
+    Route::get('/api/reckoner/catalogue', [\App\Http\Controllers\Api\ReckonerController::class, 'catalogue'])
+        ->name('api.reckoner.catalogue');
+    Route::post('/api/reckoner/read', [\App\Http\Controllers\Api\ReckonerController::class, 'read'])
+        ->name('api.reckoner.read');
+
+    // Dashboard Composable Layout Endpoints
+    Route::get('/api/dashboards', [\App\Http\Controllers\Api\DashboardController::class, 'index'])->name('api.dashboards.index');
+    Route::post('/api/dashboards', [\App\Http\Controllers\Api\DashboardController::class, 'store'])->name('api.dashboards.store');
+    Route::get('/api/dashboards/{id}', [\App\Http\Controllers\Api\DashboardController::class, 'show'])->name('api.dashboards.show');
+    Route::put('/api/dashboards/{id}', [\App\Http\Controllers\Api\DashboardController::class, 'update'])->name('api.dashboards.update');
+    Route::delete('/api/dashboards/{id}', [\App\Http\Controllers\Api\DashboardController::class, 'destroy'])->name('api.dashboards.destroy');
+    Route::put('/api/dashboards/{id}/layout', [\App\Http\Controllers\Api\DashboardController::class, 'saveLayout'])->name('api.dashboards.layout');
+    Route::post('/api/dashboards/{id}/cards', [\App\Http\Controllers\Api\DashboardController::class, 'addCard'])->name('api.dashboards.cards.add');
+    Route::patch('/api/dashboards/{id}/cards/{cardId}', [\App\Http\Controllers\Api\DashboardController::class, 'updateCard'])->name('api.dashboards.cards.update');
+    Route::delete('/api/dashboards/{id}/cards/{cardId}', [\App\Http\Controllers\Api\DashboardController::class, 'removeCard'])->name('api.dashboards.cards.remove');
+    Route::post('/api/dashboards/{id}/reset', [\App\Http\Controllers\Api\DashboardController::class, 'reset'])->name('api.dashboards.reset');
+    Route::post('/api/dashboards/{id}/publish', [\App\Http\Controllers\Api\DashboardController::class, 'publish'])->name('api.dashboards.publish');
+});
+
+
+
+// ── Phase 5.3: Platform Super-Admin Routes ─────────────────────────────────
+// These routes are for the VenQore platform operator ONLY (you).
+// Protected by 'superadmin' middleware: user->role === 'platform_admin' + no tenant_id.
+// Prefix: /superadmin (distinct from per-tenant /admin-panel)
+Route::prefix('superadmin')
+    ->name('superadmin.')
+    ->middleware(['auth', 'superadmin'])
+    ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+        Route::get('/tenants', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'tenants'])
+            ->name('tenants');
+        Route::post('/tenants/{tenant}/suspend',    [\App\Http\Controllers\Admin\AdminDashboardController::class, 'suspend'])
+            ->name('tenants.suspend');
+        Route::post('/tenants/{tenant}/reactivate', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'reactivate'])
+            ->name('tenants.reactivate');
+        Route::post('/tenants/{tenant}/upgrade',    [\App\Http\Controllers\Admin\AdminDashboardController::class, 'upgradePlan'])
+            ->name('tenants.upgrade');
+    });
+
+// Route-gap sweep (2026-09-10): the v3 group now carries the same lifecycle /
+// DRM / demo / hosted-until gates as the main store group, so a suspended,
+// view-only or demo store cannot write through the v3 endpoints.
+Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class, \App\Http\Middleware\EnforceHostedUntil::class, \App\Http\Middleware\EnsureModule::class])->group(function () {
+    Route::resource('products', \App\Http\Controllers\V3\ProductController::class)->except(['show'])
+        ->middlewareFor('store', 'permission:inventory.create')
+        ->middlewareFor('update', 'permission:inventory.edit')
+        ->middlewareFor('destroy', 'permission:inventory.delete');
+    Route::resource('warehouses', \App\Http\Controllers\V3\WarehouseController::class)->except(['show'])
+        ->middlewareFor(['store', 'update', 'destroy'], 'permission:admin.warehouses');
+    // V3 CONSOLIDATION Phase 2 — full legacy parity on the V3 purchase routes.
+    // See V3_CONSOLIDATION_PLAN.md. `create` is registered by the resource
+    // registrar BEFORE the `{purchase}` wildcard, which is what stops the
+    // /purchases/create -> 404 route-ordering bug that bit purchase-orders.
+    // The literal `receive` routes are declared before the resource for the
+    // same reason.
+    Route::get('purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'receive'])
+         ->middleware('permission:purchases.edit')->name('purchases.receive');
+    Route::post('purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'storeReceive'])
+         ->middleware('permission:purchases.edit')->name('purchases.receive.store');
+
+    Route::resource('purchases', \App\Http\Controllers\V3\PurchaseController::class)
+         ->only(['index', 'create', 'store', 'show', 'edit'])
+         ->middlewareFor('store', 'permission:purchases.create');
+
+    Route::match(['put', 'patch'], 'purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'update'])
+         ->middleware('permission:purchases.edit')
+         ->name('purchases.update');
+
+    Route::delete('purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'destroy'])
+         ->middleware('permission:purchases.void')
+         ->name('purchases.destroy');
+
+    Route::get('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'create'])->middleware('plan.feature:purchase_returns')->name('purchases.return.create');
+    Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->middleware('permission:purchases.edit')->middleware('plan.feature:purchase_returns')->name('purchases.return.store');
+
+    Route::post('supplier-payments', [\App\Http\Controllers\V3\SupplierPaymentController::class, 'store'])->middleware('permission:finance.send_payment')->name('supplier-payments.store');
+
+    Route::post('opening-balances', [\App\Http\Controllers\V3\OpeningBalanceController::class, 'store'])->middleware('permission:finance.journal')->name('opening-balances.store');
+    Route::get('opening-balances/status', [\App\Http\Controllers\V3\OpeningBalanceController::class, 'status'])->name('opening-balances.status');
+
+    Route::post('supplier-advances', [\App\Http\Controllers\V3\SupplierAdvanceController::class, 'store'])->middleware('permission:finance.send_payment')->name('supplier-advances.store');
+    Route::post('stock-adjustments', [\App\Http\Controllers\V3\StockAdjustmentController::class, 'store'])->middleware('permission:inventory.adjust')->name('stock-adjustments.store');
+    Route::post('stock-transfers', [\App\Http\Controllers\V3\StockTransferController::class, 'store'])->middleware('permission:inventory.transfer')->name('stock-transfers.store');
+    Route::get('suppliers/{supplierId}/statement', [\App\Http\Controllers\V3\SupplierStatementController::class, 'show'])->middleware('plan.feature:supplier_statements')->name('suppliers.statement');
+
+    // Phase 3 — Sales & Customer Management
+    Route::post('parties',           [\App\Http\Controllers\V3\PartyController::class, 'store'])->middleware('permission:sales.create,purchases.suppliers,pos.checkout')->name('parties.store');
+    Route::put('parties/{id}',       [\App\Http\Controllers\V3\PartyController::class, 'update'])->middleware('permission:sales.edit,purchases.suppliers')->name('parties.update');
+    Route::delete('parties/{id}',    [\App\Http\Controllers\V3\PartyController::class, 'destroy'])->middleware('permission:sales.edit,purchases.suppliers')->name('parties.destroy');
+
+    Route::post('sales', [\App\Http\Controllers\V3\SaleController::class, 'store'])->middleware('permission:sales.create,pos.checkout')->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.store');
+    Route::get('sales/{saleId}/pdf', [\App\Http\Controllers\V3\InvoicePdfController::class, 'show'])->name('sales.pdf');
+    Route::post('sales/{saleId}/return', [\App\Http\Controllers\V3\SaleReturnController::class, 'store'])->middleware('permission:sales.returns,pos.refund')->name('sales.return.store');
+    Route::post('customer-payments', [\App\Http\Controllers\V3\CustomerPaymentController::class, 'store'])->middleware('permission:finance.receive_payment')->name('customer-payments.store');
+    Route::post('customer-payments/{journalEntryId}/bounce', [\App\Http\Controllers\V3\BounceController::class, 'store'])->middleware('permission:finance.receive_payment')->name('customer-payments.bounce');
+    Route::post('sales/{saleId}/write-off', [\App\Http\Controllers\V3\BadDebtController::class, 'store'])->middleware('permission:finance.journal')->name('sales.write-off');
+    Route::post('customer-advances', [\App\Http\Controllers\V3\CustomerAdvanceController::class, 'store'])->middleware('permission:finance.receive_payment')->name('customer-advances.store');
+
+    Route::post('sales-orders', [\App\Http\Controllers\V3\SalesOrderController::class, 'store'])->middleware('permission:sales.create')->name('sales-orders.store');
+    Route::post('sales-orders/{id}/cancel', [\App\Http\Controllers\V3\SalesOrderController::class, 'cancel'])->middleware('permission:sales.void')->name('sales-orders.cancel');
+    Route::post('sales-orders/{id}/convert', [\App\Http\Controllers\V3\SalesOrderController::class, 'convert'])->middleware('permission:sales.create')->name('sales-orders.convert');
+
+    Route::post('quotations', [\App\Http\Controllers\V3\QuotationController::class, 'store'])->middleware('permission:sales.quotations')->name('quotations.store');
+    Route::post('quotations/{id}/convert-to-order', [\App\Http\Controllers\V3\QuotationController::class, 'convertToOrder'])->middleware('permission:sales.quotations')->name('quotations.convert-to-order');
+
+    Route::get('customers/{customerId}/statement', [\App\Http\Controllers\V3\CustomerStatementController::class, 'show'])->middleware('plan.feature:customer_statements')->name('customers.statement');
+
+    // Nested under products
+    Route::prefix('products/{productId}')->name('products.')->group(function () {
+        Route::get('uom',           [\App\Http\Controllers\V3\UomConversionController::class, 'index'])  ->name('uom.index');
+        Route::post('uom',          [\App\Http\Controllers\V3\UomConversionController::class, 'store'])->middleware('permission:inventory.edit')  ->name('uom.store');
+        Route::delete('uom/{id}',   [\App\Http\Controllers\V3\UomConversionController::class, 'destroy'])->middleware('permission:inventory.edit')->name('uom.destroy');
+
+        Route::get('tiers',         [\App\Http\Controllers\V3\PriceTierController::class, 'index'])  ->name('tiers.index');
+        Route::post('tiers',        [\App\Http\Controllers\V3\PriceTierController::class, 'store'])->middleware('permission:inventory.edit')  ->name('tiers.store');
+        Route::delete('tiers/{id}', [\App\Http\Controllers\V3\PriceTierController::class, 'destroy'])->middleware('permission:inventory.edit')->name('tiers.destroy');
+    });
+
+    // Phase 4 — Manufacturing & BOM
+    Route::post('boms', [\App\Http\Controllers\V3\BomController::class, 'store'])->middleware('permission:inventory.edit')->name('boms.store');
+    Route::put('boms/{id}', [\App\Http\Controllers\V3\BomController::class, 'update'])->middleware('permission:inventory.edit')->name('boms.update');
+    Route::delete('boms/{id}', [\App\Http\Controllers\V3\BomController::class, 'destroy'])->middleware('permission:inventory.delete')->name('boms.destroy');
+
+    Route::post('production-runs', [\App\Http\Controllers\V3\ProductionRunController::class, 'store'])->middleware('permission:inventory.adjust')->name('production-runs.store');
+    Route::post('production-runs/{id}/complete', [\App\Http\Controllers\V3\ProductionRunController::class, 'complete'])->middleware('permission:inventory.adjust')->name('production-runs.complete');
+    Route::post('production-runs/{id}/reverse', [\App\Http\Controllers\V3\ProductionRunController::class, 'reverse'])->middleware('permission:inventory.adjust')->name('production-runs.reverse');
+    Route::post('disassembly', [\App\Http\Controllers\V3\ProductionRunController::class, 'disassemble'])->middleware('permission:inventory.adjust')->name('disassembly.store');
+
+    // Phase 4 — HR & Special Transactions
+    Route::post('employees', [\App\Http\Controllers\V3\EmployeeController::class, 'store'])->middleware('permission:admin.staff_manage')->name('employees.store');
+    Route::put('employees/{id}', [\App\Http\Controllers\V3\EmployeeController::class, 'update'])->middleware('permission:admin.staff_manage')->name('employees.update');
+    
+    Route::post('payroll/accrue', [\App\Http\Controllers\V3\PayrollController::class, 'accrue'])->middleware('permission:finance.journal')->name('payroll.accrue');
+    Route::post('payroll/pay', [\App\Http\Controllers\V3\PayrollController::class, 'pay'])->middleware('permission:finance.send_payment')->name('payroll.pay');
+    
+    Route::post('employee-settlements', [\App\Http\Controllers\V3\EmployeeSettlementController::class, 'store'])->middleware('permission:finance.send_payment')->name('employee-settlements.store');
+    
+    Route::post('cash-shortages', [\App\Http\Controllers\V3\CashShortageController::class, 'store'])->middleware('permission:finance.transactions,pos.close_session')->name('cash-shortages.store');
+
+    Route::post('disaster-claims', [\App\Http\Controllers\V3\DisasterClaimController::class, 'store'])->middleware('permission:finance.journal')->name('disaster-claims.store');
+    Route::post('disaster-claims/{id}/recover', [\App\Http\Controllers\V3\DisasterClaimController::class, 'recover'])->middleware('permission:finance.journal')->name('disaster-claims.recover');
+
+    Route::post('assets', [\App\Http\Controllers\V3\AssetController::class, 'store'])->middleware('permission:finance.journal')->name('assets.store');
+    Route::post('depreciation', [\App\Http\Controllers\V3\DepreciationController::class, 'store'])->middleware('permission:finance.journal')->name('depreciation.store');
+
+    Route::post('loans/drawdown', [\App\Http\Controllers\V3\LoanController::class, 'drawdown'])->middleware('permission:finance.journal')->name('loans.drawdown');
+    Route::post('loans/repay', [\App\Http\Controllers\V3\LoanController::class, 'repay'])->middleware('permission:finance.journal')->name('loans.repay');
+
+    Route::post('expenses', [\App\Http\Controllers\V3\ExpenseController::class, 'store'])->middleware('permission:finance.expenses')->middleware('plan.feature:expense_manager')->name('expenses.store');
+    Route::post('funds', [\App\Http\Controllers\V3\FundController::class, 'store'])->middleware('permission:finance.journal')->name('funds.store');
+    Route::post('bank-transfers', [\App\Http\Controllers\V3\BankTransferController::class, 'store'])->middleware('permission:finance.send_payment')->name('bank-transfers.store');
+    Route::post('donations', [\App\Http\Controllers\V3\DonationController::class, 'store'])->middleware('permission:finance.expenses')->name('donations.store');
+
+    Route::put('users/{id}/role', [\App\Http\Controllers\V3\RoleController::class, 'update'])->middleware('permission:users.manage')->name('users.role.update');
+    Route::post('settings/discount-limits', [\App\Http\Controllers\V3\RoleController::class, 'updateDiscountLimit'])->middleware('permission:users.manage')->name('settings.discount-limits');
+
+    Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.journal')->name('fiscal-year.close');
+
+
+
+    // Dashboard
+    Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index'])->name('dashboard');
+});
+
+require __DIR__ . '/auth.php';
+
+// Version Check Route
+Route::get('/api/app-version', function () {
+    $manifestPath = public_path('build/manifest.json');
+    if (file_exists($manifestPath)) {
+        return \response()->json(['version' => filemtime($manifestPath)]);
+    }
+// Change every 5 mins in dev for testing
+    return \response()->json(['version' => 'dev-' . floor(time() / 300)]);
+});
+
+Route::get('/error/{code}', function ($code) {
+    return Inertia::render('Error', [
+        'status' => (int) $code,
+        'message' => request('message'),
+    ]);
+})->name('error.page');
+
+// NOTE: Local-only rescue/patch routes removed before production launch.
+// Use Artisan commands for any DB repair needs.
+
+
+// [SECURITY] /debug-error removed — exposed full laravel.log to anyone with the
+// hardcoded key committed to source. Use SSH or `tail storage/logs/laravel.log`.
+
+// ── FALLBACK: 404 for any URL not matched above ────────────────────────────
+// This is the last line of defense. Every URL that doesn't match a route
+// above returns a clean 404 — no redirect, no hint that anything exists.
+// This means /admin-panel, /reports, /inventory (bare) all 404 for guessers.
+Route::fallback(fn() => \abort(404));
