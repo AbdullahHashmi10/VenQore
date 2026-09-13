@@ -643,7 +643,7 @@
         });
       });
 
-      setPeriod('month');
+      setPeriod('year');
     });
   }
 

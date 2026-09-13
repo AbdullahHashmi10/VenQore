@@ -10,6 +10,7 @@ class QuoteToolTest extends TestCase
 {
     public function test_quote_tool_index_page_loads_successfully(): void
     {
+        $this->withoutExceptionHandling();
         $response = $this->get(route('tools.quote'));
 
         $response->assertOk();

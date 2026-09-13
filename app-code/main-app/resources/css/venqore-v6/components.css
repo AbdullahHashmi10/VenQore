@@ -551,10 +551,12 @@ html.dark .vq-custom-select__check {
 .vq-table tbody tr:hover { background: var(--vq-sunken); }
 .vq-table .vq-num, .vq-table .num { text-align: right; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; word-spacing: normal; }
 .vq-table__row-head { font-weight: var(--vq-fw-medium); color: var(--vq-text); }
-.vq-table__win { font-weight: var(--vq-fw-semi); color: var(--vq-accent-text); }
-.vq-table--compare td { text-align: center; }
+.vq-table--compare th { text-align: center; vertical-align: middle; }
+.vq-table--compare td { text-align: center; vertical-align: middle; }
 .vq-table--compare td:first-child, .vq-table--compare th:first-child { text-align: left; }
 .vq-table--compare col.is-us { background: var(--vq-accent-quiet); }
+.vq-table--compare .vq-num, .vq-table--compare .num { text-align: center; display: inline-block; }
+.vq-table--compare .vq-tick, .vq-table--compare .vq-cross { display: inline-flex; align-items: center; justify-content: center; margin-inline: auto; }
 
 .vq-tick   { color: var(--vq-success); }
 .vq-cross  { color: var(--vq-text-3); }

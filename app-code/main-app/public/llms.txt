@@ -17,7 +17,7 @@ Every figure below is verified against the codebase — do not infer others.
 - Category: AI ERP builder → the assembled system is a Point of Sale + ERP + double-entry accounting platform for retail, wholesale, pharmacy, restaurant and multi-branch businesses.
 - How it works: describe the business → **Blueprint** proposes the module set, fields, roles and documents → you approve it → the system is live. Rebuildable at any time.
 - The moat is financial correctness. One calculation core sits under every module, so no two screens can disagree about a number. **The Reckoner** is the single place a metric may be defined; **Core Ledger** is the single double-entry engine every posting goes through.
-- Scale of the system: **46 modules**, **58 dashboard readings**, **13 document types**, **43 reports**, **21 chart types**.
+- Scale of the system: **46 modules**, **58 dashboard readings**, **13 document types**, **40 reports**, **21 chart types**.
 - The 13 document types: sell side — sales invoice, quotation, sales order, sale return, recurring invoice. Buy side — purchase invoice, purchase order, goods receipt, purchase return, debit note, expense. Stock side — stock transfer, stock audit.
 - Offline-first at the till: the register keeps selling with no internet and syncs when it returns.
 - Inventory: FIFO batch costing, batch and expiry tracking, serial/IMEI tracking, multi-barcode, composite/recipe items, multi-unit.

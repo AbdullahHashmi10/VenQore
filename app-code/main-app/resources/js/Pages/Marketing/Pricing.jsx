@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { Head, Link, usePage } from '@inertiajs/react';
 import SiteHeader from '@/Components/Site/SiteHeader';
@@ -8,6 +8,8 @@ import CookieConsent from '@/Components/CookieConsent';
 export default function Pricing() {
     const { isDarkMode, toggleTheme } = useTheme();
     const { auth = {}, flash = {}, ...props } = usePage().props;
+    const [billingPeriod, setBillingPeriod] = useState('year');
+    const isAnnual = billingPeriod === 'year';
 
     useEffect(() => {
         // Unlock document and body scrolling for marketing shell
@@ -64,17 +66,17 @@ export default function Pricing() {
     return (
         <>
             <Head>
-                <title>Pricing — from $49/month or free forever, no implementation fee | VenQore</title>
-                <meta name="description" content="Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $49 a month — or free. Every plan carries universal business modules, the complete double-entry ledger and all reports." />
+                <title>Pricing — from $41/month or free forever, no implementation fee | VenQore</title>
+                <meta name="description" content="Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $41 a month (billed annually) — or free. Every plan carries universal business modules and the complete double-entry ledger. Reports start at $49." />
                 <link rel="canonical" href="https://venqore.com/pricing" />
-                <meta property="og:title" content="Pricing — from $49/month or free forever, no implementation fee | VenQore" />
-                <meta property="og:description" content="Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $49 a month — or free. Every plan carries universal business modules, the complete double-entry ledger and all reports." />
+                <meta property="og:title" content="Pricing — from $41/month or free forever, no implementation fee | VenQore" />
+                <meta property="og:description" content="Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $41 a month (billed annually) — or free. Every plan carries universal business modules and the complete double-entry ledger. Reports start at $49." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://venqore.com/pricing" />
                 <meta property="og:image" content="https://venqore.com/images/og/venqore-og.png" />
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Pricing — from $49/month or free forever, no implementation fee | VenQore" />
-                <meta name="twitter:description" content="Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $49 a month — or free. Every plan carries universal business modules, the complete double-entry ledger and all reports." />
+                <meta name="twitter:title" content="Pricing — from $41/month or free forever, no implementation fee | VenQore" />
+                <meta name="twitter:description" content="Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $41 a month (billed annually) — or free. Every plan carries universal business modules and the complete double-entry ledger. Reports start at $49." />
                 <meta name="twitter:image" content="https://venqore.com/images/og/venqore-og.png" />
             </Head>
 
@@ -86,24 +88,40 @@ export default function Pricing() {
 
 <main id="main">
 
-<section className="vq-section" style={{"paddingTop":"clamp(140px,15vw,200px)","paddingBottom":"clamp(48px,6vw,72px)"}}>
+<section className="vq-section" style={{"paddingTop":"clamp(140px,15vw,200px)","paddingBottom":"clamp(40px,5vw,60px)"}}>
   <div className="vq-amb"><span className="vq-amb__aurora" style={{"opacity":".30"}}></span></div>
   <div className="vq-container" style={{"position":"relative"}}>
     <div style={{"maxWidth":"860px"}}>
       <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Pricing</span>
       <h1 className="vq-display vq-mt-4">Priced like software. Not like a <em className="vq-italic">project</em>.</h1>
-      <p className="vq-lede vq-mt-6"><strong>Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $49 a month — or free.</strong><br /><span className="vq-small vq-text-2" style={{"display":"inline-block","marginTop":"8px"}}>* Published industry benchmarks put traditional ERP implementations in the tens of thousands of dollars per year. VenQore serves small and independent businesses; the comparison is to overall total cost of ownership.</span></p>
-      <p className="vq-text-2 vq-mt-4">Every paid plan carries universal business modules, the full double-entry ledger and all 43 financial reports. Plans differ by operational scale: seats, locations, catalogue capacity, and advanced scale fences.</p>
+      <p className="vq-lede vq-mt-6"><strong>Traditional ERP implementations can cost tens of thousands of dollars a year. VenQore starts at $41 a month — or free.</strong><br /><span className="vq-small vq-text-2" style={{"display":"inline-block","marginTop":"8px"}}>* Published industry benchmarks put traditional ERP implementations in the tens of thousands of dollars per year. VenQore serves small and independent businesses; the comparison is to overall total cost of ownership.</span></p>
+      <p className="vq-text-2 vq-mt-4">Every paid plan carries universal business modules, the full double-entry ledger and tiered financial reports. Plans differ by operational scale: seats, locations, catalogue capacity, and advanced scale fences.</p>
     </div>
   </div>
 </section>
 
-<section className="vq-section" style={{"paddingTop":"0"}}>
+<section className="vq-section" style={{"paddingTop":"clamp(24px,3vw,44px)","paddingBottom":"clamp(64px,8vw,100px)"}}>
   <div className="vq-container">
-    <div className="vq-center vq-reveal" style={{"marginBottom":"var(--vq-space-10)"}}>
-      <div className="vq-seg" data-period role="tablist" aria-label="Billing period">
-        <button className="vq-seg__btn" role="tab" data-per="month" aria-selected="true">Monthly</button>
-        <button className="vq-seg__btn" role="tab" data-per="year"  aria-selected="false">Annual — 2 months free</button>
+    <div className="vq-center vq-reveal" style={{"marginBottom":"clamp(40px,5vw,64px)","paddingTop":"12px"}}>
+      <div className="vq-seg" role="tablist" aria-label="Billing period">
+        <button
+          type="button"
+          className="vq-seg__btn"
+          role="tab"
+          aria-selected={!isAnnual}
+          onClick={() => setBillingPeriod('month')}
+        >
+          Monthly
+        </button>
+        <button
+          type="button"
+          className="vq-seg__btn"
+          role="tab"
+          aria-selected={isAnnual}
+          onClick={() => setBillingPeriod('year')}
+        >
+          Annual — 2 months free
+        </button>
       </div>
     </div>
 
@@ -114,15 +132,18 @@ export default function Pricing() {
         <h2 className="vq-plan__name">Solo</h2>
         <p className="vq-plan__for">One person, one register. Free forever with structural limits.</p>
         <div className="vq-plan__price">
-          <span className="vq-plan__amt" data-price="$0" data-price-year="$0" data-price-pkr="Rs 0" data-price-year-pkr="Rs 0">$0</span>
-          <span className="vq-plan__per" data-per-label>/forever</span>
+          <span className="vq-plan__amt">$0</span>
+          <span className="vq-plan__per">/forever</span>
+        </div>
+        <div className="vq-plan__billing-note" style={{ fontSize: '12.5px', color: 'var(--vq-text-3)', minHeight: '20px', marginTop: '2px', marginBottom: '8px' }}>
+          <span>Free forever · No credit card required</span>
         </div>
         <ul className="vq-plan__list">
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Up to <b>500 products</b> (SKUs)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>1 location</b>, <b>1 full seat</b></span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>1 register</b> (2 cashier PIN logins)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>100 sales &amp; 20 service jobs/month</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Core Ledger + all 43 financial reports</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Core Ledger + <b>9 live dashboard cards</b> (no report screens)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>30-day history visible</b> (older data safely kept)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>SmartCapture: 10 scans / 100 AI credits</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Help centre + Vena support</span></li>
@@ -134,19 +155,27 @@ export default function Pricing() {
         <h2 className="vq-plan__name">Starter</h2>
         <p className="vq-plan__for">A shop with a couple of people on the till and full history.</p>
         <div className="vq-plan__price">
-          <span className="vq-plan__amt" data-price="$49" data-price-year="$490" data-price-pkr="Rs 13,700" data-price-year-pkr="Rs 136,800">$49</span>
-          <span className="vq-plan__per" data-per-label>/month</span>
+          <span className="vq-plan__amt">{isAnnual ? '$41' : '$49'}</span>
+          <span className="vq-plan__per">/month</span>
+        </div>
+        <div className="vq-plan__billing-note" style={{ fontSize: '12.5px', color: 'var(--vq-text-3)', minHeight: '20px', marginTop: '2px', marginBottom: '8px' }}>
+          {isAnnual ? (
+            <span>Billed annually <b style={{ color: 'var(--vq-text-2)', fontWeight: 600 }}>($490/yr)</b> · <span style={{ color: 'var(--vq-accent-text)', fontWeight: 600 }}>2 months free</span></span>
+          ) : (
+            <span>Billed monthly ($588/yr)</span>
+          )}
         </div>
         <ul className="vq-plan__list">
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Up to <b>5,000 products</b> (SKUs)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>1 location</b>, <b>1 full seat</b> (+ $15/mo per extra seat)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>2 registers</b> (cashier PIN logins unlimited)</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>20 Essential reports</b> (P&amp;L, Sales, Cash &amp; Tax)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Full history retention</b> (unlimited days)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Google Drive backup included</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>500 AI credits/month + 1 rebuild / 90 days</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Email support (2 business days)</span></li>
         </ul>
-        <a href="/build-workspace?plan=starter" className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Choose Starter</a>
+        <a href={isAnnual ? "/build-workspace?plan=starter&billing=annual" : "/build-workspace?plan=starter"} className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Choose Starter</a>
       </div>
 
       <div className="vq-plan vq-plan--featured vq-reveal">
@@ -154,40 +183,54 @@ export default function Pricing() {
         <h2 className="vq-plan__name">Core</h2>
         <p className="vq-plan__for">Multi-branch stock, API access, audit logs, custom roles and signals.</p>
         <div className="vq-plan__price">
-          <span className="vq-plan__amt" data-price="$99" data-price-year="$990" data-price-pkr="Rs 27,700" data-price-year-pkr="Rs 277,200">$99</span>
-          <span className="vq-plan__per" data-per-label>/month</span>
+          <span className="vq-plan__amt">{isAnnual ? '$83' : '$99'}</span>
+          <span className="vq-plan__per">/month</span>
+        </div>
+        <div className="vq-plan__billing-note" style={{ fontSize: '12.5px', color: 'var(--vq-text-3)', minHeight: '20px', marginTop: '2px', marginBottom: '8px' }}>
+          {isAnnual ? (
+            <span>Billed annually <b style={{ color: 'var(--vq-text-2)', fontWeight: 600 }}>($990/yr)</b> · <span style={{ color: 'var(--vq-accent-text)', fontWeight: 600 }}>2 months free</span></span>
+          ) : (
+            <span>Billed monthly ($1,188/yr)</span>
+          )}
         </div>
         <ul className="vq-plan__list">
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Up to <b>25,000 products</b> (SKUs)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>1 location</b>, <b>5 full seats</b> (+ $15/mo per extra seat)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Up to <b>6 registers</b> (cashier PIN logins unlimited)</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>32 Core reports &amp; analytics</b> (Profitability &amp; Aging)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Multi-branch transfers (activates with 2nd location)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Full API access &amp; webhooks</b></span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Audit trail &amp; custom granular roles</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>2,000 AI credits/month + 1 rebuild / 90 days</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Priority email support (1 business day)</span></li>
         </ul>
-        <a href="/build-workspace?plan=core" className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Start 14-day trial</a>
+        <a href={isAnnual ? "/build-workspace?plan=core&billing=annual" : "/build-workspace?plan=core"} className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">Start 14-day trial</a>
       </div>
 
       <div className="vq-plan vq-reveal">
         <h2 className="vq-plan__name">Scale</h2>
         <p className="vq-plan__for">Large operations, custom roles, white-label and channel sync.</p>
         <div className="vq-plan__price">
-          <span className="vq-plan__amt" data-price="$299" data-price-year="$2,990" data-price-pkr="Rs 83,700" data-price-year-pkr="Rs 836,400">$299</span>
-          <span className="vq-plan__per" data-per-label>/month</span>
+          <span className="vq-plan__amt">{isAnnual ? '$249' : '$299'}</span>
+          <span className="vq-plan__per">/month</span>
+        </div>
+        <div className="vq-plan__billing-note" style={{ fontSize: '12.5px', color: 'var(--vq-text-3)', minHeight: '20px', marginTop: '2px', marginBottom: '8px' }}>
+          {isAnnual ? (
+            <span>Billed annually <b style={{ color: 'var(--vq-text-2)', fontWeight: 600 }}>($2,990/yr)</b> · <span style={{ color: 'var(--vq-accent-text)', fontWeight: 600 }}>2 months free</span></span>
+          ) : (
+            <span>Billed monthly ($3,588/yr)</span>
+          )}
         </div>
         <ul className="vq-plan__list">
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Up to <b>250,000 products</b> (SKUs)</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>1 location</b>, <b>25 full seats</b></span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Up to <b>20 registers</b> (cashier PIN logins unlimited)</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>All 40 reports</b> &amp; Consolidated multi-entity</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Multi-branch &amp; inter-branch transfers</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>White-label &amp; consolidated multi-entity reporting</span></li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>White-label &amp; custom domain</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>2 channel syncs included</b> (WooCommerce/Amazon)</span></li>
-          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>10,000 AI credits/month + 1 rebuild / month</span></li>
           <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span>Named contact (4 business hours SLA)</span></li>
         </ul>
-        <a href="/build-workspace?plan=scale" className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Choose Scale</a>
+        <a href={isAnnual ? "/build-workspace?plan=scale&billing=annual" : "/build-workspace?plan=scale"} className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">Choose Scale</a>
       </div>
     </div>
 
@@ -207,7 +250,7 @@ export default function Pricing() {
           <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
           <span className="vq-small">The complete double-entry ledger</span></div><div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
           <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <span className="vq-small">All 43 financial reports</span></div><div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
+          <span className="vq-small">Tiered financial reports (Starter and up)</span></div><div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
           <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
           <span className="vq-small">Unlimited monthly transactions</span></div><div className="vq-row vq-gap-3" style={{"alignItems":"flex-start"}}>
           <span style={{"color":"var(--vq-accent)","flex":"none","marginTop":"3px"}}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
@@ -237,7 +280,7 @@ export default function Pricing() {
         </tr></thead>
         <tbody>
         <tr><td colSpan="5" style={{"padding":"22px 0 6px","background":"var(--vq-surface-2)","borderBottom":"1px solid var(--vq-line)"}}><span className="vq-eyebrow vq-eyebrow--accent" style={{"paddingLeft":"2px"}}>Operational limits</span></td></tr>
-        <tr><td className="vq-table__row-head">Monthly price (annual billing)</td><td><span className="vq-num vq-small">$0</span></td><td><span className="vq-num vq-small">$490/yr ($49/mo)</span></td><td><span className="vq-num vq-small">$990/yr ($99/mo)</span></td><td><span className="vq-num vq-small">$2,990/yr ($299/mo)</span></td></tr>
+        <tr><td className="vq-table__row-head">Monthly price ({isAnnual ? 'annual billing' : 'monthly billing'})</td><td><span className="vq-num vq-small">$0</span></td><td><span className="vq-num vq-small">{isAnnual ? '$41/mo ($490/yr)' : '$49/mo'}</span></td><td><span className="vq-num vq-small">{isAnnual ? '$83/mo ($990/yr)' : '$99/mo'}</span></td><td><span className="vq-num vq-small">{isAnnual ? '$249/mo ($2,990/yr)' : '$299/mo'}</span></td></tr>
         <tr><td className="vq-table__row-head">Product SKUs</td><td><span className="vq-num vq-small">500</span></td><td><span className="vq-num vq-small">5,000</span></td><td><span className="vq-num vq-small">25,000</span></td><td><span className="vq-num vq-small">250,000</span></td></tr>
         <tr><td className="vq-table__row-head">Full Staff seats</td><td><span className="vq-num vq-small">1</span></td><td><span className="vq-num vq-small">1</span></td><td><span className="vq-num vq-small">5</span></td><td><span className="vq-num vq-small">25</span></td></tr>
         <tr><td className="vq-table__row-head">Locations / Branches (included)</td><td><span className="vq-num vq-small">1</span></td><td><span className="vq-num vq-small">1</span></td><td><span className="vq-num vq-small">1</span></td><td><span className="vq-num vq-small">1</span></td></tr>
@@ -251,8 +294,8 @@ export default function Pricing() {
         <tr><td className="vq-table__row-head">Universal business modules</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
         <tr><td className="vq-table__row-head">Point of sale, offline mode, barcode, receipts</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
         <tr><td className="vq-table__row-head">All 13 document types</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
-        <tr><td className="vq-table__row-head">Core Ledger — double entry, every posting</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
-        <tr><td className="vq-table__row-head">P&amp;L, balance sheet, trial balance, all 43 reports</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
+        <tr><td className="vq-table__row-head">Dashboard cards (sales, expenses, cash, stock, low stock, expiry, receivables, payables, profit peek)</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
+        <tr><td className="vq-table__row-head">Financial &amp; analytical reports</td><td><span className="vq-cross"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg></span> <span className="vq-text-3 vq-small" style={{ marginLeft: '4px' }}>Dashboard cards only</span></td><td><span className="vq-num vq-small">20 Essential (P&amp;L, Cash, Tax)</span></td><td><span className="vq-num vq-small">32 Core (Profitability, Aging)</span></td><td><span className="vq-num vq-small">All 40 &amp; Consolidated</span></td></tr>
         <tr><td className="vq-table__row-head">Customer &amp; supplier khata, party statements</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
         <tr><td className="vq-table__row-head">Purchases, orders, expenses &amp; stock take</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
         <tr><td className="vq-table__row-head">Production, recipes, BOM &amp; work orders</td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td><td><span className="vq-tick"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></td></tr>
@@ -289,7 +332,7 @@ export default function Pricing() {
       </table>
     </div>
     <p className="vq-small vq-text-2 vq-mt-6 vq-reveal" style={{"maxWidth":"78ch"}}>
-      <b>About data retention on Solo.</b> Solo is free forever and keeps your core operational features active. Historical transactions older than 30 days are safely archived in your database and immediately reappear the moment you upgrade to any paid plan.
+      <b>About data retention on Solo.</b> Solo displays the last 30 days of detail across lists and recent views. All account balances, khata ledgers, and cumulative totals continue to compute from your complete, all-time records. Nothing is ever deleted, and upgrading to any paid plan immediately opens your full historical detail.
     </p>
   </div>
 </section>
@@ -356,7 +399,7 @@ export default function Pricing() {
       
       <div className="vq-faq__item">
         <button className="vq-faq__q" type="button" aria-expanded="false">Is there a free trial?<span className="vq-faq__sign"></span></button>
-<div className="vq-faq__a"><div><p>14 days at Core level, no credit card required, cancel anytime. That includes multi-branch, API access, audit trail, Vena, Signals and all 43 reports — so you are trying the real thing, not a demo of it. We send a reminder on day 11 before the trial ends, not after.</p></div></div>
+<div className="vq-faq__a"><div><p>14 days at Core level, no credit card required, cancel anytime. That includes multi-branch, API access, audit trail, Vena, Signals and all 40 reports — so you are trying the real thing, not a demo of it. We send a reminder on day 11 before the trial ends, not after.</p></div></div>
       </div>
       <div className="vq-faq__item">
         <button className="vq-faq__q" type="button" aria-expanded="false">What happens after the trial?<span className="vq-faq__sign"></span></button>
@@ -364,7 +407,7 @@ export default function Pricing() {
       </div>
       <div className="vq-faq__item">
         <button className="vq-faq__q" type="button" aria-expanded="false">Can I change plans?<span className="vq-faq__sign"></span></button>
-        <div className="vq-faq__a"><div><p>Any time, both directions, prorated. Downgrading never deletes anything: data above the new limit or beyond 30 days on Solo becomes read-only and safely archived, and comes back the moment you upgrade.</p></div></div>
+        <div className="vq-faq__a"><div><p>Any time, both directions, prorated. Downgrading never deletes anything: detail beyond 30 days on Solo is hidden from lists while totals stay complete, and full history immediately unlocks the moment you upgrade.</p></div></div>
       </div>
       <div className="vq-faq__item">
         <button className="vq-faq__q" type="button" aria-expanded="false">Do you charge to import my data?<span className="vq-faq__sign"></span></button>

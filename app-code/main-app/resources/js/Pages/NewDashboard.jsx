@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
 import axios from 'axios';
 import './NewDashboard.css';
@@ -45,6 +45,7 @@ function abbrNum(num) {
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
 import WelcomeTourModal from '@/Components/WelcomeTourModal';
 import DashboardTourGuide from '@/Components/DashboardTourGuide';
+import V6FinancialSidebar from '@/Components/V6FinancialSidebar';
 import RECKONER_CATALOG from './ReckonerCatalog.json';
 
 /* ══ human copy ════════════════════════════════════════════════════════════
@@ -3676,6 +3677,9 @@ const isReadingCardIdx = i => i === 0;
    ours, so every one of them is balanced; nobody has to be a designer to get
    a good panel. Each design is a fixed stack of rails. */
 const PANEL_DESIGNS = [
+  { id: 'v6_financial_cockpit', name: 'VenQore V6 Cockpit',
+    desc: 'Total balance, instant action buttons, cash in hand, stock value, bank accounts, and expanded activity card with V6 obsidian mesh.',
+    rails: ['v6_cockpit'] },
   { id: 'money', name: 'Money desk',
     desc: 'The old dashboard\u2019s panel — action buttons, cash & accounts, live activity.',
     rails: ['action_trio', 'balances', 'activity'] },
@@ -3700,6 +3704,8 @@ const PANEL_DESIGNS = [
 ];
 
 const RAIL_DEFS = [
+  { id: 'v6_cockpit', name: 'VenQore V6 Financial Cockpit', modules: ['bank_accounts', 'pos'],
+    desc: 'Total balance, instant action buttons, cash in hand, stock value, bank accounts and expanded activity.' },
   { id: 'action_trio', name: 'Action buttons', modules: [],
     desc: 'Sale, purchase and more actions \u2014 one tap each.' },
   { id: 'charity', name: 'Charity & Donations', modules: [],
@@ -3726,6 +3732,21 @@ const RAIL_DEFS = [
 function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = {} }) {
   const tt = useTermText();
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
+  
+  if (id === 'v6_cockpit') {
+    return (
+      <V6FinancialSidebar 
+        props={props}
+        recentTransactions={props.recentTransactions}
+        bankAccounts={props.bankAccounts}
+        cashAccounts={props.cashAccounts}
+        cashData={props.cashData}
+        inventoryValue={props.inventoryValue || props.stock_value}
+        sticky={false}
+        className="mb-3"
+      />
+    );
+  }
   
   if (id === 'charity') {
     const charityToday = Number(props.charityStats?.today) || 0;

@@ -145,7 +145,7 @@ export default function LandingPage() {
       </h1>
 
       <p className="vq-lede vq-hero-subhead" style={{"maxWidth":"44rem","color":"var(--vq-text-2)","fontSize":"clamp(1.05rem,1.4vw,1.25rem)","lineHeight":"1.55","marginTop":"var(--vq-space-2)"}}>
-        VenQore is an AI ERP builder for {BUSINESS_TYPE_CLAIM} kinds of business — retail, services and repairs, food, wholesale and light manufacturing. Describe how you operate and it assembles the system that runs it — point of sale, inventory, purchasing, invoicing and real double-entry accounting — keeping only the modules you use. Starts at $49 a month, or free on Solo, with no implementation project.
+        VenQore takes your requirements and snaps together battle-tested modules into a custom platform that never breaks.
       </p>
 
       {/*  The interactive prompt & business picker  */}
@@ -178,7 +178,7 @@ export default function LandingPage() {
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>35,255 automated checks</b> verified on every commit</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>35,000+ tests</b> verified on every commit</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>8 invariant rules</b> run on every transaction post</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
       {/*  Seamless Loop Duplicate  */}
@@ -186,7 +186,7 @@ export default function LandingPage() {
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>35,255 automated checks</b> verified on every commit</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>35,000+ tests</b> verified on every commit</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>8 invariant rules</b> run on every transaction post</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
     </div>
@@ -214,8 +214,8 @@ export default function LandingPage() {
             <span className="vq-trust__s">Universal business building blocks ready to assemble for your exact workflow.</span>
           </div>
           <div className="vq-trust__cell">
-            <span className="vq-trust__n" data-count="35255" data-count-suf="+">0</span>
-            <span className="vq-trust__l">AUTOMATED CHECKS</span>
+            <span className="vq-trust__n" data-count="35000" data-count-suf="+">0</span>
+            <span className="vq-trust__l">AUTOMATED TESTS</span>
             <span className="vq-trust__s">Run against every reading, ledger invariant, and release build.</span>
           </div>
           <div className="vq-trust__cell">
@@ -1248,8 +1248,8 @@ export default function LandingPage() {
             <span className="vq-proof__s">Universal business modules assembled specifically for your business model with zero extraneous clutter.</span>
           </div>
           <div className="vq-spot" data-par="0.07">
-            <span className="vq-proof__n" data-count="35255" data-count-suf="+">0</span>
-            <span className="vq-proof__l">CORRECTNESS CHECKS RUN EVERY RELEASE</span>
+            <span className="vq-proof__n" data-count="35000" data-count-suf="+">0</span>
+            <span className="vq-proof__l">AUTOMATED TESTS RUN EVERY RELEASE</span>
             <span className="vq-proof__s">Automated tests guarding every calculation, balance sheet integrity check, and ledger posting invariant.</span>
           </div>
           <div className="vq-spot" data-par="0.11">
@@ -1267,7 +1267,7 @@ export default function LandingPage() {
         <div className="vq-founder vq-reveal">
           <span className="vq-kicker">ENGINEERED FOR MATHEMETICAL CERTAINTY</span>
           <p>VenQore was built on a single core principle: accounting and inventory software should never lose a single cent, mismatch a receipt, or hallucinate a ledger balance.</p>
-          <p>Every transaction posts through an immutable double-entry ledger verified against 8 strict accounting laws and 35,255 automated correctness checks before anything is committed to your books.</p>
+          <p>Every transaction posts through an immutable double-entry ledger verified against 8 strict accounting laws and 35,000+ automated tests before anything is committed to your books.</p>
           <b>&mdash; The VenQore Engineering Team</b>
           <a className="vq-link" href="/about">Read our technical architecture &rarr;</a>
         </div>
@@ -1298,7 +1298,7 @@ export default function LandingPage() {
           </div>
           <div className="vq-faq__item">
             <button className="vq-faq__q" type="button" aria-expanded="false">How is support and engineering handled?<span className="vq-faq__sign"></span></button>
-            <div className="vq-faq__a"><div><p>VenQore is built and maintained by dedicated systems and accounting engineers. You get direct support from product specialists who deploy weekly improvements and verify every release against 35,255 automated checks.</p></div></div>
+            <div className="vq-faq__a"><div><p>VenQore is built and maintained by dedicated systems and accounting engineers. You get direct support from product specialists who deploy weekly improvements and verify every release against 35,000+ automated tests.</p></div></div>
           </div>
         </div>
       </div>

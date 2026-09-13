@@ -414,16 +414,18 @@ class Tenant extends Model
         return PlanRepository::featuresFor($this);
     }
 
-    public function historyRetentionDays(): ?int
+    public function visibleHistoryDays(): ?int
     {
-        $days = $this->getLimit('history_retention_days');
+        $days = $this->getLimit('visible_history_days');
         return (is_numeric($days) && (int) $days > 0) ? (int) $days : null;
     }
 
-    public function visibleHistoryDays(): ?int
+    /**
+     * @deprecated Use visibleHistoryDays() instead.
+     */
+    public function historyRetentionDays(): ?int
     {
-        $days = $this->getLimit('visible_history_days') ?? $this->getLimit('history_retention_days');
-        return (is_numeric($days) && (int) $days > 0) ? (int) $days : null;
+        return $this->visibleHistoryDays();
     }
 
     public function effectivePlan(): string

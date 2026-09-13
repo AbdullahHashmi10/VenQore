@@ -59,13 +59,13 @@ class ReportPlanGateTest extends VenQoreTestCase
         $this->get("/s/{$starterTenant->slug}/reports/day-book")->assertStatus(200);
         $this->get("/s/{$starterTenant->slug}/reports/low-stock")->assertStatus(200);
         $this->get("/s/{$starterTenant->slug}/reports/party-statement")->assertStatus(200);
-        $this->get("/s/{$starterTenant->slug}/v3/reports/aged-receivables")->assertStatus(403);
+        $this->get("/s/{$starterTenant->slug}/reports/aged-receivables")->assertStatus(403);
 
         // On Core plan, aged-receivables returns 200
         $coreTenant = $this->createTenant(plan: 'core', status: 'active');
         $this->actingAsTenantUser($coreTenant, 'owner');
         ModuleService::enable($coreTenant, 'reports');
-        $this->get("/s/{$coreTenant->slug}/v3/reports/aged-receivables")->assertStatus(200);
+        $this->get("/s/{$coreTenant->slug}/reports/aged-receivables")->assertStatus(200);
     }
 
     #[Test]

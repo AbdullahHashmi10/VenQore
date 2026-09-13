@@ -71,7 +71,17 @@ class PlanGate
 
         $limit = $tenant->getLimit($feature);
 
-        if ($limit === null)  return true;
+        if ($limit === null) {
+            $plan = $tenant->plan === 'ltd' && method_exists($tenant, 'effectivePlan')
+                ? $tenant->effectivePlan()
+                : ($tenant->plan ?? 'starter');
+            $planConfig = config("plans.{$plan}", config('plans.starter', []));
+            if (!array_key_exists($feature, $planConfig)) {
+                \Illuminate\Support\Facades\Log::warning("Unknown or unseeded plan limit key queried: '{$feature}' for plan '{$plan}'. Denying access (fail-closed).");
+                return false;
+            }
+            return true;
+        }
         if ($limit === false || $limit === 'false') return false;
         if ($limit === true  || $limit === 'true')  return true;
 

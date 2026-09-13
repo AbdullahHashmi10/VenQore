@@ -1,9 +1,114 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { Head, Link, usePage } from '@inertiajs/react';
 import SiteHeader from '@/Components/Site/SiteHeader';
 import SiteFooter from '@/Components/Site/SiteFooter';
 import CookieConsent from '@/Components/CookieConsent';
+
+const QUESTIONS_AND_ANSWERS = [
+    {
+        id: '01',
+        title: 'What is VenQore?',
+        content: 'VenQore is an AI ERP builder that replaces fragmented point-of-sale terminals, disconnected spreadsheets, and rigid enterprise software with one unified operating system. You describe your operational workflows in plain language, and VenQore automatically composes a tailor-made system backed by an immutable double-entry general ledger.',
+    },
+    {
+        id: '02',
+        title: 'Why did we build it?',
+        content: 'For decades, growing businesses were forced to choose between simplistic cash registers that blind them to true profit and bloated ERP consulting projects that cost thousands and take six months. We lived this reality behind live counters — where cash drawers mismatch, FIFO inventory costs drift, and reports conflict — so we wrote the software that should have existed from day one.',
+    },
+    {
+        id: '03',
+        title: 'How does the AI builder assemble your system?',
+        content: 'VenQore maintains an architectural library of 140+ battle-tested operational modules (POS, FIFO inventory, multi-branch dispatch, recipe costing, batch tracking, customer Khata, SP-API sync). The AI composer maps your plain-language description to the exact modules, fields, and approval tiers your business needs — turning on only what you use with zero extraneous clutter.',
+    },
+    {
+        id: '04',
+        title: 'Why is our accounting mathematical & immutable?',
+        content: 'While AI composes the interface and workflows, it never touches the financial math. Every transaction — checkout, purchase order, stock write-off, or supplier return — writes balanced debits and credits into Core Ledger. All writes pass through 8 inviolable accounting laws and DECIMAL(20,4) precision, guaranteeing that no two screens or reports can ever disagree.',
+    },
+    {
+        id: '05',
+        title: 'What industries does VenQore run?',
+        content: 'VenQore powers 85+ business categories across retail, food & beverage, wholesale, services, and light manufacturing. Whether you need batch-expiry controls for pharmacy, IMEI tracking for electronics, recipe costing for central kitchens, or tier-pricing dispatch for wholesale, the underlying ledger engine adapts seamlessly.',
+    },
+    {
+        id: '06',
+        title: 'How do we verify system accuracy?',
+        content: 'We believe buyers of financial software deserve proof over marketing claims. Every build is validated against 35,000+ automated correctness checks guarding ledger balances, inventory lot relief, and tax separation before any code ships to production.',
+    },
+    {
+        id: '07',
+        title: 'Who supports and builds VenQore?',
+        content: 'VenQore is built and supported by dedicated systems engineers and domain specialists with shop-floor experience. We ship weekly improvements, respond directly to customer requests, and never trap your data with export barriers.',
+    },
+];
+
+function EditorialAccordion() {
+    const [openId, setOpenId] = useState('01');
+
+    const toggle = (id) => {
+        setOpenId((prev) => (prev === id ? null : id));
+    };
+
+    return (
+        <div className="w-full max-w-4xl mx-auto divide-y divide-white/10 dark:divide-white/10 border-y border-white/10">
+            {QUESTIONS_AND_ANSWERS.map((item) => {
+                const isOpen = openId === item.id;
+                return (
+                    <div key={item.id} className="group transition-colors duration-200">
+                        <button
+                            type="button"
+                            onClick={() => toggle(item.id)}
+                            className={`w-full text-left py-6 sm:py-8 px-2 sm:px-4 flex items-start justify-between gap-6 cursor-pointer transition-all duration-300 ${
+                                isOpen
+                                    ? 'text-[var(--vq-accent-text,#0BAA8F)]'
+                                    : 'text-white/40 hover:text-white/90'
+                            }`}
+                            aria-expanded={isOpen}
+                        >
+                            <div className="flex items-start gap-4 sm:gap-6 flex-1 min-w-0">
+                                <span className="text-xs sm:text-sm font-mono font-bold tracking-widest pt-1.5 opacity-60">
+                                    {item.id}
+                                </span>
+                                <h3 className="font-display font-black uppercase text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-tight leading-[1.05]">
+                                    {item.title}
+                                </h3>
+                            </div>
+                            <span className="flex-shrink-0 pt-1.5 opacity-70 group-hover:opacity-100 transition-transform duration-300">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="22"
+                                    height="22"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className={`transition-transform duration-300 ${isOpen ? 'rotate-45 text-[var(--vq-accent-text,#0BAA8F)]' : 'rotate-0'}`}
+                                >
+                                    <path d="M12 5v14" />
+                                    <path d="M5 12h14" />
+                                </svg>
+                            </span>
+                        </button>
+                        <div
+                            className={`grid transition-all duration-300 ease-out px-2 sm:px-4 ${
+                                isOpen ? 'grid-rows-[1fr] opacity-100 pb-8' : 'grid-rows-[0fr] opacity-0 pb-0 pointer-events-none'
+                            }`}
+                        >
+                            <div className="overflow-hidden">
+                                <div className="pl-8 sm:pl-12 md:pl-16 pr-4 sm:pr-8 text-slate-300 text-base sm:text-lg md:text-xl leading-relaxed font-normal">
+                                    <p>{item.content}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
 
 export default function About() {
     const { isDarkMode, toggleTheme } = useTheme();
@@ -130,12 +235,12 @@ export default function About() {
         </div>
         <div className="vq-card vq-stat">
           <span className="vq-stat__label">Automated verification</span>
-          <span className="vq-stat__value vq-stat__value--sm">636+</span>
-          <span className="vq-stat__note">Green regression tests on every release</span>
+          <span className="vq-stat__value vq-stat__value--sm">35,000+</span>
+          <span className="vq-stat__note">Automated correctness tests run on every release</span>
         </div>
         <div className="vq-card vq-stat">
-          <span className="vq-stat__label">Composable modules</span>
-          <span className="vq-stat__value vq-stat__value--sm">46</span>
+          <span className="vq-stat__label">Universal ERP Modules</span>
+          <span className="vq-stat__value vq-stat__value--sm">140+</span>
           <span className="vq-stat__note">POS, FIFO Stock, Ledger, Documents, Sync</span>
         </div>
         <div className="vq-card vq-stat">
@@ -148,7 +253,23 @@ export default function About() {
   </div>
 </section>
 
-<section className="vq-section vq-band-dark">
+{/*  ══ EDITORIAL ACCORDION: WHAT WE DO & HOW WE DO IT ══════════════════  */}
+<section className="vq-section vq-band-dark" style={{"paddingTop":"clamp(80px,9vw,130px)","paddingBottom":"clamp(80px,9vw,130px)"}}>
+  <div className="vq-amb"><span className="vq-amb__aurora" style={{"opacity":".22"}}></span></div>
+  <div className="vq-container" style={{"position":"relative"}}>
+    <div className="vq-section-head vq-reveal" style={{"textAlign":"center","marginInline":"auto","marginBottom":"clamp(36px,5vw,64px)"}}>
+      <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Architecture &amp; Methodology</span>
+      <h2 className="vq-display">What we do, and how we do it.</h2>
+      <p className="vq-lede" style={{"color":"rgb(255 255 255 / .75)","maxWidth":"42rem","marginInline":"auto"}}>
+        The engineering, accounting principles, and operational design that make VenQore unlike any traditional ERP or simple cash register.
+      </p>
+    </div>
+
+    <EditorialAccordion />
+  </div>
+</section>
+
+<section className="vq-section vq-band-dark" style={{"borderTop":"1px solid rgba(255,255,255,0.06)"}}>
   <div className="vq-amb"><span className="vq-amb__beams"><i></i><i></i><i></i></span><span className="vq-amb__grain"></span></div>
   <div className="vq-container" style={{"position":"relative"}}>
     <div className="vq-section-head vq-reveal">

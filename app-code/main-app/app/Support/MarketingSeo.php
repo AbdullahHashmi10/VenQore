@@ -317,7 +317,7 @@ class MarketingSeo
 
             'marketing.features' => [
                 'title' => 'VenQore Features — 144 Verified POS & ERP Capabilities on One Verified Ledger',
-                'description' => 'Every VenQore feature, from offline POS checkout and FIFO inventory to double-entry accounting, all 43 reports, multi-store, staff roles, loyalty, and WooCommerce sync.',
+                'description' => 'Every VenQore feature, from offline POS checkout and FIFO inventory to double-entry accounting, all 40 reports, multi-store, staff roles, loyalty, and WooCommerce sync.',
                 'keywords' => 'POS system features, online ERP capabilities, inventory tracking, FIFO batches, double-entry ledger, multi-store POS, retail accounting software, WooCommerce sync, barcode scanning POS, offline POS, credit khata tracking',
                 'jsonld' => [],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
@@ -326,7 +326,7 @@ class MarketingSeo
                     . '<ul><li><strong>POS:</strong> offline-first checkout, barcode scanning, multi-tab carts, hold &amp; recall, split payments, WebUSB thermal printing</li>'
                     . '<li><strong>Inventory:</strong> FIFO batches with expiry, serial/IMEI tracking, variants, multi-unit, composite products &amp; recipes, purchase orders with partial receiving</li>'
                     . '<li><strong>Accounting:</strong> automatic balanced journal entries, derived account balances that cannot drift, immutable posted history, bank reconciliation</li>'
-                    . '<li><strong>Reports:</strong> 43 statements — P&amp;L, balance sheet, cash flow, trial balance, aging, item and party profitability — all reconciled to the ledger</li>'
+                    . '<li><strong>Reports:</strong> 40 statements — P&amp;L, balance sheet, cash flow, trial balance, aging, item and party profitability — all reconciled to the ledger</li>'
                     . '<li><strong>Growth:</strong> customer khata &amp; credit limits, loyalty points, gift cards, campaigns, WhatsApp debt reminders</li>'
                     . '<li><strong>Platform:</strong> multi-store, 7 staff roles, audit logs, WooCommerce sync, AI capture &amp; assistant</li></ul>'
                     . '<p>Deep-dive pages: <a href="/features/point-of-sale">Point of Sale</a> · <a href="/features/accounting">Accounting</a> · <a href="/features/inventory-management">Inventory Management</a> · <a href="/features/offline-pos">Offline POS</a> · <a href="/features/growth-engine">Growth Intelligence Engine</a></p>'
@@ -370,7 +370,7 @@ class MarketingSeo
 
             'marketing.features.show:accounting' => [
                 'title' => 'Double-Entry Accounting Software — VenQore',
-                'description' => 'VenQore\'s built-in double-entry accounting posts every sale, purchase and expense automatically. P&L, Balance Sheet and all 43 reports — always reconciled.',
+                'description' => 'VenQore\'s built-in double-entry accounting posts every sale, purchase and expense automatically. P&L, Balance Sheet and all 40 reports — always reconciled.',
                 'keywords' => 'double entry accounting software, built-in POS accounting, automatic journal entries, profit and loss software, balance sheet generator, FIFO cost of goods sold, bank reconciliation software, trial balance software, bookkeeping app for retail',
                 'jsonld' => [
                     self::faq([
@@ -495,9 +495,9 @@ class MarketingSeo
                     // Mirrors the FAQ visible on resources/js/Pages/Marketing/Pricing.jsx word for
                     // word (2026-09-10) — Google requires FAQ markup to match the page.
                     self::faq([
-                        ['Is there a free trial?', '14 days at Core level, no credit card required, cancel anytime. That includes multi-branch, API access, audit trail, Vena, Signals and all 43 reports — so you are trying the real thing, not a demo of it. We send a reminder on day 11 before the trial ends, not after.'],
+                        ['Is there a free trial?', '14 days at Core level, no credit card required, cancel anytime. That includes multi-branch, API access, audit trail, Vena, Signals and all 40 reports — so you are trying the real thing, not a demo of it. We send a reminder on day 11 before the trial ends, not after.'],
                         ['What happens after the trial?', 'If you don\'t select a paid plan, your system drops smoothly to Solo — free forever. Your data is preserved and nothing is deleted or reset.'],
-                        ['Can I change plans?', 'Any time, both directions, prorated. Downgrading never deletes anything: data above the new limit or beyond 30 days on Solo becomes read-only and safely archived, and comes back the moment you upgrade.'],
+                        ['Can I change plans?', 'Any time, both directions, prorated. Downgrading never deletes anything: detail beyond 30 days on Solo is hidden from lists while totals stay complete, and full history immediately unlocks the moment you upgrade.'],
                         ['Do you charge to import my data?', 'No. Import is included, and so is the help getting it in.'],
                         ['Do you charge to leave?', 'No. Export everything, any time, in a format your next system can read.'],
                         ['Is there a contract?', 'Monthly is month-to-month. Annual is twelve months at two months off ($490, $990, or $2,990). There is no minimum term and no notice period.'],
@@ -507,10 +507,10 @@ class MarketingSeo
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Pricing</h1>'
                     . '<p><strong>Traditional ERP costs $20,000+ a year. VenQore starts free.</strong> 14-day trial at Core level, no credit card required, cancel anytime.</p>'
-                    . '<ul><li><strong>Solo — Free Forever</strong>: 1 full seat, 1 POS register, 500 SKUs, 30-day history visible, offline POS, full double-entry ledger, all 43 reports</li>'
-                    . '<li><strong>Starter — $49/month ($490/year)</strong>: 1 full seat, 2 registers, 5,000 SKUs, full history retention, Google Drive backup, email support</li>'
-                    . '<li><strong>Core — $99/month ($990/year)</strong>: 5 full seats, 6 registers, 25,000 SKUs, multi-branch transfers, REST API &amp; webhooks, audit trail, custom roles</li>'
-                    . '<li><strong>Scale — $299/month ($2,990/year)</strong>: 25 full seats, 20 registers, 250,000 SKUs, white-label &amp; custom domain, 2 channel syncs included, named support contact</li></ul>'
+                    . '<ul><li><strong>Solo — Free Forever</strong>: 1 full seat, 1 POS register, 500 SKUs, 30-day history visible, offline POS, full double-entry ledger, 9 dashboard cards</li>'
+                    . '<li><strong>Starter — $49/month ($490/year)</strong>: 1 full seat, 2 registers, 5,000 SKUs, full history retention, 20 Essential reports, Google Drive backup, email support</li>'
+                    . '<li><strong>Core — $99/month ($990/year)</strong>: 5 full seats, 6 registers, 25,000 SKUs, 32 Core reports, multi-branch transfers, REST API &amp; webhooks, audit trail, custom roles</li>'
+                    . '<li><strong>Scale — $299/month ($2,990/year)</strong>: 25 full seats, 20 registers, 250,000 SKUs, all 40 reports, white-label &amp; custom domain, 2 channel syncs included, named support contact</li></ul>'
                     . '<h2>Frequently Asked Questions</h2>'
                     . '<p><strong>Is there a free trial?</strong> 14 days at Core level, no credit card required, cancel anytime. Dropping to Solo upon expiry preserves your records intact.</p>'
                     . '<p><a href="/demo">Try the live demo first</a> · <a href="/register">Start your free trial</a></p>' . $nav . '</main>',

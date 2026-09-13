@@ -83,6 +83,7 @@ abstract class SmokeTestCase extends BaseTestCase
                         'feature_serials' => false,
                         'feature_batches' => false,
                         'feature_manufacturing' => false,
+                        'business_type' => null,
                     ], $attributes));
                     $this->exists = true;
                 }

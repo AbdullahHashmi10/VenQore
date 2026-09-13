@@ -52,6 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'drm.license'             => \App\Http\Middleware\DrmLockMiddleware::class,
             'visitor.chat.guard'      => \App\Http\Middleware\VisitorChatGuard::class,
             'plan.feature'            => \App\Http\Middleware\EnsurePlanFeature::class,
+            'plan.report'             => \App\Http\Middleware\EnsureReportPlanFeature::class,
             // Explicit mode only — ->middleware('module:key') for a route that
             // needs gating but does not belong to the module its name implies.
             // The automatic mode (all 464 registry-owned routes) comes from the

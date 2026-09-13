@@ -18,6 +18,7 @@
  *     the button) now goes straight to /build-workspace with the text.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowRight, Building2, Check, Mic, Square, X } from 'lucide-react';
 
 const MAX = 600;
@@ -39,59 +40,7 @@ const CHIPS = [
     { key: 'multi', label: 'Multi-branch', text: 'Multi-branch retail with a size/colour variant matrix, synced to Amazon and WooCommerce.' },
 ];
 
-const PICKER = [
-    { label: 'Retail pharmacy', desc: 'Batch & expiry tracking, prescriptions, distributor credit', text: 'I run a retail pharmacy with batch & expiry tracking.' },
-    { label: 'Wholesale distribution', desc: 'Tier pricing, credit terms, dispatch', text: 'I run an auto parts wholesale business with tier pricing and dispatch.' },
-    { label: 'Restaurant & café', desc: 'Menu, recipes, kitchen and table orders', text: 'I run a bakery with a central kitchen and recipe costing.' },
-    { label: 'Hardware & building supplies', desc: 'Unit conversions, trade accounts, big catalogues', text: 'I run a hardware & construction parts store with unit conversions.' },
-    { label: 'Multi-branch retail', desc: 'Branches, transfers, online channels', text: 'I run a multi-branch fashion boutique that also sells on Amazon & Shopify.' },
-    { label: 'Something else', desc: 'Describe it in your own words', text: '' },
-];
-
-function BusinessPicker({ onPick, onClose }) {
-    const [sel, setSel] = useState(0);
-    const cardRef = useRef(null);
-    useEffect(() => {
-        cardRef.current?.focus();
-        const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-        document.addEventListener('keydown', onKey);
-        return () => document.removeEventListener('keydown', onKey);
-    }, [onClose]);
-    return (
-        <div className="vq-hp-modal" data-tone-ignore="">
-            <div className="vq-hp-modal__scrim" onClick={onClose} />
-            <div ref={cardRef} tabIndex={-1} className="vq-hp-modal__card" role="dialog" aria-modal="true" aria-labelledby="vq-hp-modal-title">
-                <div className="vq-hp-modal__head">
-                    <h2 id="vq-hp-modal-title">What kind of business?</h2>
-                    <button type="button" className="vq-sh-icon" aria-label="Close" onClick={onClose}><X size={18} aria-hidden="true" /></button>
-                </div>
-                <div className="vq-hp-modal__list" role="radiogroup" aria-label="Business type">
-                    {PICKER.map((p, i) => (
-                        <button
-                            key={p.label}
-                            type="button"
-                            role="radio"
-                            aria-checked={sel === i}
-                            className={`vq-hp-option${sel === i ? ' is-on' : ''}`}
-                            onClick={() => setSel(i)}
-                            onDoubleClick={() => onPick(PICKER[i])}
-                        >
-                            <span>
-                                <b>{p.label}</b>
-                                <span>{p.desc}</span>
-                            </span>
-                            <span className="vq-hp-option__tick" aria-hidden="true">{sel === i && <Check size={14} />}</span>
-                        </button>
-                    ))}
-                </div>
-                <div className="vq-hp-modal__foot">
-                    <button type="button" className="vq-btn vq-btn--ghost" onClick={onClose}>Cancel</button>
-                    <button type="button" className="vq-btn vq-btn--primary" onClick={() => onPick(PICKER[sel])}>Use this</button>
-                </div>
-            </div>
-        </div>
-    );
-}
+import BusinessPickerModal from './BusinessPickerModal';
 
 export default function HeroPrompt({ action = '/build-workspace' }) {
     const [value, setValue] = useState('');
@@ -182,12 +131,12 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
 
     return (
         <div className="vq-hp">
-            <form className={`vq-hp__box${focused ? ' is-focused' : ''}`} onSubmit={submit} autoComplete="off">
+            <form className={`vq-hp__single-line${focused ? ' is-focused' : ''}`} onSubmit={submit} autoComplete="off">
                 <label htmlFor="vq-hero-describe" className="vq-sr-only">Describe your business</label>
                 <div className="vq-hp__field">
                     {!value && (
                         <span className="vq-hp__placeholder" aria-hidden="true" key={exampleIx}>
-                            {EXAMPLES[exampleIx]}…
+                            Describe your business (e.g. "{EXAMPLES[exampleIx]}")…
                         </span>
                     )}
                     <textarea
@@ -206,35 +155,33 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) submit(e);
                         }}
-                        className="vq-hp__input focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 outline-none ring-0"
+                        className="vq-hp__input"
                     />
                 </div>
-                <div className="vq-hp__bar">
-                    <button type="button" className="vq-hp__pick" onClick={() => setPicker(true)}>
-                        <Building2 size={16} aria-hidden="true" /> Select your business
-                    </button>
-                    <span className="vq-hp__right">
-                        {left <= 100 && <span className="vq-hp__count" aria-live="polite">{left}</span>}
-                        {speechOk && (
-                            <button
-                                type="button"
-                                className={`vq-hp__icon${listening ? ' is-live' : ''}`}
-                                onClick={toggleVoice}
-                                aria-pressed={listening}
-                                aria-label={listening ? 'Stop voice input' : 'Describe it by voice'}
-                                title={listening ? 'Stop' : 'Speak instead'}
-                            >
-                                {listening ? <Square size={14} aria-hidden="true" /> : <Mic size={17} aria-hidden="true" />}
-                            </button>
-                        )}
-                        <button type="submit" className="vq-btn vq-btn--primary vq-hp__go" disabled={!value.trim()}>
-                            Build my system <ArrowRight size={16} aria-hidden="true" className="vq-btn__arrow" />
+                <div className="vq-hp__actions">
+                    {left <= 100 && <span className="vq-hp__count" aria-live="polite">{left}</span>}
+                    {speechOk && (
+                        <button
+                            type="button"
+                            className={`vq-hp__icon${listening ? ' is-live' : ''}`}
+                            onClick={toggleVoice}
+                            aria-pressed={listening}
+                            aria-label={listening ? 'Stop voice input' : 'Describe it by voice'}
+                            title={listening ? 'Stop' : 'Speak instead'}
+                        >
+                            {listening ? <Square size={14} aria-hidden="true" /> : <Mic size={17} aria-hidden="true" />}
                         </button>
-                    </span>
+                    )}
+                    <button type="submit" className="vq-hp__go" disabled={!value.trim()}>
+                        Build my system <ArrowRight size={16} aria-hidden="true" className="vq-btn__arrow" />
+                    </button>
                 </div>
             </form>
 
-            <div className="vq-hp__chips" role="group" aria-label="Examples">
+            <div className="vq-hp__chips-row" role="group" aria-label="Examples">
+                <button type="button" className="vq-hp__pick-btn" onClick={() => setPicker(true)}>
+                    <Building2 size={15} aria-hidden="true" /> Select your business
+                </button>
                 {CHIPS.map((c) => (
                     <button key={c.key} type="button" className="vq-chip vq-chip--onHero vq-hp__chip" onClick={() => fill(c.text)}>{c.label}</button>
                 ))}
@@ -242,7 +189,7 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
             <p className="vq-caption vq-hero-caret vq-hp__hint">Enter to build · Shift + Enter for a new line · nothing goes live until you approve it</p>
 
             {picker && (
-                <BusinessPicker
+                <BusinessPickerModal
                     onClose={() => setPicker(false)}
                     onPick={(p) => { setPicker(false); fill(p.text); }}
                 />

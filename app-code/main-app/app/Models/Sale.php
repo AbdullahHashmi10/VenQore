@@ -181,7 +181,7 @@ class Sale extends Model
     }
 
     /**
-     * Scope query to visible history window for plans with history_retention_days (e.g. Solo 90-day retention).
+     * Scope query to visible history window for plans with visible_history_days (e.g. Solo 30-day visible history).
      * Older records remain safely stored in DB and become visible again upon plan upgrade.
      */
     public function scopeVisibleHistory($query, ?Tenant $tenant = null)
@@ -191,12 +191,10 @@ class Sale extends Model
             return $query;
         }
 
-        $retentionDays = method_exists($t, 'visibleHistoryDays')
-            ? $t->visibleHistoryDays()
-            : $t->historyRetentionDays();
+        $visibleDays = $t->visibleHistoryDays();
 
-        if ($retentionDays !== null && $retentionDays > 0) {
-            return $query->where('created_at', '>=', now()->subDays($retentionDays));
+        if ($visibleDays !== null && $visibleDays > 0) {
+            return $query->where('created_at', '>=', now()->subDays($visibleDays));
         }
 
         return $query;

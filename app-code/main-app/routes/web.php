@@ -1430,19 +1430,19 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/labels/print', [\App\Http\Controllers\LabelController::class, 'print'])->middleware('permission:inventory.barcodes,inventory.view')->middleware('plan.feature:barcode_label_print')->name('labels.print');
 
     // Reports
-    // Reports
-    Route::middleware('permission:reports.summary')->group(function () {
+    Route::middleware(['permission:reports.summary', 'plan.report'])->group(function () {
         Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/dashboard', [\App\Http\Controllers\ReportController::class, 'dashboard'])->name('reports.dashboard');
         Route::get('/reports/daily-sales', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('reports.daily-sales');
         Route::get('/reports/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
-        Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->middleware('plan.feature:purchase_orders')->name('reports.purchases');
-        Route::get('/reports/purchase-returns', [\App\Http\Controllers\ReportController::class, 'purchaseReturns'])->middleware('plan.feature:purchase_orders')->name('reports.purchase-returns');
+        Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->name('reports.purchases');
+        Route::get('/reports/purchase-returns', [\App\Http\Controllers\ReportController::class, 'purchaseReturns'])->name('reports.purchase-returns');
         Route::get('/reports/day-book', [\App\Http\Controllers\ReportController::class, 'dayBook'])->name('reports.day-book');
-        Route::get('/reports/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.profit-loss');
-        Route::get('/reports/party-statement', [\App\Http\Controllers\ReportController::class, 'partyStatement'])->middleware('plan.feature:report_party_statement')->name('reports.party-statement');
+        Route::get('/reports/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->name('reports.profit-loss');
+        Route::get('/reports/party-statement', [\App\Http\Controllers\ReportController::class, 'partyStatement'])->name('reports.party-statement');
         Route::get('/reports/transactions', [\App\Http\Controllers\ReportController::class, 'transactions'])->name('reports.transactions');
-        Route::get('/reports/expenses', [\App\Http\Controllers\ReportController::class, 'expenses'])->middleware('plan.feature:expense_manager')->name('reports.expenses');
-        Route::get('/reports/account-ledger', [\App\Http\Controllers\ReportController::class, 'accountLedger'])->middleware('plan.feature:double_entry_ledger')->name('reports.account-ledger');
+        Route::get('/reports/expenses', [\App\Http\Controllers\ReportController::class, 'expenses'])->name('reports.expenses');
+        Route::get('/reports/account-ledger', [\App\Http\Controllers\ReportController::class, 'accountLedger'])->name('reports.account-ledger');
         Route::get('/reports/tax', [\App\Http\Controllers\ReportController::class, 'tax'])->name('reports.tax');
         Route::get('/reports/bank-statement', [\App\Http\Controllers\ReportController::class, 'bankStatement'])->name('reports.bank-statement');
 
@@ -1453,44 +1453,54 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/reports/expiry', [\App\Http\Controllers\ReportController::class, 'expiryReport'])->name('reports.expiry');
 
         // Additional 24 Reports (completing 38 total)
-        Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->middleware('plan.feature:report_profit_loss')->name('reports.balance-sheet');
-        Route::get('/reports/all-parties', [\App\Http\Controllers\ReportController::class, 'allParties'])->middleware('plan.feature:customer_khata')->name('reports.all-parties');
-        Route::get('/reports/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->middleware('plan.feature:report_trial_balance')->name('reports.trial-balance');
-        Route::get('/reports/item-wise-profit', [\App\Http\Controllers\ReportController::class, 'itemWiseProfit'])->middleware('plan.feature:report_profit_loss')->name('reports.item-wise-profit');
-        Route::get('/reports/party-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'partyWiseProfitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.party-wise-profit-loss');
-        Route::get('/reports/discount', [\App\Http\Controllers\ReportController::class, 'discountReport'])->middleware('plan.feature:discount_report')->name('reports.discount');
-        Route::get('/reports/cash-flow', [\App\Http\Controllers\ReportController::class, 'cashFlow'])->middleware('plan.feature:cash_flow_report')->name('reports.cash-flow');
-        Route::get('/reports/sale-aging', [\App\Http\Controllers\ReportController::class, 'saleAging'])->middleware('plan.feature:aged_receivables')->name('reports.sale-aging');
-        Route::get('/reports/sale-orders', [\App\Http\Controllers\ReportController::class, 'saleOrders'])->middleware('plan.feature:pre_sales_reservation')->name('reports.sale-orders');
-        Route::get('/reports/bill-wise-profit', [\App\Http\Controllers\ReportController::class, 'billWiseProfit'])->middleware('plan.feature:report_profit_loss')->name('reports.bill-wise-profit');
-        Route::get('/reports/expense-by-category', [\App\Http\Controllers\ReportController::class, 'expenseByCategory'])->middleware('plan.feature:expense_manager')->name('reports.expense-by-category');
-        Route::get('/reports/expense-by-item', [\App\Http\Controllers\ReportController::class, 'expenseByItem'])->middleware('plan.feature:expense_manager')->name('reports.expense-by-item');
-        Route::get('/reports/stock-summary-by-category', [\App\Http\Controllers\ReportController::class, 'stockSummaryByCategory'])->middleware('plan.feature:stock_valuation')->name('reports.stock-summary-by-category');
-        Route::get('/reports/item-detail', [\App\Http\Controllers\ReportController::class, 'itemDetailReport'])->middleware('plan.feature:stock_valuation')->name('reports.item-detail');
-        Route::get('/reports/loan-statement', [\App\Http\Controllers\ReportController::class, 'loanStatement'])->middleware('plan.feature:double_entry_ledger')->name('reports.loan-statement');
-        Route::get('/reports/tax-rate', [\App\Http\Controllers\ReportController::class, 'taxRateReport'])->middleware('plan.feature:auto_vat_gst')->name('reports.tax-rate');
-        Route::get('/reports/sale-purchase-by-party', [\App\Http\Controllers\ReportController::class, 'salePurchaseByParty'])->middleware('plan.feature:report_party_statement')->name('reports.sale-purchase-by-party');
-        Route::get('/reports/item-report-by-party', [\App\Http\Controllers\ReportController::class, 'itemReportByParty'])->middleware('plan.feature:report_party_statement')->name('reports.item-report-by-party');
-        Route::get('/reports/party-report-by-item', [\App\Http\Controllers\ReportController::class, 'partyReportByItem'])->middleware('plan.feature:report_party_statement')->name('reports.party-report-by-item');
-        Route::get('/reports/sale-purchase-by-item-category', [\App\Http\Controllers\ReportController::class, 'salePurchaseByItemCategory'])->middleware('plan.feature:report_profit_loss')->name('reports.sale-purchase-by-item-category');
-        Route::get('/reports/item-category-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'itemCategoryWiseProfitLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.item-category-wise-profit-loss');
-        Route::get('/reports/item-wise-discount', [\App\Http\Controllers\ReportController::class, 'itemWiseDiscount'])->middleware('plan.feature:discount_report')->name('reports.item-wise-discount');
-        Route::get('/reports/sale-order-items', [\App\Http\Controllers\ReportController::class, 'saleOrderItems'])->middleware('plan.feature:pre_sales_reservation')->name('reports.sale-order-items');
-        Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->middleware('plan.feature:stock_aging')->name('reports.stock-aging');
-        Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->middleware('plan.feature:report_party_statement')->name('reports.sale-purchase-by-party-group');
+        Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+        Route::get('/reports/all-parties', [\App\Http\Controllers\ReportController::class, 'allParties'])->name('reports.all-parties');
+        Route::get('/reports/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+        Route::get('/reports/item-wise-profit', [\App\Http\Controllers\ReportController::class, 'itemWiseProfit'])->name('reports.item-wise-profit');
+        Route::get('/reports/party-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'partyWiseProfitLoss'])->name('reports.party-wise-profit-loss');
+        Route::get('/reports/discount', [\App\Http\Controllers\ReportController::class, 'discountReport'])->name('reports.discount');
+        Route::get('/reports/cash-flow', [\App\Http\Controllers\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
+        Route::get('/reports/sale-aging', [\App\Http\Controllers\ReportController::class, 'saleAging'])->name('reports.sale-aging');
+        Route::get('/reports/sale-orders', [\App\Http\Controllers\ReportController::class, 'saleOrders'])->name('reports.sale-orders');
+        Route::get('/reports/bill-wise-profit', [\App\Http\Controllers\ReportController::class, 'billWiseProfit'])->name('reports.bill-wise-profit');
+        Route::get('/reports/expense-by-category', [\App\Http\Controllers\ReportController::class, 'expenseByCategory'])->name('reports.expense-by-category');
+        Route::get('/reports/expense-by-item', [\App\Http\Controllers\ReportController::class, 'expenseByItem'])->name('reports.expense-by-item');
+        Route::get('/reports/stock-summary-by-category', [\App\Http\Controllers\ReportController::class, 'stockSummaryByCategory'])->name('reports.stock-summary-by-category');
+        Route::get('/reports/item-detail', [\App\Http\Controllers\ReportController::class, 'itemDetailReport'])->name('reports.item-detail');
+        Route::get('/reports/loan-statement', [\App\Http\Controllers\ReportController::class, 'loanStatement'])->name('reports.loan-statement');
+        Route::get('/reports/tax-rate', [\App\Http\Controllers\ReportController::class, 'taxRateReport'])->name('reports.tax-rate');
+        Route::get('/reports/sale-purchase-by-party', [\App\Http\Controllers\ReportController::class, 'salePurchaseByParty'])->name('reports.sale-purchase-by-party');
+        Route::get('/reports/item-report-by-party', [\App\Http\Controllers\ReportController::class, 'itemReportByParty'])->name('reports.item-report-by-party');
+        Route::get('/reports/party-report-by-item', [\App\Http\Controllers\ReportController::class, 'partyReportByItem'])->name('reports.party-report-by-item');
+        Route::get('/reports/sale-purchase-by-item-category', [\App\Http\Controllers\ReportController::class, 'salePurchaseByItemCategory'])->name('reports.sale-purchase-by-item-category');
+        Route::get('/reports/item-category-wise-profit-loss', [\App\Http\Controllers\ReportController::class, 'itemCategoryWiseProfitLoss'])->name('reports.item-category-wise-profit-loss');
+        Route::get('/reports/item-wise-discount', [\App\Http\Controllers\ReportController::class, 'itemWiseDiscount'])->name('reports.item-wise-discount');
+        Route::get('/reports/sale-order-items', [\App\Http\Controllers\ReportController::class, 'saleOrderItems'])->name('reports.sale-order-items');
+        Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->name('reports.stock-aging');
+        Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->name('reports.sale-purchase-by-party-group');
         Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'analytics'])->name('reports.analytics');
         Route::get('/reports/refund-reasons', [\App\Http\Controllers\ReportController::class, 'refundReasons'])->name('reports.refund-reasons');
 
         // New reports: Point-In-Time Inventory, Customer Insights, Supplier Insights
-        Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->middleware('plan.feature:point_in_time_inventory')->name('reports.point-in-time-inventory');
-        Route::get('/reports/point-in-time-inventory/details', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventoryDetails'])->middleware('plan.feature:point_in_time_inventory')->name('reports.point-in-time-inventory.details');
-        Route::get('/reports/customer-insights', [\App\Http\Controllers\ReportController::class, 'customerInsights'])->middleware('plan.feature:customer_insights')->name('reports.customer-insights');
-        Route::get('/reports/customer-insights/details', [\App\Http\Controllers\ReportController::class, 'customerInsightsDetails'])->middleware('plan.feature:customer_insights')->name('reports.customer-insights.details');
-        Route::get('/reports/supplier-insights', [\App\Http\Controllers\ReportController::class, 'supplierInsights'])->middleware('plan.feature:supplier_insights')->name('reports.supplier-insights');
-        Route::get('/reports/supplier-insights/details', [\App\Http\Controllers\ReportController::class, 'supplierInsightsDetails'])->middleware('plan.feature:supplier_insights')->name('reports.supplier-insights.details');
+        Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->name('reports.point-in-time-inventory');
+        Route::get('/reports/point-in-time-inventory/details', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventoryDetails'])->name('reports.point-in-time-inventory.details');
+        Route::get('/reports/customer-insights', [\App\Http\Controllers\ReportController::class, 'customerInsights'])->name('reports.customer-insights');
+        Route::get('/reports/customer-insights/details', [\App\Http\Controllers\ReportController::class, 'customerInsightsDetails'])->name('reports.customer-insights.details');
+        Route::get('/reports/supplier-insights', [\App\Http\Controllers\ReportController::class, 'supplierInsights'])->name('reports.supplier-insights');
+        Route::get('/reports/supplier-insights/details', [\App\Http\Controllers\ReportController::class, 'supplierInsightsDetails'])->name('reports.supplier-insights.details');
+
+        // Aliases / auxiliary report endpoints
+        Route::get('/reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->name('reports.aged-receivables');
+        Route::get('/reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->name('reports.aged-payables');
+        Route::get('/reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->name('reports.inventory-valuation');
+        Route::get('/reports/cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs'])->name('reports.cogs');
+        Route::get('/reports/gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->name('reports.gross-profit');
+        Route::get('/reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
+        Route::get('/reports/inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('reports.inventory-movement');
+        Route::get('/reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->middleware('permission:data.export')->name('reports.export');
 
         // Owner's Daily Pulse (Secure Vault Dashboard)
-        Route::get('/reports/owner-daily-pulse', [\App\Http\Controllers\OwnerDailyPulseController::class, 'index'])->middleware('plan.feature:owners_daily_pulse')->name('reports.owner-daily-pulse');
+        Route::get('/reports/owner-daily-pulse', [\App\Http\Controllers\OwnerDailyPulseController::class, 'index'])->name('reports.owner-daily-pulse');
         Route::post('/reports/owner-daily-pulse/verify', [\App\Http\Controllers\OwnerDailyPulseController::class, 'verifyPasscode'])->name('reports.owner-daily-pulse.verify');
         Route::post('/reports/owner-daily-pulse/setup', [\App\Http\Controllers\OwnerDailyPulseController::class, 'setup'])->name('reports.owner-daily-pulse.setup');
         Route::post('/reports/owner-daily-pulse/lock', [\App\Http\Controllers\OwnerDailyPulseController::class, 'lock'])->name('reports.owner-daily-pulse.lock');
@@ -1705,9 +1715,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
     // Accounting Routes
     Route::get('/accounting', [\App\Http\Controllers\AccountingController::class, 'dashboard'])->middleware('plan.feature:double_entry_ledger')->name('accounting.dashboard');
-    Route::get('/accounting/chart', [\App\Http\Controllers\AccountingController::class, 'index'])->middleware('plan.feature:double_entry_ledger')->name('accounting.index');
+    Route::get('/accounting/chart', [\App\Http\Controllers\AccountingController::class, 'index'])->middleware('plan.feature:report_ledger')->name('accounting.index');
     Route::get('/accounting/p-and-l', [\App\Http\Controllers\AccountingController::class, 'profitAndLoss'])->middleware('plan.feature:report_profit_loss')->name('accounting.pnl');
-    Route::get('/accounting/balance-sheet', [\App\Http\Controllers\AccountingController::class, 'balanceSheet'])->middleware('plan.feature:report_profit_loss')->name('accounting.balance-sheet');
+    Route::get('/accounting/balance-sheet', [\App\Http\Controllers\AccountingController::class, 'balanceSheet'])->middleware('plan.feature:report_balance_sheet')->name('accounting.balance-sheet');
+    Route::get('/accounting/api/accounts', [\App\Http\Controllers\AccountingController::class, 'apiIndex'])->middleware('plan.feature:report_ledger')->name('accounting.accounts.api');
 
     // Recurring Invoices
     Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->name('recurring-invoices.index');
@@ -1792,7 +1803,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Sales
     Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'dashboard'])->middleware('permission:sales.view')->name('sales.dashboard');
     Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
-    Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'graphAnalytics'])->name('reports.analytics');
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
     Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(['permission:sales.create,pos.checkout', \App\Http\Middleware\EnforceTransactionLimit::class])->name('sales.store');
     // S-011 / S-044: owners/admins/managers who can approve a POS sale (POS approval modal). Before /sales/{sale}.
@@ -1924,16 +1934,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/sales/{id}/send-email', [\App\Http\Controllers\CommunicationController::class, 'sendEmail'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-email');
     Route::post('/sales/{id}/send-whatsapp', [\App\Http\Controllers\CommunicationController::class, 'sendWhatsApp'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-whatsapp');
 
-    // Accounting Routes
-    Route::get('/accounting', [\App\Http\Controllers\AccountingController::class, 'dashboard'])->name('accounting.dashboard');
-    Route::get('/accounting/chart', [\App\Http\Controllers\AccountingController::class, 'index'])->name('accounting.index');
-    Route::get('/accounting/p-and-l', [\App\Http\Controllers\AccountingController::class, 'profitAndLoss'])->name('accounting.pnl');
-    Route::get('/accounting/balance-sheet', [\App\Http\Controllers\AccountingController::class, 'balanceSheet'])->name('accounting.balance-sheet');
-    Route::get('/accounting/api/accounts', [\App\Http\Controllers\AccountingController::class, 'apiIndex'])->name('accounting.accounts.api');
 
-    // Reports Dashboard
-    // Reports Dashboard
-    Route::get('/reports/dashboard', [\App\Http\Controllers\ReportController::class, 'dashboard'])->name('reports.dashboard');
 
     // Admin Panel (Hub) — DEPRECATED
     // Now protected by permission:admin.settings_manage middleware to prevent access gaps
@@ -2353,22 +2354,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
 
     Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.journal')->name('fiscal-year.close');
 
-    // Reports
-    Route::get('reports/trial-balance', [\App\Http\Controllers\V3\ReportController::class, 'trialBalance'])->middleware('plan.feature:report_trial_balance')->name('reports.trial-balance');
-    Route::get('reports/profit-loss', [\App\Http\Controllers\V3\ReportController::class, 'profitAndLoss'])->middleware('plan.feature:report_profit_loss')->name('reports.profit-loss');
-    Route::get('reports/balance-sheet', [\App\Http\Controllers\V3\ReportController::class, 'balanceSheet'])->middleware('plan.feature:report_profit_loss')->name('reports.balance-sheet');
-    Route::get('reports/cash-flow', [\App\Http\Controllers\V3\ReportController::class, 'cashFlow'])->middleware('plan.feature:cash_flow_report')->name('reports.cash-flow');
-    Route::get('reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->middleware('plan.feature:aged_receivables')->name('reports.aged-receivables');
-    Route::get('reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->middleware('plan.feature:aged_payables')->name('reports.aged-payables');
-    Route::get('reports/sales', [\App\Http\Controllers\V3\ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('reports/purchases', [\App\Http\Controllers\V3\ReportController::class, 'purchases'])->middleware('plan.feature:purchase_orders')->name('reports.purchases');
-    Route::get('reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->middleware('plan.feature:stock_valuation')->name('reports.inventory-valuation');
-    Route::get('reports/cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs'])->name('reports.cogs');
-    Route::get('reports/gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->middleware('plan.feature:report_profit_loss')->name('reports.gross-profit');
-    Route::get('reports/tax', [\App\Http\Controllers\V3\ReportController::class, 'tax'])->name('reports.tax');
-    Route::get('reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->middleware('plan.feature:unified_party_ledger')->name('reports.party-ledger');
-    Route::get('reports/inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('reports.inventory-movement');
-    Route::get('reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->middleware('permission:data.export')->name('reports.export');
+
 
     // Dashboard
     Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index'])->name('dashboard');

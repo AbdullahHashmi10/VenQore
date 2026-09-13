@@ -213,7 +213,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'till_logins'                => ['solo' => '2', 'starter' => null, 'core' => null, 'scale' => null],
             'registers'                  => ['solo' => '1', 'starter' => '2', 'core' => '6', 'scale' => '20'],
             'devices_per_seat'           => ['solo' => '2', 'starter' => '3', 'core' => '3', 'scale' => '5'],
-            'history_retention_days'     => ['solo' => '30', 'starter' => null, 'core' => null, 'scale' => null],
+            'visible_history_days'       => ['solo' => '30', 'starter' => null, 'core' => null, 'scale' => null],
             'transactions_per_month'     => ['solo' => '100', 'starter' => null, 'core' => null, 'scale' => null],
             'service_jobs_per_month'     => ['solo' => '20', 'starter' => null, 'core' => null, 'scale' => null],
 
@@ -314,6 +314,12 @@ class PlanFeatureMatrixSeeder extends Seeder
             'tailor_measurements'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'jewelry_metal_rates'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'work_orders'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+
+            'chat_support' => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'dedicated_account_manager' => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'recurring_invoicing' => ['solo' => '1', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'vensync_command' => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'whatsapp_reminders' => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
             'ltd'                        => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '0', 'ltd_1' => '1', 'ltd_2' => '1', 'ltd_3' => '1'],
         ];

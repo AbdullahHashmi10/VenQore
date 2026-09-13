@@ -258,7 +258,7 @@ class PlanRepository
                 }
             });
 
-            $configKeys = array_unique(array_merge(array_keys(config('plans.solo', [])), array_keys(config('plans.business', []))));
+            $configKeys = array_unique(array_merge(array_keys(config('plans.solo', [])), array_keys(config('plans.scale', []))));
             $allKeys = array_unique(array_merge($configKeys, $dbKeys, array_keys($limits)));
             $map = [];
 

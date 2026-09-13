@@ -145,7 +145,7 @@ export default function PosShowcase() {
       <article className="vq-card vq-card--xl vq-tile vq-reveal">
         <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
         <h3 className="vq-tile__title">Proven, not eyeballed</h3>
-        <p className="vq-tile__body">35,255 automated checks with zero disagreements. Every arrangement swept every 8 pixels from a 320px phone to a 3440px ultrawide. Zero controls covered, zero content stranded off screen.</p>
+        <p className="vq-tile__body">35,000+ automated tests with zero disagreements. Every arrangement swept every 8 pixels from a 320px phone to a 3440px ultrawide. Zero controls covered, zero content stranded off screen.</p>
       </article>
     </div>
   </div>

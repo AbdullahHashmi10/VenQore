@@ -63,18 +63,12 @@ class Phase1SmartCaptureTest extends TestCase
     {
         // Temporarily clear faulty fixture for standard pass benchmark check
         $faultyPath = base_path('tests/fixtures/smartcapture/faulty_receipt_99.json');
-        $backup = null;
         if (file_exists($faultyPath)) {
-            $backup = file_get_contents($faultyPath);
-            unlink($faultyPath);
+            @unlink($faultyPath);
         }
 
         $this->artisan('smartcapture:benchmark', ['--mock' => true])
             ->assertExitCode(0);
-
-        if ($backup !== null) {
-            file_put_contents($faultyPath, $backup);
-        }
     }
 
     /** @test */
@@ -88,9 +82,15 @@ class Phase1SmartCaptureTest extends TestCase
             'mock_extracted' => ['action' => 'sale', 'party' => 'Wrong Party']
         ]));
 
-        // Should return exit code 1 due to <80% accuracy score
-        $this->artisan('smartcapture:benchmark', ['--mock' => true])
-            ->assertExitCode(1);
+        try {
+            // Should return exit code 1 due to <80% accuracy score
+            $this->artisan('smartcapture:benchmark', ['--mock' => true])
+                ->assertExitCode(1);
+        } finally {
+            if (file_exists($faultyPath)) {
+                @unlink($faultyPath);
+            }
+        }
     }
 
     /** @test */
