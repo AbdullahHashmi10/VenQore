@@ -5,13 +5,15 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # If monorepo layout exists
+    # 1. Monorepo structure (app-code/main-app/public)
     RewriteCond %{REQUEST_URI} !^/app-code/main-app/public/
-    RewriteCond %{DOCUMENT_ROOT}/app-code/main-app/public/index.php -f
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ app-code/main-app/public/$1 [L]
 
-    # If root public exists
+    # 2. Standalone structure (public/)
     RewriteCond %{REQUEST_URI} !^/public/
-    RewriteCond %{DOCUMENT_ROOT}/public/index.php -f
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
