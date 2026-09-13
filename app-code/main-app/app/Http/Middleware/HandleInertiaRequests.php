@@ -195,6 +195,9 @@ class HandleInertiaRequests extends Middleware
             'nav' => fn () => app()->bound('current.tenant')
                 ? \App\Support\ModuleNavBuilder::build(app('current.tenant'), $request->user())
                 : [],
+            'mobile_nav' => fn () => app()->bound('current.tenant')
+                ? \App\Support\MobileNav::resolveForTenant(app('current.tenant'), $request->user())
+                : [],
             'terms' => fn () => app()->bound('current.tenant')
                 ? \App\Support\Terms::forTenant(app('current.tenant')->id)
                 : \App\Support\Terms::fallbacks(),

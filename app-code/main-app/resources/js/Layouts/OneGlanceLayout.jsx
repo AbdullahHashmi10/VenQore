@@ -82,6 +82,7 @@ import LimitGraceBanner from '@/Components/LimitGraceBanner';
 import ActivityHubModal from '@/Components/ActivityHubModal';
 import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
 import { useTermText } from '@/lib/terms';
+import BottomNavBar from '@/Components/BottomNavBar';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
  const {
@@ -2073,179 +2074,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	/>
 
  {/* Mobile Bottom Navigation Bar */}
- {showMobileNavBar && (
- <div className="lg:hidden fixed bottom-5 left-4 right-4 z-drawer animate-in slide-in-from-bottom-6 cubic-bezier(0.16, 1, 0.3, 1) duration-slower">
- <div className="bg-white/80 dark:bg-app backdrop-blur-xl border border-line dark:border-line rounded-2xl shadow-[0_16px_36px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.4)] px-3 py-2 flex items-center justify-between gap-1 relative">
+				{showMobileNavBar && (
+					<BottomNavBar
+						store={store}
+						modules={props?.modules}
+						onOpenMore={() => setMobileSidebarOpen(true)}
+					/>
+				)}
 
- {/* Upward Drop-up Menu */}
- {activeDropdown && (
- <>
- <div className="fixed inset-0 z-drawer bg-neutral-900/60 backdrop-blur-xs transition-opacity" onClick={() => setActiveDropdown(null)} />
- <div className="absolute left-3 right-3 bottom-[4.5rem] bg-surface rounded-[14px] shadow-2xl border border-line p-3 z-drawer animate-in slide-in-from-bottom-2 duration-normal max-h-[60vh] overflow-y-auto">
- <div className="flex items-center justify-between pb-2 mb-2 border-b border-line">
- <span className="text-2xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">
- {activeDropdown} Options
- </span>
- <button onClick={() => setActiveDropdown(null)} className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-full text-ink-muted">
- <X size={14} />
- </button>
- </div>
- <div className="grid grid-cols-2 gap-2">
- {getDropdownOptions(activeDropdown).map((option, idx) => (
- <button
- key={idx}
- onClick={() => handleOptionClick(option)}
- className="flex items-center gap-2 px-3 py-2.5 bg-surface/50 dark:bg-app border border-line dark:border-line text-ink-secondary dark:text-ink hover:bg-brand-50 dark:hover:bg-brand-950/30 hover:text-brand-600 dark:hover:text-brand-400 rounded-xl transition-all text-left text-xs font-bold"
- >
- <span className="text-ink-muted shrink-0">{option.icon}</span>
- <span className="truncate">{option.label}</span>
- </button>
- ))}
- </div>
- </div>
- </>
- )}
-
- {/* Glowing Bud Toggle for Mobile FABs */}
- <div className="absolute -top-3 right-6 z-drawer">
- <button
- onClick={(e) => {
- e.stopPropagation();
- setIsMobileFabsOpen(!isMobileFabsOpen);
- }}
- id="mobile-fabs-toggle-bud"
- className="px-2.5 py-1 rounded-full bg-neutral-900/90 dark:bg-app border border-brand-500/40 flex items-center gap-1 text-white shadow-lg hover:border-brand-400 cursor-pointer relative active:scale-95 transition-all duration-slow text-2xs font-bold uppercase tracking-wider"
- >
- <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-brand-500 animate-ping opacity-75" />
- <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-brand-500" />
- {budIconType === 'setup' ? (
- <Sparkles size={10} className="text-brand-400 animate-in fade-in zoom-in duration-slow" />
- ) : (
- <MessageSquare size={10} className="text-brand-400 animate-in fade-in zoom-in duration-slow" />
- )}
- <ChevronUp size={10} className={`transition-transform duration-slow ${isMobileFabsOpen ? 'rotate-180' : ''}`} />
- </button>
- </div>
-
- {/* Tab 1: Sale (invoice) */}
- <Link
- href={getMobileTabUrl('store.sales.index')}
- onMouseDown={() => startPress('sales')}
- onMouseUp={cancelPress}
- onMouseLeave={cancelPress}
- onTouchStart={() => startPress('sales')}
- onTouchEnd={cancelPress}
- onContextMenu={(e) => e.preventDefault()}
- onClick={handleLinkClick('sales', 'store.sales.index')}
- className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-slow relative ${
- isSaleInvoiceActive
- ? 'text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/40 font-semibold scale-[1.03] shadow-sm border border-brand-100/30 dark:border-brand-900/30'
- : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
- }`}
- >
- <ShoppingCart size={20} className={`transition-transform duration-slow ${isSaleInvoiceActive ? 'scale-110' : ''}`} />
- <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Sale</span>
- {isSaleInvoiceActive && (
- <span className="absolute bottom-1 w-1.5 h-1 bg-brand-500 dark:bg-brand-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
- )}
- </Link>
-
- {/* Tab 2: Purchase */}
- <Link
- href={getMobileTabUrl('store.purchases.index')}
- onMouseDown={() => startPress('purchases')}
- onMouseUp={cancelPress}
- onMouseLeave={cancelPress}
- onTouchStart={() => startPress('purchases')}
- onTouchEnd={cancelPress}
- onContextMenu={(e) => e.preventDefault()}
- onClick={handleLinkClick('purchases', 'store.purchases.index')}
- className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-slow relative ${
- isPurchaseActive
- ? 'text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/40 font-semibold scale-[1.03] shadow-sm border border-brand-100/30 dark:border-brand-900/30'
- : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
- }`}
- >
- <ShoppingBag size={20} className={`transition-transform duration-slow ${isPurchaseActive ? 'scale-110' : ''}`} />
- <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Purchase</span>
- {isPurchaseActive && (
- <span className="absolute bottom-1 w-1.5 h-1 bg-brand-500 dark:bg-brand-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
- )}
- </Link>
-
- {/* Tab 3: Dashboard */}
- <Link
- href={getMobileTabUrl('store.dashboard')}
- onMouseDown={() => startPress('dashboard')}
- onMouseUp={cancelPress}
- onMouseLeave={cancelPress}
- onTouchStart={() => startPress('dashboard')}
- onTouchEnd={cancelPress}
- onContextMenu={(e) => e.preventDefault()}
- onClick={handleLinkClick('dashboard', 'store.dashboard')}
- className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-slow relative ${
- isHomeActive
- ? 'text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/40 font-semibold scale-[1.03] shadow-sm border border-brand-100/30 dark:border-brand-900/30'
- : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
- }`}
- >
- <LayoutDashboard size={20} className={`transition-transform duration-slow ${isHomeActive ? 'scale-110' : ''}`} />
- <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Dashboard</span>
- {isHomeActive && (
- <span className="absolute bottom-1 w-1.5 h-1 bg-brand-500 dark:bg-brand-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
- )}
- </Link>
-
- {/* Tab 4: Expense */}
- <Link
- href={getMobileTabUrl('store.expenses.index')}
- onMouseDown={() => startPress('expenses')}
- onMouseUp={cancelPress}
- onMouseLeave={cancelPress}
- onTouchStart={() => startPress('expenses')}
- onTouchEnd={cancelPress}
- onContextMenu={(e) => e.preventDefault()}
- onClick={handleLinkClick('expenses', 'store.expenses.index')}
- className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-slow relative ${
- isExpenseActive
- ? 'text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/40 font-semibold scale-[1.03] shadow-sm border border-brand-100/30 dark:border-brand-900/30'
- : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
- }`}
- >
- <CreditCard size={20} className={`transition-transform duration-slow ${isExpenseActive ? 'scale-110' : ''}`} />
- <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Expense</span>
- {isExpenseActive && (
- <span className="absolute bottom-1 w-1.5 h-1 bg-brand-500 dark:bg-brand-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
- )}
- </Link>
-
- {/* Tab 5: Stock */}
- <Link
- href={getMobileTabUrl('store.inventory.index')}
- onMouseDown={() => startPress('stock')}
- onMouseUp={cancelPress}
- onMouseLeave={cancelPress}
- onTouchStart={() => startPress('stock')}
- onTouchEnd={cancelPress}
- onContextMenu={(e) => e.preventDefault()}
- onClick={handleLinkClick('stock', 'store.inventory.index')}
- className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-slow relative ${
- isStockActive
- ? 'text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/40 font-semibold scale-[1.03] shadow-sm border border-brand-100/30 dark:border-brand-900/30'
- : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
- }`}
- >
- <Box size={20} className={`transition-transform duration-slow ${isStockActive ? 'scale-110' : ''}`} />
- <span className="text-4xs sm:text-3xs font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Stock</span>
- {isStockActive && (
- <span className="absolute bottom-1 w-1.5 h-1 bg-brand-500 dark:bg-brand-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
- )}
- </Link>
- </div>
- </div>
- )}
-
- {/* Global Toast Notifications */}
+				{/* Global Toast Notifications */}
  <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
 
  {/* Global Style Injections for Mobile FABs Drawer */}

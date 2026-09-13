@@ -1,14 +1,14 @@
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 2062
+  phpunit_test_methods_total: 2064
   note: 'total = SUM of member test_methods (testX(), @test,'
 suites:
   -
     id: Feature
     path: tests/Feature
-    test_methods: 722
-    files: 118
+    test_methods: 724
+    files: 119
     members:
       -
         file: tests/Feature/ActivityLogTest.php
@@ -273,6 +273,10 @@ suites:
       -
         file: tests/Feature/Plan/ActivityLogWritesOnFreshInstallTest.php
         test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Plan/MobileNavCoverageTest.php
+        test_methods: 2
         oracle_tier: T1
       -
         file: tests/Feature/Plan/ReportingTiersTest.php
