@@ -10,9 +10,11 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Public Folder (relative for subdomain/staging safety)
+    # Ensure DirectoryIndex targets public/index.php
+    DirectoryIndex public/index.php index.php
+
+    # Send Requests To Public Folder (handles root and subpaths cleanly)
+    RewriteRule ^$ public/index.php [L]
     RewriteCond %{REQUEST_URI} !^/public/
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
