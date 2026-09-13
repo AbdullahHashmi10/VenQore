@@ -91,11 +91,11 @@ class HandleInertiaRequests extends Middleware
                         'has_password'      => !empty($user->attributes['password'] ?? null),
                     ]
                 ) : null,
-                'notifications' => $user ? \Illuminate\Support\Facades\Cache::remember("user_notifications:{$user->id}", 15, function () use ($user) {
-                    return $user->notifications()->latest()->take(5)->get();
+                'notifications' => ($user && $this->hasTable('notifications')) ? \Illuminate\Support\Facades\Cache::remember("user_notifications:{$user->id}", 15, function () use ($user) {
+                    return rescue(fn() => $user->notifications()->latest()->take(5)->get(), collect(), false);
                 }) : [],
-                'unread_notifications_count' => $user ? \Illuminate\Support\Facades\Cache::remember("user_unread_notifications_count:{$user->id}", 15, function () use ($user) {
-                    return $user->unreadNotifications()->count();
+                'unread_notifications_count' => ($user && $this->hasTable('notifications')) ? \Illuminate\Support\Facades\Cache::remember("user_unread_notifications_count:{$user->id}", 15, function () use ($user) {
+                    return rescue(fn() => $user->unreadNotifications()->count(), 0, false);
                 }) : 0,
                 // Drives StoreSwitcher show/hide in sidebar
                 'my_stores_count' => $user && $this->hasTable('tenant_users')

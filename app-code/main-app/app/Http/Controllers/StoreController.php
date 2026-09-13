@@ -45,10 +45,15 @@ class StoreController extends Controller
         $user = Auth::user();
 
         // Check if they have an available license to create a store
-        $availableLicense = StoreLicense::withoutTenantScope()
-            ->where('user_id', $user->id)
-            ->where('status', 'available')
-            ->first();
+        $availableLicense = rescue(function () use ($user) {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('store_licenses')) {
+                return null;
+            }
+            return StoreLicense::withoutTenantScope()
+                ->where('user_id', $user->id)
+                ->where('status', 'available')
+                ->first();
+        }, null, false);
 
         return Inertia::render('Store/CreateOrJoin', [
             'has_license'   => !is_null($availableLicense),
