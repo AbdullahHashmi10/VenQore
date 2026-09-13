@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # If monorepo layout exists
+    RewriteCond %{REQUEST_URI} !^/app-code/main-app/public/
+    RewriteCond %{DOCUMENT_ROOT}/app-code/main-app/public/index.php -f
+    RewriteRule ^(.*)$ app-code/main-app/public/$1 [L]
+
+    # If root public exists
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{DOCUMENT_ROOT}/public/index.php -f
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

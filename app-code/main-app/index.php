@@ -90,12 +90,10 @@ if (version_compare(phpversion(), '8.2.0', '<')) {
 </html>');
 }
 
-// Check if we're already in the public folder
-if (file_exists(__DIR__ . '/server.php')) {
-    // We're in root, redirect to public
+// Directly bootstrap Laravel from the public folder
+if (file_exists(__DIR__ . '/public/index.php')) {
     require_once __DIR__ . '/public/index.php';
 } else {
-    // We might be accessed from a subdirectory
-    header('Location: public/');
-    exit;
+    http_response_code(500);
+    echo "Cannot find public/index.php";
 }
