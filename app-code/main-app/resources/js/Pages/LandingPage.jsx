@@ -65,10 +65,10 @@ export default function LandingPage() {
                     }
                 }
 
-                if (wantsFluid) await loadScript('/v6/assets/fluid.js');
-                await loadScript('/v6/assets/venqore.js');
-                await loadScript('/v6/assets/venqore-landing.js');
-                await loadScript('/v6/assets/venqore-forms.js');
+                if (wantsFluid) await loadScript('/v6/assets/fluid.js?v=20260913_4');
+                await loadScript('/v6/assets/venqore.js?v=20260913_4');
+                await loadScript('/v6/assets/venqore-landing.js?v=20260913_4');
+                await loadScript('/v6/assets/venqore-forms.js?v=20260913_4');
                 
                 // Trigger scroll bus recalculation once loaded
                 window.dispatchEvent(new Event('resize'));
