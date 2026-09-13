@@ -313,12 +313,18 @@ class Appearance
         // <html> before the first paint — the exact flash these attributes exist
         // to prevent.
         $defaults = static::defaults();
+        $mode = $appearance['mode'] ?? $defaults['mode'] ?? 'light';
 
         $attributes = [
+            'data-theme' => $mode === 'dark' ? 'dark' : 'light',
             'data-vq-theme' => $appearance['theme'] ?? $defaults['theme'],
             'data-vq-density' => $appearance['density'] ?? $defaults['density'],
             'data-vq-radius' => $appearance['radius'] ?? $defaults['radius'],
         ];
+
+        if ($mode === 'dark') {
+            $attributes['class'] = 'dark';
+        }
 
         if (($appearance['font'] ?? 'theme') !== 'theme') {
             $attributes['data-vq-font'] = $appearance['font'];

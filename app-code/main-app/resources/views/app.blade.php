@@ -20,6 +20,23 @@
     @foreach($vqHtmlAttributes as $vqAttribute => $vqValue) {{ $vqAttribute }}="{{ $vqValue }}" @endforeach>
 
 <head>
+    <script>
+      /* Theme before paint — light default unless explicitly saved */
+      (function(){
+        try {
+          var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
+          if (saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.setAttribute('data-vq-theme', 'dark');
+            document.documentElement.classList.add('dark');
+          } else if (saved === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.setAttribute('data-vq-theme', 'light');
+            document.documentElement.classList.remove('dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
     {{--
       WEB-01 (2026-09-10): analytics obeys the cookie choice.
       - Nothing is loaded from Google until the visitor allows Analytics in the

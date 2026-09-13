@@ -26,9 +26,15 @@ const isExceptionPath = (pathname = '') => {
 };
 
 /** Has the visitor ever explicitly picked a theme? */
+const STORAGE_KEYS = ['amd_theme', 'vq-theme', 'vq_theme'];
+
 const readSavedTheme = () => {
     try {
-        return localStorage.getItem(STORAGE_KEY);
+        for (const key of STORAGE_KEYS) {
+            const val = localStorage.getItem(key);
+            if (val === 'dark' || val === 'light') return val;
+        }
+        return null;
     } catch (e) {
         return null; // private mode / storage disabled — fall back to defaults
     }
@@ -90,7 +96,8 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     /** Explicit user action — this is what gets remembered. */
     const persist = useCallback((dark) => {
         try {
-            localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light');
+            const val = dark ? 'dark' : 'light';
+            STORAGE_KEYS.forEach((key) => localStorage.setItem(key, val));
         } catch (e) { /* storage unavailable — session-only theme is fine */ }
     }, []);
 

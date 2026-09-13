@@ -35,7 +35,12 @@ if (-not $SkipBuild) {
         if ($LASTEXITCODE -ne 0) {
             throw "Vite build failed with exit code $LASTEXITCODE"
         }
-        php artisan ziggy:generate
+        $phpBin = "php"
+        if (-not (Get-Command "php" -ErrorAction SilentlyContinue)) {
+            $localPhp = "C:\Users\PC\AppData\Roaming\Local\lightning-services\php-8.2.23+0\bin\win64\php.exe"
+            if (Test-Path $localPhp) { $phpBin = $localPhp }
+        }
+        & $phpBin artisan ziggy:generate
     }
     finally {
         Pop-Location

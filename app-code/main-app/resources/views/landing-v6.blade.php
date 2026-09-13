@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
@@ -14,12 +14,13 @@
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/venqore.css">
 <script>
-/* Theme before paint — no flash. */
+/* Theme before paint — no flash. Light by default unless user explicitly chose dark. */
 (function(){
   try {
-    var saved = localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
+    var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
     if (!saved) saved = 'light';
     document.documentElement.setAttribute('data-theme', saved);
+    document.documentElement.setAttribute('data-vq-theme', saved);
     document.documentElement.classList.toggle('dark', saved === 'dark');
   } catch(e) {}
 })();

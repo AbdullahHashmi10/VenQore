@@ -143,7 +143,9 @@ export function applyAppearance(appearance = {}) {
         root.removeAttribute('data-vq-font');
     }
 
-    root.classList.toggle('dark', resolveDarkMode(settings.mode));
+    const isDark = resolveDarkMode(settings.mode);
+    root.classList.toggle('dark', isDark);
+    root.setAttribute('data-theme', isDark ? 'dark' : 'light');
 
     // Rebuilt wholesale — see the header for why patching leaks stale ramps.
     const overrides = buildOverrides(settings);
