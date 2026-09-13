@@ -131,8 +131,11 @@ class GoogleAuthController extends Controller
 
             return redirect()->route('hub');
 
-        } catch (\Exception $e) {
-            return redirect('/login')->withErrors(['email' => 'Google authentication failed. Please try again.']);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('[GoogleAuth] Callback error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect('/login')->withErrors(['email' => 'Google sign-in error: ' . $e->getMessage()]);
         }
     }
 }

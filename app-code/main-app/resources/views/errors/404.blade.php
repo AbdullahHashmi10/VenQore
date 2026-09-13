@@ -69,7 +69,7 @@
 
             <!-- Action Button -->
             <div class="mt-10">
-                <a href="/" class="group inline-flex h-control-lg items-center justify-center gap-3 rounded-lg bg-accent-fill px-6 font-semibold text-accent-on shadow-glow transition-colors duration-fast hover:bg-accent-fill-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+                <a href="/" class="group inline-flex h-control-lg items-center justify-center gap-3 rounded-lg bg-accent-fill px-6 font-semibold text-white shadow-glow transition-colors duration-fast hover:bg-accent-fill-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
                     <!-- Home Icon SVG -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="transition-transform duration-fast group-hover:-translate-x-1">
                         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
