@@ -44,6 +44,10 @@ return new class extends Migration
 
         $this->dropForeignIfExists('expenses', 'expenses_purchase_id_foreign');
 
+        if (DB::connection()->getDriverName() === 'mariadb') {
+            DB::statement('ALTER TABLE expenses MODIFY purchase_id UUID NULL');
+        }
+
         Schema::table('expenses', function (Blueprint $table) {
             $table->foreign('purchase_id', 'expenses_purchase_id_foreign')
                 ->references('id')->on('purchases')

@@ -14,7 +14,7 @@ return new class extends Migration
         if (!Schema::hasColumn('expenses', 'is_landed_cost')) {
             Schema::table('expenses', function (Blueprint $table) {
                 $table->boolean('is_landed_cost')->default(false)->after('amount');
-                $table->char('purchase_id', 36)->nullable()->after('is_landed_cost');
+                $table->uuid('purchase_id')->nullable()->after('is_landed_cost');
                 $table->string('allocation_method')->nullable()->after('purchase_id'); // value, quantity, manual
 
                 $table->foreign('purchase_id')->references('id')->on('invoices')->nullOnDelete();
