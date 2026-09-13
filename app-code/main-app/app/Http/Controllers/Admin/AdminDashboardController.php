@@ -182,13 +182,17 @@ class AdminDashboardController extends Controller
         })->values();
 
         // Filtered Volume (Volume within period) - Exclude demo stores
-        $volQuery = DB::table('sales')
-            ->join('tenants', 'sales.tenant_id', '=', 'tenants.id')
-            ->where('tenants.is_demo', false)
-            ->whereNull('sales.deleted_at');
-            
-        if ($dateLimit) $volQuery->where('sales.created_at', '>=', $dateLimit);
-        $totalVolume = (float)$volQuery->sum('sales.total');
+        $nonDemoTenantIds = $realTenants->pluck('id')->map(fn($id) => (string) $id)->all();
+        if (!empty($nonDemoTenantIds)) {
+            $volQuery = DB::table('sales')
+                ->whereIn('tenant_id', $nonDemoTenantIds)
+                ->whereNull('deleted_at');
+                
+            if ($dateLimit) $volQuery->where('created_at', '>=', $dateLimit);
+            $totalVolume = (float) ($volQuery->sum('total') ?? 0.0);
+        } else {
+            $totalVolume = 0.0;
+        }
 
         // Growth Rate (Signups vs previous period)
         $signupsLastMonth = $tenants

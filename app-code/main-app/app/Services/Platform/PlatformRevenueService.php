@@ -58,18 +58,26 @@ class PlatformRevenueService
     {
         $dateLimit = $this->dateLimit($period);
 
-        $q = DB::table('sales')
-            ->join('tenants', 'sales.tenant_id', '=', 'tenants.id')
-            ->where('tenants.is_demo', false)
-            ->where('tenants.is_internal', false)
-            ->whereNull('sales.deleted_at')
-            ->whereNull('tenants.deleted_at');
+        $tenantIds = Tenant::query()
+            ->where('is_demo', false)
+            ->where('is_internal', false)
+            ->pluck('id')
+            ->map(fn($id) => (string) $id)
+            ->all();
 
-        if ($dateLimit) {
-            $q->where('sales.created_at', '>=', $dateLimit);
+        if (empty($tenantIds)) {
+            return 0.0;
         }
 
-        return (float) $q->sum('sales.total');
+        $q = DB::table('sales')
+            ->whereIn('tenant_id', $tenantIds)
+            ->whereNull('deleted_at');
+
+        if ($dateLimit) {
+            $q->where('created_at', '>=', $dateLimit);
+        }
+
+        return (float) ($q->sum('total') ?? 0.0);
     }
 
     /**
