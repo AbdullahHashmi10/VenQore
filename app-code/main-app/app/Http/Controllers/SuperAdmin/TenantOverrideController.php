@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\TenantPlanOverride;
 use App\Services\PlanRepository;
 use App\Services\PlanChangeNotifier;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class TenantOverrideController extends Controller
@@ -41,19 +43,89 @@ class TenantOverrideController extends Controller
     {
         $planSlug = $tenant->effectivePlan();
         $isLtd = str_starts_with($planSlug, 'ltd');
-        $planLimits      = $isLtd ? PlanRepository::getLtdSnapshot($planSlug) : PlanRepository::getLimits($planSlug);
-        $effectiveLimits = [];
+        $planLimits = $isLtd ? PlanRepository::getLtdSnapshot($planSlug) : PlanRepository::getLimits($planSlug);
+        $canonicalKeys = PlanRepository::getCanonicalKeys();
 
-        foreach ($planLimits as $key => $planDefault) {
-            $override = $tenant->planOverrides()->where('override_key', $key)->active()->first();
+        // Union of all plan limits + any active overrides on this tenant
+        $activeOverridesMap = $tenant->planOverrides()->active()->get()->keyBy('override_key');
+        $allKeysToDisplay = array_values(array_unique(array_merge(array_keys($planLimits), $activeOverridesMap->keys()->toArray())));
+
+        $effectiveLimits = [];
+        foreach ($allKeysToDisplay as $key) {
+            $override = $activeOverridesMap->get($key);
+            $planDefault = $planLimits[$key] ?? null;
+            $effective = PlanRepository::getEffectiveLimit($tenant->id, $planSlug, $key);
+
+            // Determine if override drops below base plan default
+            $isBelow = false;
+            if ($override && $override->override_value !== null && $override->override_value !== '' && $planDefault !== null && $planDefault !== '') {
+                if (is_numeric($planDefault) && is_numeric($override->override_value)) {
+                    $isBelow = (float)$override->override_value < (float)$planDefault;
+                } elseif (($planDefault === '1' || $planDefault === true) && ($override->override_value === '0' || $override->override_value === 'false')) {
+                    $isBelow = true;
+                }
+            }
+
             $effectiveLimits[$key] = [
                 'plan_default' => $planDefault,
                 'override'     => $override?->override_value,
-                'effective'    => PlanRepository::getEffectiveLimit($tenant->id, $planSlug, $key),
+                'effective'    => $effective,
+                'is_below'     => $isBelow,
                 'expires_at'   => $override?->expires_at,
                 'reason'       => $override?->reason,
                 'applied_at'   => $override?->updated_at,
                 'override_id'  => $override?->id,
+            ];
+        }
+
+        // Available keys metadata for arbitrary key search & grant (F13)
+        $availableKeysMetadata = [];
+        foreach ($canonicalKeys as $ckey) {
+            $pDef = array_key_exists($ckey, $planLimits) ? $planLimits[$ckey] : null;
+            $availableKeysMetadata[$ckey] = [
+                'key'          => $ckey,
+                'plan_default' => $pDef,
+                'in_plan'      => array_key_exists($ckey, $planLimits),
+            ];
+        }
+
+        // Dynamic plans catalogue (F1)
+        $plans = Plan::whereNull('archived_at')->orderBy('sort_order')->get(['id', 'slug', 'name', 'display_name', 'is_ltd']);
+
+        // Add-ons catalogue & active grants (F8)
+        $pricingAddons = config('pricing.add_ons', []);
+        $addonEntitlements = config('addon_entitlements', []);
+        $addonsCatalogue = [];
+        foreach ($pricingAddons as $slug => $details) {
+            if (isset($addonEntitlements[$slug])) {
+                $addonsCatalogue[$slug] = array_merge($details, [
+                    'slug'         => $slug,
+                    'entitlements' => $addonEntitlements[$slug],
+                ]);
+            }
+        }
+
+        // Group active overrides created by add-ons
+        $activeAddonOverrides = $tenant->planOverrides()
+            ->active()
+            ->where('reason', 'like', 'add-on:%')
+            ->get();
+
+        $activeAddonsGrouped = [];
+        foreach ($activeAddonOverrides as $ov) {
+            $reason = $ov->reason;
+            if (!isset($activeAddonsGrouped[$reason])) {
+                $activeAddonsGrouped[$reason] = [
+                    'reason'     => $reason,
+                    'keys'       => [],
+                    'expires_at' => $ov->expires_at,
+                    'created_at' => $ov->created_at,
+                ];
+            }
+            $activeAddonsGrouped[$reason]['keys'][] = [
+                'key'   => $ov->override_key,
+                'value' => $ov->override_value,
+                'id'    => $ov->id,
             ];
         }
 
@@ -74,9 +146,13 @@ class TenantOverrideController extends Controller
                 'product_count' => $productCount,
                 'sales_count'   => $salesCount,
             ]),
-            'effective_limits' => $effectiveLimits,
-            'override_history' => $tenant->planOverrides()->orderByDesc('created_at')->get(),
-            'available_keys'   => array_keys($planLimits),
+            'effective_limits'        => $effectiveLimits,
+            'override_history'        => $tenant->planOverrides()->orderByDesc('created_at')->get(),
+            'available_keys'          => $canonicalKeys,
+            'available_keys_metadata' => $availableKeysMetadata,
+            'plans'                   => $plans,
+            'addons_catalogue'        => $addonsCatalogue,
+            'active_addons'           => array_values($activeAddonsGrouped),
         ]);
     }
 
@@ -85,9 +161,14 @@ class TenantOverrideController extends Controller
      */
     public function updateTenant(Request $request, Tenant $tenant)
     {
+        $allowedPlans = Plan::pluck('slug')
+            ->merge(['trial', 'solo', 'starter', 'core', 'scale', 'custom', 'growth', 'business', 'counter', 'ltd', 'ltd_1', 'ltd_2', 'ltd_3'])
+            ->unique()
+            ->toArray();
+
         $validated = $request->validate([
             'name'                  => 'sometimes|string|max:255',
-            'plan'                  => 'sometimes|string|in:trial,starter,growth,business,ltd,ltd_1,ltd_2,ltd_3',
+            'plan'                  => ['sometimes', 'string', Rule::in($allowedPlans)],
             'status'                => 'sometimes|string|in:trial,active,suspended,cancelled',
             'trial_ends_at'         => 'nullable|date',
             'subscription_ends_at'  => 'nullable|date',
@@ -112,12 +193,14 @@ class TenantOverrideController extends Controller
 
     /**
      * Apply a limit override to a tenant.
-     * This is the main action — triggers cache invalidation and optional notification.
+     * Triggers cache invalidation, below-plan checks, and optional notification.
      */
     public function apply(Request $request, Tenant $tenant)
     {
+        $canonicalKeys = PlanRepository::getCanonicalKeys();
+
         $validated = $request->validate([
-            'override_key'         => 'required|string|max:100',
+            'override_key'         => ['required', 'string', Rule::in($canonicalKeys)],
             'override_value'       => 'nullable|string|max:255',
             'reason'               => 'nullable|string|max:500',
             'expires_at'           => 'nullable|date|after:now',
@@ -129,6 +212,19 @@ class TenantOverrideController extends Controller
         $originalValue = PlanRepository::getEffectiveLimit(
             $tenant->id, $tenant->plan, $validated['override_key']
         );
+
+        // Check if override value is below base plan default
+        $planLimits = PlanRepository::getLimits($tenant->effectivePlan());
+        $planDefault = $planLimits[$validated['override_key']] ?? null;
+        $isBelowPlan = false;
+
+        if ($planDefault !== null && $validated['override_value'] !== null && $validated['override_value'] !== '') {
+            if (is_numeric($planDefault) && is_numeric($validated['override_value'])) {
+                $isBelowPlan = (float)$validated['override_value'] < (float)$planDefault;
+            } elseif (($planDefault === '1' || $planDefault === true) && ($validated['override_value'] === '0' || $validated['override_value'] === 'false')) {
+                $isBelowPlan = true;
+            }
+        }
 
         TenantPlanOverride::withoutTenantScope()->updateOrCreate(
             [
@@ -157,17 +253,106 @@ class TenantOverrideController extends Controller
             );
         }
 
-        return back()->with('success', "Override applied to \"{$tenant->name}\". Effective immediately.");
+        $successMessage = "Override applied to \"{$tenant->name}\". Effective immediately.";
+        if ($isBelowPlan) {
+            $successMessage .= " Note: this override is below the base plan default ({$planDefault}).";
+        }
+
+        return back()->with('success', $successMessage);
+    }
+
+    /**
+     * Grant an add-on package in one atomic transaction (F8).
+     */
+    public function grantAddon(Request $request, Tenant $tenant)
+    {
+        $entitlements = config('addon_entitlements', []);
+
+        $validated = $request->validate([
+            'addon_slug' => ['required', 'string', Rule::in(array_keys($entitlements))],
+            'quantity'   => 'required|integer|min:1|max:1000',
+            'expires_at' => 'nullable|date|after:now',
+            'reason'     => 'nullable|string|max:255',
+        ]);
+
+        $addonSlug = $validated['addon_slug'];
+        $qty = (int) $validated['quantity'];
+        $keys = $entitlements[$addonSlug] ?? [];
+        $planSlug = $tenant->effectivePlan();
+
+        $reasonTag = "add-on: {$addonSlug} x{$qty}";
+        if (!empty($validated['reason'])) {
+            $reasonTag .= " — {$validated['reason']}";
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($tenant, $planSlug, $keys, $qty, $reasonTag, $validated) {
+            foreach ($keys as $key => $grant) {
+                $isAdditive = str_starts_with($key, '+');
+                $cleanKey = $isAdditive ? substr($key, 1) : $key;
+
+                if ($isAdditive) {
+                    $currentEffective = PlanRepository::getEffectiveLimit($tenant->id, $planSlug, $cleanKey);
+                    $base = (is_numeric($currentEffective) && (int)$currentEffective > 0) ? (int)$currentEffective : 0;
+                    $step = (int)$grant;
+                    $newValue = (string)($base + ($qty * $step));
+                } else {
+                    $newValue = (string)$grant;
+                }
+
+                $originalValue = PlanRepository::getEffectiveLimit($tenant->id, $planSlug, $cleanKey);
+
+                TenantPlanOverride::withoutTenantScope()->updateOrCreate(
+                    [
+                        'tenant_id'    => $tenant->id,
+                        'override_key' => $cleanKey,
+                    ],
+                    [
+                        'override_value' => $newValue,
+                        'original_value' => (string)$originalValue,
+                        'reason'         => $reasonTag,
+                        'applied_by'     => auth()->id(),
+                        'expires_at'     => $validated['expires_at'] ?? null,
+                    ]
+                );
+            }
+        });
+
+        PlanRepository::invalidateTenantCache($tenant->id);
+
+        return back()->with('success', "Add-on \"{$addonSlug}\" (x{$qty}) granted to {$tenant->name}.");
+    }
+
+    /**
+     * Revoke an add-on unit, removing all matching overrides (F8).
+     */
+    public function revokeAddon(Request $request, Tenant $tenant)
+    {
+        $validated = $request->validate([
+            'addon_reason' => 'required|string',
+        ]);
+
+        $deletedCount = TenantPlanOverride::withoutTenantScope()
+            ->where('tenant_id', $tenant->id)
+            ->where('reason', $validated['addon_reason'])
+            ->delete();
+
+        PlanRepository::invalidateTenantCache($tenant->id);
+
+        return back()->with('success', "Add-on revoked ({$deletedCount} limits restored to base plan defaults).");
     }
 
     /**
      * Remove a specific override — tenant reverts to plan default.
+     * Enforces tenant ownership check (F11).
      */
     public function remove(Tenant $tenant, TenantPlanOverride $override)
     {
+        abort_unless($override->tenant_id === $tenant->id, 404, 'Override does not belong to this tenant.');
+
         $override->delete();
         PlanRepository::invalidateTenantCache($tenant->id);
 
         return back()->with('success', "Override removed. \"{$tenant->name}\" now uses the plan default.");
     }
 }
+

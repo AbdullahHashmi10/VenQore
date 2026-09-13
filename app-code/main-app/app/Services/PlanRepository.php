@@ -287,8 +287,31 @@ class PlanRepository
             'locations'              => $tenant->getLimit('locations'),
             'ai_credits_monthly'     => $tenant->getLimit('ai_credits_monthly'),
             'ai_pages_limit'         => $tenant->getLimit('ai_pages_limit'),
-            'ai_queries_limit'       => $tenant->getLimit('ai_queries_limit'),
             'transactions_per_month' => $tenant->getLimit('transactions_per_month'),
         ];
+    }
+
+    /**
+     * Get all canonical feature keys (union of seeded matrix keys and DB keys).
+     */
+    public static function getCanonicalKeys(): array
+    {
+        return Cache::remember('all_canonical_feature_keys', 3600, function () {
+            $matrixKeys = array_keys(\Database\Seeders\PlanFeatureMatrixSeeder::getMatrix());
+            $dbKeys = [];
+            try {
+                $dbKeys = \Illuminate\Support\Facades\DB::table('plan_limits')->distinct()->pluck('key')->toArray();
+            } catch (\Throwable) {}
+
+            return array_values(array_unique(array_merge($matrixKeys, $dbKeys)));
+        });
+    }
+
+    /**
+     * Helper for reset period (F9).
+     */
+    public static function getResetPeriod(string $key): string
+    {
+        return in_array($key, ['transactions_per_month', 'service_jobs_per_month', 'ai_credits_monthly'], true) ? 'monthly' : 'never';
     }
 }

@@ -723,8 +723,6 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
         // ── Webhook Logs ──────────────────────────────────────────────────
         Route::get('/webhooks',                             [\App\Http\Controllers\Admin\SupportController::class, 'webhooks'])->name('webhooks');
 
-        // ── Feature Flags (per-store overrides) ───────────────────────────
-        Route::post('/stores/{tenant}/feature-flag',        [\App\Http\Controllers\Admin\SupportController::class, 'toggleFeatureFlag'])->name('store.feature-flag');
 
         // ── System Health & Monitoring ────────────────────────────────────
         Route::get('/health/check',                          [\App\Http\Controllers\Admin\HealthCheckController::class, 'check'])->name('health.check');
@@ -804,13 +802,18 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
         });
 
         // ── Monetization — Tenant Overrides ───────────────────────────────
-        Route::prefix('tenant-overrides')->name('tenants.')->group(function () {
+        Route::prefix('tenant-overrides')->name('tenants.')->scopeBindings()->group(function () {
             Route::get('/',              [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'index'])->name('overrides');
             Route::get('/{tenant}',      [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'show'])->name('overrides.show');
             Route::patch('/{tenant}',    [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'updateTenant'])->name('overrides.update');
             Route::post('/{tenant}',     [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'apply'])->name('overrides.apply');
+            Route::post('/{tenant}/grant-addon',  [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'grantAddon'])->name('overrides.grant-addon');
+            Route::post('/{tenant}/revoke-addon', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'revokeAddon'])->name('overrides.revoke-addon');
             Route::delete('/{tenant}/{override}', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'remove'])->name('overrides.remove');
         });
+
+        // ── Monetization — AI Usage & Cost Dashboard ──────────────────────
+        Route::get('/ai-usage', [\App\Http\Controllers\SuperAdmin\AiCostController::class, 'index'])->name('ai-usage.index');
 
         // ── PK Verifications (T3.7) ────────────────────────────────────────
         Route::post('/pk-verifications/{verification}/approve',        [\App\Http\Controllers\Admin\PkVerificationController::class, 'approve'])->name('pk-verifications.approve');
@@ -2022,6 +2025,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/profile/verify-security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'verifySecurityPin'])->name('profile.verify-security-pin');
     Route::post('/profile/verify-elevated-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'verifyElevatedPin'])->name('profile.verify-elevated-pin');
     Route::get('/profile/store-members', [\App\Http\Controllers\ProfileSecurityController::class, 'storeMembers'])->name('profile.store-members');
+    Route::get('/ai-usage', [\App\Http\Controllers\AiUsageController::class, 'index'])->name('ai-usage.index');
     // ============================================
     // NEW FEATURES ROUTES (Returns, StockOps, etc)
     // ============================================

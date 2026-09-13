@@ -1,1912 +1,2627 @@
 import { normalizePlan } from '@/lib/plans';
+
 /**
- * VenQore Feature Matrix — Complete 240+ Feature Definitions
+ * VenQore Feature Matrix — Canonical 227 Feature Definitions (V11 Architecture)
  *
- * Groups map to the 9 sections of VENQORE_FEATURE_SPECTRUM.md
- * plus 2 extra groups for AI extras and Live Chat (from pricing files).
- *
- * Feature types:
- *   boolean — toggle on / off per plan
- *   number  — numeric limit (blank = unlimited)
- *   select  — choose from a fixed set of string values
- *
- * Keys MUST match the string used in PlanGate::check() / Tenant::getLimit()
- * when you add server-side enforcement. Infrastructure features (always-on)
- * are still listed so you have a complete audit-ready record.
+ * Synchronized with Database\Seeders\PlanFeatureMatrixSeeder.php.
+ * Ghost Appendix A keys removed; canonical Appendix B keys registered.
  */
 
 export const FEATURE_GROUPS = [
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 1 — Onboarding, Setup & First Impression  (Features 1–20)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'onboarding', emoji: '🚀', label: 'Onboarding & First Impression',
-        description: 'Landing page, trial, instant setup, and platform presence features.',
+        id: "onboarding",
+        emoji: "\ud83d\ude80",
+        label: "Onboarding & First Impression",
+        description: "Landing page, trial, instant setup, and platform presence features.",
         features: [
-            { key: 'demo_store',              label: '#1 · Interactive Demo Store',            type: 'boolean', note: 'One-click demo launch from landing page' },
-            { key: 'free_trial_days',         label: '#2 · Free Trial Days',                   type: 'number',  note: 'Blank = no trial; 14 = two-week trial' },
-            { key: 'instant_store_creator',   label: '#3 · Instant Store Creator (Name Only)', type: 'boolean', note: 'Infrastructure — normally always enabled' },
-            { key: 'industry_seeding',        label: '#4 · Smart Industry Archetype Seeding',  type: 'boolean' },
-            { key: 'dark_theme',              label: '#5 · "Midnight Nebula" Dark Theme',       type: 'boolean' },
-            { key: 'light_theme',             label: '#6 · Harmonious Light Theme',            type: 'boolean' },
-            { key: 'multi_store_hub',         label: '#7 · Multi-Store Hub Dashboard',         type: 'boolean' },
-            { key: 'multi_store_roles',       label: '#8 · Granular Multi-Store User Roles',   type: 'boolean' },
-            { key: 'cashier_pin_login',       label: '#9 · Instant Cashier PIN Login',         type: 'boolean' },
-            { key: 'device_adaptive',         label: '#10 · Device-Adaptive Layouts',          type: 'boolean' },
-            { key: 'pwa_install',             label: '#11 · Web App / PWA Install',            type: 'boolean' },
-            { key: 'guided_setup_tour',       label: '#12 · Self-Guiding Setup Tour',          type: 'boolean' },
-            { key: 'coupon_stacking',         label: '#13 · Flexible Coupon Code Stacking',    type: 'boolean' },
-            { key: 'platform_status_badge',   label: '#14 · Platform Live Status Badge',       type: 'boolean' },
-            { key: 'system_cache_refresher',  label: '#15 · System Cache Refresher',           type: 'boolean' },
-            { key: 'owner_profile_card',      label: '#16 · Owner Profile Card',               type: 'boolean' },
-            { key: 'one_click_system_wipe',   label: '#17 · One-Click System Wipe',            type: 'boolean' },
-            { key: 'smtp_mail',               label: '#18 · Custom SMTP Mail Server',          type: 'boolean' },
-            { key: 'sms_gateway',             label: '#19 · SMS Gateway Integrations',         type: 'boolean' },
-            { key: 'security_activity_log',   label: '#20 · Security Activity Log',            type: 'boolean' },
+            {"key":"demo_store","label":"Interactive Demo Store","type":"system","note":"Infrastructure \u2014 demo store toggle"},
+            {"key":"free_trial_days","label":"Free Trial Days","type":"number","note":"Blank = 0 days; 14 = 14-day trial"},
+            {"key":"instant_store_creator","label":"Instant Store Creator","type":"system","note":"Infrastructure \u2014 store creation engine"},
+            {"key":"industry_seeding","label":"Smart Industry Archetype Seeding","type":"boolean"},
+            {"key":"dark_theme","label":"\"Midnight Nebula\" Dark Theme","type":"boolean"},
+            {"key":"light_theme","label":"Harmonious Light Theme","type":"boolean"},
+            {"key":"multi_store_hub","label":"Multi-Store Hub Dashboard","type":"boolean"},
+            {"key":"multi_store_roles","label":"Granular Multi-Store User Roles","type":"boolean"},
+            {"key":"cashier_pin_login","label":"Instant Cashier PIN Login","type":"boolean"},
+            {"key":"device_adaptive","label":"Device-Adaptive Layouts","type":"boolean"},
+            {"key":"pwa_install","label":"Web App \/ PWA Install","type":"system"},
+            {"key":"guided_setup_tour","label":"Self-Guiding Setup Tour","type":"boolean"},
+            {"key":"coupon_stacking","label":"Flexible Coupon Code Stacking","type":"boolean"},
+            {"key":"platform_status_badge","label":"Platform Live Status Badge","type":"boolean"},
+            {"key":"system_cache_refresher","label":"System Cache Refresher","type":"boolean"},
+            {"key":"owner_profile_card","label":"Owner Profile Card","type":"boolean"},
+            {"key":"one_click_system_wipe","label":"One-Click System Wipe","type":"boolean"},
+            {"key":"smtp_mail","label":"Custom SMTP Mail Server","type":"boolean"},
+            {"key":"sms_gateway","label":"SMS Gateway Integrations","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 2 — POS Supercharged Checkout  (Features 21–55)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'pos', emoji: '🛒', label: 'POS & Supercharged Checkout',
-        description: 'Checkout terminal, scanner, printing, and payment features.',
+        id: "core_limits",
+        emoji: "\u26a1",
+        label: "Core Limits & Quotas",
+        description: "Commercial scale fences, SKU capacity, staff seats, locations and register hardware.",
         features: [
-            { key: 'barcode_scanner',            label: '#21 · Instant Barcode Scanner Integration',     type: 'boolean' },
-            { key: 'imei_scanner',               label: '#22 · Unique Serial & IMEI Scanner',            type: 'boolean' },
-            { key: 'keyboard_hotkeys',           label: '#23 · High-Speed Keyboard-First Checkout',      type: 'boolean' },
-            { key: 'senior_mode',                label: '#24 · Accessibility "Senior Mode" Toggle',      type: 'boolean' },
-            { key: 'high_contrast_colors',       label: '#25 · High-Contrast Price/Qty Color Coding',    type: 'boolean' },
-            { key: 'profit_peek',                label: '#26 · Secret Owner "Profit Peek" Swipe',        type: 'boolean' },
-            { key: 'cart_tabs_limit',            label: '#27 · Multi-Tab Customer Checkout',             type: 'number',  note: 'Max parallel cart tabs (blank = unlimited)' },
-            { key: 'park_recall',                label: '#28 · Park & Recall (Hold Bill)',               type: 'boolean' },
-            { key: 'inflight_product_creation',  label: '#29 · In-Flight Product Creation',              type: 'boolean' },
-            { key: 'cart_session_protection',    label: '#30 · Cart Rescue & Session Protection',        type: 'boolean' },
-            { key: 'contextual_qty_modifiers',   label: '#31 · Contextual Quantity Modifiers',           type: 'boolean' },
-            { key: 'auto_customer_discounts',    label: '#32 · Auto-Applying Customer Discounts',        type: 'boolean' },
-            { key: 'fuzzy_product_finder',       label: '#33 · Typo Fuzzy Finder (Product Search)',      type: 'boolean' },
-            { key: 'auto_cash_rounding',         label: '#34 · Automatic Cash Rounding',                 type: 'boolean' },
-            { key: 'split_payments',             label: '#35 · Multi-Account Split Payments',            type: 'boolean' },
-            { key: 'daily_cash_audit',           label: '#36 · Daily Cash Register Audit',               type: 'boolean' },
-            { key: 'silent_webusb_printing',     label: '#37 · Silent WebUSB Thermal Printing',          type: 'boolean' },
-            { key: 'receipt_cutline_padding',    label: '#38 · Receipt Cut-Line Padding',                type: 'boolean' },
-            { key: 'custom_thermal_widths',      label: '#39 · Custom Thermal Roll Widths (80/58mm)',    type: 'boolean' },
-            { key: 'dynamic_accent_colors',      label: '#40 · Dynamic Accent Colors on Docs',           type: 'boolean' },
-            { key: 'invoice_column_toggles',     label: '#41 · Column Toggles on Invoices',              type: 'boolean' },
-            { key: 'amount_to_words',            label: '#42 · Dynamic Amount-to-Words Translation',     type: 'boolean' },
-            { key: 'receipt_qr_code',            label: '#43 · Verification QR Code Generation',         type: 'boolean' },
-            { key: 'branded_receipt_sync',       label: '#44 · Branded Receipt Sync (Logo/Header)',      type: 'boolean' },
-            { key: 'auto_assembly_checkout',     label: '#45 · Auto-Assembly Composite Items at POS',    type: 'boolean' },
-            { key: 'pos_negative_stock_alert',   label: '#46 · POS Negative Stock Alert Badge',          type: 'boolean' },
-            { key: 'negative_stock_lock',        label: '#47 · Negative Stock Sales Lock',               type: 'boolean' },
-            { key: 'service_fee_additions',      label: '#48 · Dynamic Service Fee Additions',           type: 'boolean' },
-            { key: 'auto_vat_gst',               label: '#49 · Automatic VAT/GST Calculations',          type: 'boolean' },
-            { key: 'custom_charge_toggle',       label: '#50 · Quick Custom Charge Toggle',              type: 'boolean' },
-            { key: 'fuzzy_customer_lookup',      label: '#51 · Fuzzy Customer Name Lookup',              type: 'boolean' },
-            { key: 'recent_invoices_panel',      label: '#52 · Recent Invoices List (Last 50)',           type: 'boolean' },
-            { key: 'cashier_change_helper',      label: '#53 · Cashier Change Helper',                   type: 'boolean' },
-            { key: 'barcode_label_print',        label: '#54 · Barcode Label Printing Factory',          type: 'boolean' },
-            { key: 'label_qr_codes',             label: '#55 · Dynamic Label QR Codes',                  type: 'boolean' },
+            {"key":"sku_limit","label":"Product Catalogue Limit (SKUs)","type":"number","note":"500 Solo \u00b7 5k Starter \u00b7 25k Core \u00b7 250k Scale"},
+            {"key":"staff_limit","label":"Full Staff Seats","type":"number","note":"1 Solo \u00b7 1 Starter \u00b7 5 Core \u00b7 25 Scale"},
+            {"key":"locations","label":"Store Locations \/ Warehouses","type":"number","note":"1 Solo\/Starter\/Core \u00b7 10 Scale"},
+            {"key":"location_limit","label":"Location Limit Alias","type":"number","note":"Enforced secondary location gate"},
+            {"key":"registers","label":"Register Terminals (POS)","type":"number","note":"1 Solo \u00b7 2 Starter \u00b7 6 Core \u00b7 20 Scale"},
+            {"key":"till_logins","label":"Till PIN Logins","type":"number","note":"2 on Solo \u00b7 Unlimited on paid"},
+            {"key":"devices_per_seat","label":"Hardware Devices per Seat","type":"number","note":"2 Solo \u00b7 3 Starter\/Core \u00b7 5 Scale"},
+            {"key":"visible_history_days","label":"Visible History Days","type":"number","note":"30 days on Solo \u00b7 Unlimited on paid"},
+            {"key":"transactions_per_month","label":"Monthly Transactions Limit","type":"number","note":"100 on Solo \u00b7 Unlimited on paid"},
+            {"key":"service_jobs_per_month","label":"Monthly Service Jobs","type":"number","note":"20 on Solo \u00b7 Unlimited on paid"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 3 — Invoicing, Customer Khata & Receivables  (Features 56–90)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'invoicing', emoji: '🧾', label: 'Invoicing, Khata & Receivables',
-        description: 'Customer credit tracking, invoicing, loyalty, and debt collection.',
+        id: "security",
+        emoji: "\ud83d\udee1\ufe0f",
+        label: "Security, Audit & Granular Roles",
+        description: "Activity logs, tamper-evident audit trails, and granular RBAC roles.",
         features: [
-            { key: 'customer_khata',             label: '#56 · Customer Credit Registry (Khata)',        type: 'boolean' },
-            { key: 'customer_payments_log',      label: '#57 · Customer Payments Log',                   type: 'boolean' },
-            { key: 'customer_statements',        label: '#58 · Customer Statement Generator (PDF)',       type: 'boolean' },
-            { key: 'aged_receivables',           label: '#59 · Aged Receivables / Sales Aging Report',   type: 'boolean' },
-            { key: 'whatsapp_reminders',         label: '#60 · Dynamic WhatsApp Debt Reminders',         type: 'boolean' },
-            { key: 'sms_debt_alerts',            label: '#61 · Frictionless SMS Debt Alerts',            type: 'boolean' },
-            { key: 'credit_limit_rules',         label: '#62 · Credit Limit Rules',                      type: 'boolean' },
-            { key: 'multi_payment_invoices',     label: '#63 · Multi-Payment Invoices (Partial)',        type: 'boolean' },
-            { key: 'customer_payment_alloc',     label: '#64 · Customer Payment Allocations',            type: 'boolean' },
-            { key: 'anniversary_tracker',        label: '#65 · Customer Birth & Anniversary Tracker',    type: 'boolean' },
-            { key: 'customer_ltv_score',         label: '#66 · Customer Lifetime Value Score',           type: 'boolean' },
-            { key: 'customer_wallet',            label: '#67 · Customer Wallet Credit',                  type: 'boolean' },
-            { key: 'loyalty_points',             label: '#68 · Loyalty Points System',                   type: 'boolean' },
-            { key: 'digital_gift_cards',         label: '#69 · Digital Gift Cards',                      type: 'boolean' },
-            { key: 'wholesale_pricing',          label: '#70 · Wholesale vs Retail Pricing Tiers',       type: 'boolean' },
-            { key: 'b2b_proposal_builder',       label: '#71 · B2B Proposal Builder',                    type: 'boolean' },
-            { key: 'quotation_conversion',       label: '#72 · One-Click Quotation Conversion',          type: 'boolean' },
-            { key: 'inflight_session_recovery',  label: '#73 · In-Flight Session Recovery',              type: 'boolean' },
-            { key: 'tax_inclusive_exclusive',    label: '#74 · Invoiced Tax Inclusive/Exclusive Toggle', type: 'boolean' },
-            { key: 'b2b_margin_displayer',       label: '#75 · B2B Invoice Margin Displayer',            type: 'boolean' },
-            { key: 'sales_return_vouchers',      label: '#76 · Sales Return Vouchers',                   type: 'boolean' },
-            { key: 'b2b_invoice_designer',       label: '#77 · Interactive B2B Invoice Designer',        type: 'boolean' },
-            { key: 'pre_sales_reservation',      label: '#78 · Pre-Sales Reservation Mode',              type: 'boolean' },
-            { key: 'recurring_invoicing',        label: '#79 · Automated Recurring Invoicing',           type: 'boolean' },
-            { key: 'refund_reason_analysis',     label: '#80 · Refund Reason Analysis',                  type: 'boolean' },
-            { key: 'tax_exempt_customers',       label: '#81 · Tax-Exempt Customer Toggles',             type: 'boolean' },
-            { key: 'customer_address_book',      label: '#82 · Customer Address Book',                   type: 'boolean' },
-            { key: 'a4_invoice_pdf',             label: '#83 · A4 Corporate Invoice Export',             type: 'boolean' },
-            { key: 'letter_size_invoice',        label: '#84 · Letter-Size Invoice Format',              type: 'boolean' },
-            { key: 'outstanding_balance_grid',   label: '#85 · Detailed Outstanding Balance Grid',       type: 'boolean' },
-            { key: 'payment_due_dates',          label: '#86 · Customer Payment Due Dates',              type: 'boolean' },
-            { key: 'overdue_highlights',         label: '#87 · Overdue Customer Highlights (Red)',       type: 'boolean' },
-            { key: 'lump_sum_payments',          label: '#88 · Lump-Sum Customer Payments',              type: 'boolean' },
-            { key: 'partial_payment_indicator',  label: '#89 · Partial Payment Indicator Badge',         type: 'boolean' },
-            { key: 'unified_party_ledger',       label: '#90 · Unified Party Ledger',                    type: 'boolean' },
+            {"key":"security_activity_log","label":"Security Activity Log","type":"boolean","note":"Audit log of staff & login actions"},
+            {"key":"audit_trail","label":"Immutable Audit Trail","type":"boolean","note":"Financial and inventory mutation audit log"},
+            {"key":"custom_roles","label":"Granular Custom Roles & Permissions","type":"boolean","note":"Create bespoke permission sets"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 4 — Procurement, Suppliers & Payables  (Features 91–115)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'procurement', emoji: '📦', label: 'Procurement & Suppliers',
-        description: 'Vendor management, purchase orders, payables, and supplier tracking.',
+        id: "pos",
+        emoji: "\ud83d\uded2",
+        label: "POS & Supercharged Checkout",
+        description: "Checkout terminal, scanner, printing, and payment features.",
         features: [
-            { key: 'supplier_khata',             label: '#91 · Supplier Credit Register (Khata)',        type: 'boolean' },
-            { key: 'delayed_supplier_payments',  label: '#92 · Delayed Supplier Payments',               type: 'boolean' },
-            { key: 'supplier_statements',        label: '#93 · Supplier Statement Generator (PDF)',       type: 'boolean' },
-            { key: 'aged_payables',              label: '#94 · Aged Payables Directory',                 type: 'boolean' },
-            { key: 'installment_payments',       label: '#95 · Installment Payments Log',                type: 'boolean' },
-            { key: 'purchase_orders',            label: '#96 · Purchase Orders (POs) Tracker',           type: 'boolean' },
-            { key: 'partial_shipments',          label: '#97 · Partial Shipments Intake',                type: 'boolean' },
-            { key: 'supplier_debit_notes',       label: '#98 · Supplier Debit Notes',                    type: 'boolean' },
-            { key: 'auto_cost_adjuster',         label: '#99 · Automated Cost Price Adjuster',           type: 'boolean' },
-            { key: 'cost_price_fluctuator',      label: '#100 · Cost Price Fluctuator Alert',            type: 'boolean' },
-            { key: 'supplier_lead_time',         label: '#101 · Supplier Lead Time Tracker',             type: 'boolean' },
-            { key: 'landing_costs',              label: '#102 · Landing Cost Allocations',               type: 'boolean' },
-            { key: 'suppliers_directory',        label: '#103 · Suppliers Directory',                    type: 'boolean' },
-            { key: 'supplier_sku_mapping',       label: '#104 · Supplier SKU Mapping',                   type: 'boolean' },
-            { key: 'inbound_expiry_tracking',    label: '#105 · Inbound Expiry Date Tracking',           type: 'boolean' },
-            { key: 'purchase_returns',           label: '#106 · Purchase Returns Register',              type: 'boolean' },
-            { key: 'auto_po_generation',         label: '#107 · Auto-Generating Purchase Orders',        type: 'boolean' },
-            { key: 'bulk_supplier_payments',     label: '#108 · Bulk Supplier Payments',                 type: 'boolean' },
-            { key: 'payables_grid',              label: '#109 · Outstanding Payables Grid',              type: 'boolean' },
-            { key: 'reconciled_bank_payments',   label: '#110 · Reconciled Bank Payments',               type: 'boolean' },
-            { key: 'tax_inclusive_procurement',  label: '#111 · Tax-Inclusive Procurement Toggle',       type: 'boolean' },
-            { key: 'supplier_outstanding_alerts',label: '#112 · Supplier Outstanding Alerts',            type: 'boolean' },
-            { key: 'supplier_refund_tracker',    label: '#113 · Supplier Refund Tracker',                type: 'boolean' },
-            { key: 'custom_payment_terms',       label: '#114 · Custom Supplier Payment Terms',          type: 'boolean' },
-            { key: 'purchase_pdf_upload',        label: '#115 · Purchase Invoice PDF Importer',          type: 'boolean' },
+            {"key":"pos","label":"POS Terminal Module","type":"boolean","note":"Core point-of-sale interface"},
+            {"key":"barcode_scanner","label":"Instant Barcode Scanner Integration","type":"boolean"},
+            {"key":"imei_scanner","label":"Unique Serial & IMEI Scanner","type":"boolean"},
+            {"key":"serial_tracking","label":"Serial Number Tracking","type":"boolean","note":"Per-item serial lifecycle tracking"},
+            {"key":"keyboard_hotkeys","label":"High-Speed Keyboard-First Checkout","type":"boolean"},
+            {"key":"senior_mode","label":"Accessibility \"Senior Mode\" Toggle","type":"boolean"},
+            {"key":"high_contrast_colors","label":"High-Contrast Price\/Qty Color Coding","type":"boolean"},
+            {"key":"profit_peek","label":"Owner \"Profit Peek\" Swipe","type":"boolean"},
+            {"key":"cart_tabs_limit","label":"Multi-Tab Customer Checkout","type":"number","note":"Max parallel cart tabs"},
+            {"key":"park_recall","label":"Park & Recall (Hold Bill)","type":"boolean"},
+            {"key":"inflight_product_creation","label":"In-Flight Product Creation","type":"boolean"},
+            {"key":"cart_session_protection","label":"Cart Rescue & Session Protection","type":"boolean"},
+            {"key":"contextual_qty_modifiers","label":"Contextual Quantity Modifiers","type":"boolean"},
+            {"key":"auto_customer_discounts","label":"Automatic Customer Discounts","type":"boolean"},
+            {"key":"fuzzy_product_finder","label":"Typo Fuzzy Finder (Product Search)","type":"boolean"},
+            {"key":"auto_cash_rounding","label":"Automatic Cash Rounding","type":"boolean"},
+            {"key":"split_payments","label":"Multi-Account Split Payments","type":"boolean"},
+            {"key":"daily_cash_audit","label":"Daily Cash Register Audit","type":"boolean"},
+            {"key":"silent_webusb_printing","label":"Silent WebUSB Thermal Printing","type":"boolean"},
+            {"key":"receipt_cutline_padding","label":"Receipt Cut-Line Padding","type":"boolean"},
+            {"key":"custom_thermal_widths","label":"Custom Thermal Roll Widths (80\/58mm)","type":"boolean"},
+            {"key":"dynamic_accent_colors","label":"Dynamic Accent Colors on Docs","type":"boolean"},
+            {"key":"invoice_column_toggles","label":"Column Toggles on Invoices","type":"boolean"},
+            {"key":"amount_to_words","label":"Dynamic Amount-to-Words Translation","type":"boolean"},
+            {"key":"receipt_qr_code","label":"Verification QR Code Generation","type":"boolean"},
+            {"key":"branded_receipt_sync","label":"Branded Receipt Sync (Logo\/Header)","type":"boolean"},
+            {"key":"pos_negative_stock_alert","label":"POS Negative Stock Alert Badge","type":"boolean"},
+            {"key":"negative_stock_lock","label":"Negative Stock Sales Lock","type":"boolean"},
+            {"key":"service_fee_additions","label":"Dynamic Service Fee Additions","type":"boolean"},
+            {"key":"auto_vat_gst","label":"Automatic VAT\/GST Calculations","type":"boolean"},
+            {"key":"custom_charge_toggle","label":"Quick Custom Charge Toggle","type":"boolean"},
+            {"key":"fuzzy_customer_lookup","label":"Fuzzy Customer Name Lookup","type":"boolean"},
+            {"key":"recent_invoices_panel","label":"Recent Invoices List","type":"boolean"},
+            {"key":"cashier_change_helper","label":"Cashier Change Helper","type":"boolean"},
+            {"key":"barcode_label_print","label":"Barcode Label Printing Factory","type":"boolean"},
+            {"key":"label_qr_codes","label":"Dynamic Label QR Codes","type":"boolean"},
+            {"key":"barcode_label_factory","label":"Custom Label Designer Factory","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 5 — Inventory, Barcode & Multi-Warehouse  (Features 116–135)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'inventory', emoji: '🏭', label: 'Inventory & Multi-Warehouse',
-        description: 'Stock management, batches, variants, BOM, and warehouse isolation.',
+        id: "invoicing",
+        emoji: "\ud83e\uddfe",
+        label: "Invoicing, Customer Khata & Receivables",
+        description: "Customer credit tracking, invoicing, loyalty, and debt collection.",
         features: [
-            { key: 'locations',                  label: '#116 · Multi-Warehouse Isolation',              type: 'number',  note: 'Number of warehouses allowed (blank = unlimited)' },
-            { key: 'stock_transfer',             label: '#117 · Stock Transfer Vouchers',                type: 'boolean' },
-            { key: 'product_variants',           label: '#118 · Product Variant Support',                type: 'boolean' },
-            { key: 'fifo_costing',               label: '#119 · Variant-Aware FIFO Costing',             type: 'boolean' },
-            { key: 'barcode_label_factory',      label: '#120 · Barcode Label Print Factory (Inventory)',type: 'boolean' },
-            { key: 'batch_tracking',             label: '#121 · Batch Intake Numbers Tracker',           type: 'boolean' },
-            { key: 'batch_expiry',               label: '#122 · Batch Expiry Warnings',                  type: 'boolean' },
-            { key: 'stock_take_audit',           label: '#123 · Stock Take Audit Wizard',                type: 'boolean' },
-            { key: 'disaster_claim',             label: '#124 · Disaster Claim Asset Manager',           type: 'boolean' },
-            { key: 'bill_of_materials',          label: '#125 · Bill of Materials (BOM) Recipes',        type: 'boolean' },
-            { key: 'auto_assembly_logic',        label: '#126 · "Garam Masala" Auto-Assembly Logic',     type: 'boolean' },
-            { key: 'production_simulator',       label: '#127 · Production Run Simulator',               type: 'boolean' },
-            { key: 'recipe_history_archival',    label: '#128 · Recipe History Archival',                type: 'boolean' },
-            { key: 'product_history_timeline',   label: '#129 · Product History Timeline',               type: 'boolean' },
-            { key: 'category_management',        label: '#130 · Category Management Center',             type: 'boolean' },
-            { key: 'stock_levels_view',          label: '#131 · Stock Levels View Dashboard',            type: 'boolean' },
-            { key: 'low_stock_alerts',           label: '#132 · Low Stock Threshold Alert',              type: 'boolean' },
-            { key: 'imei_lifecycle',             label: '#133 · IMEI Lifecycle Tracking',                type: 'boolean' },
-            { key: 'uom_converter',              label: '#134 · Unit of Measure (UOM) Converter',        type: 'boolean' },
-            { key: 'sku_limit',                  label: 'SKU / Product Limit',                          type: 'number',  note: 'Max products (blank = unlimited)' },
+            {"key":"customer_khata","label":"Digital Customer Khata Ledger","type":"boolean"},
+            {"key":"customer_payments_log","label":"Customer Payments Log","type":"boolean"},
+            {"key":"customer_statements","label":"Monthly Customer Statements","type":"boolean"},
+            {"key":"aged_receivables","label":"Aged Receivables (30\/60\/90+ Days)","type":"boolean"},
+            {"key":"credit_limit_rules","label":"Customer Credit Limit Enforcer","type":"boolean"},
+            {"key":"multi_payment_invoices","label":"Multi-Payment Invoices (Partial\/Milestone)","type":"boolean"},
+            {"key":"customer_payment_alloc","label":"FIFO Invoice Payment Allocation","type":"boolean"},
+            {"key":"anniversary_tracker","label":"Birthday & Anniversary Tracker","type":"boolean"},
+            {"key":"customer_ltv_score","label":"Customer Lifetime Value (LTV) Badge","type":"boolean"},
+            {"key":"customer_wallet","label":"Customer Prepaid Wallet \/ Store Credit","type":"boolean"},
+            {"key":"loyalty_points","label":"Loyalty Points Engine","type":"boolean"},
+            {"key":"digital_gift_cards","label":"Digital Gift Cards System","type":"boolean"},
+            {"key":"marketing_campaigns","label":"SMS\/Email Marketing Campaigns","type":"boolean"},
+            {"key":"wholesale_pricing","label":"Tiered B2B Wholesale Pricing","type":"boolean"},
+            {"key":"b2b_proposal_builder","label":"B2B Quotation & Proposal Builder","type":"boolean"},
+            {"key":"quotation_conversion","label":"One-Click Quote-to-Invoice Conversion","type":"boolean"},
+            {"key":"inflight_session_recovery","label":"Invoice Draft Recovery","type":"boolean"},
+            {"key":"tax_inclusive_exclusive","label":"Tax-Inclusive vs Exclusive Pricing Toggle","type":"boolean"},
+            {"key":"b2b_margin_displayer","label":"Live Margin & Profit Display on Invoices","type":"boolean"},
+            {"key":"sales_return_vouchers","label":"Sales Return Credit Vouchers","type":"boolean"},
+            {"key":"b2b_invoice_designer","label":"B2B Commercial Invoice Template","type":"boolean"},
+            {"key":"pre_sales_reservation","label":"Pre-Sales Stock Reservation","type":"boolean"},
+            {"key":"refund_reason_analysis","label":"Refund Reason Analysis","type":"boolean"},
+            {"key":"tax_exempt_customers","label":"Tax-Exempt Customer Classification","type":"boolean"},
+            {"key":"customer_address_book","label":"Multi-Address Book per Customer","type":"boolean"},
+            {"key":"a4_invoice_pdf","label":"Standard A4 PDF Invoices","type":"boolean"},
+            {"key":"letter_size_invoice","label":"US Letter Size Invoice Option","type":"boolean"},
+            {"key":"outstanding_balance_grid","label":"Outstanding Balance Grid","type":"boolean"},
+            {"key":"payment_due_dates","label":"Custom Payment Due Dates","type":"boolean"},
+            {"key":"overdue_highlights","label":"Visual Overdue Invoice Highlights","type":"boolean"},
+            {"key":"lump_sum_payments","label":"Lump-Sum Payment Distribution","type":"boolean"},
+            {"key":"partial_payment_indicator","label":"Partial Payment Progress Indicators","type":"boolean"},
+            {"key":"unified_party_ledger","label":"Unified Customer\/Vendor Cross-Ledger","type":"boolean"},
+            {"key":"recurring_invoices","label":"Automated Recurring Invoices","type":"boolean"},
+            {"key":"recurring_invoicing","label":"Recurring Invoicing Engine","type":"boolean"},
+            {"key":"invoice_reminders","label":"Overdue Invoice Auto-Reminders","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 6 — E-Commerce Sync, WooCommerce & VenSynQ  (Features 136–147)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'ecommerce', emoji: '🔄', label: 'E-Commerce & VenSynQ',
-        description: 'WooCommerce webhook sync, marketplace connectors, and dropshipping.',
+        id: "procurement",
+        emoji: "\ud83d\udce6",
+        label: "Procurement, Suppliers & Payables",
+        description: "Purchase orders, supplier khata, landed costs, and supplier payments.",
         features: [
-            { key: 'vensync_command',            label: '#136 · VenSynQ Command Center',                 type: 'boolean' },
-            { key: 'marketplace_oauth',          label: '#137 · 3-Click OAuth Connection',               type: 'boolean' },
-            { key: 'commission_isolation',       label: '#138 · Automated Commission Isolation',          type: 'boolean' },
-            { key: 'dropshipping',               label: '#139 · Dropshipping Order Automator',           type: 'boolean' },
-            { key: 'jit_procurement',            label: '#140 · Just-in-Time (JIT) Procurement Drafts',  type: 'boolean' },
-            { key: 'bulk_tracking_sync',         label: '#141 · Bulk Tracking ID Sync',                  type: 'boolean' },
-            { key: 'multichannel_expense_alloc', label: '#142 · Multi-Channel Expense Allocations',      type: 'boolean' },
-            { key: 'woocommerce',                label: '#143 · WooCommerce Real-Time Webhook',           type: 'boolean' },
-            { key: 'woocommerce_customer_reg',   label: '#144 · WooCommerce Customer Auto-Registry',     type: 'boolean' },
-            { key: 'woocommerce_stock_sync',     label: '#145 · WooCommerce Stock Synchronization',      type: 'boolean' },
-            { key: 'woocommerce_orders_bridge',  label: '#146 · Dynamic Orders Bridge (WooCommerce)',    type: 'boolean' },
-            { key: 'web_catalog_toggles',        label: '#147 · Web Store Catalog Toggles',              type: 'boolean' },
+            {"key":"supplier_khata","label":"Supplier Khata Ledger","type":"boolean"},
+            {"key":"delayed_supplier_payments","label":"Post-Dated Supplier Payment Schedules","type":"boolean"},
+            {"key":"supplier_statements","label":"Supplier Account Statements","type":"boolean"},
+            {"key":"aged_payables","label":"Aged Payables (30\/60\/90+ Days)","type":"boolean"},
+            {"key":"installment_payments","label":"Supplier Installment Plans","type":"boolean"},
+            {"key":"purchase_orders","label":"Full Purchase Order Workflow","type":"boolean"},
+            {"key":"partial_shipments","label":"Partial Goods Received (GRN)","type":"boolean"},
+            {"key":"supplier_debit_notes","label":"Supplier Debit Notes","type":"boolean"},
+            {"key":"auto_cost_adjuster","label":"Automated Inventory Cost Adjuster","type":"boolean"},
+            {"key":"cost_price_fluctuator","label":"Cost Price Fluctuation Alerts","type":"boolean"},
+            {"key":"supplier_lead_time","label":"Supplier Lead Time Tracker","type":"boolean"},
+            {"key":"landing_costs","label":"Landed Cost Distribution (Freight\/Customs)","type":"boolean"},
+            {"key":"suppliers_directory","label":"Suppliers Directory & Contacts","type":"boolean"},
+            {"key":"supplier_sku_mapping","label":"Supplier SKU to Internal SKU Mapping","type":"boolean"},
+            {"key":"inbound_expiry_tracking","label":"Inbound Expiry Date Verification","type":"boolean"},
+            {"key":"purchase_returns","label":"Purchase Return & Refund Manager","type":"boolean"},
+            {"key":"auto_po_generation","label":"Auto-Generate PO from Low Stock","type":"boolean"},
+            {"key":"bulk_supplier_payments","label":"Bulk Supplier Payment Allocations","type":"boolean"},
+            {"key":"purchase_pdf_upload","label":"Attach Supplier Invoice PDFs to POs","type":"boolean"},
+            {"key":"reconciled_bank_payments","label":"Reconciled Bank Payment Logs","type":"boolean"},
+            {"key":"tax_inclusive_procurement","label":"Tax-Inclusive Supplier Invoicing","type":"boolean"},
+            {"key":"supplier_outstanding_alerts","label":"Supplier Payment Due Alerts","type":"boolean"},
+            {"key":"supplier_refund_tracker","label":"Supplier Overpayment Refund Tracker","type":"boolean"},
+            {"key":"custom_payment_terms","label":"Custom Vendor Payment Terms","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 7 — Double-Entry Accounting & Cash Registers  (Features 148–160)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'accounting', emoji: '🏦', label: 'Double-Entry Accounting & Finance',
-        description: 'Ledger engine, bank reconciliation, depreciation, and fiscal controls.',
+        id: "inventory",
+        emoji: "\ud83c\udfed",
+        label: "Inventory, Production & Manufacturing",
+        description: "Multi-location inventory, FIFO valuation, Bill of Materials, and work orders.",
         features: [
-            { key: 'double_entry_ledger',        label: '#148 · Double-Entry Journal Ledger Engine',     type: 'boolean' },
-            { key: 'cash_account_reconciliation',label: '#149 · Automated Cash Account Reconciliation',  type: 'boolean' },
-            { key: 'fixed_asset_depreciation',   label: '#150 · Fixed Asset Depreciation Tracker',       type: 'boolean' },
-            { key: 'loan_ledger',                label: '#151 · Business Loan Principal & Interest',      type: 'boolean' },
-            { key: 'inter_register_transfers',   label: '#152 · Inter-Register Cash Transfer Logs',      type: 'boolean' },
-            { key: 'advance_allocation',         label: '#153 · Supplier & Customer Advance Allocation', type: 'boolean' },
-            { key: 'fiscal_year_closing',        label: '#154 · Fiscal Year Closing Wizard',             type: 'boolean' },
-            { key: 'debit_credit_notes',         label: '#155 · Debit & Credit Note Registers',          type: 'boolean' },
-            { key: 'bank_reconciliation',        label: '#156 · Bank Reconciliation Truth Checker',      type: 'boolean' },
-            { key: 'tax_summary_engine',         label: '#157 · Tax Summary Engine',                     type: 'boolean' },
-            { key: 'expense_manager',            label: '#158 · Expense Manager with Receipt Uploads',   type: 'boolean' },
-            { key: 'charity_engine',             label: '#159 · Charity Percentage Engine',              type: 'boolean' },
-            { key: 'petty_cash',                 label: '#160 · Petty Cash Allocation Logs',             type: 'boolean' },
+            {"key":"stock_transfer","label":"Inter-Warehouse Stock Transfers","type":"boolean"},
+            {"key":"product_variants","label":"Product Matrix Variants (Size\/Color)","type":"boolean"},
+            {"key":"fifo_costing","label":"True FIFO Inventory Costing","type":"boolean"},
+            {"key":"batch_tracking","label":"Batch \/ Lot Number Tracking","type":"boolean"},
+            {"key":"batch_expiry","label":"Batch Expiry Date Guard","type":"boolean"},
+            {"key":"stock_take_audit","label":"Full Stock-Take & Physical Count Audits","type":"boolean"},
+            {"key":"disaster_claim","label":"Damaged \/ Lost Goods Write-Off Manager","type":"boolean"},
+            {"key":"bill_of_materials","label":"Bill of Materials (BOM) Recipes","type":"boolean"},
+            {"key":"production","label":"Production Runs & Assembly","type":"boolean"},
+            {"key":"manufacturing","label":"Manufacturing Module","type":"boolean"},
+            {"key":"auto_assembly_logic","label":"Automatic Recipe Deduction on Sale","type":"boolean"},
+            {"key":"auto_assembly_checkout","label":"POS Auto-Assembly Composite Items","type":"boolean"},
+            {"key":"production_simulator","label":"Production Cost & Yield Simulator","type":"boolean"},
+            {"key":"recipe_history_archival","label":"Recipe Cost & Ingredient Version History","type":"boolean"},
+            {"key":"product_history_timeline","label":"Product Stock Movement Audit Timeline","type":"boolean"},
+            {"key":"category_management","label":"Nested Category & Brand Tree","type":"boolean"},
+            {"key":"stock_levels_view","label":"Real-Time Multi-Branch Stock Levels","type":"boolean"},
+            {"key":"low_stock_alerts","label":"Low Stock & Reorder Point Alerts","type":"boolean"},
+            {"key":"uom_converter","label":"Unit of Measure (UOM) Conversion Matrix","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 8 — The Report Factory  (Features 161–200)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'reports', emoji: '📊', label: 'Report Factory (40 Reports)',
-        description: 'Complete 40-report suite — toggle individual reports per plan.',
+        id: "ecommerce_channels",
+        emoji: "\ud83c\udf10",
+        label: "E-Commerce, Multi-Branch & Channels",
+        description: "Multi-branch operations, marketplace synchronization, and API\/Webhooks.",
         features: [
-            { key: 'reports',                    label: 'Reports Access Level',                          type: 'select', options: ['basic', 'advanced', 'enterprise'] },
-            { key: 'report_sales_summary',       label: '#161 · Sales Summary Report',                   type: 'boolean' },
-            { key: 'report_daily_sales_trend',   label: '#162 · Daily Sales Trend',                      type: 'boolean' },
-            { key: 'report_purchases',           label: '#163 · Purchases Report',                       type: 'boolean' },
-            { key: 'report_day_book',            label: '#164 · Day Book Log',                           type: 'boolean' },
-            { key: 'report_profit_loss',         label: '#165 · Profit & Loss Statement',                type: 'boolean' },
-            { key: 'report_account_ledger',      label: '#166 · Account Ledger Report',                  type: 'boolean' },
-            { key: 'report_party_statement',     label: '#167 · Party Statement (Khata Ledger)',         type: 'boolean' },
-            { key: 'report_transactions_history',label: '#168 · Transactions History',                   type: 'boolean' },
-            { key: 'report_stock_valuation',     label: '#169 · Stock Valuation Report',                 type: 'boolean' },
-            { key: 'report_low_stock',           label: '#170 · Low Stock Shortages Report',             type: 'boolean' },
-            { key: 'report_stock_movement',      label: '#171 · Stock Movement History',                 type: 'boolean' },
-            { key: 'report_expenses_directory',  label: '#172 · Expenses Directory',                     type: 'boolean' },
-            { key: 'report_tax_compliance',      label: '#173 · Tax Compliance Summary',                 type: 'boolean' },
-            { key: 'report_bank_statements',     label: '#174 · Bank Statements Log',                    type: 'boolean' },
-            { key: 'report_expiring_soon',       label: '#175 · Expiring Soon Alert',                    type: 'boolean' },
-            { key: 'report_balance_sheet',       label: '#176 · Balance Sheet',                          type: 'boolean' },
-            { key: 'report_all_parties_credit',  label: '#177 · All Parties Credit Summary',             type: 'boolean' },
-            { key: 'report_trial_balance',       label: '#178 · Double-Entry Trial Balance',             type: 'boolean' },
-            { key: 'report_item_profit',         label: '#179 · Item-Wise Profit Analysis',              type: 'boolean' },
-            { key: 'report_party_profitability', label: '#180 · Party-Wise Profitability',               type: 'boolean' },
-            { key: 'report_general_discount',    label: '#181 · General Discount Report',                type: 'boolean' },
-            { key: 'report_cash_flow',           label: '#182 · Cash Flow Statement',                    type: 'boolean' },
-            { key: 'report_sales_aging',         label: '#183 · Sales Aging Report',                     type: 'boolean' },
-            { key: 'report_sales_orders_status', label: '#184 · Sales Orders Status',                    type: 'boolean' },
-            { key: 'report_bill_profitability',  label: '#185 · Bill-Wise Profitability',                type: 'boolean' },
-            { key: 'report_expense_by_category', label: '#186 · Expense by Category',                   type: 'boolean' },
-            { key: 'report_expense_by_item',     label: '#187 · Expense by Item',                        type: 'boolean' },
-            { key: 'report_stock_by_category',   label: '#188 · Stock Summary by Category',             type: 'boolean' },
-            { key: 'report_sales_by_party',      label: '#189 · Sales & Purchases by Party',             type: 'boolean' },
-            { key: 'report_sales_by_category',   label: '#190 · Sales & Purchases by Category',         type: 'boolean' },
-            { key: 'report_category_pl',         label: '#191 · Category Profit & Loss',                 type: 'boolean' },
-            { key: 'report_item_discounting',    label: '#192 · Item-Wise Discounting',                  type: 'boolean' },
-            { key: 'report_sales_order_items',   label: '#193 · Sales Order Items Detail',               type: 'boolean' },
-            { key: 'report_stock_aging',         label: '#194 · Stock Aging Analysis',                   type: 'boolean' },
-            { key: 'report_sales_party_group',   label: '#195 · Sales & Purchases by Party Group',      type: 'boolean' },
-            { key: 'report_item_by_party',       label: '#196 · Item Report by Party',                   type: 'boolean' },
-            { key: 'report_party_by_item',       label: '#197 · Party Report by Item',                   type: 'boolean' },
-            { key: 'report_tax_rate_breakdown',  label: '#198 · Tax Rate Breakdown',                     type: 'boolean' },
-            { key: 'report_graph_analytics',     label: '#199 · Graph Analytics Dashboard',              type: 'boolean' },
-            { key: 'report_loan_statement',      label: '#200 · Loan Statement',                         type: 'boolean' },
-            { key: 'point_in_time_inventory',    label: '#200.1 · Point-in-Time Inventory',              type: 'boolean' },
-            { key: 'customer_insights',          label: '#200.2 · Customer Insights Report',             type: 'boolean' },
-            { key: 'supplier_insights',          label: '#200.3 · Supplier Insights Report',             type: 'boolean' },
+            {"key":"multi_branch","label":"Multi-Branch Operations Engine","type":"boolean","note":"Scale fence \u2014 multi-branch capability"},
+            {"key":"woocommerce","label":"WooCommerce Two-Way Sync","type":"boolean","note":"Live catalog, stock, and order bridge"},
+            {"key":"amazon_sync","label":"Amazon Marketplace Sync","type":"boolean"},
+            {"key":"ebay_sync","label":"eBay Marketplace Sync","type":"boolean"},
+            {"key":"tiktok_sync","label":"TikTok Shop Sync","type":"boolean"},
+            {"key":"woocommerce_customer_reg","label":"WooCommerce Customer Registration Bridge","type":"boolean"},
+            {"key":"woocommerce_stock_sync","label":"Instant Webhook Stock Sync to Store","type":"boolean"},
+            {"key":"woocommerce_orders_bridge","label":"Automated Web Order Fulfillment Bridge","type":"boolean"},
+            {"key":"web_catalog_toggles","label":"Selective Web-Catalog Visibility per SKU","type":"boolean"},
+            {"key":"api_access","label":"REST API Access Token","type":"boolean"},
+            {"key":"webhooks","label":"Real-Time Outgoing Event Webhooks","type":"boolean"},
+            {"key":"api_webhooks","label":"Full Developer API & Webhooks Access","type":"boolean"},
+            {"key":"white_label","label":"White-Label Branding (Remove VenQore Badges)","type":"boolean"},
+            {"key":"network_basic","label":"Basic Network Node Federation","type":"boolean"},
+            {"key":"network_unlimited","label":"Unlimited Enterprise Network Nodes","type":"boolean"},
+            {"key":"consolidated_reporting","label":"Consolidated Multi-Entity Financials","type":"boolean"},
+            {"key":"vensync_command","label":"VenSync Multi-Channel Command Center","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 9 — AI Bubble & Platform HQ Command  (Features 201–226)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'platform_hq', emoji: '🌌', label: 'Platform HQ & Infrastructure',
-        description: 'Multi-tenant isolation, SuperAdmin controls, AI assistant, and enforcement gates.',
+        id: "accounting",
+        emoji: "\ud83d\udcca",
+        label: "Double-Entry Accounting & Finance",
+        description: "General ledger, bank reconciliation, fixed asset depreciation, and compliance.",
         features: [
-            { key: 'ai_assistant',               label: '#201 · Floating AI Assistant (AI Bubble)',      type: 'boolean' },
-            { key: 'multitenant_isolation',       label: '#202 · Path-Based URL Multi-Tenant Isolation', type: 'boolean', note: 'Infrastructure — always enabled' },
-            { key: 'three_zone_security',         label: '#203 · Three-Zone Security Boundaries',        type: 'boolean', note: 'Infrastructure — always enabled' },
-            { key: 'superadmin_command_center',   label: '#204 · SuperAdmin Command Center',             type: 'boolean' },
-            { key: 'subscription_enforcement',    label: '#205 · Subscription Limit Enforcement',        type: 'boolean', note: 'Infrastructure — always enabled' },
-            { key: 'redis_plan_gates',            label: '#206 · Redis-Cached Plan Gates',               type: 'boolean' },
-            { key: 'limit_override_manager',      label: '#207 · Automated Limit Override Manager',      type: 'boolean' },
-            { key: 'invitation_codes',            label: '#208 · Alphanumeric Invitation Codes',          type: 'boolean' },
-            { key: 'demo_sandbox_cloner',         label: '#209 · Ephemeral Demo Sandbox Cloner',         type: 'boolean' },
-            { key: 'sandbox_time_shift',          label: '#210 · Sandbox Time-Shift Engine',             type: 'boolean' },
-            { key: 'sandbox_expiration',          label: '#211 · Sandbox Expiration Logic',              type: 'boolean' },
-            { key: 'soft_delete_trash',           label: '#212 · Soft-Delete Trash Management',          type: 'boolean' },
-            { key: 'immutable_db_locks',          label: '#213 · Immutable Database Locks',              type: 'boolean', note: 'Infrastructure — always enabled' },
-            { key: 'balanced_reversals',          label: '#214 · Balanced Transaction Reversals',        type: 'boolean', note: 'Infrastructure — always enabled' },
-            { key: 'double_entry_account_maps',   label: '#215 · Double-Entry Account Maps',             type: 'boolean', note: 'Infrastructure — always enabled' },
-            { key: 'custom_tax_rates',            label: '#216 · Custom Tax Rate Configurator',          type: 'boolean' },
-            { key: 'customer_credit_limits_cfg',  label: '#217 · Customer Credit Limits (Config)',       type: 'boolean' },
-            { key: 'low_stock_threshold_cfg',     label: '#218 · Low Stock Alerts Threshold (Config)',   type: 'boolean' },
-            { key: 'cashier_inactivity_logout',   label: '#219 · Cashier Inactivity Auto-Logout',        type: 'boolean' },
-            { key: 'passcode_security_controls',  label: '#220 · Passcode Security Controls',            type: 'boolean' },
-            { key: 'stock_reservation_rules',     label: '#221 · Stock Reservation Rules',               type: 'boolean' },
-            { key: 'barcode_pattern_recognition', label: '#222 · Barcode Pattern Recognition',           type: 'boolean' },
-            { key: 'auto_assembly_recipes',       label: '#223 · Auto-Assembly Cookbook Recipes',        type: 'boolean' },
-            { key: 'multi_currency',              label: '#224 · Multi-Currency Format Configurations',  type: 'boolean' },
-            { key: 'module_toggles',              label: '#225 · Glass Door Module Toggles',             type: 'boolean' },
-            { key: 'hard_lock_negative_stock',    label: '#226 · Hard-Lock Negative Stock Settings',     type: 'boolean' },
-            // Core numeric limits
-            { key: 'transactions_per_month',      label: 'Transactions / Month',                         type: 'number',  note: 'blank = unlimited' },
-            { key: 'staff_limit',                 label: 'Staff Accounts',                               type: 'number',  note: 'blank = unlimited' },
-            { key: 'multi_branch',                label: 'Multi-Branch Locations',                       type: 'number',  note: '0 = disabled; blank = unlimited' },
-            { key: 'api_access',                  label: 'Public REST API Access',                       type: 'boolean' },
+            {"key":"double_entry_ledger","label":"Double-Entry General Ledger (GL)","type":"boolean"},
+            {"key":"cash_account_reconciliation","label":"Cash in Hand Reconciliation","type":"boolean"},
+            {"key":"loan_ledger","label":"Commercial Loan & EMI Tracker","type":"boolean"},
+            {"key":"inter_register_transfers","label":"Till-to-Bank Cash Transfers","type":"boolean"},
+            {"key":"advance_allocation","label":"Advance Payment Multi-Invoice Allocation","type":"boolean"},
+            {"key":"debit_credit_notes","label":"Formal Debit & Credit Notes Engine","type":"boolean"},
+            {"key":"tax_summary_engine","label":"Real-Time Tax Liability Calculator","type":"boolean"},
+            {"key":"expense_manager","label":"Operating Expense Category Manager","type":"boolean"},
+            {"key":"charity_engine","label":"Automated Charity \/ Zakat Allocations","type":"boolean"},
+            {"key":"petty_cash","label":"Petty Cash Voucher Register","type":"boolean"},
+            {"key":"fixed_asset_depreciation","label":"Fixed Asset Depreciation Ledger","type":"boolean"},
+            {"key":"fiscal_year_closing","label":"Fiscal Year-End Closing & Balance Carry","type":"boolean"},
+            {"key":"bank_reconciliation","label":"Bank Statement Reconciliation Engine","type":"boolean"},
+            {"key":"e_invoicing","label":"Electronic Invoicing & Fiscal Signatures","type":"boolean"},
+            {"key":"fund_management","label":"Internal Capital & Partner Capital Accounts","type":"boolean"},
+            {"key":"google_drive_backup","label":"Automated Google Drive Encrypted Backups","type":"boolean"},
+            {"key":"adviser_seat","label":"External Accountant \/ CPA Read Seat","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 10 — AI & Automation Extras  (from Pricing Files)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'ai_extras', emoji: '🤖', label: 'AI & Automation Extras',
-        description: 'HyperSearch, SmartCapture, Growth Engine, and AI-powered automation features.',
+        id: "ai_signals",
+        emoji: "\ud83e\udde0",
+        label: "AI, Signals & Intelligence",
+        description: "Smart receipt OCR capture, conversational AI assistants, and growth forecasting.",
         features: [
-            { key: 'hypersearch_byok',           label: 'HyperSearch BYOK (Bring Your Own API Key)',     type: 'boolean', note: 'Free AI search using own OpenAI/Gemini key' },
-            { key: 'smart_capture',              label: 'SmartCapture (AI Invoice Scan)',                type: 'boolean', note: 'Photo/image/audio → data entry' },
-            { key: 'smart_capture_limit',        label: 'SmartCapture Scans / Month',                   type: 'number' },
-            { key: 'growth_engine',              label: 'Growth Engine (AI Retention Rules)',            type: 'boolean' },
-            { key: 'ai_churn_predictions',       label: 'AI Churn Predictions',                         type: 'boolean' },
-            { key: 'ai_revenue_forecasting',     label: 'AI Revenue Forecasting',                       type: 'boolean' },
-            { key: 'ai_outreach_copy',           label: 'AI WhatsApp Outreach Copy Generation',         type: 'boolean' },
-            { key: 'ai_queries_limit',           label: 'AI Assistant Queries / Month',                 type: 'number' },
-            { key: 'ai_outreach_limit',          label: 'AI Outreach Copies / Month',                   type: 'number' },
-            { key: 'owners_daily_pulse',         label: "Owner's Daily Pulse Report",                   type: 'boolean', note: 'Digest-style daily business summary' },
+            {"key":"ai_assistant","label":"Conversational AI POS Copilot","type":"boolean"},
+            {"key":"smart_capture","label":"SmartCapture Optical Invoice Scanner","type":"boolean"},
+            {"key":"hypersearch_byok","label":"HyperSearch BYOK (Bring Your Own Key)","type":"boolean"},
+            {"key":"ai_credits_monthly","label":"Monthly AI Engine Credits","type":"number","note":"100 Solo \u00b7 500 Starter \u00b7 2000 Core \u00b7 10000 Scale"},
+            {"key":"ai_scans_monthly","label":"Monthly SmartCapture OCR Scans","type":"number","note":"10 on Solo \u00b7 Unlimited on paid"},
+            {"key":"ai_system_builder","label":"Autonomous Store Builder & Theme AI","type":"boolean"},
+            {"key":"growth_engine","label":"Autonomous Growth Recommendations","type":"boolean"},
+            {"key":"growth_signals","label":"Predictive Inventory Stockout Signals","type":"boolean"},
+            {"key":"bulk_upload","label":"AI Multi-Format Product Importer (CSV\/Excel)","type":"boolean"},
+            {"key":"live_chat_widget","label":"Real-Time Live Chat Customer Widget","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 11 — Live Chat & Customer Engagement  (from Pricing Files)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'live_chat', emoji: '💬', label: 'Live Chat & Customer Engagement',
-        description: 'Embedded live chat widget, AI bot, agent handoff, and co-pilot suggestions.',
+        id: "services_industry",
+        emoji: "\ud83d\udee0\ufe0f",
+        label: "Services, Work Orders & Industry Modules",
+        description: "Job cards, repair ticketing, service contracts, and specialized retail verticals.",
         features: [
-            { key: 'live_chat_widget',           label: 'Live Chat Widget (Storefront)',                 type: 'boolean' },
-            { key: 'ai_bot_handoff',             label: 'AI Bot → Human Agent Handoff',                 type: 'boolean' },
-            { key: 'canned_responses',           label: 'Canned Responses Library',                     type: 'boolean' },
-            { key: 'ai_copilot_suggestions',     label: 'AI Co-Pilot Suggestions (for Agents)',         type: 'boolean' },
-            { key: 'passive_learning_engine',    label: 'Passive Learning Engine',                      type: 'boolean' },
-            { key: 'agent_referral',             label: 'Agent-to-Agent Chat Referral',                 type: 'boolean' },
+            {"key":"services","label":"Services & Labor Catalog","type":"boolean","note":"Service items with hourly\/fixed rates"},
+            {"key":"service_jobs","label":"Service Job Cards & Status Board","type":"boolean"},
+            {"key":"service_contracts","label":"Annual Maintenance Contracts (AMC)","type":"boolean"},
+            {"key":"work_orders","label":"Internal Shop Work Orders","type":"boolean"},
+            {"key":"optical_prescription","label":"Optometry Rx & Axis Measurement Matrix","type":"boolean"},
+            {"key":"tailor_measurements","label":"Apparel & Bespoke Tailoring Measurements","type":"boolean"},
+            {"key":"jewelry_metal_rates","label":"Precious Metals Daily Karat Rate Engine","type":"boolean"},
         ],
     },
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Part 12 — Support & Onboarding Perks  (from Pricing Files)
-    // ────────────────────────────────────────────────────────────────────────
     {
-        id: 'support_perks', emoji: '🎯', label: 'Support & Onboarding Perks',
-        description: 'Premium support tiers, dedicated account manager, and white-glove onboarding.',
+        id: "support_system",
+        emoji: "\ud83e\udd1d",
+        label: "Support, SLA & System Capabilities",
+        description: "Support channel tiering, SLA, and lifetime platform infrastructure.",
         features: [
-            { key: 'dedicated_account_manager',  label: 'Dedicated Account Manager',                    type: 'boolean' },
-            { key: 'white_glove_onboarding',     label: 'White-Glove Onboarding',                       type: 'boolean' },
-            { key: 'white_label',                label: 'White Label / Custom Branding',                type: 'boolean' },
-            { key: 'industry_templates_count',   label: 'Industry Pre-Made Templates',                  type: 'number',  note: 'Number of templates included (e.g. 16)' },
-            { key: 'priority_support',           label: 'Priority Support Access',                      type: 'boolean' },
-            { key: 'email_support',              label: 'Email Support',                                type: 'boolean' },
-            { key: 'chat_support',               label: 'Chat Support',                                 type: 'boolean' },
-            { key: 'phone_support',              label: 'Phone / Call Support',                         type: 'boolean' },
+            {"key":"chat_support","label":"Priority In-App Chat Support","type":"boolean"},
+            {"key":"whatsapp_reminders","label":"Automated WhatsApp Customer Reminders","type":"boolean"},
+            {"key":"dedicated_account_manager","label":"Dedicated Customer Success Manager","type":"boolean"},
+            {"key":"ltd","label":"AppSumo \/ LTD Lifetime Architecture Flag","type":"system","note":"System flag \u2014 lifetime account"},
+        ],
+    },
+    {
+        id: "reports_universal",
+        emoji: "\ud83d\udcc8",
+        label: "Reports & Analytics (Universal Access)",
+        description: "All 23 comprehensive business reports are included on every plan under V11 \u00a71.1 Universal Architecture.",
+        features: [
+            {"key":"reports","label":"Reporting Complexity Tier","type":"select","note":"Basic on Solo \u00b7 Advanced on Starter\/Core\/Scale","options":["basic","advanced"]},
+            {"key":"report_sales_records","label":"Sales Records Report","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_purchase_records","label":"Purchase Records Report","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_stock_records","label":"Stock Movement Records","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_stock_valuation","label":"FIFO Stock Valuation Report","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_profit_loss","label":"Income Statement (Profit & Loss)","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_cash_flow","label":"Cash Flow Statement","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_expenses","label":"Operating Expense Breakdown","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_tax","label":"Tax Liability & GST Audit Report","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_day_book","label":"Daily Journal \/ Day Book","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_party_records","label":"Customer & Vendor Party Directory","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_sales_analytics","label":"Deep Sales Trend & Peak Hours Analytics","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_profitability","label":"Item & Category Margin Profitability","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_discounts","label":"Discounting & Coupon Leakage Audit","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_aging","label":"Aged Debtors & Creditors Waterfall","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_balance_sheet","label":"Formal Balance Sheet","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_expense_analysis","label":"Overhead & OpEx Ratio Analysis","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_party_insights","label":"Customer Retention & Churn Analytics","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"owners_daily_pulse","label":"Owner Daily Pulse Dashboard Summary","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_ledger","label":"General Ledger Detail Audit","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_point_in_time","label":"Historical Point-in-Time Inventory","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_cross_party","label":"Cross-Party Balance Reconciliations","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_loans","label":"Loan & Amortization Schedule","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
+            {"key":"report_export","label":"Universal CSV\/Excel\/PDF Batch Exporter","type":"boolean","note":"Included on every plan (V11 \u00a71.1)"},
         ],
     },
 ];
 
-/**
- * Total feature count helper — useful for displaying in the UI.
- */
 export const TOTAL_FEATURES = FEATURE_GROUPS.reduce((acc, g) => acc + g.features.length, 0);
 
-// ── FEATURE DEFAULTS AND RESOLVERS ──
-
-// Keyed by canonical plan slugs (lib/plans): trial / starter / core / scale.
 export const FEATURE_DEFAULTS = {
     "demo_store": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "free_trial_days": {
-        "trial": "14",
+        "solo": "0",
         "starter": "0",
         "core": "0",
-        "scale": "0"
+        "scale": "0",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
     },
     "instant_store_creator": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "industry_seeding": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "dark_theme": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "light_theme": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "multi_store_hub": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "multi_store_roles": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "cashier_pin_login": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "device_adaptive": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "pwa_install": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "guided_setup_tour": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "coupon_stacking": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "platform_status_badge": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "system_cache_refresher": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "owner_profile_card": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "one_click_system_wipe": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "smtp_mail": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "sms_gateway": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "security_activity_log": {
-        "trial": "0",
+        "solo": "0",
         "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
+    },
+    "audit_trail": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
+    },
+    "custom_roles": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
+    },
+    "pos": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "barcode_scanner": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "imei_scanner": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "serial_tracking": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "keyboard_hotkeys": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "senior_mode": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "high_contrast_colors": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "profit_peek": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "cart_tabs_limit": {
-        "trial": "3",
-        "starter": "3",
-        "core": "10",
-        "scale": "50"
+        "solo": "5",
+        "starter": "10",
+        "core": "25",
+        "scale": "50",
+        "trial": "25",
+        "ltd_1": "10",
+        "ltd_2": "25",
+        "ltd_3": "50"
     },
     "park_recall": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "inflight_product_creation": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "cart_session_protection": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "contextual_qty_modifiers": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "auto_customer_discounts": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "fuzzy_product_finder": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "auto_cash_rounding": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "split_payments": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "daily_cash_audit": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "silent_webusb_printing": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "receipt_cutline_padding": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "custom_thermal_widths": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "dynamic_accent_colors": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "invoice_column_toggles": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "amount_to_words": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "receipt_qr_code": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "branded_receipt_sync": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
-    },
-    "auto_assembly_checkout": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "pos_negative_stock_alert": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "negative_stock_lock": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "service_fee_additions": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "auto_vat_gst": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "custom_charge_toggle": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "fuzzy_customer_lookup": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "recent_invoices_panel": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "cashier_change_helper": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "barcode_label_print": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "label_qr_codes": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "customer_khata": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
-    },
-    "customer_payments_log": {
+        "scale": "1",
         "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "customer_statements": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "aged_receivables": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "whatsapp_reminders": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "sms_debt_alerts": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "credit_limit_rules": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "multi_payment_invoices": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "customer_payment_alloc": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "anniversary_tracker": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "customer_ltv_score": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "customer_wallet": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "loyalty_points": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "digital_gift_cards": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "wholesale_pricing": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "b2b_proposal_builder": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "quotation_conversion": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "inflight_session_recovery": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "tax_inclusive_exclusive": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "b2b_margin_displayer": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "sales_return_vouchers": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "b2b_invoice_designer": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "pre_sales_reservation": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "recurring_invoicing": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "refund_reason_analysis": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "tax_exempt_customers": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "customer_address_book": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "a4_invoice_pdf": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "letter_size_invoice": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "outstanding_balance_grid": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "payment_due_dates": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "overdue_highlights": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "lump_sum_payments": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "partial_payment_indicator": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "unified_party_ledger": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_khata": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "delayed_supplier_payments": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_statements": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "aged_payables": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "installment_payments": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "purchase_orders": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "partial_shipments": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_debit_notes": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "auto_cost_adjuster": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "cost_price_fluctuator": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_lead_time": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "landing_costs": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "suppliers_directory": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_sku_mapping": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "inbound_expiry_tracking": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "purchase_returns": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "auto_po_generation": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "bulk_supplier_payments": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "purchase_pdf_upload": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "reconciled_bank_payments": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "tax_inclusive_procurement": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_outstanding_alerts": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_refund_tracker": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "custom_payment_terms": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "locations": {
-        "trial": "1",
-        "starter": "1",
-        "core": "3",
-        "scale": "10"
-    },
-    "stock_transfer": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "product_variants": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "fifo_costing": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "barcode_label_factory": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "customer_khata": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "customer_payments_log": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "customer_statements": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "aged_receivables": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "credit_limit_rules": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "multi_payment_invoices": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "customer_payment_alloc": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "anniversary_tracker": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "customer_ltv_score": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "customer_wallet": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "loyalty_points": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "digital_gift_cards": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "marketing_campaigns": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "wholesale_pricing": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "b2b_proposal_builder": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "quotation_conversion": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "inflight_session_recovery": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "tax_inclusive_exclusive": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "b2b_margin_displayer": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "sales_return_vouchers": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "b2b_invoice_designer": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "pre_sales_reservation": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "refund_reason_analysis": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "tax_exempt_customers": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "customer_address_book": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "a4_invoice_pdf": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "letter_size_invoice": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "outstanding_balance_grid": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "payment_due_dates": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "overdue_highlights": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "lump_sum_payments": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "partial_payment_indicator": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "unified_party_ledger": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "recurring_invoices": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "invoice_reminders": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "supplier_khata": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "delayed_supplier_payments": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "supplier_statements": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "aged_payables": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "installment_payments": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "purchase_orders": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "partial_shipments": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "supplier_debit_notes": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "auto_cost_adjuster": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "cost_price_fluctuator": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "supplier_lead_time": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "landing_costs": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "suppliers_directory": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "supplier_sku_mapping": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "inbound_expiry_tracking": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "purchase_returns": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "auto_po_generation": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "bulk_supplier_payments": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "purchase_pdf_upload": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "reconciled_bank_payments": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "tax_inclusive_procurement": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "supplier_outstanding_alerts": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "supplier_refund_tracker": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "custom_payment_terms": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "locations": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "10",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "2",
+        "ltd_3": "5"
+    },
+    "location_limit": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "10",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "2",
+        "ltd_3": "5"
+    },
+    "stock_transfer": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "product_variants": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "fifo_costing": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "batch_tracking": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "batch_expiry": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "stock_take_audit": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "disaster_claim": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "bill_of_materials": {
-        "trial": "0",
-        "starter": "0",
+        "solo": "1",
+        "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "production": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "manufacturing": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "auto_assembly_logic": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "auto_assembly_checkout": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "production_simulator": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "recipe_history_archival": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "product_history_timeline": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "category_management": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "stock_levels_view": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "low_stock_alerts": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
-    },
-    "imei_lifecycle": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "uom_converter": {
-        "trial": "1",
+        "solo": "1",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "sku_limit": {
-        "trial": "50",
-        "starter": "1000",
-        "core": "10000",
-        "scale": "50000"
-    },
-    "vensync_command": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "marketplace_oauth": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "commission_isolation": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "dropshipping": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "jit_procurement": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "bulk_tracking_sync": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "multichannel_expense_alloc": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "woocommerce": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "woocommerce_customer_reg": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "woocommerce_stock_sync": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "woocommerce_orders_bridge": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "web_catalog_toggles": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "double_entry_ledger": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "cash_account_reconciliation": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "fixed_asset_depreciation": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "loan_ledger": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "inter_register_transfers": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "advance_allocation": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "fiscal_year_closing": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "debit_credit_notes": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "bank_reconciliation": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "tax_summary_engine": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "expense_manager": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "charity_engine": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "petty_cash": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "reports": {
-        "trial": "basic",
-        "starter": "basic",
-        "core": "advanced",
-        "scale": "advanced"
-    },
-    "report_sales_summary": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_low_stock": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_expenses_directory": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_party_statement": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_cash_flow": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_stock_valuation": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_purchases": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_daily_sales_trend": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_day_book": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_tax_compliance": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_general_discount": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_bank_statements": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_account_ledger": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_stock_aging": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_expiring_soon": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "point_in_time_inventory": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "customer_insights": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "supplier_insights": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_profit_loss": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_trial_balance": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_transactions_history": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_item_profit": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_bill_profitability": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_graph_analytics": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_loan_statement": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_sales_aging": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_sales_orders_status": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_party_profitability": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "report_expense_by_category": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_expense_by_item": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_stock_by_category": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_sales_by_party": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_sales_by_category": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_category_pl": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_item_discounting": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_sales_order_items": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_sales_party_group": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_item_by_party": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_party_by_item": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "report_tax_rate_breakdown": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "ai_assistant": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "superadmin_command_center": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "redis_plan_gates": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "limit_override_manager": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "invitation_codes": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "demo_sandbox_cloner": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "sandbox_time_shift": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "sandbox_expiration": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "soft_delete_trash": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "custom_tax_rates": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "customer_credit_limits_cfg": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "low_stock_threshold_cfg": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "cashier_inactivity_logout": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "passcode_security_controls": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "stock_reservation_rules": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "barcode_pattern_recognition": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "auto_assembly_recipes": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "multi_currency": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "module_toggles": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "hard_lock_negative_stock": {
-        "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
-    },
-    "transactions_per_month": {
-        "trial": null,
-        "starter": null,
-        "core": null,
-        "scale": null
+        "solo": "500",
+        "starter": "5000",
+        "core": "25000",
+        "scale": "250000",
+        "trial": "25000",
+        "ltd_1": "5000",
+        "ltd_2": "25000",
+        "ltd_3": "50000"
     },
     "staff_limit": {
-        "trial": "2",
+        "solo": "1",
+        "starter": "1",
+        "core": "5",
+        "scale": "25",
+        "trial": "5",
+        "ltd_1": "1",
+        "ltd_2": "2",
+        "ltd_3": "5"
+    },
+    "till_logins": {
+        "solo": "2",
+        "starter": null,
+        "core": null,
+        "scale": null,
+        "trial": null,
+        "ltd_1": null,
+        "ltd_2": null,
+        "ltd_3": null
+    },
+    "registers": {
+        "solo": "1",
+        "starter": "2",
+        "core": "6",
+        "scale": "20",
+        "trial": "6",
+        "ltd_1": "2",
+        "ltd_2": "4",
+        "ltd_3": "10"
+    },
+    "devices_per_seat": {
+        "solo": "2",
         "starter": "3",
-        "core": "10",
-        "scale": "50"
+        "core": "3",
+        "scale": "5",
+        "trial": "3",
+        "ltd_1": "3",
+        "ltd_2": "3",
+        "ltd_3": "3"
+    },
+    "visible_history_days": {
+        "solo": "30",
+        "starter": null,
+        "core": null,
+        "scale": null,
+        "trial": null,
+        "ltd_1": null,
+        "ltd_2": null,
+        "ltd_3": null
+    },
+    "transactions_per_month": {
+        "solo": "100",
+        "starter": null,
+        "core": null,
+        "scale": null,
+        "trial": null,
+        "ltd_1": null,
+        "ltd_2": null,
+        "ltd_3": null
+    },
+    "service_jobs_per_month": {
+        "solo": "20",
+        "starter": null,
+        "core": null,
+        "scale": null,
+        "trial": null,
+        "ltd_1": null,
+        "ltd_2": null,
+        "ltd_3": null
     },
     "multi_branch": {
-        "trial": "0",
+        "solo": "0",
         "starter": "0",
-        "core": "3",
-        "scale": "10"
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "woocommerce": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "amazon_sync": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "ebay_sync": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "tiktok_sync": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "woocommerce_customer_reg": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "woocommerce_stock_sync": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "woocommerce_orders_bridge": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "web_catalog_toggles": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
     "api_access": {
-        "trial": "0",
+        "solo": "0",
         "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "hypersearch_byok": {
+        "core": "1",
+        "scale": "1",
         "trial": "1",
-        "starter": "1",
-        "core": "1",
-        "scale": "1"
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
     },
-    "smart_capture": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "smart_capture_limit": {
-        "trial": null,
-        "starter": null,
-        "core": null,
-        "scale": null
-    },
-    "growth_engine": {
-        "trial": "0",
+    "webhooks": {
+        "solo": "0",
         "starter": "0",
         "core": "1",
-        "scale": "1"
-    },
-    "ai_churn_predictions": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "ai_revenue_forecasting": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "ai_outreach_copy": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "ai_queries_limit": {
-        "trial": null,
-        "starter": null,
-        "core": null,
-        "scale": null
-    },
-    "ai_outreach_limit": {
-        "trial": null,
-        "starter": null,
-        "core": null,
-        "scale": null
-    },
-    "owners_daily_pulse": {
-        "trial": "0",
-        "starter": "0",
-        "core": "1",
-        "scale": "1"
-    },
-    "live_chat_widget": {
+        "scale": "1",
         "trial": "1",
-        "starter": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
+    },
+    "api_webhooks": {
+        "solo": "0",
+        "starter": "0",
         "core": "1",
-        "scale": "1"
-    },
-    "ai_bot_handoff": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "canned_responses": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "ai_copilot_suggestions": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "passive_learning_engine": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "agent_referral": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "0"
-    },
-    "dedicated_account_manager": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
-    },
-    "white_glove_onboarding": {
-        "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
     },
     "white_label": {
-        "trial": "0",
+        "solo": "0",
         "starter": "0",
         "core": "0",
-        "scale": "1"
-    },
-    "industry_templates_count": {
-        "trial": "16",
-        "starter": "16",
-        "core": "16",
-        "scale": "16"
-    },
-    "priority_support": {
+        "scale": "1",
         "trial": "0",
-        "starter": "0",
-        "core": "0",
-        "scale": "1"
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
     },
-    "email_support": {
-        "trial": "1",
+    "network_basic": {
+        "solo": "0",
         "starter": "1",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     },
-    "chat_support": {
-        "trial": "0",
+    "network_unlimited": {
+        "solo": "0",
         "starter": "0",
         "core": "1",
-        "scale": "1"
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
     },
-    "phone_support": {
-        "trial": "0",
+    "consolidated_reporting": {
+        "solo": "0",
         "starter": "0",
         "core": "0",
-        "scale": "1"
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
+    },
+    "double_entry_ledger": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "cash_account_reconciliation": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "loan_ledger": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "inter_register_transfers": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "advance_allocation": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "debit_credit_notes": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "tax_summary_engine": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "expense_manager": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "charity_engine": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "petty_cash": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "fixed_asset_depreciation": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "fiscal_year_closing": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "bank_reconciliation": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "e_invoicing": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "fund_management": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "google_drive_backup": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "adviser_seat": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "reports": {
+        "solo": "basic",
+        "starter": "advanced",
+        "core": "advanced",
+        "scale": "advanced",
+        "trial": "advanced",
+        "ltd_1": "advanced",
+        "ltd_2": "advanced",
+        "ltd_3": "advanced"
+    },
+    "report_sales_records": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_purchase_records": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_stock_records": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_stock_valuation": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_profit_loss": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_cash_flow": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_expenses": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_tax": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_day_book": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_party_records": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_sales_analytics": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_profitability": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_discounts": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_aging": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_balance_sheet": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_expense_analysis": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_party_insights": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "owners_daily_pulse": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "report_ledger": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "report_point_in_time": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "report_cross_party": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "report_loans": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "report_export": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "ai_assistant": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "smart_capture": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "hypersearch_byok": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "ai_credits_monthly": {
+        "solo": "100",
+        "starter": "500",
+        "core": "2000",
+        "scale": "10000",
+        "trial": "2000",
+        "ltd_1": "500",
+        "ltd_2": "2000",
+        "ltd_3": "10000"
+    },
+    "ai_scans_monthly": {
+        "solo": "10",
+        "starter": null,
+        "core": null,
+        "scale": null,
+        "trial": null,
+        "ltd_1": null,
+        "ltd_2": null,
+        "ltd_3": null
+    },
+    "ai_system_builder": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "growth_engine": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
+    },
+    "growth_signals": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "0"
+    },
+    "bulk_upload": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "live_chat_widget": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "services": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "service_jobs": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "service_contracts": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "optical_prescription": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "tailor_measurements": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "jewelry_metal_rates": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "work_orders": {
+        "solo": "1",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "chat_support": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "dedicated_account_manager": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "1",
+        "trial": "0",
+        "ltd_1": "0",
+        "ltd_2": "0",
+        "ltd_3": "1"
+    },
+    "recurring_invoicing": {
+        "solo": "1",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "vensync_command": {
+        "solo": "0",
+        "starter": "0",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "0",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "whatsapp_reminders": {
+        "solo": "0",
+        "starter": "1",
+        "core": "1",
+        "scale": "1",
+        "trial": "1",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
+    },
+    "ltd": {
+        "solo": "0",
+        "starter": "0",
+        "core": "0",
+        "scale": "0",
+        "trial": "0",
+        "ltd_1": "1",
+        "ltd_2": "1",
+        "ltd_3": "1"
     }
 };
 
-/**
- * Resolves the default/allotted value for a feature and plan tier.
- * Matches Database/Seeders/PlanFeatureMatrixSeeder.php exactly.
- */
 export const getFeatureDefault = (featureKey, planSlug) => {
     let baseSlug = normalizePlan(planSlug);
     if (baseSlug === 'ltd_1') baseSlug = 'starter';
     else if (baseSlug === 'ltd_2') baseSlug = 'core';
     else if (baseSlug === 'ltd_3') baseSlug = 'scale';
 
-    // In V11, LTD tiers have NO transaction caps
     if (['ltd_1', 'ltd_2', 'ltd_3'].includes(planSlug) && featureKey === 'transactions_per_month') {
         return null;
     }

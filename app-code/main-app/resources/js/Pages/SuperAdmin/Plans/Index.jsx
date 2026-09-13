@@ -137,6 +137,28 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
         );
     }
 
+    if (feature.type === 'system' || feature.readOnly) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
+                <span
+                    title="System Infrastructure Gate (Protected)"
+                    style={{
+                        fontSize: 10,
+                        color: vq.slate[500],
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        padding: '3px 8px',
+                        borderRadius: 6,
+                        fontWeight: 700,
+                        fontFamily: 'monospace'
+                    }}
+                >
+                    SYS
+                </span>
+            </div>
+        );
+    }
+
     // Boolean toggle
     const isEnabled = isExplicit
         ? (value === '1' || value === 'true' || value === true)
@@ -202,7 +224,7 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
 // ── Feature Matrix Component ──────────────────────────────────────────────────
 
 function FeatureMatrix({ plans }) {
-    const { vensynq_enabled } = usePage().props;
+    const { vensynq_enabled, canonical_keys } = usePage().props;
     const vensynqKeys = [
         'vensync_command',
         'marketplace_oauth',
@@ -212,7 +234,28 @@ function FeatureMatrix({ plans }) {
         'bulk_tracking_sync',
         'multichannel_expense_alloc'
     ];
-    const filteredGroups = FEATURE_GROUPS.map(group => {
+
+    // Detect any canonical keys not mapped in FEATURE_GROUPS (F3 requirement)
+    const existingKeys = new Set(FEATURE_GROUPS.flatMap(g => g.features.map(f => f.key)));
+    const ungroupedKeys = (canonical_keys || []).filter(k => !existingKeys.has(k));
+
+    const allGroups = [...FEATURE_GROUPS];
+    if (ungroupedKeys.length > 0) {
+        allGroups.push({
+            id: 'ungrouped_new',
+            label: 'Ungrouped / New Features',
+            emoji: '📦',
+            description: 'Canonical features detected from plan matrix that are pending categorization',
+            features: ungroupedKeys.map(k => ({
+                key: k,
+                label: k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+                type: (k.includes('limit') || k.includes('count') || k.includes('days') || k.includes('seats') || k.includes('registers') || k.includes('locations') || k.includes('credits') || k.includes('jobs')) ? 'number' : 'boolean',
+                note: 'Auto-detected from canonical plan matrix'
+            }))
+        });
+    }
+
+    const filteredGroups = allGroups.map(group => {
         if (group.id === 'ecommerce' && !vensynq_enabled) {
             return {
                 ...group,
@@ -311,8 +354,9 @@ function FeatureMatrix({ plans }) {
     const planColors = [vq.indigo[400], vq.sky[400], vq.emerald[500], vq.amber[500], vq.pink[500], vq.violet[400]];
 
     const handleBulkSet = useCallback((planId, value) => {
+        // Exclude system / infrastructure and read-only keys (F16 requirement)
         const boolKeys = filteredGroups.flatMap(g =>
-            g.features.filter(f => f.type === 'boolean').map(f => f.key)
+            g.features.filter(f => f.type === 'boolean' && f.type !== 'system' && !f.system && !f.readOnly).map(f => f.key)
         );
 
         // Optimistic local update
@@ -349,10 +393,30 @@ function FeatureMatrix({ plans }) {
             }
             return next;
         });
-    }, [plans]);
+    }, [plans, filteredGroups]);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0, position: 'relative' }}>
+
+            {/* Universal Reports Notice (F4 / V11 §1.1) */}
+            <div style={{
+                margin: '0 0 16px 0',
+                padding: '12px 18px',
+                background: 'rgba(11, 170, 143, 0.08)',
+                border: '1px solid rgba(11, 170, 143, 0.25)',
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                color: '#0BAA8F',
+                fontSize: 12,
+                fontWeight: 600
+            }}>
+                <span style={{ fontSize: 16 }}>📊</span>
+                <span>
+                    <strong>Universal Reports (V11 §1.1):</strong> All 23 business, audit, and analytical reports are universal and included on every plan. Individual per-report gating has been deprecated.
+                </span>
+            </div>
 
             {/* Matrix header info */}
             <div style={{

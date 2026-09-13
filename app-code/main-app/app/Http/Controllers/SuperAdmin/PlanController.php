@@ -38,10 +38,12 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             });
 
         $platforms = Platform::where('is_active', true)->get();
+        $canonicalKeys = PlanRepository::getCanonicalKeys();
 
         return Inertia::render('SuperAdmin/Plans/Index', [
-            'plans'     => $plans,
-            'platforms' => $platforms,
+            'plans'          => $plans,
+            'platforms'      => $platforms,
+            'canonical_keys' => $canonicalKeys,
         ]);
     }
 
@@ -91,10 +93,21 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
 
     public function bulkUpdate(Request $request)
     {
+        $canonicalKeys = PlanRepository::getCanonicalKeys();
+
         $validated = $request->validate([
             'changes' => 'required|array',
             'changes.*' => 'array',
         ]);
+
+        // Validate all keys against canonical registry (F10)
+        foreach ($validated['changes'] as $planId => $limits) {
+            foreach (array_keys($limits) as $key) {
+                if (!in_array($key, $canonicalKeys, true)) {
+                    abort(422, "Unknown or non-canonical feature key: '{$key}'.");
+                }
+            }
+        }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
             foreach ($validated['changes'] as $planId => $limits) {
@@ -106,7 +119,7 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
                         ['key' => $key],
                         [
                             'value' => $value !== null ? (string)$value : null,
-                            'reset_period' => ($key === 'transactions_per_month') ? 'monthly' : 'never'
+                            'reset_period' => PlanRepository::getResetPeriod($key)
                         ]
                     );
                 }
@@ -114,6 +127,8 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
                 PlanRepository::invalidatePlanCache($plan->slug);
             }
         });
+
+        \App\Services\Platform\PlanPricingService::flush();
 
         return redirect()->route('platform.plans.index')->with('success', 'Bulk feature matrix limits updated successfully.');
     }

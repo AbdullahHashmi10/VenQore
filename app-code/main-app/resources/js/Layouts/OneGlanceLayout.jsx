@@ -95,6 +95,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
  const { url, props } = usePage();
  const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo, planFeatures } = props;
+ const aiUsage = props.plan?.usage?.ai;
+ const aiWarningState = aiUsage?.warning_state ?? 'ok';
 
  /* Counter, table service, or both. Decides whether a Tables entry exists at
  all: a counter-only shop seeing a control it can never use is the kind of
@@ -1472,6 +1474,20 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <User size={16} /> Profile Settings
  </Link>
  )}
+  {store && (
+  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+      <div className="flex items-center gap-3">
+          <Sparkles size={16} className="text-[#0BAA8F]" />
+          <span>AI Usage</span>
+      </div>
+      {aiWarningState === 'limit' && (
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse" title="AI usage limit reached" />
+      )}
+      {aiWarningState === 'warning' && (
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse" title="AI usage warning (≥80%)" />
+      )}
+  </Link>
+  )}
  <button
  onClick={() => {
  localStorage.removeItem('amd_onboarding_driver_complete');
@@ -1979,6 +1995,20 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                       <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
                           <User size={16} /> Profile Settings
                       </Link>
+                  )}
+                  {store && (
+                  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex items-center justify-between w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+                      <div className="flex items-center gap-3">
+                          <Sparkles size={16} className="text-[#0BAA8F]" />
+                          <span>AI Usage</span>
+                      </div>
+                      {aiWarningState === 'limit' && (
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse" title="AI usage limit reached" />
+                      )}
+                      {aiWarningState === 'warning' && (
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse" title="AI usage warning (≥80%)" />
+                      )}
+                  </Link>
                   )}
                   <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
                       <LogOut size={16} /> Logout

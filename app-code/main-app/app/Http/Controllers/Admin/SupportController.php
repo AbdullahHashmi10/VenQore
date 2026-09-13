@@ -98,38 +98,5 @@ class SupportController extends Controller
         } catch (\Throwable) {}
         return response()->json($logs);
     }
-
-    // ── Feature Flags ──────────────────────────────────────────────────────
-
-    public function toggleFeatureFlag(Request $request, \App\Models\Tenant $tenant): RedirectResponse
-    {
-        // Batch Mode: Update multiple feature flags at once
-        if ($request->has('features') && is_array($request->features)) {
-            $overrides = $tenant->plan_limits ?? [];
-            foreach ($request->features as $feature => $enabled) {
-                if (in_array($feature, ['woocommerce', 'api_access', 'growth_engine', 'multi_branch', 'advanced_reports'])) {
-                    $overrides[$feature] = (bool) $enabled;
-                }
-            }
-            $tenant->update(['plan_limits' => $overrides]);
-            return back()->with('success', "Feature flags updated for {$tenant->name}.");
-        }
-
-        // Single Mode: Existing API fallback
-        $request->validate([
-            'feature' => 'required|string|in:woocommerce,api_access,growth_engine,multi_branch,advanced_reports',
-            'enabled' => 'required|boolean',
-        ]);
-
-        $overrides = $tenant->plan_limits ?? [];
-        if ($request->enabled) {
-            $overrides[$request->feature] = true;
-        } else {
-            $overrides[$request->feature] = false;
-        }
-
-        $tenant->update(['plan_limits' => $overrides]);
-
-        return back()->with('success', "Feature '{$request->feature}' " . ($request->enabled ? 'enabled' : 'disabled') . " for {$tenant->name}.");
-    }
 }
+

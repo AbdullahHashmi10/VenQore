@@ -29,8 +29,9 @@ class AccessGrantController extends Controller
 
         $plans = Plan::whereNull('archived_at')
             ->where('is_active', true)
-            ->where('is_ltd', false)      // gift links provision subscription-type plans only
-            ->where('type', 'subscription') // excludes 'trial' — a gift is meant to skip the trial, not grant one
+            ->where('is_ltd', false)
+            ->where('slug', '!=', 'trial')
+            ->where('type', '!=', 'trial')
             ->orderBy('sort_order')
             ->get(['id', 'name', 'slug', 'display_name']);
 

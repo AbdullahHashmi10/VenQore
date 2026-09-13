@@ -833,7 +833,7 @@ class BillingController extends Controller
 
         $request->validate([
             // AI Spark is the free allowance every store already has — it is not sold.
-            'addon_type' => 'required|string|in:ai_byok,ai_shop,ai_pro,ai_max,sync_woocommerce,sync_amazon'
+            'addon_type' => 'required|string|in:ai_byok,ai_shop,ai_pro,ai_max,ai_topup,sync_woocommerce,sync_amazon'
         ]);
 
         $addonType = $request->input('addon_type');
@@ -843,6 +843,7 @@ class BillingController extends Controller
             'ai_shop'          => 'pricing.ai_tiers.shop.variant_id',
             'ai_pro'           => 'pricing.ai_tiers.pro.variant_id',
             'ai_max'           => 'pricing.ai_tiers.max.variant_id',
+            'ai_topup'         => 'pricing.add_ons.ai_topup.variant_id',
             'sync_woocommerce' => 'services.lemon_squeezy.woocommerce_addon_id',
             'sync_amazon'      => 'services.lemon_squeezy.amazon_addon_id',
             default            => null,

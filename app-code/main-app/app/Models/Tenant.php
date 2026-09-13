@@ -371,9 +371,16 @@ class Tenant extends Model
         }
 
         // If known boolean feature from canonical config, return boolean
-        $configVal = config("plans.solo.{$key}", config("plans.business.{$key}"));
+        $configVal = config("plans.solo.{$key}", config("plans.scale.{$key}"));
         if (is_bool($configVal) || in_array($key, ['report_profit_loss', 'recurring_invoices', 'fund_management', 'production', 'multi_branch', 'ltd'])) {
             return ($raw !== '0' && $raw !== 0 && $raw !== false && $raw !== 'false' && $raw !== null && $raw !== '');
+        }
+
+        if ($raw === '0') {
+            return false;
+        }
+        if ($raw === '1') {
+            return true;
         }
 
         if (is_numeric($raw)) {
@@ -438,6 +445,8 @@ class Tenant extends Model
             return $this->plan_limits['ltd_tier'];
         }
 
+        \Illuminate\Support\Facades\Log::warning("Tenant {$this->id}: effectivePlan() inferring LTD tier from numeric limits as fallback.");
+
         $skuLimit = $this->plan_limits['sku_limit'] ?? null;
         if ($skuLimit == 25000) {
             return 'ltd_2';
@@ -480,7 +489,9 @@ class Tenant extends Model
                     "setPlanAttribute: no seeded limits found for '{$value}' — tenant JSON left empty (fail-closed). Run PlanFeatureMatrixSeeder."
                 );
             }
-            $this->plan_limits = $limits ?: [];
+            $snapshot = is_array($limits) ? $limits : [];
+            $snapshot['ltd_tier'] = $value;
+            $this->plan_limits = $snapshot;
         } else {
             $this->attributes['plan'] = $value;
         }

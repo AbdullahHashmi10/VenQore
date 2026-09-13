@@ -232,5 +232,30 @@ class AiEntitlementService
             default         => "{$feature} is not available.",
         };
     }
+
+    /**
+     * Compute next monthly anniversary reset date for a tenant, matching ResetAiUsageJob logic.
+     */
+    public static function nextAiResetDate(\App\Models\Tenant $tenant): string
+    {
+        $startedAt = $tenant->ai_period_started_at ? \Carbon\Carbon::parse($tenant->ai_period_started_at) : null;
+        $anniversaryDay = $startedAt ? (int) $startedAt->format('j') : 1;
+
+        $now = now();
+        $currentDay = (int) $now->format('j');
+
+        if ($currentDay < $anniversaryDay) {
+            $daysInCurrentMonth = (int) $now->daysInMonth;
+            $dayToUse = min($anniversaryDay, $daysInCurrentMonth);
+            $resetDate = $now->copy()->setDay($dayToUse)->startOfDay();
+        } else {
+            $nextMonth = $now->copy()->addMonthNoOverflow();
+            $daysInNextMonth = (int) $nextMonth->daysInMonth;
+            $dayToUse = min($anniversaryDay, $daysInNextMonth);
+            $resetDate = $nextMonth->setDay($dayToUse)->startOfDay();
+        }
+
+        return $resetDate->format('M j, Y');
+    }
 }
 

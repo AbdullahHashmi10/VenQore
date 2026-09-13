@@ -213,6 +213,17 @@ class HandleInertiaRequests extends Middleware
                         'staff'     => \Illuminate\Support\Facades\Cache::remember("tenant_usage_staff:{$tenant->id}", 60, fn() => \App\Models\TenantUser::where('tenant_id', $tenant->id)->count()),
                         'locations' => \Illuminate\Support\Facades\Cache::remember("tenant_usage_locations:{$tenant->id}", 60, fn() => \App\Models\Warehouse::where('tenant_id', $tenant->id)->count()),
                         'ai_pages'  => $tenant->ai_pages_used ?? 0,
+                        'ai'        => [
+                            'status'               => $tenant->ai_status ?? 'none',
+                            'pages_used'           => (int) ($tenant->ai_pages_used ?? 0),
+                            'pages_limit'          => $tenant->ai_pages_limit,
+                            'queries_used'         => (int) ($tenant->ai_queries_used ?? 0),
+                            'queries_limit'        => $tenant->ai_queries_limit,
+                            'descriptions_balance' => $tenant->ai_descriptions_balance,
+                            'period_started_at'    => optional($tenant->ai_period_started_at)->toISOString(),
+                            'resets_on'            => \App\Services\SmartCapture\AiEntitlementService::nextAiResetDate($tenant),
+                            'warning_state'        => app(\App\Services\SmartCapture\AiEntitlementService::class)->checkWarningThreshold(),
+                        ],
                     ],
                 ];
             })(),

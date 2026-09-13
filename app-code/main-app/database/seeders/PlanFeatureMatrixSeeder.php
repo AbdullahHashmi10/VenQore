@@ -50,8 +50,119 @@ class PlanFeatureMatrixSeeder extends Seeder
             $planIds[$slug] = DB::table('plans')->where('slug', $slug)->value('id');
         }
 
-        // Define feature matrix default mappings across tiers according to V11 Spec §1
-        $matrix = [
+        $matrix = self::getMatrix();
+
+        // Seed/Update limits for all plans (including LTD equivalents) in a single transaction
+        DB::transaction(function () use ($matrix, $planSlugs, $planIds) {
+            foreach ($matrix as $key => $values) {
+                foreach ($planSlugs as $slug) {
+                    $pid = $planIds[$slug] ?? null;
+                    if (!$pid) continue;
+
+                    $val = self::resolveLimitValue($slug, $key, $values);
+
+                    // Write/Update using updateOrInsert to prevent duplicate constraints
+                    DB::table('plan_limits')->updateOrInsert(
+                        ['plan_id' => $pid, 'key' => $key],
+                        [
+                            'value' => $val,
+                            'reset_period' => \App\Services\PlanRepository::getResetPeriod($key),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+                }
+            }
+        });
+
+        // Invalidate all plan limit caches
+        foreach ($planSlugs as $slug) {
+            \App\Services\PlanRepository::invalidatePlanCache($slug);
+        }
+    }
+
+    public static function resolveLimitValue(string $slug, string $key, array $values): ?string
+    {
+        // Resolve values for LTD, trial, and alias plans from their base equivalents:
+        // trial = core, growth = core, business = scale, ltd_1 = starter, ltd_2 = core, ltd_3 = scale
+        $baseSlug = match ($slug) {
+            'trial', 'growth' => 'core',
+            'custom', 'business' => 'scale',
+            'ltd_1'           => 'starter',
+            'ltd_2'           => 'core',
+            'ltd_3'           => 'scale',
+            default           => $slug,
+        };
+
+        $val = array_key_exists($slug, $values)
+            ? $values[$slug]
+            : (array_key_exists($baseSlug, $values)
+                ? $values[$baseSlug]
+                : (array_key_exists('starter', $values) ? $values['starter'] : '0'));
+
+        // For trial and custom, reporting keys get Scale set (all 23 reports accessible per SPEC_REPORTING_TIERS_FINAL Part C)
+        if (($slug === 'trial' || $slug === 'custom') && (str_starts_with($key, 'report_') || $key === 'owners_daily_pulse')) {
+            $val = $values['scale'] ?? '1';
+        }
+
+        // LTD Specific overrides per V11 Spec §7
+        if (str_starts_with($slug, 'ltd_')) {
+            // Fences always off on LTD tiers (except multi-branch on ltd_2/ltd_3 and channel sync on ltd_3)
+            $ltdFencesOff = [
+                'api_access', 'webhooks', 'api_webhooks', 'white_label',
+                'security_activity_log', 'audit_trail', 'custom_roles',
+                'consolidated_reporting', 'network_unlimited',
+            ];
+            if (in_array($key, $ltdFencesOff, true)) {
+                $val = '0';
+            }
+        }
+
+        if ($slug === 'ltd_1') {
+            if ($key === 'sku_limit') $val = '5000';
+            if ($key === 'staff_limit') $val = '1';
+            if ($key === 'locations' || $key === 'location_limit') $val = '1';
+            if ($key === 'registers') $val = '2';
+            if ($key === 'devices_per_seat') $val = '3';
+            if ($key === 'ai_credits_annual') $val = '12000';
+            if ($key === 'multi_branch') $val = '0';
+            if ($key === 'woocommerce' || $key === 'amazon_sync' || $key === 'ebay_sync' || $key === 'tiktok_sync') $val = '0';
+        } elseif ($slug === 'ltd_2') {
+            if ($key === 'sku_limit') $val = '25000';
+            if ($key === 'staff_limit') $val = '2';
+            if ($key === 'locations' || $key === 'location_limit') $val = '2';
+            if ($key === 'registers') $val = '4';
+            if ($key === 'devices_per_seat') $val = '3';
+            if ($key === 'ai_credits_annual') $val = '30000';
+            if ($key === 'multi_branch') $val = '1';
+            if ($key === 'woocommerce' || $key === 'amazon_sync' || $key === 'ebay_sync' || $key === 'tiktok_sync') $val = '0';
+        } elseif ($slug === 'ltd_3') {
+            if ($key === 'sku_limit') $val = '50000';
+            if ($key === 'staff_limit') $val = '5';
+            if ($key === 'locations' || $key === 'location_limit') $val = '5';
+            if ($key === 'registers') $val = '10';
+            if ($key === 'devices_per_seat') $val = '3';
+            if ($key === 'ai_credits_annual') $val = '60000';
+            if ($key === 'multi_branch') $val = '1';
+            if ($key === 'woocommerce') $val = '1'; // 1 channel sync included
+        }
+
+        // Monthly transaction allowances: 100 for Solo; unlimited (null) for ltd_1, ltd_2, ltd_3 and standard subscription plans
+        if ($key === 'transactions_per_month') {
+            $val = ($slug === 'solo') ? '100' : null;
+        }
+
+        // Service jobs unlimited across all paid & LTD plans; 20 for Solo
+        if ($key === 'service_jobs_per_month') {
+            $val = ($slug === 'solo') ? '20' : null;
+        }
+
+        return $val !== null ? (string)$val : null;
+    }
+
+    public static function getMatrix(): array
+    {
+        return [
             // Group 1 — Onboarding & System Setup (Universal)
             'demo_store'                 => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'free_trial_days'            => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '0'],
@@ -266,7 +377,6 @@ class PlanFeatureMatrixSeeder extends Seeder
 
             // Group 8 — Reports (SPEC_REPORTING_TIERS_FINAL)
             'reports'                    => ['solo' => 'basic', 'starter' => 'advanced', 'core' => 'advanced', 'scale' => 'advanced'],
-            'visible_history_days'       => ['solo' => '30', 'starter' => null, 'core' => null, 'scale' => null],
             // Starter (10 keys)
             'report_sales_records'       => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'report_purchase_records'    => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
@@ -315,113 +425,13 @@ class PlanFeatureMatrixSeeder extends Seeder
             'jewelry_metal_rates'        => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'work_orders'                => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
-            'chat_support' => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
-            'dedicated_account_manager' => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
-            'recurring_invoicing' => ['solo' => '1', 'starter' => '0', 'core' => '1', 'scale' => '1'],
-            'vensync_command' => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
-            'whatsapp_reminders' => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'chat_support'               => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
+            'dedicated_account_manager'  => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '1'],
+            'recurring_invoicing'        => ['solo' => '1', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'vensync_command'            => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1'],
+            'whatsapp_reminders'         => ['solo' => '0', 'starter' => '1', 'core' => '1', 'scale' => '1'],
 
             'ltd'                        => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '0', 'ltd_1' => '1', 'ltd_2' => '1', 'ltd_3' => '1'],
         ];
-
-        // Seed/Update limits for all plans (including LTD equivalents) in a single transaction
-        DB::transaction(function () use ($matrix, $planSlugs, $planIds) {
-            foreach ($matrix as $key => $values) {
-                foreach ($planSlugs as $slug) {
-                    $pid = $planIds[$slug] ?? null;
-                    if (!$pid) continue;
-
-                    // Resolve values for LTD, trial, and alias plans from their base equivalents:
-                    // trial = core, growth = core, business = scale, ltd_1 = starter, ltd_2 = core, ltd_3 = scale
-                    $baseSlug = match ($slug) {
-                        'trial', 'growth' => 'core',
-                        'custom', 'business' => 'scale',
-                        'ltd_1'           => 'starter',
-                        'ltd_2'           => 'core',
-                        'ltd_3'           => 'scale',
-                        default           => $slug,
-                    };
-
-                    $val = array_key_exists($slug, $values)
-                        ? $values[$slug]
-                        : (array_key_exists($baseSlug, $values)
-                            ? $values[$baseSlug]
-                            : (array_key_exists('starter', $values) ? $values['starter'] : '0'));
-
-                    // For trial and custom, reporting keys get Scale set (all 23 reports accessible per SPEC_REPORTING_TIERS_FINAL Part C)
-                    if (($slug === 'trial' || $slug === 'custom') && (str_starts_with($key, 'report_') || $key === 'owners_daily_pulse')) {
-                        $val = $values['scale'] ?? '1';
-                    }
-
-                    // LTD Specific overrides per V11 Spec §7
-                    if (str_starts_with($slug, 'ltd_')) {
-                        // Fences always off on LTD tiers (except multi-branch on ltd_2/ltd_3 and channel sync on ltd_3)
-                        $ltdFencesOff = [
-                            'api_access', 'webhooks', 'api_webhooks', 'white_label',
-                            'security_activity_log', 'audit_trail', 'custom_roles',
-                            'consolidated_reporting', 'network_unlimited',
-                        ];
-                        if (in_array($key, $ltdFencesOff, true)) {
-                            $val = '0';
-                        }
-                    }
-
-                    if ($slug === 'ltd_1') {
-                        if ($key === 'sku_limit') $val = '5000';
-                        if ($key === 'staff_limit') $val = '1';
-                        if ($key === 'locations' || $key === 'location_limit') $val = '1';
-                        if ($key === 'registers') $val = '2';
-                        if ($key === 'devices_per_seat') $val = '3';
-                        if ($key === 'ai_credits_annual') $val = '12000';
-                        if ($key === 'multi_branch') $val = '0';
-                        if ($key === 'woocommerce' || $key === 'amazon_sync' || $key === 'ebay_sync' || $key === 'tiktok_sync') $val = '0';
-                    } elseif ($slug === 'ltd_2') {
-                        if ($key === 'sku_limit') $val = '25000';
-                        if ($key === 'staff_limit') $val = '2';
-                        if ($key === 'locations' || $key === 'location_limit') $val = '2';
-                        if ($key === 'registers') $val = '4';
-                        if ($key === 'devices_per_seat') $val = '3';
-                        if ($key === 'ai_credits_annual') $val = '30000';
-                        if ($key === 'multi_branch') $val = '1';
-                        if ($key === 'woocommerce' || $key === 'amazon_sync' || $key === 'ebay_sync' || $key === 'tiktok_sync') $val = '0';
-                    } elseif ($slug === 'ltd_3') {
-                        if ($key === 'sku_limit') $val = '50000';
-                        if ($key === 'staff_limit') $val = '5';
-                        if ($key === 'locations' || $key === 'location_limit') $val = '5';
-                        if ($key === 'registers') $val = '10';
-                        if ($key === 'devices_per_seat') $val = '3';
-                        if ($key === 'ai_credits_annual') $val = '60000';
-                        if ($key === 'multi_branch') $val = '1';
-                        if ($key === 'woocommerce') $val = '1'; // 1 channel sync included
-                    }
-
-                    // Monthly transaction allowances: 100 for Solo; unlimited (null) for ltd_1, ltd_2, ltd_3 and standard subscription plans
-                    if ($key === 'transactions_per_month') {
-                        $val = ($slug === 'solo') ? '100' : null;
-                    }
-
-                    // Service jobs unlimited across all paid & LTD plans; 20 for Solo
-                    if ($key === 'service_jobs_per_month') {
-                        $val = ($slug === 'solo') ? '20' : null;
-                    }
-
-                    // Write/Update using updateOrInsert to prevent duplicate constraints
-                    DB::table('plan_limits')->updateOrInsert(
-                        ['plan_id' => $pid, 'key' => $key],
-                        [
-                            'value' => $val !== null ? (string)$val : null,
-                            'reset_period' => in_array($key, ['transactions_per_month', 'service_jobs_per_month', 'ai_credits_monthly'], true) ? 'monthly' : 'never',
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]
-                    );
-                }
-            }
-        });
-
-        // Invalidate all plan limit caches
-        foreach ($planSlugs as $slug) {
-            \App\Services\PlanRepository::invalidatePlanCache($slug);
-        }
     }
 }
