@@ -51,12 +51,16 @@ export const DEFAULT_APPEARANCE = {
  * Mode
  * ------------------------------------------------------------------ */
 
-const prefersDark = () => false;
+const prefersDark = () =>
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 /** Turn the stored mode ('light' | 'dark' | 'system') into a boolean. */
 export function resolveDarkMode(mode) {
     if (mode === 'dark') return true;
     if (mode === 'light') return false;
+    if (mode === 'system') return prefersDark();
     return false;
 }
 

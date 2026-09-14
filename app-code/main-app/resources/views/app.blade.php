@@ -20,8 +20,9 @@
     @foreach($vqHtmlAttributes as $vqAttribute => $vqValue) {{ $vqAttribute }}="{{ $vqValue }}" @endforeach>
 
 <head>
+    @if(auth()->guest() || !request()->route('store_slug'))
     <script>
-      /* Theme before paint — light default unless explicitly saved */
+      /* Theme before paint — light default unless explicitly saved (Public marketing flow only) */
       (function(){
         try {
           var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
@@ -35,6 +36,7 @@
         } catch(e) {}
       })();
     </script>
+    @endif
     {{--
       WEB-01 (2026-09-10): analytics obeys the cookie choice.
       - Nothing is loaded from Google until the visitor allows Analytics in the

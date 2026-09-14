@@ -3,7 +3,7 @@ import { Head, router, Link } from '@inertiajs/react';
 import axios from 'axios';
 import './NewDashboard.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { useTermText } from '@/lib/terms';
+import { useAppearance } from '@/Contexts/AppearanceContext';
 
 /* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
    lucide icon NAMES — the same contract QoreShell consumes. */
@@ -34,18 +34,8 @@ const NavIcon = ({ name, size = 18 }) => {
 const NAV_GROUP_LABELS = { A:'Catalog', B:'Sell', C:'Stock', D:'Buy', E:'Make', F:'Money', G:'Grow' };
 const NAV_GROUP_ORDER = ['A','B','C','D','E','F','G'];
 
-function abbrNum(num) {
-  const n = Number(num) || 0;
-  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
-  return n.toLocaleString();
-}
-
 // React Bits Components
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
-import WelcomeTourModal from '@/Components/WelcomeTourModal';
-import DashboardTourGuide from '@/Components/DashboardTourGuide';
-import V6FinancialSidebar from '@/Components/V6FinancialSidebar';
 import RECKONER_CATALOG from './ReckonerCatalog.json';
 
 /* ══ human copy ════════════════════════════════════════════════════════════
@@ -184,31 +174,30 @@ function readingDesc(r){
    else. An empty enabled-set (no tenant bound, the dev harness) gates
    nothing. A reading matching no rule is always available. */
 const READING_MODULE_RULES = [
-  [/^accounting\./,              ["accounting_workspace"]],
-  [/^bank_accounts\./,           ["bank_accounts"]],
-  [/^bank_reconciliation\./,     ["bank_reconciliation"]],
-  [/^batch_tracking\./,          ["batches_expiry"]],
-  [/^debit_notes\./,             ["purchase_returns"]],
-  [/^finance\.expenses/,         ["expenses"]],
-  [/^finance\.tax/,              ["tax_compliance"]],
-  [/^finance\./,                 ["khata_credit", "payments", "accounting_workspace"]],
-  [/^party\./,                   ["customers", "suppliers"]],
-  [/^inventory\.product_count$/, ["products"]],
-  [/^inventory\./,               ["inventory"]],
-  [/^production\./,              ["production_runs"]],
-  [/^pre_sales\./,               ["pre_sales"]],
-  [/^proposals\./,               ["b2b_proposals"]],
-  [/^purchase_orders\./,         ["purchase_orders"]],
-  [/^purchasing\./,              ["purchases", "purchase_orders"]],
-  [/^recurring_invoices\./,      ["recurring_invoices"]],
-  [/^reminders\./,               ["recurring_invoices"]],
-  [/^returns\./,                 ["sales_returns"]],
-  [/^sales_orders\./,            ["sales_orders"]],
-  [/^sales\./,                   ["pos", "invoicing"]],
-  [/^serial_tracking\./,         ["serials"]],
-  [/^staff\./,                   ["staff_attendance"]],
-  [/^staff_attendance\./,        ["staff_attendance"]],
-  [/^operations\./,              []],
+  [/^accounting\./,           ["accounting_workspace"]],
+  [/^bank_accounts\./,        ["bank_accounts"]],
+  [/^bank_reconciliation\./,  ["bank_reconciliation"]],
+  [/^batch_tracking\./,       ["batches_expiry"]],
+  [/^debit_notes\./,          ["purchase_returns"]],
+  [/^finance\.expenses/,      ["expenses"]],
+  [/^finance\.tax/,           ["tax_compliance"]],
+  [/^finance\./,              ["khata_credit", "payments", "accounting_workspace"]],
+  [/^party\./,                ["customers", "suppliers"]],
+  [/^inventory\./,            ["inventory"]],
+  [/^production\./,           ["production_runs"]],
+  [/^pre_sales\./,            ["pre_sales"]],
+  [/^proposals\./,            ["quotations"]],
+  [/^purchase_orders\./,      ["purchase_orders"]],
+  [/^purchasing\./,           ["purchases", "purchase_orders"]],
+  [/^recurring_invoices\./,   ["recurring_invoices"]],
+  [/^reminders\./,            ["khata_credit"]],
+  [/^returns\./,              ["sales_returns"]],
+  [/^sales_orders\./,         ["sales_orders"]],
+  [/^sales\./,                ["pos", "invoicing"]],
+  [/^serial_tracking\./,      ["serials"]],
+  [/^staff\./,                ["staff_attendance"]],
+  [/^staff_attendance\./,     ["staff_attendance"]],
+  [/^operations\./,           []],
 ];
 function modulesOf(key){
   for (const [re, mods] of READING_MODULE_RULES) if (re.test(key)) return mods;
@@ -252,31 +241,7 @@ function prepareReadings(source) {
   return list;
 }
 
-function getDashboardProps() {
-  if (typeof window !== "undefined" && window.__DASHBOARD_PROPS__) {
-    return window.__DASHBOARD_PROPS__;
-  }
-  return {};
-}
-
-/**
- * Is this module part of what the customer actually built?
- *
- * `modules` has been handed to the card builder since the board shipped and
- * nothing ever read it, which is why the Launchpad offered Point of Sale and
- * Purchase Order to a one-person services business that asked for neither.
- * Unknown (no list) means yes — an older board that never received the prop
- * should keep working rather than render an empty dashboard.
- */
-function hasModule(key) {
-  const list = getDashboardProps().modules;
-  return !Array.isArray(list) || !key || list.includes(key);
-}
-
 function runCardBuilder(opts) {
-  if (typeof window !== "undefined") {
-    window.__DASHBOARD_PROPS__ = opts || {};
-  }
   /* Inertia remounts this page on every client-side navigation back to it. The
      engine registers document-level listeners, so running it twice would double
      every pointerup and leak a listener per visit. Re-boot the board instead. */
@@ -297,7 +262,7 @@ function runCardBuilder(opts) {
 
 let ENABLED_MODULES = null;    /* null = ungated (no tenant / dev harness) */
 function setEnabledModules(list){
-  ENABLED_MODULES = Array.isArray(list) ? new Set(list) : null;
+  ENABLED_MODULES = Array.isArray(list) && list.length ? new Set(list) : null;
 }
 function readingAvailable(r){
   if (!ENABLED_MODULES) return true;
@@ -310,10 +275,6 @@ function availableReadings(){ return READINGS.filter(readingAvailable); }
 const SPECIAL_MODULES = {
   bank_liquidity: ["bank_accounts"],
   growth_engine:  ["reports", "ai_insights"],
-  charity_hub:    [],
-  top_products_hub: ["sales", "pos"],
-  recent_purchases_hub: ["purchases"],
-  store_health:   ["finance"],
   action_hub: [], launchpad: [], alerts_hub: [], custom_button: [],
 };
 function specialAvailable(type){
@@ -406,7 +367,6 @@ function unitPrefix(unit){ return unit === "currency" ? "Rs " : ""; }
 function unitSuffix(unit){ return unit === "percent" ? "%" : ""; }
 
 /* ── live reckoner integration & deterministic fallback ─────────────── */
-let DASHBOARD_PROPS = {};
 const LIVE_RECKONER_DATA = {};
 const PENDING_RECKONER_REQUESTS = new Set();
 let RECKONER_FETCH_TIMER = null;
@@ -457,14 +417,11 @@ function queueLiveReadings(cards, onComplete) {
     chunks.push(requests.slice(i, i + 24));
   }
 
-  let hasNewData = false;
-
   Promise.allSettled(chunks.map(chunk =>
     axios.post("/api/reckoner/read", {
       requests: chunk.map(r => ({ key: r.key, period: r.period }))
-    }, { _skipGlobalErrorHandler: true }).then(res => {
+    }).then(res => {
       const items = res?.data?.data || [];
-      const handledKeys = new Set();
       items.forEach((item, idx) => {
         if (item && item.key) {
           const req = chunk[idx] || chunk.find(r => r.key === item.key);
@@ -472,38 +429,15 @@ function queueLiveReadings(cards, onComplete) {
           const uiP = req?.uiPeriod || "Month";
           LIVE_RECKONER_DATA[`${item.key}|${perKey}`] = item;
           LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
-          if (req?.reqKey) handledKeys.add(req.reqKey);
-          hasNewData = true;
         }
       });
-      // Mark missing items in this chunk as empty so they won't re-request endlessly
-      chunk.forEach(r => {
-        if (!handledKeys.has(r.reqKey)) {
-          LIVE_RECKONER_DATA[r.reqKey] = { key: r.key, empty: true };
-          LIVE_RECKONER_DATA[`${r.key}|${r.period}`] = { key: r.key, empty: true };
-        }
-      });
-    }).catch(() => {
-      // Mark chunk as handled on error/offline to prevent infinite loops
-      chunk.forEach(r => {
-        LIVE_RECKONER_DATA[r.reqKey] = LIVE_RECKONER_DATA[r.reqKey] || { key: r.key, error: true };
-        LIVE_RECKONER_DATA[`${r.key}|${r.period}`] = LIVE_RECKONER_DATA[`${r.key}|${r.period}`] || { key: r.key, error: true };
-      });
-    }).finally(() => {
+    }).catch(() => {})
+    .finally(() => {
       chunk.forEach(r => PENDING_RECKONER_REQUESTS.delete(r.reqKey));
     })
   )).then(() => {
-    if (hasNewData) {
-      // Update charts and values safely on existing board without full destructive DOM wipe
-      const board = document.getElementById("board");
-      if (board) {
-        board.querySelectorAll(".vqc").forEach(el => {
-          const c = cardOf(el.dataset.id);
-          const host = el.querySelector(".vqc-host");
-          if (c && host) mountChart(host, c);
-        });
-        fitValues(board);
-      }
+    if (typeof window !== "undefined" && window.VenQoreCards && window.VenQoreCards.draw) {
+      window.VenQoreCards.draw();
     }
     if (onComplete) onComplete();
   });
@@ -518,9 +452,9 @@ function seed(str){
    is meaningless if the data can only ever be positive */
 const SIGNED = /profit|net_|cash_flow|margin|variance/;
 
-/** Real business series: uses live Reckoner data when available, with clean 0 fallback when empty. */
+/** A plausible business series: uses real Reckoner data when available, with seeded fallback. */
 function valuesFor(key, period, unit){
-  const { n } = PERIOD[period] || PERIOD.Month;
+  const { n, grain } = PERIOD[period] || PERIOD.Month;
   const reqKey = `${key}|${period}`;
   const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`];
 
@@ -557,8 +491,27 @@ function valuesFor(key, period, unit){
     }
   }
 
-  // Honest production empty state: return 0s instead of fabricated numbers
-  return new Array(n).fill(0);
+  const r = seed(key + "|" + period);
+  const base = unit === "percent" ? 20 + r() * 45
+             : unit === "currency" ? 40000 + r() * 900000
+             : 40 + r() * 900;
+  const trend = (r() - 0.4) * 0.5;
+  const signed = unit === "currency" && SIGNED.test(key);
+  const times = timeline(period);
+  const out = [];
+  for (let i = 0; i < n; i++){
+    const t = times[i];
+    const season = grain === "day" ? (t.getDay() === 0 ? -0.22 : t.getDay() === 6 ? 0.16 : 0)
+                 : grain === "hour" ? Math.sin((t.getHours() - 8) / 11 * Math.PI) * 0.3 : 0;
+    const drift = trend * (i / n);
+    const noise = (r() - 0.5) * 0.24;
+    let v = base * (1 + drift + season + noise);
+    if (unit === "percent") v = Math.max(1, Math.min(99, v));
+    else if (signed) v -= base * 0.72;          /* let it cross zero */
+    else v = Math.max(0, v);
+    out.push(v);
+  }
+  return out;
 }
 
 /** Everything a cartesian card needs: real times, one array per series. */
@@ -588,15 +541,25 @@ function buildParts(key, period, names){
         name: item.name || item.label || item.day || `Item ${i + 1}`,
         value: typeof item.value === 'number' ? item.value : typeof item.total === 'number' ? item.total : Number(item.val || item.sales || item.count || 0),
         color: `var(--vq-series-${(i%8)+1})`,
-      })).filter(x => x.value > 0);
+      }));
       list.sort((a, b) => b.value - a.value);
-      const total = Number(live.data.total) || list.reduce((s, x) => s + (x.value || 0), 0) || 0;
-      return { parts: list, total: total || 1, unit: rd?.unit || 'currency' };
+      const total = Number(live.data.total) || list.reduce((s, x) => s + (x.value || 0), 0) || 1;
+      return { parts: list, total, unit: rd?.unit || 'currency' };
     }
   }
 
-  // Honest production empty state: no mock slices
-  return { parts: [], total: 0, unit: rd?.unit || "currency" };
+  const r = seed(key + "|parts|" + period);
+  const rawNames = (Array.isArray(names) && names.length > 0)
+    ? names
+    : ((Array.isArray(rd?.rowNames) && rd.rowNames.length > 0)
+      ? rd.rowNames
+      : ["Cash", "Card", "Credit", "Bank", "Online", "Other"]);
+  const list = rawNames.map((n, i) => ({
+    name: n, value: Math.round((unitBase(rd?.unit || "currency")) * (0.3 + r())), color: `var(--vq-series-${(i%8)+1})`
+  }));
+  list.sort((a,b) => b.value - a.value);
+  if (!list.length) list.push({ name: "General", value: 100, color: "var(--vq-series-1)" });
+  return { parts: list, total: list.reduce((s,x) => s + (x.value || 0), 0) || 1, unit: rd?.unit || "currency" };
 }
 function unitBase(unit){ return unit === "currency" ? 180000 : unit === "percent" ? 22 : 320; }
 
@@ -1053,10 +1016,6 @@ function rangeLabel(ds){
 function mountRadial(host, card){
   const { W: HW, H: HH } = hostDimensions(host, card);
   const pd0 = buildParts(card.key, card.period, readingOf(card.key)?.sliceNames);
-  if (!pd0.parts || pd0.parts.length === 0) {
-    host.innerHTML = `<div class="ck-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--vq-text-muted);font-size:12px;"><span style="opacity:0.6;">No category breakdown recorded</span></div>`;
-    return;
-  }
   const legH = Math.min(HH * 0.5, (pd0.parts?.length || 1) * 30 + 6);
   const size = Math.max(84, Math.min(HW, HH - legH - 8, 210));
   const pd = pd0;
@@ -1277,17 +1236,11 @@ function mountRadar(host, card){
 
 function mountScatter(host, card){
   const { W, H } = hostDimensions(host, card);
-  const reqKey = `${card.key}|${card.period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
-  const pts = Array.isArray(live?.data?.points) ? live.data.points : [];
-
-  if (pts.length === 0) {
-    host.innerHTML = `<div class="ck-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--vq-text-muted);font-size:12px;"><span style="opacity:0.6;">No scatter data for this period</span></div>`;
-    return;
-  }
-
   const m = { l:44, r:12, t:10, b:26 }, pw = W-m.l-m.r, ph = H-m.t-m.b;
+  const r = seed(card.key + "|sc" + card.period);
   const rd = readingOf(card.key);
+  const pts = Array.from({length: 34}, () => { const x = r(), y = Math.min(1, Math.max(0, x*0.6 + r()*0.5));
+    return { x, y, w: 4 + r()*9 }; });
   const xs = niceTicks(0, 100, 5), ys = niceTicks(0, 100, 5);
   const grid = ys.ticks.map(v => { const y = m.t+ph-(v/100)*ph;
     return `<line class="ck-grid" x1="${m.l}" x2="${W-m.r}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>
@@ -1295,8 +1248,8 @@ function mountScatter(host, card){
   const xlab = xs.ticks.map(v => { const x = m.l+(v/100)*pw;
     return `<text class="ck-lab" x="${x.toFixed(1)}" y="${H-8}" text-anchor="middle">${v}</text>`; }).join("");
   const variant = card.variant || "dots";
-  const dots = pts.map((p,i) => `<circle class="ck-sc" data-i="${i}" cx="${(m.l+(p.x||0)*pw).toFixed(1)}"
-    cy="${(m.t+ph-(p.y||0)*ph).toFixed(1)}" r="${variant==="bubble"?(p.w||4).toFixed(1):4.5}"
+  const dots = pts.map((p,i) => `<circle class="ck-sc" data-i="${i}" cx="${(m.l+p.x*pw).toFixed(1)}"
+    cy="${(m.t+ph-p.y*ph).toFixed(1)}" r="${variant==="bubble"?p.w.toFixed(1):4.5}"
     fill="var(--vq-series-1-ink)" fill-opacity=".55" style="--d:${i*14}ms"><title>${rd.label}</title></circle>`).join("");
   const trend = variant === "trend"
     ? `<line class="ck-trend" x1="${m.l}" y1="${(m.t+ph*0.78).toFixed(1)}" x2="${W-m.r}" y2="${(m.t+ph*0.2).toFixed(1)}"/>` : "";
@@ -1344,16 +1297,30 @@ function mountHeatmap(host, card){
     return;
   }
 
-  host.innerHTML = `<div class="ck-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--vq-text-muted);font-size:12px;"><span style="opacity:0.6;">No activity recorded for this period</span></div>`;
+  const r = seed(card.key + "|hm" + card.period);
+  const cols = card.period === "Today"
+    ? ["09","11","13","15","17","19"] : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const rows = card.period === "Today" ? ["Mon","Tue","Wed","Thu"] : ["09h","12h","15h","18h"];
+  const grid = rows.map(() => cols.map(() => Math.round(r()*100)));
+  const mx = Math.max(...grid.flat()) || 1;
+  const cells = grid.flatMap((row, ri) => row.map((v, ci) => {
+    const lvl = Math.min(4, Math.floor(v/mx*5));
+    const d = (ri*cols.length+ci)*11;
+    if (variant === "dots") return `<span class="ck-hd2" style="--d:${d}ms"><i style="transform:scale(${(0.3+v/mx*0.7).toFixed(2)});background:var(--vq-seq-${lvl+1})"></i>
+      <span class="ck-hint">${rows[ri]} · ${cols[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
+    return `<span class="ck-hc ${variant==="rounded"?"is-round":""}" style="background:var(--vq-seq-${lvl+1});--d:${d}ms">
+      <span class="ck-hint">${rows[ri]} · ${cols[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
+  })).join("");
+  host.innerHTML = `<div class="ck-hm" style="--c:${cols.length}">
+    <div class="ck-hm-x"><span></span>${cols.map(c=>`<b>${c}</b>`).join("")}</div>
+    <div class="ck-hm-b"><div class="ck-hm-y">${rows.map(x=>`<b>${x}</b>`).join("")}</div>
+    <div class="ck-hm-g">${cells}</div></div>
+    <div class="ck-hm-l"><span>Low</span>${[1,2,3,4,5].map(i=>`<i style="background:var(--vq-seq-${i})"></i>`).join("")}<span>High</span></div></div>`;
 }
 
 function mountTable(host, card){
   const { H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
-  if (!pd.parts || pd.parts.length === 0) {
-    host.innerHTML = `<div class="ck-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--vq-text-muted);font-size:12px;"><span style="opacity:0.6;">No table records for this period</span></div>`;
-    return;
-  }
   const capacity = Math.max(2, Math.floor((H - 4) / 38));
   const rows = pd.parts.slice(0, Math.min(7, capacity)), mx = (rows[0]?.value || 1);
   const variant = card.variant || "rows";
@@ -1385,16 +1352,22 @@ function mountFeed(host, card){
     return;
   }
 
-  host.innerHTML = `<div class="ck-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--vq-text-muted);font-size:12px;"><span style="opacity:0.6;">No recent transactions in this period</span></div>`;
+  const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
+  const times = timeline(card.period).slice(-6).reverse();
+  const rows = pd.parts.slice(0, Math.min(6, capacity)), mx = (rows[0]?.value || 1);
+  host.innerHTML = `<div class="ck-tb ${bars ? "is-bars" : ""}">${rows.map((p,i) => `
+    <div class="ck-tr" style="--d:${i*45}ms">
+      ${bars ? "" : `<span class="ck-fd" style="background:${p?.color || "var(--vq-series-1)"}"></span>`}
+      <span class="ck-tn">${p.name}</span>
+      ${bars ? `<span class="ck-tbar"><i style="width:${((p?.value || 0)/mx*100).toFixed(0)}%;background:${p?.color || "var(--vq-series-1)"}"></i></span>`
+             : `<span class="ck-tt">${fullLabel(times[i] || times[0], PERIOD[card.period].grain)}</span>`}
+      <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
+    </div>`).join("")}</div>`;
 }
 
 function mountSankey(host, card){
   const { W, H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key)?.sliceNames);
-  if (!pd.parts || pd.parts.length === 0) {
-    host.innerHTML = `<div class="ck-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--vq-text-muted);font-size:12px;"><span style="opacity:0.6;">No flow data for this period</span></div>`;
-    return;
-  }
   const parts = pd.parts.slice(0,4), tot = parts.reduce((a,b)=>a+(b?.value||0),0) || 1;
   const thin = (card.variant === "thin");
   let y = 6, links = "", nodes = "";
@@ -1413,32 +1386,25 @@ function mountSankey(host, card){
 
 function mountChoropleth(host, card){
   const rd = readingOf(card.key);
-  const reqKey = `${card.key}|${card.period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
-  const regs = Array.isArray(live?.data?.regions) ? live.data.regions : [];
-  if (regs.length === 0) {
-    host.innerHTML = `<div class="ck-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--vq-text-muted);font-size:12px;"><span style="opacity:0.6;">No regional data for this period</span></div>`;
-    return;
-  }
-  regs.sort((a,b) => (b.v || b.value || 0) - (a.v || a.value || 0));
-  const mx = (regs[0].v || regs[0].value || 1);
+  const r = seed(card.key + "|geo" + card.period);
+  const regs = ["Punjab","Sindh","KPK","Balochistan","Islamabad","Gilgit-Baltistan"]
+    .map(n => ({ n, v: Math.round(unitBase(rd.unit) * (0.2 + r())) }));
+  regs.sort((a,b) => b.v - a.v);
+  const mx = regs[0].v;
   if (card.variant === "list"){
     const capacity = Math.max(2, Math.floor((host.clientHeight - 4) / 38));
-    host.innerHTML = `<div class="ck-tb">${regs.slice(0, capacity).map((g,i)=>{
-      const val = g.v || g.value || 0;
-      return `<div class="ck-tr" style="--d:${i*45}ms">
-        <span class="ck-rank">${i+1}</span><span class="ck-tn">${g.n || g.name}</span>
-        <span class="ck-tbar"><i style="width:${(val/mx*100).toFixed(0)}%;background:var(--vq-seq-${Math.min(4,Math.floor(val/mx*5))+1})"></i></span>
-        <b class="ck-tv">${unitPrefix(rd.unit)}${fmtValue(val, rd.unit, true)}</b></div>`;
-    }).join("")}</div>`;
+    host.innerHTML = `<div class="ck-tb">${regs.slice(0, capacity).map((g,i)=>`<div class="ck-tr" style="--d:${i*45}ms">
+      <span class="ck-rank">${i+1}</span><span class="ck-tn">${g.n}</span>
+      <span class="ck-tbar"><i style="width:${(g.v/mx*100).toFixed(0)}%;background:var(--vq-seq-${Math.min(4,Math.floor(g.v/mx*5))+1})"></i></span>
+      <b class="ck-tv">${unitPrefix(rd.unit)}${fmtValue(g.v, rd.unit, true)}</b></div>`).join("")}</div>`;
     return;
   }
-  host.innerHTML = `<div class="ck-geo">${regs.map((g,i)=>{
-    const val = g.v || g.value || 0;
-    return `<div class="ck-geo-c" style="--d:${i*55}ms">
-      <i class="ck-geo-f" style="width:${(val/mx*100).toFixed(0)}%;background:var(--vq-seq-${Math.min(4,Math.floor(val/mx*5))+1})"></i>
-      <span>${g.n || g.name}</span><b>${unitPrefix(rd.unit)}${fmtValue(val, rd.unit, true)}</b></div>`;
-  }).join("")}</div>`;
+  /* a tinted fill behind normal text, rather than text on a saturated tile —
+     the sequential scale inverts between themes and would strand the label */
+  host.innerHTML = `<div class="ck-geo">${regs.map((g,i)=>`
+    <div class="ck-geo-c" style="--d:${i*55}ms">
+      <i class="ck-geo-f" style="width:${(g.v/mx*100).toFixed(0)}%;background:var(--vq-seq-${Math.min(4,Math.floor(g.v/mx*5))+1})"></i>
+      <span>${g.n}</span><b>${unitPrefix(rd.unit)}${fmtValue(g.v, rd.unit, true)}</b></div>`).join("")}</div>`;
 }
 
 function mountSparkline(host, card){
@@ -1539,14 +1505,12 @@ function mountStat(host, card){
 
 function mountStatus(host, card){
   const rd = readingOf(card.key);
-  const reqKey = `${card.key}|${card.period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
-  const ok = live?.data?.status ? (live.data.status === 'ok' || live.data.status === 'balanced') : true;
-  const state = live?.data?.message || (ok ? "Balanced" : "Needs review");
+  const ok = seed(card.key + "|st")() > 0.25;
+  const state = ok ? "Balanced" : "Needs review";
   const body = (card.variant === "dot")
-    ? `<span class="ck-dotstate ${ok ? "is-ok" : "is-warn"}"><i></i><b>${esc(state)}</b></span>`
-    : `<span class="ck-badge ${ok ? "is-ok" : "is-warn"}"><i></i>${esc(state)}</span>`;
+    ? `<span class="ck-dotstate ${ok ? "is-ok" : "is-warn"}"><i></i><b>${state}</b></span>`
+    : `<span class="ck-badge ${ok ? "is-ok" : "is-warn"}"><i></i>${state}</span>`;
   host.innerHTML = `<div class="ck-stat ck-stat--status">${body}
     <p class="ck-stat-n">${rd.label} · checked ${fullLabel(times[times.length-1], grain)}</p></div>`;
 }
@@ -1818,18 +1782,6 @@ const SPECIAL = {
   growth_engine:  { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
                     eyebrow:"GROWTH ENGINE", name:"Growth Engine & Target Pace",
                     sub:"Velocity, target pace and retention" },
-  charity_hub:    { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
-                    eyebrow:"CHARITY & DONATIONS", name:"Charity & Donations Hub",
-                    sub:"Live donations summary and one-click contribution" },
-  top_products_hub: { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
-                    eyebrow:"TOP PERFORMERS", name:"Top Selling Products",
-                    sub:"Best sellers ranked by sold quantity and sales volume" },
-  recent_purchases_hub: { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
-                    eyebrow:"PURCHASING DESK", name:"Recent Supplier Purchases",
-                    sub:"Latest purchase orders, suppliers and delivery status" },
-  store_health:   { cat:"C3", min:[3,2], cats:["C2","C3","C4","C5"], family:"hub",
-                    eyebrow:"FINANCIAL VITALITY", name:"Store Health & Verification",
-                    sub:"Balance sheet integrity, audit readiness and liquidity" },
   custom_button:  { cat:"C1", min:[1,1], cats:["C1"], family:"shortcut",
                     eyebrow:"SHORTCUT", name:"Shortcut", sub:"One-click jump" },
   launchpad:      { cat:"C4", min:[3,2], cats:["C3","C4","C5"], family:"hub",
@@ -2255,7 +2207,6 @@ const SHORTCUT_ICONS = {
   chart:'<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
   bolt:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
   plus:'<path d="M12 5v14"/><path d="M5 12h14"/>',
-  heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
   settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V4.5a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.5.6.87 1.15 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
 };
 const shortcutIcon = (n, s = 20) =>
@@ -2332,18 +2283,16 @@ function bodyActionHub(c, geo){
      shape. The hub offers three lanes at its floor and grows to eight, so the
      space a larger card buys is spent on more of the product rather than on
      more air around the same three buttons. */
-  /* `mod` here is a TONE, not a module — the two names colliding is part of
-     why nothing on this board was ever gated. `needs` is the module. */
   const ALL = [
-    { href:'/pos',                          mod:'sales',    icon:'cart',   label:'Point of Sale',  needs:'pos' },
-    { href: storePath('/purchase-orders'),  mod:'purchase', icon:'truck',  label:'Purchase Order', needs:'purchase_orders' },
+    { href:'/pos',                          mod:'sales',    icon:'cart',   label:'Point of Sale' },
+    { href: storePath('/purchase-orders'),  mod:'purchase', icon:'truck',  label:'Purchase Order' },
     { href:null,                            mod:'actions',  icon:'plus',   label:'Quick Actions' },
-    { href: storePath('/sales'),            mod:'quiet',    icon:'file',   label:'New Invoice',    needs:'invoicing' },
-    { href: storePath('/inventory'),        mod:'quiet',    icon:'box',    label:'Add Product',    needs:'products' },
-    { href: storePath('/parties'),          mod:'quiet',    icon:'users',  label:'New Customer',   needs:'customers' },
-    { href: storePath('/finance'),          mod:'quiet',    icon:'dollar', label:'Add Expense',    needs:'expenses' },
-    { href: storePath('/reports'),          mod:'quiet',    icon:'chart',  label:'Reports',        needs:'reports' },
-  ].filter((i) => hasModule(i.needs));
+    { href: storePath('/sales'),            mod:'quiet',    icon:'file',   label:'New Invoice' },
+    { href: storePath('/inventory'),        mod:'quiet',    icon:'box',    label:'Add Product' },
+    { href: storePath('/parties'),          mod:'quiet',    icon:'users',  label:'New Customer' },
+    { href: storePath('/finance'),          mod:'quiet',    icon:'dollar', label:'Add Expense' },
+    { href: storePath('/reports'),          mod:'quiet',    icon:'chart',  label:'Reports' },
+  ];
   /* How many lanes fit, in pixels rather than by eye: the card's own height,
      less its padding, its header row and its title block, divided by a lane
      plus a gutter. Counting rows instead left a 3-row hub with one row of
@@ -2372,17 +2321,10 @@ function bodyActionHub(c, geo){
 
 function bodyBankLiquidity(c, geo){
   const link = c.targetUrl || c.link || storePath('/finance');
-  const dProps = getDashboardProps();
-  const bankAccounts = Array.isArray(dProps.bankAccounts) ? dProps.bankAccounts : [];
-  const cashVal = Number(dProps.cashData?.balance) || (Array.isArray(dProps.cashAccounts) ? dProps.cashAccounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0) : 0);
-  const bankVal = bankAccounts.reduce((sum, a) => sum + (Number(a.current_balance) || 0), 0);
-  const totalLiquid = cashVal + bankVal;
-  const bankCount = bankAccounts.length;
-
   const boxes = [
-    { l:'Bank Accounts',   v: bankVal, s: `${bankCount} account${bankCount === 1 ? '' : 's'} active` },
-    { l:'Cash on Hand',    v: cashVal, s:'Drawer & safe' },
-    { l:'Total Liquid Net',v: totalLiquid, s: totalLiquid > 0 ? 'Liquid assets' : 'No liquid balance', total:true },
+    { l:'Bank Accounts',   v:4820400, s:'3 accounts active' },
+    { l:'Cash on Hand',    v:1816149, s:'Drawer & safe' },
+    { l:'Total Liquid Net',v:6636549, s:'+8.2% vs last mo', total:true },
   ];
   /* a 3-wide hub gives each box ~110px — the grouped figure cannot fit, so
      the boxes carry both forms and fitValues steps them down like any card */
@@ -2399,53 +2341,33 @@ function bodyBankLiquidity(c, geo){
 
 function bodyAlertsHub(c, geo){
   const link = c.targetUrl || c.link || storePath('/reports');
+  /* each alert belongs to the module that raised it — a store without that
+     module never sees the row */
   const modOk = mods => !ENABLED_MODULES || !mods.length || mods.some(m => ENABLED_MODULES.has(m));
-  const dProps = getDashboardProps();
-  const lowStockCount = Array.isArray(dProps.lowStockItems) ? dProps.lowStockItems.length : 0;
-  const overdueReceivables = Number(dProps.outstanding?.receivables) || 0;
-  const recs = Array.isArray(dProps.aiRecommendations) ? dProps.aiRecommendations : [];
-
-  const rows = [];
-  if (lowStockCount > 0 && modOk(['inventory'])) {
-    rows.push({ k:'warning', href: storePath('/inventory'), msg: `<strong>${lowStockCount} product${lowStockCount === 1 ? '' : 's'}</strong> reached reorder limit`, cta:'Reorder' });
-  }
-  if (overdueReceivables > 0 && modOk(['khata_credit','payments'])) {
-    rows.push({ k:'danger', href: storePath('/finance'), msg: `<strong>Rs ${groupNum(overdueReceivables)}</strong> customer dues outstanding`, cta:'Follow up' });
-  }
-  recs.forEach(r => {
-    rows.push({
-      k: r.priority === 'urgent' ? 'danger' : 'warning',
-      href: storePath('/reports'),
-      msg: esc(r.message || r.title),
-      cta: 'View'
-    });
-  });
-
-  const room = Math.max(1, Math.min(Math.max(1, rows.length), Math.floor((geo.h - 1) * 88 / 46)));
-  const visibleRows = rows.slice(0, room);
-
+  const rows = [
+    { k:'warning', mods:['inventory'], href: storePath('/inventory'),       msg:'<strong>4 products</strong> reached safety reorder limit', cta:'Reorder' },
+    { k:'danger',  mods:['khata_credit','payments'], href: storePath('/finance'), msg:'<strong>Rs 10,260</strong> customer dues overdue (>30 days)', cta:'Follow up' },
+    { k:'info',    mods:['purchase_orders'], href: storePath('/purchase-orders'), msg:'<strong>2 purchase orders</strong> awaiting warehouse receipt', cta:'Receive' },
+    { k:'warning', mods:['batches_expiry'], href: storePath('/inventory'),  msg:'<strong>6 batches</strong> expire within 30 days', cta:'Review' },
+    { k:'info',    mods:['quotations'], href: storePath('/sales'),          msg:'<strong>3 quotations</strong> waiting on customer reply', cta:'Chase' },
+  ].filter(r => modOk(r.mods));
+  /* one row per row-track above the header — never more than will fit */
+  const room = Math.max(1, Math.min(rows.length, Math.floor((geo.h - 1) * 88 / 46)));
   return hubHead(c, SPECIAL.alerts_hub.eyebrow, link) +
-    (visibleRows.length === 0
-      ? `<div class="vqc-alerts-empty" style="display:flex;align-items:center;justify-content:center;height:calc(100% - 40px);color:var(--vq-text-muted);font-size:12px;text-align:center;padding:12px;">All clear — no pending alerts</div>`
-      : `<div class="vqc-alerts-list">${visibleRows.map(r => `
+    `<div class="vqc-alerts-list">${rows.slice(0, room).map(r => `
       <a href="${esc(r.href)}" class="vqc-alert-item vqc-alert-item--${r.k}">
         <span class="vqc-alert-dot"></span>
         <span class="vqc-alert-msg">${r.msg}</span>
         <span class="vqc-alert-btn">${esc(r.cta)} &rarr;</span>
-      </a>`).join("")}</div>`);
+      </a>`).join("")}</div>`;
 }
 
 function bodyGrowthEngine(c, geo){
   const link = c.targetUrl || c.link || storePath('/reports');
-  const dProps = getDashboardProps();
-  const monthSales = Number(dProps.performance?.Month?.sales) || Number(dProps.revenue) || 0;
-  const daySales = Number(dProps.performance?.Today?.sales) || Number(dProps.performance?.Day?.sales) || 0;
-  const netProfit = Number(dProps.netProfit) || 0;
-
   const stats = [
-    { l:'Month Sales',   v: 'Rs ' + abbrNum(monthSales), s: 'Sales this month' },
-    { l:'Today Sales',   v: 'Rs ' + abbrNum(daySales),   s: "Today's total" },
-    { l:'Net Profit',    v: 'Rs ' + abbrNum(netProfit),  s: 'Realised profit' },
+    { l:'Revenue Velocity',   v:'+18.4%', s:'Pace vs prev month' },
+    { l:'Target On-Track',    v:'94.2%',  s:'Rs 2.8M / 3.0M goal' },
+    { l:'Customer Retention', v:'68.5%',  s:'Repeat shoppers' },
   ];
   return hubHead(c, SPECIAL.growth_engine.eyebrow, link) +
     `<div class="vqc-hub-title-wrap"><div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
@@ -2480,20 +2402,12 @@ function bodyCustomButton(c, geo){
    hub for people who found the growing lane-count unsettling. */
 function bodyLaunchpad(c, geo){
   const link = c.targetUrl || c.link || '/pos';
-  /* "Your four essentials — always the same four" was literally true: these
-     rendered whatever the customer had built, so a workspace with no till and
-     no stock still opened on Point of Sale and Add Product. Same four when you
-     have them; the ones you do not have simply are not essentials. */
   const items = [
-    { href:'/pos',                         icon:'cart',  label:'Point of Sale',  mod:'pos' },
-    { href: storePath('/sales'),           icon:'file',  label:'New Invoice',    mod:'invoicing' },
-    { href: storePath('/inventory'),       icon:'box',   label:'Add Product',    mod:'products' },
-    { href: storePath('/purchase-orders'), icon:'truck', label:'Purchase Order', mod:'purchase_orders' },
-  ].filter((i) => hasModule(i.mod));
-
-  if (items.length === 0) {
-    items.push({ href: storePath('/reports'), icon:'chart', label:'Reports', mod:null });
-  }
+    { href:'/pos',                         icon:'cart',  label:'Point of Sale' },
+    { href: storePath('/sales'),           icon:'file',  label:'New Invoice' },
+    { href: storePath('/inventory'),       icon:'box',   label:'Add Product' },
+    { href: storePath('/purchase-orders'), icon:'truck', label:'Purchase Order' },
+  ];
   const perRow = geo.w >= 4 ? 2 : 1;
   return hubHead(c, SPECIAL.launchpad.eyebrow, link) +
     (geo.h >= 3 ? `<div class="vqc-hub-title-wrap">
@@ -2505,127 +2419,9 @@ function bodyLaunchpad(c, geo){
     ).join("")}</div>`;
 }
 
-function bodyCharityHub(c, geo) {
-  const link = c.targetUrl || c.link || storePath('/reports');
-  const dProps = getDashboardProps();
-  const charityToday = Number(dProps.charityStats?.today) || 0;
-  const charityMonth = Number(dProps.charityStats?.month) || 0;
-  const defAmt = Number(dProps.charityStats?.default_amount) || 10;
-
-  return hubHead(c, SPECIAL.charity_hub.eyebrow, link) +
-    `<div class="vqc-hub-title-wrap">
-      <div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
-      <div class="vqc-action-hub-sub">${esc(SPECIAL.charity_hub.sub)}</div>
-    </div>
-    <div class="vqc-bank-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 8px;">
-      <div class="vqc-bank-box is-total">
-        <span class="vqc-bank-label">Today's Donations</span>
-        <span class="vqc-bank-val" style="color: #f43f5e;">Rs ${groupNum(charityToday)}</span>
-        <span class="vqc-bank-sub">Direct contributions</span>
-      </div>
-      <div class="vqc-bank-box">
-        <span class="vqc-bank-label">This Month</span>
-        <span class="vqc-bank-val">Rs ${groupNum(charityMonth)}</span>
-        <span class="vqc-bank-sub">Monthly total</span>
-      </div>
-    </div>
-    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-      <button type="button" onclick="window._vqDonateCharity && window._vqDonateCharity(10)" class="vqc-hub-btn" style="flex: 1; min-width: 50px; padding: 6px 8px; font-size: 11px; background: rgba(244,63,94,0.12); color: #f43f5e; border: 1px solid rgba(244,63,94,0.25); border-radius: 8px; cursor: pointer; font-weight: 700;">+Rs 10</button>
-      <button type="button" onclick="window._vqDonateCharity && window._vqDonateCharity(50)" class="vqc-hub-btn" style="flex: 1; min-width: 50px; padding: 6px 8px; font-size: 11px; background: rgba(244,63,94,0.12); color: #f43f5e; border: 1px solid rgba(244,63,94,0.25); border-radius: 8px; cursor: pointer; font-weight: 700;">+Rs 50</button>
-      <button type="button" onclick="window._vqDonateCharity && window._vqDonateCharity(100)" class="vqc-hub-btn" style="flex: 1; min-width: 50px; padding: 6px 8px; font-size: 11px; background: rgba(244,63,94,0.12); color: #f43f5e; border: 1px solid rgba(244,63,94,0.25); border-radius: 8px; cursor: pointer; font-weight: 700;">+Rs 100</button>
-      <button type="button" onclick="window._vqDonateCharity && window._vqDonateCharity(${defAmt})" class="vqc-hub-btn" style="flex: 1; min-width: 70px; padding: 6px 8px; font-size: 11px; background: rgba(244,63,94,0.2); color: #f43f5e; border: 1px solid rgba(244,63,94,0.4); border-radius: 8px; cursor: pointer; font-weight: 800;">Donate Default</button>
-    </div>`;
-}
-
-function bodyTopProductsHub(c, geo) {
-  const link = c.targetUrl || c.link || storePath('/reports');
-  const dProps = getDashboardProps();
-  const topProducts = Array.isArray(dProps.topSellingItems) ? dProps.topSellingItems : [];
-
-  return hubHead(c, SPECIAL.top_products_hub.eyebrow, link) +
-    `<div class="vqc-hub-title-wrap">
-      <div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
-      <div class="vqc-action-hub-sub">${esc(SPECIAL.top_products_hub.sub)}</div>
-    </div>` +
-    (topProducts.length === 0
-      ? `<div class="vqc-alerts-empty" style="display:flex;align-items:center;justify-content:center;height:calc(100% - 40px);color:var(--vq-text-muted);font-size:12px;text-align:center;padding:12px;">No sales recorded yet</div>`
-      : `<div class="vqc-alerts-list">${topProducts.slice(0, 5).map((t, idx) => {
-          const val = Number(t.total_sales || t.sales || t.revenue || 0);
-          const sold = t.sold || t.qty || t.quantity || 0;
-          return `
-            <a href="${esc(storePath('/inventory'))}" class="vqc-alert-item vqc-alert-item--info" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-              <span style="font-weight:700;font-size:11px;color:var(--vq-text-muted);width:16px;">#${idx+1}</span>
-              <span class="vqc-alert-msg" style="flex:1;"><strong>${esc(t.name || `Item ${idx+1}`)}</strong><br/><span style="font-size:10px;opacity:0.75;">${esc(t.category || 'Standard Item')} · Sold: ${sold}</span></span>
-              <span style="font-weight:800;font-size:12px;color:var(--vq-teal-500);white-space:nowrap;">Rs ${groupNum(val)}</span>
-            </a>
-          `;
-        }).join("")}</div>`);
-}
-
-function bodyRecentPurchasesHub(c, geo) {
-  const link = c.targetUrl || c.link || storePath('/purchase-orders');
-  const dProps = getDashboardProps();
-  const purchases = Array.isArray(dProps.recentPurchases) ? dProps.recentPurchases : [];
-
-  return hubHead(c, SPECIAL.recent_purchases_hub.eyebrow, link) +
-    `<div class="vqc-hub-title-wrap">
-      <div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
-      <div class="vqc-action-hub-sub">${esc(SPECIAL.recent_purchases_hub.sub)}</div>
-    </div>` +
-    (purchases.length === 0
-      ? `<div class="vqc-alerts-empty" style="display:flex;align-items:center;justify-content:center;height:calc(100% - 40px);color:var(--vq-text-muted);font-size:12px;text-align:center;padding:12px;">No recent purchases recorded</div>`
-      : `<div class="vqc-alerts-list">${purchases.slice(0, 5).map(p => {
-          const amt = Number(p.total_amount || p.amount || p.total || 0);
-          const sup = p.supplier_name || p.supplier?.name || p.party?.name || 'Supplier Order';
-          const dt = p.date ? new Date(p.date).toLocaleDateString([], { month: 'short', day: 'numeric' }) : (p.created_at ? new Date(p.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '');
-          return `
-            <a href="${esc(storePath('/purchase-orders'))}" class="vqc-alert-item vqc-alert-item--warning" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-              <span class="vqc-alert-dot"></span>
-              <span class="vqc-alert-msg" style="flex:1;"><strong>${esc(sup)}</strong><br/><span style="font-size:10px;opacity:0.75;">${dt} · ${esc(p.status || 'Received')}</span></span>
-              <span style="font-weight:800;font-size:12px;color:var(--vq-amber-500);white-space:nowrap;">Rs ${groupNum(amt)}</span>
-            </a>
-          `;
-        }).join("")}</div>`);
-}
-
-function bodyStoreHealth(c, geo) {
-  const link = c.targetUrl || c.link || storePath('/reports');
-  const dProps = getDashboardProps();
-  const netProfit = Number(dProps.netProfit?.Month?.value ?? dProps.netProfit?.value ?? 0);
-  const healthStatus = dProps.netProfit?.Month?.status || (netProfit >= 0 ? 'Good' : 'Needs Attention');
-  const isHealthy = healthStatus === 'Good' || netProfit >= 0;
-
-  return hubHead(c, SPECIAL.store_health.eyebrow, link) +
-    `<div class="vqc-hub-title-wrap">
-      <div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
-      <div class="vqc-action-hub-sub">${esc(SPECIAL.store_health.sub)}</div>
-    </div>
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; background: ${isHealthy ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)'}; border: 1px solid ${isHealthy ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)'}; margin-bottom: 8px;">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 999px; background: ${isHealthy ? '#10b981' : '#f43f5e'}; box-shadow: 0 0 10px ${isHealthy ? '#10b981' : '#f43f5e'};"></span>
-        <span style="font-size: 13px; font-weight: 800; color: ${isHealthy ? '#10b981' : '#f43f5e'}; text-transform: uppercase;">${esc(healthStatus)}</span>
-      </div>
-      <span style="font-size: 11px; font-weight: 600; opacity: 0.8;">Double-entry balanced</span>
-    </div>
-    <div class="vqc-bank-grid" style="grid-template-columns: repeat(2, 1fr);">
-      <div class="vqc-bank-box">
-        <span class="vqc-bank-label">Receivables</span>
-        <span class="vqc-bank-val">Rs ${groupNum(Number(dProps.outstanding?.Month?.receivables ?? dProps.outstanding?.receivables ?? 0))}</span>
-        <span class="vqc-bank-sub">Customer balances</span>
-      </div>
-      <div class="vqc-bank-box">
-        <span class="vqc-bank-label">Payables</span>
-        <span class="vqc-bank-val">Rs ${groupNum(Number(dProps.outstanding?.Month?.payables ?? dProps.outstanding?.payables ?? 0))}</span>
-        <span class="vqc-bank-sub">Supplier dues</span>
-      </div>
-    </div>`;
-}
-
 const SPECIAL_BODY = {
   action_hub: bodyActionHub, bank_liquidity: bodyBankLiquidity,
   alerts_hub: bodyAlertsHub, growth_engine: bodyGrowthEngine,
-  charity_hub: bodyCharityHub, top_products_hub: bodyTopProductsHub,
-  recent_purchases_hub: bodyRecentPurchasesHub, store_health: bodyStoreHealth,
   custom_button: bodyCustomButton, launchpad: bodyLaunchpad,
 };
 
@@ -3163,58 +2959,14 @@ function renderLibrary(){
 
 /* ── persistence ───────────────────────────────────────────────────────────
    The board a person builds is theirs: every change is written to this
-   browser (localStorage) and synced to the server (/api/dashboards/{id}/layout).
-   A reset swaps in a starting layout rather than silently destroying their work. */
+   browser, per store, and comes back on the next visit. A reset swaps in a
+   starting layout rather than silently destroying their work. */
 const BOARD_KEY = () => `vq-dashboard-v6:${STORE_SLUG || "default"}`;
 let PERSIST_ON = false;            /* off until the first board is in place */
-let ACTIVE_DASHBOARD_ID = null;
-let BACKEND_SYNC_TIMER = null;
-
-function syncBoardToBackend() {
-  if (!ACTIVE_DASHBOARD_ID || typeof axios === 'undefined') return;
-  clearTimeout(BACKEND_SYNC_TIMER);
-  BACKEND_SYNC_TIMER = setTimeout(() => {
-    try {
-      const payload = {
-        cards: CARDS.map(c => ({
-          id: (typeof c.id === 'string' && c.id.length === 36) ? c.id : undefined,
-          reading_key: c.key || 'sales.revenue',
-          chart: c.chart || 'stat',
-          period: toReckonerPeriod(c.period),
-          category: c.cat || 'C4',
-          fit: c.fit || 0,
-          x: Number.isInteger(c.gx) ? c.gx : 0,
-          y: Number.isInteger(c.gy) ? c.gy : 0,
-          w: c.w || 3,
-          h: c.h || 2,
-          title_override: c.title || null,
-          args: c.args || null,
-          style: {
-            variant: c.variant || 'standard',
-            tone: c.tone || 'surface',
-            glare: c.glare,
-            starBorder: c.starBorder,
-            showDelta: c.showDelta,
-            showWhen: c.showWhen,
-            showPeriodPicker: c.showPeriodPicker,
-            type: c.type || null,
-            targetUrl: c.targetUrl || c.link || null,
-            icon: c.icon || null,
-            btnColor: c.btnColor || null,
-            extraKeys: c.extraKeys || [],
-          },
-        })).filter(c => c.reading_key && !c.reading_key.startsWith('platform.'))
-      };
-      axios.put(`/api/dashboards/${ACTIVE_DASHBOARD_ID}/layout`, payload, { _skipGlobalErrorHandler: true }).catch(() => {});
-    } catch {}
-  }, 600);
-}
-
 function persistBoard(){
   if (!PERSIST_ON || typeof localStorage === "undefined") return;
   try { localStorage.setItem(BOARD_KEY(), JSON.stringify({ v: 2, cards: CARDS })); }
   catch {}
-  syncBoardToBackend();
 }
 function loadBoard(){
   if (typeof localStorage === "undefined") return null;
@@ -3357,8 +3109,6 @@ function boot(presetId){
   PERSIST_ON = false;
   if (presetId){
     applyPreset(presetId);
-    PERSIST_ON = true;
-    persistBoard();
   } else {
     const saved = loadBoard();
     if (saved){
@@ -3369,57 +3119,36 @@ function boot(presetId){
       draw();
     } else {
       applyPreset(DEFAULT_PRESET);
-    }
-
-    // Always fetch server dashboard to bind ACTIVE_DASHBOARD_ID and hydrate live server layout
-    if (typeof axios !== 'undefined') {
-      axios.get('/api/dashboards').then(res => {
-        const list = res?.data?.data || [];
-        if (Array.isArray(list) && list.length > 0) {
-          const activeBoard = list.find(b => b.is_default) || list[0];
-          if (activeBoard) {
-            ACTIVE_DASHBOARD_ID = activeBoard.id;
-            if (Array.isArray(activeBoard.cards)) {
-              const backendCards = (activeBoard.cards.length === 0 ? [] : activeBoard.cards).map(bc => {
-                const st = bc.style || {};
-                return {
-                  id: bc.id || newId(),
-                  key: bc.reading_key || bc.key,
-                  chart: bc.chart || st.chart || 'stat',
-                  period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_quarter' ? 'Quarter' : bc.period === 'this_year' ? 'Year' : 'Month',
-                  w: bc.w || 3,
-                  h: bc.h || 2,
-                  gx: bc.x,
-                  gy: bc.y,
-                  cat: bc.category || bc.cat || 'C4',
-                  fit: bc.fit || 0,
-                  type: st.type || bc.type,
-                  variant: st.variant || bc.variant || defaultVariant(bc.chart || 'stat'),
-                  tone: st.tone || bc.tone || 'surface',
-                  glare: st.glare ?? bc.glare,
-                  starBorder: st.starBorder ?? bc.starBorder,
-                  showDelta: st.showDelta ?? bc.showDelta,
-                  showWhen: st.showWhen ?? bc.showWhen,
-                  showPeriodPicker: st.showPeriodPicker ?? bc.showPeriodPicker,
-                  targetUrl: st.targetUrl || bc.targetUrl,
-                  link: st.link || bc.link,
-                  icon: st.icon || bc.icon,
-                  btnColor: st.btnColor || bc.btnColor,
-                  extraKeys: st.extraKeys || bc.extraKeys || [],
-                  title: bc.title_override || st.title || bc.title,
-                };
-              });
+      if (typeof axios !== 'undefined') {
+        axios.get('/api/dashboards').then(res => {
+          const list = res?.data?.data || [];
+          if (Array.isArray(list) && list.length > 0) {
+            const activeBoard = list.find(b => b.is_default) || list[0];
+            if (activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
+              const backendCards = activeBoard.cards.map(bc => ({
+                id: bc.id || newId(),
+                key: bc.reading_key || bc.key,
+                chart: bc.style || bc.chart,
+                period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_year' ? 'Year' : 'Month',
+                w: bc.w,
+                h: bc.h,
+                gx: bc.x,
+                gy: bc.y,
+                cat: bc.cat || 'C4',
+                fit: bc.fit || 0,
+                type: bc.type,
+                variant: bc.variant || defaultVariant(bc.style || 'area'),
+              }));
               CARDS = availableCards(backendCards).map(normaliseCard);
               draw();
             }
           }
-        }
-      }).catch(() => {});
+        }).catch(() => {});
+      }
     }
-
-    PERSIST_ON = true;
-    persistBoard();
   }
+  PERSIST_ON = true;
+  persistBoard();
 
   /* Theme is owned by the React shell now (persisted, light by default) —
      the engine only repaints when told. */
@@ -3548,7 +3277,6 @@ function normaliseCard(c){
 }
 
 
-  DASHBOARD_PROPS = opts || {};
   STORE_SLUG = (opts && opts.storeSlug) || "";
   setEnabledModules(opts && opts.modules);
   boot();
@@ -3596,18 +3324,6 @@ const OPERATIONAL_TEMPLATES = [
   { type: 'bank_liquidity', title: 'Bank & Liquid Net Balances', category: 'Finance',
     desc: 'Live breakdown of bank accounts, cash drawer holdings and total liquid net balance.',
     tone: 'surface' },
-  { type: 'charity_hub', title: 'Charity & Donations Hub', category: 'Finance',
-    desc: 'Live donation counter with instant one-tap donation recording.',
-    tone: 'surface' },
-  { type: 'top_products_hub', title: 'Top Products & Best Sellers', category: 'Sales',
-    desc: 'Best selling products ranked by sold quantity and sales revenue.',
-    tone: 'surface' },
-  { type: 'recent_purchases_hub', title: 'Recent Purchases & Suppliers', category: 'Purchases',
-    desc: 'Latest purchase orders, suppliers, amounts, and statuses.',
-    tone: 'surface' },
-  { type: 'store_health', title: 'Store Financial Health', category: 'Finance',
-    desc: 'Solvency verification, books audit status, and receivables balance.',
-    tone: 'surface' },
   { type: 'alerts_hub', title: 'Actions Required & Alerts', category: 'Operations',
     desc: 'Operational alerts — low-stock reorders, overdue receivables, warehouse receipts. Shows more rows as the card grows.',
     tone: 'surface' },
@@ -3625,7 +3341,6 @@ const SHORTCUT_TARGETS = [
   { label: 'Inventory & Stock List',   path: '/inventory',       icon: 'box',      color: '#8ccb2e' },
   { label: 'Create Purchase Order',    path: '/purchase-orders', icon: 'truck',    color: '#f26a47' },
   { label: 'Accounts & Ledgers',       path: '/finance',         icon: 'dollar',   color: '#5227ff' },
-  { label: 'Charity & Donations',      path: '/charity/stats',   icon: 'heart',    color: '#e11d48' },
   { label: 'Parties & Customers',      path: '/parties',         icon: 'users',    color: '#e0b4e0' },
   { label: 'Business Intel Reports',   path: '/reports',         icon: 'chart',    color: '#f5b32e' },
   { label: 'Settings',                 path: '/settings',        icon: 'settings', color: '#7b8a83' },
@@ -3677,15 +3392,9 @@ const isReadingCardIdx = i => i === 0;
    ours, so every one of them is balanced; nobody has to be a designer to get
    a good panel. Each design is a fixed stack of rails. */
 const PANEL_DESIGNS = [
-  { id: 'v6_financial_cockpit', name: 'VenQore V6 Cockpit',
-    desc: 'Total balance, instant action buttons, cash in hand, stock value, bank accounts, and expanded activity card with V6 obsidian mesh.',
-    rails: ['v6_cockpit'] },
   { id: 'money', name: 'Money desk',
     desc: 'The old dashboard\u2019s panel — action buttons, cash & accounts, live activity.',
     rails: ['action_trio', 'balances', 'activity'] },
-  { id: 'charity_desk', name: 'Charity & Giving',
-    desc: 'Community donations, today\u2019s figures and quick actions.',
-    rails: ['charity', 'today', 'quick_actions'] },
   { id: 'operations', name: 'Operations desk',
     desc: 'What needs doing — alerts, today\u2019s numbers, quick actions.',
     rails: ['alerts', 'today', 'quick_actions'] },
@@ -3704,12 +3413,8 @@ const PANEL_DESIGNS = [
 ];
 
 const RAIL_DEFS = [
-  { id: 'v6_cockpit', name: 'VenQore V6 Financial Cockpit', modules: ['bank_accounts', 'pos'],
-    desc: 'Total balance, instant action buttons, cash in hand, stock value, bank accounts and expanded activity.' },
   { id: 'action_trio', name: 'Action buttons', modules: [],
     desc: 'Sale, purchase and more actions \u2014 one tap each.' },
-  { id: 'charity', name: 'Charity & Donations', modules: [],
-    desc: 'Live charity balance and quick 1-tap donation buttons.' },
   { id: 'balances', name: 'Cash & accounts', modules: ['bank_accounts'],
     desc: 'Cash in hand, every bank account, and the liquid total.' },
   { id: 'today', name: 'Today at a glance', modules: [],
@@ -3728,60 +3433,46 @@ const RAIL_DEFS = [
     desc: 'Who to chase today, with amounts and how overdue they are.' },
 ];
 
-/** One rail, rendered with real props from the database. */
-function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = {} }) {
-  const tt = useTermText();
+/* demo data the rails draw — the same seeded world the cards use */
+const RAIL_ACCOUNTS = [
+  { n: 'Meezan Bank – Current', v: 'Rs 2,914,300' },
+  { n: 'HBL – Business', v: 'Rs 1,406,100' },
+  { n: 'JazzCash Wallet', v: 'Rs 500,000' },
+];
+const RAIL_ACTIVITY = [
+  { t: 'Sale · Noor Kiryana', v: '+ Rs 234,000', k: 'in', w: '13:00' },
+  { t: 'Purchase · Metro Supply', v: '− Rs 88,400', k: 'out', w: '12:20' },
+  { t: 'Payment in · Rana Traders', v: '+ Rs 45,000', k: 'in', w: '11:45' },
+  { t: 'Sale · Bilal Pharmacy', v: '+ Rs 123,000', k: 'in', w: '11:20' },
+  { t: 'Expense · Utilities', v: '− Rs 18,500', k: 'out', w: '10:05' },
+  { t: 'Sale · Sana Mart', v: '+ Rs 109,000', k: 'in', w: '09:40' },
+];
+const RAIL_ALERTS = [
+  { k: 'warn', mods: ['inventory'], msg: <><strong>4 products</strong> reached reorder limit</>, href: '/inventory' },
+  { k: 'bad',  mods: ['khata_credit', 'payments'], msg: <><strong>Rs 10,260</strong> dues overdue 30+ days</>, href: '/finance' },
+  { k: 'info', mods: ['purchase_orders'], msg: <><strong>2 purchase orders</strong> awaiting receipt</>, href: '/purchase-orders' },
+  { k: 'warn', mods: ['batches_expiry'], msg: <><strong>6 batches</strong> expire within 30 days</>, href: '/inventory' },
+  { k: 'info', mods: ['quotations'], msg: <><strong>3 quotations</strong> awaiting reply</>, href: '/sales' },
+];
+const RAIL_TOP_PRODUCTS = [
+  { n: 'Basmati 5kg', v: 'Rs 88.4K', w: 100 }, { n: 'Surf Excel 1kg', v: 'Rs 62.9K', w: 71 },
+  { n: 'Tapal Danedar', v: 'Rs 42.1K', w: 48 }, { n: 'BMC Tonic 200ml', v: 'Rs 23.1K', w: 26 },
+];
+const RAIL_TOP_CUSTOMERS = [
+  { n: 'Rana Traders', v: 'Rs 310K', w: 100 }, { n: 'Bilal Pharmacy', v: 'Rs 264K', w: 85 },
+  { n: 'Zoya Retail', v: 'Rs 158K', w: 51 },
+];
+const RAIL_REMINDERS = [
+  { n: 'Ahmad Stores', v: 'Rs 42,000', d: '12 days overdue', k: 'bad' },
+  { n: 'Noor Kiryana', v: 'Rs 18,600', d: '6 days overdue', k: 'warn' },
+  { n: 'Sana Mart', v: 'Rs 9,200', d: 'due tomorrow', k: 'info' },
+  { n: 'Zoya Retail', v: 'Rs 5,750', d: 'due in 3 days', k: 'info' },
+];
+
+/** One rail, rendered. Fixed-purpose, fixed-width; the board stays the
+    place for anything the user wants to size and restyle. */
+function DashRail({ id, storePath, onQuickActions, enabledModules = [] }) {
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
-  
-  if (id === 'v6_cockpit') {
-    return (
-      <V6FinancialSidebar 
-        props={props}
-        recentTransactions={props.recentTransactions}
-        bankAccounts={props.bankAccounts}
-        cashAccounts={props.cashAccounts}
-        cashData={props.cashData}
-        inventoryValue={props.inventoryValue || props.stock_value}
-        sticky={false}
-        className="mb-3"
-      />
-    );
-  }
-  
-  if (id === 'charity') {
-    const charityToday = Number(props.charityStats?.today) || 0;
-    const charityMonth = Number(props.charityStats?.month) || 0;
-    const defAmt = Number(props.charityStats?.default_amount) || 10;
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h">
-          <span>Charity &amp; Donations</span>
-          <button type="button" onClick={() => window._vqDonateCharity && window._vqDonateCharity(defAmt)} className="vq-rail-link text-rose-500 font-bold">
-            +Rs {defAmt}
-          </button>
-        </header>
-        <div className="vq-rail-hero">
-          <span className="vq-rail-hero-l">Today's Total</span>
-          <span className="vq-rail-hero-v text-rose-500">Rs {charityToday.toLocaleString()}</span>
-          <span className="vq-rail-hero-s">Month: Rs {charityMonth.toLocaleString()}</span>
-        </div>
-        <div className="flex items-center gap-1.5 mt-2.5">
-          {[10, 50, 100].map(amt => (
-            <button
-              key={amt}
-              type="button"
-              onClick={() => window._vqDonateCharity && window._vqDonateCharity(amt)}
-              className="flex-1 py-1 px-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs font-bold transition-colors"
-            >
-              +Rs {amt}
-            </button>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
   if (id === 'action_trio') return (
     <section className="vq-rail-card vq-rail-card--trio">
       <div className="vq-rail-trio">
@@ -3800,132 +3491,67 @@ function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = 
       </div>
     </section>
   );
-
-  if (id === 'balances') {
-    const bankAccounts = Array.isArray(props.bankAccounts) ? props.bankAccounts : [];
-    const cashVal = Number(props.cashData?.balance) || (Array.isArray(props.cashAccounts) ? props.cashAccounts.reduce((s, a) => s + (Number(a.balance) || 0), 0) : 0);
-    const bankVal = bankAccounts.reduce((s, a) => s + (Number(a.current_balance) || 0), 0);
-    const totalLiquid = cashVal + bankVal;
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h"><span>Cash &amp; accounts</span><a href={storePath('/finance')} className="vq-rail-link">Open</a></header>
-        <div className="vq-rail-hero">
-          <span className="vq-rail-hero-l">Cash in hand</span>
-          <span className="vq-rail-hero-v">Rs {cashVal.toLocaleString()}</span>
-          <span className="vq-rail-hero-s">Drawer &amp; safe</span>
-        </div>
-        <ul className="vq-rail-list">
-          {bankAccounts.length > 0 ? (
-            bankAccounts.map((a, i) => (
-              <li key={a.id || i} className="vq-rail-row">
-                <span className="vq-rail-row-n">{a.name || a.bank_name || 'Bank Account'}</span>
-                <span className="vq-rail-row-v">Rs {(Number(a.current_balance) || 0).toLocaleString()}</span>
-              </li>
-            ))
-          ) : (
-            <li className="vq-rail-row text-xs text-[rgba(241,245,242,0.4)] py-1.5 justify-center">No bank accounts linked</li>
-          )}
-        </ul>
-        <div className="vq-rail-total">
-          <span>Total liquid</span><strong>Rs {totalLiquid.toLocaleString()}</strong>
-        </div>
-      </section>
-    );
-  }
-
-  if (id === 'today') {
-    const todaySales = Number(props.performance?.Today?.sales) || Number(props.performance?.Day?.sales) || 0;
-    const todayExpenses = Number(props.performance?.Today?.expenses) || Number(props.performance?.Day?.expenses) || 0;
-    const moneyIn = Number(props.performance?.Today?.money_in) || todaySales;
-    const moneyOut = Number(props.performance?.Today?.money_out) || todayExpenses;
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h"><span>Today at a glance</span></header>
-        <div className="vq-rail-minigrid">
-          <div className="vq-rail-mini"><span>Sales</span><strong>Rs {abbrNum(todaySales)}</strong></div>
-          <div className="vq-rail-mini"><span>Expenses</span><strong>Rs {abbrNum(todayExpenses)}</strong></div>
-          <div className="vq-rail-mini"><span>Money in</span><strong>Rs {abbrNum(moneyIn)}</strong></div>
-          <div className="vq-rail-mini"><span>Money out</span><strong>Rs {abbrNum(moneyOut)}</strong></div>
-        </div>
-      </section>
-    );
-  }
-
-  if (id === 'activity') {
-    const txs = Array.isArray(props.recentTransactions) && props.recentTransactions.length > 0
-      ? props.recentTransactions
-      : (Array.isArray(props.recentPurchases) ? props.recentPurchases : []);
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h"><span>Recent activity</span><a href={storePath('/reports')} className="vq-rail-link">All</a></header>
-        <ul className="vq-rail-list">
-          {txs.length > 0 ? (
-            txs.slice(0, 6).map((tx, i) => {
-              const isIn = tx.type === 'in' || tx.type === 'sale' || tx.type === 'payment_in' || Number(tx.amount) > 0;
-              const amt = Math.abs(Number(tx.amount || tx.total || 0));
-              const title = tx.desc || tx.description || tx.reference || (tx.type ? `${tx.type}` : 'Transaction');
-              const time = tx.date ? new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (tx.created_at ? new Date(tx.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
-
-              return (
-                <li key={tx.id || i} className="vq-rail-row">
-                  <span className={`vq-rail-dot is-${isIn ? 'in' : 'out'}`} aria-hidden="true" />
-                  <span className="vq-rail-row-n">{title}<em>{time}</em></span>
-                  <span className={`vq-rail-row-v is-${isIn ? 'in' : 'out'}`}>{isIn ? '+ ' : '− '}Rs {amt.toLocaleString()}</span>
-                </li>
-              );
-            })
-          ) : (
-            <li className="vq-rail-row text-xs text-[rgba(241,245,242,0.4)] py-3 justify-center">No recent activity</li>
-          )}
-        </ul>
-      </section>
-    );
-  }
-
-  if (id === 'alerts') {
-    const lowStockItems = Array.isArray(props.lowStockItems) ? props.lowStockItems : [];
-    const overdueReceivables = Number(props.outstanding?.receivables) || 0;
-    const aiRecs = Array.isArray(props.aiRecommendations) ? props.aiRecommendations : [];
-
-    const alertsList = [];
-    if (lowStockItems.length > 0 && modOk(['inventory'])) {
-      alertsList.push({ k: 'warn', msg: <><strong>{lowStockItems.length} {tt(lowStockItems.length === 1 ? 'product' : 'products')}</strong> reached reorder limit</>, href: '/inventory' });
-    }
-    if (overdueReceivables > 0 && modOk(['khata_credit', 'payments'])) {
-      alertsList.push({ k: 'bad', msg: <><strong>Rs {overdueReceivables.toLocaleString()}</strong> {tt('customer dues overdue')}</>, href: '/finance' });
-    }
-    aiRecs.forEach(r => {
-      alertsList.push({
-        k: r.priority === 'urgent' ? 'bad' : 'info',
-        msg: <>{r.message || r.title}</>,
-        href: '/reports'
-      });
-    });
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h"><span>Actions required</span></header>
-        <ul className="vq-rail-list">
-          {alertsList.length > 0 ? (
-            alertsList.map((a, i) => (
-              <li key={i}>
-                <a href={storePath(a.href)} className={`vq-rail-alert is-${a.k}`}>
-                  <span className="vq-rail-dot" aria-hidden="true" />
-                  <span className="vq-rail-alert-m">{a.msg}</span>
-                </a>
-              </li>
-            ))
-          ) : (
-            <li className="vq-rail-row text-xs text-[rgba(241,245,242,0.4)] py-3 justify-center">All clear — no actions required</li>
-          )}
-        </ul>
-      </section>
-    );
-  }
-
+  if (id === 'balances') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Cash &amp; accounts</span><a href={storePath('/finance')} className="vq-rail-link">Open</a></header>
+      <div className="vq-rail-hero">
+        <span className="vq-rail-hero-l">Cash in hand</span>
+        <span className="vq-rail-hero-v">Rs 1,816,149</span>
+        <span className="vq-rail-hero-s">Drawer &amp; safe · counted 09:00</span>
+      </div>
+      <ul className="vq-rail-list">
+        {RAIL_ACCOUNTS.map(a => (
+          <li key={a.n} className="vq-rail-row">
+            <span className="vq-rail-row-n">{a.n}</span>
+            <span className="vq-rail-row-v">{a.v}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="vq-rail-total">
+        <span>Total liquid</span><strong>Rs 6,636,549</strong>
+      </div>
+    </section>
+  );
+  if (id === 'today') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Today at a glance</span></header>
+      <div className="vq-rail-minigrid">
+        <div className="vq-rail-mini"><span>Sales</span><strong>Rs 1.05M</strong></div>
+        <div className="vq-rail-mini"><span>Expenses</span><strong>Rs 86K</strong></div>
+        <div className="vq-rail-mini"><span>Money in</span><strong>Rs 412K</strong></div>
+        <div className="vq-rail-mini"><span>Money out</span><strong>Rs 158K</strong></div>
+      </div>
+    </section>
+  );
+  if (id === 'activity') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Recent activity</span><a href={storePath('/reports')} className="vq-rail-link">All</a></header>
+      <ul className="vq-rail-list">
+        {RAIL_ACTIVITY.map((a, i) => (
+          <li key={i} className="vq-rail-row">
+            <span className={`vq-rail-dot is-${a.k}`} aria-hidden="true" />
+            <span className="vq-rail-row-n">{a.t}<em>{a.w}</em></span>
+            <span className={`vq-rail-row-v is-${a.k}`}>{a.v}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+  if (id === 'alerts') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Actions required</span></header>
+      <ul className="vq-rail-list">
+        {RAIL_ALERTS.filter(a => modOk(a.mods)).map((a, i) => (
+          <li key={i}>
+            <a href={storePath(a.href)} className={`vq-rail-alert is-${a.k}`}>
+              <span className="vq-rail-dot" aria-hidden="true" />
+              <span className="vq-rail-alert-m">{a.msg}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
   if (id === 'quick_actions') return (
     <section className="vq-rail-card">
       <header className="vq-rail-h"><span>Quick actions</span></header>
@@ -3945,84 +3571,65 @@ function DashRail({ id, storePath, onQuickActions, enabledModules = [], props = 
       </div>
     </section>
   );
-
-  if (id === 'targets') {
-    const monthSales = Number(props.performance?.Month?.sales) || Number(props.revenue) || 0;
-    const daySales = Number(props.performance?.Today?.sales) || Number(props.performance?.Day?.sales) || 0;
-    const netProfit = Number(props.netProfit) || 0;
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
-        <div className="vq-rail-meter">
-          <div className="vq-rail-meter-t"><span>Monthly sales</span><strong>Rs {abbrNum(monthSales)}</strong></div>
-          <div className="vq-rail-bar"><i style={{ width: monthSales > 0 ? '100%' : '0%' }} /></div>
-          <span className="vq-rail-meter-s">Total revenue this month</span>
-        </div>
-        <div className="vq-rail-meter">
-          <div className="vq-rail-meter-t"><span>Today's velocity</span><strong>Rs {abbrNum(daySales)}</strong></div>
-          <div className="vq-rail-bar"><i style={{ width: daySales > 0 ? '75%' : '0%' }} /></div>
-          <span className="vq-rail-meter-s">Sales closed today</span>
-        </div>
-        <div className="vq-rail-meter">
-          <div className="vq-rail-meter-t"><span>Net profit</span><strong>Rs {abbrNum(netProfit)}</strong></div>
-          <div className="vq-rail-bar"><i style={{ width: netProfit > 0 ? '100%' : '0%' }} /></div>
-          <span className="vq-rail-meter-s">Realised profit</span>
-        </div>
-      </section>
-    );
-  }
-
-  if (id === 'top_lists') {
-    const topProducts = Array.isArray(props.topSellingItems) ? props.topSellingItems : [];
-    const maxVal = topProducts[0]?.total_sales || topProducts[0]?.sales || 1;
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h"><span>Top performers</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
-        <span className="vq-rail-sub">{tt('Products')}</span>
-        <ul className="vq-rail-list">
-          {topProducts.length > 0 ? (
-            topProducts.slice(0, 5).map((t, idx) => {
-              const val = Number(t.total_sales || t.sales || t.revenue || 0);
-              const pct = Math.min(100, Math.round((val / maxVal) * 100)) || 20;
-              return (
-                <li key={t.id || idx} className="vq-rail-rank">
-                  <span className="vq-rail-row-n">{t.name || `Item ${idx + 1}`}</span>
-                  <span className="vq-rail-track"><i style={{ width: `${pct}%` }} /></span>
-                  <span className="vq-rail-row-v">Rs {abbrNum(val)}</span>
-                </li>
-              );
-            })
-          ) : (
-            <li className="vq-rail-row text-xs text-[rgba(241,245,242,0.4)] py-2 justify-center">No sales recorded this month</li>
-          )}
-        </ul>
-      </section>
-    );
-  }
-
-  if (id === 'reminders') {
-    const overdueAmt = Number(props.outstanding?.receivables) || 0;
-
-    return (
-      <section className="vq-rail-card">
-        <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/finance')} className="vq-rail-link">All</a></header>
-        <ul className="vq-rail-list">
-          {overdueAmt > 0 ? (
-            <li className="vq-rail-row">
-              <span className="vq-rail-dot is-bad" aria-hidden="true" />
-              <span className="vq-rail-row-n">Outstanding Receivables<em>{tt('Pending customer dues')}</em></span>
-              <span className="vq-rail-row-v">Rs {overdueAmt.toLocaleString()}</span>
-            </li>
-          ) : (
-            <li className="vq-rail-row text-xs text-[rgba(241,245,242,0.4)] py-3 justify-center">No pending payment reminders</li>
-          )}
-        </ul>
-      </section>
-    );
-  }
-
+  if (id === 'targets') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
+      <div className="vq-rail-meter">
+        <div className="vq-rail-meter-t"><span>Monthly target</span><strong>94.2%</strong></div>
+        <div className="vq-rail-bar"><i style={{ width: '94.2%' }} /></div>
+        <span className="vq-rail-meter-s">Rs 2.8M of Rs 3.0M</span>
+      </div>
+      <div className="vq-rail-meter">
+        <div className="vq-rail-meter-t"><span>Revenue velocity</span><strong>+18.4%</strong></div>
+        <div className="vq-rail-bar"><i style={{ width: '68%' }} /></div>
+        <span className="vq-rail-meter-s">Pace vs last month</span>
+      </div>
+      <div className="vq-rail-meter">
+        <div className="vq-rail-meter-t"><span>Repeat customers</span><strong>68.5%</strong></div>
+        <div className="vq-rail-bar"><i style={{ width: '68.5%' }} /></div>
+        <span className="vq-rail-meter-s">Came back this month</span>
+      </div>
+    </section>
+  );
+  if (id === 'top_lists') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Top performers</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
+      <span className="vq-rail-sub">Products</span>
+      <ul className="vq-rail-list">
+        {RAIL_TOP_PRODUCTS.map(t => (
+          <li key={t.n} className="vq-rail-rank">
+            <span className="vq-rail-row-n">{t.n}</span>
+            <span className="vq-rail-track"><i style={{ width: `${t.w}%` }} /></span>
+            <span className="vq-rail-row-v">{t.v}</span>
+          </li>
+        ))}
+      </ul>
+      <span className="vq-rail-sub">Customers</span>
+      <ul className="vq-rail-list">
+        {RAIL_TOP_CUSTOMERS.map(t => (
+          <li key={t.n} className="vq-rail-rank">
+            <span className="vq-rail-row-n">{t.n}</span>
+            <span className="vq-rail-track"><i style={{ width: `${t.w}%` }} /></span>
+            <span className="vq-rail-row-v">{t.v}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+  if (id === 'reminders') return (
+    <section className="vq-rail-card">
+      <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/finance')} className="vq-rail-link">All</a></header>
+      <ul className="vq-rail-list">
+        {RAIL_REMINDERS.map(r => (
+          <li key={r.n} className="vq-rail-row">
+            <span className={`vq-rail-dot is-${r.k}`} aria-hidden="true" />
+            <span className="vq-rail-row-n">{r.n}<em>{r.d}</em></span>
+            <span className="vq-rail-row-v">{r.v}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
   return null;
 }
 
@@ -4068,7 +3675,6 @@ function PresetThumb({ cards }) {
 }
 
 export default function NewDashboard(props) {
-  const tt = useTermText();
   const containerRef = useRef(null);
   const previewRef = useRef(null);
   const previewFrameRef = useRef(null);
@@ -4079,11 +3685,8 @@ export default function NewDashboard(props) {
   const user = auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
   const settings = props?.settings || {};
   const readingsProp = props?.readings || null;
-  if (typeof window !== 'undefined') {
-    if (props) window.__DASHBOARD_PROPS__ = props;
-    if (Array.isArray(readingsProp) && readingsProp.length > 0) {
-      window.__VENQORE_READINGS__ = readingsProp;
-    }
+  if (typeof window !== 'undefined' && Array.isArray(readingsProp) && readingsProp.length > 0) {
+    window.__VENQORE_READINGS__ = readingsProp;
   }
   const [seniorMode, setSeniorMode] = useState(() => String(settings?.senior_mode) === '1');
 
@@ -4211,27 +3814,23 @@ export default function NewDashboard(props) {
 
   const engine = () => (typeof window !== 'undefined' ? window.VenQoreCards : null);
 
-  /* ── theme: light is the default; the choice persists per browser ────── */
-  const THEME_KEY = 'vq-dashboard-v6-theme';
-  const [themeMode, setThemeMode] = useState(() => {
-    try {
-      const v = localStorage.getItem(THEME_KEY);
-      return v === 'dark' || v === 'mesh' || v === 'light' ? v : 'mesh';
-    } catch { return 'mesh'; }
-  });
+  /* ── theme: AppearanceProvider is the single authority ────────────────────── */
+  const { isDark, appearance, update: updateAppearance } = useAppearance();
+
+  // Retire legacy independent storage key without overriding server saved preference
   useEffect(() => {
-    const r = document.documentElement;
-    const dark = themeMode !== 'light';
-    r.setAttribute('data-theme', dark ? 'dark' : 'light');
-    if (themeMode === 'mesh') r.setAttribute('data-bg', 'mesh');
-    else r.removeAttribute('data-bg');
-    try { localStorage.setItem(THEME_KEY, themeMode); } catch {}
-    /* charts sample their colours at mount — repaint under the new tokens */
+    try {
+      localStorage.removeItem('vq-dashboard-v6-theme');
+    } catch {}
+  }, []);
+
+  // Redraw charts after shared appearance changes and after chart engine becomes ready
+  useEffect(() => {
     engine()?.draw?.();
-  }, [themeMode, engineReady]);
-  const cycleTheme = () => setThemeMode(m => (m === 'light' ? 'dark' : m === 'dark' ? 'mesh' : 'light'));
-  const themeTitle = themeMode === 'light' ? 'Theme: light — switch to dark'
-    : themeMode === 'dark' ? 'Theme: dark — switch to mesh' : 'Theme: mesh — switch to light';
+  }, [isDark, appearance, engineReady]);
+
+  const cycleTheme = () => updateAppearance({ mode: isDark ? 'light' : 'dark' });
+  const themeTitle = isDark ? 'Theme: dark — switch to light' : 'Theme: light — switch to dark';
 
   /* ── the right side panel ────────────────────────────────────────────── */
   const RAILS_KEY = `vq-dashboard-v6-rails:${storeSlug || 'default'}`;
@@ -4292,43 +3891,17 @@ export default function NewDashboard(props) {
 
   useEffect(() => {
     window._vqOpenGlassActions = () => setGlassModalOpen(true);
-    window._vqDonateCharity = async (amount) => {
-      try {
-        const donateUrl = typeof window !== 'undefined' && typeof window.route === 'function'
-          ? window.route('store.charity.add', { store_slug: storeSlug })
-          : `/s/${storeSlug}/charity/add`;
-        const res = await axios.post(donateUrl, { amount: Number(amount) || 10 });
-        if (res.data && res.data.success) {
-          if (props?.charityStats) {
-            props.charityStats.today = res.data.today_total;
-          }
-          if (window.__DASHBOARD_PROPS__?.charityStats) {
-            window.__DASHBOARD_PROPS__.charityStats.today = res.data.today_total;
-          }
-          window.VenQoreCards?.draw?.();
-          window.dispatchEvent(new CustomEvent('vq:toast', {
-            detail: { message: `Charity recorded: Rs ${Number(amount || 10).toLocaleString()}`, type: 'success' }
-          }));
-          router.reload({ only: ['charityStats'] });
-        }
-      } catch (err) {
-        console.error('Failed to record charity:', err);
-      }
-    };
-    return () => {
-      window._vqOpenGlassActions = null;
-      window._vqDonateCharity = null;
-    };
-  }, [storeSlug, props]);
+    return () => { window._vqOpenGlassActions = null; };
+  }, []);
 
   const enabledModules = useMemo(
     () => (Array.isArray(props?.modules) ? props.modules : []),
     [props?.modules]);
 
   useEffect(() => {
-    runCardBuilder({ storeSlug, modules: enabledModules, readings: readingsProp, ...props });
+    runCardBuilder({ storeSlug, modules: enabledModules, readings: readingsProp });
     setEngineReady(true);
-  }, [storeSlug, enabledModules, readingsProp, props]);
+  }, [storeSlug, enabledModules, readingsProp]);
 
   /* Edit mode is a page state; the engine paints from a class on the shell. */
   useEffect(() => {
@@ -4362,29 +3935,26 @@ export default function NewDashboard(props) {
   useEffect(() => {
     const onEditLayout = () => setIsEditMode(v => !v);
     const onAddCard = () => openPicker(0);
-    const onToggleSidePanel = () => setRailsModalOpen(true);
-    const onOpenSidePanel = () => setRailsModalOpen(true);
+    const onToggleSidePanel = () => {
+      if (!panelDesign) setRailsModalOpen(true);
+      else setRailOpt({ collapsed: !railPrefs.collapsed });
+    };
     const onStartFresh = () => setPresetModalOpen(true);
     const onQuickActions = () => setGlassModalOpen(true);
-    const onThemeChanged = () => {
-      setTimeout(() => window.VenQoreCards?.draw?.(), 50);
-    };
 
     window.addEventListener('vq:edit-layout', onEditLayout);
     window.addEventListener('vq:toggle-edit-layout', onEditLayout);
     window.addEventListener('vq:add-card', onAddCard);
     window.addEventListener('vq:open-add-card', onAddCard);
     window.addEventListener('vq:toggle-side-panel', onToggleSidePanel);
-    window.addEventListener('vq:open-side-panel', onOpenSidePanel);
+    window.addEventListener('vq:open-side-panel', onToggleSidePanel);
     window.addEventListener('vq:start-fresh', onStartFresh);
     window.addEventListener('vq:open-quick-actions', onQuickActions);
-    window.addEventListener('theme-changed', onThemeChanged);
 
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('edit') === '1') setIsEditMode(true);
       if (params.get('add_card') === '1') setTimeout(() => openPicker(0), 350);
-      if (params.get('side_panel') === '1') setTimeout(() => setRailsModalOpen(true), 350);
       if (params.get('reset') === '1') setPresetModalOpen(true);
     }
 
@@ -4394,10 +3964,9 @@ export default function NewDashboard(props) {
       window.removeEventListener('vq:add-card', onAddCard);
       window.removeEventListener('vq:open-add-card', onAddCard);
       window.removeEventListener('vq:toggle-side-panel', onToggleSidePanel);
-      window.removeEventListener('vq:open-side-panel', onOpenSidePanel);
+      window.removeEventListener('vq:open-side-panel', onToggleSidePanel);
       window.removeEventListener('vq:start-fresh', onStartFresh);
       window.removeEventListener('vq:open-quick-actions', onQuickActions);
-      window.removeEventListener('theme-changed', onThemeChanged);
     };
   }, [panelDesign, railPrefs.collapsed]);
 
@@ -5035,7 +4604,7 @@ export default function NewDashboard(props) {
       ),
     },
     {
-      label: tt('Add Product'),
+      label: 'Add Product',
       color: 'orange',
       href: storePath('/inventory?action=add'),
       icon: (
@@ -5105,20 +4674,6 @@ export default function NewDashboard(props) {
           <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
           <path d="m7 22-4-4 4-4"/>
           <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
-        </svg>
-      ),
-    },
-    {
-      label: 'Charity Donation',
-      color: 'rose',
-      action: () => {
-        if (window._vqDonateCharity) {
-          window._vqDonateCharity(10);
-        }
-      },
-      icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
         </svg>
       ),
     },
@@ -5332,7 +4887,7 @@ export default function NewDashboard(props) {
                     }}>
                     <span className="vq-dest-glyph" style={{ background: t.color }}
                           dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(t.icon, 16) || '' }} />
-                    <span className="vq-dest-name">{tt(t.label)}</span>
+                    <span className="vq-dest-name">{t.label}</span>
                   </button>
                 );
               })}
@@ -5479,7 +5034,6 @@ export default function NewDashboard(props) {
                     <div className="vq-rails-scroll">
                       {activeRails.map(id => <DashRail key={id} id={id} storePath={storePath}
                                                        enabledModules={enabledModules}
-                                                       props={props}
                                                        onQuickActions={() => setGlassModalOpen(true)} />)}
                     </div>
                   </div>
@@ -5510,7 +5064,7 @@ export default function NewDashboard(props) {
             <div className="vq-preset-grid">
               {Object.entries(engine()?.getPresets?.() || {}).map(([id, p]) => {
                 const railNames = (p.rails || [])
-                  .map(rid => tt(RAIL_DEFS.find(d => d.id === rid)?.name || ''))
+                  .map(rid => RAIL_DEFS.find(d => d.id === rid)?.name)
                   .filter(Boolean);
                 return (
                   <button key={id} type="button" className="vq-item-card vq-preset-card"
@@ -5519,10 +5073,10 @@ export default function NewDashboard(props) {
                       <PresetThumb cards={p.cards} />
                       <span className="vq-preset-text">
                         <span className="vq-item-card-top">
-                          <span className="vq-item-card-title">{tt(p.name)}</span>
+                          <span className="vq-item-card-title">{p.name}</span>
                           <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                         </span>
-                        <span className="vq-item-card-desc">{tt(p.desc)}</span>
+                        <span className="vq-item-card-desc">{p.desc}</span>
                         {railNames.length > 0 && (
                           <span className="vq-preset-rails">Side panel: {railNames.join(' · ')}</span>
                         )}
@@ -5602,10 +5156,10 @@ export default function NewDashboard(props) {
                           <button type="button" key={r.key} className="vq-item-card"
                                   onClick={() => selectMetricForStep2(r)}>
                             <span className="vq-item-card-top">
-                              <span className="vq-item-card-title">{tt(r.label)}</span>
+                              <span className="vq-item-card-title">{r.label}</span>
                               <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                             </span>
-                            <span className="vq-item-card-desc">{tt(r.desc || '')}</span>
+                            <span className="vq-item-card-desc">{r.desc || ''}</span>
                           </button>
                         ))}
                       </div>
@@ -5619,10 +5173,10 @@ export default function NewDashboard(props) {
                         <button type="button" key={tmpl.type} className="vq-item-card"
                                 onClick={() => selectTemplateForStep2(tmpl)}>
                           <span className="vq-item-card-top">
-                            <span className="vq-item-card-title">{tt(tmpl.title)}</span>
+                            <span className="vq-item-card-title">{tmpl.title}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </span>
-                          <span className="vq-item-card-desc">{tt(tmpl.desc)}</span>
+                          <span className="vq-item-card-desc">{tmpl.desc}</span>
                         </button>
                       ))}
                     </div>
@@ -5637,7 +5191,7 @@ export default function NewDashboard(props) {
                           <span className="vq-item-card-top">
                             <span className="vq-item-glyph" style={{ background: target.color }}
                                   dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(target.icon, 15) || '' }} />
-                            <span className="vq-item-card-title">{tt(target.label)}</span>
+                            <span className="vq-item-card-title">{target.label}</span>
                             <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                           </span>
                           <span className="vq-item-card-desc">One click takes you straight there.</span>
@@ -5754,8 +5308,8 @@ export default function NewDashboard(props) {
                           className={`vq-rail-option ${railPrefs.design === d.id ? 'is-on' : ''}`}
                           onClick={() => setRailOpt({ design: d.id, collapsed: false })}>
                     <span className="vq-rail-option-text">
-                      <span className="vq-rail-option-name">{tt(d.name)}</span>
-                      <span className="vq-rail-option-desc">{tt(d.desc)}</span>
+                      <span className="vq-rail-option-name">{d.name}</span>
+                      <span className="vq-rail-option-desc">{d.desc}</span>
                     </span>
                   </button>
                 );
@@ -5790,8 +5344,7 @@ export default function NewDashboard(props) {
             </div>
             <GlassIcons items={glassActionItems} onActionClick={(item) => {
               setGlassModalOpen(false);
-              if (item.action) item.action();
-              else if (item.href) window.location.href = item.href;
+              if (item.href) window.location.href = item.href;
             }} />
           </div>
         </div>
@@ -5810,21 +5363,6 @@ export default function NewDashboard(props) {
           <div className="panel-b" id="lib-body" />
         </div>
       </aside>
-
-      {!store?.is_demo && !store?.onboarding_completed && (
-        store?.onboarding_step === 'welcome' || 
-        store?.onboarding_step === 'purchase_tour_start' || 
-        store?.onboarding_step === 'purchase_tour_sidebar' ||
-        store?.onboarding_step === 'invoice_tour_start' ||
-        store?.onboarding_step === 'pos_tour_start' ||
-        store?.onboarding_step === 'expense_tour_start'
-      ) && (
-        <WelcomeTourModal store={store} />
-      )}
-
-      {!store?.is_demo && !store?.onboarding_completed && store?.onboarding_step === 'dashboard_tour' && (
-        <DashboardTourGuide store={store} />
-      )}
 
       </div>
     </OneGlanceLayout>

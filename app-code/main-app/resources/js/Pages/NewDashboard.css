@@ -170,14 +170,7 @@
   --vq-rail-w-min: 76px;
   --vq-topbar-h: 68px;
   --vq-page-max: 1240px;
-  --vq-gutter: 24px;      /* Layout Law v2.0 §1 — GUTTER, both axes.
-                             Was 20px here, a pre-v2.0 copy that never got
-                             updated when the token moved to 24. That made the
-                             height formula 12 lines below FALSE: it reads
-                             height(n) = n*64 + (n-1)*24, but a 20px gap gave a
-                             2-row card 148px instead of 152 and a 6-row card
-                             484 instead of 504. Restoring 24 fixes the card
-                             heights and the page's right margin together. */
+  --vq-gutter: 20px;      /* gap between dashboard cards */
   --vq-section-y: 112px;  /* marketing section rhythm */
 
   /* Stacking ladder — these twelve are the only legal z-index values. */
@@ -1960,7 +1953,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  scrollbar-gutter: auto;
+  scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -2332,7 +2325,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    drew the board flush against the sidebar. */
 .vq-canvas {
   width: 100%; max-width: 100%;
-  padding: 24px;
+  padding: 24px 24px 48px;
   box-sizing: border-box;
 }
 
