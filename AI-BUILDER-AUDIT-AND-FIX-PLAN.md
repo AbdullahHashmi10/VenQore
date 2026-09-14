@@ -419,3 +419,97 @@ Verification completed:
 - [ ] Run the exact browser start/step flow against the active PHP process after MySQL/cache is restored and old discovery sessions are cleared.
 
 The final unchecked item is deployment/runtime verification. `artisan optimize:clear` could not complete during this recheck because MySQL at `127.0.0.1:3306` refused the cache connection. This does not invalidate the deterministic policy tests, but it prevents claiming that the currently open browser process has loaded the new code and fresh session state.
+
+### Round 3 — catalogue-wide positive and negative gates
+
+The second independent verification was correct: absence-only assertions had allowed appointments to disappear from most service businesses while three broad capabilities remained eligible almost everywhere.
+
+Corrections applied:
+
+- `appointment_scheduling` is available across the services sector, including repair, field service, professional service, membership, salon and rental presets;
+- repair trades no longer forbid the appointments domain;
+- `counter_checkout` requires retail/food, a supported walk-in service preset, or an explicit counter signal;
+- `supplier_purchasing` requires a physical-goods sector, stock/inventory support, or an explicit supplier signal;
+- `trade_pricing` requires retail, wholesale, manufacturing, or an explicit wholesale/B2B signal;
+- dead gate presets were replaced with real configured preset keys;
+- explicit identity corrections now recognize forms such as “No, I'm…”, “sorry”, “wrong”, `galat/ghalat`, and `main … hoon`;
+- structured logs now record unresolved types, clarification displays, selected capabilities and aggregated denial reasons without recording the visitor's text.
+
+New regression coverage checks both directions:
+
+- every real services type must retain appointment scheduling;
+- a law firm must not receive counter checkout, supplier purchasing or trade pricing without explicit evidence;
+- every preset constant referenced by an eligibility gate must exist;
+- the full 85-type sector/subtype boundary sweep still passes;
+- a “No, I'm a freelance graphic designer” correction removes prior retail/POS/khata state.
+
+Latest deterministic verification: **34 tests passed with 5,675 assertions**. PHP syntax and diff whitespace validation also passed. The separate running-browser verification remains dependent on restoring the local MySQL/cache service and starting a fresh discovery session.
+
+### Round 4 — natural evidence and manual-mode trace
+
+The final independent rerun confirmed all P1–P5 items closed. The remaining implementation questions were traced and tightened:
+
+- counter evidence now recognizes natural phrases such as “customers come and pay”, “pay on the spot”, “pay me at the shop”, `dukaan par`, `saamne`, `دکان پر`, and `سامنے`;
+- per-turn capability-selection telemetry was moved from `info` to `debug`; unresolved-type and clarification events remain low-frequency `info` events;
+- the “I'll answer myself” toggle was traced to `useDiscovery` and `DiscoveryResolver`, a separate deterministic questionnaire path;
+- manual-mode `sells` is intentionally multi-select and does not flow into `CapabilityRegistry::irrelevantCapabilities()`;
+- manual specialist stock questions remain hidden unless the visitor explicitly chooses catalogue/deep stock, and the service/no-stock path cannot imply serial, expiry, or variant modules.
+
+Added tests cover three natural counter descriptions (including Roman Urdu) and the manual professional-service/no-stock path. The focused round-4 suite passes with **6 tests and 79 assertions**.
+
+### Round 5 — catalogue identity now outranks ambiguous trade keywords
+
+The final rerun found one remaining precedence path from the old trade matrix: a generic word such as `workshop` could create `trade:repairs` and auto-reject manufacturing, even after a confident `furniture_maker` match.
+
+The profile now reconciles keyword trade facts after a confident catalogue match:
+
+- keyword trades that conflict with the canonical sector are marked inactive before session facts are merged;
+- catalogue modules retain valid cross-sector subtype behavior, including expiry for pharmaceutical wholesale, serial tracking for technology distribution, and variants for fabric wholesale;
+- explicit mixed-business language (`also`, `as well`, `alongside`, or “and we repair/sell/make…”) preserves the second trade rather than suppressing it;
+- a diagnostic records each suppressed keyword trade without exposing the visitor's prompt.
+
+Regression coverage proves:
+
+- `furniture workshop` and `leather workshop` retain `recipe_and_bom`;
+- `medicine distributor`, `electronics distributor`, and `garment stockist` retain their catalogue-supported specialist capabilities;
+- “mobile shop and we also repair phones” retains the repair trade;
+- the complete 85-type sector/subtype boundary sweep continues to pass.
+
+Latest focused verification: **39 tests passed with 5,703 assertions**. PHP syntax and diff validation passed.
+
+### Pre-launch closure — recovery preset, lifetime, outcomes and React gating
+
+The pre-launch review found a dead preset outside the eligibility registry. The generic manufacturing sector choice used `manufacturing`, which is a dashboard preset rather than an AI-builder preset. Sector defaults now live in `BusinessProfile::defaultPresetForSector()`, and manufacturing resolves to `light_manufacturing`. An end-to-end service test selects `sector:manufacturing` and proves the persisted session does not fall back to `retail_shop`.
+
+Additional launch work completed:
+
+- discovery session TTL increased from 30 minutes to 4 hours;
+- `clarification_shown` persists with the session;
+- completed and fallback sessions emit one `ai_builder.session_outcome` event containing business identity, answer outcomes, final modules and unsupported items;
+- conversational unsupported items are written through the existing non-blocking `feature_requests` demand-log pattern with an anonymous tenant;
+- every sector default and every preset constant used by eligibility gates is checked against the real AI-builder preset configuration;
+- a Vitest regression directly exercises the React helper used by “I'll answer myself” and proves both `show_if` and `applies_to` are honored.
+
+Verification:
+
+- PHP catalogue/core set: **25 tests, 4,136 assertions**;
+- focused precedence/outcome set: **6 tests, 1,473 assertions**;
+- manufacturing recovery/outcome set: **3 tests, 17 assertions**;
+- frontend suite: **11 files, 151 tests passed**, including the new manual-discovery gate tests;
+- PHP syntax and diff whitespace checks passed.
+
+### Final alias leak — false facts removed from trigger evidence
+
+The alias sweep found that reconciled facts with `value=false` were still contributing their key names to trigger matching and relevance scoring. For example, `pet food` correctly reconciled `trade:restaurant` to false, but the word `restaurant` inside the retained key could still unlock dining capabilities.
+
+Both eligibility and candidate scoring now use one positive-fact context builder. Facts whose resolved value is false, null or empty remain available for diagnostics but contribute no trigger text and no affinity boost.
+
+Coverage includes all seven observed leaks:
+
+- cosmetics / `beauty products` cannot unlock appointments;
+- pet supplies / `pet food` cannot unlock dining tables or food dispatch;
+- furniture and leather workshops cannot unlock repair jobs or spare-parts workflows;
+- the manufacturing BOM capability remains available where the catalogue supports it;
+- explicit mixed-business facts remain positive and continue to work.
+
+A differential regression now runs every confidently matched alias for all 85 catalogue types through every capability twice: once with reconciled false facts retained and once with them removed. Eligibility and affinity must be identical. The focused alias suite passed **15,774 assertions**; the combined core and launch regression run passed **34 tests with 21,396 assertions**.

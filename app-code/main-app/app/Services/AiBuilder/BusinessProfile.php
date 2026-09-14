@@ -18,6 +18,18 @@ class BusinessProfile
 {
     public const VERSION = 'v1';
 
+    public static function defaultPresetForSector(string $sector): ?string
+    {
+        return match ($sector) {
+            'services' => 'professional_services',
+            'retail' => 'retail_shop',
+            'food' => 'food_counter',
+            'wholesale' => 'wholesale',
+            'manufacturing' => 'light_manufacturing',
+            default => null,
+        };
+    }
+
     public function __construct(
         public ?string $businessType = null,
         public array $candidates = [],
@@ -94,6 +106,8 @@ class BusinessProfile
                     'evidence'   => "sector from {$match['key']}",
                 ];
             }
+
+            $profile->reconcileKeywordTrades($prompt);
         } else {
             $profile->preset = $presetOverride;
             $profile->recordDiagnostic('match', ['key' => null, 'score' => 0]);
@@ -216,6 +230,56 @@ class BusinessProfile
         }
 
         return $profile;
+    }
+
+    /**
+     * A confident catalogue identity outranks broad keyword matches. Words such
+     * as "workshop", "food" and "beauty" occur in valid businesses outside
+     * the old trade matrix and must not veto their canonical capabilities.
+     * Explicit mixed-business language keeps the additional trade active.
+     */
+    private function reconcileKeywordTrades(string $prompt): void
+    {
+        if (!$this->activityConfident || !$this->sector) {
+            return;
+        }
+
+        $tradeSectors = [
+            'pharmacy' => ['retail'],
+            'repairs' => ['services'],
+            'clothing' => ['retail'],
+            'restaurant' => ['food'],
+            'bakery' => ['food', 'manufacturing'],
+            'grocery' => ['retail'],
+            'retail' => ['retail'],
+            'wholesale' => ['wholesale'],
+            'salon' => ['services'],
+            'electronics' => ['retail'],
+            'professional_services' => ['services'],
+            'freelance_creative' => ['services'],
+        ];
+        $explicitlyMixed = preg_match(
+            '/\b(?:also|as well|alongside|in addition|plus we|and we (?:also )?(?:sell|make|repair|fix|serve|offer|provide))\b/iu',
+            $prompt
+        ) === 1;
+
+        foreach ($tradeSectors as $trade => $allowedSectors) {
+            $key = "trade:{$trade}";
+            if (empty($this->facts[$key]['value']) || in_array($this->sector, $allowedSectors, true) || $explicitlyMixed) {
+                continue;
+            }
+            $this->facts[$key] = [
+                'value' => false,
+                'confidence' => 1.0,
+                'source' => 'catalogue_reconciliation',
+                'evidence' => "conflicts with confident {$this->businessType} identity",
+            ];
+            $this->recordDiagnostic('keyword_trade_suppressed', [
+                'trade' => $trade,
+                'business_type' => $this->businessType,
+                'sector' => $this->sector,
+            ]);
+        }
     }
 
     /**

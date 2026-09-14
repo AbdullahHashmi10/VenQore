@@ -9,6 +9,7 @@ use App\Services\Ai\AiResult;
 use App\Services\Ai\AiSchema;
 use App\Services\Ai\AiScopeGuard;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 /**
  * ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -83,6 +84,14 @@ class ConversationalBuilderService
         $initialFacts = array_merge($initialFacts, $profile->facts);
         $activePreset = $profile->preset ?: $detectedPreset;
 
+        if ($profile->businessType === null) {
+            Log::info('ai_builder.business_type_unresolved', [
+                'sector' => $profile->sector,
+                'preset' => $activePreset,
+                'candidate_count' => count($profile->candidates),
+            ]);
+        }
+
         $session = DiscoverySession::start($initialPrompt, $initialFacts, $activePreset, $profile);
 
         // If multi-branch was explicitly declared in initial prompt, auto-confirm capability
@@ -107,6 +116,12 @@ class ConversationalBuilderService
         // 1c. Ambiguous activity clarification check
         if ($profile->isAmbiguousActivity()) {
             $clarification = $profile->getClarificationQuestion();
+            Log::info('ai_builder.clarification_shown', [
+                'business_type' => $profile->businessType,
+                'sector' => $profile->sector,
+                'preset' => $activePreset,
+                'option_count' => count($clarification['options']),
+            ]);
             $currentQuestion = [
                 'message'           => $clarification['question_template'],
                 'options'           => $clarification['options'],
@@ -116,6 +131,7 @@ class ConversationalBuilderService
                 'members'           => [],
             ];
             $session->currentQuestion = $currentQuestion;
+            $session->clarificationShown = true;
             $session->save();
 
             return $this->questionResponse($session, $currentQuestion, $clarification['question_template'], false, true);
@@ -202,7 +218,7 @@ class ConversationalBuilderService
         // facts; only clear correction language plus a confident new catalogue
         // match triggers this reset.
         $correctsIdentity = preg_match(
-            '/\b(actually|correction|instead|i meant|rather than|not my business)\b/iu',
+            '/(?:\b(?:actually|correction|instead|i meant|rather than|not my business|sorry|wrong|galat|ghalat)\b|\bno\s*[,—-]?\s*i(?:\s+am|\x{2019}m|\x{0027}m)\b|\bmain\b.{0,40}\bhoon\b)/iu',
             $userResponse
         ) === 1;
         $correctedMatch = $correctsIdentity ? \App\Support\BusinessTypes::match($userResponse) : null;
@@ -292,14 +308,9 @@ class ConversationalBuilderService
                     ? substr($selectedOptionKey, 7)
                     : null;
                 if ($selectedSector && isset(\App\Support\BusinessTypes::sectors()[$selectedSector])) {
-                    $presetBySector = [
-                        'services' => 'professional_services', 'retail' => 'retail_shop',
-                        'food' => 'food_counter', 'wholesale' => 'wholesale',
-                        'manufacturing' => 'manufacturing',
-                    ];
                     $session->profile->businessType = null;
                     $session->profile->sector = $selectedSector;
-                    $session->profile->preset = $presetBySector[$selectedSector] ?? null;
+                    $session->profile->preset = BusinessProfile::defaultPresetForSector($selectedSector);
                     $session->profile->templateConfident = true;
                     $session->profile->sells = $selectedSector === 'services' ? 'services' : 'goods';
                     $session->profile->hasStock = in_array($selectedSector, ['retail', 'wholesale', 'manufacturing'], true) ? true : null;
@@ -350,6 +361,7 @@ class ConversationalBuilderService
                                 'is_multi' => false, 'members' => [],
                             ];
                             $session->currentQuestion = $current;
+                            $session->clarificationShown = true;
                             $session->save();
                             return $this->questionResponse($session, $current, $current['message'], false, false);
                         }
@@ -600,6 +612,8 @@ class ConversationalBuilderService
 
         $session->proposal = $validated;
         $session->save();
+        $this->recordSessionOutcome($session, $validated['modules'] ?? $modules, false);
+        $this->recordUnsupportedDemand($session->profile?->unsupported ?? []);
 
         $isHighConfidence = $session->systemReadinessConfidence >= 0.85;
         $assistantMessage = $isHighConfidence
@@ -803,6 +817,8 @@ class ConversationalBuilderService
         $session->isComplete = true;
         $session->proposal = $proposal;
         $session->save();
+        $this->recordSessionOutcome($session, $resolvedModules, true);
+        $this->recordUnsupportedDemand($session->profile?->unsupported ?? []);
 
         return [
             'ok'                => false,
@@ -826,6 +842,45 @@ class ConversationalBuilderService
     private function probe(string $text): AiRequest
     {
         return AiRequest::for('config_ai')->userText($text);
+    }
+
+    private function recordSessionOutcome(DiscoverySession $session, array $modules, bool $fallback): void
+    {
+        Log::info('ai_builder.session_outcome', [
+            'session_id' => $session->sessionId,
+            'business_type' => $session->profile?->businessType,
+            'sector' => $session->profile?->sector,
+            'preset' => $session->preset,
+            'clarification_shown' => $session->clarificationShown,
+            'turn_count' => $session->turnCount,
+            'confirmed_caps' => array_values($session->confirmed),
+            'rejected_caps' => array_values($session->rejected),
+            'skipped_caps' => array_values($session->skipped),
+            'final_modules' => array_values($modules),
+            'unsupported' => array_values($session->profile?->unsupported ?? []),
+            'fallback' => $fallback,
+        ]);
+    }
+
+    private function recordUnsupportedDemand(array $unsupported): void
+    {
+        foreach (array_unique(array_filter($unsupported, 'is_string')) as $request) {
+            $request = trim($request);
+            if ($request === '') continue;
+            try {
+                DB::table(config('ai_builder.demand_log.table', 'feature_requests'))->insert([
+                    'tenant_id' => null,
+                    'source' => 'ai_unsupported',
+                    'raw_text' => $request,
+                    'normalised' => strtolower($request),
+                    'status' => 'pending',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Throwable) {
+                // Demand telemetry must never block onboarding.
+            }
+        }
     }
 
     /**

@@ -6,9 +6,11 @@ use App\Services\AiBuilder\BusinessProfile;
 use App\Services\AiBuilder\CapabilityRegistry;
 use App\Services\AiBuilder\ConversationalBuilderService;
 use App\Services\AiBuilder\DiscoverySession;
+use App\Services\AiBuilder\DiscoveryResolver;
 use App\Services\Ai\AiGateway;
 use App\Services\Ai\AiResult;
 use App\Support\BusinessTypes;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 /**
@@ -558,6 +560,246 @@ class ScreenshotRegressionTest extends TestCase
         }
     }
 
+    public function test_catalogue_has_positive_appointment_coverage_for_services(): void
+    {
+        foreach (BusinessTypes::all() as $key => $type) {
+            if ($type['sector'] !== 'services') {
+                continue;
+            }
+            $prompt = $type['aliases'][0] ?? $type['label'];
+            $fast = $this->registry->detectStructuredFacts($prompt);
+            $profile = BusinessProfile::fromInitialInput($prompt, $fast['facts'], null, $type['preset']);
+            $facts = array_merge($fast['facts'], $profile->facts, [
+                "type:{$key}" => ['value' => true, 'confidence' => 1.0],
+                'sector:services' => ['value' => true, 'confidence' => 1.0],
+                'sells' => ['value' => 'services', 'confidence' => 1.0],
+            ]);
+            $eligibility = $this->registry->evaluateEligibility(
+                'appointment_scheduling', $facts, $type['preset'], 'services', $key
+            );
+            $this->assertTrue($eligibility['eligible'], "{$key} must be able to answer the booking question");
+        }
+    }
+
+    public function test_generic_service_capabilities_do_not_leak_into_law_firm(): void
+    {
+        $facts = [
+            'type:law_firm' => ['value' => true],
+            'sector:services' => ['value' => true],
+            'sells' => ['value' => 'services'],
+        ];
+        foreach (['counter_checkout', 'supplier_purchasing', 'trade_pricing'] as $capability) {
+            $result = $this->registry->evaluateEligibility(
+                $capability, $facts, 'professional_services', 'services', 'law_firm'
+            );
+            $this->assertFalse($result['eligible'], "Law firm must not receive {$capability} without explicit evidence");
+        }
+        $this->assertTrue($this->registry->evaluateEligibility(
+            'appointment_scheduling', $facts, 'professional_services', 'services', 'law_firm'
+        )['eligible']);
+    }
+
+    public function test_natural_walk_in_language_unlocks_counter_when_sector_default_denies_it(): void
+    {
+        foreach ([
+            'I run a tailoring shop, customers come and pay.',
+            'I run a tailoring shop and customers pay me at the shop.',
+            'Meri tailoring ki dukaan hai, customer dukaan par pay karte hain.',
+        ] as $prompt) {
+            $fast = $this->registry->detectStructuredFacts($prompt);
+            $this->assertTrue($fast['facts']['counter']['value'] ?? false, $prompt);
+            $result = $this->registry->evaluateEligibility(
+                'counter_checkout', $fast['facts'], 'tailoring', 'manufacturing', 'tailoring'
+            );
+            $this->assertTrue($result['eligible'], $prompt);
+        }
+    }
+
+    public function test_manual_questionnaire_keeps_specialist_stock_questions_conditional(): void
+    {
+        $resolver = app(DiscoveryResolver::class);
+        $serviceAnswers = ['sells' => ['time'], 'stock' => 'none'];
+        $visibleKeys = array_column($resolver->visibleQuestions($serviceAnswers, 'professional_services'), 'key');
+
+        $this->assertNotContains('stock_traits', $visibleKeys);
+        $this->assertNotContains('buying', $visibleKeys);
+
+        $modules = $resolver->impliedModules($serviceAnswers, 'professional_services');
+        $this->assertContains('services', $modules);
+        $this->assertContains('invoicing', $modules);
+        $this->assertNotContains('serials', $modules);
+        $this->assertNotContains('batches_expiry', $modules);
+        $this->assertNotContains('variants', $modules);
+    }
+
+    public function test_confident_catalogue_identity_outranks_conflicting_keyword_trade(): void
+    {
+        foreach (['furniture workshop' => 'furniture_maker', 'leather workshop' => 'leather_goods'] as $prompt => $type) {
+            $fast = $this->registry->detectStructuredFacts($prompt);
+            $this->assertTrue($fast['facts']['trade:repairs']['value']);
+            $profile = BusinessProfile::fromInitialInput($prompt, $fast['facts'], null, $fast['detected_preset']);
+            $facts = array_merge($fast['facts'], $profile->facts);
+
+            $this->assertSame($type, $profile->businessType);
+            $this->assertFalse($facts['trade:repairs']['value']);
+            $this->assertTrue($this->registry->evaluateEligibility(
+                'recipe_and_bom', $facts, $profile->preset, $profile->sector, $profile->businessType
+            )['eligible'], "{$prompt} must retain manufacturing/BOM capability");
+        }
+    }
+
+    public function test_catalogue_reconciliation_preserves_supported_cross_sector_subtypes(): void
+    {
+        $cases = [
+            ['medicine distributor', 'batch_expiry_tracking', 'pharma_wholesale'],
+            ['electronics distributor', 'serial_imei_tracking', 'tech_distributor'],
+            ['garment stockist', 'product_variants', 'fabric_stockist'],
+        ];
+        foreach ($cases as [$prompt, $capability, $type]) {
+            $fast = $this->registry->detectStructuredFacts($prompt);
+            $profile = BusinessProfile::fromInitialInput($prompt, $fast['facts'], null, $fast['detected_preset']);
+            $facts = array_merge($fast['facts'], $profile->facts);
+            $this->assertSame($type, $profile->businessType);
+            $this->assertTrue($this->registry->evaluateEligibility(
+                $capability, $facts, $profile->preset, $profile->sector, $profile->businessType
+            )['eligible'], "{$prompt} must retain {$capability} from catalogue modules");
+        }
+    }
+
+    public function test_explicit_mixed_business_keeps_second_trade_signal(): void
+    {
+        $prompt = 'I run a mobile shop and we also repair phones.';
+        $fast = $this->registry->detectStructuredFacts($prompt);
+        $profile = BusinessProfile::fromInitialInput($prompt, $fast['facts'], null, 'mobile_electronics');
+
+        $this->assertTrue($profile->facts['trade:repairs']['value'] ?? false);
+    }
+
+    public function test_reconciled_false_trade_facts_cannot_unlock_trigger_escape_hatches(): void
+    {
+        $cases = [
+            ['beauty products', 'appointment_scheduling', 'cosmetics'],
+            ['pet food', 'table_and_kot_management', 'pet_supply'],
+            ['pet food', 'food_delivery_dispatch', 'pet_supply'],
+            ['furniture workshop', 'repair_job_tracking', 'furniture_maker'],
+            ['furniture workshop', 'spare_parts_and_labour', 'furniture_maker'],
+            ['leather workshop', 'repair_job_tracking', 'leather_goods'],
+            ['leather workshop', 'spare_parts_and_labour', 'leather_goods'],
+        ];
+
+        foreach ($cases as [$prompt, $capability, $expectedType]) {
+            $fast = $this->registry->detectStructuredFacts($prompt);
+            $profile = BusinessProfile::fromInitialInput($prompt, $fast['facts'], null, $fast['detected_preset']);
+            $facts = array_merge($fast['facts'], $profile->facts);
+            $this->assertSame($expectedType, $profile->businessType);
+            $result = $this->registry->evaluateEligibility(
+                $capability, $facts, $profile->preset, $profile->sector, $profile->businessType
+            );
+            $this->assertFalse($result['eligible'], "{$prompt} incorrectly unlocked {$capability}");
+        }
+    }
+
+    public function test_every_catalogue_alias_treats_reconciled_false_facts_as_no_evidence(): void
+    {
+        foreach (BusinessTypes::all() as $expectedType => $type) {
+            foreach ($type['aliases'] as $alias) {
+                $fast = $this->registry->detectStructuredFacts($alias);
+                $profile = BusinessProfile::fromInitialInput($alias, $fast['facts'], null, $fast['detected_preset']);
+                if (!$profile->activityConfident || $profile->businessType !== $expectedType) {
+                    continue;
+                }
+                $facts = array_merge($fast['facts'], $profile->facts);
+                $withoutFalse = array_filter($facts, fn ($fact) => !(
+                    is_array($fact) && array_key_exists('value', $fact) && $fact['value'] === false
+                ));
+                foreach (array_keys($this->registry->allCapabilities()) as $capability) {
+                    $actual = $this->registry->evaluateEligibility(
+                        $capability, $facts, $profile->preset, $profile->sector, $profile->businessType
+                    );
+                    $control = $this->registry->evaluateEligibility(
+                        $capability, $withoutFalse, $profile->preset, $profile->sector, $profile->businessType
+                    );
+                    $this->assertSame(
+                        [$control['eligible'], $control['affinity_score']],
+                        [$actual['eligible'], $actual['affinity_score']],
+                        "False fact changed {$capability} for {$expectedType} alias '{$alias}'"
+                    );
+                }
+            }
+        }
+    }
+
+    public function test_every_preset_named_by_eligibility_gates_exists(): void
+    {
+        $configured = array_keys(config('ai_builder.presets', []));
+        $reflection = new \ReflectionClass(CapabilityRegistry::class);
+        foreach ($reflection->getReflectionConstants() as $constant) {
+            if (!str_ends_with($constant->getName(), '_PRESETS')) {
+                continue;
+            }
+            foreach ($constant->getValue() as $preset) {
+                $this->assertContains($preset, $configured, "Dead eligibility preset: {$preset}");
+            }
+        }
+    }
+
+    public function test_every_sector_clarification_resolves_to_a_real_preset(): void
+    {
+        $configured = array_keys(config('ai_builder.presets', []));
+        foreach (array_keys(BusinessTypes::sectors()) as $sector) {
+            $preset = BusinessProfile::defaultPresetForSector($sector);
+            $this->assertNotNull($preset, "No default preset for sector {$sector}");
+            $this->assertContains($preset, $configured, "Dead sector preset {$preset}");
+        }
+        $this->assertSame('light_manufacturing', BusinessProfile::defaultPresetForSector('manufacturing'));
+    }
+
+    public function test_manufacturing_sector_choice_uses_manufacturing_workspace(): void
+    {
+        $gateway = \Mockery::mock(AiGateway::class);
+        $gateway->shouldReceive('screen')->andReturnNull();
+        $gateway->shouldReceive('resolve')->andReturn(AiResult::failure('test_fallback', 'Use deterministic fallback.'));
+        $this->app->instance(AiGateway::class, $gateway);
+        $builder = $this->app->make(ConversationalBuilderService::class);
+
+        $start = $builder->startSession('I run a business and need help organising it.');
+        $this->assertSame('__clarification:activity__', $start['target_capability']);
+        $builder->step($start['session_id'], 'Making things', 'sector:manufacturing');
+
+        $session = DiscoverySession::load($start['session_id']);
+        $this->assertSame('manufacturing', $session->profile->sector);
+        $this->assertSame('light_manufacturing', $session->preset);
+        $this->assertSame('light_manufacturing', $session->profile->preset);
+        $this->assertNotSame('retail_shop', $session->preset);
+    }
+
+    public function test_completed_session_emits_an_outcome_event(): void
+    {
+        Log::spy();
+        $profile = BusinessProfile::fromInitialInput('I am a photographer');
+        $session = new DiscoverySession(
+            sessionId: 'outcome-test',
+            preset: $profile->preset,
+            profile: $profile,
+            confirmed: ['appointment_scheduling'],
+            rejected: ['counter_checkout'],
+            skipped: ['team_and_attendance'],
+            clarificationShown: true,
+        );
+
+        $this->builder->finalizeProposal($session);
+
+        Log::shouldHaveReceived('info')->once()->with(
+            'ai_builder.session_outcome',
+            \Mockery::on(fn (array $data) =>
+                $data['session_id'] === 'outcome-test'
+                && $data['clarification_shown'] === true
+                && in_array('appointment_scheduling', $data['confirmed_caps'], true)
+                && in_array('services', $data['final_modules'], true)
+            )
+        );
+    }
+
     public function test_unknown_business_clarifies_across_all_five_sectors(): void
     {
         $start = $this->builder->startSession('I run a business and need help organising it.');
@@ -627,7 +869,7 @@ class ScreenshotRegressionTest extends TestCase
 
         $turn = $builder->step(
             $start['session_id'],
-            'Actually I work as a freelance graphic designer.'
+            "No, I'm a freelance graphic designer."
         );
         $this->assertTrue($turn['ok']);
 

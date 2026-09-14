@@ -2,6 +2,8 @@
 
 namespace App\Services\AiBuilder;
 
+use Illuminate\Support\Facades\Log;
+
 /**
  * ╔═══════════════════════════════════════════════════════════════════════════╗
  * ║  CapabilityRegistry — The VenQore Business Capability Graph & Hierarchy   ║
@@ -15,6 +17,11 @@ namespace App\Services\AiBuilder;
  */
 class CapabilityRegistry
 {
+    private const HOSPITALITY_PRESETS = ['restaurant', 'cafe', 'bakery', 'catering', 'food_counter'];
+    private const MANUFACTURING_PRESETS = ['light_manufacturing', 'tailoring', 'bakery'];
+    private const APPOINTMENT_PRESETS = ['salon', 'membership_studio', 'professional_services', 'field_service', 'repair_workshop', 'rental_hire'];
+    private const SERVICE_COUNTER_PRESETS = ['salon', 'membership_studio', 'repair_workshop'];
+    private const SERVICE_INVOICING_PRESETS = ['freelancer', 'field_service', 'professional_services', 'repair_workshop', 'rental_hire', 'membership_studio', 'salon'];
     /**
      * Trade Affinity and Domain Compatibility Matrix.
      * Guarantees that the discovery engine never asks out-of-domain questions
@@ -48,10 +55,10 @@ class CapabilityRegistry
                 'auto_reject'       => ['table_and_kot_management', 'food_delivery_dispatch', 'recipe_and_bom', 'appointment_scheduling', 'batch_expiry_tracking'],
             ],
             'repairs' => [
-                'allowed_domains'   => ['service_repairs', 'inventory_supply', 'retail_operations'],
-                'forbidden_domains' => ['hospitality_dining', 'manufacturing_production', 'services_appointments', 'wholesale_b2b'],
+                'allowed_domains'   => ['service_repairs', 'inventory_supply', 'retail_operations', 'services_appointments'],
+                'forbidden_domains' => ['hospitality_dining', 'manufacturing_production', 'wholesale_b2b'],
                 'priority_caps'     => ['repair_job_tracking', 'spare_parts_and_labour'],
-                'auto_reject'       => ['table_and_kot_management', 'food_delivery_dispatch', 'recipe_and_bom', 'appointment_scheduling', 'batch_expiry_tracking', 'product_variants'],
+                'auto_reject'       => ['table_and_kot_management', 'food_delivery_dispatch', 'recipe_and_bom', 'batch_expiry_tracking', 'product_variants'],
             ],
             'restaurant' => [
                 'allowed_domains'   => ['hospitality_dining', 'inventory_supply', 'manufacturing_production'],
@@ -178,7 +185,7 @@ class CapabilityRegistry
                     'name'              => 'Over-the-Counter Checkout',
                     'short'             => 'Getting paid on the spot',
                     'impact'            => 92,
-                    'triggers'          => ['counter', 'till', 'cash register', 'walk in', 'shop floor', 'کاؤنٹر'],
+                    'triggers'          => ['counter', 'till', 'cash register', 'walk in', 'shop floor', 'customers come', 'pay on the spot', 'pay at the shop', 'pay me at the shop', 'dukaan par', 'saamne', 'کاؤنٹر'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['pos', 'products'],
                     'consequences'      => ['A fast till screen for serving someone standing in front of you, with a receipt at the end.'],
@@ -565,7 +572,7 @@ class CapabilityRegistry
         }
 
         // 3. Operational & Feature Signals
-        if (preg_match('/\b(counter pos|pos|counter|till|cash register|checkout|point of sale|کاؤنٹر)\b/iu', $normalized)) {
+        if (preg_match('/(?:\b(?:counter pos|pos|counter|till|cash register|checkout|point of sale|customers? come|pay(?:s|ing)? on the spot|pay(?:s|ing)? (?:me )?at the shop|dukaan par|dukan par|saamne)\b|کاؤنٹر|دکان پر|سامنے)/iu', $normalized)) {
             $facts['has_counter'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'counter pos mention'];
             $facts['counter'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'counter pos mention'];
         }
@@ -677,20 +684,43 @@ class CapabilityRegistry
             ? \App\Support\BusinessTypes::modulesFor($businessType)
             : [];
 
-        // Build context string of all facts for trigger inspection
-        $factContext = strtolower(implode(' ', array_keys($facts)));
-        foreach ($facts as $k => $v) {
-            $val = is_array($v) ? ($v['value'] ?? '') : $v;
-            if (is_string($val)) {
-                $factContext .= ' ' . strtolower($val);
-            }
-        }
+        // Only positive facts are evidence. Reconciled trade keys remain in
+        // state for diagnostics, but value=false must neither unlock a domain
+        // gate nor boost a candidate merely because the key contains a trigger.
+        $factContext = $this->positiveFactContext($facts);
 
         $hasTrigger = false;
         foreach ($cap['triggers'] as $trig) {
             if (str_contains($factContext, $trig)) {
                 $hasTrigger = true;
                 break;
+            }
+        }
+
+        // Broad capabilities still need a positive operating-model gate. They
+        // previously fell through as eligible for every catalogue type.
+        if ($capKey === 'supplier_purchasing') {
+            $buysPhysicalStock = in_array($sector, ['retail', 'food', 'wholesale', 'manufacturing'], true)
+                || $hasStock === true
+                || in_array('inventory', $typeModules, true);
+            if (!$buysPhysicalStock && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'no_supplier_or_stock_workflow', 'affinity_score' => 0];
+            }
+        }
+
+        if ($capKey === 'counter_checkout') {
+            $hasWalkInCounter = in_array($sector, ['retail', 'food'], true)
+                || ($sector === 'services' && in_array($preset, self::SERVICE_COUNTER_PRESETS, true));
+            if (!$hasWalkInCounter && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'no_walk_in_counter_workflow', 'affinity_score' => 0];
+            }
+        }
+
+        if ($capKey === 'trade_pricing') {
+            $usesTradePrices = in_array($sector, ['retail', 'wholesale', 'manufacturing'], true)
+                || !empty($facts['trade:wholesale']['value']);
+            if (!$usesTradePrices && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'no_trade_pricing_workflow', 'affinity_score' => 0];
             }
         }
 
@@ -758,7 +788,7 @@ class CapabilityRegistry
         // 5. Hospitality domain restriction
         if ($domain === 'hospitality_dining') {
             $isHospitality = ($sector === 'food' || $sector === 'hospitality'
-                || in_array($preset, ['restaurant', 'cafe', 'bakery', 'fast_food', 'pub_lounge'], true)
+                || in_array($preset, self::HOSPITALITY_PRESETS, true)
                 || !empty($facts['trade:restaurant']['value']));
             $hasHospitalityTrigger = str_contains($factContext, 'restaurant')
                 || str_contains($factContext, 'dine')
@@ -776,7 +806,7 @@ class CapabilityRegistry
         // 6. Manufacturing domain restriction
         if ($domain === 'manufacturing_production') {
             $isManufacturing = ($sector === 'manufacturing'
-                || in_array($preset, ['manufacturing', 'bakery'], true)
+                || in_array($preset, self::MANUFACTURING_PRESETS, true)
                 || !empty($facts['trade:bakery']['value']));
             if (!$isManufacturing && !$hasTrigger) {
                 return ['eligible' => false, 'reason' => 'not_manufacturing', 'affinity_score' => 0];
@@ -806,12 +836,9 @@ class CapabilityRegistry
 
         // 8. Appointments domain restriction
         if ($domain === 'services_appointments') {
-            $isAppointmentTrade = (!empty($facts['trade:salon']['value'])
-                || in_array($preset, ['salon', 'clinic', 'spa', 'consultant'], true)
-                || str_contains((string) $businessType, 'salon')
-                || str_contains((string) $businessType, 'barber')
-                || str_contains((string) $businessType, 'clinic')
-                || str_contains((string) $businessType, 'consultant'));
+            $isAppointmentTrade = ($sector === 'services'
+                || !empty($facts['trade:salon']['value'])
+                || in_array($preset, self::APPOINTMENT_PRESETS, true));
             if (!$isAppointmentTrade && !$hasTrigger) {
                 return ['eligible' => false, 'reason' => 'not_appointment_trade', 'affinity_score' => 0];
             }
@@ -820,7 +847,7 @@ class CapabilityRegistry
         // 8b. Services Invoicing restriction (Freelancer retainer, recurring billing)
         if ($domain === 'services_invoicing') {
             $isServicesInvoicing = ($sector === 'services'
-                || in_array($preset, ['freelancer', 'field_service', 'professional_services', 'consultant'], true)
+                || in_array($preset, self::SERVICE_INVOICING_PRESETS, true)
                 || !empty($facts['trade:professional_services']['value'])
                 || !empty($facts['trade:freelance_creative']['value']));
             if (!$isServicesInvoicing && !$hasTrigger) {
@@ -915,10 +942,11 @@ class CapabilityRegistry
     ): ?array {
         $all = $this->allCapabilities();
         $candidates = [];
+        $denialReasons = [];
 
-        // Build context string from all known facts
-        $factKeys = array_keys($knownFacts);
-        $contextString = strtolower(implode(' ', $factKeys));
+        // Use the same positive-only evidence context as eligibility. Otherwise
+        // a suppressed keyword can still distort ordering after passing gates.
+        $contextString = $this->positiveFactContext($knownFacts);
 
         $contradicted = $this->contradictedCapabilities($knownFacts);
         $irrelevant = $this->irrelevantCapabilities($knownFacts);
@@ -944,6 +972,8 @@ class CapabilityRegistry
             // Positive capability eligibility evaluation
             $eligibility = $this->evaluateEligibility($key, $knownFacts, $preset, $sector, $businessType);
             if (!$eligibility['eligible']) {
+                $reason = (string) ($eligibility['reason'] ?? 'unspecified');
+                $denialReasons[$reason] = ($denialReasons[$reason] ?? 0) + 1;
                 continue;
             }
 
@@ -974,13 +1004,47 @@ class CapabilityRegistry
         }
 
         if (empty($candidates)) {
+            Log::debug('ai_builder.capability_selection', [
+                'business_type' => $businessType,
+                'sector' => $sector,
+                'preset' => $preset,
+                'selected' => null,
+                'denial_reasons' => $denialReasons,
+            ]);
             return null;
         }
 
         // Sort descending by calculated priority score
         usort($candidates, fn ($a, $b) => $b['impact'] <=> $a['impact']);
 
+        Log::debug('ai_builder.capability_selection', [
+            'business_type' => $businessType,
+            'sector' => $sector,
+            'preset' => $preset,
+            'selected' => $candidates[0]['key'],
+            'denial_reasons' => $denialReasons,
+        ]);
+
         return $candidates[0];
+    }
+
+    private function positiveFactContext(array $facts): string
+    {
+        $parts = [];
+        foreach ($facts as $key => $fact) {
+            $value = is_array($fact) && array_key_exists('value', $fact)
+                ? $fact['value']
+                : $fact;
+            if ($value === false || $value === null || $value === '') {
+                continue;
+            }
+            $parts[] = (string) $key;
+            if (is_string($value)) {
+                $parts[] = $value;
+            }
+        }
+
+        return strtolower(implode(' ', $parts));
     }
 
     /**

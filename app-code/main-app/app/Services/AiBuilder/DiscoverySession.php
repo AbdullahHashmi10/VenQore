@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  */
 class DiscoverySession
 {
-    public const TTL_SECONDS = 1800; // 30 minutes
+    public const TTL_SECONDS = 14400; // 4 hours
 
     /*
     | Two rounds, and the second one is asked for.
@@ -53,6 +53,7 @@ class DiscoverySession
         // session; ConversationalBuilderService ends it after MAX_SCOPE_STRIKES.
         public int $scopeStrikes = 0,
         public ?BusinessProfile $profile = null,
+        public bool $clarificationShown = false,
     ) {}
 
     public static function cacheKey(string $sessionId): string
@@ -85,6 +86,7 @@ class DiscoverySession
             aiSignalConfidence: (float) ($data['ai_signal_confidence'] ?? 0.5),
             scopeStrikes: (int) ($data['scope_strikes'] ?? 0),
             profile: isset($data['profile']) && is_array($data['profile']) ? BusinessProfile::fromArray($data['profile']) : null,
+            clarificationShown: (bool) ($data['clarification_shown'] ?? false),
         );
     }
 
@@ -125,6 +127,7 @@ class DiscoverySession
             'ai_signal_confidence'       => $this->aiSignalConfidence,
             'scope_strikes'              => $this->scopeStrikes,
             'profile'                    => $this->profile?->toArray(),
+            'clarification_shown'        => $this->clarificationShown,
         ], self::TTL_SECONDS);
     }
 

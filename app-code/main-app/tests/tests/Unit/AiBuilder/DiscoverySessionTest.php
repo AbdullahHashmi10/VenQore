@@ -8,6 +8,17 @@ use Tests\TestCase;
 
 class DiscoverySessionTest extends TestCase
 {
+    public function test_session_survives_a_normal_interruption_window(): void
+    {
+        $this->assertSame(14400, DiscoverySession::TTL_SECONDS);
+
+        $session = DiscoverySession::start('I make furniture');
+        $session->clarificationShown = true;
+        $session->save();
+
+        $this->assertTrue(DiscoverySession::load($session->sessionId)->clarificationShown);
+    }
+
     public function test_session_records_and_revises_capabilities_correctly(): void
     {
         $session = DiscoverySession::start("I sell mobile phones", ['trade:electronics' => ['value' => true, 'confidence' => 0.95]]);
