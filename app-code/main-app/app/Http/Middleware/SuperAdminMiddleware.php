@@ -22,9 +22,9 @@ class SuperAdminMiddleware
         // A 403 would reveal that this route exists. A 404 does not.
         // Never redirect to platform.login from here — that reveals the URL.
 
-        // Not logged in → 404 (do not redirect to platform.login)
+        // Not logged in → redirect to platform login
         if (!Auth::check()) {
-            abort(404);
+            return redirect()->route('platform.login');
         }
 
         $user = $request->user();
