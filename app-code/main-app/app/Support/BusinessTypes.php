@@ -147,18 +147,25 @@ final class BusinessTypes
     /**
      * Read free text and name the business type.
      *
-     * @return array{key: ?string, confident: bool, score: int, candidates: string[]}
-     *   key         best type, or null when nothing scored
-     *   confident   true when the best clearly beats the runner-up (or both
-     *               lead to the same preset, so the choice changes nothing)
-     *   candidates  up to three best keys — the builder offers them as
-     *               "Did you mean…" when not confident
+     * @return array{key: ?string, confident: bool, template_confident: bool, activity_confident: bool, score: int, candidates: string[]}
+     *   key                 best type, or null when nothing scored
+     *   confident           backward-compatible alias for template_confident
+     *   template_confident  true when the best clearly beats runner-up OR both share the same preset
+     *   activity_confident  true only when the best activity score strictly beats the runner-up score
+     *   candidates          up to three best keys
      */
     public static function match(?string $text): array
     {
         $tokens = self::tokens((string) $text);
         if ($tokens === []) {
-            return ['key' => null, 'confident' => false, 'score' => 0, 'candidates' => []];
+            return [
+                'key'                => null,
+                'confident'          => false,
+                'template_confident' => false,
+                'activity_confident' => false,
+                'score'              => 0,
+                'candidates'         => [],
+            ];
         }
 
         $tokenSet = array_flip($tokens);
@@ -185,7 +192,14 @@ final class BusinessTypes
         }
 
         if ($scores === []) {
-            return ['key' => null, 'confident' => false, 'score' => 0, 'candidates' => []];
+            return [
+                'key'                => null,
+                'confident'          => false,
+                'template_confident' => false,
+                'activity_confident' => false,
+                'score'              => 0,
+                'candidates'         => [],
+            ];
         }
 
         // Stable order: score desc, then catalogue order.
@@ -197,17 +211,42 @@ final class BusinessTypes
         $bestScore = $scores[$best];
         $second = $keys[1] ?? null;
 
-        $confident = $bestScore >= 1 && (
+        $activityConfident = $bestScore >= 1 && (
+            $second === null
+            // A one-point lead can come from fuzzy/plural folding and is not
+            // enough to choose between activities with different specialist
+            // needs (for example FMCG vs pharmaceutical wholesale).
+            || $bestScore >= $scores[$second] + self::WORD
+        );
+
+        $templateConfident = $bestScore >= 1 && (
             $second === null
             || $bestScore > $scores[$second]
             || self::presetFor($best) === self::presetFor($second)
         );
 
+        $candidates = array_slice($keys, 0, 3);
+
+        // A generic term (e.g. "freelancer", "freelance") indicates a working model,
+        // not a specific activity. Template confidence is high, but activity confidence is low.
+        $hasGenericFreelancerWord = in_array('freelancer', $tokens, true) || in_array('freelance', $tokens, true);
+        $hasSpecificProfession = preg_match('/\b(designer|design|developer|coder|software|writer|copywriter|editor|consultant|consulting|coach|repair|fixing|mechanic|accountant|accounting|lawyer|photographer|video)\b/iu', (string) $text);
+
+        if ($hasGenericFreelancerWord && !$hasSpecificProfession) {
+            $activityConfident = false;
+            $templateConfident = true;
+            if (!in_array('consultant', $candidates, true)) {
+                $candidates[] = 'consultant';
+            }
+        }
+
         return [
-            'key'        => $best,
-            'confident'  => $confident,
-            'score'      => $bestScore,
-            'candidates' => array_slice($keys, 0, 3),
+            'key'                => $best,
+            'confident'          => $templateConfident,
+            'template_confident' => $templateConfident,
+            'activity_confident' => $activityConfident,
+            'score'              => $bestScore,
+            'candidates'         => $candidates,
         ];
     }
 

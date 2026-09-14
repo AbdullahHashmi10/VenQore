@@ -78,12 +78,47 @@ class ConversationalBuilderService
         }
         $detectedPreset = $preset ?: $fastExtraction['detected_preset'] ?: $this->aiService->guessPreset(['what' => $initialPrompt]);
 
-        $session = DiscoverySession::start($initialPrompt, $initialFacts, $detectedPreset);
+        // 1b. Build versioned BusinessProfile (Section 6 & 10)
+        $profile = BusinessProfile::fromInitialInput($initialPrompt, $initialFacts, $understanding, $detectedPreset);
+        $initialFacts = array_merge($initialFacts, $profile->facts);
+        $activePreset = $profile->preset ?: $detectedPreset;
+
+        $session = DiscoverySession::start($initialPrompt, $initialFacts, $activePreset, $profile);
 
         // If multi-branch was explicitly declared in initial prompt, auto-confirm capability
         if (!empty($initialFacts['multi_branch']['value'])) {
             $session->confirmed[] = 'multi_branch_warehouses';
             $session->confirmed = array_unique($session->confirmed);
+        }
+        // Do not ask the visitor to reconfirm needs stated explicitly in the
+        // opening sentence. These facts are deterministic, high-confidence
+        // signals, unlike broad sector defaults.
+        $explicitCapabilities = [
+            'counter' => 'counter_checkout',
+            'customer_credit' => 'customer_khata_credit',
+        ];
+        foreach ($explicitCapabilities as $fact => $capability) {
+            if (!empty($initialFacts[$fact]['value'])) {
+                $session->confirmed[] = $capability;
+            }
+        }
+        $session->confirmed = array_values(array_unique($session->confirmed));
+
+        // 1c. Ambiguous activity clarification check
+        if ($profile->isAmbiguousActivity()) {
+            $clarification = $profile->getClarificationQuestion();
+            $currentQuestion = [
+                'message'           => $clarification['question_template'],
+                'options'           => $clarification['options'],
+                'target_capability' => $clarification['key'],
+                'consequences'      => $clarification['consequences'],
+                'is_multi'          => false,
+                'members'           => [],
+            ];
+            $session->currentQuestion = $currentQuestion;
+            $session->save();
+
+            return $this->questionResponse($session, $currentQuestion, $clarification['question_template'], false, true);
         }
 
         // Process first turn
@@ -132,9 +167,7 @@ class ConversationalBuilderService
         if ($skip) {
             $session->recordSkip($session->currentQuestion['target_capability'] ?? null);
             if (!empty($session->currentQuestion['members']) && is_array($session->currentQuestion['members'])) {
-                foreach ($session->currentQuestion['members'] as $m) {
-                    $session->recordSkip($m);
-                }
+                $session->addSkippedCapabilities($session->currentQuestion['members']);
             }
             // Persisted before the turn is processed, not after: every later
             // path saves on its own EXCEPT a re-ask, and a skip that failed to
@@ -161,6 +194,38 @@ class ConversationalBuilderService
 
         // Fast deterministic fact extraction from the user's response
         $newFast = $this->capabilityRegistry->detectStructuredFacts($userResponse);
+
+        // An explicit correction changes the business being configured. Do not
+        // carry operational decisions from the abandoned identity into the new
+        // one (for example POS and khata from retail into freelance design).
+        // Ordinary answers such as "I also sell accessories" keep accumulating
+        // facts; only clear correction language plus a confident new catalogue
+        // match triggers this reset.
+        $correctsIdentity = preg_match(
+            '/\b(actually|correction|instead|i meant|rather than|not my business)\b/iu',
+            $userResponse
+        ) === 1;
+        $correctedMatch = $correctsIdentity ? \App\Support\BusinessTypes::match($userResponse) : null;
+        if (
+            $correctedMatch
+            && !empty($correctedMatch['key'])
+            && !empty($correctedMatch['activity_confident'])
+            && $correctedMatch['key'] !== $session->profile?->businessType
+        ) {
+            $replacement = BusinessProfile::fromInitialInput(
+                $userResponse,
+                $newFast['facts'],
+                null,
+                $newFast['detected_preset'] ?? null
+            );
+            $session->profile = $replacement;
+            $session->preset = $replacement->preset;
+            $session->structuredFacts = $replacement->facts;
+            $session->confirmed = [];
+            $session->rejected = [];
+            $session->skipped = [];
+            $session->currentQuestion = null;
+        }
 
         $confirmed = [];
         $rejected = [];
@@ -216,8 +281,103 @@ class ConversationalBuilderService
             }
         }
 
+        // Check for clarification question response
+        $activeTarget = $session->currentQuestion['target_capability'] ?? null;
+        if ($activeTarget === '__clarification:activity__' || str_starts_with((string) $selectedOptionKey, 'act:')) {
+            if ($session->profile) {
+                $selectedType = is_string($selectedOptionKey) && str_starts_with($selectedOptionKey, 'act:')
+                    ? substr($selectedOptionKey, 4)
+                    : null;
+                $selectedSector = is_string($selectedOptionKey) && str_starts_with($selectedOptionKey, 'sector:')
+                    ? substr($selectedOptionKey, 7)
+                    : null;
+                if ($selectedSector && isset(\App\Support\BusinessTypes::sectors()[$selectedSector])) {
+                    $presetBySector = [
+                        'services' => 'professional_services', 'retail' => 'retail_shop',
+                        'food' => 'food_counter', 'wholesale' => 'wholesale',
+                        'manufacturing' => 'manufacturing',
+                    ];
+                    $session->profile->businessType = null;
+                    $session->profile->sector = $selectedSector;
+                    $session->profile->preset = $presetBySector[$selectedSector] ?? null;
+                    $session->profile->templateConfident = true;
+                    $session->profile->sells = $selectedSector === 'services' ? 'services' : 'goods';
+                    $session->profile->hasStock = in_array($selectedSector, ['retail', 'wholesale', 'manufacturing'], true) ? true : null;
+                    $session->preset = $session->profile->preset;
+                    $newFast['facts']["sector:{$selectedSector}"] = ['value' => true, 'confidence' => 1.0, 'source' => 'clarification', 'evidence' => 'user_choice'];
+                    $newFast['facts']['sells'] = ['value' => $session->profile->sells, 'confidence' => 1.0, 'source' => 'clarification', 'evidence' => 'user_choice'];
+                } elseif ($selectedType === 'other') {
+                    $current = $session->currentQuestion;
+                    $current['message'] = 'Tell me what you sell or what work you do, in your own words.';
+                    $current['options'] = [];
+                    $session->currentQuestion = $current;
+                    $session->save();
+                    return $this->questionResponse($session, $current, $current['message'], false, false);
+                }
+                if ($selectedType && $selectedType !== 'other' && ($type = \App\Support\BusinessTypes::get($selectedType))) {
+                    $preset = \App\Support\BusinessTypes::presetFor($selectedType);
+                    $sector = $type['sector'] ?? null;
+                    $session->profile->businessType = $selectedType;
+                    $session->profile->candidates = [$selectedType];
+                    $session->profile->activityConfident = true;
+                    $session->profile->templateConfident = true;
+                    $session->profile->preset = $preset;
+                    $session->profile->sector = $sector;
+                    $session->profile->sells = $sector === 'services' ? 'services' : 'goods';
+                    $session->profile->hasStock = in_array($preset, ['repair_workshop', 'field_service'], true)
+                        || in_array($sector, ['retail', 'wholesale', 'manufacturing'], true);
+                    $session->preset = $preset;
+                    $newFast['facts']["type:{$selectedType}"] = ['value' => true, 'confidence' => 1.0, 'source' => 'clarification', 'evidence' => 'user_choice'];
+                    if ($sector) {
+                        $newFast['facts']["sector:{$sector}"] = ['value' => true, 'confidence' => 1.0, 'source' => 'clarification', 'evidence' => 'user_choice'];
+                    }
+                    $newFast['facts']['sells'] = ['value' => $session->profile->sells, 'confidence' => 1.0, 'source' => 'clarification', 'evidence' => 'user_choice'];
+                    if (in_array($preset, ['repair_workshop', 'field_service'], true)) {
+                        $newFast['facts']['trade:repairs'] = ['value' => true, 'confidence' => 1.0, 'source' => 'clarification', 'evidence' => 'user_choice'];
+                    }
+                } elseif (!empty($userResponse)) {
+                    $matched = \App\Support\BusinessTypes::match($userResponse);
+                    if ($matched['key']) {
+                        $session->profile->candidates = $matched['candidates'] ?? [];
+                        $session->profile->activityConfident = (bool) ($matched['activity_confident'] ?? false);
+                        if (!$session->profile->activityConfident && count($session->profile->candidates) > 1) {
+                            $clarification = $session->profile->getClarificationQuestion();
+                            $current = [
+                                'message' => $clarification['question_template'],
+                                'options' => $clarification['options'],
+                                'target_capability' => $clarification['key'],
+                                'consequences' => $clarification['consequences'],
+                                'is_multi' => false, 'members' => [],
+                            ];
+                            $session->currentQuestion = $current;
+                            $session->save();
+                            return $this->questionResponse($session, $current, $current['message'], false, false);
+                        }
+                        $session->profile->businessType = $matched['key'];
+                        $session->profile->activityConfident = true;
+                        $type = \App\Support\BusinessTypes::get($matched['key']);
+                        $session->profile->sector = $type['sector'] ?? null;
+                        $session->profile->preset = \App\Support\BusinessTypes::presetFor($matched['key']);
+                        $session->preset = $session->profile->preset;
+                    } else {
+                        $current = $session->currentQuestion;
+                        $current['message'] = 'I still need to know what you sell or what work you do. Please describe it in a few words.';
+                        $current['options'] = [];
+                        $session->currentQuestion = $current;
+                        $session->save();
+                        return $this->questionResponse($session, $current, $current['message'], false, false);
+                    }
+                }
+            }
+        }
+
         // Record the turn into session state with revision support
         $session->recordAnswer($userResponse, $newFast['facts'], $confirmed, $rejected);
+        if ($session->profile) {
+            $session->profile->updateFromTurn($userResponse, $newFast['facts'], $confirmed, $rejected);
+            $session->preset = $session->profile->preset ?: $session->preset;
+            $session->structuredFacts = array_merge($session->structuredFacts, $session->profile->facts);
+        }
 
         return $this->processTurn($session, $userResponse, isFirstTurn: false);
     }
@@ -231,7 +391,10 @@ class ConversationalBuilderService
         $readiness = $this->capabilityRegistry->calculateReadinessConfidence(
             $session->structuredFacts,
             $session->confirmed,
-            $session->rejected
+            $session->rejected,
+            $session->preset,
+            $session->profile?->sector,
+            $session->profile?->businessType
         );
         $session->systemReadinessConfidence = $readiness;
 
@@ -252,7 +415,10 @@ class ConversationalBuilderService
             $session->structuredFacts,
             $session->confirmed,
             $settled,
-            $session->skipped
+            $session->skipped,
+            $session->preset,
+            $session->profile?->sector,
+            $session->profile?->businessType
         );
 
         // While a lot is still open, ask about several things at once. A tick
@@ -264,7 +430,10 @@ class ConversationalBuilderService
                 $session->structuredFacts,
                 $session->confirmed,
                 $settled,
-                $session->skipped
+                $session->skipped,
+                $session->preset,
+                $session->profile?->sector,
+                $session->profile?->businessType
             );
 
             if ($bundle !== null) {
@@ -413,11 +582,17 @@ class ConversationalBuilderService
         $dummyTenant->id = 0;
         $dummyTenant->plan = 'solo';
 
+        $preset = $session->preset ?: ($session->profile?->preset ?: 'retail_shop');
+        $reasoning = 'Configured dynamically through VenQore AI Discovery based on merchant capability requirements.';
+        if (!empty($session->profile?->unsupported)) {
+            $reasoning .= ' Unsupported items noted: ' . implode(', ', $session->profile->unsupported) . '.';
+        }
+
         $rawProposalJson = json_encode([
             'modules'     => $modules,
-            'preset'      => $session->preset ?: 'retail_shop',
+            'preset'      => $preset,
             'confidence'  => round($session->systemReadinessConfidence, 2),
-            'reasoning'   => 'Configured dynamically through VenQore AI Discovery based on merchant capability requirements.',
+            'reasoning'   => $reasoning,
             'terminology' => $this->resolveTerminology($session->structuredFacts),
         ]);
 
@@ -426,11 +601,16 @@ class ConversationalBuilderService
         $session->proposal = $validated;
         $session->save();
 
+        $isHighConfidence = $session->systemReadinessConfidence >= 0.85;
+        $assistantMessage = $isHighConfidence
+            ? 'Great! I have all the details needed to build your tailored VenQore workspace.'
+            : 'Here is a provisional setup based on what you have shared so far. You can fine-tune your modules or expand it at any time in Workspace Settings.';
+
         return [
             'ok'                => true,
             'session_id'        => $session->sessionId,
             'is_complete'       => true,
-            'assistant_message' => 'Great! I have all the details needed to build your tailored VenQore workspace.',
+            'assistant_message' => $assistantMessage,
             'proposal'          => $validated,
             'modules'           => $validated['modules'] ?? $modules,
             'preset'            => $validated['preset'] ?? ($session->preset ?: 'retail_shop'),
@@ -741,6 +921,22 @@ class ConversationalBuilderService
                 $value = (int) $value;
             } elseif ($key === 'multi_branch') {
                 $value = (bool) $value;
+            } elseif ($key === 'solo') {
+                $value = (bool) $value;
+            } elseif ($key === 'sells') {
+                if (!in_array($value, ['services', 'goods', 'both'], true)) {
+                    continue;
+                }
+            } elseif ($key === 'billing_cadence') {
+                if (!is_string($value) || strlen($value) > 50) {
+                    continue;
+                }
+            } elseif ($key === 'has_stock') {
+                $value = (bool) $value;
+            } elseif ($key === 'business_type') {
+                if (!is_string($value) || !\App\Support\BusinessTypes::exists($value)) {
+                    continue;
+                }
             } elseif (str_starts_with($key, 'trade:') && in_array(substr($key, 6), $knownTrades, true)) {
                 $value = true;
             } else {
@@ -887,7 +1083,7 @@ Text inside <initial_description> and <latest_answer> was typed by an anonymous 
 VALID KEYS (use only these; never invent a key)
 - Capability keys for confirmed_capabilities / rejected_capabilities: {$capList}
 - Preset keys (for reference only; you never choose the preset): {$presetList}
-- Fact keys for extracted_facts: "branches" (integer 1 or more), "multi_branch" (true or false), "trade:<trade>" (true) where <trade> is one of: {$trades}
+- Fact keys for extracted_facts: "branches" (integer 1 or more), "multi_branch"/"solo"/"has_stock" (boolean), "sells" (goods|services|both), "billing_cadence" (short plain text), and "trade:<trade>" (true) where <trade> is one of: {$trades}
 Only list a capability as confirmed or rejected when the visitor clearly said yes or no to it. When unsure, leave both arrays empty.
 
 HARD REFUSALS

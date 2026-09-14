@@ -1062,6 +1062,10 @@ return [
             'exclude_domains' => [],
             'exclude_caps'    => ['appointment_scheduling'],
         ],
+        'both' => [
+            'exclude_domains' => [],
+            'exclude_caps'    => [],
+        ],
     ],
 
     'packages' => [
@@ -1347,6 +1351,7 @@ TXT,
             'label'      => 'Freelancer / Consultant',
             'blurb'      => 'Invoices that add up. No stock, no accounting menu.',
             'modules'    => ['services', 'invoicing', 'quotations', 'sales_returns', 'customers', 'expenses', 'reports'],
+            'core'       => ['services', 'invoicing', 'customers', 'expenses', 'reports'],
             'terms'      => ['invoice' => ['singular' => 'Invoice', 'plural' => 'Invoices']],
             'cards'      => ['revenue_trend', 'receivables', 'expenses', 'net_profit'],
             'blocked_by' => ['quotations'],

@@ -185,10 +185,11 @@ class BusinessUnderstanding
         }
 
         $modules = $this->manifest->validate($modules);
-        if ($modules === []) {
-            // A reading that proposes nothing is not a reading.
-            return null;
-        }
+
+        $trade = $this->cleanLine((string) ($data['trade'] ?? ''), self::MAX_TRADE_CHARS) ?: null;
+        $sells = $this->oneOf($data['sells'] ?? null, self::SELLS);
+        $scale = $this->oneOf($data['scale'] ?? null, self::SCALE);
+        $worksFrom = $this->oneOf($data['works_from'] ?? null, self::PLACE);
 
         $goals = [];
         foreach ((array) ($data['goals'] ?? []) as $goal) {
@@ -209,11 +210,17 @@ class BusinessUnderstanding
         $confidence = $data['confidence'] ?? null;
         $confidence = is_numeric($confidence) ? max(0.0, min(1.0, (float) $confidence)) : 0.5;
 
+        // Section 4 & 7: Do not discard understanding when modules is empty,
+        // provided genuine trade, scale, or goal understanding was extracted.
+        if ($modules === [] && ($confidence <= 0.0 || (!$trade && !$sells && !$scale && empty($goals)))) {
+            return null;
+        }
+
         return [
-            'trade'       => $this->cleanLine((string) ($data['trade'] ?? ''), self::MAX_TRADE_CHARS) ?: null,
-            'sells'       => $this->oneOf($data['sells'] ?? null, self::SELLS),
-            'scale'       => $this->oneOf($data['scale'] ?? null, self::SCALE),
-            'works_from'  => $this->oneOf($data['works_from'] ?? null, self::PLACE),
+            'trade'       => $trade,
+            'sells'       => $sells,
+            'scale'       => $scale,
+            'works_from'  => $worksFrom,
             'goals'       => array_slice($goals, 0, self::MAX_GOALS),
             'modules'     => $modules,
             'reasons'     => $reasons,
@@ -249,6 +256,27 @@ class BusinessUnderstanding
 
         if (is_string($understanding['sells'] ?? null)) {
             $facts['sells'] = $stamp($understanding['sells'], 'what they sell');
+        }
+
+        if (!empty($understanding['trade'])) {
+            $facts['trade_description'] = $stamp($understanding['trade'], 'stated business trade');
+        }
+
+        if (!empty($understanding['goals'])) {
+            $facts['goals'] = $stamp($understanding['goals'], 'stated goals');
+            $goalText = mb_strtolower(implode(' ', (array) $understanding['goals']) . ' ' . ($understanding['trade'] ?? ''));
+            if (preg_match('/\b(month|monthly|retainer|subscription|ماهانہ)\b/u', $goalText)) {
+                $facts['billing_cadence'] = $stamp('monthly', 'monthly billing intent');
+            } elseif (preg_match('/\b(hourly|per hour|گھنٹہ)\b/u', $goalText)) {
+                $facts['billing_cadence'] = $stamp('hourly', 'hourly billing intent');
+            }
+        }
+
+        if (!empty($understanding['modules'])) {
+            $facts['proposed_modules'] = $stamp($understanding['modules'], 'initial module understanding');
+            if (!empty($understanding['reasons'])) {
+                $facts['module_reasons'] = $stamp($understanding['reasons'], 'reasons for proposed modules');
+            }
         }
 
         return $facts;

@@ -52,6 +52,7 @@ class DiscoverySession
         // Off-purpose turns rejected by AiScopeGuard. They never advance the
         // session; ConversationalBuilderService ends it after MAX_SCOPE_STRIKES.
         public int $scopeStrikes = 0,
+        public ?BusinessProfile $profile = null,
     ) {}
 
     public static function cacheKey(string $sessionId): string
@@ -83,10 +84,11 @@ class DiscoverySession
             systemReadinessConfidence: (float) ($data['system_readiness_confidence'] ?? 0.5),
             aiSignalConfidence: (float) ($data['ai_signal_confidence'] ?? 0.5),
             scopeStrikes: (int) ($data['scope_strikes'] ?? 0),
+            profile: isset($data['profile']) && is_array($data['profile']) ? BusinessProfile::fromArray($data['profile']) : null,
         );
     }
 
-    public static function start(string $initialPrompt, array $initialFacts = [], ?string $preset = null): self
+    public static function start(string $initialPrompt, array $initialFacts = [], ?string $preset = null, ?BusinessProfile $profile = null): self
     {
         $sessionId = (string) Str::uuid();
         $session = new self(
@@ -96,6 +98,7 @@ class DiscoverySession
                 ['role' => 'user', 'content' => $initialPrompt, 'turn' => 0],
             ],
             preset: $preset,
+            profile: $profile,
         );
         $session->save();
 
@@ -121,6 +124,7 @@ class DiscoverySession
             'system_readiness_confidence' => $this->systemReadinessConfidence,
             'ai_signal_confidence'       => $this->aiSignalConfidence,
             'scope_strikes'              => $this->scopeStrikes,
+            'profile'                    => $this->profile?->toArray(),
         ], self::TTL_SECONDS);
     }
 
@@ -213,18 +217,28 @@ class DiscoverySession
         }
     }
 
+    /** Add bundled members to the same skip without spending extra turns. */
+    public function addSkippedCapabilities(array $capabilities): void
+    {
+        foreach ($capabilities as $capability) {
+            if (is_string($capability) && $capability !== '' && !in_array($capability, $this->skipped, true)) {
+                $this->skipped[] = $capability;
+            }
+        }
+    }
+
     /**
      * Compact payload format passed to Gemini.
      * Includes explicit detected_trade and known_context so Gemini stays domain-coherent.
      */
     public function toCompactPromptContext(?array $candidateQuestion = null): array
     {
-        // Extract detected trade from structured facts (e.g. trade:pharmacy -> 'pharmacy')
-        $detectedTrade = null;
+        // Extract detected trade from structured facts or profile
+        $detectedTrade = $this->profile?->businessType;
         $knownContext = [];
 
         foreach ($this->structuredFacts as $factKey => $fact) {
-            if (str_starts_with($factKey, 'trade:')) {
+            if (!$detectedTrade && str_starts_with($factKey, 'trade:')) {
                 $detectedTrade = substr($factKey, 6);
             }
             if ($factKey === 'branches' && !empty($fact['value'])) {
@@ -232,6 +246,18 @@ class DiscoverySession
             }
             if ($factKey === 'multi_branch' && !empty($fact['value'])) {
                 $knownContext[] = 'Multi-branch operation confirmed';
+            }
+        }
+
+        if ($this->profile) {
+            if ($this->profile->sells) {
+                $knownContext[] = "Offerings type: {$this->profile->sells}";
+            }
+            if ($this->profile->billingCadence) {
+                $knownContext[] = "Billing model: {$this->profile->billingCadence}";
+            }
+            if ($this->profile->solo) {
+                $knownContext[] = "Solo operator (no team or attendance tracking)";
             }
         }
 
@@ -243,6 +269,11 @@ class DiscoverySession
             'language'               => $this->language,
             // EXPLICIT TRADE CONTEXT: Gemini must stay within this trade domain
             'detected_trade'         => $detectedTrade,
+            'business_type'          => $this->profile?->businessType,
+            'preset'                 => $this->preset ?? $this->profile?->preset,
+            'sector'                 => $this->profile?->sector,
+            'sells'                  => $this->profile?->sells,
+            'billing_cadence'        => $this->profile?->billingCadence,
             'initial_user_prompt'    => $initialPrompt,
             'known_context'          => $knownContext,
             'structured_facts'       => $this->structuredFacts,

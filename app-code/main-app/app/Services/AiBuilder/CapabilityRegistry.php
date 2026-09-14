@@ -77,6 +77,30 @@ class CapabilityRegistry
                 'priority_caps'     => ['customer_khata_credit', 'quotations_and_orders', 'multi_branch_warehouses'],
                 'auto_reject'       => ['repair_job_tracking', 'spare_parts_and_labour', 'table_and_kot_management', 'food_delivery_dispatch', 'appointment_scheduling'],
             ],
+            'retail_shop' => [
+                'allowed_domains'   => ['retail_operations', 'inventory_supply', 'wholesale_b2b', 'operations_scale'],
+                'forbidden_domains' => ['service_repairs', 'hospitality_dining', 'manufacturing_production', 'services_appointments', 'services_invoicing'],
+                'priority_caps'     => ['counter_checkout', 'stock_volume', 'customer_khata_credit', 'supplier_purchasing', 'trade_pricing', 'multi_branch_warehouses'],
+                'auto_reject'       => ['repair_job_tracking', 'spare_parts_and_labour', 'table_and_kot_management', 'food_delivery_dispatch', 'recipe_and_bom', 'appointment_scheduling', 'recurring_billing'],
+            ],
+            'retail' => [
+                'allowed_domains'   => ['retail_operations', 'inventory_supply', 'wholesale_b2b', 'operations_scale'],
+                'forbidden_domains' => ['service_repairs', 'hospitality_dining', 'manufacturing_production', 'services_appointments', 'services_invoicing'],
+                'priority_caps'     => ['counter_checkout', 'stock_volume', 'customer_khata_credit', 'supplier_purchasing', 'trade_pricing', 'multi_branch_warehouses'],
+                'auto_reject'       => ['repair_job_tracking', 'spare_parts_and_labour', 'table_and_kot_management', 'food_delivery_dispatch', 'recipe_and_bom', 'appointment_scheduling', 'recurring_billing'],
+            ],
+            'professional_services' => [
+                'allowed_domains'   => ['services_invoicing', 'operations_scale', 'wholesale_b2b'],
+                'forbidden_domains' => ['hospitality_dining', 'manufacturing_production'],
+                'priority_caps'     => ['recurring_billing', 'quotations_and_orders'],
+                'auto_reject'       => ['table_and_kot_management', 'food_delivery_dispatch', 'recipe_and_bom', 'batch_expiry_tracking', 'serial_imei_tracking', 'product_variants', 'multi_branch_warehouses'],
+            ],
+            'freelance_creative' => [
+                'allowed_domains'   => ['services_invoicing', 'operations_scale', 'wholesale_b2b'],
+                'forbidden_domains' => ['hospitality_dining', 'manufacturing_production'],
+                'priority_caps'     => ['recurring_billing', 'quotations_and_orders'],
+                'auto_reject'       => ['table_and_kot_management', 'food_delivery_dispatch', 'recipe_and_bom', 'batch_expiry_tracking', 'serial_imei_tracking', 'product_variants', 'multi_branch_warehouses', 'counter_checkout', 'spare_parts_and_labour'],
+            ],
         ];
     }
 
@@ -93,7 +117,7 @@ class CapabilityRegistry
                     'name'              => 'Repair & Job Status Tracking',
                     'short'             => 'A list of your jobs',
                     'impact'            => 100,
-                    'triggers'          => ['repair', 'fixing', 'workshop', 'technician', 'service', 'phone fix', 'mobile repair', 'auto repair', 'مرمت', 'ورکشاپ'],
+                    'triggers'          => ['repair', 'fixing', 'workshop', 'technician', 'phone fix', 'mobile repair', 'auto repair', 'مرمت', 'ورکشاپ'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['services', 'pos', 'customers'],
                     'consequences'      => ['You get a simple job list. Each job shows who it is for, what needs doing, and whether it is booked, started or done.'],
@@ -324,14 +348,46 @@ class CapabilityRegistry
                     'name'              => 'Formal Quotations & B2B Sales Orders',
                     'short'             => 'Sending a price first',
                     'impact'            => 70,
-                    'triggers'          => ['quotations', 'estimates', 'b2b', 'corporate', 'purchase orders', 'کوٹیشن'],
+                    'triggers'          => ['quotations', 'quotation', 'quotes', 'quote', 'estimates', 'estimate', 'proposals', 'proposal', 'b2b', 'corporate', 'purchase orders', 'order', 'orders', 'کوٹیشن'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['b2b_proposals', 'sales_orders', 'customers'],
                     'consequences'      => ['You send a price, and when they say yes it becomes the bill — nothing gets typed twice.'],
                     'question_template' => 'Do you send a price first and only start the work once they agree to it?',
                     'options'           => [
                         ['key' => 'yes', 'label' => 'Yes, I quote first', 'desc' => 'Send a price, turn it into the bill later.', 'implies' => 'quotations_and_orders'],
-                        ['key' => 'no', 'label' => 'No, I charge on the spot', 'desc' => 'Straight to the sale, no quote first.', 'implies' => 'pos_only'],
+                        ['key' => 'no', 'label' => 'No, I invoice directly', 'desc' => 'Bill without a prior quote or estimate.', 'implies' => 'direct_billing'],
+                    ],
+                ],
+            ],
+
+            'services_invoicing' => [
+                'recurring_billing' => [
+                    'name'              => 'Recurring Billing & Retainers',
+                    'short'             => 'Regular repeating invoices',
+                    'impact'            => 85,
+                    'triggers'          => ['monthly', 'retainer', 'recurring', 'subscription', 'annual', 'billing', 'repeat', 'contract', 'ماهانہ'],
+                    'requires_caps'     => [],
+                    'implies_modules'   => ['recurring_invoices', 'invoicing', 'customers'],
+                    'consequences'      => ['Invoices are created and sent automatically on your schedule, so you don\'t have to remember every month.'],
+                    'question_template' => 'Do clients pay a fixed monthly retainer, or do you invoice each month for the work completed?',
+                    'options'           => [
+                        ['key' => 'yes',      'label' => 'Fixed monthly retainer',             'desc' => 'The same agreed amount is due on a regular schedule.',         'implies' => 'recurring_billing'],
+                        ['key' => 'variable', 'label' => 'Invoice for work completed',          'desc' => 'Bill each month based on hours or completed work.',            'implies' => 'direct_billing'],
+                        ['key' => 'no',       'label' => 'Per project or as work completes',    'desc' => 'Send one-off invoices as and when jobs finish.',               'implies' => 'direct_billing'],
+                    ],
+                ],
+                'automated_recurring_invoicing' => [
+                    'name'              => 'Automated Invoice Generation',
+                    'short'             => 'Invoices created automatically',
+                    'impact'            => 75,
+                    'triggers'          => ['automated', 'automatic', 'auto', 'schedule', 'cron', 'email automatically'],
+                    'requires_caps'     => ['recurring_billing'],
+                    'implies_modules'   => ['recurring_invoices'],
+                    'consequences'      => ['VenQore generates and sends the invoice on your chosen day of the month without manual effort.'],
+                    'question_template' => 'Should invoices be created and sent to your clients automatically each month?',
+                    'options'           => [
+                        ['key' => 'yes', 'label' => 'Yes, create and send automatically', 'desc' => 'Invoices generate and send automatically on schedule.', 'implies' => 'automated_recurring'],
+                        ['key' => 'no',  'label' => 'No, generate as drafts first',        'desc' => 'I prefer to review and approve drafts before sending.',  'implies' => 'draft_recurring'],
                     ],
                 ],
             ],
@@ -471,10 +527,13 @@ class CapabilityRegistry
             'clothing'    => ['clothing', 'garment', 'apparel', 'boutique', 'کپڑے', 'fashion', 'shoes', 'بوتیک'],
             'restaurant'  => ['restaurant', 'cafe', 'food', 'dining', 'کھانا', 'bistro', 'burger', 'pizza', 'ریسٹورنٹ', 'ہوٹل'],
             'bakery'      => ['bakery', 'bread', 'cakes', 'pastry', 'بیکری'],
-            'grocery'     => ['grocery', 'supermarket', 'mart', 'کرانہ', 'جنرل اسٹور'],
-            'wholesale'   => ['wholesale', 'distributor', 'ہول سیل', 'bulk supply'],
-            'salon'       => ['salon', 'spa', 'beauty', 'سلیون', 'barber', 'haircut', 'پارلر'],
-            'electronics' => ['electronics', 'mobile shop', 'computers', 'موبائل شاپ', 'موبائل کی دکان', 'الیکٹرانکس'],
+            'grocery'               => ['grocery', 'supermarket', 'mart', 'kiryana', 'kirana', 'کرانہ', 'جنرل اسٹور'],
+            'retail'                => ['retail store', 'retail shop', 'retail', 'general retail', 'retail business', 'retail outlet', 'دکان', 'اسٹور'],
+            'wholesale'             => ['wholesale', 'distributor', 'ہول سیل', 'bulk supply'],
+            'salon'                 => ['salon', 'spa', 'beauty', 'سلیون', 'barber', 'haircut', 'پارلر'],
+            'electronics'           => ['electronics', 'mobile shop', 'computers', 'موبائل شاپ', 'موبائل کی دکان', 'الیکٹرانکس'],
+            'professional_services' => ['consultant', 'consulting', 'accountant', 'accounting', 'agency', 'lawyer', 'legal', 'مشیر'],
+            'freelance_creative'    => ['freelance designer', 'graphic designer', 'web designer', 'designer', 'copywriter', 'freelancer', 'creative', 'ڈیزائنر'],
         ];
 
         foreach ($domainKeywords as $trade => $keywords) {
@@ -493,10 +552,75 @@ class CapabilityRegistry
                         'source'     => 'user_keyword',
                         'evidence'   => $kw,
                     ];
-                    $detectedPreset = $trade;
+                    if (in_array($trade, ['professional_services', 'freelance_creative'], true)) {
+                        $detectedPreset = 'freelancer';
+                    } elseif (in_array($trade, ['retail', 'grocery'], true)) {
+                        $detectedPreset = $trade === 'grocery' ? 'grocery' : 'retail_shop';
+                    } else {
+                        $detectedPreset = $trade;
+                    }
                     break;
                 }
             }
+        }
+
+        // 3. Operational & Feature Signals
+        if (preg_match('/\b(counter pos|pos|counter|till|cash register|checkout|point of sale|کاؤنٹر)\b/iu', $normalized)) {
+            $facts['has_counter'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'counter pos mention'];
+            $facts['counter'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'counter pos mention'];
+        }
+
+        if (preg_match('/\b(barcode|barcodes|scanning|scanner|بارکوڈ)\b/iu', $normalized)) {
+            $facts['barcodes'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'barcode scanning mention'];
+        }
+
+        if (preg_match('/\b(stock tracking|stock|inventory|اسٹاک)\b/iu', $normalized)) {
+            $facts['has_stock'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'stock tracking mention'];
+        }
+
+        if (preg_match('/\b(khata|customer khata|customer credit|khata credit|udhaar|کھاتہ|ادھار)\b/iu', $normalized)) {
+            $facts['customer_credit'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'customer khata credit mention'];
+            $facts['khata'] = ['value' => true, 'confidence' => 0.95, 'source' => 'user_keyword', 'evidence' => 'customer khata credit mention'];
+        }
+
+        // 4. Sells Inferences (Services vs Goods)
+        if (preg_match('/\b(designer|freelance|consulting|consultant|agency|developer|writer|services?|repair|repairs|technician)\b/iu', $normalized)) {
+            $facts['sells'] = [
+                'value'      => 'services',
+                'confidence' => 0.90,
+                'source'     => 'user_keyword',
+                'evidence'   => 'service indicators',
+            ];
+        } elseif (preg_match('/\b(retail|shop|store|grocery|supermarket|boutique|pharmacy|goods|products)\b/iu', $normalized)) {
+            $facts['sells'] = [
+                'value'      => 'goods',
+                'confidence' => 0.90,
+                'source'     => 'user_keyword',
+                'evidence'   => 'goods indicators',
+            ];
+            $facts['has_stock'] = [
+                'value'      => true,
+                'confidence' => 0.90,
+                'source'     => 'user_keyword',
+                'evidence'   => 'goods inventory',
+            ];
+        }
+
+        // 5. Billing Cadence Inferences
+        if (preg_match('/\b(monthly|month|retainer|subscription|ماهانہ)\b/iu', $normalized)) {
+            $facts['billing_cadence'] = [
+                'value'      => 'monthly',
+                'confidence' => 0.95,
+                'source'     => 'user_keyword',
+                'evidence'   => 'monthly billing mention',
+            ];
+        } elseif (preg_match('/\b(hourly|hours?|گھنٹہ)\b/iu', $normalized)) {
+            $facts['billing_cadence'] = [
+                'value'      => 'hourly',
+                'confidence' => 0.95,
+                'source'     => 'user_keyword',
+                'evidence'   => 'hourly billing mention',
+            ];
         }
 
         return [
@@ -506,27 +630,298 @@ class CapabilityRegistry
     }
 
     /**
+     * Evaluates whether a capability is positively eligible for a business.
+     * Enforces positive gating: a capability is only eligible if it is compatible
+     * with the business's sector, trade profile, and operational facts.
+     * High impact never substitutes for domain eligibility.
+     *
+     * @param string $capKey
+     * @param array<string, array|mixed> $facts
+     * @param string|null $preset
+     * @param string|null $sector
+     * @param string|null $businessType
+     * @return array{eligible: bool, reason: string, affinity_score: int}
+     */
+    public function evaluateEligibility(
+        string $capKey,
+        array $facts,
+        ?string $preset = null,
+        ?string $sector = null,
+        ?string $businessType = null
+    ): array {
+        $all = $this->allCapabilities();
+        if (!isset($all[$capKey])) {
+            return ['eligible' => false, 'reason' => 'unknown_capability', 'affinity_score' => 0];
+        }
+
+        $cap = $all[$capKey];
+        $domain = $cap['domain'] ?? '';
+
+        // Extract fact values safely
+        $factVal = function (string $k) use ($facts) {
+            if (!isset($facts[$k])) {
+                return null;
+            }
+            return is_array($facts[$k]) && array_key_exists('value', $facts[$k])
+                ? $facts[$k]['value']
+                : $facts[$k];
+        };
+
+        $sells = $factVal('sells');
+        $solo = $factVal('solo') === true;
+        $hasStock = $factVal('has_stock');
+        $preset = $preset ?: $factVal('preset') ?: $factVal('detected_preset');
+        $sector = $sector ?: $factVal('sector');
+        $businessType = $businessType ?: $factVal('business_type');
+        $typeModules = $businessType && \App\Support\BusinessTypes::exists($businessType)
+            ? \App\Support\BusinessTypes::modulesFor($businessType)
+            : [];
+
+        // Build context string of all facts for trigger inspection
+        $factContext = strtolower(implode(' ', array_keys($facts)));
+        foreach ($facts as $k => $v) {
+            $val = is_array($v) ? ($v['value'] ?? '') : $v;
+            if (is_string($val)) {
+                $factContext .= ' ' . strtolower($val);
+            }
+        }
+
+        $hasTrigger = false;
+        foreach ($cap['triggers'] as $trig) {
+            if (str_contains($factContext, $trig)) {
+                $hasTrigger = true;
+                break;
+            }
+        }
+
+        // 1. Check combined trade matrix (auto_reject and forbidden_domains)
+        $tradeConfig = $this->combinedTradeConfig($facts, $this->tradeMatrix());
+        if ($tradeConfig) {
+            if (in_array($capKey, $tradeConfig['auto_reject'] ?? [], true)) {
+                return ['eligible' => false, 'reason' => 'trade_auto_reject', 'affinity_score' => 0];
+            }
+            if (in_array($domain, $tradeConfig['forbidden_domains'] ?? [], true) && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'trade_forbidden_domain', 'affinity_score' => 0];
+            }
+        }
+
+        // 2. Solo operator restrictions
+        if ($solo) {
+            if ($capKey === 'team_and_attendance') {
+                return ['eligible' => false, 'reason' => 'solo_operator', 'affinity_score' => 0];
+            }
+            if ($sells === 'services' && in_array($capKey, ['multi_branch_warehouses', 'supplier_purchasing'], true)) {
+                return ['eligible' => false, 'reason' => 'solo_service_no_warehouses', 'affinity_score' => 0];
+            }
+        }
+
+        // 3. Service businesses (no physical goods/inventory unless explicitly declared)
+        $isPureServices = ($sells === 'services' || $sector === 'services' || $preset === 'freelancer');
+        if ($isPureServices && $hasStock !== true) {
+            $physicalGoodsCaps = [
+                'stock_volume',
+                'batch_expiry_tracking',
+                'serial_imei_tracking',
+                'product_variants',
+                'multi_branch_warehouses',
+            ];
+            $supportedByType = match ($capKey) {
+                'serial_imei_tracking' => in_array('serials', $typeModules, true),
+                'batch_expiry_tracking' => in_array('batches_expiry', $typeModules, true),
+                'product_variants' => in_array('variants', $typeModules, true),
+                'stock_volume' => in_array('inventory', $typeModules, true),
+                'multi_branch_warehouses' => $factVal('multi_branch') === true,
+                default => false,
+            };
+            if (in_array($capKey, $physicalGoodsCaps, true) && !$hasTrigger && !$supportedByType) {
+                return ['eligible' => false, 'reason' => 'pure_services_no_inventory', 'affinity_score' => 0];
+            }
+        }
+
+        // 4. Remote / Freelance services restrictions
+        $isFreelancer = ($preset === 'freelancer' || str_contains((string) $businessType, 'freelance') || str_contains((string) $businessType, 'designer'));
+        if ($isFreelancer) {
+            if ($capKey === 'counter_checkout') {
+                $hasWalkInTrigger = str_contains($factContext, 'walk in') || str_contains($factContext, 'counter') || str_contains($factContext, 'till') || str_contains($factContext, 'shop floor');
+                if (!$hasWalkInTrigger) {
+                    return ['eligible' => false, 'reason' => 'freelance_remote_no_counter', 'affinity_score' => 0];
+                }
+            }
+            if (in_array($capKey, ['repair_job_tracking', 'spare_parts_and_labour'], true)) {
+                $isRepair = str_contains((string) $businessType, 'repair') || !empty($facts['trade:repairs']['value']);
+                if (!$isRepair && !$hasTrigger) {
+                    return ['eligible' => false, 'reason' => 'freelancer_not_repair', 'affinity_score' => 0];
+                }
+            }
+        }
+
+        // 5. Hospitality domain restriction
+        if ($domain === 'hospitality_dining') {
+            $isHospitality = ($sector === 'food' || $sector === 'hospitality'
+                || in_array($preset, ['restaurant', 'cafe', 'bakery', 'fast_food', 'pub_lounge'], true)
+                || !empty($facts['trade:restaurant']['value']));
+            $hasHospitalityTrigger = str_contains($factContext, 'restaurant')
+                || str_contains($factContext, 'dine')
+                || str_contains($factContext, 'table')
+                || str_contains($factContext, 'kitchen ticket')
+                || str_contains($factContext, 'food delivery');
+            if (!$isHospitality && !$hasHospitalityTrigger) {
+                return ['eligible' => false, 'reason' => 'not_hospitality', 'affinity_score' => 0];
+            }
+            if (($sector === 'retail' || in_array($preset, ['retail_shop', 'grocery', 'pharmacy', 'clothing'], true)) && !$hasHospitalityTrigger) {
+                return ['eligible' => false, 'reason' => 'retail_not_hospitality', 'affinity_score' => 0];
+            }
+        }
+
+        // 6. Manufacturing domain restriction
+        if ($domain === 'manufacturing_production') {
+            $isManufacturing = ($sector === 'manufacturing'
+                || in_array($preset, ['manufacturing', 'bakery'], true)
+                || !empty($facts['trade:bakery']['value']));
+            if (!$isManufacturing && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'not_manufacturing', 'affinity_score' => 0];
+            }
+            if (($sector === 'retail' || in_array($preset, ['retail_shop', 'grocery', 'pharmacy', 'clothing'], true)) && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'retail_not_manufacturing', 'affinity_score' => 0];
+            }
+        }
+
+        // 7. Repair domain restriction
+        if ($domain === 'service_repairs') {
+            $isRepairTrade = (!empty($facts['trade:repairs']['value'])
+                || str_contains((string) $businessType, 'repair')
+                || str_contains((string) $preset, 'repair')
+                || $preset === 'field_service');
+            $hasRepairTrigger = str_contains($factContext, 'repair')
+                || str_contains($factContext, 'fixing')
+                || str_contains($factContext, 'technician')
+                || str_contains($factContext, 'workshop');
+            if (!$isRepairTrade && !$hasRepairTrigger) {
+                return ['eligible' => false, 'reason' => 'not_repair_trade', 'affinity_score' => 0];
+            }
+            if (($sector === 'retail' || in_array($preset, ['retail_shop', 'grocery', 'pharmacy', 'clothing', 'hardware_store'], true)) && !$isRepairTrade) {
+                return ['eligible' => false, 'reason' => 'retail_not_repair_trade', 'affinity_score' => 0];
+            }
+        }
+
+        // 8. Appointments domain restriction
+        if ($domain === 'services_appointments') {
+            $isAppointmentTrade = (!empty($facts['trade:salon']['value'])
+                || in_array($preset, ['salon', 'clinic', 'spa', 'consultant'], true)
+                || str_contains((string) $businessType, 'salon')
+                || str_contains((string) $businessType, 'barber')
+                || str_contains((string) $businessType, 'clinic')
+                || str_contains((string) $businessType, 'consultant'));
+            if (!$isAppointmentTrade && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'not_appointment_trade', 'affinity_score' => 0];
+            }
+        }
+
+        // 8b. Services Invoicing restriction (Freelancer retainer, recurring billing)
+        if ($domain === 'services_invoicing') {
+            $isServicesInvoicing = ($sector === 'services'
+                || in_array($preset, ['freelancer', 'field_service', 'professional_services', 'consultant'], true)
+                || !empty($facts['trade:professional_services']['value'])
+                || !empty($facts['trade:freelance_creative']['value']));
+            if (!$isServicesInvoicing && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'not_services_invoicing', 'affinity_score' => 0];
+            }
+            if (($sector === 'retail' || in_array($preset, ['retail_shop', 'grocery', 'pharmacy', 'clothing'], true)) && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'retail_no_freelance_invoicing', 'affinity_score' => 0];
+            }
+        }
+
+        // 9. Serial / IMEI tracking restriction
+        if ($capKey === 'serial_imei_tracking') {
+            $isElectronics = (!empty($facts['trade:electronics']['value'])
+                || !empty($facts['trade:repairs']['value'])
+                || in_array('serials', $typeModules, true)
+                || str_contains((string) $businessType, 'phone')
+                || str_contains((string) $businessType, 'mobile')
+                || str_contains((string) $businessType, 'computer')
+                || str_contains((string) $businessType, 'electronics'));
+            if (!$isElectronics && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'not_electronics_or_device_trade', 'affinity_score' => 0];
+            }
+        }
+
+        // 10. Batch / Expiry tracking restriction
+        if ($capKey === 'batch_expiry_tracking') {
+            $isPerishable = (!empty($facts['trade:pharmacy']['value'])
+                || !empty($facts['trade:bakery']['value'])
+                || !empty($facts['trade:grocery']['value'])
+                || in_array('batches_expiry', $typeModules, true)
+                || in_array($preset, ['pharmacy', 'bakery', 'grocery'], true));
+            if (!$isPerishable && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'not_perishable_trade', 'affinity_score' => 0];
+            }
+        }
+
+        // Variants are a product-subtype decision, not a generic stock question.
+        // A broad "retail store" must not inherit clothing behavior.
+        if ($capKey === 'product_variants') {
+            $usesVariants = in_array('variants', $typeModules, true)
+                || !empty($facts['trade:clothing']['value'])
+                || $preset === 'clothing';
+            if (!$usesVariants && !$hasTrigger) {
+                return ['eligible' => false, 'reason' => 'not_variant_trade', 'affinity_score' => 0];
+            }
+        }
+
+        // Calculate affinity score
+        $affinityScore = 0;
+        if ($tradeConfig && in_array($capKey, $tradeConfig['priority_caps'] ?? [], true)) {
+            $affinityScore += 60;
+        }
+        $sectorPriorities = [
+            'services'      => ['recurring_billing', 'quotations_and_orders', 'team_and_attendance'],
+            'retail'        => ['counter_checkout', 'stock_volume', 'customer_khata_credit', 'supplier_purchasing'],
+            'food'          => ['counter_checkout', 'stock_volume', 'supplier_purchasing'],
+            'wholesale'     => ['trade_pricing', 'customer_khata_credit', 'quotations_and_orders', 'multi_branch_warehouses'],
+            'manufacturing' => ['recipe_and_bom', 'stock_volume', 'supplier_purchasing'],
+        ];
+        if ($sector && in_array($capKey, $sectorPriorities[$sector] ?? [], true)) {
+            $affinityScore += 25;
+        }
+        if ($hasTrigger) {
+            $affinityScore += 40;
+        }
+
+        return ['eligible' => true, 'reason' => 'domain_compatible', 'affinity_score' => $affinityScore];
+    }
+
+    /**
      * DETERMINISTIC QUESTION SELECTION ENGINE.
      * The system decides WHAT candidate question to ask based on highest impact score,
-     * trade affinity filtering, satisfied prerequisites, and contextual domain relevance.
+     * trade affinity filtering, positive domain eligibility, satisfied prerequisites, and contextual relevance.
      *
      * @param array<string, array> $knownFacts
      * @param string[] $confirmedCaps
      * @param string[] $rejectedCaps
+     * @param string[] $skippedCaps
+     * @param string|null $preset
+     * @param string|null $sector
+     * @param string|null $businessType
      * @return array{key: string, name: string, impact: int, consequences: string[], question_template: string, options: array}|null
      */
-    public function selectNextCandidateQuestion(array $knownFacts, array $confirmedCaps, array $rejectedCaps, array $skippedCaps = []): ?array
-    {
+    public function selectNextCandidateQuestion(
+        array $knownFacts,
+        array $confirmedCaps,
+        array $rejectedCaps,
+        array $skippedCaps = [],
+        ?string $preset = null,
+        ?string $sector = null,
+        ?string $businessType = null
+    ): ?array {
         $all = $this->allCapabilities();
-        $tradeMatrix = $this->tradeMatrix();
         $candidates = [];
-
-        // Combined profile of every trade in the known facts
-        $tradeConfig = $this->combinedTradeConfig($knownFacts, $tradeMatrix);
 
         // Build context string from all known facts
         $factKeys = array_keys($knownFacts);
         $contextString = strtolower(implode(' ', $factKeys));
+
+        $contradicted = $this->contradictedCapabilities($knownFacts);
+        $irrelevant = $this->irrelevantCapabilities($knownFacts);
 
         foreach ($all as $key => $cap) {
             // Already resolved? Skip
@@ -534,10 +929,7 @@ class CapabilityRegistry
                 continue;
             }
 
-            // Asked and declined. A skipped capability is neither confirmed nor
-            // rejected, so without this it stays the top unresolved candidate
-            // and gets re-selected on the very next turn — the visitor skips a
-            // question and is handed the same question back.
+            // Asked and declined. A skipped capability is neither confirmed nor rejected.
             if (in_array($key, $skippedCaps, true)) {
                 continue;
             }
@@ -545,38 +937,23 @@ class CapabilityRegistry
             // Prerequisite capabilities satisfied?
             foreach ($cap['requires_caps'] as $req) {
                 if (!in_array($req, $confirmedCaps, true)) {
-                    continue 2; // prerequisite not confirmed yet
+                    continue 2;
                 }
             }
 
-            // Trade domain affinity filtering
-            if ($tradeConfig) {
-                // If capability is forbidden for this trade and was not explicitly mentioned by user, reject it
-                if (in_array($cap['domain'], $tradeConfig['forbidden_domains'] ?? [], true)) {
-                    $hasExplicitTrigger = false;
-                    foreach ($cap['triggers'] as $t) {
-                        if (str_contains($contextString, $t)) {
-                            $hasExplicitTrigger = true;
-                            break;
-                        }
-                    }
-                    if (!$hasExplicitTrigger) {
-                        continue;
-                    }
-                }
+            // Positive capability eligibility evaluation
+            $eligibility = $this->evaluateEligibility($key, $knownFacts, $preset, $sector, $businessType);
+            if (!$eligibility['eligible']) {
+                continue;
+            }
 
-                // If capability is explicitly in auto_reject for this trade, skip
-                if (in_array($key, $tradeConfig['auto_reject'] ?? [], true)) {
-                    continue;
-                }
+            // Excluded by fact contradiction or soft irrelevance
+            if (in_array($key, $contradicted, true) || in_array($key, $irrelevant, true)) {
+                continue;
             }
 
             // Calculate relevance score boost
-            $relevanceBoost = 0;
-            if ($tradeConfig && in_array($key, $tradeConfig['priority_caps'] ?? [], true)) {
-                $relevanceBoost += 60;
-            }
-
+            $relevanceBoost = $eligibility['affinity_score'] ?? 0;
             foreach ($cap['triggers'] as $trigger) {
                 if (str_contains($contextString, $trigger)) {
                     $relevanceBoost += 40;
@@ -588,10 +965,6 @@ class CapabilityRegistry
             $candidates[] = [
                 'key'               => $key,
                 'name'              => $cap['name'],
-                // The plain label a tick list shows. Carried through the
-                // projection explicitly: leaving it out is why the first tick
-                // list rendered internal names like "Customer Khata, Credit
-                // Ledger & Terms" at a visitor.
                 'short'             => $cap['short'] ?? null,
                 'impact'            => $score,
                 'consequences'      => $cap['consequences'],
@@ -614,8 +987,7 @@ class CapabilityRegistry
      * Every trade the owner described counts (a phone shop that also does
      * repairs is both): priority questions are the UNION of those trades',
      * and a domain or capability is ruled out only when EVERY detected trade
-     * rules it out. Before 2026-09-10 only the first trade was used, so the
-     * second trade's priority questions were never asked or counted.
+     * rules it out.
      *
      * @return array{priority_caps: string[], forbidden_domains: string[], auto_reject: string[]}|null
      */
@@ -651,57 +1023,50 @@ class CapabilityRegistry
 
     /**
      * CALCULATES SYSTEM READINESS CONFIDENCE (Deterministic).
+     * Only evaluates capabilities positively eligible for this business profile.
      *
      * @param array<string, array> $facts
      * @param string[] $confirmedCaps
      * @param string[] $rejectedCaps
+     * @param string|null $preset
+     * @param string|null $sector
+     * @param string|null $businessType
      * @return float 0.0 to 1.0
      */
-    public function calculateReadinessConfidence(array $facts, array $confirmedCaps, array $rejectedCaps): float
-    {
+    public function calculateReadinessConfidence(
+        array $facts,
+        array $confirmedCaps,
+        array $rejectedCaps,
+        ?string $preset = null,
+        ?string $sector = null,
+        ?string $businessType = null
+    ): float {
         if (empty($facts)) {
             return 0.2;
         }
 
         $all = $this->allCapabilities();
-        $tradeMatrix = $this->tradeMatrix();
-
-        $tradeConfig = $this->combinedTradeConfig($facts, $tradeMatrix);
-
         $totalHighImpactPoints = 0;
         $resolvedHighImpactPoints = 0;
-        $factKeys = strtolower(implode(' ', array_keys($facts)));
+        $tradeConfig = $this->combinedTradeConfig($facts, $this->tradeMatrix());
 
         foreach ($all as $key => $cap) {
-            // If trade config exists, evaluate only allowed domain / priority capabilities
-            if ($tradeConfig) {
-                if (in_array($cap['domain'], $tradeConfig['forbidden_domains'] ?? [], true)) {
-                    continue;
-                }
-                if (in_array($key, $tradeConfig['auto_reject'] ?? [], true)) {
-                    continue;
-                }
-                $isPriority = in_array($key, $tradeConfig['priority_caps'] ?? [], true);
-                if ($isPriority) {
-                    $totalHighImpactPoints += $cap['impact'];
-                    if (in_array($key, $confirmedCaps, true) || in_array($key, $rejectedCaps, true)) {
-                        $resolvedHighImpactPoints += $cap['impact'];
-                    }
-                }
-            } else {
-                $isRelevant = false;
-                foreach ($cap['triggers'] as $trigger) {
-                    if (str_contains($factKeys, $trigger)) {
-                        $isRelevant = true;
-                        break;
-                    }
-                }
+            $eligibility = $this->evaluateEligibility($key, $facts, $preset, $sector, $businessType);
+            if (!$eligibility['eligible']) {
+                continue;
+            }
 
-                if ($isRelevant || $cap['impact'] >= 90) {
-                    $totalHighImpactPoints += $cap['impact'];
-                    if (in_array($key, $confirmedCaps, true) || in_array($key, $rejectedCaps, true)) {
-                        $resolvedHighImpactPoints += $cap['impact'];
-                    }
+            $isRelevant = false;
+            if ($tradeConfig) {
+                $isRelevant = in_array($key, $tradeConfig['priority_caps'] ?? [], true);
+            } else {
+                $isRelevant = ($eligibility['affinity_score'] ?? 0) > 0 || $cap['impact'] >= 90;
+            }
+
+            if ($isRelevant) {
+                $totalHighImpactPoints += $cap['impact'];
+                if (in_array($key, $confirmedCaps, true) || in_array($key, $rejectedCaps, true)) {
+                    $resolvedHighImpactPoints += $cap['impact'];
                 }
             }
         }
@@ -826,7 +1191,10 @@ class CapabilityRegistry
         array $knownFacts,
         array $confirmedCaps,
         array $rejectedCaps,
-        array $skippedCaps = []
+        array $skippedCaps = [],
+        ?string $preset = null,
+        ?string $sector = null,
+        ?string $businessType = null
     ): ?array {
         $members = [];
         $seen = array_merge($confirmedCaps, $rejectedCaps, $skippedCaps);
@@ -834,7 +1202,15 @@ class CapabilityRegistry
         // Reuse the scorer so a bundle is the same ranking, taken several at a
         // time — never a second opinion about what matters.
         for ($i = 0; $i < self::BUNDLE_MAX; $i++) {
-            $next = $this->selectNextCandidateQuestion($knownFacts, $confirmedCaps, $seen, $skippedCaps);
+            $next = $this->selectNextCandidateQuestion(
+                $knownFacts,
+                $confirmedCaps,
+                $seen,
+                $skippedCaps,
+                $preset,
+                $sector,
+                $businessType
+            );
             if ($next === null) {
                 break;
             }
@@ -952,6 +1328,13 @@ class CapabilityRegistry
         }
 
         $modules = array_diff($modules, $this->contradictedModules($facts));
+
+        // Strip pos for remote/freelance services unless counter_checkout was confirmed or explicitly requested
+        $sells = $facts['sells']['value'] ?? ($facts['sells'] ?? null);
+        $isRemoteService = ($presetKey === 'freelancer' || $sells === 'services');
+        if ($isRemoteService && !in_array('counter_checkout', $confirmedCaps, true) && empty($facts['counter_checkout']['value'])) {
+            $modules = array_diff($modules, ['pos']);
+        }
 
         // Intersect strictly with live modules in config/modules.php
         $liveRegistry = array_keys(array_filter(config('modules', []), fn ($m) => ($m['status'] ?? null) === 'live'));
