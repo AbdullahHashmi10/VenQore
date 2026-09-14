@@ -60,30 +60,24 @@ export default function ChatWidget({ embedded = false }) {
  }
  };
 
- const scriptId = 'cf-turnstile-script';
- let script = document.getElementById(scriptId);
+  const scriptId = 'cf-turnstile-script';
+  let script = document.getElementById(scriptId);
 
- if (!script) {
- script = document.createElement('script');
- script.id = scriptId;
- script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
- script.async = true;
- script.defer = true;
- script.onload = () => {
- if (window.turnstile && window.turnstile.ready) {
- window.turnstile.ready(renderWidget);
- } else {
- renderWidget();
- }
- };
- document.head.appendChild(script);
- } else {
- if (window.turnstile && window.turnstile.ready) {
- window.turnstile.ready(renderWidget);
- } else {
- renderWidget();
- }
- }
+  if (!script) {
+    script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.onload = () => {
+      renderWidget();
+    };
+    document.head.appendChild(script);
+  } else {
+    if (window.turnstile) {
+      renderWidget();
+    } else {
+      script.addEventListener('load', renderWidget, { once: true });
+    }
+  }
 
  return () => {
  if (turnstileWidgetId.current !== null && window.turnstile) {
