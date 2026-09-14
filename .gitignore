@@ -68,7 +68,5 @@ builds/release_hosting_v2.0.0.zip
 /app-code/main-app/tests/dashboard/last-results.json
 /app-code/main-app/tests/logs/
 
-# Build assets
-/app-code/main-app/public/build
 .phpunit.result.cache
 bootstrap/ssr/

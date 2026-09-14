@@ -70,8 +70,6 @@ AMD_POS_Update_v*.zip
 php_files_in_zip.txt
 zip_contents.txt
 
-/public/build
-
 # Vite's dev-server marker. It is TRACKED in git as of 2026-09-04 and contains
 # http://127.0.0.1:5173 — if it reaches the server, Laravel's @vite helper points
 # every asset at that address and the entire application renders blank for every
