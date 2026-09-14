@@ -1137,7 +1137,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'parkBill'])->name('sales.park');
 
         Route::name('store.')->group(function () {
-    Route::get('/new-dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('new-dashboard');
+    Route::get('/new-dashboard', [\App\Http\Controllers\DashboardController::class, 'newDashboard'])->name('new-dashboard');
     Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug], 301))->name('new-dashboard.legacy');
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/onboarding/step', function ($store_slug) {

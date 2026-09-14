@@ -553,9 +553,7 @@ class DashboardController extends Controller
         'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
     ];
 
-    return Inertia::render('NewDashboard', [
-        'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
-        'revenue'            => $performance['Month']['sales'] ?? 0.0,
+    return Inertia::render('Dashboard', [
         'performance'        => $performance,
         'outstanding'        => $outstanding,
         'netProfit'          => $netProfit,
@@ -569,20 +567,174 @@ class DashboardController extends Controller
         'cashAccounts'       => $cashAccounts,
         'cashData'           => $cashData,
         'inventoryValue'     => $inventoryValue,
-        'charityStats'       => $charityStats,
-        'aiRecommendations'  => AiRecommendation::active()->latest()->take(5)->get()->map(function($r) {
-            return [
-                'id' => $r->id,
-                'type' => $r->type,
-                'title' => $r->title,
-                'message' => $r->message,
-                'priority' => $r->priority,
-                'action_type' => $r->action_type,
-                'data' => $r->data,
-                'revenue' => (float) $r->potential_revenue,
-            ];
-        })
     ]);
+}
+
+    /**
+     * Experimental card-engine dashboard — served only at /new-dashboard.
+     * The canonical /dashboard route uses fullDashboard() above.
+     */
+    public function newDashboard()
+    {
+        $tz   = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
+        $now  = Carbon::now($tz);
+        $user = auth()->user();
+
+        return $this->fullDashboardExperimental($now, $user);
+    }
+
+    /** Builds the NewDashboard props (card-engine version). */
+    private function fullDashboardExperimental(Carbon $now, $user)
+    {
+        // Re-use the same data-gathering logic but render the experimental page.
+        // Delegate to fullDashboard's data pipeline by calling index() path again
+        // would be circular; instead we inline the one additional prop NewDashboard needs.
+        $tz  = $now->timezone->getName();
+
+        $canSeeSales     = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
+        $canSeeFinance   = $user->hasPermission('finance.transactions') || $user->hasPermission('finance.balances');
+        $canSeeInventory = $user->hasPermission('inventory.view');
+        $canSeeReports   = $user->hasPermission('reports.summary');
+        $tenant          = app('current.tenant');
+        $currencySym     = $tenant?->currency_symbol ?? 'Rs';
+
+        $performance = $canSeeSales ? [
+            'Today'    => $this->getSalesStats($now->copy()->startOfDay(), $now->copy()->endOfDay()),
+            'Month'    => $this->getSalesStats($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
+            'Year'     => $this->getSalesStats($now->copy()->startOfYear(), $now->copy()->endOfYear()),
+            'All Time' => $this->getSalesStats(null, null),
+        ] : [];
+
+        $outstanding = $canSeeFinance ? [
+            'Today'    => $this->getOutstanding(),
+            'Month'    => $this->getOutstanding(),
+            'Year'     => $this->getOutstanding(),
+            'All Time' => $this->getOutstanding(),
+        ] : [];
+
+        $netProfit = $canSeeFinance ? [
+            'Today'    => $this->getNetProfit($now->copy()->startOfDay(), $now->copy()->endOfDay()),
+            'Month'    => $this->getNetProfit($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
+            'Year'     => $this->getNetProfit($now->copy()->startOfYear(), $now->copy()->endOfYear()),
+            'All Time' => $this->getNetProfit(null, null),
+        ] : [];
+
+        $salesData       = $canSeeSales ? $this->getChartData() : [];
+        $topSellingItems = collect([]);
+        if ($canSeeSales || $canSeeReports) {
+            $topSellingItems = (new \App\Services\FinancialReportingService())
+                ->getGrossProfitByProduct(
+                    $now->copy()->startOfMonth()->toDateString(),
+                    $now->copy()->endOfMonth()->toDateString()
+                )
+                ->sortByDesc('net_revenue')->take(8)
+                ->map(fn($item) => [
+                    'id'           => $item['product_id'],
+                    'name'         => $item['name'],
+                    'sku'          => $item['sku'],
+                    'sold'         => (int) $item['quantity'],
+                    'net_revenue'  => $item['net_revenue'],
+                    'gross_profit' => $item['gross_profit'],
+                    'margin_pct'   => $item['margin_pct'],
+                    'revenue'      => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['net_revenue']),
+                    'profit'       => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['gross_profit']),
+                    'margin'       => $item['margin_pct'] . '%',
+                    'image'        => '📦',
+                ])->values();
+        }
+
+        $lowStockItems = collect([]);
+        if ($canSeeInventory) {
+            $lowStockItems = \App\Models\Product::withSum('stocks', 'quantity')->get()
+                ->filter(fn($p) => ($p->stocks_sum_quantity ?? 0) <= ($p->min_stock_alert ?? 5))
+                ->take(5)->map(fn($p) => [
+                    'id'    => $p->id,
+                    'name'  => $p->name,
+                    'stock' => $p->stocks_sum_quantity ?? 0,
+                    'alert' => $p->min_stock_alert ?? 5,
+                    'image' => '⚠️',
+                ])->values();
+        }
+
+        $bankAccounts = $cashAccounts = [];
+        $cashData = null;
+        $tenantId = app('current.tenant')->id;
+        $glCash   = \App\Models\Account::where('code', '1000')->first();
+        $recentTransactions = collect([]);
+
+        if ($canSeeFinance) {
+            $bankAccounts = \App\Models\BankAccount::whereNotIn('account_type', ['cash'])
+                ->whereNotIn('type', ['cash'])->get()
+                ->map(fn($a) => tap($a, fn($a) => $a->current_balance = $a->v3Balance()));
+            $cashAccounts = \App\Models\BankAccount::where('account_type', 'cash')->get()
+                ->map(fn($a) => tap($a, fn($a) => $a->current_balance = $a->v3Balance()));
+
+            if ($glCash) {
+                $cashBalance = (float) resolve(\App\Engines\AccountingService::class)->getBalance('1000');
+                $cashData    = ['balance' => $cashBalance, 'transactions' => collect([])];
+
+                $recentTransactions = \App\Models\JournalItem::where('account_id', $glCash->id)
+                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->where('journal_entries.tenant_id', $tenantId)
+                    ->where('journal_entries.is_reversed', 0)
+                    ->select('journal_items.id as item_id', 'journal_entries.id as entry_id',
+                        'journal_entries.date', 'journal_entries.created_at as time',
+                        'journal_entries.description', 'journal_entries.reference_type',
+                        'journal_entries.reference as reference_id',
+                        'journal_items.debit', 'journal_items.credit')
+                    ->orderBy('journal_entries.date', 'desc')
+                    ->orderBy('journal_entries.created_at', 'desc')
+                    ->take(10)->get()
+                    ->map(function ($item) use ($currencySym) {
+                        $isIn = (float)$item->debit > 0;
+                        $refType = $item->reference_type;
+                        $actMap = ['sale'=>'sale','pos_sale'=>'sale','sale_return'=>'return',
+                            'purchase'=>'purchase','purchase_payment'=>'purchase',
+                            'expense'=>'expense'];
+                        return [
+                            'id'             => 'gl-' . $item->item_id,
+                            'type'           => ucfirst(str_replace('_', ' ', $refType ?? 'Transaction')),
+                            'amount'         => ($isIn ? '+' : '-') . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float)($isIn ? $item->debit : $item->credit)),
+                            'time'           => \Carbon\Carbon::parse($item->time)->diffForHumans(),
+                            'description'    => $item->description ?: 'Cash Transaction',
+                            'activityType'   => $actMap[$refType] ?? 'other',
+                            'reference_type' => $refType,
+                            'reference_id'   => $item->reference_id,
+                        ];
+                    });
+            }
+        }
+
+        $inventoryValue = ($canSeeInventory || $canSeeFinance)
+            ? (new \App\Services\FinancialReportingService())->getInventoryValue()
+            : 0;
+
+        $charityStats = [
+            'today'          => (float) \App\Models\Expense::whereDate('date', \Carbon\Carbon::today())
+                ->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount'),
+            'month'          => (float) \App\Models\Expense::whereMonth('date', \Carbon\Carbon::now()->month)
+                ->whereYear('date', \Carbon\Carbon::now()->year)
+                ->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount'),
+            'default_amount' => (float)(\App\Models\Setting::where('key', 'charity_default_amount')->value('value') ?? 10),
+            'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
+        ];
+
+        return Inertia::render('NewDashboard', [
+            'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+            'revenue'            => $performance['Month']['sales'] ?? 0.0,
+            'performance'        => $performance,
+            'outstanding'        => $outstanding,
+            'netProfit'          => $netProfit,
+            'salesData'          => $salesData,
+            'topSellingItems'    => $topSellingItems,
+            'lowStockItems'      => $lowStockItems,
+            'recentTransactions' => $recentTransactions,
+            'bankAccounts'       => $bankAccounts,
+            'cashAccounts'       => $cashAccounts,
+            'cashData'           => $cashData,
+            'inventoryValue'     => $inventoryValue,
+            'charityStats'       => $charityStats,
+        ]);
 }
 
     public function home()
