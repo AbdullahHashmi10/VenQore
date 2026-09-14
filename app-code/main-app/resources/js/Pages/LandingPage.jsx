@@ -174,7 +174,7 @@ export default function LandingPage() {
     </div>
 
     <div className="vq-hero-foot" style={{"marginInline":"auto","width":"100%","maxWidth":"58rem","display":"flex","alignItems":"flex-end","justifyContent":"space-between","gap":"var(--vq-space-6)","padding":"var(--vq-space-8) var(--vq-space-6) var(--vq-space-10)"}}>
-      <p className="vq-small" style={{"maxWidth":"26rem","color":"var(--vq-text-2)"}}>
+      <p className="vq-small" style={{"maxWidth":"26rem"}}>
         Describe how you actually work. VenQore assembles the system that runs it — and every
         number it produces is backed by double-entry accounting.
       </p>

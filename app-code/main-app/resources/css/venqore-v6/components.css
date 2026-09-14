@@ -2192,11 +2192,11 @@ html.dark .vq-header--onHero:not(.is-stuck) .vq-theme-btn:hover {
 /* ── Hero type ────────────────────────────────────────────────────────── */
 .vq-hero-h1 { color: #fff !important; }
 .vq-hero-eyebrow { color: rgb(255 255 255 / .85) !important; }
-.vq-hero-foot p, .vq-hero-foot a { color: var(--vq-text-2, #C4D3CD); }
-.vq-hero-caret { color: rgb(255 255 255 / .75); }
+.vq-hero-foot p, .vq-hero-foot a { color: #132622; }
+.vq-hero-caret { color: #132622; }
 :root[data-theme="dark"] .vq-hero-h1, html.dark .vq-hero-h1 { color: #FFFFFF !important; }
 :root[data-theme="dark"] .vq-hero-eyebrow, html.dark .vq-hero-eyebrow { color: var(--vq-teal-300, #0BAA8F) !important; }
-:root[data-theme="dark"] .vq-hero-caret, html.dark .vq-hero-caret { color: rgb(255 255 255 / .75); }
+:root[data-theme="dark"] .vq-hero-caret, html.dark .vq-hero-caret { color: rgb(255 255 255 / .85); }
 :root[data-theme="dark"] .vq-hero-foot p, :root[data-theme="dark"] .vq-hero-foot a,
 html.dark .vq-hero-foot p, html.dark .vq-hero-foot a { color: #EDF2EF; }
 

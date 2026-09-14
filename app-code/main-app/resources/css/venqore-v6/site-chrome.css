@@ -1421,7 +1421,13 @@ html.dark .vq-hero-section .vq-hero-eyebrow { color: var(--vq-teal-300) !importa
 .vq-hero-section .vq-hero-subhead { color: rgb(255 255 255 / .85) !important; }
 .vq-hero-section .vq-hero-caret,
 .vq-hero-section .vq-hero-foot p,
-.vq-hero-section .vq-hero-foot a { color: rgb(255 255 255 / .75) !important; }
+.vq-hero-section .vq-hero-foot a { color: #132622 !important; }
+:root[data-theme="dark"] .vq-hero-section .vq-hero-caret,
+:root[data-theme="dark"] .vq-hero-section .vq-hero-foot p,
+:root[data-theme="dark"] .vq-hero-section .vq-hero-foot a,
+html.dark .vq-hero-section .vq-hero-caret,
+html.dark .vq-hero-section .vq-hero-foot p,
+html.dark .vq-hero-section .vq-hero-foot a { color: #EDF2EF !important; }
 .vq-hero-section .vq-chip--onHero {
   background: color-mix(in srgb, var(--vq-ink-0) 10%, transparent);
   border-color: color-mix(in srgb, var(--vq-ink-0) 22%, transparent);
