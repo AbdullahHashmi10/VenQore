@@ -118,23 +118,7 @@ Route::get('/next-dashboard', function () {
     ]);
 })->name('public.next-dashboard');
 
-// VenQore New Dashboard with Live Card Builder (v6)
-Route::get('/new-dashboard', function () {
-    // Design preview only — never a public page in production. It renders a
-    // fabricated "Enterprise Store" with hard-coded revenue figures, which is
-    // not something a visitor or a crawler should ever be shown.
-    abort_if(app()->environment('production') && ! auth()->user()?->is_platform_admin, 404);
 
-    return Inertia::render('NewDashboard', [
-        'store' => ['name' => 'VenQore Enterprise Store', 'currency_symbol' => 'Rs', 'business_type' => 'general'],
-        'auth' => ['user' => ['name' => 'Store Owner', 'role' => 'admin']],
-        'readings' => \App\Reckoner\ReckonerRegistry::v6Catalog(),
-    ]);
-})->name('new-dashboard');
-
-Route::get('/new-dashbaord', function () {
-    return redirect('/new-dashboard', 301);
-});
 
 
 
@@ -1137,8 +1121,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'parkBill'])->name('sales.park');
 
         Route::name('store.')->group(function () {
-    Route::get('/new-dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('new-dashboard');
-    Route::get('/new-dashbaord', fn($store_slug) => redirect()->route('store.new-dashboard', ['store_slug' => $store_slug], 301))->name('new-dashboard.legacy');
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/onboarding/step', function ($store_slug) {
         return redirect()->route('store.dashboard', ['store_slug' => $store_slug]);

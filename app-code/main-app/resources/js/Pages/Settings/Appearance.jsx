@@ -25,7 +25,6 @@ import { THEME_CATALOG } from '@/theme/active';
 const MODES = [
     { value: 'light', label: 'Light', Icon: Sun },
     { value: 'dark', label: 'Dark', Icon: Moon },
-    { value: 'system', label: 'System', Icon: Monitor },
 ];
 
 /* ------------------------------------------------------------------ *

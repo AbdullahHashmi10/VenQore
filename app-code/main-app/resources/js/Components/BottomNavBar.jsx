@@ -188,7 +188,6 @@ export default function BottomNavBar({
                     propActiveItem === 'home' ||
                     isRouteActive('store.dashboard') ||
                     isRouteActive('store.home') ||
-                    isRouteActive('store.new-dashboard') ||
                     isRouteActive('dashboard') ||
                     path === '/' ||
                     path.endsWith('/dashboard');
@@ -224,7 +223,6 @@ export default function BottomNavBar({
             propActiveItem === 'home' ||
             isRouteActive('store.dashboard') ||
             isRouteActive('store.home') ||
-            isRouteActive('store.new-dashboard') ||
             isRouteActive('dashboard') ||
             path === '/' ||
             path.endsWith('/dashboard');

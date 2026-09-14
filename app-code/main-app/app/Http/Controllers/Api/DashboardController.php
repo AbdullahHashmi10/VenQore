@@ -734,6 +734,65 @@ class DashboardController extends Controller
         $availableKeys = array_keys(array_filter($availability));
 
         $candidates = $this->presetBoard($role, $tenant);
+        $totalCandidates = count($candidates);
+        $dropped = [];
+
+        foreach ($candidates as $candidate) {
+            $rKey = $candidate['reading_key'] ?? '';
+            if (in_array($rKey, $availableKeys, true)) {
+                continue;
+            }
+
+            // Diagnose which gate dropped the reading
+            $def = ReckonerRegistry::find($rKey);
+            $reason = 'unknown';
+            if ($def === null) {
+                $reason = 'missing_definition';
+            } elseif (($def['implemented'] ?? true) === false) {
+                $reason = 'not_implemented';
+            } elseif (($def['scope'] ?? 'tenant') === 'platform') {
+                $reason = 'platform_scope';
+            } elseif (! empty($def['permissions'])) {
+                $hasPerm = false;
+                foreach ($def['permissions'] as $p) {
+                    if ($user->hasPermission($p)) {
+                        $hasPerm = true;
+                        break;
+                    }
+                }
+                if (! $hasPerm) {
+                    $reason = 'permission:' . implode(',', $def['permissions']);
+                }
+            }
+            if ($reason === 'unknown' && ! empty($def['feature'])) {
+                $tPlan = $tenant->plan ?: 'trial';
+                $planFeatures = \App\Services\PlanRepository::featuresFor($tenant);
+                if (empty($planFeatures[$def['feature']])) {
+                    $reason = "plan_feature:{$def['feature']}(plan:{$tPlan})";
+                }
+            }
+            if ($reason === 'unknown' && ! empty($def['capability'])) {
+                $reason = 'capability:' . $def['capability'];
+            }
+            if ($reason === 'unknown' && ! empty($def['module'])) {
+                $reason = 'module:' . (is_array($def['module']) ? implode(',', $def['module']) : $def['module']);
+            }
+
+            $dropped[$rKey] = $reason;
+        }
+
+        $dropCount = count($dropped);
+        if ($dropCount > 0) {
+            \Illuminate\Support\Facades\Log::warning(
+                "Dashboard seed: {$dropCount} of {$totalCandidates} cards dropped for tenant [{$tenant->id}: {$tenant->slug}], user [{$user->id}: {$user->email}], role '{$role}'.",
+                ['dropped_cards' => $dropped]
+            );
+        }
+
+        // Refuse to seed a starved board: if more than ~50% of the authored preset is dropped, do not persist it.
+        if ($totalCandidates > 0 && ($dropCount / $totalCandidates) > 0.5) {
+            abort(422, 'Your plan or permissions are still resolving — try again in a moment.');
+        }
 
         // Drop unavailable readings, then re-pack rows left-to-right so the
         // seeded board has no holes. Row assignment keeps the authored order.

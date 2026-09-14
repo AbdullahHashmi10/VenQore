@@ -1,14 +1,15 @@
 import React from "react";
 
 /** Sun/moon switch. Writes data-theme on <html> and remembers the choice. */
-export function ThemeToggle({ size = 40, storageKey = "vq-theme", style }) {
+export function ThemeToggle({ size = 40, storageKey = "vq_theme", style }) {
   const [dark, setDark] = React.useState(() =>
-    typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "dark");
+    typeof document !== "undefined" && (document.documentElement.getAttribute("data-theme") === "dark" || document.documentElement.classList.contains("dark")));
   React.useEffect(() => {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
     root.classList.add("vq-theming");
     root.setAttribute("data-theme", dark ? "dark" : "light");
+    root.classList.toggle("dark", dark);
     try { localStorage.setItem(storageKey, dark ? "dark" : "light"); } catch (e) {}
     const f = requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("vq-theming")));
     return () => cancelAnimationFrame(f);

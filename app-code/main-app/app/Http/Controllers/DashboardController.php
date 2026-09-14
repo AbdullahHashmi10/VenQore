@@ -553,7 +553,12 @@ class DashboardController extends Controller
         'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
     ];
 
-    return Inertia::render('NewDashboard', [
+    $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+    $visibleModules = $tenant ? \App\Services\ModuleService::allVisible($tenant, $user) : [];
+
+    return Inertia::render('Dashboard', [
+        'modules'            => $visibleModules,
+        'business_type'      => $tenant?->business_type ?? 'retail',
         'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
         'revenue'            => $performance['Month']['sales'] ?? 0.0,
         'performance'        => $performance,

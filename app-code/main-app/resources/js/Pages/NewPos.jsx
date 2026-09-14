@@ -134,7 +134,7 @@ export default function NewPos({
     /* ── Theme state with localStorage sync ───────────────────────────────── */
     const [theme, setTheme] = useState(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('vq-theme') || localStorage.getItem('amd_theme') || 'light';
+            return localStorage.getItem('vq_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('amd_theme') || 'light';
         }
         return 'light';
     });
@@ -142,7 +142,8 @@ export default function NewPos({
     useEffect(() => {
         if (typeof document !== 'undefined') {
             document.documentElement.classList.toggle('dark', theme === 'dark');
-            localStorage.setItem('vq-theme', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('vq_theme', theme);
         }
     }, [theme]);
 

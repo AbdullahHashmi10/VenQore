@@ -51,9 +51,7 @@ export const DEFAULT_APPEARANCE = {
  * Mode
  * ------------------------------------------------------------------ */
 
-const prefersDark = () => false;
-
-/** Turn the stored mode ('light' | 'dark' | 'system') into a boolean. */
+/** Turn the stored mode ('light' | 'dark') into a boolean. */
 export function resolveDarkMode(mode) {
     if (mode === 'dark') return true;
     if (mode === 'light') return false;
@@ -143,6 +141,12 @@ export function applyAppearance(appearance = {}) {
     const isDark = resolveDarkMode(settings.mode);
     root.classList.toggle('dark', isDark);
     root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+
+    // Keep the pre-paint script in step so the next load doesn't flash the
+    // other theme before React mounts.
+    try {
+        localStorage.setItem('vq_theme', isDark ? 'dark' : 'light');
+    } catch (e) { /* private mode — the server value still carries it */ }
 
     // Rebuilt wholesale — see the header for why patching leaks stale ramps.
     const overrides = buildOverrides(settings);

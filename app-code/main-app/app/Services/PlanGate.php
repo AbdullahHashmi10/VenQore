@@ -77,7 +77,7 @@ class PlanGate
                 : ($tenant->plan ?? 'starter');
             $planConfig = config("plans.{$plan}", config('plans.starter', []));
             if (!array_key_exists($feature, $planConfig)) {
-                \Illuminate\Support\Facades\Log::warning("Unknown or unseeded plan limit key queried: '{$feature}' for plan '{$plan}'. Denying access (fail-closed).");
+                \Illuminate\Support\Facades\Log::warning("Unknown or unseeded plan limit key queried: '{$feature}' for plan '{$plan}' on tenant [{$tenant->id}: {$tenant->slug}]. Denying access (fail-closed).");
                 return false;
             }
             return true;

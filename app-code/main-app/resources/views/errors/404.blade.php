@@ -191,7 +191,7 @@
     <script>
         (function() {
             try {
-                var theme = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
+                var theme = localStorage.getItem('vq_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('amd_theme');
                 if (theme === 'light' || theme === 'dark') {
                     document.documentElement.setAttribute('data-theme', theme);
                 }

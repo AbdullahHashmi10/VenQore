@@ -373,16 +373,17 @@ class AdminDashboardController extends Controller
      */
     public function upgradePlan(Request $request, string $tenantId): \Illuminate\Http\RedirectResponse
     {
-        $request->validate(['plan' => 'required|in:starter,growth,business']);
+        $request->validate(['plan' => 'required|in:solo,starter,core,scale,custom,growth,business']);
 
         $tenant = Tenant::withTrashed()->findOrFail($tenantId);
         $oldPlan = $tenant->plan;
+        $canonicalPlan = \App\Support\PlanCatalog::canonical($request->plan);
         $tenant->update([
-            'plan'   => $request->plan,
+            'plan'   => $canonicalPlan,
             'status' => 'active',
         ]);
 
-        return back()->with('success', "Tenant '{$tenant->name}' upgraded from {$oldPlan} → {$request->plan}.");
+        return back()->with('success', "Tenant '{$tenant->name}' upgraded from {$oldPlan} → {$canonicalPlan}.");
     }
 
     /**

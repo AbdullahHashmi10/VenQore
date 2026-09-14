@@ -47,7 +47,7 @@ class Appearance
      */
     public const THEMES = ['venqore-v6'];
 
-    public const MODES = ['light', 'dark', 'system'];
+    public const MODES = ['light', 'dark'];
 
     public const FONTS = ['theme', 'inter', 'figtree', 'system', 'grotesk', 'serif', 'mono'];
 

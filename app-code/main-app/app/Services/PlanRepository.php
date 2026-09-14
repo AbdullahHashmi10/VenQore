@@ -152,7 +152,8 @@ class PlanRepository
         }
 
         // 4. Unknown / unseeded feature key: log warning and fail closed
-        Log::warning("Unknown or unseeded plan limit key queried: '{$key}' for plan '{$normSlug}'. Denying access (fail-closed).");
+        $tenantInfo = $t ? "tenant [{$t->id}: {$t->slug}]" : "tenant_id [{$tenantId}]";
+        Log::warning("Unknown or unseeded plan limit key queried: '{$key}' for plan '{$normSlug}' on {$tenantInfo}. Denying access (fail-closed).");
         return false;
     }
 

@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 
 const ThemeContext = createContext();
 
-const STORAGE_KEY = 'amd_theme';
+const STORAGE_KEY = 'vq_theme';
 
 /**
  * Public marketing routes that open in LIGHT mode for a first-time visitor.
@@ -26,7 +26,7 @@ const isExceptionPath = (pathname = '') => {
 };
 
 /** Has the visitor ever explicitly picked a theme? */
-const STORAGE_KEYS = ['amd_theme', 'vq-theme', 'vq_theme'];
+const STORAGE_KEYS = ['vq_theme', 'amd_theme', 'vq-theme'];
 
 const readSavedTheme = () => {
     try {
@@ -58,7 +58,7 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
     const persist = useCallback((dark) => {
         try {
             const val = dark ? 'dark' : 'light';
-            STORAGE_KEYS.forEach((key) => localStorage.setItem(key, val));
+            localStorage.setItem(STORAGE_KEY, val);
         } catch (e) { /* storage unavailable — session-only theme is fine */ }
     }, []);
 

@@ -21,18 +21,25 @@
 
 <head>
     <script>
-      /* Theme before paint — light default unless explicitly saved */
-      (function(){
+      /* Theme before paint. Server value wins; localStorage is the guest fallback. */
+      (function () {
+        var serverMode = @json($vqAppearance['mode'] ?? 'light');
+        var hasServerPreference = @json(auth()->check());
+        var mode = 'light';
+
         try {
-          var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
-          var mode = (saved === 'dark') ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', mode);
-          if (mode === 'dark') {
-            document.documentElement.classList.add('dark');
+          if (hasServerPreference) {
+            mode = serverMode === 'dark' ? 'dark' : 'light';
           } else {
-            document.documentElement.classList.remove('dark');
+            var saved = localStorage.getItem('vq_theme');
+            mode = saved === 'dark' ? 'dark' : 'light';
           }
-        } catch(e) {}
+        } catch (e) {
+          mode = serverMode === 'dark' ? 'dark' : 'light';
+        }
+
+        document.documentElement.setAttribute('data-theme', mode);
+        document.documentElement.classList.toggle('dark', mode === 'dark');
       })();
     </script>
     {{--

@@ -148,7 +148,10 @@ $unwantedPatterns = @(
     "tests",
     ".gemini",
     ".claude",
-    ".obsidian"
+    ".obsidian",
+    "*.md",
+    "*.markdown",
+    "phpunit.xml*"
 )
 
 foreach ($pattern in $unwantedPatterns) {

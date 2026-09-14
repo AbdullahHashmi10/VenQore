@@ -81,8 +81,8 @@ export default function Edit({ mustVerifyEmail, status }) {
  // Fall back to the live <html> class: with no saved choice the theme
  // is resolved per-route by ThemeContext, so localStorage may be empty
  // while the app is still rendering in dark.
- dark_mode: localStorage.getItem('amd_theme')
- ? localStorage.getItem('amd_theme') === 'dark'
+ dark_mode: localStorage.getItem('vq_theme')
+ ? localStorage.getItem('vq_theme') === 'dark'
  : document.documentElement.classList.contains('dark'),
  senior_mode: settings?.senior_mode === '1',
  });
@@ -192,7 +192,8 @@ export default function Edit({ mustVerifyEmail, status }) {
  const toggleDarkMode = () => {
  const newMode = !preferences.dark_mode;
  setPreferences(prev => ({ ...prev, dark_mode: newMode }));
- localStorage.setItem('amd_theme', newMode ? 'dark' : 'light');
+ localStorage.setItem('vq_theme', newMode ? 'dark' : 'light');
+ document.documentElement.setAttribute('data-theme', newMode ? 'dark' : 'light');
  if (newMode) {
  document.documentElement.classList.add('dark');
  } else {

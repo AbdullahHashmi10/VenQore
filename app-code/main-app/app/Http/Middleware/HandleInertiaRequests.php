@@ -76,8 +76,10 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user ? array_merge(
                     $user->only(['id', 'name', 'email', 'email_verified_at', 'is_platform_admin', 'last_store_id']),
                     [
-                        'role'              => $user->attributes['role'] ?? null,
-                        'permissions'       => $user->attributes['permissions'] ?? null,
+                        'role'              => (app()->bound('current.membership') && app('current.membership')?->role)
+                            ? app('current.membership')->role
+                            : ($user->attributes['role'] ?? ($user->role ?? ($user->isPlatformAdmin() ? 'platform_admin' : 'owner'))),
+                        'permissions'       => $user->attributes['permissions'] ?? ($user->permissions ?? []),
                         'avatar_initial'    => strtoupper(substr($user->name ?? '', 0, 1)),
                         'is_platform_staff' => $user->isPlatformStaff(),
                         'staff_role'        => $user->attributes['staff_role'] ?? null,
@@ -186,6 +188,8 @@ class HandleInertiaRequests extends Middleware
             // see App\Support\Appearance.
             'appearance' => fn () => \App\Support\Appearance::forRequest(),
             'store' => app()->bound('current.tenant') ? app('current.tenant') : null,
+            'my_role' => app()->bound('current.membership') ? app('current.membership')?->role : ($user?->role ?? ($user?->isPlatformAdmin() ? 'platform_admin' : 'owner')),
+            'userRole' => app()->bound('current.membership') ? app('current.membership')?->role : ($user?->role ?? ($user?->isPlatformAdmin() ? 'platform_admin' : 'owner')),
 
             // ── Modules & nav (unified shell, 2026-08-21) ─────────────────────
             // The sidebar is DERIVED from enabled modules — never stored, so it

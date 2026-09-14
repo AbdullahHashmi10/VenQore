@@ -17,7 +17,7 @@
 /* Theme before paint — no flash. Light by default unless user explicitly chose dark. */
 (function(){
   try {
-    var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
+    var saved = localStorage.getItem('vq_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('amd_theme');
     var theme = (saved === 'dark') ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-vq-theme', theme);

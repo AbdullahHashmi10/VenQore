@@ -233,6 +233,10 @@ export const SyncService = {
                     console.log(`[Sync] ${resource} hydrated: ${response.data.length} items.`);
                 }
             } catch (e) {
+                if (e.response?.status === 403 || e.response?.status === 401) {
+                    // Current user does not have permission / membership for this store slug
+                    break;
+                }
                 console.warn(`[Sync] Failed to hydrate ${resource}:`, e.message);
             }
         }
@@ -252,7 +256,9 @@ export const SyncService = {
                 await db.users.bulkPut(response.data);
             }
         } catch (e) {
-            console.error('[Sync] Staff download failed:', e);
+            if (e.response?.status !== 403 && e.response?.status !== 401) {
+                console.error('[Sync] Staff download failed:', e);
+            }
         }
     }
 };

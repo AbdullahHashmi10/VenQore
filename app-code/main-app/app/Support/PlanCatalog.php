@@ -52,7 +52,7 @@ final class PlanCatalog
     {
         $slug = (string) $slug;
 
-        return $slug === '' ? '' : PlanRepository::normalizePlanSlug($slug);
+        return $slug === '' ? 'trial' : PlanRepository::normalizePlanSlug($slug);
     }
 
     /** 0 for trial/unknown, 1..n for paid tiers. LTD tiers rank as their equivalent. */

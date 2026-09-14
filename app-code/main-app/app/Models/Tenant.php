@@ -50,6 +50,10 @@ class Tenant extends Model
     protected static function booted(): void
     {
         static::saving(function (Tenant $tenant) {
+            if (isset($tenant->attributes['plan']) && trim((string) $tenant->attributes['plan']) === '') {
+                $tenant->attributes['plan'] = 'trial';
+            }
+
             if (empty($tenant->attributes['is_golden_master'])) {
                 return;
             }
@@ -477,23 +481,29 @@ class Tenant extends Model
 
     public function setPlanAttribute($value)
     {
-        if (is_string($value) && str_starts_with($value, 'ltd_')) {
+        $norm = trim((string) $value);
+        if ($norm === '') {
+            $this->attributes['plan'] = 'trial';
+            return;
+        }
+
+        if (str_starts_with($norm, 'ltd_')) {
             $this->attributes['plan'] = 'ltd';
             // 2026-07-03: limits snapshot now comes from the plan_limits table
             // (PlanFeatureMatrixSeeder = the single source of truth), no longer
             // from config/plans.php. PlanRepository falls back to config only
             // if the LTD plan has never been seeded — and logs nothing silently.
-            $limits = \App\Services\PlanRepository::getLtdSnapshot($value);
+            $limits = \App\Services\PlanRepository::getLtdSnapshot($norm);
             if (empty($limits)) {
                 \Illuminate\Support\Facades\Log::warning(
-                    "setPlanAttribute: no seeded limits found for '{$value}' — tenant JSON left empty (fail-closed). Run PlanFeatureMatrixSeeder."
+                    "setPlanAttribute: no seeded limits found for '{$norm}' — tenant JSON left empty (fail-closed). Run PlanFeatureMatrixSeeder."
                 );
             }
             $snapshot = is_array($limits) ? $limits : [];
-            $snapshot['ltd_tier'] = $value;
+            $snapshot['ltd_tier'] = $norm;
             $this->plan_limits = $snapshot;
         } else {
-            $this->attributes['plan'] = $value;
+            $this->attributes['plan'] = \App\Support\PlanCatalog::canonical($norm);
         }
     }
 

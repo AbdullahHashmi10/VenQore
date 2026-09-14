@@ -92,7 +92,9 @@ export const AttendanceProvider = ({ children }) => {
                 await new Promise(r => setTimeout(r, 200));
                 return checkIn(true);
             }
-            console.error('Check-in error handled.');
+            if (error.response?.status !== 403 && error.response?.status !== 401) {
+                console.error('Check-in error handled.');
+            }
         }
     };
 

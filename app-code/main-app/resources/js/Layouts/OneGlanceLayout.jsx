@@ -273,53 +273,36 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
      const nextMode = typeof targetMode === 'string' ? targetMode : (isEffectiveDarkMode ? 'light' : 'dark');
      setIsDarkMode(nextMode === 'dark');
      try {
-         localStorage.setItem('amd_theme', nextMode);
+         localStorage.setItem('vq_theme', nextMode);
      } catch (e) {}
      if (store) {
          updateAppearance({ theme: 'venqore-v6', mode: nextMode });
      }
  };
 
- const handleEditLayout = () => {
- if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
- window.dispatchEvent(new CustomEvent('vq:edit-layout'));
- } else if (store?.slug) {
- router.visit(route('store.new-dashboard', { store_slug: store.slug, edit: 1 }));
- } else {
- router.visit('/new-dashboard?edit=1');
- }
- };
+    const handleEditLayout = () => {
+        if (store?.slug) {
+            router.visit(route('store.dashboard', { store_slug: store.slug, edit: 1 }));
+        }
+    };
 
- const handleAddCard = () => {
- if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
- window.dispatchEvent(new CustomEvent('vq:add-card'));
- } else if (store?.slug) {
- router.visit(route('store.new-dashboard', { store_slug: store.slug, add_card: 1 }));
- } else {
- router.visit('/new-dashboard?add_card=1');
- }
- };
+    const handleAddCard = () => {
+        if (store?.slug) {
+            router.visit(route('store.dashboard', { store_slug: store.slug, add_card: 1 }));
+        }
+    };
 
-  const handleToggleSidePanel = () => {
-    if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
-      window.dispatchEvent(new CustomEvent('vq:open-side-panel'));
-      window.dispatchEvent(new CustomEvent('vq:toggle-side-panel'));
-    } else if (store?.slug) {
-      router.visit(route('store.new-dashboard', { store_slug: store.slug, side_panel: 1 }));
-    } else {
-      router.visit('/new-dashboard?side_panel=1');
-    }
-  };
+    const handleToggleSidePanel = () => {
+        if (store?.slug) {
+            router.visit(route('store.dashboard', { store_slug: store.slug, side_panel: 1 }));
+        }
+    };
 
- const handleStartFresh = () => {
- if (typeof window !== 'undefined' && window.location.pathname.includes('/new-dashboard')) {
- window.dispatchEvent(new CustomEvent('vq:start-fresh'));
- } else if (store?.slug) {
- router.visit(route('store.new-dashboard', { store_slug: store.slug, reset: 1 }));
- } else {
- router.visit('/new-dashboard?reset=1');
- }
- };
+    const handleStartFresh = () => {
+        if (store?.slug) {
+            router.visit(route('store.dashboard', { store_slug: store.slug, reset: 1 }));
+        }
+    };
 
  const [isLargeText, setIsLargeText] = useState(false);
  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -1626,7 +1609,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* Header */}
   {!hideHeader && !fullScreen && (
-  <header className="h-16 px-6 flex items-center justify-between z-nav relative shrink-0">
+  <header className="h-16 px-6 flex items-center justify-between z-nav relative shrink-0 border-b border-line bg-surface/90 backdrop-blur-sm transition-colors">
   {/* LEFT SECTION */}
   <div className="flex items-center gap-3 text-ink-muted min-w-[100px] z-10">
   <button className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors border border-line"
