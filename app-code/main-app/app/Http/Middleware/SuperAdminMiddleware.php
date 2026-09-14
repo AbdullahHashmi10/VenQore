@@ -37,7 +37,12 @@ class SuperAdminMiddleware
             if ($user->isPlatformStaff() && $isChatbotRoute) {
                 // Allow platform staff access to chatbot support workspace
             } else {
-                abort(404);
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('platform.login')
+                    ->with('error', 'Super administrator access required. Please sign in with your Platform Administrator credentials.');
             }
         }
 

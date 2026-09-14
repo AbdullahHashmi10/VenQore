@@ -1,20 +1,30 @@
 <IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Prevent infinite loops on internal redirects
-    RewriteCond %{ENV:REDIRECT_STATUS} 200 [OR]
-    RewriteCond %{REQUEST_URI} ^/public/ [NC]
-    RewriteRule ^ - [L]
+    # 1. If requested asset exists in public/, serve it directly
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+    RewriteRule ^(.*)$ public/$1 [L]
 
-    # Redirect Trailing Slashes If Not A Folder...
+    # 2. Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Public Folder
-    RewriteRule ^(.*)$ public/$1 [L]
+    # 3. If file or directory already exists at root, serve it directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 4. Route everything else cleanly to public/index.php
+    RewriteRule ^(.*)$ public/index.php [L]
 </IfModule>
