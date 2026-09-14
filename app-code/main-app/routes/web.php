@@ -630,6 +630,7 @@ Route::middleware(['auth'])
     });
 
 // ── Platform Owner ───────────────────────────────────────────────────────────
+Route::get('/venqore', fn() => redirect('/VenQore'));
 Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
     ->prefix('VenQore')
     ->name('platform.')

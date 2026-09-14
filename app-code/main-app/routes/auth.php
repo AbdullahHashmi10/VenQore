@@ -95,8 +95,11 @@ Route::middleware(['auth', \App\Http\Middleware\NoIndexMiddleware::class])->grou
 // ── Platform Owner Secure HQ Login ──────────────────────────────────────────
 Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
     Route::get('/VenQore-login',         [PlatformOwnerAuthController::class, 'create'])->name('platform.login');
+    Route::get('/venqore-login',         [PlatformOwnerAuthController::class, 'create']);
     Route::post('/VenQore-login',        [PlatformOwnerAuthController::class, 'store'])->middleware('throttle:10,1')->name('platform.login.store');
+    Route::post('/venqore-login',        [PlatformOwnerAuthController::class, 'store'])->middleware('throttle:10,1');
     Route::post('/VenQore-login/pin',    [PlatformOwnerAuthController::class, 'storePin'])->middleware('throttle:5,1')->name('platform.login.pin');
+    Route::post('/venqore-login/pin',    [PlatformOwnerAuthController::class, 'storePin'])->middleware('throttle:5,1');
 
     // ── Staff Member Login ──────────────────────────────────────────────────────
     Route::get('/staff-login',           [\App\Http\Controllers\Auth\StaffAuthController::class, 'create'])->name('staff.login');
