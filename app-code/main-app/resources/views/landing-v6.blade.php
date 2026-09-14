@@ -248,6 +248,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Select your business
           </button>
+          <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="retail">Retail business</button>
           <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="pharmacy">Pharmacy</button>
           <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="wholesale">Wholesale distributor</button>
           <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="cafe">Restaurant &amp; café</button>
@@ -255,7 +256,7 @@
           <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="multi">Multi-branch</button>
         </div>
 
-        <div class="vq-hero-subclaims" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:16px;font:500 13px/1 var(--vq-font-sans);">
+        <div class="vq-hero-subclaims" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:16px;font:500 13px/1 var(--vq-font-sans);color:var(--vq-hero-subclaim-color, #132622);">
           <span>85+ business types, 5 sectors</span><span style="opacity:.4">·</span>
           <span>140+ modules, only yours switched on</span><span style="opacity:.4">·</span>
           <span>58 readings, one definition each</span><span style="opacity:.4">·</span>

@@ -33,11 +33,12 @@ const EXAMPLES = [
 ];
 
 const CHIPS = [
-    { key: 'pharmacy', label: 'Pharmacy', text: 'I run a 3-branch pharmacy with batch expiry tracking and distributor 30-day credit terms.' },
-    { key: 'wholesale', label: 'Wholesale distributor', text: 'Auto parts wholesale with 10,000 SKUs, bulk discount tiers, and delivery to shops on credit.' },
-    { key: 'cafe', label: 'Restaurant & café', text: 'Artisan bakery and central kitchen with recipe costing, ingredient batching, and 4 shop drops.' },
-    { key: 'hardware', label: 'Hardware & parts', text: 'Hardware store with 9,000 SKUs, FIFO valuation, unit conversions and contractor trade credit.' },
-    { key: 'multi', label: 'Multi-branch', text: 'Multi-branch retail with a size/colour variant matrix, synced to Amazon and WooCommerce.' },
+    { key: 'retail_shop', preset: 'retail_shop', label: 'Retail business', text: 'Retail store with counter POS, barcode scanning, stock tracking, and customer khata credit.' },
+    { key: 'pharmacy', preset: 'pharmacy', label: 'Pharmacy', text: 'I run a 3-branch pharmacy with batch expiry tracking and distributor 30-day credit terms.' },
+    { key: 'wholesale', preset: 'wholesale', label: 'Wholesale distributor', text: 'Auto parts wholesale with 10,000 SKUs, bulk discount tiers, and delivery to shops on credit.' },
+    { key: 'cafe', preset: 'cafe', label: 'Restaurant & café', text: 'Artisan bakery and central kitchen with recipe costing, ingredient batching, and 4 shop drops.' },
+    { key: 'hardware', preset: 'hardware_store', label: 'Hardware & parts', text: 'Hardware store with 9,000 SKUs, FIFO valuation, unit conversions and contractor trade credit.' },
+    { key: 'multi', preset: 'multi_branch_retail', label: 'Multi-branch', text: 'Multi-branch retail with a size/colour variant matrix, synced to Amazon and WooCommerce.' },
 ];
 
 import BusinessPickerModal from './BusinessPickerModal';
@@ -95,6 +96,19 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
         const v = value.trim();
         if (!v) { taRef.current?.focus(); return; }
         window.location.href = `${action}?prompt=${encodeURIComponent(v.slice(0, MAX))}`;
+    };
+
+    const handlePresetSelect = (c) => {
+        const p = c.preset || c.key;
+        window.location.href = `${action}?preset=${encodeURIComponent(p)}&prompt=${encodeURIComponent(c.text)}`;
+    };
+
+    const handlePickerSelect = (p) => {
+        setPicker(false);
+        const presetKey = p.preset || p.key || '';
+        const promptText = p.text || p.promptText || p.label || p.name || '';
+        const typeKey = p.key || '';
+        window.location.href = `${action}?type=${encodeURIComponent(typeKey)}&preset=${encodeURIComponent(presetKey)}&prompt=${encodeURIComponent(promptText)}`;
     };
 
     const fill = (text) => {
@@ -183,15 +197,25 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
                     <Building2 size={15} aria-hidden="true" /> Select your business
                 </button>
                 {CHIPS.map((c) => (
-                    <button key={c.key} type="button" className="vq-chip vq-chip--onHero vq-hp__chip" onClick={() => fill(c.text)}>{c.label}</button>
+                    <button
+                        key={c.key}
+                        type="button"
+                        className="vq-chip vq-chip--onHero vq-hp__chip"
+                        onClick={() => handlePresetSelect(c)}
+                        title={`Start setup for ${c.label}`}
+                    >
+                        {c.label}
+                    </button>
                 ))}
             </div>
-            <p className="vq-caption vq-hero-caret vq-hp__hint">Enter to build · Shift + Enter for a new line · nothing goes live until you approve it</p>
+            <p className="vq-caption vq-hero-caret vq-hp__hint" style={{ color: 'var(--vq-hero-subclaim-color, #132622)' }}>
+                Enter to build · Shift + Enter for a new line · nothing goes live until you approve it
+            </p>
 
             {picker && (
                 <BusinessPickerModal
                     onClose={() => setPicker(false)}
-                    onPick={(p) => { setPicker(false); fill(p.text); }}
+                    onPick={handlePickerSelect}
                 />
             )}
         </div>

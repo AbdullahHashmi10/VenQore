@@ -1391,8 +1391,13 @@ html.dark .vq-bp-empty p,
   --vq-text-3: color-mix(in srgb, var(--vq-ink-0) 66%, transparent);
   --vq-line: color-mix(in srgb, var(--vq-ink-0) 14%, transparent);
   --vq-accent-text: var(--vq-teal-300);
+  --vq-hero-subclaim-color: #132622;
   color: var(--vq-text);
   background: transparent;
+}
+:root[data-theme="dark"] .vq-hero-section,
+html.dark .vq-hero-section {
+  --vq-hero-subclaim-color: #EDF2EF;
 }
 .hero-gradient-overlay,
 .vq-hero-section .hero-gradient-overlay,
