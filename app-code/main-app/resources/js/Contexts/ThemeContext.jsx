@@ -97,7 +97,6 @@ export const ThemeProvider = ({ children, settings = {}, managed = false }) => {
         if (managed) return;
         document.documentElement.classList.toggle('dark', isDarkMode);
         document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-vq-theme', isDarkMode ? 'dark' : 'light');
         window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDarkMode } }));
     }, [isDarkMode, managed]);
 

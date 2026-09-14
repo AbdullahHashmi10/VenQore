@@ -25,10 +25,9 @@
       (function(){
         try {
           var saved = localStorage.getItem('amd_theme') || localStorage.getItem('vq-theme') || localStorage.getItem('vq_theme');
-          var theme = (saved === 'dark') ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', theme);
-          document.documentElement.setAttribute('data-vq-theme', theme);
-          if (theme === 'dark') {
+          var mode = (saved === 'dark') ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', mode);
+          if (mode === 'dark') {
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');

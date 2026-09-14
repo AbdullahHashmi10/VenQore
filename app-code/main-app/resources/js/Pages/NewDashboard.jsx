@@ -4366,6 +4366,9 @@ export default function NewDashboard(props) {
     const onOpenSidePanel = () => setRailsModalOpen(true);
     const onStartFresh = () => setPresetModalOpen(true);
     const onQuickActions = () => setGlassModalOpen(true);
+    const onThemeChanged = () => {
+      setTimeout(() => window.VenQoreCards?.draw?.(), 50);
+    };
 
     window.addEventListener('vq:edit-layout', onEditLayout);
     window.addEventListener('vq:toggle-edit-layout', onEditLayout);
@@ -4375,6 +4378,7 @@ export default function NewDashboard(props) {
     window.addEventListener('vq:open-side-panel', onOpenSidePanel);
     window.addEventListener('vq:start-fresh', onStartFresh);
     window.addEventListener('vq:open-quick-actions', onQuickActions);
+    window.addEventListener('theme-changed', onThemeChanged);
 
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -4390,9 +4394,10 @@ export default function NewDashboard(props) {
       window.removeEventListener('vq:add-card', onAddCard);
       window.removeEventListener('vq:open-add-card', onAddCard);
       window.removeEventListener('vq:toggle-side-panel', onToggleSidePanel);
-      window.removeEventListener('vq:open-side-panel', onToggleSidePanel);
+      window.removeEventListener('vq:open-side-panel', onOpenSidePanel);
       window.removeEventListener('vq:start-fresh', onStartFresh);
       window.removeEventListener('vq:open-quick-actions', onQuickActions);
+      window.removeEventListener('theme-changed', onThemeChanged);
     };
   }, [panelDesign, railPrefs.collapsed]);
 

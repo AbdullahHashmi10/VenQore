@@ -156,6 +156,10 @@ export function applyAppearance(appearance = {}) {
     for (const [property, value] of Object.entries(overrides)) {
         root.style.setProperty(property, value);
     }
+
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark } }));
+    }
 }
 
 /**

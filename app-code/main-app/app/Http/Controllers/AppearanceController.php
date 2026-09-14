@@ -7,6 +7,7 @@ use App\Models\UserPreference;
 use App\Support\Appearance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Reads and writes the presentation-layer preferences: theme, mode, custom
@@ -66,22 +67,28 @@ class AppearanceController extends Controller
             }
         }
 
-        UserPreference::put(
-            $user->id,
-            $scope === 'account' ? null : $tenant?->id,
-            UserPreference::KEY_APPEARANCE,
-            $merged,
-        );
+        try {
+            if ($user && Schema::hasTable('user_preferences')) {
+                UserPreference::put(
+                    $user->id,
+                    $scope === 'account' ? null : $tenant?->id,
+                    UserPreference::KEY_APPEARANCE,
+                    $merged,
+                );
 
-        // A store-scoped save leaves a stale account-wide row shadowing nothing —
-        // resolution prefers the scoped row — but an account-wide save must clear
-        // the scoped one, or the user changes their global theme and sees no
-        // effect in the store they are standing in.
-        if ($scope === 'account' && $tenant) {
-            UserPreference::where('user_id', $user->id)
-                ->where('tenant_id', $tenant->id)
-                ->where('key', UserPreference::KEY_APPEARANCE)
-                ->delete();
+                // A store-scoped save leaves a stale account-wide row shadowing nothing —
+                // resolution prefers the scoped row — but an account-wide save must clear
+                // the scoped one, or the user changes their global theme and sees no
+                // effect in the store they are standing in.
+                if ($scope === 'account' && $tenant) {
+                    UserPreference::where('user_id', $user->id)
+                        ->where('tenant_id', $tenant->id)
+                        ->where('key', UserPreference::KEY_APPEARANCE)
+                        ->delete();
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Appearance preference save failed', ['error' => $e->getMessage()]);
         }
 
         // The redirect re-shares the appearance prop; without dropping the
@@ -103,12 +110,18 @@ class AppearanceController extends Controller
             'experience' => ['required', 'string', 'in:' . implode(',', Appearance::EXPERIENCES)],
         ]);
 
-        UserPreference::put(
-            $user->id,
-            $tenant?->id,
-            UserPreference::KEY_EXPERIENCE,
-            ['value' => $validated['experience']],
-        );
+        try {
+            if ($user && Schema::hasTable('user_preferences')) {
+                UserPreference::put(
+                    $user->id,
+                    $tenant?->id,
+                    UserPreference::KEY_EXPERIENCE,
+                    ['value' => $validated['experience']],
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Experience preference save failed', ['error' => $e->getMessage()]);
+        }
 
         Appearance::flush();
 
@@ -143,12 +156,19 @@ class AppearanceController extends Controller
             'accent' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
         ]);
 
-        Setting::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'key' => Appearance::TENANT_SETTING_KEY],
-            ['value' => json_encode(Appearance::sanitize($validated, false))],
-        );
+        try {
+            if (Schema::hasTable('settings')) {
+                Setting::updateOrCreate(
+                    ['tenant_id' => $tenant->id, 'key' => Appearance::TENANT_SETTING_KEY],
+                    ['value' => json_encode(Appearance::sanitize($validated, false))],
+                );
 
-        Cache::forget("settings:{$tenant->id}");
+                Cache::forget("settings:{$tenant->id}");
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Store default appearance save failed', ['error' => $e->getMessage()]);
+        }
+
         Appearance::flush();
 
         return back()->with('success', 'Store appearance default updated.');
