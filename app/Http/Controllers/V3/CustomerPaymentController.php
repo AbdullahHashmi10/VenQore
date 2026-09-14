@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Http\Controllers\V3;
+
+use App\Http\Controllers\Controller;
+use App\Engines\AccountingService;
+use App\Engines\PaymentService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+
+class CustomerPaymentController extends Controller
+{
+    public function __construct(
+        private AccountingService $accounting,
+        private PaymentService    $payments
+    ) {}
+
+    public function store(Request $request)
+    {
+        $tenantId = app('current.tenant')->id;
+
+        // Both the paying party and every invoice must belong to the CURRENT
+        // store (the bare exists: rules accepted another store's ids, and a
+        // foreign sale id then blew up inside the allocation as a 500), and
+        // each invoice must belong to the customer who is paying.
+        $validated = $request->validate([
+            'customer_id'    => ['required', 'string', Rule::exists('parties', 'id')->where('tenant_id', $tenantId)],
+            'payment_date'   => ['required', 'date', 'before_or_equal:today'],
+            'payment_method' => ['required', 'in:cash,bank'],
+            'amount'         => ['required', 'numeric', 'min:0.01'],
+            'reference'      => ['nullable', 'string', 'max:100'],
+            'allocations'    => ['required', 'array', 'min:1'],
+            'allocations.*.sale_id' => ['required', 'string', Rule::exists('sales', 'id')->where('tenant_id', $tenantId)],
+            'allocations.*.amount'  => ['required', 'numeric', 'min:0.01'],
+        ]);
+
+        foreach ($validated['allocations'] as $i => $allocation) {
+            $belongsToCustomer = DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('id', $allocation['sale_id'])
+                ->where('party_id', $validated['customer_id'])
+                ->exists();
+
+            if (!$belongsToCustomer) {
+                throw ValidationException::withMessages([
+                    "allocations.{$i}.sale_id" => 'This invoice does not belong to the selected customer.',
+                ]);
+            }
+        }
+
+        // Validate allocation total does not exceed payment amount
+        $allocTotal = array_sum(array_column($validated['allocations'], 'amount'));
+        if (round($allocTotal, 2) > round($validated['amount'], 2)) {
+            return back()->withErrors([
+                'allocations' => 'Total allocations (' . $allocTotal . ') exceed ' .
+                                 'payment amount (' . $validated['amount'] . ').',
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($validated) {
+
+                $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
+
+                // B4 Journal:
+                // DR 1000/1010 Cash or Bank
+                // CR 1200 Accounts Receivable
+                $journalEntry = $this->accounting->createEntry([
+                    'date'     => $validated['payment_date'],
+                    'reference_type' => 'customer_payment',
+                    'reference'   => Str::uuid()->toString(),
+                    'description'    => 'Customer payment' .
+                                        (isset($validated['reference']) && $validated['reference']
+                                            ? ' — ' . $validated['reference']
+                                            : ''),
+                    'party_id'       => $validated['customer_id'],
+                ], [
+                    [
+                        'account_code' => $cashAccount,
+                        'debit'        => $validated['amount'],
+                        'credit'       => 0,
+                    ],
+                    [
+                        'account_code' => '1200',
+                        'debit'        => 0,
+                        'credit'       => $validated['amount'],
+                        'party_id'     => $validated['customer_id'],
+                    ],
+                ]);
+
+                // Allocate to sale invoices
+                $allocations = array_map(fn($a) => [
+                    'sale_id' => $a['sale_id'],
+                    'amount'  => $a['amount'],
+                ], $validated['allocations']);
+
+                $this->payments->allocate($journalEntry->id, $allocations);
+            });
+        } catch (\App\Exceptions\OverAllocationException $e) {
+            if (request()->expectsJson() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors'  => ['allocations' => [$e->getMessage()]],
+                    'message' => $e->getMessage()
+                ], 422);
+            }
+            return redirect()->back()->withErrors([
+                'allocations' => $e->getMessage(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Customer payment posted.');
+    }
+}

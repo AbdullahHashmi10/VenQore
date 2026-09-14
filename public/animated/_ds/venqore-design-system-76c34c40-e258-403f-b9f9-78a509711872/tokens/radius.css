@@ -1,0 +1,13 @@
+/* v5 shape: soft and chunky. v2's 10px base read like a bank form; the
+   playful register lives between 14 and 28. Nesting rule stays:
+   inner radius = outer radius − inner padding. */
+:root {
+  --vq-r-none: 0px;
+  --vq-r-xs: 8px;    /* checkbox, cell chip */
+  --vq-r-sm: 12px;   /* badge, tag, tooltip, small inner tile */
+  --vq-r-md: 14px;   /* BASE — input, select, menu item */
+  --vq-r-lg: 20px;   /* card, panel, dropdown surface, button */
+  --vq-r-xl: 28px;   /* modal, drawer, big feature tile, KPI card */
+  --vq-r-2xl: 36px;  /* CEILING — hero card, app frame */
+  --vq-r-full: 999px;
+}

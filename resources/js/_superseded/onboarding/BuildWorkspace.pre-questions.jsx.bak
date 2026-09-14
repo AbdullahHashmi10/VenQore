@@ -1,0 +1,858 @@
+import React, { useState, useEffect } from 'react';
+import { Head } from '@inertiajs/react';
+import { ThinkingOrb } from '@/Components/ThinkingOrbs/ThinkingOrb';
+import { 
+	Sparkles, ArrowRight, ArrowLeft, Check, CheckCircle2, Shield, Plus, 
+	Trash2, Globe, Building2, Phone, Mail, Lock, Bot, Rocket, Layers, 
+	Search, X, Sun, Moon, Zap, Coffee, ShoppingBag, Store, Briefcase, 
+	Wrench, Filter, CheckCircle
+} from 'lucide-react';
+
+export default function BuildWorkspace({ 
+	initialPrompt = '', 
+	initialPreset = '', 
+	initialEmail = '', 
+	initialCurrency = 'USD', 
+	presets = {}, 
+	allModules = [] 
+}) {
+	// Step navigation: 'result' | 'identity' | 'building' | 'account'
+	const [step, setStep] = useState('result');
+	const [prompt, setPrompt] = useState(initialPrompt);
+	const [presetKey, setPresetKey] = useState(initialPreset);
+	const [isAnalyzing, setIsAnalyzing] = useState(true);
+
+	// Light theme by default, with dark mode toggle
+	const [isDark, setIsDark] = useState(() => {
+		if (typeof window !== 'undefined') {
+			const saved = localStorage.getItem('vq-builder-theme');
+			if (saved) return saved === 'dark';
+		}
+		return false; // Default: Light Mode
+	});
+
+	const [presetLabel, setPresetLabel] = useState('Custom Workspace');
+	const [presetDesc, setPresetDesc] = useState('Tailored workspace built for your operational needs.');
+	const [activeModules, setActiveModules] = useState(['products', 'pos', 'inventory', 'expenses', 'reports']);
+	const [capabilities, setCapabilities] = useState([]);
+	const [showAllFeatures, setShowAllFeatures] = useState(false);
+	const [featureSearch, setFeatureSearch] = useState('');
+	const [selectedCategory, setSelectedCategory] = useState('all');
+
+	// Demand Log state
+	const [showDemandInput, setShowDemandInput] = useState(false);
+	const [demandText, setDemandText] = useState('');
+	const [demandEmail, setDemandEmail] = useState('');
+	const [isSendingDemand, setIsSendingDemand] = useState(false);
+	const [demandSubmitted, setDemandSubmitted] = useState(false);
+
+	// Identity Inputs
+	const [businessName, setBusinessName] = useState('');
+	const [currency, setCurrency] = useState(initialCurrency || 'USD');
+	const [phone, setPhone] = useState('');
+
+	// Account Inputs
+	const [email, setEmail] = useState(initialEmail || '');
+	const [password, setPassword] = useState('');
+	const [isProvisioning, setIsProvisioning] = useState(false);
+	const [buildStepIndex, setBuildStepIndex] = useState(0);
+
+	// Ensure viewport and document scrolling is unlocked
+	useEffect(() => {
+		const html = document.documentElement;
+		html.setAttribute('data-vq-shell', 'workspace-builder');
+		return () => {
+			html.removeAttribute('data-vq-shell');
+		};
+	}, []);
+
+	// Theme persistence
+	useEffect(() => {
+		try {
+			localStorage.setItem('vq-builder-theme', isDark ? 'dark' : 'light');
+		} catch (e) {}
+	}, [isDark]);
+
+	// Initial analysis on mount
+	useEffect(() => {
+		analyzePrompt(initialPrompt, initialPreset);
+	}, []);
+
+	const analyzePrompt = async (p, pr) => {
+		setIsAnalyzing(true);
+		try {
+			const res = await fetch(route('workspace.analyze'), {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+					'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+				},
+				body: JSON.stringify({ prompt: p, preset: pr }),
+			});
+			const data = await res.json();
+			if (data.success) {
+				setPresetLabel(data.preset_label);
+				if (data.preset_description) setPresetDesc(data.preset_description);
+				if (data.prompt) setPrompt(data.prompt);
+				setActiveModules(data.modules);
+				setCapabilities(data.capabilities);
+			}
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setIsAnalyzing(false);
+		}
+	};
+
+	const handleSendDemand = async () => {
+		if (!demandText.trim()) return;
+		setIsSendingDemand(true);
+		try {
+			const res = await fetch(route('workspace.demand'), {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+					'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+				},
+				body: JSON.stringify({
+					prompt: demandText,
+					email: demandEmail || null,
+					source: 'build_workspace',
+				}),
+			});
+			const data = await res.json();
+			if (data.success) {
+				setDemandSubmitted(true);
+			}
+		} catch (err) {
+			console.error(err);
+		} finally {
+			setIsSendingDemand(false);
+		}
+	};
+
+	const toggleModule = (modKey) => {
+		if (activeModules.includes(modKey)) {
+			setActiveModules(activeModules.filter(m => m !== modKey));
+		} else {
+			setActiveModules([...activeModules, modKey]);
+		}
+	};
+
+	const handleProvision = async (e) => {
+		e.preventDefault();
+		setStep('building');
+		setIsProvisioning(true);
+		setBuildStepIndex(0);
+
+		let idx = 0;
+		const pacer = setInterval(() => {
+			idx = Math.min(idx + 1, 2);
+			setBuildStepIndex(idx);
+		}, 900);
+
+		try {
+			const res = await fetch(route('workspace.provision'), {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+					'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+				},
+				body: JSON.stringify({
+					business_name: businessName || 'My Business',
+					currency,
+					phone,
+					email,
+					password,
+					modules: activeModules,
+					preset_key: presetKey || null,
+				}),
+			});
+			const data = await res.json();
+			clearInterval(pacer);
+
+			if (data.success && data.redirect) {
+				setBuildStepIndex(3);
+				setTimeout(() => {
+					window.location.href = data.redirect;
+				}, 500);
+			} else {
+				alert(data.message || 'Provisioning error');
+				setIsProvisioning(false);
+				setStep('account');
+			}
+		} catch (err) {
+			clearInterval(pacer);
+			console.error(err);
+			setIsProvisioning(false);
+			setStep('account');
+		}
+	};
+
+	// Categorize modules for 21st.dev filter pills
+	const getModuleCategory = (mod) => {
+		const key = (mod.key || '').toLowerCase();
+		const label = (mod.label || '').toLowerCase();
+		if (key.includes('pos') || key.includes('sale') || key.includes('invoice') || label.includes('sale') || label.includes('counter')) return 'sales';
+		if (key.includes('stock') || key.includes('inventory') || key.includes('batch') || key.includes('warehouse') || key.includes('product') || key.includes('recipe')) return 'inventory';
+		if (key.includes('account') || key.includes('expense') || key.includes('tax') || key.includes('ledger') || key.includes('bank') || key.includes('profit') || key.includes('loan')) return 'finance';
+		if (key.includes('staff') || key.includes('attendance') || key.includes('user') || key.includes('report') || key.includes('ai') || key.includes('loyalty') || key.includes('ecommerce')) return 'operations';
+		return 'other';
+	};
+
+	const filteredModules = allModules.filter((mod) => {
+		const matchesSearch = !featureSearch.trim() || 
+			mod.label?.toLowerCase().includes(featureSearch.toLowerCase()) ||
+			mod.description?.toLowerCase().includes(featureSearch.toLowerCase()) ||
+			mod.key?.toLowerCase().includes(featureSearch.toLowerCase());
+		
+		const matchesCat = selectedCategory === 'all' || getModuleCategory(mod) === selectedCategory;
+		return matchesSearch && matchesCat;
+	});
+
+	// Theme-driven classes
+	const pageBg = isDark ? 'bg-neutral-950 text-neutral-100' : 'bg-slate-50 text-slate-900';
+	const cardBg = isDark ? 'bg-neutral-900/90 border-neutral-800' : 'bg-white border-slate-200/90 shadow-xl shadow-slate-200/60';
+	const subCardBg = isDark ? 'bg-neutral-950/70 border-neutral-800' : 'bg-slate-50/80 border-slate-200';
+	const inputBg = isDark ? 'bg-neutral-950 border-neutral-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400';
+	const mutedText = isDark ? 'text-neutral-400' : 'text-slate-500';
+
+	return (
+		<div className={`min-h-screen w-full ${pageBg} font-sans transition-colors duration-200 flex flex-col justify-between p-4 sm:p-6 md:p-8 relative`}>
+			<Head title="Build Your Workspace — VenQore" />
+
+			{/* Background ambient light effects */}
+			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-teal-500/10 rounded-full blur-[130px] pointer-events-none" />
+			<div className="absolute bottom-0 right-0 w-[500px] h-[400px] bg-emerald-500/10 rounded-full blur-[130px] pointer-events-none" />
+
+			{/* Top Header & Theme Switcher */}
+			<header className={`w-full max-w-5xl mx-auto flex items-center justify-between py-3.5 border-b ${isDark ? 'border-neutral-800' : 'border-slate-200'} mb-6 relative z-20`}>
+				<div className="flex items-center gap-3">
+					<div className="p-1.5 rounded-xl bg-teal-500/10 border border-teal-500/30">
+						<ThinkingOrb state="breathing" size={24} theme={isDark ? 'dark' : 'light'} />
+					</div>
+					<div className="flex items-baseline gap-1.5">
+						<span className="font-extrabold text-lg tracking-tight">VenQore</span>
+						<span className="text-teal-600 dark:text-teal-400 font-mono text-xs font-semibold">Builder</span>
+					</div>
+				</div>
+
+				<div className="flex items-center gap-3">
+					{/* Theme Switcher Toggle */}
+					<button
+						type="button"
+						onClick={() => setIsDark(d => !d)}
+						className={`px-3 py-1.5 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all cursor-pointer ${
+							isDark 
+								? 'bg-neutral-900 border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-600' 
+								: 'bg-white border-slate-300 text-slate-700 hover:text-slate-950 hover:border-slate-400 shadow-xs'
+						}`}
+						aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+					>
+						{isDark ? (
+							<>
+								<Sun size={14} className="text-amber-400" />
+								<span>Light Mode</span>
+							</>
+						) : (
+							<>
+								<Moon size={14} className="text-teal-700" />
+								<span>Dark Mode</span>
+							</>
+						)}
+					</button>
+
+					<div className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+						<Shield size={14} />
+						<span>The Qore Ledger Verified</span>
+					</div>
+				</div>
+			</header>
+
+			{/* Stepper Progress Indicator (ReactBits / 21st.dev style) */}
+			<div className="w-full max-w-xl mx-auto mb-6 relative z-10">
+				<div className="flex items-center justify-between gap-2 px-2">
+					{[
+						{ id: 'result', label: '1. Architecture' },
+						{ id: 'identity', label: '2. Business' },
+						{ id: 'account', label: '3. Launch' },
+					].map((st, i) => {
+						const isCurrent = step === st.id || (step === 'building' && st.id === 'account');
+						const isCompleted = (step === 'identity' && st.id === 'result') || 
+							(step === 'account' && (st.id === 'result' || st.id === 'identity')) ||
+							(step === 'building');
+						return (
+							<div key={st.id} className="flex-1 flex items-center gap-2">
+								<div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+									isCurrent 
+										? 'bg-teal-500 shadow-xs shadow-teal-500/50' 
+										: isCompleted 
+											? 'bg-emerald-500' 
+											: isDark ? 'bg-neutral-800' : 'bg-slate-200'
+								}`} />
+								<span className={`text-2xs font-semibold transition-colors ${
+									isCurrent 
+										? 'text-teal-600 dark:text-teal-400 font-bold' 
+										: isCompleted 
+											? 'text-emerald-600 dark:text-emerald-400' 
+											: mutedText
+								}`}>
+									{st.label}
+								</span>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+
+			{/* Main Container */}
+			<main className="relative z-10 w-full max-w-4xl mx-auto my-2 pb-12">
+				{/* ── STEP 1: AI Result ("We built this for you") ────────────── */}
+				{step === 'result' && (
+					<div className="space-y-6 animate-fadeIn">
+						<div className="text-center space-y-3">
+							<div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold border ${
+								isDark 
+									? 'bg-teal-500/10 border-teal-500/30 text-teal-300' 
+									: 'bg-teal-50 border-teal-200 text-teal-800 shadow-xs'
+							}`}>
+								<Bot size={14} className="text-teal-600 dark:text-teal-400" />
+								<span>AI Workspace Architecture</span>
+							</div>
+							
+							<h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+								We Built This Setup For Your Business
+							</h1>
+
+							{prompt ? (
+								<div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs max-w-xl mx-auto border ${
+									isDark 
+										? 'bg-neutral-900 border-neutral-800 text-neutral-300' 
+										: 'bg-white border-slate-200 text-slate-700 shadow-xs'
+								}`}>
+									<span className="text-teal-600 dark:text-teal-400 font-bold shrink-0">Tailored to:</span>
+									<span className="italic truncate">“{prompt}”</span>
+								</div>
+							) : (
+								<p className={`${mutedText} text-xs sm:text-sm max-w-lg mx-auto`}>
+									Based on your requirements, VenQore configured this workspace with zero feature paywalls.
+								</p>
+							)}
+						</div>
+
+						{/* Capability Stack Card */}
+						{isAnalyzing ? (
+							<div className={`p-12 text-center space-y-4 rounded-3xl border ${cardBg}`}>
+								<div className="flex justify-center">
+									<ThinkingOrb state="solving" size={80} theme={isDark ? 'dark' : 'light'} />
+								</div>
+								<p className={`${mutedText} text-xs font-mono`}>Analyzing requirements & assembling workspace modules...</p>
+							</div>
+						) : (
+							<div className={`rounded-3xl border ${cardBg} p-5 sm:p-7 md:p-8 space-y-6 transition-all`}>
+								{/* Preset Header */}
+								<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-neutral-800">
+									<div>
+										<div className="flex items-center gap-2">
+											<span className="text-2xs font-mono uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+												Matched Preset
+											</span>
+											<h3 className="text-lg sm:text-xl font-bold">{presetLabel}</h3>
+										</div>
+										<p className={`text-xs ${mutedText} mt-1`}>{presetDesc}</p>
+									</div>
+
+									<div className="flex items-center gap-2 shrink-0">
+										<span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full">
+											All Included ($0 Fee)
+										</span>
+									</div>
+								</div>
+
+								{/* Suggested Core Capabilities Grid */}
+								<div>
+									<h4 className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-500 dark:text-neutral-400">
+										Recommended Core Modules ({capabilities.filter(c => activeModules.includes(c.key)).length} enabled)
+									</h4>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										{capabilities.map((cap) => {
+											const isSelected = activeModules.includes(cap.key);
+											return (
+												<div
+													key={cap.key}
+													onClick={() => toggleModule(cap.key)}
+													className={`cursor-pointer p-3.5 sm:p-4 rounded-2xl border transition-all duration-150 flex items-center justify-between select-none ${
+														isSelected
+															? isDark
+																? 'bg-neutral-950 border-teal-500/60 shadow-md text-white'
+																: 'bg-teal-50/60 border-teal-500 shadow-sm text-slate-900'
+															: isDark
+																? 'bg-neutral-950/40 border-neutral-800/80 text-neutral-500 opacity-60 hover:opacity-100'
+																: 'bg-slate-50 border-slate-200 text-slate-400 opacity-70 hover:opacity-100'
+													}`}
+												>
+													<div className="flex items-center gap-3 min-w-0 pr-2">
+														<div className={`p-2 rounded-xl border shrink-0 ${
+															isSelected 
+																? 'bg-teal-500/10 border-teal-500/30 text-teal-600 dark:text-teal-400' 
+																: isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-slate-200/80 border-slate-300'
+														}`}>
+															<Layers size={17} />
+														</div>
+														<div className="min-w-0">
+															<h5 className="text-xs font-bold truncate">{cap.label}</h5>
+															<p className={`text-2xs ${mutedText} truncate`}>{cap.desc}</p>
+														</div>
+													</div>
+													<div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+														isSelected 
+															? 'bg-emerald-500 text-white shadow-xs' 
+															: isDark ? 'border border-neutral-700 text-transparent' : 'border border-slate-300 text-transparent'
+													}`}>
+														<Check size={12} strokeWidth={3} />
+													</div>
+												</div>
+											);
+										})}
+									</div>
+								</div>
+
+								{/* Add More Features / Catalog Accordion */}
+								<div className="pt-2 border-t border-slate-200 dark:border-neutral-800">
+									<div className="flex items-center justify-between py-1">
+										<button
+											type="button"
+											onClick={() => setShowAllFeatures(v => !v)}
+											className={`flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer ${
+												isDark ? 'text-neutral-200 hover:text-white' : 'text-slate-800 hover:text-slate-950'
+											}`}
+										>
+											<div className={`p-1.5 rounded-lg border transition-transform duration-200 ${
+												showAllFeatures ? 'rotate-45' : ''
+											} ${
+												isDark ? 'bg-neutral-800 border-neutral-700 text-neutral-300' : 'bg-slate-100 border-slate-300 text-slate-700'
+											}`}>
+												<Plus size={14} />
+											</div>
+											<span>Want to add more features?</span>
+											<span className="px-2.5 py-0.5 rounded-full text-2xs font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+												{allModules.length} Available
+											</span>
+										</button>
+
+										<span className="text-xs font-semibold text-teal-600 dark:text-teal-400">
+											{activeModules.length} Active
+										</span>
+									</div>
+
+									{showAllFeatures && (
+										<div className={`mt-3 p-4 sm:p-5 rounded-2xl border ${subCardBg} space-y-4 animate-fadeIn`}>
+											{/* Search Bar & Category Filter Chips */}
+											<div className="space-y-3">
+												<div className="flex items-center gap-2">
+													<div className="relative flex-1">
+														<Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+														<input
+															type="text"
+															value={featureSearch}
+															onChange={(e) => setFeatureSearch(e.target.value)}
+															placeholder="Search features (e.g. Accounting, Tips, Staff, Barcode)..."
+															className={`w-full pl-9 pr-8 py-2 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all ${inputBg}`}
+														/>
+														{featureSearch && (
+															<button
+																type="button"
+																onClick={() => setFeatureSearch('')}
+																className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+															>
+																<X size={14} />
+															</button>
+														)}
+													</div>
+													<button
+														type="button"
+														onClick={() => setShowAllFeatures(false)}
+														className="text-xs font-bold px-3.5 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl shadow-xs shrink-0 cursor-pointer"
+													>
+														Done
+													</button>
+												</div>
+
+												{/* Category Filters */}
+												<div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-2xs font-semibold">
+													{[
+														{ id: 'all', label: 'All Modules' },
+														{ id: 'sales', label: 'Sales & POS' },
+														{ id: 'inventory', label: 'Inventory' },
+														{ id: 'finance', label: 'Finance & Tax' },
+														{ id: 'operations', label: 'Operations & Staff' },
+													].map((cat) => (
+														<button
+															key={cat.id}
+															type="button"
+															onClick={() => setSelectedCategory(cat.id)}
+															className={`px-3 py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap ${
+																selectedCategory === cat.id
+																	? 'bg-teal-500 text-white border-teal-500 shadow-xs'
+																	: isDark
+																		? 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+																		: 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+															}`}
+														>
+															{cat.label}
+														</button>
+													))}
+												</div>
+											</div>
+
+											{/* Module Items Grid */}
+											<div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-80 overflow-y-auto overscroll-contain pr-1">
+												{filteredModules.length === 0 ? (
+													<div className="col-span-2 text-center py-6 text-xs text-slate-400">
+														No features found matching "{featureSearch}".
+													</div>
+												) : (
+													filteredModules.map((mod) => {
+														const isSelected = activeModules.includes(mod.key);
+														return (
+															<div
+																key={mod.key}
+																onClick={() => toggleModule(mod.key)}
+																className={`cursor-pointer p-3 rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 select-none ${
+																	isSelected
+																		? isDark
+																			? 'bg-teal-500/15 border-teal-500/60 text-white shadow-xs'
+																			: 'bg-teal-50 border-teal-500 text-slate-900 shadow-xs'
+																		: isDark
+																			? 'bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
+																			: 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+																}`}
+															>
+																<div className="min-w-0 pr-1">
+																	<h5 className="text-xs font-bold truncate">{mod.label}</h5>
+																	{mod.description && (
+																		<p className={`text-2xs ${mutedText} truncate`}>{mod.description}</p>
+																	)}
+																</div>
+																<div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+																	isSelected
+																		? 'bg-emerald-500 text-white'
+																		: isDark ? 'border border-neutral-700 text-transparent' : 'border border-slate-300 text-transparent'
+																}`}>
+																	<Check size={11} strokeWidth={3} />
+																</div>
+															</div>
+														);
+													})
+												)}
+											</div>
+										</div>
+									)}
+								</div>
+
+								{/* Demand Log Section */}
+								<div className="pt-2 border-t border-slate-200 dark:border-neutral-800">
+									{!showDemandInput ? (
+										<button
+											type="button"
+											onClick={() => setShowDemandInput(true)}
+											className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium transition-colors flex items-center gap-1.5 mx-auto cursor-pointer"
+										>
+											<span>Not quite right? Tell us your exact business workflow</span>
+											<ArrowRight size={12} />
+										</button>
+									) : (
+										<div className={`p-4 rounded-2xl border ${subCardBg} space-y-3 animate-fadeIn`}>
+											<div className="flex items-center justify-between">
+												<span className="text-xs font-bold">What specific workflow or features do you need?</span>
+												<button
+													type="button"
+													onClick={() => setShowDemandInput(false)}
+													className="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs px-1 cursor-pointer"
+												>
+													✕
+												</button>
+											</div>
+											{demandSubmitted ? (
+												<div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+													<CheckCircle2 size={16} />
+													<span>Thank you! Your request has been logged. Our engineering team reviews incoming workflow needs.</span>
+												</div>
+											) : (
+												<div className="space-y-2">
+													<textarea
+														rows={2}
+														value={demandText}
+														onChange={(e) => setDemandText(e.target.value)}
+														placeholder="e.g., We need multi-warehouse stock transfer approvals and custom tip management..."
+														className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 ${inputBg}`}
+													/>
+													<div className="flex items-center justify-between gap-2">
+														<input
+															type="email"
+															value={demandEmail}
+															onChange={(e) => setDemandEmail(e.target.value)}
+															placeholder="Your email (optional, for updates)"
+															className={`flex-1 px-3 py-1.5 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 ${inputBg}`}
+														/>
+														<button
+															type="button"
+															disabled={isSendingDemand || !demandText.trim()}
+															onClick={handleSendDemand}
+															className="px-4 py-1.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+														>
+															{isSendingDemand ? 'Sending...' : 'Submit to Roadmap'}
+														</button>
+													</div>
+												</div>
+											)}
+										</div>
+									)}
+								</div>
+
+								{/* Bottom Action Bar */}
+								<div className={`pt-4 border-t ${isDark ? 'border-neutral-800' : 'border-slate-200'} flex flex-col sm:flex-row items-center justify-between gap-4 text-xs`}>
+									<div className="flex items-center gap-2">
+										<span className="px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-700 dark:text-teal-300 font-mono text-xs font-bold">
+											{activeModules.length} Modules Selected
+										</span>
+										<span className={`${mutedText} text-2xs hidden sm:inline`}>Zero setup fee • Full customization anytime</span>
+									</div>
+									<button
+										type="button"
+										onClick={() => setStep('identity')}
+										className="w-full sm:w-auto py-3.5 px-7 bg-teal-600 hover:bg-teal-500 active:scale-95 text-white font-bold text-sm rounded-2xl shadow-lg shadow-teal-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+									>
+										<span>Continue to Identity</span>
+										<ArrowRight size={16} />
+									</button>
+								</div>
+							</div>
+						)}
+					</div>
+				)}
+
+				{/* ── STEP 2: Business Identity ──────────────────────────────── */}
+				{step === 'identity' && (
+					<div className="space-y-6 animate-fadeIn max-w-xl mx-auto">
+						<div className="text-center space-y-2">
+							<h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Let's Personalize It</h2>
+							<p className={`${mutedText} text-xs sm:text-sm`}>
+								Enter your business profile to configure your localized currency and receipts.
+							</p>
+						</div>
+
+						<div className={`rounded-3xl border ${cardBg} p-6 sm:p-8 space-y-5 transition-all`}>
+							<div className="space-y-1.5">
+								<label className="block text-xs font-bold uppercase tracking-wider">
+									Business Name *
+								</label>
+								<div className="relative">
+									<input
+										type="text"
+										value={businessName}
+										onChange={(e) => setBusinessName(e.target.value)}
+										placeholder="e.g. Hashmi Cafe & Roastery"
+										className={`w-full px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 pl-10 ${inputBg}`}
+									/>
+									<Building2 size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
+								</div>
+							</div>
+
+							<div className="space-y-1.5">
+								<label className="block text-xs font-bold uppercase tracking-wider">
+									Base Currency *
+								</label>
+								<div className="relative">
+									<select
+										value={currency}
+										onChange={(e) => setCurrency(e.target.value)}
+										className={`w-full px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 pl-10 appearance-none cursor-pointer ${inputBg}`}
+									>
+										<option value="USD">USD $ — US Dollar</option>
+										<option value="PKR">PKR ₨ — Pakistani Rupee</option>
+										<option value="AED">AED — UAE Dirham</option>
+										<option value="EUR">EUR € — Euro</option>
+										<option value="GBP">GBP £ — British Pound</option>
+										<option value="CAD">CAD $ — Canadian Dollar</option>
+										<option value="AUD">AUD $ — Australian Dollar</option>
+										<option value="SAR">SAR — Saudi Riyal</option>
+									</select>
+									<Globe size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
+								</div>
+							</div>
+
+							<div className="space-y-1.5">
+								<label className="block text-xs font-bold uppercase tracking-wider flex items-center justify-between">
+									<span>Phone Number</span>
+									<span className={`${mutedText} text-2xs lowercase font-normal`}>Optional</span>
+								</label>
+								<div className="relative">
+									<input
+										type="text"
+										value={phone}
+										onChange={(e) => setPhone(e.target.value)}
+										placeholder="e.g. +1 555 123 4567"
+										className={`w-full px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 pl-10 ${inputBg}`}
+									/>
+									<Phone size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
+								</div>
+							</div>
+
+							<div className="pt-3 flex items-center justify-between">
+								<button
+									type="button"
+									onClick={() => setStep('result')}
+									className={`text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${mutedText} hover:text-slate-900 dark:hover:text-white`}
+								>
+									<ArrowLeft size={14} />
+									<span>Back to Modules</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setStep('account')}
+									className="py-3.5 px-6 bg-teal-600 hover:bg-teal-500 active:scale-95 text-white font-bold text-sm rounded-2xl shadow-lg shadow-teal-600/30 flex items-center gap-2 transition-all cursor-pointer"
+								>
+									<Rocket size={17} />
+									<span>Continue to Account →</span>
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* ── STEP 3: Building Animation ─────────────────────────────── */}
+				{step === 'building' && (
+					<div className="py-8 space-y-6 animate-fadeIn text-center max-w-md mx-auto">
+						<div className="flex justify-center">
+							<div className={`p-6 rounded-full border shadow-2xl ${cardBg}`}>
+								<ThinkingOrb state="connecting" size={100} theme={isDark ? 'dark' : 'light'} />
+							</div>
+						</div>
+
+						<div className="space-y-1.5">
+							<h2 className="text-2xl font-extrabold tracking-tight">Constructing Your Workspace</h2>
+							<p className={`${mutedText} text-xs`}>Assembling your ledger and live system databases...</p>
+						</div>
+
+						<div className={`rounded-3xl border ${cardBg} p-5 space-y-2.5 text-left`}>
+							{[
+								'Understanding your business requirements',
+								'Setting up selected workspace modules',
+								'Connecting data engine & ledger sequences',
+								'Finalizing owner dashboard permissions',
+							].map((stTitle, idx) => {
+								const isDone = idx <= buildStepIndex;
+								return (
+									<div
+										key={idx}
+										className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+											isDone 
+												? isDark
+													? 'bg-teal-500/10 border-teal-500/30 text-white'
+													: 'bg-teal-50 border-teal-300 text-slate-900'
+												: 'opacity-40 border-transparent text-slate-400'
+										}`}
+									>
+										<CheckCircle2 size={17} className={isDone ? 'text-emerald-500' : 'text-slate-400'} />
+										<span className="text-xs font-semibold">{stTitle}</span>
+									</div>
+								);
+							})}
+						</div>
+					</div>
+				)}
+
+				{/* ── STEP 4: Account Registration ──────────────────────────── */}
+				{step === 'account' && (
+					<div className="space-y-6 animate-fadeIn max-w-md mx-auto">
+						<div className="text-center space-y-2">
+							<div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+								<CheckCircle2 size={14} />
+								<span>Almost ready — final step</span>
+							</div>
+							<h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Save Your Workspace</h2>
+							<p className={`${mutedText} text-xs`}>
+								Set your admin credentials to launch your verified VenQore workspace.
+							</p>
+						</div>
+
+						<form onSubmit={handleProvision} className={`rounded-3xl border ${cardBg} p-6 sm:p-8 space-y-4 transition-all`}>
+							<div className="space-y-1">
+								<label className="block text-xs font-bold uppercase tracking-wider">
+									Admin Email *
+								</label>
+								<div className="relative">
+									<input
+										type="email"
+										required
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										placeholder="owner@yourbusiness.com"
+										className={`w-full px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 pl-10 ${inputBg}`}
+									/>
+									<Mail size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
+								</div>
+							</div>
+
+							<div className="space-y-1">
+								<label className="block text-xs font-bold uppercase tracking-wider">
+									Password *
+								</label>
+								<div className="relative">
+									<input
+										type="password"
+										required
+										minLength={8}
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										placeholder="••••••••••••"
+										className={`w-full px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 pl-10 ${inputBg}`}
+									/>
+									<Lock size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
+								</div>
+							</div>
+
+							<div className="pt-2">
+								<button
+									type="submit"
+									disabled={isProvisioning}
+									className="w-full py-4 px-6 bg-teal-600 hover:bg-teal-500 active:scale-98 text-white font-bold text-sm rounded-2xl shadow-xl shadow-teal-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+								>
+									{isProvisioning ? (
+										<span>Entering Workspace...</span>
+									) : (
+										<>
+											<Rocket size={18} />
+											<span>Save & Enter Workspace →</span>
+										</>
+									)}
+								</button>
+							</div>
+
+							<div className="pt-2 text-center">
+								<button
+									type="button"
+									onClick={() => setStep('identity')}
+									className={`text-xs font-semibold ${mutedText} hover:text-slate-900 dark:hover:text-white cursor-pointer`}
+								>
+									← Edit Business Details
+								</button>
+							</div>
+						</form>
+					</div>
+				)}
+			</main>
+
+			{/* Footer */}
+			<footer className={`w-full max-w-5xl mx-auto text-center py-4 border-t ${isDark ? 'border-neutral-800' : 'border-slate-200'} ${mutedText} text-xs flex items-center justify-between relative z-20`}>
+				<span>© 2026 VenQore ERP. All rights reserved.</span>
+				<span className="font-mono text-2xs">The Qore Ledger Verified</span>
+			</footer>
+		</div>
+	);
+}
