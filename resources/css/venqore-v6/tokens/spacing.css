@@ -1,0 +1,43 @@
+:root {
+  --vq-space-0: 0px;   --vq-space-1: 4px;   --vq-space-2: 8px;
+  --vq-space-3: 12px;  --vq-space-4: 16px;  --vq-space-5: 20px;
+  --vq-space-6: 24px;  --vq-space-7: 28px;  --vq-space-8: 32px;
+  --vq-space-10: 40px; --vq-space-12: 48px; --vq-space-14: 56px;
+  --vq-space-16: 64px; --vq-space-20: 80px; --vq-space-24: 96px;
+  --vq-space-32: 128px;
+
+  /* Density — v5 runs roomier than v2. Playful needs air. */
+  --vq-control-sm: 34px;
+  --vq-control-md: 42px;
+  --vq-control-lg: 48px;
+  --vq-control-xl: 56px;
+  --vq-row-h: 52px;
+  --vq-row-head-h: 40px;
+  --vq-rail-w: 264px;      /* Layout Law v2.0 §1 — nav expanded. Was 248 */
+  --vq-rail-w-min: 72px;   /* Layout Law v2.0 §1 — nav rail. Was 76 */
+  --vq-topbar-h: 64px;     /* Layout Law v2.0 §1 — header_h == row. Was 68 */
+  --vq-page-max: 1240px;
+  --vq-gutter: 24px;      /* Layout Law v2.0 §1 — GUTTER, both axes. Was 20.
+                             size(n) = n*64 + (n-1)*24 depends on this. */
+  --vq-section-y: 112px;  /* marketing section rhythm */
+
+  /* Layout Law v2.0 §1 — the grid. size(n) = n*UNIT + (n-1)*GUTTER.
+     UNIT is the vertical row track; GUTTER above applies to BOTH axes and is
+     implemented as `gap`, never margin-bottom. */
+  --vq-row-unit: 64px;
+  --vq-grid-cols: 12; /* @kind other */
+
+  /* Stacking ladder — these twelve are the only legal z-index values. */
+  --vq-z-base: 0; /* @kind other */
+  --vq-z-raised: 10; /* @kind other */
+  --vq-z-sticky: 100; /* @kind other */
+  --vq-z-nav: 200; /* @kind other */
+  --vq-z-rail: 300; /* @kind other */
+  --vq-z-dropdown: 400; /* @kind other */
+  --vq-z-drawer: 500; /* @kind other */
+  --vq-z-modal: 600; /* @kind other */
+  --vq-z-popover: 700; /* @kind other */
+  --vq-z-tooltip: 800; /* @kind other */
+  --vq-z-toast: 900; /* @kind other */
+  --vq-z-command: 1000; /* @kind other */
+}

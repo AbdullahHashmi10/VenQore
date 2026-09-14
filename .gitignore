@@ -1,0 +1,10 @@
+/vendor
+/.env
+.env.backup
+.phpunit.result.cache
+/public/storage
+/public/hot
+/storage/*.key
+.idea
+.vscode
+*.log

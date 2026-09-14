@@ -1,0 +1,43 @@
+{
+    "name": "VenQore — The AI ERP Builder",
+    "short_name": "VenQore",
+    "description": "Describe your business and VenQore assembles the system that runs it — point of sale, stock, purchasing and a real double-entry ledger.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#021416",
+    "theme_color": "#0BAA8F",
+    "orientation": "any",
+    "categories": [
+        "business",
+        "productivity",
+        "finance"
+    ],
+    "lang": "en",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "type": "image/x-icon",
+            "sizes": "16x16 32x32 48x48",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-192.png",
+            "type": "image/png",
+            "sizes": "192x192",
+            "purpose": "any"
+        },
+        {
+            "src": "/favicon.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "any"
+        },
+        {
+            "src": "/images/logo.svg",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "purpose": "any"
+        }
+    ]
+}
