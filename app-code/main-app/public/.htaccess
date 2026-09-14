@@ -54,3 +54,6 @@
     ExpiresByType image/x-icon "access plus 1 year"
     ExpiresDefault "access plus 7 days"
 </IfModule>
+
+ErrorDocument 404 /index.php
+ErrorDocument 500 /index.php

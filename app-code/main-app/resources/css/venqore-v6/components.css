@@ -2193,12 +2193,15 @@ html.dark .vq-header--onHero:not(.is-stuck) .vq-theme-btn:hover {
 .vq-hero-h1 { color: #fff !important; }
 .vq-hero-eyebrow { color: rgb(255 255 255 / .85) !important; }
 .vq-hero-foot p, .vq-hero-foot a { color: #132622; }
-.vq-hero-caret { color: #132622; }
+.vq-hero-caret, .vq-hero-subclaims, .vq-hero-subclaims span, .vq-hp__hint { color: #132622 !important; }
 :root[data-theme="dark"] .vq-hero-h1, html.dark .vq-hero-h1 { color: #FFFFFF !important; }
 :root[data-theme="dark"] .vq-hero-eyebrow, html.dark .vq-hero-eyebrow { color: var(--vq-teal-300, #0BAA8F) !important; }
-:root[data-theme="dark"] .vq-hero-caret, html.dark .vq-hero-caret { color: rgb(255 255 255 / .85); }
+:root[data-theme="dark"] .vq-hero-caret, html.dark .vq-hero-caret,
+:root[data-theme="dark"] .vq-hero-subclaims, html.dark .vq-hero-subclaims,
+:root[data-theme="dark"] .vq-hero-subclaims span, html.dark .vq-hero-subclaims span,
+:root[data-theme="dark"] .vq-hp__hint, html.dark .vq-hp__hint { color: #EDF2EF !important; }
 :root[data-theme="dark"] .vq-hero-foot p, :root[data-theme="dark"] .vq-hero-foot a,
-html.dark .vq-hero-foot p, html.dark .vq-hero-foot a { color: #EDF2EF; }
+html.dark .vq-hero-foot p, html.dark .vq-hero-foot a { color: #EDF2EF !important; }
 
 /* Prompt row */
 .vq-hero-rule { border-bottom: 1px solid rgb(255 255 255 / .30); }

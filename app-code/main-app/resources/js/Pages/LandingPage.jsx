@@ -164,7 +164,7 @@ export default function LandingPage() {
       {/*  The interactive prompt & business picker  */}
       <div className="vq-mt-6" style={{"width":"100%"}}>
         <HeroPrompt />
-        <div style={{"display":"flex","alignItems":"center","gap":"18px","flexWrap":"wrap","justifyContent":"center","marginTop":"16px","font":"500 13px/1 var(--vq-font-sans)","color":"var(--vq-text-3)"}}>
+        <div className="vq-hero-subclaims" style={{"display":"flex","alignItems":"center","gap":"18px","flexWrap":"wrap","justifyContent":"center","marginTop":"16px","font":"500 13px/1 var(--vq-font-sans)"}}>
           <span>{BUSINESS_TYPE_CLAIM} business types, {SECTOR_COUNT} sectors</span><span style={{"opacity":".4"}}>·</span>
           <span>140+ modules, only yours switched on</span><span style={{"opacity":".4"}}>·</span>
           <span>58 readings, one definition each</span><span style={{"opacity":".4"}}>·</span>
