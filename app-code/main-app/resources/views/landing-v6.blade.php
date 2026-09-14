@@ -256,10 +256,10 @@
           <button type="button" class="vq-chip vq-chip--onHero" data-hero-chip="multi">Multi-branch</button>
         </div>
 
-        <div class="vq-hero-subclaims" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:16px;font:500 13px/1 var(--vq-font-sans);color:var(--vq-hero-subclaim-color, #132622);">
-          <span>85+ business types, 5 sectors</span><span style="opacity:.4">·</span>
-          <span>140+ modules, only yours switched on</span><span style="opacity:.4">·</span>
-          <span>58 readings, one definition each</span><span style="opacity:.4">·</span>
+        <div class="vq-hero-subclaims" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:18px;font-size:clamp(15.5px, 1.25vw, 17.5px);font-weight:500;line-height:1.5;font-family:var(--vq-font-sans);color:var(--vq-hero-subclaim-color, #132622);">
+          <span>85+ business types, 5 sectors</span><span style="opacity:.5;font-size:1.2em">·</span>
+          <span>140+ modules, only yours switched on</span><span style="opacity:.5;font-size:1.2em">·</span>
+          <span>58 readings, one definition each</span><span style="opacity:.5;font-size:1.2em">·</span>
           <span>8 correctness laws on every post</span>
         </div>
 
@@ -301,12 +301,12 @@
 
   <!-- SECTION B: SECOND SECTION - 5-STAGE COMPILER THEATER (PRESERVED) -->
   <section id="compiler" data-sec="compiler" data-theater="1" style="position: relative; height: 600vh; background: var(--vq-bg); z-index: 10;">
-    <div style="position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
+    <div class="vq-compiler__pin" style="position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
       <div style="position: absolute; inset: 0; background: radial-gradient(70% 60% at 50% 0%, rgba(11, 170, 143, 0.16), transparent 70%);"></div>
 
-      <div data-thgrid="1" style="position: relative; flex: 1; max-width: 1240px; width: 100%; margin: 0 auto; padding: 96px 28px 40px; display: grid; grid-template-columns: 250px 1fr; gap: 40px; align-items: start; min-height: 0;">
+      <div class="vq-thgrid" data-thgrid="1" style="position: relative; flex: 1; max-width: 1240px; width: 100%; margin: 0 auto; padding: 96px 28px 40px; display: grid; grid-template-columns: 250px 1fr; gap: 40px; align-items: start; min-height: 0;">
 
-        <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px;">
+        <div class="vq-thstages" style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px;">
           <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent); margin-bottom: 16px;">COMPILATION PASS</span>
           
           <div data-stagerow="0" style="display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 10px 0; opacity: 1; transition: opacity var(--vq-dur-3) var(--vq-ease-out);">
@@ -355,7 +355,7 @@
           </div>
         </div>
 
-        <div style="position: relative; height: min(620px, 66vh); border-radius: var(--vq-r-2xl, 24px); border: 1px solid var(--vq-line); background: var(--vq-surface); box-shadow: var(--vq-elev-3); overflow: hidden;">
+        <div class="vq-thframe" style="position: relative; height: min(620px, 66vh); border-radius: var(--vq-r-2xl, 24px); border: 1px solid var(--vq-line); background: var(--vq-surface); box-shadow: var(--vq-elev-3); overflow: hidden;">
           <div style="display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--vq-line-soft);">
             <span style="width: 9px; height: 9px; border-radius: 999px; background: #FF8A6B;"></span>
             <span style="width: 9px; height: 9px; border-radius: 999px; background: #FFCD5B;"></span>
@@ -628,7 +628,7 @@
 
     <!-- SECTION 5: WHAT CHANGES ON MONDAY (4 THINGS A COMPILER DOES) -->
     <section id="tenx" data-sec="tenx" data-track="1" style="position: relative; height: 380vh; background: var(--vq-bg);">
-      <div style="position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
+      <div class="vq-tenx__pin" style="position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
         <div style="max-width: 1240px; width: 100%; margin: 0 auto; padding: 0 24px 26px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
           <div style="display: flex; flex-direction: column; gap: 12px;">
             <span style="font: 700 11px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-accent-text);">WHAT CHANGES ON MONDAY</span>

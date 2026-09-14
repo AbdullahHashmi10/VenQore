@@ -65,10 +65,10 @@ export default function LandingPage() {
                     }
                 }
 
-                if (wantsFluid) await loadScript('/v6/assets/fluid.js?v=20260913_4');
-                await loadScript('/v6/assets/venqore.js?v=20260913_4');
-                await loadScript('/v6/assets/venqore-landing.js?v=20260913_4');
-                await loadScript('/v6/assets/venqore-forms.js?v=20260913_4');
+                if (wantsFluid) await loadScript('/v6/assets/fluid.js?v=20260914_mobile1');
+                await loadScript('/v6/assets/venqore.js?v=20260914_mobile1');
+                await loadScript('/v6/assets/venqore-landing.js?v=20260914_mobile1');
+                await loadScript('/v6/assets/venqore-forms.js?v=20260914_mobile1');
                 
                 // Trigger scroll bus recalculation once loaded
                 window.dispatchEvent(new Event('resize'));
@@ -164,10 +164,10 @@ export default function LandingPage() {
       {/*  The interactive prompt & business picker  */}
       <div className="vq-mt-6" style={{"width":"100%"}}>
         <HeroPrompt />
-        <div className="vq-hero-subclaims" style={{"display":"flex","alignItems":"center","gap":"18px","flexWrap":"wrap","justifyContent":"center","marginTop":"16px","font":"500 13px/1 var(--vq-font-sans)","color":"var(--vq-hero-subclaim-color, #132622)"}}>
-          <span>{BUSINESS_TYPE_CLAIM} business types, {SECTOR_COUNT} sectors</span><span style={{"opacity":".4"}}>·</span>
-          <span>140+ modules, only yours switched on</span><span style={{"opacity":".4"}}>·</span>
-          <span>58 readings, one definition each</span><span style={{"opacity":".4"}}>·</span>
+        <div className="vq-hero-subclaims" style={{"display":"flex","alignItems":"center","gap":"22px","flexWrap":"wrap","justifyContent":"center","marginTop":"18px","fontSize":"clamp(15.5px, 1.25vw, 17.5px)","fontWeight":"500","lineHeight":"1.5","fontFamily":"var(--vq-font-sans)","color":"var(--vq-hero-subclaim-color, #132622)"}}>
+          <span>{BUSINESS_TYPE_CLAIM} business types, {SECTOR_COUNT} sectors</span><span style={{"opacity":".5","fontSize":"1.2em"}}>·</span>
+          <span>140+ modules, only yours switched on</span><span style={{"opacity":".5","fontSize":"1.2em"}}>·</span>
+          <span>58 readings, one definition each</span><span style={{"opacity":".5","fontSize":"1.2em"}}>·</span>
           <span>8 correctness laws on every post</span>
         </div>
       </div>
@@ -178,7 +178,15 @@ export default function LandingPage() {
         Describe how you actually work. VenQore assembles the system that runs it — and every
         number it produces is backed by double-entry accounting.
       </p>
-      <a href="#compiler" aria-label="How it works">
+      <a
+        href="#trust"
+        aria-label="Scroll to next section"
+        onClick={(e) => {
+          e.preventDefault();
+          const nextSec = document.getElementById('trust') || document.querySelector('.vq-ticker-strip');
+          nextSec?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      >
         <span className="animate-bounce-slow" style={{"display":"block"}}><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></span>
       </a>
     </div>
@@ -330,7 +338,7 @@ export default function LandingPage() {
 
     {/*  ══ 5b · FOUR THINGS A COMPILER DOES (pinned horizontal track) ════  */}
     <section id="tenx" data-sec="tenx" data-track="1" style={{"position":"relative","height":"380vh","background":"var(--vq-bg-alt)"}}>
-      <div style={{"position":"sticky","top":"0","height":"100vh","overflow":"hidden","display":"flex","flexDirection":"column","justifyContent":"center"}}>
+      <div className="vq-tenx__pin" style={{"position":"sticky","top":"0","height":"100vh","overflow":"hidden","display":"flex","flexDirection":"column","justifyContent":"center"}}>
         <div style={{"maxWidth":"1240px","width":"100%","margin":"0 auto","padding":"0 24px 26px","display":"flex","alignItems":"flex-end","justifyContent":"space-between","gap":"20px","flexWrap":"wrap"}}>
           <div style={{"display":"flex","flexDirection":"column","gap":"12px"}}>
             <span className="vq-kicker">WHAT CHANGES ON MONDAY</span>
@@ -392,12 +400,12 @@ export default function LandingPage() {
     {/*  ══ 6 · HOW IT WORKS — the COMPILATION PASS theatre (preserved) ══  */}
   {/*  SECTION B: SECOND SECTION - 5-STAGE COMPILER THEATER (PRESERVED)  */}
   <section id="compiler" data-sec="compiler" data-theater="1" style={{"position":"relative","height":"600vh","background":"var(--vq-bg)","zIndex":"10"}}>
-    <div style={{"position":"sticky","top":"0","height":"100vh","overflow":"hidden","display":"flex","flexDirection":"column"}}>
+    <div className="vq-compiler__pin" style={{"position":"sticky","top":"0","height":"100vh","overflow":"hidden","display":"flex","flexDirection":"column"}}>
       <div style={{"position":"absolute","inset":"0","background":"radial-gradient(70% 60% at 50% 0%, rgba(11, 170, 143, 0.16), transparent 70%)"}}></div>
 
-      <div data-thgrid="1" style={{"position":"relative","flex":"1","maxWidth":"1240px","width":"100%","margin":"0 auto","padding":"96px 28px 40px","display":"grid","gridTemplateColumns":"250px 1fr","gap":"40px","alignItems":"start","minHeight":"0"}}>
+      <div className="vq-thgrid" data-thgrid="1" style={{"position":"relative","flex":"1","maxWidth":"1240px","width":"100%","margin":"0 auto","padding":"96px 28px 40px","display":"grid","gridTemplateColumns":"250px 1fr","gap":"40px","alignItems":"start","minHeight":"0"}}>
 
-        <div style={{"display":"flex","flexDirection":"column","gap":"4px","paddingTop":"4px"}}>
+        <div className="vq-thstages" style={{"display":"flex","flexDirection":"column","gap":"4px","paddingTop":"4px"}}>
           <span style={{"font":"700 12px/1 var(--vq-font-numeric)","letterSpacing":".14em","color":"var(--vq-accent-text)","marginBottom":"16px"}}>COMPILATION PASS</span>
           
           <div data-stagerow="0" style={{"display":"grid","gridTemplateColumns":"34px 1fr","gap":"12px","padding":"10px 0","opacity":"1","transition":"opacity var(--vq-dur-3) var(--vq-ease-out)"}}>
@@ -446,7 +454,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div style={{"position":"relative","height":"min(620px, 66vh)","borderRadius":"var(--vq-r-2xl, 24px)","border":"1px solid var(--vq-line)","background":"var(--vq-surface)","boxShadow":"var(--vq-elev-3)","overflow":"hidden"}}>
+        <div className="vq-thframe" style={{"position":"relative","height":"min(620px, 66vh)","borderRadius":"var(--vq-r-2xl, 24px)","border":"1px solid var(--vq-line)","background":"var(--vq-surface)","boxShadow":"var(--vq-elev-3)","overflow":"hidden"}}>
           <div style={{"display":"flex","alignItems":"center","gap":"8px","padding":"14px 18px","borderBottom":"1px solid var(--vq-line-soft)"}}>
             <span style={{"width":"9px","height":"9px","borderRadius":"999px","background":"#FF8A6B"}}></span>
             <span style={{"width":"9px","height":"9px","borderRadius":"999px","background":"#FFCD5B"}}></span>

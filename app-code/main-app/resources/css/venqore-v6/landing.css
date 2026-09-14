@@ -433,90 +433,393 @@
    ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
 
-  /* ── Release the three pins ─────────────────────────────────────────── */
-  .vq-stackpin,
-  .vq-off__pin,
-  .vq-an__pin {
-    position: static;
-    height: auto;
-    overflow: visible;
-    display: block;
-    padding-block: 56px;
-  }
+  /* ── 1. Mobile Pinned Heights & Sticky Positioning ──────────────────── */
+  #compiler { height: 350vh !important; }
+  #tenx     { height: 320vh !important; }
+  #offline  { height: 320vh !important; }
+  #showcase { height: 360vh !important; }
+  #analytics{ height: 280vh !important; }
 
-  /* The tall parents existed only to give the pins something to scrub
-     against. Without a pin they are just empty scroll. #tenx and #compiler
-     carry their height inline (380vh and 600vh) from LandingPage.jsx, so
-     these need !important to win. */
-  .vq-stackwrap,
-  #showcase, #offline, #analytics,
-  #tenx, #compiler {
-    height: auto !important;
-    min-height: 0 !important;
-  }
-
-  /* #tenx and #compiler pin an inline-styled child rather than one of the
-     .vq-*__pin classes above, so they are released by structure. */
+  .vq-compiler__pin,
+  #compiler > div[style*="sticky"],
+  .vq-tenx__pin,
   #tenx > div[style*="sticky"],
-  #compiler > div[style*="sticky"] {
-    position: static !important;
-    height: auto !important;
-    overflow: visible !important;
-    padding-block: 56px;
+  .vq-off__pin,
+  .vq-stackpin,
+  .vq-an__pin {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100svh !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding-block: 0 !important;
+    box-sizing: border-box !important;
   }
 
-  /* ── The 10x track becomes a swipe strip ────────────────────────────── */
-  /* It was 380vh of vertical scrolling that dragged this row sideways —
-     scroll-jacking, and on touch it fights the user's own gesture. A phone
-     already has a perfectly good horizontal scroll: let it do the work. */
+  /* ── 2. Compilation Pass Theater (#compiler) ────────────────────────── */
+  .vq-thgrid,
+  [data-theater="1"] [data-thgrid="1"] {
+    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 64px 16px 14px !important;
+    box-sizing: border-box !important;
+    min-height: 0 !important;
+    justify-content: center !important;
+  }
+
+  .vq-thstages,
+  [data-theater="1"] [data-thgrid="1"] > div:first-child {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin-bottom: 2px !important;
+    align-items: stretch !important;
+  }
+
+  .vq-thstages > span:first-child,
+  [data-theater="1"] [data-thgrid="1"] > div:first-child > span:first-child {
+    display: none !important;
+  }
+
+  [data-stagerow] {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding: 2px 0 !important;
+    gap: 2px !important;
+  }
+
+  [data-stagerow] > span:first-child {
+    font-size: 10px !important;
+    line-height: 1 !important;
+    opacity: 0.7 !important;
+  }
+
+  [data-stagerow] > span:last-child {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+  }
+
+  [data-stagerow] > span:last-child > span:first-child {
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-weight: 600 !important;
+  }
+
+  [data-stagerow] > span:last-child > span:nth-child(2) {
+    display: none !important;
+  }
+
+  [data-stagebar] {
+    display: block !important;
+    height: 2.5px !important;
+    margin-top: 3px !important;
+    border-radius: 999px !important;
+  }
+
+  .vq-thframe,
+  [data-theater="1"] [data-thgrid="1"] > div:last-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: min(450px, calc(100svh - 135px)) !important;
+    height: min(450px, calc(100dvh - 135px)) !important;
+    min-height: 350px !important;
+    border-radius: var(--vq-r-xl, 18px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+  }
+
+  [data-theater="1"] [data-layer] {
+    padding: 16px 14px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  [data-layer="0"] p {
+    font-size: clamp(15px, 4.2vw, 19px) !important;
+    line-height: 1.35 !important;
+    max-width: 100% !important;
+  }
+
+  [data-layer="1"] { gap: 10px !important; }
+  [data-layer="1"] [data-token] {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+
+  [data-layer="2"] > div:last-child {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+  [data-engine] {
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+  }
+  [data-engine] span:first-child { font-size: 11px !important; }
+  [data-engine] span:last-child { font-size: 9.5px !important; }
+
+  [data-layer="3"] > div:last-child {
+    grid-template-columns: 1fr 1fr 1.15fr !important;
+    gap: 8px !important;
+  }
+  [data-node] {
+    padding: 6px 8px !important;
+    border-radius: 8px !important;
+    font-size: 10px !important;
+  }
+  [data-node="core"] { padding: 10px 8px !important; }
+  [data-node="core"] span:nth-child(3) { font-size: 13px !important; }
+  [data-node="core"] span:last-child { font-size: 9.5px !important; line-height: 1.3 !important; }
+
+  [data-layer="4"] > div {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    overflow-y: auto !important;
+  }
+  [data-layer="4"] > div > div { padding: 10px 12px !important; }
+
+  /* ── 3. Four Things a Compiler Does (#tenx) ─────────────────────────── */
+  #tenx [data-trackbar="1"] {
+    display: block !important;
+  }
   [data-track="1"] [data-trackrow="1"] {
-    transform: none !important;
-    will-change: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-inline: 20px !important;
-    gap: 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 14px !important;
+    padding: 0 16px !important;
+    will-change: transform !important;
+    overflow: visible !important;
   }
-  [data-track="1"] [data-trackrow="1"]::-webkit-scrollbar { display: none; }
   [data-track="1"] [data-trackrow="1"] > * {
-    scroll-snap-align: center;
-    flex: 0 0 80vw;
-    max-width: 340px;
+    flex: 0 0 84vw !important;
+    max-width: 320px !important;
+    padding: 20px 18px !important;
+    border-radius: var(--vq-r-xl, 18px) !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
   }
 
-  /* ── The card deck becomes a list ───────────────────────────────────── */
-  /* The cards were absolutely stacked on top of one another, which is only
-     legible while JS is fanning them out. Let them flow instead. */
+  /* ── 4. Offline / Outage Simulator (#offline) ───────────────────────── */
+  .vq-off__pin {
+    padding: 14px 16px !important;
+  }
+
+  #offline h2 {
+    font-size: clamp(19px, 4.8vw, 24px) !important;
+    line-height: 1.15 !important;
+  }
+
+  #offline .vq-off__pin > div:nth-child(2) p {
+    display: none !important;
+  }
+
+  .vq-off__grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .vq-off__steps {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    width: 100% !important;
+    overflow: visible !important;
+    margin-bottom: 2px !important;
+  }
+
+  .vq-off__step {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 2px 0 !important;
+    gap: 2px !important;
+  }
+
+  .vq-off__step i {
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+
+  .vq-off__step b {
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .vq-off__step s {
+    display: none !important;
+  }
+
+  .vq-off__track {
+    display: block !important;
+    height: 2.5px !important;
+    margin-top: 3px !important;
+  }
+
+  .vq-till {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: min(440px, calc(100svh - 135px)) !important;
+    max-height: min(440px, calc(100dvh - 135px)) !important;
+    min-height: 0 !important;
+    border-radius: var(--vq-r-xl, 16px) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+  }
+
+  .vq-till__bar {
+    padding: 8px 12px !important;
+    font-size: 10.5px !important;
+    flex: none !important;
+  }
+
+  .vq-till__body {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vq-till__left {
+    padding: 10px 12px 6px !important;
+    flex: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+  }
+
+  .vq-q {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    padding: 5px 10px !important;
+    margin-bottom: 0 !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .vq-q b {
+    font-size: 11.5px !important;
+    line-height: 1.25 !important;
+  }
+
+  .vq-q span:first-child {
+    font-size: 10.5px !important;
+    line-height: 1.3 !important;
+  }
+
+  .vq-q__st {
+    font-size: 10px !important;
+    flex: none !important;
+  }
+
+  /* Completely hide the static 5-item checklist on mobile to eliminate overlap */
+  .vq-till__right > span:first-child,
+  .vq-till__right > div:first-of-type {
+    display: none !important;
+  }
+
+  .vq-till__right {
+    padding: 0 12px 10px !important;
+    border-left: 0 !important;
+    border-top: 0 !important;
+    background: transparent !important;
+    flex: none !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .vq-till__right [data-posted] {
+    margin-top: 4px !important;
+    padding: 9px 12px !important;
+    border-radius: var(--vq-r-md, 10px) !important;
+    background: var(--vq-success-bg, rgba(35, 196, 166, 0.12)) !important;
+    border: 1px solid var(--vq-success-line, rgba(35, 196, 166, 0.35)) !important;
+    box-sizing: border-box !important;
+  }
+
+  .vq-till__right [data-posted] > span:first-child {
+    font-size: 11px !important;
+    display: block !important;
+  }
+
+  .vq-till__right [data-posted] > div:last-child {
+    margin-top: 6px !important;
+    font-size: 11px !important;
+  }
+
+  #offline .vq-off__pin > p:last-child {
+    font-size: 11px !important;
+    margin-top: 6px !important;
+    padding: 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  /* ── 5. Product Showcase Deck (#showcase) ───────────────────────────── */
   .vq-stagebox {
-    position: static;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
+    position: relative !important;
+    height: min(440px, calc(100svh - 140px)) !important;
+    height: min(440px, calc(100dvh - 140px)) !important;
+    overflow: hidden !important;
   }
   .vq-stackcard {
-    position: static !important;
-    inset: auto !important;
-    transform: none !important;
-    filter: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    z-index: auto !important;
-    height: auto;
+    position: absolute !important;
+    inset: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
-  .vq-stackcount { display: none; }
+  .vq-stackcard__body {
+    grid-template-columns: 1fr !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+  }
+  .vq-stackcard__say {
+    padding: 14px 16px !important;
+    border-right: 0 !important;
+    gap: 8px !important;
+  }
+  .vq-stackcard__say h3 { font-size: 17px !important; }
+  .vq-stackcard__say p { font-size: 12.5px !important; }
+  .vq-stackcard__see { display: none !important; }
 
-  /* ── Edge blurs go with the pins they softened ──────────────────────── */
-  .vq-gblur { display: none; }
-
-  /* ── Headings animate as one element, not as 315 characters ─────────── */
-  /* venqore-landing.js stops splitting .vq-sfloat in LITE and tags it
-     --lite instead. This also guards against a stale cached script having
-     split it anyway: the characters must be visible whatever inline styles
-     were left on them. */
+  /* ── 6. Headings & Decorative Layers on Mobile ──────────────────────── */
   .vq-sfloat .vqch {
     will-change: auto;
     opacity: 1 !important;
@@ -530,16 +833,8 @@
   }
   .vq-sfloat--lite.is-in { opacity: 1; transform: none; }
 
-  /* ── Decorative parallax layers are static now ──────────────────────── */
   [data-par] { will-change: auto; transform: none !important; }
-
-  /* ── Room to breathe ────────────────────────────────────────────────── */
-  /* Section padding here is vertical-only, so blocks that had a wide
-     gutter's worth of separation on desktop ended up nearly touching on a
-     narrow screen. That is most of the "too close together, cluttered". */
-  .vq-stackcard__say { gap: 12px; padding: 24px 20px; }
-  .vq-off__steps { gap: 12px; }
-  .vq-off__step  { min-width: 74vw; }
+  .vq-gblur { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .vq-sfloat .vqch { opacity: 1 !important; transform: none !important; }

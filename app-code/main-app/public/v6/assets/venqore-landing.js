@@ -37,8 +37,7 @@
      LITE switches the scrubbed choreography off below 900px so the same
      content lays out as ordinary stacked sections. Nothing is hidden: each
      effect renders its finished state instead of its scrubbed one. */
-  var LITE = reduced ||
-    (window.matchMedia && window.matchMedia('(max-width: 900px)').matches);
+  var LITE = reduced;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function progressOf(el) {
@@ -70,7 +69,8 @@
        spans is the single most expensive thing on this page, and the payoff
        is a per-letter rise nobody can perceive on a phone anyway. The heading
        stays one element and gets a plain CSS fade-up via .vq-reveal. */
-    if (LITE) {
+    var liteFloat = LITE || (window.matchMedia && window.matchMedia('(max-width: 860px)').matches);
+    if (liteFloat) {
       /* One IntersectionObserver that unobserves on first hit, rather than
          anything per-frame. Note this cannot lean on venqore.js's .vq-reveal
          observer: that one runs at its own load, which is before this file

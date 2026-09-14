@@ -27,10 +27,7 @@
      Below 900px landing.css unpins them and turns the track into a native
      horizontal swipe strip, which is what a touch device wanted anyway. These
      guards stop the JS fighting that layout. */
-  var LITE = !!(window.matchMedia && (
-    window.matchMedia('(max-width: 900px)').matches ||
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  ));
+  var LITE = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   /* ── 1. Theme Switcher (data-theme-toggle & #theme-toggle) ─────────────── */
   function initTheme() {
@@ -582,7 +579,8 @@
 
       var totalW = row.scrollWidth;
       var viewW = window.innerWidth;
-      var maxTranslate = Math.max(0, totalW - viewW + 120);
+      var pad = viewW <= 860 ? 24 : 120;
+      var maxTranslate = Math.max(0, totalW - viewW + pad);
       var tx = -(prog * maxTranslate);
       row.style.transform = 'translate3d(' + tx.toFixed(1) + 'px, 0, 0)';
     }
