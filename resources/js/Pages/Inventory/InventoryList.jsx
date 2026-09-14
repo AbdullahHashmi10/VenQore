@@ -1,0 +1,765 @@
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import axios from 'axios';
+import { Head, router, Link, usePage } from '@inertiajs/react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { useTerms, useTermText } from '@/lib/terms';
+import StockModuleTabs from '@/Components/StockModuleTabs';
+import ProductModal from '@/Components/ProductModal';
+import ProductTourGuide from '@/Components/ProductTourGuide';
+import {
+    Plus,
+    Search,
+    Filter,
+    MoreVertical,
+    Edit,
+    Trash2,
+    Package,
+    AlertTriangle as AlertTriangleIcon,
+    DollarSign,
+    Box,
+    Upload,
+    Download,
+    CheckSquare,
+    ChevronUp,
+    ChevronDown,
+    X,
+    Layers,
+    BarChart3,
+    Wrench,
+    Clock,
+    Sparkles
+} from 'lucide-react';
+
+import PasscodeModal from '@/Components/PasscodeModal';
+
+export default function Inventory({ products: serverProducts, filters, stats, warehouses, categories, attributes, tools }) {
+    const { t, tp } = useTerms();
+    const tt = useTermText();
+    const { flash, store, modules } = usePage().props;
+
+    // Infinite Scroll State
+    const [allProducts, setAllProducts] = useState(serverProducts.data || []);
+    const [nextPageUrl, setNextPageUrl] = useState(serverProducts.next_page_url);
+    const isLoading = useRef(false);
+    const observerTarget = useRef(null);
+
+    // Sync State
+    useEffect(() => {
+        if (serverProducts.data && serverProducts.current_page === 1) {
+            setAllProducts(serverProducts.data);
+            setNextPageUrl(serverProducts.next_page_url);
+        }
+    }, [serverProducts]);
+
+    // Fetch Next Page
+    const fetchNextPage = useCallback(async () => {
+        if (!nextPageUrl || isLoading.current) return;
+        isLoading.current = true;
+        try {
+            const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+            const newItems = response.data.data;
+            setAllProducts(prev => {
+                const existingIds = new Set(prev.map(p => p.id));
+                const uniqueNew = newItems.filter(p => !existingIds.has(p.id));
+                return [...prev, ...uniqueNew];
+            });
+            setNextPageUrl(response.data.next_page_url);
+        } catch (error) { console.error(error); } finally { isLoading.current = false; }
+    }, [nextPageUrl]);
+
+    // Intersection Observer
+    useEffect(() => {
+        const observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && nextPageUrl && !isLoading.current) fetchNextPage();
+        }, { threshold: 0.1, rootMargin: '800px' });
+        if (observerTarget.current) observer.observe(observerTarget.current);
+        return () => { if (observerTarget.current) observer.unobserve(observerTarget.current); };
+    }, [nextPageUrl, fetchNextPage]);
+
+    const [selectedProducts, setSelectedProducts] = useState([]);
+
+    // Parse URL params for sync
+    const params = new URLSearchParams(window.location.search);
+    
+    // UI State
+    const [searchTerm, setSearchTerm] = useState(params.get('search') || '');
+    const [activeCategory, setActiveCategory] = useState(params.get('category_id') || 'all');
+    const [activeType, setActiveType] = useState(params.get('type') || 'all');
+    const [activeActionMenu, setActiveActionMenu] = useState(null);
+    const [sortConfig, setSortConfig] = useState({ 
+        key: params.get('sort_by') || 'name', 
+        direction: params.get('sort_dir') || 'asc' 
+    });
+    const [draggedColumn, setDraggedColumn] = useState(null);
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+
+    // Modal State
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [modalMode, setModalMode] = useState('view');
+    const [modalInitialType, setModalInitialType] = useState('standard');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Columns Configuration
+    const [tableColumns, setTableColumns] = useState([
+        { key: 'name', label: tt('Product / Service Name'), width: '25%' },
+        { key: 'sku', label: 'SKU', width: '10%' },
+        { key: 'category', label: 'Category', width: '15%' },
+        { key: 'available_stock', label: 'Stock / Duration', width: '10%' },
+        { key: 'cost_price', label: 'Cost', width: '10%' },
+        { key: 'price', label: 'Price', width: '10%' },
+        { key: 'status', label: 'Status', width: '10%' },
+        { key: 'actions', label: 'Actions', width: '10%' }
+    ]);
+
+    // Click Outside Handler
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (activeActionMenu && !e.target.closest('.action-menu-container')) {
+                setActiveActionMenu(null);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, [activeActionMenu]);
+
+    const applyFilters = (newParams) => {
+        router.get(route('store.inventory.index', { store_slug: store?.slug }), {
+            search: searchTerm,
+            sort_by: sortConfig.key,
+            sort_dir: sortConfig.direction,
+            category_id: activeCategory,
+            type: activeType,
+            ...newParams
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleCategoryChange = (catId) => {
+        setActiveCategory(catId);
+        applyFilters({ category_id: catId });
+    };
+
+    const handleTypeChange = (typeVal) => {
+        setActiveType(typeVal);
+        applyFilters({ type: typeVal });
+    };
+
+    // Sorting
+    const handleSort = (key) => {
+        const direction = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+        setSortConfig({ key, direction });
+        applyFilters({ sort_by: key, sort_dir: direction });
+    };
+
+    const handleServerSearch = (e) => {
+        if (e.key === 'Enter') {
+            applyFilters({ search: searchTerm });
+        }
+    };
+
+    // Use raw data from server (already sorted globally)
+    const sortedProducts = allProducts;
+
+    // Selection
+    const handleSelectAll = (e) => {
+        if (e.target.checked) setSelectedProducts(sortedProducts.map(c => c.id));
+        else setSelectedProducts([]);
+    };
+
+    const handleSelectRow = (id) => {
+        if (selectedProducts.includes(id)) setSelectedProducts(selectedProducts.filter(i => i !== id));
+        else setSelectedProducts([...selectedProducts, id]);
+    };
+
+    // Drag & Drop Columns
+    const handleDragStart = (e, index) => setDraggedColumn(index);
+    const handleDragOver = (e, index) => e.preventDefault();
+    const handleDrop = (e, dropIndex) => {
+        if (draggedColumn === null) return;
+        const newCols = [...tableColumns];
+        const draggedItem = newCols[draggedColumn];
+        newCols.splice(draggedColumn, 1);
+        newCols.splice(dropIndex, 0, draggedItem);
+        setTableColumns(newCols);
+        setDraggedColumn(null);
+    };
+
+    // Modal Handlers
+    const handleAddProduct = () => {
+        setSelectedProduct(null);
+        setModalInitialType('standard');
+        setModalMode('create');
+        setIsModalOpen(true);
+    };
+
+    const handleAddService = () => {
+        setSelectedProduct(null);
+        setModalInitialType('service');
+        setModalMode('create');
+        setIsModalOpen(true);
+    };
+
+    const handleEditProduct = (product, e) => {
+        if (e) e.stopPropagation();
+        setSelectedProduct(product);
+        setModalInitialType(product.type || 'standard');
+        setModalMode('edit');
+        setIsModalOpen(true);
+        setActiveActionMenu(null);
+    };
+
+    const handleViewProduct = (product) => {
+        setSelectedProduct(product);
+        setModalInitialType(product.type || 'standard');
+        setModalMode('view');
+        setIsModalOpen(true);
+        setActiveActionMenu(null);
+    };
+
+    // Security Modal State
+    const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
+    const [pendingDeleteAction, setPendingDeleteAction] = useState(null); // 'single' or 'bulk'
+    const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+    const handleDeleteProduct = (product) => {
+        setPendingDeleteAction('single');
+        setPendingDeleteId(product.id);
+        setIsPasscodeModalOpen(true);
+        setActiveActionMenu(null);
+    };
+
+    const handleBulkDelete = () => {
+        if (selectedProducts.length === 0) return;
+        setPendingDeleteAction('bulk');
+        setIsPasscodeModalOpen(true);
+    };
+
+    const executeDelete = () => {
+        if (pendingDeleteAction === 'single' && pendingDeleteId) {
+            router.delete(route('store.inventory.destroy', { store_slug: store?.slug, id: pendingDeleteId }), {
+                onSuccess: () => {
+                    // Global Sync Trigger
+                    window.dispatchEvent(new CustomEvent('amd:product-updated'));
+                    localStorage.setItem('amd_product_latest_change', Date.now().toString());
+
+                    const remaining = allProducts.filter(p => p.id !== pendingDeleteId);
+                    setAllProducts(remaining);
+                    setPendingDeleteId(null);
+                    setPendingDeleteAction(null);
+                }
+            });
+        } else if (pendingDeleteAction === 'bulk' && selectedProducts.length > 0) {
+            router.post(route('store.inventory.bulk-destroy', { store_slug: store?.slug }), { ids: selectedProducts }, {
+                onSuccess: () => {
+                    // Global Sync Trigger 
+                    window.dispatchEvent(new CustomEvent('amd:product-updated'));
+                    localStorage.setItem('amd_product_latest_change', Date.now().toString());
+
+                    setSelectedProducts([]);
+                    // Need to refilter local state as well
+                    const remaining = allProducts.filter(p => !selectedProducts.includes(p.id));
+                    setAllProducts(remaining);
+                    setPendingDeleteAction(null);
+                }
+            });
+        }
+    };
+
+    return (
+        <OneGlanceLayout title="Inventory Management" activeMenu="Stock">
+            <Head title="Inventory & Services" />
+
+            <PasscodeModal
+                isOpen={isPasscodeModalOpen}
+                onClose={() => {
+                    setIsPasscodeModalOpen(false);
+                    setPendingDeleteAction(null);
+                    setPendingDeleteId(null);
+                }}
+                onSuccess={(code) => {
+                    setIsPasscodeModalOpen(false);
+                    executeDelete();
+                }}
+                actionName={pendingDeleteAction === 'bulk' ? `delete ${selectedProducts.length} selected items` : "delete this item"}
+            />
+
+            {isModalOpen && (
+                <ProductModal
+                    isOpen={isModalOpen}
+                    product={selectedProduct}
+                    mode={modalMode}
+                    initialType={modalInitialType}
+                    warehouses={warehouses}
+                    categories={categories}
+                    attributes={attributes}
+                    tools={tools || []}
+                    onClose={() => {
+                        setSelectedProduct(null);
+                        setModalMode('view');
+                        setIsModalOpen(false);
+                    }}
+                />
+            )}
+
+            <ProductTourGuide isModalOpen={isModalOpen} store={store} categories={categories} />
+
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-y-auto md:overflow-hidden relative">
+
+                <StockModuleTabs activeTab="products" />
+
+                {/* Mobile Stats Toggle */}
+                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    {!isStatsExpanded && (
+                        <div className="flex items-center gap-3 text-xs font-bold">
+                            <span className="text-brand-600">{stats?.total_products?.toLocaleString() || 0} {tt('Products')}</span>
+                            <span className="text-amber-600">{stats?.low_stock_count?.toLocaleString() || 0} Low</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Compact Stats Cards */}
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
+                                <Package size={16} />
+                            </div>
+                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Products')}</p>
+                        </div>
+                        <p className="text-base font-bold text-ink">{stats?.total_products?.toLocaleString() || 0}</p>
+                    </div>
+
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
+                                <AlertTriangleIcon size={16} />
+                            </div>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Low Stock</p>
+                        </div>
+                        <p className="text-base font-bold text-amber-600">{stats?.low_stock_count?.toLocaleString() || 0}</p>
+                    </div>
+
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between col-span-2 md:col-span-2">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                <DollarSign size={16} />
+                            </div>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Inventory Value</p>
+                        </div>
+                        <p className="text-base font-bold text-emerald-600">{formatCurrency(stats?.inventory_value || 0, store)}</p>
+                    </div>
+                </div>
+
+                {/* Category & Type Filter Row */}
+                <div
+                    className="bg-surface px-2 py-2 rounded-xl border border-line shadow-sm shrink-0 flex items-center justify-between gap-2 overflow-x-auto custom-scrollbar select-none"
+                >
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Type Switcher */}
+                        <div className="inline-flex rounded-lg border border-line bg-app p-0.5">
+                            <button
+                                type="button"
+                                onClick={() => handleTypeChange('all')}
+                                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${activeType === 'all' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
+                            >
+                                All Items
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleTypeChange('standard')}
+                                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${activeType === 'standard' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
+                            >
+                                {tt('Products')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleTypeChange('service')}
+                                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors flex items-center gap-1 ${activeType === 'service' ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
+                            >
+                                <Wrench size={11} />
+                                {tt('Services')}
+                            </button>
+                        </div>
+
+                        <div className="h-4 w-px bg-line mx-1"></div>
+
+                        <div className="hidden md:flex items-center gap-1.5 shrink-0">
+                            <Layers size={13} className="text-ink-muted" />
+                            <span className="text-2xs font-bold text-ink-muted uppercase">Categories:</span>
+                        </div>
+
+                        <button
+                            onClick={() => handleCategoryChange('all')}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-neutral-800 text-white dark:bg-white dark:text-ink' : 'bg-sunken text-ink-secondary hover:bg-interactive-hover'}`}
+                        >
+                            All
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => handleCategoryChange(cat.id)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1 ${String(activeCategory) === String(cat.id) ? 'bg-brand-600 text-white shadow-sm' : 'bg-brand-50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400 hover:bg-brand-100'}`}
+                            >
+                                <span>{cat.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Mobile Toolbar */}
+                <div className="md:hidden flex flex-col gap-0 bg-surface rounded-xl border border-line shadow-sm shrink-0">
+                    <div className="flex items-center justify-between px-3 py-2">
+                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
+                            {t('product', 'Product')} <span className="text-brand-600">Inventory</span>
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <Link
+                                href={route('store.admin.data', { store_slug: store?.slug })}
+                                className="p-2 bg-sunken text-ink-muted rounded-lg transition-colors"
+                                title="Import/Export"
+                            >
+                                <Upload size={16} />
+                            </Link>
+                            <button
+                                onClick={handleAddService}
+                                className="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95 font-bold text-xs"
+                                title={tt('Add Service')}
+                            >
+                                <Wrench size={13} /> {tt('Service')}
+                            </button>
+                            <button
+                                id="tour-add-product"
+                                onClick={handleAddProduct}
+                                className="ml-1 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
+                            >
+                                <Plus size={14} /> {tt('Product')}
+                            </button>
+                        </div>
+                    </div>
+                    {showMobileSearch && (
+                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
+                            <div className="relative w-full flex gap-2">
+                                <div className="relative flex-1">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={handleServerSearch}
+                                        placeholder={tt('Search products & services...')}
+                                        className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
+                                    />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
+                                </div>
+                                <button
+                                    onClick={() => { applyFilters({ search: searchTerm }); setShowMobileSearch(false); }}
+                                    className="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold"
+                                >
+                                    Go
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Desktop Header Actions */}
+                <div className="hidden md:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            {t('product', 'Product')} <span className="text-brand-600">Inventory</span>
+                        </h1>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
+                        <span className="text-2xs font-bold uppercase rounded-full bg-sunken text-ink-muted px-2.5 py-1">List View</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-64 relative">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search products & services..."
+                                className="w-full pl-9 pr-8 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
+                            />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
+                            {searchTerm && (
+                                <button onClick={() => { setSearchTerm(''); applyFilters({ search: '' }); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-secondary">
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+                        <button onClick={() => applyFilters({ search: searchTerm })} className="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm ">Search</button>
+                        <div className="flex items-center gap-1.5 border-l border-line pl-2">
+                            <Link href={route('store.admin.data', { store_slug: store?.slug })} className="p-1.5 text-ink-muted hover:text-brand-600 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"><Upload size={16} /></Link>
+                            <button onClick={handleAddService} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm ">
+                                <Wrench size={13} /> {tt('Add Service')}
+                            </button>
+                            <button id="tour-add-product" onClick={handleAddProduct} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm ">
+                                <Plus size={14} /> {tt('Add Product')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bulk Actions Bar */}
+                {selectedProducts.length > 0 && (
+                    <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg animate-in slide-in-from-top-2">
+                        <span className="font-bold text-sm">{selectedProducts.length} Selected</span>
+                        <div className="flex items-center gap-2">
+                            <button onClick={handleBulkDelete} className="px-3 py-1 bg-white text-brand-600 rounded-lg text-xs font-bold hover:bg-interactive-hover transition-colors flex items-center gap-1">
+                                <Trash2 size={14} /> Delete Selected
+                            </button>
+                            <button onClick={() => setSelectedProducts([])} className="p-1 hover:bg-brand-700 rounded transition-colors"><X size={16} /></button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Desktop Table */}
+                <div className="hidden md:flex flex-1 flex-col overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-app border-b border-line sticky top-0 z-10">
+                                <th className="p-4 w-10">
+                                    <input type="checkbox" className="rounded border-line text-brand-600 focus:ring-brand-600" checked={selectedProducts.length === sortedProducts.length && sortedProducts.length > 0} onChange={handleSelectAll} />
+                                </th>
+                                {tableColumns.map((col, index) => (
+                                    <th key={col.key} draggable onDragStart={(e) => handleDragStart(e, index)} onDragOver={(e) => handleDragOver(e, index)} onDrop={(e) => handleDrop(e, index)} onClick={() => col.key !== 'actions' && handleSort(col.key)}
+                                        className={`p-4 text-xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}`}
+                                        style={{ width: col.width }}
+                                    >
+                                        <div className="flex items-center gap-2">{col.label}{col.key !== 'actions' && sortConfig.key === col.key && (sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-brand-500" /> : <ChevronDown size={14} className="text-brand-500" />)}</div>
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-line">
+                            {sortedProducts.length === 0 ? (
+                                <tr><td colSpan={tableColumns.length + 1} className="p-12 text-center text-ink-muted">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-4"><Package size={32} className="text-ink-muted" /></div>
+                                        <p className="text-lg font-bold text-ink-secondary">{tt('No products or services found')}</p>
+                                    </div>
+                                </td></tr>
+                            ) : (
+                                sortedProducts.map((row) => (
+                                    <tr key={row.id} className={`hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all group cursor-pointer ${selectedProducts.includes(row.id) ? 'bg-brand-50 dark:bg-brand-900/20' : ''}`} onClick={() => handleViewProduct(row)}>
+                                        <td className="p-4 w-10" onClick={(e) => e.stopPropagation()}>
+                                            <input type="checkbox" className="rounded border-line text-brand-600 focus:ring-brand-600" checked={selectedProducts.includes(row.id)} onChange={() => handleSelectRow(row.id)} />
+                                        </td>
+                                        {tableColumns.map((col) => (
+                                            <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-ink-secondary">
+                                                {(() => {
+                                                    const isService = row.type === 'service';
+                                                    switch (col.key) {
+                                                        case 'name': return (
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden border border-line shrink-0 ${isService ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400'}`}>
+                                                                    {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : isService ? <Wrench size={14} /> : <Package size={14} />}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <p className="font-semibold text-ink">{row.name}</p>
+                                                                        {isService && (
+                                                                            <span className="px-1.5 py-0.2 rounded text-3xs font-black uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                                                                {tt('Service')}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className="text-xs text-ink-muted">
+                                                                        {isService ? (row.skill_tag ? `Skill: ${row.skill_tag}` : 'Labor / Task') : (row.unit || 'pcs')}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                        case 'sku': return row.sku || '-';
+                                                        case 'category': return <span className="px-2 py-1 bg-sunken rounded text-xs font-semibold">{row.category}</span>;
+                                                        case 'available_stock': return isService ? (
+                                                            <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                                                                <Clock size={12} />
+                                                                <span>{row.default_duration || 60} min</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex flex-col">
+                                                                <span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-ink-secondary dark:text-ink'}`}>{row.available_stock}</span>
+                                                                {row.reserved_stock > 0 && <span className="text-2xs text-amber-500">{row.reserved_stock} Rsrvd</span>}
+                                                            </div>
+                                                        );
+                                                        case 'cost_price': return formatCurrency(row.cost_price || 0, store);
+                                                        case 'price': return (
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>
+                                                                {isService && row.service_pricing && row.service_pricing !== 'fixed' && (
+                                                                    <span className="text-3xs text-ink-muted uppercase font-bold">
+                                                                        {row.service_pricing === 'hourly' ? '/ hr' : row.service_pricing === 'per_unit' ? '/ unit' : 'estimate'}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                        case 'status': return (
+                                                            <span className={`px-2 py-1 rounded-full text-2xs font-bold border ${
+                                                                isService
+                                                                    ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800'
+                                                                    : row.status === 'In Stock'
+                                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                                                        : row.status === 'Low Stock'
+                                                                            ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                                                            : 'bg-red-50 text-red-600 border-red-200'
+                                                            }`}>
+                                                                {isService ? 'Available' : row.status}
+                                                            </span>
+                                                        );
+                                                        case 'actions': return (
+                                                            <div className="relative action-menu-container">
+                                                                <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"><MoreVertical size={16} /></button>
+                                                                {activeActionMenu === row.id && (
+                                                                    <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line z-50 animate-in zoom-in-95 p-1">
+                                                                        {!isService && (!Array.isArray(modules) || modules.includes('variants')) && (
+                                                                            <Link href={route('store.products.variants.index', { store_slug: store?.slug, product: row.id })} className="w-full text-left px-3 py-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg flex items-center gap-2 text-sm text-ink-secondary"><Layers size={14} /> Variants</Link>
+                                                                        )}
+                                                                        <button onClick={(e) => handleEditProduct(row, e)} className="w-full text-left px-3 py-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg flex items-center gap-2 text-sm text-ink-secondary"><Edit size={14} /> Edit Details</button>
+                                                                        <div className="h-px bg-sunken my-1"></div>
+                                                                        <button onClick={() => { setActiveActionMenu(null); handleDeleteProduct(row); }} className="w-full text-left px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 text-sm text-red-600"><Trash2 size={14} /> Delete</button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                        default: return row[col.key];
+                                                    }
+                                                })()}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                    <div ref={observerTarget} className="p-4 text-center text-ink-muted text-sm border-t border-line opacity-0">
+                        {nextPageUrl ? 'Loading...' : (sortedProducts.length > 0 ? 'End of list' : '')}
+                    </div>
+                </div>
+
+                {/* Mobile Product Cards */}
+                <div className="md:hidden flex flex-col gap-2 pb-20">
+                    {sortedProducts.length === 0 ? (
+                        <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                            <Package size={32} className="mx-auto text-ink-muted mb-2" />
+                            <p className="text-sm font-bold text-ink-secondary">{tt('No products or services found')}</p>
+                            <p className="text-xs text-ink-muted mt-1">Try adjusting your search or add a new item.</p>
+                        </div>
+                    ) : (
+                        sortedProducts.map((row) => {
+                            const isService = row.type === 'service';
+                            return (
+                                <div
+                                    key={row.id}
+                                    className="p-3 bg-surface rounded-xl border border-line shadow-sm flex flex-col gap-2 cursor-pointer hover:border-brand-300 dark:hover:border-brand-700 transition-colors"
+                                    onClick={() => handleViewProduct(row)}
+                                >
+                                    {/* Row 1: Image + Name (Left) | Status (Right) */}
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden border border-line shrink-0 ${isService ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400'}`}>
+                                                {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : isService ? <Wrench size={18} /> : <Package size={18} />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <h3 className="font-bold text-ink text-sm leading-tight">{row.name}</h3>
+                                                    {isService && (
+                                                        <span className="px-1.5 py-0.2 rounded text-3xs font-black uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                                            {tt('Service')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-2xs text-ink-muted font-semibold mt-0.5">
+                                                    {isService ? (row.skill_tag ? `Skill: ${row.skill_tag}` : 'Labor / Task') : (row.unit || 'pcs')}
+                                                    {row.sku ? ` • ${row.sku}` : ''}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-full text-3xs font-bold border shrink-0 ${
+                                            isService
+                                                ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800'
+                                                : row.status === 'In Stock'
+                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                                    : row.status === 'Low Stock'
+                                                        ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                                        : 'bg-red-50 text-red-600 border-red-200'
+                                        }`}>{isService ? 'Available' : row.status}</span>
+                                    </div>
+
+                                    {/* Row 2: Category badge */}
+                                    {row.category && (
+                                        <div>
+                                            <span className="text-3xs font-bold uppercase bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-muted px-2 py-0.5 rounded border border-line">
+                                                {row.category}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Row 3: Stock + Price + Actions */}
+                                    <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+                                        <div className="flex items-center gap-5">
+                                            {isService ? (
+                                                <div>
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Duration</span>
+                                                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tabular-nums flex items-center gap-1">
+                                                        <Clock size={11} /> {row.default_duration || 60}m
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Stock</span>
+                                                    <span className={`text-xs font-bold tabular-nums ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-ink'}`}>
+                                                        {row.available_stock}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Price</span>
+                                                <span className="text-xs font-bold text-brand-600 dark:text-brand-400 tabular-nums">
+                                                    {formatCurrency(row.price || 0, store)}
+                                                    {isService && row.service_pricing && row.service_pricing !== 'fixed' && (
+                                                        <span className="text-3xs ml-0.5 text-ink-muted uppercase">/{row.service_pricing === 'hourly' ? 'hr' : 'unit'}</span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Cost</span>
+                                                <span className="text-xs font-bold text-ink-secondary tabular-nums">{formatCurrency(row.cost_price || 0, store)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                            <button onClick={(e) => handleEditProduct(row, e)} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors" title="Edit"><Edit size={16} /></button>
+                                            <button onClick={() => handleDeleteProduct(row)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-ink-muted hover:text-rose-600 transition-colors" title="Delete"><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                    <div ref={observerTarget} className="py-4 text-center text-ink-muted text-sm">
+                        {nextPageUrl ? 'Loading more...' : ''}
+                    </div>
+                </div>
+            </div>
+        </OneGlanceLayout>
+    );
+}
