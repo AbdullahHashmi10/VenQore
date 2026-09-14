@@ -90,7 +90,8 @@ $filesToCopy = @(
     "composer.lock",
     ".env.example",
     "index.php",
-    ".htaccess"
+    ".htaccess",
+    "404.html"
 )
 
 foreach ($file in $filesToCopy) {

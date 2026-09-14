@@ -1,19 +1,27 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Ensure DirectoryIndex targets entry points
+    DirectoryIndex app-code/main-app/public/index.php public/index.php index.php
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # If static file exists directly (e.g. 404.html, favicon.ico), serve it
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
     # 1. Monorepo structure (app-code/main-app/public)
     RewriteCond %{REQUEST_URI} !^/app-code/main-app/public/
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/app-code/main-app/public/index.php -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/app-code/main-app/public -d
     RewriteRule ^(.*)$ app-code/main-app/public/$1 [L]
 
     # 2. Standalone structure (public/)
     RewriteCond %{REQUEST_URI} !^/public/
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
+
+ErrorDocument 404 /404.html
+ErrorDocument 500 /404.html

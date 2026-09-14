@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Ensure DirectoryIndex targets public/index.php
+    DirectoryIndex public/index.php index.php
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -20,14 +23,17 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # 3. If file or directory already exists at root, serve it directly
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+    # 3. Explicitly send root / to public/index.php
+    RewriteRule ^$ public/index.php [L]
+
+    # 4. If an actual existing static file exists at root (not directory), serve it
+    RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
-    # 4. Route everything else cleanly to public/index.php
+    # 5. Route everything else cleanly to public/index.php
+    RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/index.php [L]
 </IfModule>
 
-ErrorDocument 404 /index.php
-ErrorDocument 500 /index.php
+ErrorDocument 404 /404.html
+ErrorDocument 500 /404.html
