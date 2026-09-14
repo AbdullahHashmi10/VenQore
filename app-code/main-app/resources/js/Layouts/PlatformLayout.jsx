@@ -6,7 +6,7 @@ import { ensurePlatformStyles, Badge } from '@/Platform/ui';
 import { NAV_GROUPS, flatNav, resolveHref, isActive } from '@/Platform/nav';
 import {
     Search, Command, Bell, Sun, Moon, Menu, X, ChevronsLeft, ChevronsRight,
-    LogOut, ChevronLeft, AlertTriangle, Mail, ArrowRight, Sparkles,
+    LogOut, ChevronLeft, ChevronRight, AlertTriangle, Mail, ArrowRight, Sparkles, Package,
 } from 'lucide-react';
 import AiIsland from '@/Components/AiIsland';
 
