@@ -22,6 +22,7 @@ import { useWorkspace } from '@/Contexts/WorkspaceContext';
 
 const STORAGE_RECENT_QUERIES = 'venqore_island_recent_queries';
 const STORAGE_SOUND_ENABLED = 'venqore_island_sound_enabled';
+const STORAGE_READ_ALERTS = 'venqore_island_read_alert_ids';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    VenQore Dynamic Island
@@ -625,11 +626,38 @@ export default function AiIsland({
     ? ORB_FOR.chat
     : ORB_FOR[busy ? (isAiAnswering ? 'compute' : 'search') : activity] || ORB_FOR.idle;
 
+  const [readAlertIds, setReadAlertIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_READ_ALERTS) || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleAlertRead = useCallback((id) => {
+    setReadAlertIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      try { localStorage.setItem(STORAGE_READ_ALERTS, JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+  }, []);
+
   const allAlerts = useMemo(
     () => [...(extraAlerts || []), ...(notifications.latest || [])],
     [extraAlerts, notifications.latest]
   );
-  const unread = (notifications.unread_count || 0) + (extraAlerts?.length || 0);
+
+  const toggleMarkAllAlerts = useCallback(() => {
+    const allIds = allAlerts.map((n, i) => String(n.id || `alert-${i}`));
+    const hasUnread = allIds.some((id) => !readAlertIds.includes(id));
+    const next = hasUnread ? Array.from(new Set([...readAlertIds, ...allIds])) : [];
+    setReadAlertIds(next);
+    try { localStorage.setItem(STORAGE_READ_ALERTS, JSON.stringify(next)); } catch (e) {}
+  }, [allAlerts, readAlertIds]);
+
+  const unread = useMemo(() => {
+    return allAlerts.filter((n, i) => !readAlertIds.includes(String(n.id || `alert-${i}`))).length;
+  }, [allAlerts, readAlertIds]);
 
   const badge = unread > 0 && (
     <motion.span
@@ -1120,30 +1148,104 @@ export default function AiIsland({
                     {/* ── ALERTS ───────────────────────────────────────── */}
                     {tab === 'alerts' && (
                       <motion.div key="alerts" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
-                        <PaneShell tab="alerts" orbState={unread > 0 ? 'searching' : 'breathing'} paused={orbPaused}>
+                        <PaneShell
+                          tab="alerts"
+                          orbState={unread > 0 ? 'searching' : 'breathing'}
+                          paused={orbPaused}
+                          right={
+                            allAlerts.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={toggleMarkAllAlerts}
+                                className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-all"
+                                style={{
+                                  background: `${INK}.08)`,
+                                  color: unread > 0 ? '#59DBC0' : `${INK}.7)`,
+                                  border: `1px solid ${INK}.12)`
+                                }}
+                              >
+                                {unread > 0 ? 'Mark all read' : 'Mark unread'}
+                              </button>
+                            )
+                          }
+                        >
                           {allAlerts.length ? (
-                            <motion.div variants={listVariants} initial="initial" animate="animate" className="space-y-2">
-                              {allAlerts.map((n, i) => (
-                                <motion.div key={n.id || i} variants={itemVariants}
-                                  className="flex items-start gap-3 p-3 rounded-2xl"
-                                  style={{ background: `${INK}.06)` }}>
-                                  <span className="mt-0.5 shrink-0" style={{ color: n.severity === 'critical' ? '#FFAE96' : n.severity === 'important' ? '#FFDD8E' : '#59DBC0' }}>
-                                    {n.severity === 'critical' ? <AlertCircle size={18} />
-                                      : n.severity === 'important' ? <AlertTriangle size={18} />
-                                      : <CheckCircle2 size={18} />}
-                                  </span>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="truncate" style={{ ...T.small, fontWeight: 700, color: '#F1F5F2' }}>{n.title}</p>
-                                    <p style={{ ...T.caption, color: `${INK}.65)` }}>{n.message || n.desc}</p>
-                                  </div>
-                                  {n.action_url && (
-                                    <Link href={n.action_url} onClick={closeIsland} className="shrink-0"
-                                      style={{ ...T.caption, fontWeight: 700, color: '#59DBC0' }}>
-                                      View
-                                    </Link>
-                                  )}
-                                </motion.div>
-                              ))}
+                            <motion.div variants={listVariants} initial="initial" animate="animate" className="space-y-2.5">
+                              {allAlerts.map((n, i) => {
+                                const alertId = String(n.id || `alert-${i}`);
+                                const isRead = readAlertIds.includes(alertId);
+                                return (
+                                  <motion.div
+                                    key={alertId}
+                                    variants={itemVariants}
+                                    className="flex items-center gap-3.5 p-3.5 rounded-2xl transition-all"
+                                    style={{
+                                      background: isRead ? `${INK}.03)` : `${INK}.07)`,
+                                      border: isRead ? '1px solid transparent' : `1px solid ${INK}.1)`,
+                                      opacity: isRead ? 0.72 : 1
+                                    }}
+                                  >
+                                    {/* Perfectly Centered Icon Badge */}
+                                    <div
+                                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                                      style={{
+                                        background: n.severity === 'critical' ? 'rgba(255,174,150,0.14)' : n.severity === 'important' ? 'rgba(255,221,142,0.14)' : 'rgba(89,219,192,0.14)',
+                                        color: n.severity === 'critical' ? '#FFAE96' : n.severity === 'important' ? '#FFDD8E' : '#59DBC0'
+                                      }}
+                                    >
+                                      {n.severity === 'critical' ? <AlertCircle size={19} />
+                                        : n.severity === 'important' ? <AlertTriangle size={19} />
+                                        : <CheckCircle2 size={19} />}
+                                    </div>
+
+                                    {/* Perfectly Centered Content */}
+                                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                      <div className="flex items-center gap-2">
+                                        <p className="truncate" style={{ ...T.small, fontWeight: 700, color: isRead ? `${INK}.65)` : '#F1F5F2' }}>
+                                          {n.title}
+                                        </p>
+                                        {isRead && (
+                                          <span className="text-3xs font-semibold px-1.5 py-0.5 rounded" style={{ background: `${INK}.08)`, color: `${INK}.5)` }}>
+                                            Read
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p style={{ ...T.caption, color: `${INK}.60)`, marginTop: 1 }}>{n.message || n.desc}</p>
+                                    </div>
+
+                                    {/* Vertically Centered Actions */}
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleAlertRead(alertId);
+                                        }}
+                                        title={isRead ? "Mark as unread" : "Mark as read"}
+                                        className="p-1.5 rounded-lg transition-colors flex items-center justify-center"
+                                        style={{ color: isRead ? `${INK}.4)` : '#59DBC0', background: `${INK}.05)` }}
+                                      >
+                                        <CheckCircle2 size={16} />
+                                      </button>
+
+                                      {n.action_url && (
+                                        <Link
+                                          href={n.action_url}
+                                          onClick={closeIsland}
+                                          className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center"
+                                          style={{
+                                            background: 'rgba(89,219,192,0.15)',
+                                            color: '#59DBC0',
+                                            border: '1px solid rgba(89,219,192,0.3)'
+                                          }}
+                                        >
+                                          View
+                                        </Link>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
                             </motion.div>
                           ) : (
                             <div className="h-full grid place-items-center text-center px-6">

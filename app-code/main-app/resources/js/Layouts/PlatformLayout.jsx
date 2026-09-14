@@ -50,7 +50,7 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
     const notifCount = openErrors + newContacts;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: t.appBg, color: t.ink, fontFamily: "'Figtree','Inter',system-ui,sans-serif" }}>
+        <div style={{ position: 'fixed', inset: 0, height: '100vh', width: '100vw', display: 'flex', overflow: 'hidden', background: t.appBg, color: t.ink, fontFamily: "'Figtree','Inter',system-ui,sans-serif" }}>
             <Head title={`${title} · VenQore HQ`} />
 
             {/* Ambient aurora background */}
@@ -61,65 +61,94 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
             <Sidebar
                 t={t} collapsed={collapsed} setCollapsed={setCollapsed}
                 mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}
+                auth={auth}
             />
 
             {/* ───────── Main column ───────── */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative', zIndex: 1 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, minHeight: 0, position: 'relative', zIndex: 1, overflow: 'hidden' }}>
                 {/* Header */}
                 <header style={{
-                    position: 'sticky', top: 0, zIndex: 40, height: 64,
-                    display: 'flex', alignItems: 'center', gap: 14, padding: '0 18px',
+                    position: 'relative', height: 64, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '0 20px',
                     background: t.shellBg, borderBottom: `1px solid ${t.border}`,
                     backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                    zIndex: 40,
                 }}>
-                    <button className="vq-press" onClick={() => setMobileOpen(true)} style={{ ...iconBtn(t), display: 'none' }} data-mobile-menu aria-label="Menu">
-                        <Menu size={19} />
-                    </button>
-
-                    {/* Dynamic Island Omni-Search */}
-                    <div className="flex-1 flex items-center justify-center max-w-xl">
-                        <AiIsland
-                            extraAlerts={[
-                                ...(openErrors ? [{
-                                    id: 'platform-errors',
-                                    severity: 'critical',
-                                    title: `${openErrors} open error${openErrors > 1 ? 's' : ''}`,
-                                    message: 'System health needs attention',
-                                    action_url: resolveHrefName('platform.health.errors'),
-                                }] : []),
-                                ...(newContacts ? [{
-                                    id: 'platform-contacts',
-                                    severity: 'important',
-                                    title: `${newContacts} new contact${newContacts > 1 ? 's' : ''}`,
-                                    message: 'Unread contact submissions',
-                                    action_url: resolveHrefName('platform.health.contacts'),
-                                }] : []),
-                            ]}
-                        />
+                    {/* Left Section */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 160 }}>
+                        <button className="vq-press" onClick={() => setMobileOpen(true)} style={{ ...iconBtn(t), display: 'none' }} data-mobile-menu aria-label="Menu">
+                            <Menu size={19} />
+                        </button>
+                        <div className="vq-desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: t.ink, letterSpacing: '-0.01em' }}>Platform HQ</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: t.muted, background: t.hover, padding: '2px 8px', borderRadius: 999, border: `1px solid ${t.border}` }}>
+                                Production
+                            </span>
+                        </div>
                     </div>
 
-                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {/* Center Section - Dead-Center AI Island */}
+                    <div style={{
+                        position: 'absolute',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        pointerEvents: 'none',
+                        zIndex: 20,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        <div style={{ pointerEvents: 'auto' }}>
+                            <AiIsland
+                                extraAlerts={[
+                                    ...(openErrors ? [{
+                                        id: 'platform-errors',
+                                        severity: 'critical',
+                                        title: `${openErrors} open error${openErrors > 1 ? 's' : ''}`,
+                                        message: 'System health needs attention',
+                                        action_url: resolveHrefName('platform.health.errors'),
+                                    }] : []),
+                                    ...(newContacts ? [{
+                                        id: 'platform-contacts',
+                                        severity: 'important',
+                                        title: `${newContacts} new contact${newContacts > 1 ? 's' : ''}`,
+                                        message: 'Unread contact submissions',
+                                        action_url: resolveHrefName('platform.health.contacts'),
+                                    }] : []),
+                                ]}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Right Section */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 160, justifyContent: 'flex-end', zIndex: 30 }}>
+                        {/* ⌘K Command Palette trigger */}
+                        <button
+                            onClick={() => setPaletteOpen(true)}
+                            className="vq-press vq-desktop-only"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 7, height: 38, padding: '0 11px',
+                                borderRadius: 11, background: t.inputBg, border: `1px solid ${t.border}`,
+                                color: t.muted, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+                            }}
+                            title="Quick Command Palette (Ctrl+K)"
+                        >
+                            <Search size={14} />
+                            <span>Quick Jump</span>
+                            <kbd style={kbdStyle(t)}>⌘K</kbd>
+                        </button>
+
                         {/* Theme toggle */}
                         <button className="vq-press" onClick={toggleTheme} style={iconBtn(t)} aria-label="Toggle theme" title="Toggle theme">
                             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
-
-
-                        {/* Profile */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 8, marginLeft: 2, borderLeft: `1px solid ${t.border}` }}>
-                            <div style={{ textAlign: 'right', lineHeight: 1.2 }} className="vq-hide-sm">
-                                <div style={{ fontSize: 13, fontWeight: 800, color: t.ink }}>{auth?.user?.name || 'Owner'}</div>
-                                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: BRAND.indigo2 }}>Hashmi Dashboard</div>
-                            </div>
-                            <div style={{ width: 38, height: 38, borderRadius: 11, background: GRADIENTS.brand, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 15, boxShadow: '0 6px 16px -6px rgba(99,102,241,.6)' }}>
-                                {(auth?.user?.name?.[0] || 'A').toUpperCase()}
-                            </div>
-                        </div>
                     </div>
                 </header>
 
-                {/* Body */}
-                <main className="vq-scroll" style={{ flex: 1, overflowY: 'auto', padding: '26px clamp(16px, 3vw, 34px) 60px' }}>
+                {/* Body - Fully Scrollable */}
+                <main className="vq-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '26px clamp(16px, 3vw, 34px) 60px' }}>
                     <div style={{ maxWidth: 1320, margin: '0 auto', animation: 'vq-fade .35s ease both' }}>
                         {children}
                     </div>
@@ -139,36 +168,94 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
 }
 
 /* ─────────────────────────── Sidebar ─────────────────────────── */
-function Sidebar({ t, collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
+function Sidebar({ t, collapsed, setCollapsed, mobileOpen, setMobileOpen, auth }) {
     const width = collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_W;
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const userMenuRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setUserMenuOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     return (
         <>
             {mobileOpen && <div onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(2,4,10,.55)', zIndex: 59, backdropFilter: 'blur(3px)' }} className="vq-mobile-only" />}
             <aside data-sidebar className={mobileOpen ? 'vq-open' : ''} style={{
-                width, flexShrink: 0, position: 'sticky', top: 0, height: '100vh', zIndex: 60,
+                width, flexShrink: 0, height: '100vh', zIndex: 60, position: 'relative',
                 display: 'flex', flexDirection: 'column',
-                background: t.isDark ? 'rgba(8,10,18,0.82)' : 'rgba(255,255,255,0.9)',
+                background: t.isDark ? 'rgba(8,10,18,0.92)' : 'rgba(255,255,255,0.96)',
                 borderRight: `1px solid ${t.border}`, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                 transition: 'width .25s cubic-bezier(.2,.8,.2,1)',
             }}>
-                {/* Brand */}
-                <div style={{ height: 64, display: 'flex', alignItems: 'center', gap: 12, padding: collapsed ? '0' : '0 18px', justifyContent: collapsed ? 'center' : 'flex-start', borderBottom: `1px solid ${t.border}`, flexShrink: 0 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 11, background: GRADIENTS.brand, display: 'grid', placeItems: 'center', boxShadow: '0 8px 20px -6px rgba(99,102,241,.6)', flexShrink: 0 }}>
-                        <Sparkles size={19} color="#fff" />
-                    </div>
-                    {!collapsed && (
-                        <div style={{ lineHeight: 1.1, overflow: 'hidden' }}>
-                            <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.03em', color: t.ink }}>VENQORE</div>
-                            <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: BRAND.indigo2 }}>Command Center</div>
-                        </div>
-                    )}
+                {/* Brand Header with Official Logo */}
+                <div style={{
+                    height: 64, display: 'flex', alignItems: 'center', gap: 12,
+                    padding: collapsed ? '0' : '0 18px',
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    borderBottom: `1px solid ${t.border}`, flexShrink: 0
+                }}>
+                    <Link href={route('platform.dashboard')} style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
+                        <img
+                            src="/images/logo.png"
+                            alt="VenQore Logo"
+                            style={{
+                                width: 34,
+                                height: 34,
+                                objectFit: 'contain',
+                                flexShrink: 0,
+                                filter: 'drop-shadow(0 3px 10px rgba(99,102,241,0.25))'
+                            }}
+                        />
+                        {!collapsed && (
+                            <div style={{ lineHeight: 1.15, overflow: 'hidden' }}>
+                                <div style={{ fontSize: 16.5, fontWeight: 900, letterSpacing: '-0.02em', color: t.ink }}>VENQORE</div>
+                                <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: BRAND.indigo2 }}>Command Center</div>
+                            </div>
+                        )}
+                    </Link>
                     <button className="vq-press vq-mobile-only" onClick={() => setMobileOpen(false)} style={{ ...iconBtn(t), marginLeft: 'auto' }} aria-label="Close menu">
                         <X size={18} />
                     </button>
                 </div>
 
+                {/* Middle Floating Collapse Toggle (Desktop Only) */}
+                <button
+                    type="button"
+                    onClick={() => setCollapsed((v) => !v)}
+                    className="vq-desktop-only vq-press"
+                    aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    style={{
+                        position: 'absolute',
+                        right: -12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 24,
+                        height: 48,
+                        borderRadius: 999,
+                        background: t.panelSolid,
+                        border: `1px solid ${t.border}`,
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.14)',
+                        zIndex: 70,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: t.muted,
+                        transition: 'all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                    }}
+                >
+                    {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                </button>
+
                 {/* Nav */}
-                <nav className="vq-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 10px 8px' }}>
+                <nav className="vq-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '14px 10px 8px' }}>
                     {NAV_GROUPS.map((group) => (
                         <div key={group.key} style={{ marginBottom: 14 }}>
                             {group.label && !collapsed && (
@@ -182,19 +269,99 @@ function Sidebar({ t, collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
                     ))}
                 </nav>
 
-                {/* Footer */}
-                <div style={{ padding: 10, borderTop: `1px solid ${t.border}`, flexShrink: 0 }}>
-                    <Link href="/" style={navBase(t, false, collapsed)} className="vq-press">
-                        <ChevronLeft size={19} style={{ flexShrink: 0 }} />
-                        {!collapsed && <span style={{ fontSize: 13, fontWeight: 600 }}>Back to App</span>}
-                    </Link>
-                    <Link href={route('logout')} method="post" as="button" style={{ ...navBase(t, false, collapsed), width: '100%', color: BRAND.rose }} className="vq-press">
-                        <LogOut size={19} style={{ flexShrink: 0 }} />
-                        {!collapsed && <span style={{ fontSize: 13, fontWeight: 600 }}>Sign out</span>}
-                    </Link>
-                    <button onClick={() => setCollapsed((v) => !v)} className="vq-press vq-desktop-only" style={{ ...navBase(t, false, collapsed), width: '100%', color: t.muted, marginTop: 2 }}>
-                        {collapsed ? <ChevronsRight size={19} /> : <ChevronsLeft size={19} />}
-                        {!collapsed && <span style={{ fontSize: 13, fontWeight: 600 }}>Collapse</span>}
+                {/* User Profile & Dropdown (Tenant Style at Sidebar Bottom) */}
+                <div style={{ padding: collapsed ? '12px 6px' : '12px 10px', borderTop: `1px solid ${t.border}`, flexShrink: 0, position: 'relative' }} ref={userMenuRef}>
+                    {/* User Popup Menu */}
+                    {userMenuOpen && (
+                        <div style={{
+                            position: 'absolute',
+                            bottom: 'calc(100% + 8px)',
+                            left: collapsed ? 8 : 10,
+                            width: 240,
+                            background: t.panelSolid,
+                            border: `1px solid ${t.border2}`,
+                            borderRadius: 16,
+                            padding: 8,
+                            boxShadow: t.shadow,
+                            zIndex: 100,
+                            animation: 'vq-rise .2s ease both',
+                        }}>
+                            {/* User Header Info */}
+                            <div style={{ padding: '8px 10px 10px', borderBottom: `1px solid ${t.border}` }}>
+                                <div style={{ fontSize: 13.5, fontWeight: 800, color: t.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {auth?.user?.name || 'Administrator'}
+                                </div>
+                                <div style={{ fontSize: 10, fontWeight: 800, color: BRAND.indigo2, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 2 }}>
+                                    Hashmi Dashboard
+                                </div>
+                                <div style={{ fontSize: 11, color: t.muted, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {auth?.user?.email}
+                                </div>
+                            </div>
+
+                            {/* Menu Actions */}
+                            <div style={{ paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <Link href="/" style={popupItemStyle(t)} className="vq-press" onClick={() => setUserMenuOpen(false)}>
+                                    <ChevronLeft size={16} color={BRAND.indigo2} />
+                                    <span>Back to App</span>
+                                </Link>
+                                <Link href="/updater" style={popupItemStyle(t)} className="vq-press" onClick={() => setUserMenuOpen(false)}>
+                                    <Package size={16} color={BRAND.amber} />
+                                    <span>System Updates</span>
+                                </Link>
+                                <div style={{ height: 1, background: t.border, margin: '4px 0' }} />
+                                <Link href={route('logout')} method="post" as="button" style={{ ...popupItemStyle(t), color: BRAND.rose }} className="vq-press">
+                                    <LogOut size={16} color={BRAND.rose} />
+                                    <span>Sign out</span>
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Profile Trigger Button */}
+                    <button
+                        type="button"
+                        onClick={() => setUserMenuOpen((v) => !v)}
+                        className="vq-press"
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: collapsed ? 'center' : 'flex-start',
+                            gap: 10,
+                            padding: collapsed ? '6px 0' : '8px 10px',
+                            borderRadius: 12,
+                            border: 'none',
+                            background: userMenuOpen ? t.hover : 'transparent',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                        }}
+                    >
+                        <div style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: 11,
+                            background: GRADIENTS.brand,
+                            color: '#fff',
+                            display: 'grid',
+                            placeItems: 'center',
+                            fontWeight: 800,
+                            fontSize: 14,
+                            boxShadow: '0 6px 16px -6px rgba(99,102,241,.6)',
+                            flexShrink: 0
+                        }}>
+                            {(auth?.user?.name?.[0] || 'A').toUpperCase()}
+                        </div>
+                        {!collapsed && (
+                            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: t.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {auth?.user?.name || 'Administrator'}
+                                </div>
+                                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: BRAND.indigo2 }}>
+                                    Hashmi Dashboard
+                                </div>
+                            </div>
+                        )}
                     </button>
                 </div>
             </aside>
@@ -330,6 +497,14 @@ function iconBtn(t) {
 }
 function kbdStyle(t) {
     return { fontSize: 10.5, fontWeight: 700, padding: '2px 6px', borderRadius: 6, background: t.inputBg, border: `1px solid ${t.border}`, color: t.muted, fontFamily: 'inherit' };
+}
+function popupItemStyle(t) {
+    return {
+        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
+        borderRadius: 10, fontSize: 13, fontWeight: 600, color: t.sub,
+        textDecoration: 'none', cursor: 'pointer', border: 'none', background: 'transparent',
+        width: '100%', textAlign: 'left', transition: 'all 0.15s ease',
+    };
 }
 function responsiveCss(collapsed) {
     return `
