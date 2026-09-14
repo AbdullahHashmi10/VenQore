@@ -13,7 +13,12 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        $notifications = Auth::user()->notifications()->paginate(20);
+        $user = Auth::user();
+        $userId = (string) $user->id;
+        $notifications = \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', get_class($user))
+            ->whereRaw('CAST(notifiable_id AS CHAR) = ?', [$userId])
+            ->latest()
+            ->paginate(20);
 
         return Inertia::render('Notifications/NotificationCenter', [
             'notifications' => $notifications
@@ -25,7 +30,13 @@ class NotificationController extends Controller
      */
     public function markAllRead()
     {
-        Auth::user()->unreadNotifications->markAsRead();
+        $user = Auth::user();
+        $userId = (string) $user->id;
+        \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', get_class($user))
+            ->whereRaw('CAST(notifiable_id AS CHAR) = ?', [$userId])
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         return back()->with('success', 'All notifications marked as read.');
     }
 
@@ -34,7 +45,11 @@ class NotificationController extends Controller
      */
     public function markAsRead($id)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
+        $user = Auth::user();
+        $userId = (string) $user->id;
+        $notification = \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', get_class($user))
+            ->whereRaw('CAST(notifiable_id AS CHAR) = ?', [$userId])
+            ->findOrFail($id);
         $notification->markAsRead();
         return back();
     }
@@ -44,7 +59,11 @@ class NotificationController extends Controller
      */
     public function destroy($id)
     {
-        $notification = Auth::user()->notifications()->findOrFail($id);
+        $user = Auth::user();
+        $userId = (string) $user->id;
+        $notification = \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', get_class($user))
+            ->whereRaw('CAST(notifiable_id AS CHAR) = ?', [$userId])
+            ->findOrFail($id);
         $notification->delete();
         return back()->with('success', 'Notification deleted.');
     }

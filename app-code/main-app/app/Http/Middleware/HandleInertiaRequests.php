@@ -92,10 +92,23 @@ class HandleInertiaRequests extends Middleware
                     ]
                 ) : null,
                 'notifications' => ($user && $this->hasTable('notifications')) ? \Illuminate\Support\Facades\Cache::remember("user_notifications:{$user->id}", 15, function () use ($user) {
-                    return rescue(fn() => $user->notifications()->latest()->take(5)->get(), collect(), false);
+                    return rescue(function () use ($user) {
+                        $userId = (string) $user->id;
+                        return \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', get_class($user))
+                            ->whereRaw('CAST(notifiable_id AS CHAR) = ?', [$userId])
+                            ->latest()
+                            ->take(5)
+                            ->get();
+                    }, collect(), false);
                 }) : [],
                 'unread_notifications_count' => ($user && $this->hasTable('notifications')) ? \Illuminate\Support\Facades\Cache::remember("user_unread_notifications_count:{$user->id}", 15, function () use ($user) {
-                    return rescue(fn() => $user->unreadNotifications()->count(), 0, false);
+                    return rescue(function () use ($user) {
+                        $userId = (string) $user->id;
+                        return \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', get_class($user))
+                            ->whereRaw('CAST(notifiable_id AS CHAR) = ?', [$userId])
+                            ->whereNull('read_at')
+                            ->count();
+                    }, 0, false);
                 }) : 0,
                 // Drives StoreSwitcher show/hide in sidebar
                 'my_stores_count' => $user && $this->hasTable('tenant_users')
