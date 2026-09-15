@@ -28,12 +28,12 @@ final class FrameFiller
             $frame = $this->frames->find('classic', $tenant);
         }
 
-        $pool = $this->pool($role, $tenant);
-        $keys = array_values(array_unique(array_column($pool, 'key')));
-        $availability = app(Reckoner::class)->checkAvailability($keys, $user, $tenant);
+        $allRegistryKeys = array_keys(ReckonerRegistry::all());
+        $availability = app(Reckoner::class)->checkAvailability($allRegistryKeys, $user, $tenant);
         $availableKeys = array_keys(array_filter($availability));
 
-        $candidates = [];
+        $pool = $this->pool($role, $tenant);
+        $primaryCandidates = [];
         foreach ($pool as $entry) {
             $key = $entry['key'];
             if (! in_array($key, $availableKeys, true)) {
@@ -46,32 +46,144 @@ final class FrameFiller
             $shape = $definition['shape'];
             $class = $entry['class'] ?? CardClass::forShape($shape);
             $chart = LayoutLaw::defaultChartForShape(strtoupper($shape->value));
-            $candidates[] = [...$entry, 'class' => $class, 'chart' => $chart];
+            $period = $entry['period'] ?? ($shape->value === 'scalar' ? 'today' : 'this_month');
+            $primaryCandidates[] = [
+                'key' => $key,
+                'class' => $class,
+                'chart' => $chart,
+                'period' => $period,
+            ];
         }
 
-        $used = [];
-        $cards = [];
+        $secondaryCandidates = [];
+        foreach ($availableKeys as $key) {
+            $definition = ReckonerRegistry::find($key);
+            if ($definition === null) {
+                continue;
+            }
+            $shape = $definition['shape'];
+            $class = CardClass::forShape($shape);
+            $chart = LayoutLaw::defaultChartForShape(strtoupper($shape->value));
+            $period = match ($shape->value) {
+                'scalar' => 'today',
+                'series', 'multi_series' => 'this_year',
+                'ranking', 'breakdown' => 'this_month',
+                default => 'live'
+            };
+            $secondaryCandidates[] = [
+                'key' => $key,
+                'class' => $class,
+                'chart' => $chart,
+                'period' => $period,
+            ];
+        }
+
+        $usedKeys = [];
+        $slotCards = [];
+
+        // Pass 1: Match slots with unused primary pool candidates matching accepted classes
         foreach ($frame['slots'] as $slot) {
             $match = null;
             foreach ($slot['accepts'] as $acceptedClass) {
-                foreach ($candidates as $index => $candidate) {
-                    if (isset($used[$index]) || $candidate['class'] !== $acceptedClass) {
+                foreach ($primaryCandidates as $cand) {
+                    if (in_array($cand['key'], $usedKeys, true) || $cand['class'] !== $acceptedClass) {
                         continue;
                     }
-                    if (! LayoutLaw::isCategoryLegal($candidate['chart'], $slot['category'])) {
+                    if (! LayoutLaw::isCategoryLegal($cand['chart'], $slot['category'])) {
                         continue;
                     }
-                    $match = $index;
+                    $match = $cand;
                     break 2;
                 }
             }
+            if ($match !== null) {
+                $usedKeys[] = $match['key'];
+                $slotCards[$slot['slot']] = [
+                    'slot' => $slot,
+                    'cand' => $match,
+                ];
+            }
+        }
 
-            if ($match === null) {
+        // Pass 2: Fill remaining slots with unused secondary module-enabled readings matching accepted classes
+        foreach ($frame['slots'] as $slot) {
+            if (isset($slotCards[$slot['slot']])) {
                 continue;
             }
+            $match = null;
+            foreach ($slot['accepts'] as $acceptedClass) {
+                foreach ($secondaryCandidates as $cand) {
+                    if (in_array($cand['key'], $usedKeys, true) || $cand['class'] !== $acceptedClass) {
+                        continue;
+                    }
+                    if (! LayoutLaw::isCategoryLegal($cand['chart'], $slot['category'])) {
+                        continue;
+                    }
+                    $match = $cand;
+                    break 2;
+                }
+            }
+            if ($match !== null) {
+                $usedKeys[] = $match['key'];
+                $slotCards[$slot['slot']] = [
+                    'slot' => $slot,
+                    'cand' => $match,
+                ];
+            }
+        }
 
-            $used[$match] = true;
-            $entry = $candidates[$match];
+        // Pass 3: Fill remaining slots with ANY unused secondary reading legal for the slot's category
+        foreach ($frame['slots'] as $slot) {
+            if (isset($slotCards[$slot['slot']])) {
+                continue;
+            }
+            $match = null;
+            foreach ($secondaryCandidates as $cand) {
+                if (in_array($cand['key'], $usedKeys, true)) {
+                    continue;
+                }
+                if (! LayoutLaw::isCategoryLegal($cand['chart'], $slot['category'])) {
+                    continue;
+                }
+                $match = $cand;
+                break;
+            }
+            if ($match !== null) {
+                $usedKeys[] = $match['key'];
+                $slotCards[$slot['slot']] = [
+                    'slot' => $slot,
+                    'cand' => $match,
+                ];
+            }
+        }
+
+        // Pass 4: If any slot is still unfilled (edge case: very few enabled readings), reuse legal candidates
+        foreach ($frame['slots'] as $slot) {
+            if (isset($slotCards[$slot['slot']])) {
+                continue;
+            }
+            $match = null;
+            foreach ($secondaryCandidates as $cand) {
+                if (! LayoutLaw::isCategoryLegal($cand['chart'], $slot['category'])) {
+                    continue;
+                }
+                $match = $cand;
+                break;
+            }
+            if ($match !== null) {
+                $slotCards[$slot['slot']] = [
+                    'slot' => $slot,
+                    'cand' => $match,
+                ];
+            }
+        }
+
+        $cards = [];
+        foreach ($frame['slots'] as $slot) {
+            if (! isset($slotCards[$slot['slot']])) {
+                continue;
+            }
+            $entry = $slotCards[$slot['slot']]['cand'];
             $cards[] = [
                 'tenant_id' => $tenant->id,
                 'reading_key' => $entry['key'],

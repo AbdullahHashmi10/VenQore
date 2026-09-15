@@ -262,28 +262,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  };
  }, [isMobileFabsOpen]);
 
-  const [sidebarFrame, setSidebarFrame] = useState(() => {
-    if (typeof window === 'undefined') return 'rail_hover';
-    try {
-      const saved = localStorage.getItem('vq_sidebar_frame');
-      if (saved && ['rail', 'rail_hover', 'expanded', 'sections', 'compact', 'topbar'].includes(saved)) {
-        return saved;
-      }
-    } catch (e) {}
-    return 'rail_hover';
-  });
-
-  const changeSidebarFrame = (newFrame) => {
-    setSidebarFrame(newFrame);
-    try {
-      localStorage.setItem('vq_sidebar_frame', newFrame);
-    } catch (e) {}
-  };
-
-  const isCompact = sidebarFrame === 'compact';
-  const isSections = sidebarFrame === 'sections';
-  const isAlwaysExpanded = sidebarFrame === 'expanded' || sidebarFrame === 'sections' || sidebarFrame === 'compact';
-  const showExpandedSidebar = mobileSidebarOpen || (isAlwaysExpanded ? true : (sidebarFrame === 'rail' ? false : isSidebarOpen));
+  const showExpandedSidebar = mobileSidebarOpen || isSidebarOpen;
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
  const { isDarkMode, setIsDarkMode } = useTheme();
  const { appearance, update: updateAppearance, isDark } = useAppearance();
@@ -1137,19 +1116,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  );
  });
 
-  const groupedMenuItems = useMemo(() => {
-    const sections = [
-      { title: 'Core', keys: ['Dashboard', 'Home'] },
-      { title: 'Operations', keys: ['Sell', 'Purchase', 'Stock'] },
-      { title: 'Finance & CRM', keys: ['Contacts', 'Money'] },
-      { title: 'Growth & Insights', keys: ['VenSynQ', 'Insights'] },
-      { title: 'System', keys: ['Administration', 'Settings', 'Appearance'] },
-    ];
-    return sections.map(sec => ({
-      title: sec.title,
-      items: menuItems.filter(item => sec.keys.includes(item.name)),
-    })).filter(sec => sec.items.length > 0);
-  }, [menuItems]);
+
 
  // Helper to check if a menu item is active
  const isMenuItemActive = (item) => {
@@ -1179,17 +1146,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   // Handle hover-to-expand: expand sidebar AND open the specific menu
   const handleHoverExpand = useCallback((menuKey) => {
-    if (sidebarFrame !== 'rail_hover') return;
     if (!isSidebarOpen) {
       wasHoverExpandedRef.current = true; // Mark as hover-expanded
       setIsSidebarOpen(true);
       setExpandedMenu(menuKey);
     }
-  }, [isSidebarOpen, sidebarFrame]);
+  }, [isSidebarOpen]);
 
   // Handle sidebar mouse leave - auto-collapse if it was hover-expanded
   const handleSidebarMouseLeave = useCallback(() => {
-    if (sidebarFrame !== 'rail_hover') return;
     if (wasHoverExpandedRef.current && isSidebarOpen) {
       // Small delay to prevent accidental collapse during quick movements
       setTimeout(() => {
@@ -1200,7 +1165,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         }
       }, 300);
     }
-  }, [isSidebarOpen, sidebarFrame]);
+  }, [isSidebarOpen]);
 
  // Handle manual sidebar toggle - mark as NOT hover-expanded
  const handleManualToggle = useCallback(() => {
@@ -1357,19 +1322,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   ${isPlatformAdmin && !store
   ? (isEffectiveDarkMode ? 'bg-neutral-950/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-line')
   : 'bg-surface border-r border-line dark:border-line'}
-  ${sidebarFrame === 'topbar' ? 'hidden lg:hidden' : ''}
-  ${sidebarFrame === 'compact'
-    ? 'w-[var(--vq-nav-w-compact)]'
-    : (sidebarFrame === 'expanded' || sidebarFrame === 'sections')
-      ? 'w-[var(--vq-nav-w-full)]'
-      : (sidebarFrame === 'rail')
-        ? 'w-[var(--vq-nav-w-full)] lg:w-[var(--vq-nav-w-rail)]'
-        : (showExpandedSidebar ? 'w-[var(--vq-nav-w-full)]' : 'w-[var(--vq-nav-w-full)] lg:w-[var(--vq-nav-w-rail)]')
-  }
-  ${isPlatformAdmin && !store
-  ? (isEffectiveDarkMode ? 'm-4 rounded-xl h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-line shadow-sm transition-all')
-  : ''}
-`}
+   ${showExpandedSidebar ? 'w-[var(--vq-nav-w-full)]' : 'w-[var(--vq-nav-w-full)] lg:w-[var(--vq-nav-w-rail)]'}
+   ${isPlatformAdmin && !store
+   ? (isEffectiveDarkMode ? 'm-4 rounded-xl h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-line shadow-sm transition-all')
+   : ''}
+ `}
   >
 
 
@@ -1396,70 +1353,32 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* Menu */}
   <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10" onClick={() => setMobileSidebarOpen(false)}>
-  {sidebarFrame === 'sections' && showExpandedSidebar ? (
-    groupedMenuItems.map((section) => (
-      <div key={section.title} className="mb-4">
-        <div className="px-3 py-1 text-3xs font-bold uppercase tracking-wider text-ink-muted/80 mb-1">
-          {section.title}
-        </div>
-        {section.items.map((item) => (
-          <SidebarItem
-            key={item.name}
-            id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
-            name={tt(item.name)}
-            icon={item.icon}
-            subItems={item.subs}
-            route={item.route}
-            routeParams={item.routeParams || { store_slug: store?.slug }}
-            menuKey={item.name}
-            onHoverExpand={handleHoverExpand}
-            isPlatformHQ={isPlatformAdmin && !store}
-            isExpanded={showExpandedSidebar}
-            isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && activeMenu === 'Home' && item.name === 'Dashboard')}
-            isActive={activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home')}
-            compact={isCompact}
-            onToggle={() => {
-              if (item.onClick) {
-                item.onClick();
-                return;
-              }
-              toggleMenu(item.name);
-              if (!showExpandedSidebar) setIsSidebarOpen(true);
-            }}
-            onClick={item.onClick}
-          />
-        ))}
-      </div>
-    ))
-  ) : (
-    menuItems.map((item) => (
-      <SidebarItem
-        key={item.name}
-        id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
-        name={tt(item.name)}
-        icon={item.icon}
-        subItems={item.subs}
-        route={item.route}
-        routeParams={item.routeParams || { store_slug: store?.slug }}
-        menuKey={item.name}
-        onHoverExpand={handleHoverExpand}
-        isPlatformHQ={isPlatformAdmin && !store}
-        isExpanded={showExpandedSidebar}
-        isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && activeMenu === 'Home' && item.name === 'Dashboard')}
-        isActive={activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home')}
-        compact={isCompact}
-        onToggle={() => {
-          if (item.onClick) {
-            item.onClick();
-            return;
-          }
-          toggleMenu(item.name);
-          if (!showExpandedSidebar) setIsSidebarOpen(true);
-        }}
-        onClick={item.onClick}
-      />
-    ))
-  )}
+  {menuItems.map((item) => (
+    <SidebarItem
+      key={item.name}
+      id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
+      name={tt(item.name)}
+      icon={item.icon}
+      subItems={item.subs}
+      route={item.route}
+      routeParams={item.routeParams || { store_slug: store?.slug }}
+      menuKey={item.name}
+      onHoverExpand={handleHoverExpand}
+      isPlatformHQ={isPlatformAdmin && !store}
+      isExpanded={showExpandedSidebar}
+      isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && activeMenu === 'Home' && item.name === 'Dashboard')}
+      isActive={activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home')}
+      onToggle={() => {
+        if (item.onClick) {
+          item.onClick();
+          return;
+        }
+        toggleMenu(item.name);
+        if (!showExpandedSidebar) setIsSidebarOpen(true);
+      }}
+      onClick={item.onClick}
+    />
+  ))}
 
 						{/* Activity Hub Button — opens centered pop-up modal */}
 						{!(isPlatformAdmin && !store) && (
@@ -1835,34 +1754,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
               <div className="h-px bg-line my-1" />
 
-              {/* Sidebar Frame Selector */}
-              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                  Sidebar Layout
-              </div>
-              <div className="grid grid-cols-2 gap-1 p-1 bg-sunken rounded-xl">
-                  {[
-                      { id: 'rail_hover', label: 'Rail + Reveal' },
-                      { id: 'rail', label: 'Rail (88px)' },
-                      { id: 'expanded', label: 'Expanded' },
-                      { id: 'sections', label: 'Sections' },
-                      { id: 'compact', label: 'Compact' },
-                      { id: 'topbar', label: 'Top Bar' },
-                  ].map((f) => (
-                      <button
-                          key={f.id}
-                          onClick={() => changeSidebarFrame(f.id)}
-                          className={`py-1.5 px-2 rounded-lg text-2xs font-semibold text-center transition-all ${
-                              sidebarFrame === f.id
-                                  ? 'bg-surface shadow-sm text-brand-600 font-bold'
-                                  : 'text-ink-muted hover:text-ink'
-                          }`}
-                      >
-                          {f.label}
-                      </button>
-                  ))}
-              </div>
 
-              <div className="h-px bg-line my-1" />
 
               {/* Header Controls */}
               <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
@@ -2157,42 +2049,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   </header>
   )}
 
-  {/* Top Bar Navigation (when sidebar frame is 'topbar') */}
-  {sidebarFrame === 'topbar' && !hideSidebar && !fullScreen && (
-      <nav className="hidden lg:flex items-center gap-1 px-6 py-2 border-b border-line bg-surface/80 backdrop-blur-md shrink-0 overflow-x-auto custom-scrollbar z-20">
-          <div className="flex items-center gap-2 mr-4 shrink-0">
-              <img 
-                  src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"} 
-                  alt="Logo" 
-                  className="w-6 h-6 object-contain" 
-              />
-              {store && <span className="text-xs font-bold truncate max-w-[140px]">{store.name}</span>}
-          </div>
-          {menuItems.map((item) => {
-              const isItemActive = activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home');
-              return (
-                  <Link
-                      key={item.name}
-                      href={item.route && window.route().has(item.route) ? window.route(item.route, item.routeParams || { store_slug: store?.slug }) : '#'}
-                      onClick={(e) => {
-                          if (!item.route) {
-                              e.preventDefault();
-                              if (item.onClick) item.onClick();
-                          }
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
-                          isItemActive
-                              ? 'bg-accent-quiet text-accent-text font-bold'
-                              : 'text-ink-muted hover:text-ink hover:bg-interactive-hover'
-                      }`}
-                  >
-                      {item.icon && <item.icon size={14} />}
-                      <span>{tt(item.name)}</span>
-                  </Link>
-              );
-          })}
-      </nav>
-  )}
+
 
 
  {/* DYNAMIC CONTENT AREA */}

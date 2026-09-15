@@ -1870,6 +1870,24 @@ function fitCat(card){ return catsFor(card)[0] || (isSpecial(card) ? SPECIAL[car
    max and the live grid. A card can therefore never be smaller than it can
    draw, nor wider than the screen it is on. */
 function geometryOf(card, cols, colW){
+  const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(card.frameSlot));
+  if (frameSlot && (cols || 12) >= 12) {
+    const sw = Number(frameSlot.w);
+    const sh = Number(frameSlot.h);
+    const scat = frameSlot.category || card.cat || "C4";
+    const T = fitsTable(card);
+    const [gw, gh] = fitToGrid(sw, sh, cols);
+    return {
+      w: gw,
+      h: gh,
+      authoredW: sw,
+      authoredH: sh,
+      cat: scat,
+      colW: colW || COL_W,
+      fit: resolveFit(scat, gw, gh, T) ?? 0,
+      clamped: false,
+    };
+  }
   const cat = card.cat || fitCat(card);
   const T = fitsTable(card);
   const [MW, MH] = CAT_MAX[cat] || [12, 16];
@@ -2263,14 +2281,19 @@ function cardFrame(c, opts){
   /* --vqw / --vqh let the stylesheet reason about a card's own span without a
      container query, so an interior can thin out at 2 rows and fill out at 6. */
   const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
-  const pinned = ((frameSlot && (opts.cols || 12) >= 12)
-    || (Number.isInteger(c.gx) && Number.isInteger(c.gy) && (opts.cols || 12) >= 12));
+  const is12 = (opts.cols || 12) >= 12;
+  const pinned = ((frameSlot && is12)
+    || (Number.isInteger(c.gx) && Number.isInteger(c.gy) && is12));
+  const colSpan = (frameSlot && is12) ? Number(frameSlot.w) : w;
+  const rowSpan = (frameSlot && is12) ? Number(frameSlot.h) : h;
+  const colStart = (frameSlot ? Number(frameSlot.x) : c.gx) + 1;
+  const rowStart = (frameSlot ? Number(frameSlot.y) : c.gy) + 1;
   const place = pinned
-    ? `grid-column:${(frameSlot ? Number(frameSlot.x) : c.gx) + 1} / span ${w};grid-row:${(frameSlot ? Number(frameSlot.y) : c.gy) + 1} / span ${h};`
+    ? `grid-column:${colStart} / span ${colSpan};grid-row:${rowStart} / span ${rowSpan};`
     : "";
-  return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${w}" data-h="${h}"
+  return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${colSpan}" data-h="${rowSpan}"
     tabindex="0" draggable="false"
-    style="--i:${CARDS.indexOf(c)};--vqw:${w};--vqh:${h};${place}">
+    style="--i:${CARDS.indexOf(c)};--vqw:${colSpan};--vqh:${rowSpan};${place}">
     ${c.starBorder ? `<span class="vqc-star" aria-hidden="true"></span>` : ""}
     ${opts.body}
     <span class="vqc-glare" aria-hidden="true"></span>
@@ -2565,24 +2588,54 @@ const HOST_RO = typeof ResizeObserver === "undefined" ? null : new ResizeObserve
     if (card) mountChart(host, card);
   }
 });
+
+function ensureAllSlotsFilled(){
+  if (!FRAME_SLOTS || !FRAME_SLOTS.length) return;
+  const occupiedSlots = new Set(CARDS.map(c => Number(c.frameSlot)).filter(Number.isFinite));
+  const usedKeys = new Set(CARDS.map(c => c.key).filter(Boolean));
+
+  FRAME_SLOTS.forEach(slot => {
+    const slotNum = Number(slot.slot);
+    if (!occupiedSlots.has(slotNum)) {
+      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
+        || READINGS.find(r => readingAvailable(r))
+        || READINGS[0];
+      if (availReading) {
+        usedKeys.add(availReading.key);
+        const fitIndex = (FITS[slot.category] || []).findIndex(fit => fit[2] === slot.fit);
+        CARDS.push(normaliseCard({
+          id: newId(),
+          key: availReading.key,
+          chart: defaultChart(availReading.key),
+          period: "Month",
+          frameSlot: slotNum,
+          gx: Number(slot.x),
+          gy: Number(slot.y),
+          w: Number(slot.w),
+          h: Number(slot.h),
+          cat: slot.category,
+          fit: fitIndex < 0 ? (DEFAULT_FIT[slot.category] || 0) : fitIndex,
+          variant: "spark",
+          accent: slotNum === 1,
+        }));
+        occupiedSlots.add(slotNum);
+      }
+    }
+  });
+}
+
 function draw(){
   const board = document.getElementById("board");
   if (!board) return;
   const cols = boardCols(board);
   COL_W = boardColW(board);
   LAST_COLS = cols;
-  /* innerHTML discards the old hosts, but a ResizeObserver keeps a strong
-     reference to everything it observes — so without this the observer would
-     accumulate one dead host per redraw for the life of the page. */
+  if (cols >= 12 && FRAME_SLOTS && FRAME_SLOTS.length) {
+    ensureAllSlotsFilled();
+  }
   HOST_RO?.disconnect();
   const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("");
-  const occupied = new Set(CARDS.map(c => Number(c.frameSlot)).filter(Number.isFinite));
-  const emptyHtml = cols >= 12 ? FRAME_SLOTS.filter(slot => !occupied.has(Number(slot.slot))).map(slot =>
-    `<div class="vq-frame-empty" data-frame-slot="${Number(slot.slot)}"
-      style="grid-column:${Number(slot.x) + 1} / span ${Number(slot.w)};grid-row:${Number(slot.y) + 1} / span ${Number(slot.h)}">
-      <button type="button" class="vq-frame-empty-add">Add a card</button>
-    </div>`).join("") : "";
-  board.innerHTML = cardsHtml + emptyHtml
+  board.innerHTML = cardsHtml
     || `<p class="board-empty">No cards yet — open <strong>Add card</strong> and pick what you want to see.</p>`;
   const count = document.getElementById("count");
   if (count) count.textContent = CARDS.length;
@@ -2620,10 +2673,6 @@ function draw(){
     wireResize(el, c);
     wirePeriod(el, c);
   });
-  board.querySelectorAll(".vq-frame-empty-add").forEach(button => button.addEventListener("click", () => {
-    document.getElementById("lib")?.classList.add("is-on");
-    document.getElementById("lib-q")?.focus();
-  }));
   fitValues(board);
   renderLibrary();
   persistBoard();
@@ -3025,22 +3074,56 @@ function setFrame(frameKey, slots){
   ACTIVE_FRAME = frameKey;
   FRAME_SLOTS = Array.isArray(slots) ? slots : [];
   FRAME_DIRTY = false;
-  CARDS.forEach((card, index) => {
-    const slot = FRAME_SLOTS[index];
-    if (!slot) { delete card.frameSlot; delete card.gx; delete card.gy; return; }
-    card.frameSlot = Number(slot.slot);
-    card.gx = Number(slot.x); card.gy = Number(slot.y);
-    card.w = Number(slot.w); card.h = Number(slot.h); card.cat = slot.category;
-    const fitIndex = (FITS[card.cat] || []).findIndex(fit => fit[2] === slot.fit);
-    card.fit = fitIndex < 0 ? (DEFAULT_FIT[card.cat] || 0) : fitIndex;
+
+  const oldCards = [...CARDS];
+  const usedKeys = new Set();
+  const newCards = [];
+
+  FRAME_SLOTS.forEach((slot) => {
+    let matched = oldCards.find(c => !usedKeys.has(c.key) && c.cat === slot.category);
+    if (!matched) matched = oldCards.find(c => !usedKeys.has(c.key));
+    if (!matched) {
+      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
+        || READINGS.find(r => readingAvailable(r))
+        || READINGS[0];
+      if (availReading) {
+        matched = {
+          id: newId(),
+          key: availReading.key,
+          chart: defaultChart(availReading.key),
+          period: "Month",
+          variant: "spark",
+        };
+      }
+    }
+
+    if (matched) {
+      usedKeys.add(matched.key);
+      const fitIndex = (FITS[slot.category] || []).findIndex(fit => fit[2] === slot.fit);
+      newCards.push({
+        ...matched,
+        id: matched.id || newId(),
+        frameSlot: Number(slot.slot),
+        gx: Number(slot.x),
+        gy: Number(slot.y),
+        w: Number(slot.w),
+        h: Number(slot.h),
+        cat: slot.category,
+        fit: fitIndex < 0 ? (DEFAULT_FIT[slot.category] || 0) : fitIndex,
+        accent: Number(slot.slot) === 1,
+      });
+    }
   });
+
+  CARDS = newCards.map(normaliseCard);
   draw();
+
   if (DASHBOARD_ID && typeof axios !== "undefined") {
     axios.put(`/api/dashboards/${DASHBOARD_ID}`, { frame_key: frameKey })
       .then(() => axios.get(`/api/dashboards/${DASHBOARD_ID}`))
       .then(response => {
         const cards = response?.data?.data?.cards;
-        if (!Array.isArray(cards)) return;
+        if (!Array.isArray(cards) || !cards.length) return;
         CARDS = availableCards(cards.map(bc => ({
           id: bc.id || newId(), key: bc.reading_key || bc.key, chart: chartKey(bc.chart),
           period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
