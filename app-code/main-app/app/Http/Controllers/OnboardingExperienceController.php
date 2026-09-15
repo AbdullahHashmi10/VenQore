@@ -36,6 +36,10 @@ class OnboardingExperienceController extends Controller
             ])
             ->values();
 
+        $businessType = \App\Support\BusinessTypes::exists($tenant->business_type ?? null)
+            ? $tenant->business_type
+            : null;
+
         return Inertia::render('Onboarding/Wizard', [
             'storeSlug'    => $tenant->slug,
             'tenantName'   => $tenant->name,
@@ -52,6 +56,11 @@ class OnboardingExperienceController extends Controller
             // server did not even validate.
             'discovery'    => app(\App\Services\AiBuilder\DiscoveryResolver::class)->questionSet(),
             'recommended'  => app(\App\Services\AiBuilder\DiscoveryResolver::class)->recommendations(),
+            // The wizard uses this after a business has been matched. It is a
+            // proposal of choices, never a write of module state.
+            'guidedOnboarding' => $businessType
+                ? app(\App\Onboarding\ModuleEligibility::class)->plan($businessType)
+                : null,
         ]);
     }
 
@@ -122,10 +131,17 @@ class OnboardingExperienceController extends Controller
             $matchedKey,
         );
 
+        $businessType = $guess['business_type'] ?? null;
+        $guided = $businessType && \App\Support\BusinessTypes::exists($businessType)
+            ? app(\App\Onboarding\ModuleEligibility::class)->plan($businessType)
+            : null;
+
         return response()->json([
             'success'           => true,
             'preset_key'        => $matchedKey,
             'matched'           => $matched,
+            'business_type'     => $businessType,
+            'guided_onboarding' => $guided,
             'preset'            => $chosenPreset,
             'suggested_modules' => $modules,
             'headline'          => $resolver->headline($answers, $matchedKey),
@@ -140,10 +156,12 @@ class OnboardingExperienceController extends Controller
     {
         $request->validate([
             'preset_key' => 'nullable|string',
+            'business_type' => 'nullable|string',
             'modules'    => 'required|array',
         ]);
 
         $tenant = app('current.tenant');
+        $businessType = $request->input('business_type');
 
         // Real preset keys only, and routed through the single writer — this
         // fixes "deselecting a module leaves it on" (partial writes here used
@@ -154,10 +172,30 @@ class OnboardingExperienceController extends Controller
             fn ($key) => (config("modules.{$key}.status") ?? 'live') === 'live'
         ));
 
+        // The browser is not an authority. A guided business type brings the
+        // same never-offer policy to the write boundary, so a crafted request
+        // cannot provision an incompatible module.
+        if ($businessType && \App\Support\BusinessTypes::exists($businessType)) {
+            $eligibility = app(\App\Onboarding\ModuleEligibility::class);
+            $modules = array_values(array_filter($modules, fn (string $key) =>
+                in_array($key, \App\Onboarding\ModuleEligibility::ALWAYS_ON, true)
+                || $eligibility->evaluate($key, $businessType)['offered']
+            ));
+        }
+
         if ($modules !== []) {
             app(\App\Services\AiBuilder\ApplyConfigurationService::class)->apply(
                 $tenant,
-                ['modules' => $modules],
+                [
+                    'modules' => $modules,
+                    // Terminology is presentation-only. This deliberately
+                    // writes tenant_terminology rather than changing schema
+                    // fields, so a pharmacy can say Patient without forking
+                    // the data model from every other tenant.
+                    'terminology' => $businessType && \App\Support\BusinessTypes::exists($businessType)
+                        ? \App\Support\BusinessTypes::termsFor($businessType)
+                        : [],
+                ],
                 'preset',
                 'Selected during onboarding wizard.'
             );
@@ -170,7 +208,9 @@ class OnboardingExperienceController extends Controller
         // different preset later gets their board re-keyed the same way.
         $presetKey = $request->input('preset_key');
         $presets = config('ai_builder.presets', []);
-        if ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by'])) {
+        if ($businessType && \App\Support\BusinessTypes::exists($businessType)) {
+            $tenant->business_type = $businessType;
+        } elseif ($presetKey && isset($presets[$presetKey]) && empty($presets[$presetKey]['blocked_by'])) {
             $tenant->business_type = $presetKey;
         }
 

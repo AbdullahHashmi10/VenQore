@@ -13,10 +13,7 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Settings/SettingsPanel', [
-            'settings' => Setting::all()->pluck('value', 'key'),
-            'customCharges' => AdHocLine::orderBy('sort_order')->get(),
-        ]);
+        return app(\App\Http\Controllers\AdminController::class)->settings();
     }
 
     public function update(Request $request)

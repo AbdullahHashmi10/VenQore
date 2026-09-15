@@ -74,9 +74,8 @@ class InertiaPageRenderTest extends VenQoreTestCase
 
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
-            ->component('Settings/SettingsPanel')
+            ->component('Admin/Settings')
             ->has('settings')
-            ->has('customCharges')
         );
     }
 

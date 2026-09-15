@@ -68,6 +68,7 @@ export default function Wizard({
     allModules = [],
     discovery = [],
     recommended = {},
+    guidedOnboarding = null,
 }) {
 
     /* Scoped to this tenant, not just this page: a browser reused across two
@@ -90,6 +91,7 @@ export default function Wizard({
     const [edited, setEdited] = useSessionState(`${STORAGE_KEY}:edited`, null);
     const [lastAnswer, setLastAnswer] = useState(null);
     const [buildIndex, setBuildIndex] = useState(0);
+    const [guidedPlan, setGuidedPlan] = useState(guidedOnboarding);
 
     const legalKeys = useMemo(() => allModules.map((m) => m.key), [allModules]);
 
@@ -191,11 +193,22 @@ export default function Wizard({
                 setPresetLabel(data.preset?.label || '');
                 setBaseModules(data.suggested_modules || FALLBACK_MODULES);
                 setServerHeadline(data.headline || '');
+                if (data.guided_onboarding) {
+                    const plan = data.guided_onboarding;
+                    setGuidedPlan(plan);
+                    setEdited([
+                        ...(plan.alwaysOn || []),
+                        ...(plan.rounds || []).flat().filter((m) => m.preselected).map((m) => m.key),
+                    ]);
+                    return 'guided';
+                }
+                return 'questions';
             }
         } catch (e) {
             /* A failed match still leaves a usable stack — the questions built
                one on their own, and the proposal renders from that. */
         }
+        return 'questions';
     };
 
     const handleAnswer = (questionKey, optionKey, opts) => {
@@ -242,7 +255,7 @@ export default function Wizard({
         try {
             await postJson(
                 route('store.onboarding.v2.apply-preset', { store_slug: storeSlug }),
-                { modules: activeModules, preset_key: presetKey },
+                { modules: activeModules, preset_key: presetKey, business_type: guidedPlan?.business?.key || null },
             );
         } catch (e) {
             /* The complete step below still moves them into the product. */
@@ -271,9 +284,12 @@ export default function Wizard({
         );
     };
 
-    const totalSteps = questions.length + 2;
+    const guidedRounds = guidedPlan?.rounds || [];
+    const totalSteps = phase === 'guided' ? guidedRounds.length + 1 : questions.length + 2;
     const stepNow =
-        phase === 'questions'
+        phase === 'guided'
+            ? qIndex + 1
+            : phase === 'questions'
             ? qIndex + 1
             : phase === 'proposal'
               ? questions.length + 1
@@ -282,8 +298,8 @@ export default function Wizard({
                 : 0;
 
     const back = () => {
-        if (phase === 'questions' && qIndex > 0) return () => setQIndex((i) => i - 1);
-        if (phase === 'questions') return () => setPhase('welcome');
+        if ((phase === 'questions' || phase === 'guided') && qIndex > 0) return () => setQIndex((i) => i - 1);
+        if (phase === 'questions' || phase === 'guided') return () => setPhase('welcome');
         if (phase === 'intent' || phase === 'templates') {
             return () => setPhase('welcome');
         }
@@ -319,7 +335,7 @@ export default function Wizard({
         return mine.length ? mine[mine.length - 1] : null;
     }, [lastAnswer, activeModules, attribution]);
 
-    const showStack = phase === 'questions' || phase === 'proposal';
+    const showStack = phase === 'questions' || phase === 'guided' || phase === 'proposal';
 
     return (
         <>
@@ -402,9 +418,9 @@ export default function Wizard({
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            runDiscovery();
-                                            setPhase('questions');
+                                        onClick={async () => {
+                                            const next = await runDiscovery();
+                                            setPhase(next);
                                             setQIndex(0);
                                         }}
                                         className="mt-6 inline-flex h-12 items-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
@@ -467,6 +483,51 @@ export default function Wizard({
                                     onContinue={continueFromMulti}
                                     autoAdvance={advance}
                                 />
+                            )}
+
+                            {/* AI has matched the trade. From here the owner,
+                                not the model, chooses the modules. */}
+                            {phase === 'guided' && guidedRounds[qIndex] && (
+                                <Fade key={`guided-${qIndex}`} className="mx-auto max-w-3xl">
+                                    <span className="text-3xs font-bold uppercase tracking-widest text-accent-text">
+                                        Choose what you use · {qIndex + 1} of {guidedRounds.length}
+                                    </span>
+                                    <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink">
+                                        Which parts fit your {guidedPlan?.business?.label || 'business'}?
+                                    </h1>
+                                    <p className="mt-2 text-base text-ink-secondary">
+                                        We have preselected likely tools. Keep, remove, or add anything you recognise.
+                                    </p>
+                                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                                        {guidedRounds[qIndex].map((module) => {
+                                            const selected = activeModules.includes(module.key);
+                                            const needsMet = (module.needs || []).every((key) => activeModules.includes(key));
+                                            const any = module.needsAny || [];
+                                            const anyMet = any.length === 0 || any.some((key) => activeModules.includes(key));
+                                            const disabled = !selected && (!needsMet || !anyMet);
+                                            return (
+                                                <button key={module.key} type="button" disabled={disabled}
+                                                    aria-label={`${selected ? 'Remove' : 'Add'} ${module.label}`}
+                                                    onClick={() => toggleModule(module.key)}
+                                                    className={`rounded-lg border p-4 text-left transition-colors ${selected ? 'border-accent bg-accent-quiet' : 'border-line bg-surface hover:border-accent'} disabled:cursor-not-allowed disabled:opacity-50`}>
+                                                    <span className="flex items-start gap-3">
+                                                        <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border ${selected ? 'border-accent bg-accent-fill text-accent-on' : 'border-line-strong'}`}>
+                                                            {selected && <Check size={13} strokeWidth={3} />}
+                                                        </span>
+                                                        <span><strong className="block text-sm text-ink">{module.label}</strong>
+                                                            <span className="mt-1 block text-xs leading-relaxed text-ink-muted">{module.description}</span>
+                                                            {module.cardCount > 0 && <span className="mt-2 block text-3xs font-semibold uppercase tracking-wide text-accent-text">{module.cardCount} dashboard cards</span>}
+                                                        </span>
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button type="button" onClick={() => qIndex + 1 >= guidedRounds.length ? setPhase('proposal') : setQIndex((i) => i + 1)}
+                                        className="mt-7 inline-flex h-12 items-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow hover:bg-accent-fill-hover">
+                                        {qIndex + 1 >= guidedRounds.length ? 'Review my selection' : 'Continue'} <ArrowRight size={16} />
+                                    </button>
+                                </Fade>
                             )}
 
                             {/* ─── Proposal ────────────────────────────────── */}

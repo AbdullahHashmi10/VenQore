@@ -473,7 +473,19 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     host.innerHTML = `<div class="ck-state is-loading" role="status">Loading…</div>`;
     return true;
   }
-  if (live && !live.ok){
+  /* The Reckoner returns a reading envelope. These states used to collapse
+     into a blank card because the client only knew `ok`/not-ok. Keep the
+     message in the card where the owner can act on it. */
+  if (live?.status === "empty"){
+    host.innerHTML = `<div class="ck-state is-empty" role="status"><b>No data yet</b><span>${esc(emptyMessage)}</span></div>`;
+    return true;
+  }
+  if (live?.status === "locked"){
+    const reason = live.error?.message || "This card needs a module that is not enabled.";
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status"><b>Module needed</b><span>${esc(reason)}</span></div>`;
+    return true;
+  }
+  if (live && (!live.ok || live.status === "error")){
     const reason = live.error?.message || "This reading is unavailable.";
     host.innerHTML = `<div class="ck-state is-unavailable" role="status"><b>Unavailable</b><span>${esc(reason)}</span></div>`;
     return true;
@@ -516,8 +528,8 @@ function valuesFor(key, period, unit){
     if (typeof live.data === 'number') {
       return new Array(n).fill(live.data);
     }
-    if (typeof live.data === 'object' && live.data.current !== undefined) {
-      const curr = Number(live.data.current) || 0;
+    if (typeof live.data === 'object' && (live.data.value !== undefined || live.data.current !== undefined)) {
+      const curr = Number(live.data.value !== undefined ? live.data.value : live.data.current) || 0;
       const prev = Number(live.data.previous) || curr;
       const out = [];
       for (let i = 0; i < n; i++) {

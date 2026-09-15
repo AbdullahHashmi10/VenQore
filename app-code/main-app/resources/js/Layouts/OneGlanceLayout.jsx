@@ -735,10 +735,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage')) ? {
  name: 'Settings',
  icon: Settings,
- subs: [
- { group: 'Store Configuration', items: ['Store Settings', 'System Settings', 'Builder'] },
- { group: 'AI & Automation', items: ['Chatbot Settings'] }
- ],
+ subs: [],
  route: store ? 'store.settings' : null,
  routeParams: store ? { store_slug: store.slug } : {}
  } : null,
@@ -1001,8 +998,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  route: store ? 'store.admin.users' : null,
  routeParams: store ? { store_slug: store.slug } : {} },
 
- { name: 'System Settings', icon: Settings, subs: [],
- route: store ? 'store.admin.settings' : null,
+  { name: 'Settings', icon: Settings, subs: [],
+ route: store ? 'store.settings' : null,
  routeParams: store ? { store_slug: store.slug } : {} },
 
  { name: 'Data & Backup', icon: HardDrive, subs: [],

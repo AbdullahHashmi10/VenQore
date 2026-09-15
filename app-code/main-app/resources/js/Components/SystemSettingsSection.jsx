@@ -316,6 +316,63 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                 </div>
                             </div>
                         </div>
+
+                        {/* SSO / SAML Configuration */}
+                        <div className="p-8 bg-app rounded-xl border border-line">
+                            <div className="flex items-center gap-4 mb-4">
+                                <div className="p-3 bg-brand-500 rounded-xl text-white">
+                                    <Lock size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-ink">SSO / SAML Authentication</h3>
+                                    <p className="text-ink-muted">Configure Single Sign-On for your organization.</p>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <Toggle
+                                    enabled={data.sso_enabled === '1' || data.sso_enabled === true}
+                                    onChange={v => setData('sso_enabled', v)}
+                                    label="Enable SSO"
+                                    description="Allow members to sign in securely using SAML Identity Provider"
+                                />
+                            </div>
+
+                            {(data.sso_enabled === '1' || data.sso_enabled === true) && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <div>
+                                        <label className="block text-sm font-bold text-ink-secondary mb-2">IdP Entity ID</label>
+                                        <input
+                                            type="text"
+                                            value={data.sso_idp_entity_id || ''}
+                                            onChange={(e) => setData('sso_idp_entity_id', e.target.value)}
+                                            className="w-full px-4 py-3 bg-surface border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                                            placeholder="https://identity-provider.com/metadata"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-ink-secondary mb-2">Single Sign-On Service URL</label>
+                                        <input
+                                            type="text"
+                                            value={data.sso_url || ''}
+                                            onChange={(e) => setData('sso_url', e.target.value)}
+                                            className="w-full px-4 py-3 bg-surface border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                                            placeholder="https://identity-provider.com/sso"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-ink-secondary mb-2">X.509 Public Certificate</label>
+                                        <textarea
+                                            value={data.sso_certificate || ''}
+                                            onChange={(e) => setData('sso_certificate', e.target.value)}
+                                            className="w-full px-4 py-3 bg-surface border border-line dark:border-line rounded-xl text-xs font-mono focus:ring-2 focus:ring-brand-500 outline-none resize-none"
+                                            rows={5}
+                                            placeholder="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 );
             case 'backup':
