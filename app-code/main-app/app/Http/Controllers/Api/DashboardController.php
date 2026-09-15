@@ -10,6 +10,8 @@ use App\Models\Tenant;
 use App\Reckoner\DashboardSanitizer;
 use App\Reckoner\Reckoner;
 use App\Reckoner\ReckonerRegistry;
+use App\Services\Dashboard\FrameFiller;
+use App\Services\Dashboard\FrameRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -185,10 +187,13 @@ class DashboardController extends Controller
             ->where('user_id', $user->id) // personal dashboards only
             ->firstOrFail();
 
+        $this->assertCanEdit($dashboard, $user);
+
         $validated = $request->validate([
             'name' => 'nullable|string|max:80',
             'position' => 'nullable|integer',
             'is_default' => 'nullable|boolean',
+            'frame_key' => 'nullable|string|max:40',
         ]);
 
         if (isset($validated['name'])) {
@@ -208,6 +213,26 @@ class DashboardController extends Controller
                 ->update(['is_default' => false]);
 
             $dashboard->is_default = true;
+        }
+
+        if (isset($validated['frame_key']) && $validated['frame_key'] !== $dashboard->frame_key) {
+            $resolvedFrameKey = app(FrameRepository::class)->find($validated['frame_key'], $tenant) !== null
+                ? $validated['frame_key']
+                : 'classic';
+            $cards = app(FrameFiller::class)->fill(
+                $resolvedFrameKey,
+                $user,
+                $tenant,
+                $user->role ?? 'owner',
+            );
+            DB::transaction(function () use ($dashboard, $cards, $resolvedFrameKey) {
+                $dashboard->cards()->delete();
+                foreach ($cards as $card) {
+                    $dashboard->cards()->create($card);
+                }
+                $dashboard->frame_key = $resolvedFrameKey;
+                $dashboard->frame_dirty = false;
+            });
         }
 
         $dashboard->save();
@@ -326,6 +351,8 @@ class DashboardController extends Controller
 
                 $card->delete();
             }
+
+            $dashboard->update(['frame_dirty' => true]);
         });
 
         return response()->json(['message' => 'Layout saved successfully']);
@@ -411,9 +438,12 @@ class DashboardController extends Controller
                 $this->clearAccentExcept($dashboard, null);
             }
 
-            return $dashboard->cards()->create(array_merge([
+            $card = $dashboard->cards()->create(array_merge([
                 'tenant_id' => $tenant->id,
             ], $cardData));
+            $dashboard->update(['frame_dirty' => true]);
+
+            return $card;
         });
 
         return response()->json(['data' => $card], 201);
@@ -503,6 +533,7 @@ class DashboardController extends Controller
             }
 
             $card->update($cardData);
+            $dashboard->update(['frame_dirty' => true]);
         });
 
         return response()->json(['data' => $card]);
@@ -539,6 +570,7 @@ class DashboardController extends Controller
             ->firstOrFail();
 
         $card->delete();
+        $dashboard->update(['frame_dirty' => true]);
 
         return response()->json(['message' => 'Card removed successfully']);
     }
@@ -559,6 +591,8 @@ class DashboardController extends Controller
             ->where('user_id', $user->id)
             ->firstOrFail();
 
+        $this->assertCanEdit($dashboard, $user);
+
         // Clear existing cards
         DB::transaction(function () use ($dashboard, $user, $tenant) {
             $dashboard->cards()->delete();
@@ -578,10 +612,11 @@ class DashboardController extends Controller
                 }
             } else {
                 // Copy from default computed cards (Phase B1 defaults)
-                $defaultCards = $this->getDefaultRoleCards($role, $user, $tenant);
+                $defaultCards = app(FrameFiller::class)->fill('classic', $user, $tenant, $role);
                 foreach ($defaultCards as $cardData) {
                     $dashboard->cards()->create($cardData);
                 }
+                $dashboard->update(['frame_key' => 'classic', 'frame_dirty' => false]);
             }
         });
 
@@ -604,7 +639,8 @@ class DashboardController extends Controller
         }
 
         $validated = $request->validate([
-            'for_role' => 'required|string|max:40',
+            'for_role' => 'nullable|required_without:for_user_id|string|max:40',
+            'for_user_id' => 'nullable|required_without:for_role|integer|exists:users,id',
             'is_locked' => 'required|boolean',
         ]);
 
@@ -614,6 +650,31 @@ class DashboardController extends Controller
             ->firstOrFail();
 
         DB::transaction(function () use ($sourceDashboard, $validated, $tenant) {
+            if (! empty($validated['for_user_id'])) {
+                $member = DB::table('tenant_users')
+                    ->where('tenant_id', $tenant->id)
+                    ->where('user_id', $validated['for_user_id'])
+                    ->where('status', 'active')
+                    ->exists();
+                abort_unless($member, 422, 'The selected user is not an active member of this store.');
+
+                $target = Dashboard::firstOrCreate(
+                    ['tenant_id' => $tenant->id, 'user_id' => $validated['for_user_id'], 'slug' => 'my-dashboard'],
+                    ['name' => 'My Dashboard', 'is_default' => true, 'position' => 0],
+                );
+                $target->update([
+                    'frame_key' => $sourceDashboard->frame_key,
+                    'frame_dirty' => $sourceDashboard->frame_dirty,
+                    'is_locked' => $validated['is_locked'],
+                ]);
+                $target->cards()->delete();
+                foreach ($sourceDashboard->cards as $card) {
+                    $target->cards()->create($card->replicate(['id', 'dashboard_id'])->toArray());
+                }
+
+                return;
+            }
+
             // Find or create template dashboard for this role
             $template = Dashboard::updateOrCreate(
                 [
@@ -626,6 +687,8 @@ class DashboardController extends Controller
                     'for_role' => $validated['for_role'],
                     'is_locked' => $validated['is_locked'],
                     'is_default' => false,
+                    'frame_key' => $sourceDashboard->frame_key,
+                    'frame_dirty' => $sourceDashboard->frame_dirty,
                 ]
             );
 
@@ -649,7 +712,11 @@ class DashboardController extends Controller
                 Dashboard::query()
                     ->where('tenant_id', $tenant->id)
                     ->whereIn('user_id', $roleUserIds)
-                    ->update(['is_locked' => $validated['is_locked']]);
+                    ->update([
+                        'is_locked' => $validated['is_locked'],
+                        'frame_key' => $sourceDashboard->frame_key,
+                        'frame_dirty' => $sourceDashboard->frame_dirty,
+                    ]);
             }
         });
 
@@ -663,7 +730,7 @@ class DashboardController extends Controller
     /**
      * Public on purpose: WorkspaceBuilderController::provision() calls this
      * directly at signup so a brand-new tenant's first dashboard is already
-     * theirs (business_type-keyed, via presetBoard() below) instead of an
+     * theirs (business-type priorities filled into the Classic frame) instead of an
      * empty board that only appears once something happens to hit
      * GET /api/dashboards — which nothing in resources/js currently does.
      */
@@ -675,6 +742,8 @@ class DashboardController extends Controller
                 'user_id' => $user->id,
                 'name' => 'My Dashboard',
                 'slug' => 'my-dashboard',
+                'frame_key' => 'classic',
+                'frame_dirty' => false,
                 'is_default' => true,
                 'is_locked' => false,
                 'position' => 0,
@@ -682,7 +751,7 @@ class DashboardController extends Controller
 
             // Seeding default cards
             $role = $user->role ?? 'owner';
-            $defaultCards = $this->getDefaultRoleCards($role, $user, $tenant);
+            $defaultCards = app(FrameFiller::class)->fill('classic', $user, $tenant, $role);
             foreach ($defaultCards as $cardData) {
                 $dashboard->cards()->create($cardData);
             }
@@ -718,96 +787,16 @@ class DashboardController extends Controller
     }
 
     /**
-     * The default board for one user — config/dashboard_presets.php.
-     *
-     * Resolution: role board for the four task-shaped roles, else the board
-     * for the tenant's business (tenants.business_type via `aliases`, or an
-     * ai_builder preset key), else `business.default`. Readings the user
-     * cannot see (permission, plan, capability, module) are dropped and the
-     * survivors are re-packed so a dropped card never leaves a hole.
-     */
-    private function getDefaultRoleCards(string $role, User $user, Tenant $tenant): array
-    {
-        $reckoner = app(Reckoner::class);
-        $keys = array_keys(ReckonerRegistry::all());
-        $availability = $reckoner->checkAvailability($keys, $user, $tenant);
-        $availableKeys = array_keys(array_filter($availability));
-
-        $candidates = $this->presetBoard($role, $tenant);
-
-        // Drop unavailable readings, then re-pack rows left-to-right so the
-        // seeded board has no holes. Row assignment keeps the authored order.
-        $clean = [];
-        $x = 0;
-        $y = 0;
-        $rowH = 0;
-        $hadAccent = false;
-
-        foreach ($candidates as $candidate) {
-            if (! in_array($candidate['reading_key'], $availableKeys, true)) {
-                continue;
-            }
-
-            $w = (int) ($candidate['w'] ?? 3);
-            $h = (int) ($candidate['h'] ?? 2);
-
-            if ($x + $w > 12) {
-                $x = 0;
-                $y += max(1, $rowH);
-                $rowH = 0;
-            }
-
-            $candidate['x'] = $x;
-            $candidate['y'] = $y;
-            $x += $w;
-            $rowH = max($rowH, $h);
-
-            if (! empty($candidate['style']['accent'])) {
-                $hadAccent = true;
-            }
-
-            $clean[] = $candidate;
-        }
-
-        // M1 — if the authored accent card was dropped by a gate, promote the
-        // first survivor: a board with no accent has not said which number
-        // matters. (Zero cards means a store with nothing visible; fine.)
-        if (! $hadAccent && $clean !== []) {
-            $clean[0]['style'] = array_merge($clean[0]['style'] ?? [], ['accent' => true]);
-        }
-
-        return $clean;
-    }
-
-    /**
-     * Pick the authored board for a role + tenant from config/dashboard_presets.
-     */
-    private function presetBoard(string $role, Tenant $tenant): array
-    {
-        $roleBoards = config('dashboard_presets.roles', []);
-        if (isset($roleBoards[$role])) {
-            return $roleBoards[$role];
-        }
-
-        $business = config('dashboard_presets.business', []);
-        $aliases = config('dashboard_presets.aliases', []);
-
-        // business_type is a catalogue key (config/business_types.php) or a
-        // preset key — resolve to the preset, then to its board.
-        $type = strtolower((string) ($tenant->business_type ?? ''));
-        $key = \App\Support\BusinessTypes::presetFor($type) ?? $type;
-        $key = isset($business[$key]) ? $key : ($aliases[$key] ?? $key);
-
-        return $business[$key] ?? $business['default'] ?? [];
-    }
-
-    /**
      * Route-gap sweep (2026-09-10): a member may edit their OWN dashboard;
      * shared / role dashboards and other members' dashboards need
      * admin.settings_manage.
      */
     private function assertCanEdit(Dashboard $dashboard, $user): void
     {
+        if ($dashboard->is_locked && ! $user->hasPermission('admin.settings_manage')) {
+            abort(403, 'This layout is locked by your manager.');
+        }
+
         if ((string) $dashboard->user_id === (string) $user->id) {
             return;
         }

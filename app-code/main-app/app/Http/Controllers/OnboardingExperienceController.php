@@ -166,7 +166,7 @@ class OnboardingExperienceController extends Controller
         // Same rule as WorkspaceBuilderController::provision(): business_type
         // only ever becomes a real, shippable preset key, never trusted raw —
         // it drives the tenant's first dashboard board via
-        // config/dashboard_presets.php. A tenant who reconfigures through a
+        // config/dashboard_pool.php. A tenant who reconfigures through a
         // different preset later gets their board re-keyed the same way.
         $presetKey = $request->input('preset_key');
         $presets = config('ai_builder.presets', []);

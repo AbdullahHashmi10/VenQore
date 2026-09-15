@@ -1,14 +1,14 @@
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 2070
+  phpunit_test_methods_total: 2107
   note: 'total = SUM of member test_methods (testX(), @test,'
 suites:
   -
     id: Feature
     path: tests/Feature
-    test_methods: 730
-    files: 122
+    test_methods: 733
+    files: 124
     members:
       -
         file: tests/Feature/ActivityLogTest.php
@@ -50,6 +50,10 @@ suites:
         file: tests/Feature/CrawlHygieneTest.php
         test_methods: 2
         oracle_tier: T2
+      -
+        file: tests/Feature/Dashboard/FrameGeometryLawTest.php
+        test_methods: 1
+        oracle_tier: T1
       -
         file: tests/Feature/DebitNoteTest.php
         test_methods: 1
@@ -204,6 +208,10 @@ suites:
         oracle_tier: T1
       -
         file: tests/Feature/Module/PresetSmokeTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Module/ReportAccessLockoutTest.php
         test_methods: 2
         oracle_tier: T1
       -
@@ -1541,8 +1549,8 @@ suites:
   -
     id: Unit
     path: tests/Unit
-    test_methods: 30
-    files: 5
+    test_methods: 64
+    files: 6
     members:
       -
         file: tests/Unit/AiBuilder/BusinessUnderstandingTest.php
@@ -1554,11 +1562,15 @@ suites:
         oracle_tier: T1
       -
         file: tests/Unit/AiBuilder/DiscoverySessionTest.php
-        test_methods: 1
+        test_methods: 2
         oracle_tier: T1
       -
         file: tests/Unit/AiBuilder/DiscoverySkipTest.php
         test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Unit/AiBuilder/ScreenshotRegressionTest.php
+        test_methods: 33
         oracle_tier: T1
       -
         file: tests/Unit/SharedCatalogServiceTest.php

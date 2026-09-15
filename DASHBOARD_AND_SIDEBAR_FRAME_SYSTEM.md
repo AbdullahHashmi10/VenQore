@@ -27,7 +27,13 @@ number in it is checkable and every file it names actually exists.
    by adding fits, never by removing one.
 5. When something here contradicts what you find in the code, **say so and stop.**
    Do not substitute your own plan.
-6. **Read §16 first and build it first.** The dashboard currently renders
+6. **Build status, 15 Sep 2026.** Phases −1 to 8 are implemented and verified
+   in the backend: eight frames, eleven fits, geometry-free pools, filler,
+   lock enforcement, sentinel removal. **None of it is on screen** — the live
+   dashboard is a 5,483-line imperative engine that references none of it, and
+   it renders seeded fake data when the Reckoner returns nothing. **§17 is now
+   the highest priority, and §17.3 is the first thing to do.**
+7. **Read §16 first and build it first.** The dashboard currently renders
    Rs 0 on cards whose underlying data is real — the transactions page shows
    Rs 2,282,043 where the dashboard shows Rs 0. Arranging cards that display
    nothing is wasted work. §16 is Phase −1 in the build order.
@@ -1114,6 +1120,8 @@ is green.
 Phases 8 and 9 are independent of 0–7 and can be done in parallel by a second
 pair of hands.
 
+**Phases 12–16 are in §17.7.** They are what puts any of this on screen; Phase 12 (removing invented figures) comes before all of them.
+
 ---
 
 ## 15. Decisions this spec makes, and what it does not
@@ -1434,6 +1442,294 @@ On store `amd-outlets-1`, with no seed data added and nothing hardcoded:
 - Any card that cannot compute reads **"unavailable"** with a reason, never
   Rs 0.
 - The period chip and the caption underneath it name the same window.
+
+---
+
+## 17. Wiring the frontend — why none of §1–§16 is on screen yet
+
+**Status: the backend of this spec is built and verified. The product has not
+changed.** Phase −1 through Phase 8 produced correct config, services, models,
+migrations and guards, and a user looking at `/s/{store}/dashboard` sees exactly
+what they saw before. This section closes that gap.
+
+It also documents something found while verifying, which is more serious than
+the wiring: **the live dashboard renders invented numbers when the Reckoner
+returns nothing.**
+
+### 17.1 What is actually on screen
+
+`routes/web.php` → `DashboardController` (lines 556 and 724) renders
+`Inertia::render('NewDashboard', …)`. That is
+`resources/js/Pages/NewDashboard.jsx` — **5,483 lines**, plus a 459KB
+`NewDashboard.css`. It is not a React card tree. It is a self-contained
+imperative card engine that renders with `innerHTML` (28 sites) and exposes
+itself as `window.VenQoreCards`.
+
+Verified by grep against the shipped file:
+
+| Thing this spec built | References in `NewDashboard.jsx` |
+|---|---|
+| `getChartComponent` / `chartRegistry` | **0** |
+| `RankedListChart` | **0** |
+| `frame_key`, `frame_slot` | **0** |
+| `EmptySlot`, `FramePicker` | **0** |
+| `FrameFiller` (server side) | called only from `Api\DashboardController` |
+
+So today:
+
+- The eight frames exist in config and reach no screen.
+- **Top Products still renders as a time-series chart.** `RankedListChart.jsx`
+  exists and nothing imports it.
+- `FramePicker.jsx` and `EmptySlot.jsx` were created and are imported by nothing.
+- The `unavailable` state added in §16 has **0** references in the engine, so a
+  card that cannot compute still cannot say so.
+
+### 17.2 The engine holds a second copy of the Layout Law
+
+This is the root cause of the wiring gap, and it must be fixed before anything
+else in §17.
+
+`NewDashboard.jsx` declares its own geometry and legality tables as module
+constants:
+
+| Constant | Line | Duplicates |
+|---|---|---|
+| `LEGAL` | 1535 | `layout-law.json → chartLegality` |
+| `CATS` | 1560 | `categories` keys |
+| `FITS` | 1562 | every category's `fits` |
+| `CAT_MAX` | ~1580 | every category's `max` |
+| `MIN_CAT` | ~1556 | `chartCategories` floors |
+| `DEFAULT_FIT`, `SPECIAL_FITS`, `CHART_NAME` | 1569, 1778, 1547 | assorted |
+
+**These are stale.** `FITS` at line 1562 contains the *original eighteen* fits.
+None of the eleven added in §4 are there:
+
+```js
+C3: [[4,3,"full"],[3,2,"standard"],[2,2,"compact"],[2,3,"stacked"]],   // no wide 4x2, no band 6x2
+C4: [[4,4,"full"],[3,4,"standard"],[3,5,"compact"],[2,6,"list"]],      // no wide 6x3, broad 6x4, column 4x6
+C5: [[6,6,"full"],[5,7,"narrow"],[4,8,"min"]],                         // no band/wideband/stage/pillar
+C6: [[8,8,"full"],[6,10,"narrow"],[4,12,"min"]],                       // no banner 12x4, hero 12x5
+```
+
+And `LEGAL.RANKING` at line 1542 is still
+`["bar","table","funnel","choropleth","pie","ring","radar","stat"]` — the §8
+change to `["list","table","bar"]` never reached it.
+
+**Consequence: if you wired the frames in today, every frame would break.** The
+engine would receive cards at spans it considers illegal and coerce them back to
+its own eighteen fits, silently reshaping every board.
+
+The file's own comment at line ~1573 states the rule it is breaking:
+
+> *"Everything the UI offers is generated from this — no hand-written size list
+> may exist anywhere else, because a hand-written list is how a card ends up
+> wider than the grid."*
+
+That is right. The engine is the hand-written list. `CLAUDE.md`'s
+source-of-truth rule — *"if you need a list of something, import it from the
+authority. Do not restate it in a config file, in a JSON asset, or in a
+component"* — applies here exactly.
+
+**Fix (Phase 12, first):** delete all eight constants from `NewDashboard.jsx`
+and feed the law in from the server, the way `readings` already is.
+`DashboardController` already passes
+`'readings' => ReckonerRegistry::v6Catalog()`. Add one prop beside it:
+
+```php
+'layoutLaw' => \App\Reckoner\LayoutLaw::law(),
+```
+
+and have the engine read `CATS`/`FITS`/`LEGAL`/`CAT_MAX`/`MIN_CAT` from that
+prop via a `setLayoutLaw()` on `window.VenQoreCards`, mirroring the existing
+`setReadings()`. After this, `resources/layout-law.json` is the only place any
+of these numbers exist — PHP, the JS resolver and the engine all read it.
+
+**Acceptance:** `grep -n "^const \(LEGAL\|CATS\|FITS\|CAT_MAX\|MIN_CAT\|DEFAULT_FIT\|SPECIAL_FITS\)" resources/js/Pages/NewDashboard.jsx`
+returns nothing.
+
+### 17.3 ⛔ The engine invents numbers when the Reckoner is empty
+
+**This is the most serious finding in this document and it is not a layout
+problem.**
+
+The engine fetches live values from `POST /api/reckoner/read` (line ~426), in
+chunks of 24. Two things then go wrong.
+
+**(a) Every failure is swallowed.** Line ~440:
+
+```js
+}).catch(() => {})
+```
+
+A 500, a timeout, a permission error and the new `unavailable` state are all
+discarded identically. Nothing is logged and nothing reaches the card.
+
+**(b) When no live value arrives, the card renders seeded fake data.** Four
+sites call `seed(card.key + …)`, a deterministic PRNG, and render its output as
+the card's content:
+
+| Line | Function | What it fabricates |
+|---|---|---|
+| 1224 | scatter/series | invented plot points |
+| 1284 | `mountHeatmap` | `grid = rows.map(() => cols.map(() => Math.round(r()*100)))` — a full fake heatmap |
+| 1373 | geo/regions | invented regional values |
+| 1493 | `mountStatus` | `const ok = seed(card.key+"|st")() > 0.25` → renders **"Balanced"** or **"Needs review"** |
+
+Line 1493 is the worst of them: a status card tells the owner their books are
+**"Balanced"** based on a hash of the card's key. It is deterministic, so it
+looks stable across reloads, which is precisely what makes it credible.
+
+This breaks two rules already written down in `CLAUDE.md`:
+
+> 3. Never display a number that did not come from the Reckoner.
+> 4. Never render a placeholder or sample figure in a tenant-facing build.
+
+**It also reframes §16.** I assumed the Rs 0 readings meant the ledger returned
+zero. With seeded fallbacks in the render path, a card showing a plausible
+figure may not be reading your data at all. **Every number on that dashboard is
+now suspect until this is removed** — including any that look correct.
+
+**Fix (Phase 12, before any frame work):**
+
+1. Delete all four `seed()` fallbacks. A card with no live value renders the
+   existing empty/skeleton state, never invented content.
+2. Delete `function seed()` (line 451) once its last caller is gone, so it
+   cannot come back.
+3. Replace `.catch(() => {})` with a handler that stores the failure against the
+   card and re-draws.
+4. Render three distinct card states — `loading`, `unavailable` (with the
+   message `Reckoner` now supplies, e.g. *"Chart of accounts incomplete: no
+   income account is configured"*), and `empty` (computed, genuinely zero).
+   §16.6 item 2 built the backend half; this is the half the user sees.
+
+**Acceptance:** `grep -n "seed(" resources/js/Pages/NewDashboard.jsx` returns
+nothing, and a card whose reading throws shows a reason rather than a number.
+
+> Do this **before** re-running the §16.4 diagnostic queries. Once the engine
+> stops inventing values and starts surfacing `unavailable`, the dashboard may
+> name its own root cause on load, and Q1–Q4 become confirmation rather than
+> investigation.
+
+### 17.4 Chart routing — make the engine use the registry
+
+`chartRegistry.js` now has the shape-aware `getChartComponent(type, shape)`, and
+nothing calls it. The engine dispatches on `c.chart` alone
+(`extraClass: \`vqc--chart-${c.chart}\``, line ~2512) with its own mount
+functions.
+
+Two ways forward. **Take option A.**
+
+**Option A — teach the engine the shape rule (recommended).** The engine already
+has `readingOf(card.key)`, which carries `shape`. Add the same guard the
+registry has, at the engine's single dispatch point: when a card's shape is
+`RANKING`, route `bar` and any time-series chart to a ranked-list mount; when it
+is `BREAKDOWN`, `TABLE` or `FEED`, route time-series charts to that shape's own
+mount. Port `RankedListChart.jsx`'s markup into an engine mount function
+(`mountRankedList`) matching the `SliceLegend` hover contract in
+`BreakdownChart.jsx` (`is-on` / `is-dim`, mouse and focus handlers).
+
+This is a contained change to one dispatch site and keeps the engine coherent.
+
+**Option B — replace the engine with React components.** Correct long-term, and
+a rewrite of 5,483 lines plus 459KB of CSS. Do not attempt it inside this spec.
+
+**Fix the registry bug either way.** `getChartComponent` currently falls back to
+`RankedListChart` for `TABLE` and `FEED`:
+
+```js
+if (['RANKING','BREAKDOWN','TABLE','FEED'].includes(normalisedShape)
+    && ['line','area','profit_loss_line','live_line','composed','scatter'].includes(type)) {
+    return RankedListChart;      // wrong for TABLE and FEED
+}
+```
+
+A table is not a ranked list and a feed is not either. Route by shape:
+`RANKING → RankedListChart`, `BREAKDOWN → BreakdownChart`, `TABLE → TableChart`,
+`FEED → FeedChart`.
+
+**Acceptance:** Top Products renders as a ranked list with no axis; a TABLE
+reading renders as a table.
+
+### 17.5 Frames on screen
+
+Only after 17.2 and 17.3 are green.
+
+**Server.** `DashboardController` (both render sites) gains:
+
+```php
+'frames'      => \App\Services\Dashboard\FrameRepository::allFor($tenant),
+'activeFrame' => $dashboard->frame_key,
+'frameDirty'  => (bool) $dashboard->frame_dirty,
+'layoutLaw'   => \App\Reckoner\LayoutLaw::law(),   // from 17.2
+```
+
+`FrameRepository` currently exposes `find()` only (949 bytes) — add `allFor()`
+returning config frames plus the tenant's `dashboard_frames` rows.
+
+**Engine.** Extend `window.VenQoreCards` alongside the existing setters:
+
+- `setFrame(frameKey, slots)` — lay the board out by explicit slot geometry.
+  Use `grid-column: x+1 / span w` and `grid-row: y+1 / span h`. **Do not use
+  `grid-auto-flow: dense`** (§3.3).
+- `getFrame()` — the active frame key.
+- Mark `frame_dirty` on any drag, resize or delete, and `POST` it with the
+  layout save.
+
+**Empty slots.** A slot with no card renders `EmptySlot.jsx`'s markup at the
+slot's exact span — dashed outline, "Add a card". It must not collapse and the
+board must not re-pack (§6.3 step 6). This is the behaviour that makes a frame a
+frame.
+
+**Picker.** Mount `FramePicker.jsx` in the dashboard's settings affordance
+(the control at top-right of the board). Switching frames calls `setFrame()` and
+persists `frame_key`. If `frame_dirty` is true, confirm before re-flowing.
+
+**Acceptance:** switching between all eight frames re-lays the board; each
+matches its §3.5 table; a frame with more slots than available cards shows empty
+slots rather than a shorter board.
+
+### 17.6 Sidebar frames
+
+§10 specified six sidebar frames and nothing was built. `OneGlanceLayout.jsx`
+(91KB) still hardcodes `w-[280px]` / `lg:w-[88px]` at line ~1323. The V6 nav
+width tokens were added per the report — use them here. This is independent of
+17.2–17.5 and can be done in parallel.
+
+### 17.7 Build order for §17
+
+| Phase | Work | Done when |
+|---|---|---|
+| **12** | 17.3 — delete the four `seed()` fallbacks and `seed()`; stop swallowing errors; render loading / unavailable / empty | `grep "seed("` returns nothing; a failing reading shows a reason |
+| **13** | 17.2 — delete the engine's eight law constants; pass `layoutLaw` from the server | `grep "^const FITS"` returns nothing; the 11 new fits are live in the UI |
+| **14** | 17.4 — shape-aware dispatch in the engine; fix the TABLE/FEED fallback | Top Products is a ranked list |
+| **15** | 17.5 — `setFrame()`, empty slots, picker, `frame_dirty` | All eight frames switchable on screen |
+| **16** | 17.6 — six sidebar frames on the nav tokens | Six frames switchable and persisted |
+
+Phase 12 first, and on its own. It is the one that stops the product showing
+invented figures to a business owner, and it is small.
+
+### 17.8 Re-verify §16 after Phase 12
+
+The §16.4 queries were never run. Run them **after** Phase 12, not before —
+with the fallbacks gone and `unavailable` rendering, the dashboard will either
+show real figures or name the reason it cannot. Then confirm every §16.9
+acceptance line on `amd-outlets-1`.
+
+### 17.9 Still outstanding from earlier sections
+
+- **§16.6 item 5 — not done.** `FinancialReportingService::getGrossProfitByProduct()`
+  still takes no `$tenantId` parameter while its two siblings do, and
+  interpolates `{$tenantId}` directly into a `DB::raw` subquery. `CLAUDE.md`
+  rule 2: a missing `tenant_id` is a cross-tenant financial leak. Give it the
+  same signature as `getProfitAndLoss()` and bind the parameter.
+- **§13 — three of five test suites were not written.** `FrameGeometryLawTest`
+  exists. `FrameFillerTest`, `ChartRoutingGuardTest`, `DashboardLockTest` and
+  the §16.7 `L9ReconciliationTest` do not. The lock and reconciliation tests
+  guard the two behaviours most likely to regress silently.
+- **Database verification never ran.** MariaDB refused connections on 3306, so
+  no migration executed and no database-backed test ran. The four migrations are
+  unverified. Run `php artisan migrate` on a local copy — never on
+  `venqore_pos` (`CLAUDE.md` § Database Policy) — before shipping.
 
 ---
 

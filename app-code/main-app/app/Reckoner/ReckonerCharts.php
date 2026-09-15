@@ -16,7 +16,7 @@ final class ReckonerCharts
         'multi_series' => ['line', 'area', 'bar', 'composed', 'radar', 'scatter', 'sankey'],
         'breakdown'    => ['pie', 'ring', 'sunburst', 'bar', 'funnel', 'radar', 'stat'],
         'table'        => ['table', 'bar', 'heatmap'],
-        'ranking'      => ['table', 'bar', 'funnel', 'pie'],
+        'ranking'      => ['list', 'table', 'bar', 'funnel', 'pie'],
         'funnel'       => ['funnel', 'bar', 'sankey'],
         'gauge'        => ['gauge', 'ring', 'stat'],
         'status'       => ['status', 'stat'],

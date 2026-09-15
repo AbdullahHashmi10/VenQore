@@ -15,6 +15,9 @@
   --vq-row-head-h: 40px;
   --vq-rail-w: 248px;
   --vq-rail-w-min: 76px;
+  --vq-nav-w-rail: 88px;
+  --vq-nav-w-compact: 220px;
+  --vq-nav-w-full: 280px;
   --vq-topbar-h: 68px;
   --vq-page-max: 1240px;
   --vq-gutter: 20px;      /* gap between dashboard cards */

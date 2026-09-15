@@ -8,6 +8,7 @@ import BreakdownChart from './charts/BreakdownChart';
 import TableChart from './charts/TableChart';
 import HeatmapChart from './charts/HeatmapChart';
 import FeedChart from './charts/FeedChart';
+import RankedListChart from './charts/RankedListChart';
 
 export const chartRegistry = {
     // Core scalar/status
@@ -38,9 +39,20 @@ export const chartRegistry = {
     table: TableChart,
     heatmap: HeatmapChart,
     feed: FeedChart,
+    list: RankedListChart,
 };
 
-export function getChartComponent(type) {
+export function getChartComponent(type, shape) {
+    const normalisedShape = String(shape || '').toUpperCase();
+    const shapeComponent = {
+        RANKING: RankedListChart,
+        BREAKDOWN: BreakdownChart,
+        TABLE: TableChart,
+        FEED: FeedChart,
+    }[normalisedShape];
+    if (shapeComponent && ['bar', 'line', 'area', 'profit_loss_line', 'live_line', 'composed', 'scatter'].includes(type)) {
+        return shapeComponent;
+    }
     return chartRegistry[type] || StatChart;
 }
 
@@ -61,6 +73,7 @@ export const CHART_LABELS = {
     sparkline: 'Sparkline',
     gauge: 'Gauge',
     status: 'Status',
+    list: 'Ranked list',
 
     line: 'Line',
     area: 'Area',

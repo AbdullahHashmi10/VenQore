@@ -5,6 +5,7 @@ import axios from 'axios';
 import './NewDashboard.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useAppearance } from '@/Contexts/AppearanceContext';
+import FramePicker from '@/Dashboard/components/FramePicker';
 
 /* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
    lucide icon NAMES — the same contract QoreShell consumes. */
@@ -253,6 +254,9 @@ function runCardBuilder(opts) {
   if (typeof window !== "undefined" && window.VenQoreCards?.engineVersion === ENGINE_VERSION && window.__vqCardEngine){
     window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
     window.VenQoreCards.setEnabledModules(opts && opts.modules);
+    if (opts && opts.layoutLaw && window.VenQoreCards.setLayoutLaw) {
+      window.VenQoreCards.setLayoutLaw(opts.layoutLaw);
+    }
     if (opts && opts.readings && window.VenQoreCards.setReadings) {
       window.VenQoreCards.setReadings(opts.readings);
     }
@@ -436,7 +440,14 @@ function queueLiveReadings(cards, onComplete) {
           LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
         }
       });
-    }).catch(() => {})
+    }).catch(error => {
+      const message = error?.response?.data?.message || error?.message || "This reading could not be loaded.";
+      chunk.forEach(req => {
+        const failure = { key: req.key, ok: false, error: { code: "request_failed", message } };
+        LIVE_RECKONER_DATA[`${req.key}|${req.period}`] = failure;
+        LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`] = failure;
+      });
+    })
     .finally(() => {
       chunk.forEach(r => PENDING_RECKONER_REQUESTS.delete(r.reqKey));
     })
@@ -448,10 +459,30 @@ function queueLiveReadings(cards, onComplete) {
   });
 }
 
-function seed(str){
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
+function liveReading(card){
+  return LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
+    || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`]
+    || null;
+}
+
+function renderDataState(host, card, emptyMessage = "No data in this period."){
+  const pending = PENDING_RECKONER_REQUESTS.has(`${card.key}|${card.period}`)
+    || PENDING_RECKONER_REQUESTS.has(`${card.key}|${toReckonerPeriod(card.period)}`);
+  const live = liveReading(card);
+  if (pending && !live){
+    host.innerHTML = `<div class="ck-state is-loading" role="status">Loading…</div>`;
+    return true;
+  }
+  if (live && !live.ok){
+    const reason = live.error?.message || "This reading is unavailable.";
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status"><b>Unavailable</b><span>${esc(reason)}</span></div>`;
+    return true;
+  }
+  if (!live){
+    host.innerHTML = `<div class="ck-state is-empty" role="status">${esc(emptyMessage)}</div>`;
+    return true;
+  }
+  return false;
 }
 /* readings that genuinely swing either side of zero — a profit/loss chart
    is meaningless if the data can only ever be positive */
@@ -1219,12 +1250,20 @@ function mountRadar(host, card){
 }
 
 function mountScatter(host, card){
+  if (renderDataState(host, card)) return;
   const { W, H } = hostDimensions(host, card);
   const m = { l:44, r:12, t:10, b:26 }, pw = W-m.l-m.r, ph = H-m.t-m.b;
-  const r = seed(card.key + "|sc" + card.period);
   const rd = readingOf(card.key);
-  const pts = Array.from({length: 34}, () => { const x = r(), y = Math.min(1, Math.max(0, x*0.6 + r()*0.5));
-    return { x, y, w: 4 + r()*9 }; });
+  const live = liveReading(card);
+  const sourceRows = live?.data?.rows || live?.data?.series || [];
+  const pts = sourceRows.map((point, index) => ({
+    x: Number(point.x ?? index) / Math.max(1, sourceRows.length - 1),
+    y: Number(point.y ?? point.value ?? 0),
+    w: Number(point.w ?? point.weight ?? 4),
+  }));
+  if (!pts.length){ host.innerHTML = `<div class="ck-state is-empty" role="status">No data in this period.</div>`; return; }
+  const maxY = Math.max(...pts.map(point => Math.abs(point.y)), 1);
+  pts.forEach(point => { point.y = Math.max(0, Math.min(1, point.y / maxY)); });
   const xs = niceTicks(0, 100, 5), ys = niceTicks(0, 100, 5);
   const grid = ys.ticks.map(v => { const y = m.t+ph-(v/100)*ph;
     return `<line class="ck-grid" x1="${m.l}" x2="${W-m.r}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>
@@ -1281,25 +1320,7 @@ function mountHeatmap(host, card){
     return;
   }
 
-  const r = seed(card.key + "|hm" + card.period);
-  const cols = card.period === "Today"
-    ? ["09","11","13","15","17","19"] : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  const rows = card.period === "Today" ? ["Mon","Tue","Wed","Thu"] : ["09h","12h","15h","18h"];
-  const grid = rows.map(() => cols.map(() => Math.round(r()*100)));
-  const mx = Math.max(...grid.flat()) || 1;
-  const cells = grid.flatMap((row, ri) => row.map((v, ci) => {
-    const lvl = Math.min(4, Math.floor(v/mx*5));
-    const d = (ri*cols.length+ci)*11;
-    if (variant === "dots") return `<span class="ck-hd2" style="--d:${d}ms"><i style="transform:scale(${(0.3+v/mx*0.7).toFixed(2)});background:var(--vq-seq-${lvl+1})"></i>
-      <span class="ck-hint">${rows[ri]} · ${cols[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
-    return `<span class="ck-hc ${variant==="rounded"?"is-round":""}" style="background:var(--vq-seq-${lvl+1});--d:${d}ms">
-      <span class="ck-hint">${rows[ri]} · ${cols[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
-  })).join("");
-  host.innerHTML = `<div class="ck-hm" style="--c:${cols.length}">
-    <div class="ck-hm-x"><span></span>${cols.map(c=>`<b>${c}</b>`).join("")}</div>
-    <div class="ck-hm-b"><div class="ck-hm-y">${rows.map(x=>`<b>${x}</b>`).join("")}</div>
-    <div class="ck-hm-g">${cells}</div></div>
-    <div class="ck-hm-l"><span>Low</span>${[1,2,3,4,5].map(i=>`<i style="background:var(--vq-seq-${i})"></i>`).join("")}<span>High</span></div></div>`;
+  renderDataState(host, card);
 }
 
 function mountTable(host, card){
@@ -1369,10 +1390,15 @@ function mountSankey(host, card){
 }
 
 function mountChoropleth(host, card){
+  if (renderDataState(host, card)) return;
   const rd = readingOf(card.key);
-  const r = seed(card.key + "|geo" + card.period);
-  const regs = ["Punjab","Sindh","KPK","Balochistan","Islamabad","Gilgit-Baltistan"]
-    .map(n => ({ n, v: Math.round(unitBase(rd.unit) * (0.2 + r())) }));
+  const live = liveReading(card);
+  const sourceRows = live?.data?.rows || live?.data?.regions || [];
+  const regs = sourceRows.map(row => ({
+    n: row.name ?? row.region ?? row.label ?? "—",
+    v: Number(row.value ?? row.total ?? row.count ?? 0),
+  }));
+  if (!regs.length){ host.innerHTML = `<div class="ck-state is-empty" role="status">No regional data in this period.</div>`; return; }
   regs.sort((a,b) => b.v - a.v);
   const mx = regs[0].v;
   if (card.variant === "list"){
@@ -1488,10 +1514,13 @@ function mountStat(host, card){
 }
 
 function mountStatus(host, card){
+  if (renderDataState(host, card)) return;
   const rd = readingOf(card.key);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
-  const ok = seed(card.key + "|st")() > 0.25;
-  const state = ok ? "Balanced" : "Needs review";
+  const live = liveReading(card);
+  const status = live?.data || {};
+  const ok = status.severity === "ok" || status.state === "balanced" || status.ok === true;
+  const state = status.label || status.state || (ok ? "OK" : "Needs review");
   const body = (card.variant === "dot")
     ? `<span class="ck-dotstate ${ok ? "is-ok" : "is-warn"}"><i></i><b>${state}</b></span>`
     : `<span class="ck-badge ${ok ? "is-ok" : "is-warn"}"><i></i>${state}</span>`;
@@ -1517,10 +1546,17 @@ const MOUNT = {
   gauge: mountGauge, funnel: mountFunnel, radar: mountRadar, scatter: mountScatter,
   heatmap: mountHeatmap, table: mountTable, feed: mountFeed, sankey: mountSankey,
   choropleth: mountChoropleth, sparkline: mountSparkline,
-  stat: mountStat, status: mountStatus,
+  stat: mountStat, status: mountStatus, list: mountTable,
 };
 function mountChart(host, card){
   if (!host) return;
+  if (!isSpecial(card) && renderDataState(host, card)) return;
+  const shape = String(readingOf(card.key)?.shape || "").toUpperCase();
+  const legacyTimeChart = CARTESIAN.has(card.chart) || ["sparkline", "stat", "gauge", "ring"].includes(card.chart);
+  if (shape === "RANKING" && (card.chart === "bar" || legacyTimeChart)) return mountTable(host, card);
+  if (shape === "BREAKDOWN" && legacyTimeChart) return mountRadial(host, { ...card, chart: "pie" });
+  if (shape === "TABLE" && legacyTimeChart) return mountTable(host, card);
+  if (shape === "FEED" && legacyTimeChart) return mountFeed(host, card);
   if (CARTESIAN.has(card.chart)) return mountCartesian(host, card);
   if (RADIAL.has(card.chart))    return mountRadial(host, card);
   const fn = MOUNT[card.chart];
@@ -1531,43 +1567,14 @@ function mountChart(host, card){
 
 /* Every reading carries a value over time, so every reading can take a time
    chart. Shape decides what is *natural*, not what is permitted. */
-const TIME_CHARTS = ["stat","sparkline","area","line","bar","composed","pl","live","gauge","ring"];
-const LEGAL = {
-  SCALAR:       TIME_CHARTS.concat(["heatmap","scatter","table"]),
-  STATUS:       ["status","stat","sparkline","area","line","bar"],
-  SERIES:       TIME_CHARTS.concat(["heatmap","scatter","table"]),
-  MULTI_SERIES: ["composed","line","area","bar","pl","live","stat","sparkline"],
-  BREAKDOWN:    ["pie","ring","sunburst","funnel","bar","radar","sankey","choropleth","table","stat","treemap"]
-                  .filter(c => c !== "treemap"),
-  RANKING:      ["bar","table","funnel","choropleth","pie","ring","radar","stat"],
-  TABLE:        ["table","heatmap","scatter","bar","line","area","stat"],
-  GAUGE:        ["gauge","ring","stat","sparkline","area","line","bar"],
-  FEED:         ["feed","table","bar","stat"],
-};
-const CHART_NAME = {
-  stat:"Number", sparkline:"Sparkline", gauge:"Gauge", ring:"Ring", status:"Status",
-  area:"Area", line:"Line", bar:"Bar", pl:"Profit / loss", live:"Live line",
-  composed:"Combo", pie:"Pie", sunburst:"Sunburst", funnel:"Funnel", radar:"Radar",
-  sankey:"Sankey", choropleth:"Regions", table:"Table", heatmap:"Heatmap",
-  scatter:"Scatter", feed:"Feed",
-};
-const MIN_CAT = {
-  stat:"C2", status:"C2", sparkline:"C3", feed:"C4", table:"C4", gauge:"C4", ring:"C4",
-  bar:"C4", funnel:"C4", pie:"C4", radar:"C4",
-  area:"C5", line:"C5", pl:"C5", live:"C5", composed:"C5", scatter:"C5",
-  heatmap:"C5", sunburst:"C5", sankey:"C5", choropleth:"C5",
-};
-const CATS = ["C1","C2","C3","C4","C5","C6"];
-const CAT_NAME = { C1:"Tile", C2:"Strip", C3:"Metric", C4:"Panel", C5:"Board", C6:"Canvas" };
-const FITS = {
-  C1: [[2,1,"icon+label"],[1,1,"icon"]],
-  C2: [[4,1,"inline"],[3,2,"stacked"]],
-  C3: [[4,3,"full"],[3,2,"standard"],[2,2,"compact"],[2,3,"stacked"]],
-  C4: [[4,4,"full"],[3,4,"standard"],[3,5,"compact"],[2,6,"list"]],
-  C5: [[6,6,"full"],[5,7,"narrow"],[4,8,"min"]],
-  C6: [[8,8,"full"],[6,10,"narrow"],[4,12,"min"]],
-};
-const DEFAULT_FIT = { C1:0, C2:0, C3:0, C4:0, C5:2, C6:1 };
+let LEGAL = {};
+let CHART_NAME = {};
+let MIN_CAT = {};
+let CATS = [];
+let CAT_NAME = {};
+let FITS = {};
+let DEFAULT_FIT = {};
+let GRID = {};
 
 /* ══ Layout Law §6 — the allowed-size system ═══════════════════════════════
    A category is a list of FITS (the interiors) plus a MAX rectangle. A size is
@@ -1575,22 +1582,44 @@ const DEFAULT_FIT = { C1:0, C2:0, C3:0, C4:0, C5:2, C6:1 };
    fits and no larger than the category's maximum. Everything the UI offers is
    generated from this — no hand-written size list may exist anywhere else,
    because a hand-written list is how a card ends up wider than the grid. */
-const CAT_MAX = {
-  C1: [3, 2],    /* Tile   — shortcut, quick action, single glyph        */
-  C2: [6, 2],    /* Strip  — one KPI on one line                         */
-  C3: [6, 4],    /* Metric — KPI with delta, sparkline or comparison     */
-  C4: [6, 6],    /* Panel  — ranked list, breakdown, small chart         */
-  C5: [12, 9],   /* Board  — full chart, multi-series, wide table        */
-  C6: [12, 16],  /* Canvas — hero chart, statement, cohort grid, map     */
-};
-const CAT_DESC = {
-  C1: "Shortcut, quick action, single glyph",
-  C2: "One KPI on one line",
-  C3: "KPI with delta, sparkline or comparison",
-  C4: "Ranked list, breakdown, small chart",
-  C5: "Full chart, multi-series, wide table",
-  C6: "Hero chart, statement, cohort grid",
-};
+let CAT_MAX = {};
+let CAT_DESC = {};
+
+const chartKey = key => ({ profit_loss_line: "pl", live_line: "live" }[key] || key);
+function setLayoutLaw(law){
+  if (!law || !law.categories || !law.chartLegality || !law.chartCategories) return false;
+  const categories = law.categories;
+  GRID = {
+    cols: Number(law.grid.columns),
+    unit: Number(law.grid.unit),
+    gutter: Number(law.grid.gutter),
+  };
+  CATS = Object.keys(categories).filter(key => /^C\d+$/.test(key));
+  CAT_NAME = Object.fromEntries(CATS.map(key => [key, categories[key].name]));
+  CAT_DESC = Object.fromEntries(CATS.map(key => [key, categories[key].role]));
+  CAT_MAX = Object.fromEntries(CATS.map(key => [key, [Number(categories[key].max.w), Number(categories[key].max.h)]]));
+  FITS = Object.fromEntries(CATS.map(key => [key, categories[key].fits.map(fit => [Number(fit.w), Number(fit.h), fit.key, Number(fit.floor)])]));
+  DEFAULT_FIT = Object.fromEntries(CATS.map(key => {
+    const found = categories[key].fits.findIndex(fit => fit.default === true);
+    return [key, found < 0 ? 0 : found];
+  }));
+  LEGAL = Object.fromEntries(Object.entries(law.chartLegality)
+    .filter(([shape]) => !shape.startsWith("$"))
+    .map(([shape, charts]) => [shape, charts.map(chartKey)]));
+  MIN_CAT = Object.fromEntries(Object.entries(law.chartCategories)
+    .filter(([chart]) => !chart.startsWith("$"))
+    .map(([chart, cats]) => [chartKey(chart), cats[0]]));
+  CHART_NAME = Object.fromEntries([...new Set(Object.values(LEGAL).flat())].map(chart => [
+    chart,
+    ({ stat:"Number", pl:"Profit / loss", live:"Live line", composed:"Combo", choropleth:"Regions" }[chart]
+      || chart.replaceAll("_", " ").replace(/^./, c => c.toUpperCase())),
+  ]));
+  if (typeof window !== "undefined") window.__VENQORE_LAYOUT_LAW__ = law;
+  return true;
+}
+
+setLayoutLaw((opts && opts.layoutLaw) || (typeof window !== "undefined" && window.__VENQORE_LAYOUT_LAW__));
+if (!CATS.length) throw new Error("[VenQoreCards] Layout Law was not provided by the server.");
 /* What each fit changes inside the card — shown against every size so the
    choice is never blind. Straight out of the Law's own tables. */
 const FIT_INSIDE = {
@@ -1775,16 +1804,8 @@ const SPECIAL = {
 const isSpecial = c => !!(c && c.type && SPECIAL[c.type]);
 /* Hubs are laid out on their own ladder rather than the reading ladder: a hub
    is a row of items, so its fits trade columns for rows exactly like C4's. */
-const SPECIAL_FITS = {
-  C1: [[2,1,"icon+label"],[1,1,"icon"]],
-  C2: [[4,1,"inline"],[3,2,"stacked"]],
-  C3: [[4,2,"full"],[3,2,"standard"],[2,3,"stacked"]],
-  C4: [[4,2,"full"],[3,3,"standard"],[3,4,"compact"],[2,5,"list"]],
-  C5: [[6,3,"full"],[5,4,"narrow"],[4,5,"min"]],
-  C6: [[8,4,"full"],[6,6,"narrow"],[4,8,"min"]],
-};
 /** The fit ladder a card resolves against — hubs stack shallower than charts. */
-const fitsTable = c => (isSpecial(c) ? SPECIAL_FITS : FITS);
+const fitsTable = () => FITS;
 
 /** A stat showing only its number — no chart body to make room for. */
 const isBare = c => c.chart === "stat" && c.variant === "number";
@@ -1926,6 +1947,11 @@ const ic = (n, s=14) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fil
 
 /* ── state ─────────────────────────────────────────────────────────────── */
 let CARDS = [], EDIT = null, SEQ = 0, LIB_AREA = "All", LIB_Q = "";
+let ACTIVE_FRAME = (opts && opts.activeFrame) || null;
+let FRAME_SLOTS = Array.isArray(opts && opts.frameSlots) ? opts.frameSlots : [];
+let FRAME_DIRTY = !!(opts && opts.frameDirty);
+let DASHBOARD_ID = (opts && opts.dashboardId) || null;
+let SAVE_LAYOUT_TIMER = null;
 /* Board-wide preferences — set once in the editor, applied to every card. */
 const PREFS = { periodPicker: true };
 const newId = () => "c" + (++SEQ);
@@ -2017,14 +2043,14 @@ function headlineOf(card){
     };
   }
 
-  const vals = valuesFor(card.key, card.period, rd.unit);
-  const last = vals[vals.length - 1], prev = vals[vals.length - 2] ?? last;
-  const pct = prev ? ((last - prev) / prev) * 100 : 0;
+  const pending = PENDING_RECKONER_REQUESTS.has(reqKey)
+    || PENDING_RECKONER_REQUESTS.has(`${card.key}|${toReckonerPeriod(card.period)}`);
+  const reason = live?.error?.message || (pending ? "Loading…" : "No data in this period.");
   return {
-    value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
-    valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
-    dir: pct >= 0 ? "up" : "down", pct: Math.abs(pct).toFixed(1) + "%",
-    when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
+    value: "—",
+    valueCompact: "—",
+    dir: "up", pct: "",
+    when: reason,
   };
 }
 
@@ -2079,8 +2105,6 @@ function tools(){
 }
 
 /* The grid's own geometry — resize snaps to this, nothing else. */
-const GRID = { cols: 12, unit: 64, gutter: 24 };
-
 /** The rendered [cols, rows] — clamped to the card's floor, its category max
     and the live grid. Nothing else in the file may compute a card's size. */
 function sizeOf(c, cols, colW){
@@ -2238,9 +2262,11 @@ function cardFrame(c, opts){
   ].filter(Boolean).join(" ");
   /* --vqw / --vqh let the stylesheet reason about a card's own span without a
      container query, so an interior can thin out at 2 rows and fill out at 6. */
-  const pinned = Number.isInteger(c.gx) && Number.isInteger(c.gy) && (opts.cols || 12) >= 12;
+  const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
+  const pinned = ((frameSlot && (opts.cols || 12) >= 12)
+    || (Number.isInteger(c.gx) && Number.isInteger(c.gy) && (opts.cols || 12) >= 12));
   const place = pinned
-    ? `grid-column:${Math.max(1, Math.min((opts.cols || 12) - w + 1, c.gx + 1))} / span ${w};grid-row:${c.gy + 1} / span ${h};`
+    ? `grid-column:${(frameSlot ? Number(frameSlot.x) : c.gx) + 1} / span ${w};grid-row:${(frameSlot ? Number(frameSlot.y) : c.gy) + 1} / span ${h};`
     : "";
   return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${w}" data-h="${h}"
     tabindex="0" draggable="false"
@@ -2549,7 +2575,14 @@ function draw(){
      reference to everything it observes — so without this the observer would
      accumulate one dead host per redraw for the life of the page. */
   HOST_RO?.disconnect();
-  board.innerHTML = CARDS.map(c => renderCard(c, cols)).join("")
+  const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("");
+  const occupied = new Set(CARDS.map(c => Number(c.frameSlot)).filter(Number.isFinite));
+  const emptyHtml = cols >= 12 ? FRAME_SLOTS.filter(slot => !occupied.has(Number(slot.slot))).map(slot =>
+    `<div class="vq-frame-empty" data-frame-slot="${Number(slot.slot)}"
+      style="grid-column:${Number(slot.x) + 1} / span ${Number(slot.w)};grid-row:${Number(slot.y) + 1} / span ${Number(slot.h)}">
+      <button type="button" class="vq-frame-empty-add">Add a card</button>
+    </div>`).join("") : "";
+  board.innerHTML = cardsHtml + emptyHtml
     || `<p class="board-empty">No cards yet — open <strong>Add card</strong> and pick what you want to see.</p>`;
   const count = document.getElementById("count");
   if (count) count.textContent = CARDS.length;
@@ -2566,7 +2599,7 @@ function draw(){
     el.querySelector(".vqc-del") ?.addEventListener("click", e => {
       e.stopPropagation();
       el.classList.add("is-going");
-      setTimeout(() => { CARDS = CARDS.filter(x => x.id !== c.id); if (EDIT === c.id) closeEdit(); draw(); }, 200);
+      setTimeout(() => { CARDS = CARDS.filter(x => x.id !== c.id); markFrameDirty(); if (EDIT === c.id) closeEdit(); draw(); }, 200);
     });
     /* the hub's own "quick actions" button opens the React popup */
     el.querySelectorAll('[data-glass]').forEach(b => b.addEventListener("click", e => {
@@ -2587,6 +2620,10 @@ function draw(){
     wireResize(el, c);
     wirePeriod(el, c);
   });
+  board.querySelectorAll(".vq-frame-empty-add").forEach(button => button.addEventListener("click", () => {
+    document.getElementById("lib")?.classList.add("is-on");
+    document.getElementById("lib-q")?.focus();
+  }));
   fitValues(board);
   renderLibrary();
   persistBoard();
@@ -2708,6 +2745,8 @@ function wireResize(el, c){
       el.classList.remove("is-resizing");
       document.body.classList.remove("is-reordering");
       hint.remove();
+      delete c.frameSlot;
+      markFrameDirty();
       draw();                       /* the interior may resolve to a new fit */
       if (EDIT === c.id) openEdit(c.id);
     };
@@ -2766,6 +2805,8 @@ function beginMove(e0, el, c){
     if (gx != null && gy != null && cols >= 12){
       const spot = freeSpot(c, gx, gy, w, h, cols);
       c.gx = spot.x; c.gy = spot.y;
+      delete c.frameSlot;
+      markFrameDirty();
       draw();
     } else if (gx != null){
       /* small grid: reorder by drop position instead of pinning */
@@ -2945,6 +2986,73 @@ function persistBoard(){
   if (!PERSIST_ON || typeof localStorage === "undefined") return;
   try { localStorage.setItem(BOARD_KEY(), JSON.stringify({ v: BOARD_SCHEMA_VERSION, cards: CARDS })); }
   catch {}
+}
+
+function serverCard(c){
+  if (!c.key || c.type) return null;
+  const [w, h] = authoredSizeOf(c);
+  const fit = (FITS[c.cat] || [])[c.fit]?.[2];
+  return {
+    id: /^[0-9a-f-]{32,36}$/i.test(String(c.id || "")) ? c.id : undefined,
+    reading_key: c.key,
+    chart: ({ pl:"profit_loss_line", live:"live_line" }[c.chart] || c.chart),
+    period: ({ Today:"today", Week:"this_week", Month:"this_month", Quarter:"this_quarter", Year:"this_year" }[c.period] || "this_month"),
+    category: c.cat,
+    fit,
+    w,
+    h,
+    x: Number.isInteger(c.gx) ? c.gx : 0,
+    y: Number.isInteger(c.gy) ? c.gy : 0,
+    frame_slot: Number.isFinite(Number(c.frameSlot)) ? Number(c.frameSlot) : null,
+    style: { variant: c.variant, accent: !!c.accent },
+  };
+}
+function saveServerLayout(){
+  if (!DASHBOARD_ID || typeof axios === "undefined") return;
+  clearTimeout(SAVE_LAYOUT_TIMER);
+  SAVE_LAYOUT_TIMER = setTimeout(() => {
+    const cards = CARDS.map(serverCard).filter(Boolean);
+    axios.put(`/api/dashboards/${DASHBOARD_ID}/layout`, { cards, frame_dirty: FRAME_DIRTY })
+      .catch(error => console.error("[VenQoreCards] Could not save dashboard layout.", error));
+  }, 250);
+}
+function markFrameDirty(){
+  FRAME_DIRTY = true;
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("vq:frame-dirty", { detail: true }));
+  saveServerLayout();
+}
+function setFrame(frameKey, slots){
+  ACTIVE_FRAME = frameKey;
+  FRAME_SLOTS = Array.isArray(slots) ? slots : [];
+  FRAME_DIRTY = false;
+  CARDS.forEach((card, index) => {
+    const slot = FRAME_SLOTS[index];
+    if (!slot) { delete card.frameSlot; delete card.gx; delete card.gy; return; }
+    card.frameSlot = Number(slot.slot);
+    card.gx = Number(slot.x); card.gy = Number(slot.y);
+    card.w = Number(slot.w); card.h = Number(slot.h); card.cat = slot.category;
+    const fitIndex = (FITS[card.cat] || []).findIndex(fit => fit[2] === slot.fit);
+    card.fit = fitIndex < 0 ? (DEFAULT_FIT[card.cat] || 0) : fitIndex;
+  });
+  draw();
+  if (DASHBOARD_ID && typeof axios !== "undefined") {
+    axios.put(`/api/dashboards/${DASHBOARD_ID}`, { frame_key: frameKey })
+      .then(() => axios.get(`/api/dashboards/${DASHBOARD_ID}`))
+      .then(response => {
+        const cards = response?.data?.data?.cards;
+        if (!Array.isArray(cards)) return;
+        CARDS = availableCards(cards.map(bc => ({
+          id: bc.id || newId(), key: bc.reading_key || bc.key, chart: chartKey(bc.chart),
+          period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
+          w: bc.w, h: bc.h, gx: bc.x, gy: bc.y, cat: bc.category || "C4",
+          fit: Math.max(0, (FITS[bc.category] || []).findIndex(fit => fit[2] === bc.fit)),
+          frameSlot: bc.frame_slot, variant: bc.style?.variant || defaultVariant(chartKey(bc.chart)),
+          accent: !!bc.style?.accent,
+        }))).map(normaliseCard);
+        draw();
+      })
+      .catch(error => console.error("[VenQoreCards] Could not switch dashboard frame.", error));
+  }
 }
 function loadBoard(){
   if (typeof localStorage === "undefined") return null;
@@ -3143,6 +3251,17 @@ function applyPreset(id){
     delete card.gx; delete card.gy;          /* presets always flow */
     return normaliseCard(card);
   });
+  if (FRAME_SLOTS.length) {
+    CARDS.forEach((card, index) => {
+      const slot = FRAME_SLOTS[index];
+      if (!slot) return;
+      card.frameSlot = Number(slot.slot);
+      card.gx = Number(slot.x); card.gy = Number(slot.y);
+      card.w = Number(slot.w); card.h = Number(slot.h); card.cat = slot.category;
+      const fitIndex = (FITS[card.cat] || []).findIndex(fit => fit[2] === slot.fit);
+      card.fit = fitIndex < 0 ? (DEFAULT_FIT[card.cat] || 0) : fitIndex;
+    });
+  }
   EDIT = null;
   draw();
 }
@@ -3173,18 +3292,22 @@ function boot(presetId){
               const backendCards = activeBoard.cards.map(bc => ({
                 id: bc.id || newId(),
                 key: bc.reading_key || bc.key,
-                chart: bc.style || bc.chart,
+                chart: bc.chart,
                 period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_year' ? 'Year' : 'Month',
                 w: bc.w,
                 h: bc.h,
                 gx: bc.x,
                 gy: bc.y,
-                cat: bc.cat || 'C4',
+                frameSlot: bc.frame_slot,
+                cat: bc.category || 'C4',
                 fit: bc.fit || 0,
                 type: bc.type,
                 variant: bc.variant || defaultVariant(bc.style || 'area'),
               }));
               CARDS = availableCards(backendCards).map(normaliseCard);
+              DASHBOARD_ID = activeBoard.id || DASHBOARD_ID;
+              ACTIVE_FRAME = activeBoard.frame_key || ACTIVE_FRAME;
+              FRAME_DIRTY = !!activeBoard.frame_dirty;
               draw();
             }
           }
@@ -3231,12 +3354,18 @@ window.VenQoreCards = {
       draw();
     }
   },
+  setLayoutLaw: (law) => {
+    if (setLayoutLaw(law)) draw();
+  },
+  setFrame,
+  getFrame: () => ACTIVE_FRAME,
+  isFrameDirty: () => FRAME_DIRTY,
   getCats: () => CATS,
   getCatNames: () => CAT_NAME,
   getCatDescs: () => CAT_DESC,
   getCatMax: () => CAT_MAX,
   getFits: () => FITS,
-  getSpecialFits: () => SPECIAL_FITS,
+  getSpecialFits: () => FITS,
   getSpecials: () => SPECIAL,
   getLegalCharts: () => LEGAL,
   getChartNames: () => CHART_NAME,
@@ -3403,7 +3532,9 @@ const PERIOD_LABELS = ['Today', 'Week', 'Month', 'Quarter', 'Year'];
 
 /* Used only before the engine has booted, so the first paint of the wizard is
    never wrong. The engine's own CAT_MAX is authoritative from then on. */
-const CAT_MAX_FALLBACK = { C1:[3,2], C2:[6,2], C3:[6,4], C4:[6,6], C5:[12,9], C6:[12,16] };
+const catMaxFromLaw = law => Object.fromEntries(Object.entries(law?.categories || {})
+  .filter(([key]) => /^C\d+$/.test(key))
+  .map(([key, category]) => [key, [Number(category.max.w), Number(category.max.h)]]));
 
 /* One small proportional diagram of a w×h card, so a size is chosen by eye and
    not by arithmetic. Drawn against the category's own maximum. */
@@ -3757,8 +3888,15 @@ export default function NewDashboard(props) {
   /* ─────────────────────────────────────────────────────────────── */
 
   const readingsProp = props?.readings || null;
+  const layoutLawProp = props?.layoutLaw || null;
+  const frames = Array.isArray(props?.frames) ? props.frames : [];
+  const [activeFrameKey, setActiveFrameKey] = useState(props?.activeFrame || 'classic');
+  const [frameDirty, setFrameDirty] = useState(!!props?.frameDirty);
   if (typeof window !== 'undefined' && Array.isArray(readingsProp) && readingsProp.length > 0) {
     window.__VENQORE_READINGS__ = readingsProp;
+  }
+  if (typeof window !== 'undefined' && layoutLawProp) {
+    window.__VENQORE_LAYOUT_LAW__ = layoutLawProp;
   }
   const [seniorMode, setSeniorMode] = useState(() => String(settings?.senior_mode) === '1');
 
@@ -3973,9 +4111,29 @@ export default function NewDashboard(props) {
     [props?.modules]);
 
   useEffect(() => {
-    runCardBuilder({ storeSlug, modules: enabledModules, readings: readingsProp });
+    const activeFrame = frames.find(frame => frame.key === activeFrameKey);
+    runCardBuilder({
+      storeSlug, modules: enabledModules, readings: readingsProp, layoutLaw: layoutLawProp,
+      dashboardId: props?.dashboardId, activeFrame: activeFrameKey,
+      frameSlots: frameDirty ? [] : (activeFrame?.slots || []), frameDirty,
+    });
     setEngineReady(true);
-  }, [storeSlug, enabledModules, readingsProp]);
+  }, [storeSlug, enabledModules, readingsProp, layoutLawProp, props?.dashboardId]);
+
+  useEffect(() => {
+    const onDirty = event => setFrameDirty(!!event.detail);
+    window.addEventListener('vq:frame-dirty', onDirty);
+    return () => window.removeEventListener('vq:frame-dirty', onDirty);
+  }, []);
+
+  const chooseFrame = (frameKey) => {
+    if (frameDirty && !window.confirm('This dashboard has custom changes. Switching frames will re-flow its cards. Continue?')) return;
+    const frame = frames.find(item => item.key === frameKey);
+    if (!frame) return;
+    engine()?.setFrame?.(frame.key, frame.slots);
+    setActiveFrameKey(frame.key);
+    setFrameDirty(false);
+  };
 
   /* Edit mode is a page state; the engine paints from a class on the shell. */
   useEffect(() => {
@@ -4115,7 +4273,7 @@ export default function NewDashboard(props) {
     try { return e.catsFor(draftCard); } catch { return ['C3']; }
   }, [draftCard, engineReady]);
 
-  const catMax = engine()?.getCatMax?.() || CAT_MAX_FALLBACK;
+  const catMax = engine()?.getCatMax?.() || catMaxFromLaw(layoutLawProp);
   const catNames = engine()?.getCatNames?.() || {};
   const catDescs = engine()?.getCatDescs?.() || {};
 
@@ -4568,7 +4726,7 @@ export default function NewDashboard(props) {
      interior, exactly like the board's own resize. */
   const applyDragSize = (wRaw, hRaw) => {
     const e = engine(); if (!e || !draftCard) return;
-    const catMaxTbl = e.getCatMax?.() || CAT_MAX_FALLBACK;
+    const catMaxTbl = e.getCatMax?.() || catMaxFromLaw(layoutLawProp);
     const w = Math.max(1, Math.min(12, wRaw)), h = Math.max(1, Math.min(16, hRaw));
     let cats = [];
     try { cats = isShortcutCard ? ['C1'] : e.catsFor({ ...draftCard, variant: statFamily ? 'number' : draftVariant }); }
@@ -5098,6 +5256,11 @@ export default function NewDashboard(props) {
           <div className="vq-canvas">
             <div className={`vq-canvas-body ${railsOn ? 'has-rails' : ''}`}>
               <div className="vq-board-zone">
+                {isEditMode && frames.length > 0 && (
+                  <section className="vq-frame-picker" aria-label="Dashboard frame settings">
+                    <FramePicker frames={frames} value={activeFrameKey} onChange={chooseFrame} />
+                  </section>
+                )}
                 <div className="vq-grid" id="board" />
               </div>
 

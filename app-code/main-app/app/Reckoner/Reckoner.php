@@ -349,9 +349,16 @@ final class Reckoner
             } catch (Throwable $e) {
                 report($e);
 
+                $unavailable = $e instanceof \App\Exceptions\MissingFinancialAccountException;
+
                 foreach ($items as $item) {
                     $primaryId = $item['is_compare'] ? $item['primary_id'] : $item['id'];
-                    $results[$primaryId] = ReckonerResult::failure($primaryId, $item['key'], 'resolver_failed', 'This reading could not be computed.');
+                    $results[$primaryId] = ReckonerResult::failure(
+                        $primaryId,
+                        $item['key'],
+                        $unavailable ? 'unavailable' : 'resolver_failed',
+                        $unavailable ? $e->getMessage() : 'This reading could not be computed.',
+                    );
                 }
 
                 continue;

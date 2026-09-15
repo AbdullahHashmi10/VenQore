@@ -1320,7 +1320,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  ${isPlatformAdmin && !store
  ? (isEffectiveDarkMode ? 'bg-neutral-950/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-line')
  : 'bg-surface border-r border-line dark:border-line'}
- ${showExpandedSidebar ? 'w-[280px]' : 'w-[280px] lg:w-[88px]'}
+ ${showExpandedSidebar ? 'w-[var(--vq-nav-w-full)]' : 'w-[var(--vq-nav-w-full)] lg:w-[var(--vq-nav-w-rail)]'}
  ${isPlatformAdmin && !store
  ? (isEffectiveDarkMode ? 'm-4 rounded-xl h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-line shadow-sm transition-all')
  : ''}

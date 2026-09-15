@@ -5,6 +5,7 @@ namespace App\Reckoner\Sources;
 use App\Reckoner\ReckonerContext;
 use App\Reckoner\ReckonerPeriod;
 use App\Services\FinancialReportingService;
+use App\Support\SaleStatus;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -48,8 +49,16 @@ final class SalesSource implements ReckonerSource
 
         foreach ($byWindow as $windowKey => $data) {
             $period = $data['period'];
-            $pl = $this->reporting->getProfitAndLoss($period->start->toDateString(), $period->end->toDateString(), $ctx->tenant?->id);
-            $revenue = (float) $pl['revenue'];
+            $needsRevenue = collect($data['items'])->contains(fn (array $item) => $item['key'] === 'sales.revenue');
+            $revenue = null;
+            if ($needsRevenue) {
+                $pl = $this->reporting->getProfitAndLoss(
+                    $period->start->toDateString(),
+                    $period->end->toDateString(),
+                    $ctx->tenant?->id,
+                );
+                $revenue = (float) $pl['revenue'];
+            }
 
             foreach ($data['items'] as $item) {
                 switch ($item['key']) {
@@ -79,7 +88,7 @@ final class SalesSource implements ReckonerSource
                     case 'sales.payment_breakdown':
                         $paymentRows = DB::table('sales')
                             ->where('tenant_id', $ctx->tenant->id)
-                            ->where('status', 'posted')
+                            ->where('status', SaleStatus::POSTED)
                             ->whereBetween('posted_at', [$period->start->toDateString() . ' 00:00:00', $period->end->toDateString() . ' 23:59:59'])
                             ->select('payment_method', DB::raw('SUM(net_sales) as val'))
                             ->groupBy('payment_method')
@@ -101,7 +110,7 @@ final class SalesSource implements ReckonerSource
                         break;
 
                     case 'sales.top_products':
-                        $productRows = $this->reporting->getGrossProfitByProduct($period->start->toDateString(), $period->end->toDateString())
+                        $productRows = $this->reporting->getGrossProfitByProduct($period->start->toDateString(), $period->end->toDateString(), $ctx->tenant->id)
                             ->sortByDesc('quantity')
                             ->take(6)
                             ->values();
@@ -129,7 +138,7 @@ final class SalesSource implements ReckonerSource
 
                         $heatmapRows = DB::table('sales')
                             ->where('tenant_id', $ctx->tenant->id)
-                            ->where('status', 'posted')
+                            ->where('status', SaleStatus::POSTED)
                             ->whereBetween('posted_at', [$period->start->toDateString() . ' 00:00:00', $period->end->toDateString() . ' 23:59:59'])
                             ->selectRaw("{$dayNameExpr} as day_name, {$hourExpr} as hour, COUNT(*) as count")
                             ->groupBy('day_name', 'hour')
@@ -159,7 +168,7 @@ final class SalesSource implements ReckonerSource
                         $feedRows = DB::table('sales')
                             ->leftJoin('parties', 'sales.party_id', '=', 'parties.id')
                             ->where('sales.tenant_id', $ctx->tenant->id)
-                            ->where('sales.status', 'posted')
+                            ->where('sales.status', SaleStatus::POSTED)
                             ->select('sales.id', 'sales.reference_number', 'sales.net_sales', 'sales.created_at', 'parties.name as party_name')
                             ->orderByDesc('sales.created_at')
                             ->limit(10)
@@ -185,7 +194,7 @@ final class SalesSource implements ReckonerSource
                     case 'sales.max_sale':
                         $out[$item['id']] = (float) (DB::table('sales')
                             ->where('tenant_id', $ctx->tenant->id)
-                            ->where('status', 'posted')
+                            ->where('status', SaleStatus::POSTED)
                             ->whereBetween('posted_at', [$period->start, $period->end])
                             ->max('net_sales') ?? 0.0);
                         break;
@@ -203,8 +212,8 @@ final class SalesSource implements ReckonerSource
                     case 'returns.count':
                         $out[$item['id']] = (int) DB::table('sales')
                             ->where('tenant_id', $ctx->tenant->id)
-                            ->where('status', 'returned')
-                            ->whereBetween('created_at', [$period->start, $period->end])
+                            ->where('status', SaleStatus::RETURNED)
+                            ->whereBetween('posted_at', [$period->start, $period->end])
                             ->count();
                         break;
 
@@ -212,16 +221,16 @@ final class SalesSource implements ReckonerSource
                         $out[$item['id']] = (float) (DB::table('sale_items')
                             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                             ->where('sales.tenant_id', $ctx->tenant->id)
-                            ->where('sales.status', 'returned')
-                            ->whereBetween('sales.created_at', [$period->start, $period->end])
+                            ->where('sales.status', SaleStatus::RETURNED)
+                            ->whereBetween('sales.posted_at', [$period->start, $period->end])
                             ->sum('sale_items.quantity') ?? 0.0);
                         break;
 
                     case 'returns.value':
                         $out[$item['id']] = (float) (DB::table('sales')
                             ->where('tenant_id', $ctx->tenant->id)
-                            ->where('status', 'returned')
-                            ->whereBetween('sales.created_at', [$period->start, $period->end])
+                            ->where('status', SaleStatus::RETURNED)
+                            ->whereBetween('sales.posted_at', [$period->start, $period->end])
                             ->sum('total') ?? 0.0);
                         break;
                 }

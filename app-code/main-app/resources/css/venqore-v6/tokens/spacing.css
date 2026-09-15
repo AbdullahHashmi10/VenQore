@@ -15,6 +15,9 @@
   --vq-row-head-h: 40px;
   --vq-rail-w: 264px;      /* Layout Law v2.0 §1 — nav expanded. Was 248 */
   --vq-rail-w-min: 72px;   /* Layout Law v2.0 §1 — nav rail. Was 76 */
+  --vq-nav-w-rail: 88px;   /* Sidebar frame: rail / rail + reveal */
+  --vq-nav-w-compact: 220px; /* Sidebar frame: compact */
+  --vq-nav-w-full: 280px;  /* Sidebar frame: expanded / sections */
   --vq-topbar-h: 64px;     /* Layout Law v2.0 §1 — header_h == row. Was 68 */
   --vq-page-max: 1240px;
   --vq-gutter: 24px;      /* Layout Law v2.0 §1 — GUTTER, both axes. Was 20.

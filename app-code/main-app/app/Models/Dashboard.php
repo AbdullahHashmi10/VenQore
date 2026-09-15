@@ -16,6 +16,8 @@ class Dashboard extends Model
         'user_id',
         'name',
         'slug',
+        'frame_key',
+        'frame_dirty',
         'is_default',
         'for_role',
         'is_locked',
@@ -24,6 +26,7 @@ class Dashboard extends Model
 
     protected $casts = [
         'is_default' => 'boolean',
+        'frame_dirty' => 'boolean',
         'is_locked' => 'boolean',
         'position' => 'integer',
     ];

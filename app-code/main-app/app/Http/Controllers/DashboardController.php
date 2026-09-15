@@ -555,6 +555,8 @@ class DashboardController extends Controller
 
     return Inertia::render('NewDashboard', [
         'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+        'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
+        ...$this->dashboardFrameProps($tenant, $user),
         'revenue'            => $performance['Month']['sales'] ?? 0.0,
         'performance'        => $performance,
         'outstanding'        => $outstanding,
@@ -723,6 +725,8 @@ class DashboardController extends Controller
 
         return Inertia::render('NewDashboard', [
             'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+            'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
+            ...$this->dashboardFrameProps($tenant, $user),
             'revenue'            => $performance['Month']['sales'] ?? 0.0,
             'performance'        => $performance,
             'outstanding'        => $outstanding,
@@ -827,6 +831,24 @@ class DashboardController extends Controller
             'sales'        => $sales,
             'gross_profit' => $grossProfit,
             'cogs'         => $cogs,
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function dashboardFrameProps($tenant, $user): array
+    {
+        $dashboard = \App\Models\Dashboard::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->orderByDesc('is_default')
+            ->orderBy('position')
+            ->first();
+
+        return [
+            'frames' => app(\App\Services\Dashboard\FrameRepository::class)->allFor($tenant, $user),
+            'dashboardId' => $dashboard?->id,
+            'activeFrame' => $dashboard?->frame_key ?? 'classic',
+            'frameDirty' => (bool) ($dashboard?->frame_dirty ?? false),
         ];
     }
 

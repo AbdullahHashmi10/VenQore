@@ -489,7 +489,7 @@ body { margin: 0; background: var(--vq-bg); }
    Implemented by grid-auto-rows + gap. We never add margin-bottom. */
 .vq-grid{
   display: grid;
-  grid-auto-flow: dense;
+  grid-auto-flow: row;
   grid-template-columns: repeat(var(--vq-cols), minmax(0, 1fr));
   grid-auto-rows: var(--vq-unit);
   gap: var(--vq-gutter);
@@ -2332,7 +2332,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-grid {
   display: grid;
-  grid-auto-flow: dense;
+  grid-auto-flow: row;
   grid-template-columns: repeat(var(--vq-cols, 12), minmax(0, 1fr));
   grid-auto-rows: var(--vq-unit, 64px);
   gap: var(--vq-gutter, 24px);
@@ -5132,3 +5132,29 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vqc--c1 .vqc-bd > *{ min-width: 0; }
 .vqc--c1 .vqc-label{ flex: 1 1 auto; }
 .vqc--c1 .vqc-value{ flex: 0 0 auto; }
+.vq-frame-picker {
+  margin-block-end: 24px;
+  padding: 16px;
+  border: 1px solid var(--vq-border, rgba(127, 127, 127, .22));
+  border-radius: 16px;
+  background: var(--vq-surface, #fff);
+}
+
+.vq-frame-empty {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--vq-border, rgba(127, 127, 127, .45));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--vq-surface, #fff) 82%, transparent);
+}
+
+.vq-frame-empty-add {
+  border: 0;
+  background: transparent;
+  color: var(--vq-muted, #667085);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
