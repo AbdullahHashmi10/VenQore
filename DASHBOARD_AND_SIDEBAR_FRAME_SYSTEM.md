@@ -27,6 +27,10 @@ number in it is checkable and every file it names actually exists.
    by adding fits, never by removing one.
 5. When something here contradicts what you find in the code, **say so and stop.**
    Do not substitute your own plan.
+6. **Read §16 first and build it first.** The dashboard currently renders
+   Rs 0 on cards whose underlying data is real — the transactions page shows
+   Rs 2,282,043 where the dashboard shows Rs 0. Arranging cards that display
+   nothing is wasted work. §16 is Phase −1 in the build order.
 
 ---
 
@@ -1093,6 +1097,7 @@ is green.
 
 | Phase | Work | Done when |
 |---|---|---|
+| **−1** | §16 — diagnose and fix the zero-value cards; add the `unavailable` state and the L9 reconciliation law | Every §16.9 acceptance line passes on a real store |
 | **0** | Add the 11 fits to `layout-law.json`. Change nothing else. | Existing boards render unchanged; `LayoutLaw::validate()` still passes on every seeded board |
 | **1** | Migrations (§5). No behaviour change. | Migrations run forward and back on MariaDB 10.5 |
 | **2** | `config/dashboard_frames.php` + `FrameValidator` + `FrameGeometryLawTest` | All 8 frames pass the geometry law |
@@ -1127,6 +1132,10 @@ pair of hands.
 
 **Not decided here — you need to rule on these:**
 
+0. **Which branch of §16.5 this store is on.** Four queries settle it; I
+   could not run SQL against `venqore_pos` from here, so §16 gives the
+   decision tree rather than naming the branch.
+
 1. **The `command` accent.** An accent-filled 12x5 hero may be too much colour.
    Options: keep it, or let `command` carry no accent. §3.5.
 2. **The six sidebar shapes.** §10.2 is my proposal, written because yours had
@@ -1138,6 +1147,293 @@ pair of hands.
 4. **Whether `DashboardRegistry` can be deleted.** Depends on live callers; §6.4
    says check before cutting.
 
+
+---
+
+## 16. Cards must show real numbers — the zero-value defect
+
+**Priority: this ships before anything else in this document.** A frame system
+that arranges cards correctly is worthless if the cards inside it read Rs 0.
+
+### 16.1 What was observed
+
+On store `amd-outlets-1`, on 15 Sep 2026, the dashboard and the transactions
+page disagree completely about the same rows:
+
+| | Transactions page | Dashboard card |
+|---|---|---|
+| Total sales | **Rs 2,282,043.43** (2,592 records) | Revenue Trend, 30-day window: **Rs 0**, flat |
+| Unpaid / due | **Rs 757,353.01** | Receivables: **Rs 0** |
+| Sales on 14 Sep | nine invoices, ~Rs 15,000 | Payment Breakdown: **empty**; Top Products: **0** |
+
+Meanwhile the right-hand rail — which does **not** go through the Reckoner —
+shows Cash in hand **Rs −180,381.23** and a Recent Activity list with real
+figures (+Rs 20, +Rs 510, +Rs 940, −Rs 220).
+
+So: the data exists, one reader finds it, the other returns zero. **The cards
+are connected. What they are connected to is returning nothing, and doing it
+silently.**
+
+### 16.2 One correct zero — do not "fix" it
+
+`Revenue · Today` showing **Rs 0** on 15 Sep is **right**. The most recent sale
+is dated 14 Sep. A card that says Rs 0 when the true answer is Rs 0 is working.
+
+This matters because `CLAUDE.md` rule 4 is *"never render a placeholder or
+sample figure in a tenant-facing build"*. The fix for this defect is never to
+make a number appear. It is to make the reader find the rows that exist. If
+after the fix a card still reads zero and the underlying rows are genuinely
+zero, that card is done.
+
+### 16.3 Why it fails silently — three mechanisms, all found in the code
+
+The dashboard has **two independent data paths**, and each has its own way of
+returning zero without raising anything.
+
+#### Mechanism 1 — the sales-table path filters on `status` + `posted_at`
+
+Cards affected: Payment Breakdown, Live Sales Feed, Top Products, Hourly
+Heatmap, Max Sale.
+
+`app/Reckoner/Sources/SalesSource.php`:
+
+```php
+// payment_breakdown (line ~80), hourly_heatmap (~130), live_feed (~159), max_sale (~186)
+DB::table('sales')
+    ->where('tenant_id', $ctx->tenant->id)
+    ->where('status', 'posted')
+    ->whereBetween('posted_at', [...])
+```
+
+`app/Services/FinancialReportingService::getGrossProfitByProduct()` (line ~298):
+
+```php
+->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+->whereBetween('sales.posted_at', [$start.' 00:00:00', $end.' 23:59:59'])
+```
+
+Now compare the page that **works** —
+`app/Http/Controllers/TransactionController.php` (lines ~21–57):
+
+```php
+DB::table('sales')
+    ->select('sales.created_at as date', ..., 'sales.payment_status', ...)
+```
+
+It filters on **neither** `status = 'posted'` **nor** `posted_at`. It reads
+`created_at` and `payment_status`. And the UI confirms the vocabulary: the
+transactions list shows `PAID`, `UNPAID`, `COMPLETED` and `SETTLED` — the word
+`posted` appears nowhere on screen.
+
+If this store's sales carry a status other than `posted`, or a null
+`posted_at`, every query in the first group returns **zero rows**. An empty
+result set does not throw. This is the exact failure `CLAUDE.md` already
+documents for the purchase island: *"An emptied table does not throw — it
+returns zero rows — so reports, dashboards, the transactions list and the owner
+emails all silently showed nothing while the suite stayed green."*
+
+Corroborating drift inside the same file: `returns.count`, `returns.qty` and
+`returns.value` (lines ~203–225) filter on **`created_at`**, while every other
+reading in `SalesSource` filters on **`posted_at`**. One source, two date
+columns. At least one of them is wrong.
+
+#### Mechanism 2 — the ledger path resolves accounts, and falls back to a sentinel
+
+Cards affected: Revenue, Revenue Trend, Net Profit, Gross Margin, Receivables,
+Payables, Expenses — everything financial.
+
+These do **not** read `sales` at all. `SalesSource::resolveBatch()` line 51:
+
+```php
+$pl = $this->reporting->getProfitAndLoss($period->start->toDateString(), ...);
+$revenue = (float) $pl['revenue'];
+```
+
+And `getProfitAndLoss()` computes revenue purely from the general ledger:
+
+```php
+journal_items ⋈ journal_entries
+  WHERE je.tenant_id = :t AND je.is_reversed = 0
+    AND je.date BETWEEN :start AND :end
+→ revenue = Σ (credit − debit) over accounts WHERE type = 'income'
+```
+
+Two silent-zero traps live here:
+
+```php
+// getProfitByPeriod(), line ~190
+$incomeIds = Account::...->where('type', 'income')->pluck('id')->all();
+if (empty($incomeIds)) { $incomeIds = ['00000000-0000-0000-0000-000000000000']; }
+$cogsId = Account::...->where('code', '5000')->value('id')
+        ?? '00000000-0000-0000-0000-000000000000';
+```
+
+**If the chart of accounts has no row typed `income`, the code substitutes a
+UUID that matches nothing and every bucket sums to 0.** A perfectly flat zero
+trend line, no exception, no log. `getProfitAndLoss()` does the same thing by
+looping over an empty `$incomeAccounts` collection and totalling `0`.
+
+`app/Reckoner/Sources/FinanceSource.php` line ~356 has a third:
+
+```php
+'receivables' => max(0, $net('1200', 'SUM(debit) - SUM(credit)')),
+'payables'    => max(0, $net('2000', 'SUM(credit) - SUM(debit)')),
+```
+
+Hard-coded account codes `1200` / `2000`, plus a `max(0, …)` that **clamps a
+negative result to zero** instead of surfacing it. Given the rail is already
+showing a negative cash account, a negative intermediate here is not
+hypothetical.
+
+`CLAUDE.md` already warns that chart-of-accounts gaps are a live class of bug
+in this codebase: *"accounts a new store's chart lacks are created where they
+are posted (see PayrollController / SettlementService)."*
+
+#### Mechanism 3 — the period picker's label does not match its window
+
+Visible on screen, and cheap to fix:
+
+- Payment Breakdown and Top Products show the chip **"Month"** and the caption
+  **"Month · Aug 17 – Sep 15"**. In `ReckonerPeriod`, `this_month` resolves to
+  1 Sep – 30 Sep. Aug 17 – Sep 15 is `last_30_days`. **The chip says "Month"
+  and the window is a rolling 30 days.** One of the two is lying to the user.
+- Live Sales Feed shows **"Today · 22:00 – 09:00"**. `today` resolves to
+  `startOfDay()`–`endOfDay()`. An 11-hour window that wraps a midnight is not
+  that, and a window like it would exclude the entire trading day.
+
+`ReckonerPeriod.php` itself is correct — the bug is in what the frontend asks
+for versus what it labels. Fix the caller, not the period class.
+
+### 16.4 Diagnosis — run these before changing any code
+
+Read-only, on `venqore_pos`. **Never wipe or refresh this database**
+(`CLAUDE.md` § Database Policy). Substitute the real tenant id for `:t` and the
+observed window.
+
+**Q1 — is there a ledger at all for this window?**
+
+```sql
+SELECT COUNT(*) AS entries, MIN(date) AS first_date, MAX(date) AS last_date
+FROM journal_entries
+WHERE tenant_id = :t AND is_reversed = 0
+  AND date BETWEEN '2026-08-17' AND '2026-09-15';
+```
+
+**Q2 — does the chart of accounts have what the reports look up?**
+
+```sql
+SELECT type, COUNT(*) FROM accounts WHERE tenant_id = :t GROUP BY type;
+SELECT code, name, type FROM accounts WHERE tenant_id = :t AND code IN ('1200','2000','5000');
+```
+
+**Q3 — do the sales rows satisfy the dashboard's filters?**
+
+```sql
+SELECT status,
+       COUNT(*)                     AS rows_,
+       SUM(posted_at IS NULL)       AS null_posted_at,
+       MIN(created_at), MAX(created_at)
+FROM sales WHERE tenant_id = :t GROUP BY status;
+```
+
+**Q4 — the reconciliation, for one day that definitely has sales:**
+
+```sql
+-- operational truth
+SELECT SUM(total) FROM sales
+WHERE tenant_id = :t AND DATE(created_at) = '2026-09-14' AND status <> 'returned';
+
+-- what the dashboard's ledger path sees
+SELECT COALESCE(SUM(ji.credit - ji.debit), 0)
+FROM journal_items ji
+JOIN journal_entries je ON je.id = ji.journal_entry_id
+JOIN accounts a        ON a.id = ji.account_id
+WHERE je.tenant_id = :t AND je.is_reversed = 0
+  AND je.date = '2026-09-14' AND a.type = 'income';
+```
+
+### 16.5 Decision tree
+
+| Q3 shows | Meaning | Fix |
+|---|---|---|
+| No rows with `status = 'posted'` | The POS writes a different status word | **Do not** change the data. Establish the real status vocabulary for a completed sale, put it in one constant (`App\Support\SaleStatus`), and make every reader use it. Then fix the readers. |
+| `posted_at` null on most rows | The column is not populated on the POS write path | Decide: either the write path sets `posted_at`, or every reader moves to `created_at`. **One date column for "when the sale happened", used everywhere.** Backfill existing rows in a data migration. |
+| Statuses and dates look fine | The sales path is healthy; the problem is entirely Mechanism 2 | Go to Q1/Q2 |
+
+| Q1 / Q2 shows | Meaning | Fix |
+|---|---|---|
+| Q1 returns 0 entries | Sales are not producing journal entries at all | Trace the POS checkout write path to `AccountingService::createEntry()`. Find where posting is skipped or swallowed. Then backfill the ledger for existing sales — a reversible, dry-run-by-default command in the style of `purchases:migrate-legacy`. |
+| Q1 has entries, Q2 has no `type = 'income'` rows | The chart of accounts is missing the income type, so the sentinel-UUID fallback fires | Repair the chart of accounts for this tenant; make `StoreProvisioner` guarantee the full chart for every new store. |
+| Q1 has entries, Q2 is fine, Q4 ledger ≠ operational | Entries exist but are posted to the wrong accounts or dated wrong | Compare `journal_entries.date` against `sales.created_at` for the same reference; check the account each sale credits. |
+
+### 16.6 The structural fix — ban the silent zero
+
+Every branch above shares one root: **a reader that cannot find what it needs
+returns `0.0` and looks identical to a genuine zero.** Fix the instance, then
+close the class:
+
+1. **A missing account is an error, not a zero.** Delete both
+   `'00000000-0000-0000-0000-000000000000'` sentinels in
+   `FinancialReportingService`. When a required account type or code is absent
+   for a tenant, the reading resolves to **`unavailable`**, not `0`.
+2. **`ReckonerResult` grows an `unavailable` state.** `App\Reckoner\ReckonerResult`
+   already carries `source`, `confidence`, `costUsd` and `learnable`. Add a
+   status so a card can say *"Chart of accounts incomplete"* instead of *"Rs 0"*.
+   A card that cannot compute must say so on its face. **This is the single most
+   important change in §16** — it is what stops this class of bug hiding again.
+3. **Delete `max(0, …)`** in `FinanceSource::outstanding()`. Negative
+   receivables mean a real ledger problem and the owner should see it.
+4. **One status constant, one date column.** No reader picks its own.
+   `returns.*` using `created_at` while its neighbours use `posted_at` is the
+   drift that made this possible.
+5. **Tenant scope, explicitly, everywhere.** `getGrossProfitByProduct()` takes
+   no `$tenantId` parameter (line 298) while its two siblings do, and it
+   interpolates `{$tenantId}` straight into a `DB::raw` subquery. Give it the
+   same signature as the others and bind the parameter. `CLAUDE.md` rule 2: a
+   missing `tenant_id` is a cross-tenant financial leak.
+
+### 16.7 Reconciliation test — the one that would have caught this
+
+`tests/tests/Feature/Reckoner/Laws/L9ReconciliationTest.php`. It belongs beside
+the eight existing laws because it is the same kind of rule: it iterates rather
+than asserting one number.
+
+For a seeded tenant with known sales across several days:
+
+- `sales.revenue` over a window **equals** the sum of sale totals in that window
+  computed directly from `sales`, to the paisa.
+- `finance.receivables` **equals** the sum of `balance_due` on unpaid sales.
+- `sales.revenue_trend` summed across its buckets **equals** `sales.revenue`
+  over the same window. (Period additivity — law L3 already states this
+  principle; this extends it across the two data paths.)
+- Every non-empty window produces a non-zero reading for a tenant that has
+  sales in it. **A silent zero fails the test.**
+
+This is the law that makes the dashboard and the transactions page structurally
+unable to disagree again.
+
+### 16.8 A data-integrity flag, separate from the above
+
+The transactions list shows a row dated **05-Jun-2060** (Sir Saeed Ahmad,
+received Rs 12,560). A date 34 years in the future will distort `all_time`,
+`last_12_months` and any max/min. It is not causing the zeros — it falls outside
+the 30-day window — but it should be found and corrected, and the entry forms
+should reject a transaction date more than a short way beyond today.
+
+### 16.9 Acceptance
+
+On store `amd-outlets-1`, with no seed data added and nothing hardcoded:
+
+- Revenue Trend over the last 30 days shows a visible spike on 14 Sep matching
+  the sum of that day's invoices.
+- Receivables matches the transactions page's Unpaid / Due figure
+  (Rs 757,353.01 at the time of writing) to the paisa.
+- Payment Breakdown shows real slices summing to the day's takings.
+- Top Products lists real products with real quantities.
+- `Revenue · Today` on a day with no sales still reads Rs 0 — and is correct.
+- Any card that cannot compute reads **"unavailable"** with a reason, never
+  Rs 0.
+- The period chip and the caption underneath it name the same window.
 
 ---
 

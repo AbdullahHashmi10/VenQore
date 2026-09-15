@@ -19,8 +19,8 @@
 
 $ErrorActionPreference = "Stop"
 
-$source = Get-Location
-$prodDir = Join-Path (Split-Path $source -Parent) "production"
+$source = "E:\AMD POS\AMD POS\app-code\main-app"
+$prodDir = "E:\AMD POS\AMD POS\app-code\production"
 
 Write-Host "Source (working copy): $source"
 Write-Host "Production mirror:     $prodDir"
@@ -39,7 +39,7 @@ $excludeDirs = @(
     "VenQore", "VenQore_Design_System", "verification", "system_brain",
     "VYB Restore", "docs", "new landing page", "node_modules", "vendor",
     "storage",   # storage is server-specific runtime data; keep production's own
-    "production" # never recurse into the mirror itself if main-app is its parent
+    "production", "production-clean-repo"  # never touch these sibling output folders
 )
 
 # File extensions to exclude anywhere in the tree
