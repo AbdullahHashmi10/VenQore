@@ -92,6 +92,13 @@ class FinancialReportingService
         // Revenue for period = credits posted - debits posted in that range.
         $incomeAccounts = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->get();
         if ($incomeAccounts->isEmpty()) {
+            $tenant = \App\Models\Tenant::find($tenantId);
+            if ($tenant) {
+                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
+                $incomeAccounts = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->get();
+            }
+        }
+        if ($incomeAccounts->isEmpty()) {
             throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: no income account is configured.');
         }
         $incomeDetails  = [];
@@ -192,9 +199,23 @@ class FinancialReportingService
 
         $incomeIds = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->pluck('id')->all();
         if (empty($incomeIds)) {
+            $tenant = \App\Models\Tenant::find($tenantId);
+            if ($tenant) {
+                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
+                $incomeIds = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->pluck('id')->all();
+            }
+        }
+        if (empty($incomeIds)) {
             throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: no income account is configured.');
         }
         $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id');
+        if ($cogsId === null) {
+            $tenant = \App\Models\Tenant::find($tenantId);
+            if ($tenant) {
+                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
+                $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id');
+            }
+        }
         if ($cogsId === null) {
             throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: cost of goods sold account 5000 is missing.');
         }

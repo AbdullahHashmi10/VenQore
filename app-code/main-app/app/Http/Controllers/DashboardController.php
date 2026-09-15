@@ -514,10 +514,12 @@ class DashboardController extends Controller
                 $accountingSvc = resolve(\App\Engines\AccountingService::class);
                 $cashBalance = (float) $accountingSvc->getBalance('1000');
 
-                $cashData = [
-                    'balance'      => $cashBalance,
-                    'transactions' => $cashTx,
-                ];
+                if ($cashTx->isNotEmpty() || $cashBalance != 0.0) {
+                    $cashData = [
+                        'balance'      => $cashBalance,
+                        'transactions' => $cashTx,
+                    ];
+                }
             } // End if($glCash)
     } // End if($canSeeFinance)
 
