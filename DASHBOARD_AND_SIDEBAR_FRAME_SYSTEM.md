@@ -27,16 +27,17 @@ number in it is checkable and every file it names actually exists.
    by adding fits, never by removing one.
 5. When something here contradicts what you find in the code, **say so and stop.**
    Do not substitute your own plan.
-6. **Build status, 15 Sep 2026.** Phases −1 to 8 are implemented and verified
-   in the backend: eight frames, eleven fits, geometry-free pools, filler,
-   lock enforcement, sentinel removal. **None of it is on screen** — the live
-   dashboard is a 5,483-line imperative engine that references none of it, and
-   it renders seeded fake data when the Reckoner returns nothing. **§17 is now
-   the highest priority, and §17.3 is the first thing to do.**
-7. **Read §16 first and build it first.** The dashboard currently renders
-   Rs 0 on cards whose underlying data is real — the transactions page shows
-   Rs 2,282,043 where the dashboard shows Rs 0. Arranging cards that display
-   nothing is wasted work. §16 is Phase −1 in the build order.
+6. **Build status, 15 Sep 2026, updated after live verification.** §16 and §17
+   are implemented and independently re-verified: `seed()` removed, duplicated
+   Layout Law removed, RANKING charts route to a list, tenant-isolation leak
+   fixed, lock guard ordered correctly. **The live app still showed empty
+   boards, dashes, and the old picker when tested** — not because the backend
+   is wrong, but because four specific wiring gaps keep it from ever being
+   reached. **§18 is now the highest priority. Read §18 first.**
+7. **§18 supersedes "§16 first" as the immediate next build step.** §16 and
+   §17's mechanisms are done; §18.1–§18.4 are the reason none of them are
+   visible on a real tenant's dashboard yet. Build §18 in full, including the
+   seeded-tenant verification in §18.5, before touching anything else.
 
 ---
 
@@ -1730,6 +1731,181 @@ acceptance line on `amd-outlets-1`.
   no migration executed and no database-backed test ran. The four migrations are
   unverified. Run `php artisan migrate` on a local copy — never on
   `venqore_pos` (`CLAUDE.md` § Database Policy) — before shipping.
+
+---
+
+## 18. Four things verified wrong on the live app, 15 Sep 2026
+
+**Status: §16 and §17 were implemented and independently re-verified against
+the shipped code. Every mechanism checked out — `seed()` is gone, the
+duplicated Layout Law is gone, RANKING routes to a list, the tenant-isolation
+leak in `getGrossProfitByProduct()` is fixed, the lock guard is in the right
+order.** None of that is what the owner saw when they opened the dashboard.
+Two screenshots of the running app at `/s/scale-store/dashboard` showed empty
+"Add a card" placeholders, a "Today at a glance" panel full of dashes, and a
+"Start fresh" picker still listing the old business-named boards. This section
+is the four root causes, found by reading the current code line by line, not
+by re-reading the completion report. **Build this before anything else —
+it is the reason §1–§17 are invisible.**
+
+### 18.1 Root cause 1 — `FrameFiller` never runs for a dashboard that already exists
+
+`app(FrameFiller::class)->fill(...)` is called from exactly one place in the
+whole codebase: `Api\DashboardController::createDefaultDashboard()`, which
+`index()` only invokes when `Dashboard::query()->where(...)->get()` comes back
+**empty** for that tenant/user. Any tenant that used the app before today —
+every real tenant, including the one the owner tested with — already has a
+`dashboards` row from the old preset system, with cards carrying `x`/`y` and no
+`frame_slot`. `index()` finds that row, is not empty, and returns the old cards
+verbatim. `FrameFiller` never runs for it and, with the code as shipped, never
+will.
+
+On the frontend, `draw()` in `NewDashboard.jsx` computes
+`occupied = CARDS.map(c => Number(c.frameSlot)).filter(Number.isFinite)` and
+renders `Add a card` for every frame slot not in that set. A card with no
+`frame_slot` — which is every pre-existing card — never occupies a slot, so
+every slot in whichever frame is active renders empty, regardless of whether
+`CARDS` itself is populated. This is not the "genuinely unfillable slot" case
+§6.3 describes; it is every slot, on every pre-existing dashboard, unconditionally.
+
+**Fix — a migration-time backfill, not a request-time patch.** Request-time
+regeneration (re-running `FrameFiller` the next time a stale dashboard is
+loaded) is the wrong fix: it silently discards any customisation the owner
+already made to their board, which §9 spent a full section forbidding. Instead:
+
+1. Add `2026_09_15_000005_backfill_frame_slots_for_existing_dashboards.php`.
+   For every `dashboards` row with `frame_key` null or `frame_dirty` false and
+   at least one card with a null `frame_slot`: resolve the tenant's role/business
+   pool exactly as `FrameFiller::pool()` does, and assign each existing card the
+   `frame_slot` of the best-matching slot in its `frame_key` (default `classic`)
+   by category and role — same matching logic as `FrameFiller::fill()`, reused,
+   not reimplemented. A card that matches nothing keeps its `x`/`y` and gets no
+   `frame_slot`; it renders as before, outside the frame grid, until the owner
+   next touches that board.
+2. For a `dashboards` row with **zero cards** (possible if a board was cleared),
+   call `FrameFiller::fill()` for it directly — this is the one case where
+   regenerating from scratch loses nothing, because there is nothing to lose.
+3. Extend `FrameFillerTest` (still unwritten per §17 findings) with a case that
+   constructs a pre-rewrite-shaped dashboard row (cards with `x`/`y`, no
+   `frame_slot`) and asserts the backfill migration assigns every matchable card
+   a `frame_slot` without changing its `reading_key`.
+
+Do not solve this by having the frontend re-request a fresh `FrameFiller` fill
+whenever it sees cards without `frame_slot` — that is silent, request-time,
+and exactly the kind of surprise re-layout §9's lock section exists to prevent.
+
+### 18.2 Root cause 2 — two starting-layout pickers exist; only the old one is prominent
+
+`resources/js/Dashboard/components/FramePicker.jsx` is real, correct, and
+**is** wired in — at `NewDashboard.jsx` line ~5261, rendered when
+`isEditMode && frames.length > 0`, inside a small settings strip above the
+grid. It was never dead code; verifying that requires opening edit mode, which
+the earlier check did not do.
+
+What was never touched is the *other* picker: `NewDashboard.jsx` still carries
+its original, complete, pre-existing `PRESETS` object (around line 3071) —
+`retail: "Retail overview"`, `finance: "Money & accounts"`,
+`inventory: "Stock & purchasing"`, `command: "Command centre"`,
+`classic: "Familiar"`, `base: "Start simple"` — feeding the `Start fresh` modal
+(`STARTING LAYOUTS` / `Search business layouts` / the Retail/Food/Services/…
+tabs, ~line 5294). `engine().getPresets()` reads straight from `PRESETS`; the
+modal has no connection to `frames`, `FramePicker`, or `frame_key` at all. This
+is the modal a new user reaches first — it is the one the owner saw.
+
+**Fix — retire the old modal, do not run it alongside the new one:**
+
+1. Delete the `PRESETS` object, `cleanPresetLayout()`, `businessPreset()`,
+   `DEFAULT_PRESET`, `availableCards()`'s preset-specific branch, and
+   `engine().getPresets()`.
+2. Delete the `Start fresh` modal block (~line 5294–5365) and its state
+   (`presetModalOpen`, `presetSearch`, `presetCategory`, `choosePreset`).
+3. `FramePicker` becomes the only starting-layout surface. Move it out of the
+   edit-mode-only settings strip and into whatever the app's onboarding /
+   empty-board flow already uses to open `Start fresh` today — same trigger,
+   same modal chrome, new content. A brand-new tenant with zero cards should
+   land on the `FramePicker` choice, not on an empty grid with no visible way
+   to pick a starting point outside edit mode.
+4. `chooseFrame` (the handler wired to `FramePicker`'s `onChange`, already
+   present per the earlier verification) is the only path that should ever set
+   `activeFrameKey` and call `FrameFiller` server-side. Confirm it does — the
+   spec does not require rewriting it, only confirm no remaining code path still
+   calls the deleted `choosePreset`.
+5. Grep after: `grep -rn "PRESETS\[\|choosePreset\|getPresets" resources/js/Pages/NewDashboard.jsx`
+   must return nothing.
+
+### 18.3 Root cause 3 — "Today at a glance" reads three fields the server never computes
+
+The `today` rail (`DashRail`, id `'today'`, `NewDashboard.jsx` ~line 3686)
+reads `performance.Today.sales`, `.expenses`, `.money_in`, `.money_out`. The
+prop comes from `DashboardController::getSalesStats()`
+(`app/Http/Controllers/DashboardController.php` ~line 821), which returns
+exactly three keys: `sales`, `gross_profit`, `cogs`. `expenses`, `money_in`,
+and `money_out` are `undefined` on every load, for every tenant, and always
+render as `—`. This is unrelated to the Reckoner rewrite — `getSalesStats()`
+predates it — but it is the direct cause of three of the four dashes the owner
+saw in that panel, and it is a real, fixable defect, not a data-availability
+question.
+
+**Fix:**
+
+1. `getSalesStats($start, $end)` must also return `expenses` (sum of posted
+   expenses in the window — the same source `ExpensesController`/
+   `FinancialReportingService` already uses, not a new query shape) and
+   `money_in` / `money_out` (cash-basis: money in = payments received in the
+   window across all payment methods; money out = expenses paid + purchase
+   payments made in the window — use the same GL cash-account logic already
+   built for the `cashData`/`balances` rail a few hundred lines above it in the
+   same controller, do not invent a second cash-flow definition).
+2. Do this once, in `getSalesStats()`, not by adding three more ad hoc queries
+   inside `DashRail`. The rail already destructures whatever the prop gives it.
+3. If a genuine zero (no expenses posted today) and a "not computed" state need
+   to stay visually distinct, use the same `unavailable`-vs-zero convention
+   §16.6 established for cards — but do not block this fix on that; a real
+   zero rendering as `Rs 0` instead of `—` is already correct and is the
+   minimum bar.
+
+### 18.4 Root cause 4 — sidebar frames: confirmed, still nothing built
+
+No file under `resources/js` references a sidebar preset, a sidebar picker, or
+`sidebar_layout` in any form (`grep -rln "sidebar_layout\|SidebarPicker" resources/js` returns
+nothing). `OneGlanceLayout.jsx` is unchanged from the pre-spec version —
+one fixed sidebar, `w-[280px]` expanded / `lg:w-[88px]` collapsed, hover-expand
+only. This matches what the IDE already reported ("token-based width
+foundation only") and needs no further diagnosis — it needs §10 built. §10 of
+this document already specifies all six sidebar frames (rail, rail_hover,
+expanded, sections, compact, topbar); nothing here changes that section. Treat
+§10 as not yet started, not as partially done.
+
+### 18.5 Why this keeps happening — add a seeded-tenant check to every round
+
+The owner's question — *why wasn't a demo tenant seeded to check the numbers
+actually match* — is the right question, and the answer is that no round of
+this build has included one. Static verification (reading the file, grepping
+for `seed(`, running an independent geometry check) has caught real defects
+every round, but it cannot catch "the mechanism is correct and still never
+runs," which is exactly what §18.1–§18.3 are. That class of bug is only
+visible by loading the page.
+
+**From here on, every completion report must include, before it is treated as
+done:**
+
+1. `php artisan migrate` run against a local (never `venqore_pos`) database.
+2. A seeded demo tenant with **known** figures: a fixed number of posted sales
+   at fixed amounts, on fixed dates, with at least one payment method mix, one
+   low-stock product, one return. The seeder should compute and print the
+   expected `sales.revenue`, `sales.payment_breakdown`, `finance.receivables`,
+   `today.sales` by hand (plain arithmetic, not the app's own code) so there is
+   an independent expected value, not a second run of the same logic.
+3. Loading `/s/{seeded-tenant}/dashboard` and `/s/{seeded-tenant}/transactions`
+   side by side, confirming every card the frame fills matches the hand-computed
+   figure, not just that it is non-zero.
+4. Opening `Start fresh` and confirming only the eight neutral frames appear —
+   zero business names.
+5. Toggling edit mode and confirming `FramePicker`'s thumbnails match §3's
+   eight shapes.
+
+A round that reports "done" without having done this is not verified — say so
+plainly rather than re-reading the diff a fourth time and calling it confirmation.
 
 ---
 
