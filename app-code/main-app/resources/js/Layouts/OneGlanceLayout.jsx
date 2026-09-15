@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import SidebarItem from '@/Components/SidebarItem';
 import CommandPalette from '@/Components/CommandPalette';
