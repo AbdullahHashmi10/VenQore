@@ -1,0 +1,66 @@
+/**
+ * ── V6 compatibility shim ───────────────────────────────────────────────────
+ *
+ * `resources/css/venqore-tokens.css` (the v2.0 token file) is retired. Fourteen
+ * of the names it defined are still referenced by six components, so rather
+ * than editing ~200 call sites in the same change that swaps the token layer,
+ * those names are aliased onto their V6 equivalents here.
+ *
+ * Everything in this file is a DEPRECATION, not a token. Nothing new may use
+ * these names. The file shrinks as the six files are ported, and when it is
+ * empty it gets deleted.
+ *
+ * Consumers, from `grep -rl '--vq-\(dur-fast\|ease\|mod-\)' resources/js`:
+ *   Components/Bklit/Charts.jsx
+ *   Dashboard/components/DashboardBuilderSheet.jsx
+ *   Dashboard/components/DashboardCardFrame.jsx
+ *   Pages/Admin/ExecutiveDashboard.jsx
+ *   Pages/Dashboard.jsx
+ *   Pages/Workspace/Dashboard.jsx
+ */
+
+:root {
+    /* ── Motion ──────────────────────────────────────────────────────────────
+       v2.0 named durations by feel (instant/fast/base/slow). V6 names them by
+       step (1–4) and moves every value. DESIGN-RULES v3.0 §9 is the mapping.
+
+       `instant` folds into `--vq-dur-1` rather than 0ms: v2.0's 100ms and V6's
+       120ms are the same intent, and a genuine 0ms is `transition: none`. */
+    --vq-dur-instant: var(--vq-dur-1);   /* was 100ms → 120ms */
+    --vq-dur-fast: var(--vq-dur-1);      /* was 180ms → 120ms */
+    --vq-dur-base: var(--vq-dur-2);      /* was 280ms → 200ms */
+    --vq-dur-slow: var(--vq-dur-3);      /* was 480ms → 320ms */
+    --vq-dur-ambient: var(--vq-dur-amb); /* was 8000ms → 9000ms */
+
+    /* v2.0's single `--vq-ease` was cubic-bezier(.16,1,.3,1). V6 splits easing
+       into out / in-out / two springs; the unqualified one is the out curve. */
+    --vq-ease: var(--vq-ease-out);
+    --vq-ease-in: var(--vq-ease-in-out);
+
+    /* ── Colour ──────────────────────────────────────────────────────────────
+       V6 separates the identity colour (`--vq-accent`) from the colour a solid
+       button is filled with (`--vq-accent-fill`), which v2.0 did not. */
+    --vq-accent-hover: var(--vq-accent-fill-hover);
+
+    /* ── Module accents ──────────────────────────────────────────────────────
+       DESIGN-RULES v3.0 §4: module colour does not ship. V6 provides ramps for
+       teal, ink and five playmates and no eleven-module palette, and none will
+       be improvised — that is how this codebase reached 6,726 indigo classes.
+
+       A module is identified by its icon and its label. These five aliases
+       resolve to the brand so the existing chrome keeps rendering, and every
+       module now looks the same on purpose. If real ramps are ever
+       commissioned they replace these five lines and nothing else. */
+    --vq-mod-accounting-accent: var(--vq-accent);
+    --vq-mod-platform-accent: var(--vq-accent);
+    --vq-mod-reports-accent: var(--vq-accent);
+    --vq-mod-staff-accent: var(--vq-accent);
+    --vq-mod-reports-600: var(--vq-accent-text);
+
+    /* ── Shape and spacing ───────────────────────────────────────────────────
+       v2.0 carried two component-named radii. V6 has one surface scale, and
+       both a button and a card sit at `lg` (20px) in it — see radius.css. */
+    --vq-radius-button: var(--vq-r-lg);
+    --vq-radius-card: var(--vq-r-lg);
+    --vq-spacing-app-padding: var(--vq-space-5);
+}

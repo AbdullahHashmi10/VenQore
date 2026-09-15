@@ -1,0 +1,348 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | VenQore Single Source of Truth for Pricing & Plans (V11 Build Spec)
+    |--------------------------------------------------------------------------
+    |
+    | All canonical plan prices, add-ons, AI quotas, and external payment provider
+    | (Lemon Squeezy) variant IDs live here. UI components, billing controllers,
+    | provisioning jobs, and seeders must consume this config.
+    |
+    | V11 Canonical Table:
+    | - Solo: $0 / mo
+    | - Starter: $49 / mo ($490 / yr)
+    | - Core: $99 / mo ($990 / yr)
+    | - Scale: $299 / mo ($2,990 / yr)
+    | - Custom: $800+ / mo (Contract)
+    |
+    */
+
+    'currency' => 'USD',
+
+    'plans' => [
+        'solo' => [
+            'name'                   => 'Solo',
+            'slug'                   => 'solo',
+            'price_monthly'          => 0.00,
+            'price_annual'           => null,
+            'sku_limit'              => 500,
+            'staff_limit'            => 1, // Full seats
+            'till_logins'            => 2,
+            'locations'              => 1,
+            'location_limit'         => 1,
+            'registers'              => 1,
+            'devices_per_seat'       => 2,
+            'visible_history_days'   => 30,
+            'transactions_per_month' => 100,
+            'service_jobs_per_month' => 20,
+            'ai_credits_monthly'     => 100,
+            'ai_scans_monthly'       => 10,
+            'ai_rebuilds'            => '0',
+            'support'                => 'Vena + Help Centre only',
+            'value_badge'            => 'Free Forever',
+            'variant_id_monthly'     => null,
+            'variant_id_annual'      => null,
+        ],
+        'starter' => [
+            'name'                   => 'Starter',
+            'slug'                   => 'starter',
+            'price_monthly'          => 49.00,
+            'price_annual'           => 490.00,
+            'sku_limit'              => 5000,
+            'staff_limit'            => 1, // Full seats (till logins unlimited & free)
+            'till_logins'            => null,
+            'locations'              => 1,
+            'location_limit'         => 1,
+            'registers'              => 2,
+            'devices_per_seat'       => 3,
+            'visible_history_days'   => null,
+            'transactions_per_month' => null, // unlimited
+            'service_jobs_per_month' => null,
+            'ai_credits_monthly'     => 500,
+            'ai_scans_monthly'       => null,
+            'ai_rebuilds'            => '1 / 90 days',
+            'support'                => 'Email, 2 business days',
+            'value_badge'            => null,
+            'variant_id_monthly'     => env('LEMON_SQUEEZY_STARTER_VARIANT_ID'),
+            'variant_id_annual'      => env('LEMON_SQUEEZY_STARTER_ANNUAL_VARIANT_ID'),
+        ],
+        'core' => [
+            'name'                   => 'Core',
+            'slug'                   => 'core',
+            'price_monthly'          => 99.00,
+            'price_annual'           => 990.00,
+            'sku_limit'              => 25000,
+            'staff_limit'            => 5,
+            'till_logins'            => null,
+            'locations'              => 1,
+            'location_limit'         => 1,
+            'registers'              => 6,
+            'devices_per_seat'       => 3,
+            'visible_history_days'   => null,
+            'transactions_per_month' => null, // unlimited
+            'service_jobs_per_month' => null,
+            'ai_credits_monthly'     => 2000,
+            'ai_scans_monthly'       => null,
+            'ai_rebuilds'            => '1 / 90 days',
+            'support'                => 'Email, 1 business day',
+            'value_badge'            => 'Most Popular',
+            'variant_id_monthly'     => env('LEMON_SQUEEZY_GROWTH_VARIANT_ID'),
+            'variant_id_annual'      => env('LEMON_SQUEEZY_GROWTH_ANNUAL_VARIANT_ID'),
+        ],
+        'scale' => [
+            'name'                   => 'Scale',
+            'slug'                   => 'scale',
+            'price_monthly'          => 299.00,
+            'price_annual'           => 2990.00,
+            'sku_limit'              => 250000,
+            'staff_limit'            => 25,
+            'till_logins'            => null,
+            'locations'              => 1,
+            'location_limit'         => 1,
+            'registers'              => 20,
+            'devices_per_seat'       => 5,
+            'visible_history_days'   => null,
+            'transactions_per_month' => null, // unlimited
+            'service_jobs_per_month' => null,
+            'ai_credits_monthly'     => 10000,
+            'ai_scans_monthly'       => null,
+            'ai_rebuilds'            => '1 / month',
+            'support'                => 'Named contact, 4 business hours',
+            'value_badge'            => 'Best for Multi-Location',
+            'variant_id_monthly'     => env('LEMON_SQUEEZY_BUSINESS_VARIANT_ID'),
+            'variant_id_annual'      => env('LEMON_SQUEEZY_BUSINESS_ANNUAL_VARIANT_ID'),
+        ],
+        'custom' => [
+            'name'                   => 'Custom / Enterprise',
+            'slug'                   => 'custom',
+            'price_monthly'          => 800.00,
+            'price_annual'           => null, // contract
+            'sku_limit'              => null,
+            'staff_limit'            => null,
+            'till_logins'            => null,
+            'locations'              => null,
+            'location_limit'         => null,
+            'registers'              => null,
+            'devices_per_seat'       => 5,
+            'visible_history_days'   => null,
+            'transactions_per_month' => null,
+            'service_jobs_per_month' => null,
+            'ai_credits_monthly'     => null, // negotiated
+            'ai_scans_monthly'       => null,
+            'ai_rebuilds'            => 'negotiated',
+            'support'                => 'Contracted SLA',
+            'value_badge'            => null,
+            'variant_id_monthly'     => null,
+            'variant_id_annual'      => null,
+        ],
+    ],
+
+    'add_ons' => [
+        'extra_location' => [
+            'name'           => 'Extra Store Location',
+            'price_monthly'  => 45.00,
+            'purchasable_on' => ['starter', 'core', 'scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'extra_seat' => [
+            'name'           => 'Extra Full Staff Seat',
+            'price_monthly'  => 15.00,
+            'purchasable_on' => ['starter', 'core', 'scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'extra_register' => [
+            'name'           => 'Extra Register (POS Device)',
+            'price_monthly'  => 20.00,
+            'purchasable_on' => ['starter', 'core', 'scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'extra_catalogue' => [
+            'name'           => '+50,000 Catalogue Items',
+            'price_monthly'  => 25.00,
+            'purchasable_on' => ['starter', 'core', 'scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'channel_sync' => [
+            'name'           => 'Channel Sync (WooCommerce, Amazon, eBay, TikTok - each)',
+            'price_monthly'  => 19.00,
+            'purchasable_on' => ['starter', 'core'],
+            'included_on'    => ['scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'api_webhooks' => [
+            'name'           => 'API + Webhooks Access',
+            'price_monthly'  => 29.00,
+            'purchasable_on' => ['starter'],
+            'included_on'    => ['core', 'scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'audit_roles' => [
+            'name'           => 'Audit Trail + Custom Granular Roles',
+            'price_monthly'  => 39.00,
+            'purchasable_on' => ['starter'],
+            'included_on'    => ['core', 'scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'white_label' => [
+            'name'           => 'White-Label Branding',
+            'price_monthly'  => 49.00,
+            'purchasable_on' => ['core'],
+            'included_on'    => ['scale'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'ai_topup' => [
+            'name'           => '1,000 AI Credits Top-up',
+            'price_once'     => 10.00,
+            'credits'        => 1000,
+            'purchasable_on' => ['starter', 'core', 'scale', 'ltd_1', 'ltd_2', 'ltd_3'],
+            'variant_id'     => env('LEMON_SQUEEZY_AI_TOPUP_ADDON_ID'),
+            'purchasable'    => true,
+        ],
+        'ai_rebuilds' => [
+            'name'           => '5 AI Structural Rebuilds',
+            'price_once'     => 10.00,
+            'rebuilds'       => 5,
+            'purchasable_on' => ['starter', 'core', 'scale', 'ltd_1', 'ltd_2', 'ltd_3'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+        'byok' => [
+            'name'           => 'Bring Your Own Key (BYOK Unlock)',
+            'price_once'     => 19.00,
+            'purchasable_on' => ['starter', 'core', 'scale', 'ltd_1', 'ltd_2', 'ltd_3'],
+            'variant_id'     => env('LEMON_SQUEEZY_AI_BYOK_ADDON_ID'),
+            'purchasable'    => true,
+        ],
+        'setup_migration' => [
+            'name'           => 'Standard Setup & Migration',
+            'price_once'     => 249.00,
+            'purchasable_on' => ['solo', 'starter', 'core', 'scale', 'ltd_1', 'ltd_2', 'ltd_3'],
+            'variant_id'     => null,
+            'purchasable'    => false,
+        ],
+    ],
+
+    'ai_tiers' => [
+        'spark' => [
+            'label'         => 'AI Spark',
+            'price_monthly' => 0.00,
+            'credits'       => 500,
+            'variant_id'    => env('LEMON_SQUEEZY_AI_STARTER_ADDON_ID'),
+        ],
+        'shop' => [
+            'label'         => 'AI Shop',
+            'price_monthly' => 15.00,
+            'credits'       => 2000,
+            'variant_id'    => env('LEMON_SQUEEZY_AI_LITE_ADDON_ID'),
+        ],
+        'pro' => [
+            'label'         => 'AI Pro',
+            'price_monthly' => 39.00,
+            'credits'       => 10000,
+            'variant_id'    => env('LEMON_SQUEEZY_AI_PRO_ADDON_ID'),
+        ],
+        'max' => [
+            'label'         => 'AI Max',
+            'price_monthly' => 99.00,
+            'credits'       => 50000,
+            'variant_id'    => env('LEMON_SQUEEZY_AI_ULTIMATE_ADDON_ID'),
+        ],
+    ],
+
+    'quantity_addons' => [
+        'extra_location' => 45.00,
+        'extra_seat'     => 15.00,
+        'extra_register' => 20.00,
+        'extra_catalogue'=> 25.00,
+    ],
+
+    'addons' => [
+        'extra_location' => 45.00,
+        'extra_seat'     => 15.00,
+        'extra_register' => 20.00,
+        'extra_catalogue'=> 25.00,
+        'channel_sync'   => 19.00,
+        'api_webhooks'   => 29.00,
+        'audit_roles'    => 39.00,
+        'white_label'    => 49.00,
+        'ai_topup'       => 10.00,
+        'ai_rebuilds'    => 10.00,
+        'byok'           => 19.00,
+        'setup_migration'=> 249.00,
+    ],
+
+    'smart_upgrade_nudges' => [
+        'starter' => [
+            'staff_threshold'    => 2,
+            'location_threshold' => 2,
+            'suggested_plan'     => 'core',
+        ],
+        'core' => [
+            'staff_threshold'    => 6,
+            'location_threshold' => 2,
+            'suggested_plan'     => 'scale',
+        ],
+    ],
+
+    'ltd_plans' => [
+        'ltd_tier_1' => [
+            'name'                   => 'AppSumo Tier 1 (LTD)',
+            'slug'                   => 'ltd_1',
+            'price_lifetime'         => 199.00,
+            'transactions_per_month' => null, // unlimited
+            'service_jobs_per_month' => null,
+            'sku_limit'              => 5000,
+            'staff_limit'            => 1,
+            'locations'              => 1,
+            'location_limit'         => 1,
+            'registers'              => 2,
+            'devices_per_seat'       => 3,
+            'ai_credits_annual'      => 12000,
+            'support'                => 'Help centre + Vena',
+            'variant_id'             => env('LEMON_SQUEEZY_STARTER_LTD_VARIANT_ID'),
+        ],
+        'ltd_tier_2' => [
+            'name'                   => 'AppSumo Tier 2 (LTD)',
+            'slug'                   => 'ltd_2',
+            'price_lifetime'         => 399.00,
+            'transactions_per_month' => null, // unlimited
+            'service_jobs_per_month' => null,
+            'sku_limit'              => 25000,
+            'staff_limit'            => 2,
+            'locations'              => 2,
+            'location_limit'         => 2,
+            'registers'              => 4,
+            'devices_per_seat'       => 3,
+            'ai_credits_annual'      => 30000,
+            'support'                => 'Email, 3 business days',
+            'variant_id'             => env('LEMON_SQUEEZY_GROWTH_LTD_VARIANT_ID'),
+        ],
+        'ltd_tier_3' => [
+            'name'                   => 'AppSumo Tier 3 (LTD)',
+            'slug'                   => 'ltd_3',
+            'price_lifetime'         => 699.00,
+            'transactions_per_month' => null, // unlimited
+            'service_jobs_per_month' => null,
+            'sku_limit'              => 50000,
+            'staff_limit'            => 5,
+            'locations'              => 5,
+            'location_limit'         => 5,
+            'registers'              => 10,
+            'devices_per_seat'       => 3,
+            'ai_credits_annual'      => 60000,
+            'channel_sync_count'     => 1,
+            'support'                => 'Email, 2 business days',
+            'variant_id'             => env('LEMON_SQUEEZY_BUSINESS_LTD_VARIANT_ID'),
+        ],
+    ],
+];

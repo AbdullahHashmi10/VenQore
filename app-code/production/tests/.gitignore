@@ -1,0 +1,11 @@
+# Test runner artifacts, logs, and caches
+reports/*.json
+reports/*.xml
+reports/coverage/
+logs/*.log
+dashboard/node_modules/
+.phpunit.cache/
+VerificationCenter/runs/
+!reports/.gitkeep
+!logs/.gitkeep
+

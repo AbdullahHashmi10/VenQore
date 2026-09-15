@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FinalTester/phpunit.xml — THE CANONICAL SUITE DEFINITION
+  ========================================================
+
+  This file defines every test exactly ONCE. A bare run:
+
+      vendor/bin/pest with this file as the configuration
+
+  executes the complete estate with no test running twice, which is what makes
+  the "executed / expected" progress maths in the dashboard trustworthy.
+
+  IF YOU ADD AN OVERLAPPING TESTSUITE HERE YOU WILL BREAK THE COUNTS.
+  Category lanes (Financial, Security, Routes, ...) deliberately overlap and
+  therefore live in a SEPARATE file: config/phpunit.categories.xml, which must
+  always be invoked with an explicit testsuite flag. See README.md for the
+  exact command lines.
+
+  Database policy: MySQL only. amd_pos_test only. Never venqore_pos.
+  Both invariants are enforced at runtime by bootstrap.php.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="true"
+         stopOnFailure="false"
+         cacheDirectory=".phpunit.cache"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnIncompleteTests="true"
+         displayDetailsOnSkippedTests="true"
+>
+    <!-- Append-only evidence record for every run.
+         Writes to FinalTester/VerificationCenter/runs/<runId>/ -->
+    <extensions>
+        <bootstrap class="Tests\Support\RunLedger\RunLedgerExtension"/>
+    </extensions>
+
+    <!-- ===================================================================
+         CANONICAL, NON-OVERLAPPING SUITES.
+         Union of these three == the entire test estate, each test once.
+         =================================================================== -->
+    <testsuites>
+        <testsuite name="Unit">
+            <directory suffix="Test.php">tests/Unit</directory>
+        </testsuite>
+
+        <testsuite name="Feature">
+            <directory suffix="Test.php">tests/Feature</directory>
+        </testsuite>
+
+        <testsuite name="Routes">
+            <directory suffix="Test.php">tests/Routes</directory>
+        </testsuite>
+
+        <testsuite name="Performance">
+            <directory suffix="Test.php">tests/Performance</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">../app</directory>
+        </include>
+    </source>
+
+    <php>
+        <env name="APP_NAME"               value="VenQore FinalTester"/>
+        <env name="APP_ENV"                value="testing"/>
+        <env name="APP_KEY"                value="base64:2yEI71seB86Bj2BjZitdmFfCsRVzPqp56iV6TCJ5wx0="/>
+        <env name="APP_DEBUG"              value="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS"          value="4"/>
+        <env name="BROADCAST_CONNECTION"   value="null"/>
+        <env name="CACHE_STORE"            value="array"/>
+        <env name="CACHE_DRIVER"           value="array"/>
+
+        <!-- MySQL. Not SQLite. Ever. See bootstrap.php for the hard guard. -->
+        <env name="DB_CONNECTION"          value="mariadb"/>
+        <env name="DB_HOST"                value="127.0.0.1"/>
+        <env name="DB_PORT"                value="3306"/>
+        <env name="DB_DATABASE"            value="amd_pos_test"/>
+        <env name="DB_USERNAME"            value="root"/>
+        <env name="DB_PASSWORD"            value=""/>
+
+        <!-- Smoke tests may target a specific DB. Local: amd_pos_test.
+             On the live server this is the ONLY value you change. -->
+        <env name="SMOKE_DB_DATABASE"      value="amd_pos_test"/>
+
+        <env name="QUEUE_CONNECTION"       value="sync"/>
+        <env name="MAIL_MAILER"            value="array"/>
+        <env name="VQ_OTP_DELIVERY"        value="queue"/>
+        <env name="SESSION_DRIVER"         value="array"/>
+
+        <!-- Intentionally empty: regression pin for the WooCommerce
+             credential-isolation bug. Do not populate. -->
+        <env name="WOOCOMMERCE_KEY"        value=""/>
+        <env name="WOOCOMMERCE_SECRET"     value=""/>
+        <env name="WOOCOMMERCE_URL"        value=""/>
+
+        <env name="PULSE_ENABLED"          value="false"/>
+        <env name="TELESCOPE_ENABLED"      value="false"/>
+        <env name="NIGHTWATCH_ENABLED"     value="false"/>
+        <env name="HORIZON_ENABLED"        value="false"/>
+        <!-- VenSynQController::__construct() aborts 404 on every vensynq route
+             (including the top-level OAuth callbacks) when this is unset — it
+             defaults to false. Root cause of t16_universal_callback's 404 and the
+             vensynq.health/money-pipeline/payouts 404s in the route sweep. -->
+        <env name="VENSYNQ_ENABLED"        value="true"/>
+
+        <!-- Lemon Squeezy variant IDs.
+             ProvisionTenantJob::resolvePlan() maps a webhook's variant_id onto a
+             plan name by comparing it against these config values, and it
+             array_filter()s the list first so that an UNSET variant id can never
+             match (correct: null must not equal null and upgrade everyone).
+             With none of these set, resolvePlan() could never return anything but
+             the fallback, so 'a trialling checkout provisions the store as trial'
+             asserted plan === 'business' against a value that was structurally
+             unreachable — a test that could not pass however healthy the code was.
+             These are fixtures, not secrets; the real IDs live in .env. -->
+        <env name="LEMON_SQUEEZY_STARTER_VARIANT_ID"         value="900001"/>
+        <env name="LEMON_SQUEEZY_GROWTH_VARIANT_ID"          value="900002"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_VARIANT_ID"        value="900003"/>
+        <env name="LEMON_SQUEEZY_STARTER_ANNUAL_VARIANT_ID"  value="900011"/>
+        <env name="LEMON_SQUEEZY_GROWTH_ANNUAL_VARIANT_ID"   value="900012"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_ANNUAL_VARIANT_ID" value="900013"/>
+        <env name="LEMON_SQUEEZY_STARTER_LTD_VARIANT_ID"     value="900021"/>
+        <env name="LEMON_SQUEEZY_GROWTH_LTD_VARIANT_ID"      value="900022"/>
+        <env name="LEMON_SQUEEZY_BUSINESS_LTD_VARIANT_ID"    value="900023"/>
+    </php>
+</phpunit>

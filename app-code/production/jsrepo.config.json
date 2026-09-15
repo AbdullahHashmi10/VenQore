@@ -1,0 +1,14 @@
+{
+  "$schema": "https://jsrepo.dev/schema.json",
+  "registries": [
+    "https://reactbits.dev/r"
+  ],
+  "paths": {
+    "TextAnimations": "resources/js/Components/ReactBits/TextAnimations",
+    "Animations": "resources/js/Components/ReactBits/Animations",
+    "Backgrounds": "resources/js/Components/ReactBits/Backgrounds",
+    "Components": "resources/js/Components/ReactBits/Components",
+    "component": "resources/js/Components/ReactBits",
+    "*": "resources/js/Components/ReactBits"
+  }
+}

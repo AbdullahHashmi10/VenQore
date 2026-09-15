@@ -1,0 +1,98 @@
+/**
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║  V6 — the card layer's declared extensions                                ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
+ *
+ * DESIGN-RULES §1 is "tokens only, no raw values", and its corollary is the
+ * reason this file exists: *if the value you want isn't a token, the system is
+ * missing a token — add it first, then use it.* Everything below is a value the
+ * card layer genuinely needs and V6 does not declare, so it is declared here
+ * once rather than inlined at eleven use-sites.
+ *
+ * Kept OUT of `tokens/` deliberately. That folder is copied verbatim from the
+ * design system and is parsed by `theme/build/from-v6-tokens.js` to build the
+ * Tailwind ramps; adding to it would put app-authored values into the design
+ * system's own output. These are additions *on* V6, not part of it.
+ *
+ * Loaded after `tokens/theme.css`, so it can read the semantic layer, and
+ * before `tokens/base.css`, which applies it.
+ *
+ * Every dark override repeats V6's full selector list. `:root[data-theme]` is
+ * what the standalone design-system previews toggle, `html.dark` is what this
+ * app has toggled since Breeze, and `.vq-dark` scopes a dark island inside a
+ * light page. Miss one and the token silently keeps its light value in that
+ * context — which is the whole failure mode this layer is meant to prevent.
+ */
+
+:root {
+  /* ── Controls sitting ON an accent fill ───────────────────────────────────
+     A card that is filled with the brand cannot dress its own controls in the
+     brand — there is nothing left to contrast against. These are the on-accent
+     equivalents of --vq-accent-quiet and friends. */
+  --vq-on-accent-quiet:   rgb(255 255 255 / .18);   /* icon button on the fill */
+  --vq-on-accent-quiet-2: rgb(255 255 255 / .22);   /* its hover */
+  --vq-on-accent-text:    var(--vq-ink-0);
+  /* Second-tier text on the fill. 4.66:1 on teal-700 — a hair over the floor,
+     which is why it is 80% and not the 72% it looks like it should be. */
+  --vq-on-accent-muted:   rgb(255 255 255 / .80);
+  /* The delta pill on an accent card. DARK, not bright: a translucent white
+     pill over the mint fill measured 3.06:1 and failed §11, because the fill
+     it composites against is itself a gradient and the pill lands on the light
+     end of it. Black at 26% is deterministic in both themes. */
+  --vq-on-accent-wash:    rgb(0 0 0 / .26);
+
+  /* ── The one accent-filled card ───────────────────────────────────────────
+     M1: exactly one per board, and it is the headline metric. A gradient
+     rather than a slab, so dark mode is a re-render and not an inversion.
+     Deep enough that white clears 4.5:1 at 11px — teal-700 is 6.34:1. */
+  --vq-accent-card: linear-gradient(135deg, var(--vq-teal-700) 0%, var(--vq-teal-900) 100%);
+
+  /* ── Chart furniture that carries data ────────────────────────────────────
+     §11 splits tracks in two. A track that ENCODES something — the inactive
+     bars in "today vs the last six days", a gauge's remainder, the unfilled
+     part of a ranking rail that is read as a proportion — must clear 3:1. A
+     purely decorative groove behind a fill that is already labelled with its
+     number encodes nothing and keeps --vq-chart-track.
+     ink-400 measures 2.94:1, just under. This is the same neutral at 3.43:1. */
+  --vq-chart-track-data: #7F8E87;
+
+  /* ── Semantic ink for small text on its own tint ──────────────────────────
+     --vq-success and --vq-danger measure 4.12:1 and 4.30:1 as 11px text on
+     their own -bg wash — under §11's 4.5:1 floor for body text, which an 11px
+     delta pill is. These are the same hues darkened until they clear it
+     (5.35:1 and 4.85:1). Light only; dark already passes with V6's own values
+     and is reverted below. */
+  --vq-success-ink: #0E7150;
+  --vq-danger-ink:  #B93C33;
+
+  /* ── Motion ───────────────────────────────────────────────────────────────
+     A loading shimmer is the one thing in the product that legitimately loops,
+     and it needs to be slower than any of the four interaction durations or it
+     reads as a fault rather than as waiting. Two settle beats — 1040ms. */
+  --vq-dur-shimmer: calc(var(--vq-dur-4) * 2);
+
+  /* ── Hover glare ──────────────────────────────────────────────────────────
+     The light that sweeps a card face on hover. On white it is plain white at
+     22%; dark takes a mint-tinted, much fainter one, because a white sweep on
+     a near-black surface reads as a rendering glitch. */
+  --vq-glare: hsl(0 0% 100% / .22);
+}
+
+:root[data-theme="dark"], html.dark, .vq-dark {
+  /* A different gradient geometry, not a lighter one. The accent card has to
+     separate from a near-black surface without the fill getting so light that
+     white text drops under 4.5:1 — so the angle changes and the dark stop goes
+     deeper, and the separation comes from the accent edge and the bloom the
+     plain cards do not have. */
+  --vq-accent-card: linear-gradient(118deg, var(--vq-teal-700) 0%, var(--vq-teal-950) 100%);
+
+  /* A 28% white track measured 2.56:1 against #141B19. 38% is 3.1:1. */
+  --vq-chart-track-data: rgb(255 255 255 / .38);
+
+  /* Dark clears §11 with V6's own semantic values — 0 failures measured — so
+     the light-mode darkening is reverted rather than carried over. */
+  --vq-success-ink: var(--vq-success);
+  --vq-danger-ink:  var(--vq-danger);
+
+  --vq-glare: hsl(170 60% 80% / .10);
+}

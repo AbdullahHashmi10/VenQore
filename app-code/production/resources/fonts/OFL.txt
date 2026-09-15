@@ -1,0 +1,17 @@
+The six families vendored beside this file are all licensed under the
+SIL Open Font License, Version 1.1.
+
+  Bricolage Grotesque   Copyright (c) 2022 The Bricolage Project Authors
+  Plus Jakarta Sans     Copyright (c) 2020 The Plus Jakarta Sans Project Authors
+  Space Grotesk         Copyright (c) 2020 The Space Grotesk Project Authors
+  Inter                 Copyright (c) 2016 The Inter Project Authors
+  Figtree               Copyright (c) 2022 The Figtree Project Authors
+  Source Serif 4        Copyright (c) 2014-2023 Adobe
+
+The full licence text is at https://openfontlicense.org and ships in each
+node_modules/@fontsource-variable/<family>/LICENSE.
+
+The OFL permits redistribution of the binaries as bundled here. It requires
+that the fonts are not sold on their own, that this notice travels with them,
+and that any MODIFIED font is renamed. None of these files are modified — they
+are byte-identical copies of what fontsource publishes.
