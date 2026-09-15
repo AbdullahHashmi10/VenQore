@@ -2326,7 +2326,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    drew the board flush against the sidebar. */
 .vq-canvas {
   width: 100%; max-width: 100%;
-  padding: 24px 24px 48px;
+  padding: 24px;
   box-sizing: border-box;
 }
 
@@ -4643,7 +4643,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-canvas-body{ display: block; }
 .vq-canvas-body.has-rails{
-  display: flex; align-items: flex-start; gap: 24px;
+  display: flex; align-items: stretch; gap: 24px;
 }
 .vq-board-zone{ flex: 1 1 auto; min-width: 0; }
 .vq-rails{
@@ -4909,17 +4909,14 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   border: 1px solid var(--vq-line-soft, var(--vq-line));
 }
 
-/* ── the side panel is ONE container, like the old dashboard's ── */
+/* ── the side panel is ONE container, running parallel to the cards ── */
 .vq-rails{
   flex: 0 0 var(--vq-rails-w, 340px);
   width: var(--vq-rails-w, 340px);
-  position: sticky;
-  top: 16px;
-  align-self: flex-start;
-  height: calc(100vh - var(--vq-header-h, 64px) - 32px);
-  min-height: calc(100vh - var(--vq-header-h, 64px) - 32px);
-  margin-top: 4px;
-  margin-bottom: 24px;
+  min-width: 0;
+  margin: 0;
+  align-self: stretch;
+  min-height: calc(100vh - var(--vq-header-h, 64px) - 48px);
   display: flex;
   flex-direction: column;
 }
@@ -4961,8 +4958,10 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 .vq-rails-scroll .vq-rail-card:last-child{ border-bottom: 0; padding-bottom: 4px; }
 
-/* sticky: the panel takes the full viewport height and scrolls inside */
-.vq-rails.is-sticky{ align-self: flex-start; position: sticky; top: 16px; }
+/* panel stretches parallel to the board cards from top to bottom */
+.vq-rails.is-sticky{
+  align-self: stretch;
+}
 .vq-rails.is-sticky .vq-rails-shell{
   height: 100%;
   max-height: 100%;
