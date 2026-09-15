@@ -553,7 +553,9 @@ class DashboardController extends Controller
         'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
     ];
 
-    return Inertia::render('Dashboard', [
+    return Inertia::render('NewDashboard', [
+        'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+        'revenue'            => $performance['Month']['sales'] ?? 0.0,
         'performance'        => $performance,
         'outstanding'        => $outstanding,
         'netProfit'          => $netProfit,
@@ -567,12 +569,12 @@ class DashboardController extends Controller
         'cashAccounts'       => $cashAccounts,
         'cashData'           => $cashData,
         'inventoryValue'     => $inventoryValue,
+        'charityStats'       => $charityStats,
     ]);
 }
 
     /**
-     * Experimental card-engine dashboard — served only at /new-dashboard.
-     * The canonical /dashboard route uses fullDashboard() above.
+     * Compatibility preview route for the same V6 card-engine dashboard.
      */
     public function newDashboard()
     {

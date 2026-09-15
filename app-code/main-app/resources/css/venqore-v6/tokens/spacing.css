@@ -35,7 +35,7 @@
   --vq-z-rail: 300; /* @kind other */
   --vq-z-dropdown: 400; /* @kind other */
   --vq-z-drawer: 500; /* @kind other */
-  --vq-z-modal: 600; /* @kind other */
+  --vq-z-modal: 1100; /* blocking dialogs must cover command chrome such as Vena */
   --vq-z-popover: 700; /* @kind other */
   --vq-z-tooltip: 800; /* @kind other */
   --vq-z-toast: 900; /* @kind other */

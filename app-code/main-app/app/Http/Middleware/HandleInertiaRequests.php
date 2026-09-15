@@ -76,8 +76,13 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user ? array_merge(
                     $user->only(['id', 'name', 'email', 'email_verified_at', 'is_platform_admin', 'last_store_id']),
                     [
-                        'role'              => $user->attributes['role'] ?? null,
-                        'permissions'       => $user->attributes['permissions'] ?? null,
+                        // These are tenant-aware accessors. Reading the raw user
+                        // columns here drops the role and permissions stored on
+                        // tenant_users, which makes a valid store owner look
+                        // unprivileged to React and hides every gated dashboard
+                        // card.
+                        'role'              => $user->role,
+                        'permissions'       => $user->permissions,
                         'avatar_initial'    => strtoupper(substr($user->name ?? '', 0, 1)),
                         'is_platform_staff' => $user->isPlatformStaff(),
                         'staff_role'        => $user->attributes['staff_role'] ?? null,

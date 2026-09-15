@@ -181,7 +181,7 @@
   --vq-z-rail: 300; /* @kind other */
   --vq-z-dropdown: 400; /* @kind other */
   --vq-z-drawer: 500; /* @kind other */
-  --vq-z-modal: 600; /* @kind other */
+  --vq-z-modal: 1100; /* blocking dialogs cover Vena and all fixed chrome */
   --vq-z-popover: 700; /* @kind other */
   --vq-z-tooltip: 800; /* @kind other */
   --vq-z-toast: 900; /* @kind other */
@@ -489,6 +489,7 @@ body { margin: 0; background: var(--vq-bg); }
    Implemented by grid-auto-rows + gap. We never add margin-bottom. */
 .vq-grid{
   display: grid;
+  grid-auto-flow: dense;
   grid-template-columns: repeat(var(--vq-cols), minmax(0, 1fr));
   grid-auto-rows: var(--vq-unit);
   gap: var(--vq-gutter);
@@ -2331,6 +2332,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-grid {
   display: grid;
+  grid-auto-flow: dense;
   grid-template-columns: repeat(var(--vq-cols, 12), minmax(0, 1fr));
   grid-auto-rows: var(--vq-unit, 64px);
   gap: var(--vq-gutter, 24px);
@@ -2652,7 +2654,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   background: rgba(13, 20, 18, 0.55) !important;
   backdrop-filter: blur(10px) !important;
   -webkit-backdrop-filter: blur(10px) !important;
-  z-index: 850 !important;
+  z-index: var(--vq-z-modal, 1100) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;

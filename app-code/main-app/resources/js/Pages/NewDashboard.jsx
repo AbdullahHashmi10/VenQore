@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Head, router, Link } from '@inertiajs/react';
 import axios from 'axios';
 import './NewDashboard.css';
@@ -241,11 +242,15 @@ function prepareReadings(source) {
   return list;
 }
 
+// Server-provided facts used by the non-Reckoner hub cards.
+let DASHBOARD_RUNTIME_DATA = {};
+
 function runCardBuilder(opts) {
   /* Inertia remounts this page on every client-side navigation back to it. The
      engine registers document-level listeners, so running it twice would double
      every pointerup and leak a listener per visit. Re-boot the board instead. */
-  if (typeof window !== "undefined" && window.VenQoreCards && window.__vqCardEngine){
+  const ENGINE_VERSION = 4;
+  if (typeof window !== "undefined" && window.VenQoreCards?.engineVersion === ENGINE_VERSION && window.__vqCardEngine){
     window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
     window.VenQoreCards.setEnabledModules(opts && opts.modules);
     if (opts && opts.readings && window.VenQoreCards.setReadings) {
@@ -452,7 +457,7 @@ function seed(str){
    is meaningless if the data can only ever be positive */
 const SIGNED = /profit|net_|cash_flow|margin|variance/;
 
-/** A plausible business series: uses real Reckoner data when available, with seeded fallback. */
+/** A business series backed only by Reckoner data. Missing data is zero, never invented. */
 function valuesFor(key, period, unit){
   const { n, grain } = PERIOD[period] || PERIOD.Month;
   const reqKey = `${key}|${period}`;
@@ -491,27 +496,7 @@ function valuesFor(key, period, unit){
     }
   }
 
-  const r = seed(key + "|" + period);
-  const base = unit === "percent" ? 20 + r() * 45
-             : unit === "currency" ? 40000 + r() * 900000
-             : 40 + r() * 900;
-  const trend = (r() - 0.4) * 0.5;
-  const signed = unit === "currency" && SIGNED.test(key);
-  const times = timeline(period);
-  const out = [];
-  for (let i = 0; i < n; i++){
-    const t = times[i];
-    const season = grain === "day" ? (t.getDay() === 0 ? -0.22 : t.getDay() === 6 ? 0.16 : 0)
-                 : grain === "hour" ? Math.sin((t.getHours() - 8) / 11 * Math.PI) * 0.3 : 0;
-    const drift = trend * (i / n);
-    const noise = (r() - 0.5) * 0.24;
-    let v = base * (1 + drift + season + noise);
-    if (unit === "percent") v = Math.max(1, Math.min(99, v));
-    else if (signed) v -= base * 0.72;          /* let it cross zero */
-    else v = Math.max(0, v);
-    out.push(v);
-  }
-  return out;
+  return Array.from({ length: n }, () => 0);
 }
 
 /** Everything a cartesian card needs: real times, one array per series. */
@@ -543,23 +528,22 @@ function buildParts(key, period, names){
         color: `var(--vq-series-${(i%8)+1})`,
       }));
       list.sort((a, b) => b.value - a.value);
-      const total = Number(live.data.total) || list.reduce((s, x) => s + (x.value || 0), 0) || 1;
+      const total = Number(live.data.total) || list.reduce((s, x) => s + (x.value || 0), 0);
       return { parts: list, total, unit: rd?.unit || 'currency' };
     }
   }
 
-  const r = seed(key + "|parts|" + period);
   const rawNames = (Array.isArray(names) && names.length > 0)
     ? names
     : ((Array.isArray(rd?.rowNames) && rd.rowNames.length > 0)
       ? rd.rowNames
       : ["Cash", "Card", "Credit", "Bank", "Online", "Other"]);
   const list = rawNames.map((n, i) => ({
-    name: n, value: Math.round((unitBase(rd?.unit || "currency")) * (0.3 + r())), color: `var(--vq-series-${(i%8)+1})`
+    name: n, value: 0, color: `var(--vq-series-${(i%8)+1})`
   }));
   list.sort((a,b) => b.value - a.value);
-  if (!list.length) list.push({ name: "General", value: 100, color: "var(--vq-series-1)" });
-  return { parts: list, total: list.reduce((s,x) => s + (x.value || 0), 0) || 1, unit: rd?.unit || "currency" };
+  if (!list.length) list.push({ name: "General", value: 0, color: "var(--vq-series-1)" });
+  return { parts: list, total: list.reduce((s,x) => s + (x.value || 0), 0), unit: rd?.unit || "currency" };
 }
 function unitBase(unit){ return unit === "currency" ? 180000 : unit === "percent" ? 22 : 320; }
 
@@ -1093,7 +1077,7 @@ function mountRadial(host, card){
           <span class="ck-leg-d" style="background:${p.color}"></span>
           <span class="ck-leg-n">${p.name}</span>
           <span class="ck-leg-v">${unitPrefix(pd.unit)}${fmtValue(p.value, pd.unit, true)}</span>
-          <span class="ck-leg-p">${Math.round(p.value / pd.total * 100)}%</span>
+          <span class="ck-leg-p">${Math.round(p.value / (pd.total || 1) * 100)}%</span>
           <span class="ck-leg-bar"><i style="width:${(p.value/pd.parts[0].value*100).toFixed(0)}%;background:${p.color}"></i></span>
         </button>`).join("")}${moreN > 0 && useRows.length ? `
         <span class="ck-leg-more">+ ${moreN} more in the full view</span>` : ""}</div>
@@ -2321,10 +2305,15 @@ function bodyActionHub(c, geo){
 
 function bodyBankLiquidity(c, geo){
   const link = c.targetUrl || c.link || storePath('/finance');
+  const bankAccounts = DASHBOARD_RUNTIME_DATA.bankAccounts || [];
+  const cashAccounts = DASHBOARD_RUNTIME_DATA.cashAccounts || [];
+  const cashOnHand = Number(DASHBOARD_RUNTIME_DATA.cashData?.balance || 0);
+  const bankTotal = bankAccounts.reduce((sum, account) => sum + Number(account.current_balance || 0), 0);
+  const cashAccountTotal = cashAccounts.reduce((sum, account) => sum + Number(account.current_balance || 0), 0);
   const boxes = [
-    { l:'Bank Accounts',   v:4820400, s:'3 accounts active' },
-    { l:'Cash on Hand',    v:1816149, s:'Drawer & safe' },
-    { l:'Total Liquid Net',v:6636549, s:'+8.2% vs last mo', total:true },
+    { l:'Bank Accounts',   v:bankTotal, s:`${bankAccounts.length} accounts active` },
+    { l:'Cash on Hand',    v:cashOnHand, s:'Ledger balance' },
+    { l:'Total Liquid Net',v:bankTotal + cashAccountTotal + cashOnHand, s:'Current balance', total:true },
   ];
   /* a 3-wide hub gives each box ~110px — the grouped figure cannot fit, so
      the boxes carry both forms and fitValues steps them down like any card */
@@ -2344,40 +2333,27 @@ function bodyAlertsHub(c, geo){
   /* each alert belongs to the module that raised it — a store without that
      module never sees the row */
   const modOk = mods => !ENABLED_MODULES || !mods.length || mods.some(m => ENABLED_MODULES.has(m));
-  const rows = [
-    { k:'warning', mods:['inventory'], href: storePath('/inventory'),       msg:'<strong>4 products</strong> reached safety reorder limit', cta:'Reorder' },
-    { k:'danger',  mods:['khata_credit','payments'], href: storePath('/finance'), msg:'<strong>Rs 10,260</strong> customer dues overdue (>30 days)', cta:'Follow up' },
-    { k:'info',    mods:['purchase_orders'], href: storePath('/purchase-orders'), msg:'<strong>2 purchase orders</strong> awaiting warehouse receipt', cta:'Receive' },
-    { k:'warning', mods:['batches_expiry'], href: storePath('/inventory'),  msg:'<strong>6 batches</strong> expire within 30 days', cta:'Review' },
-    { k:'info',    mods:['quotations'], href: storePath('/sales'),          msg:'<strong>3 quotations</strong> waiting on customer reply', cta:'Chase' },
-  ].filter(r => modOk(r.mods));
+  const lowStockCount = (DASHBOARD_RUNTIME_DATA.lowStockItems || []).length;
+  const rows = (lowStockCount > 0 ? [
+    { k:'warning', mods:['inventory'], href: storePath('/inventory'), msg:`<strong>${lowStockCount} products</strong> reached safety reorder limit`, cta:'Reorder' },
+  ] : []).filter(r => modOk(r.mods));
   /* one row per row-track above the header — never more than will fit */
   const room = Math.max(1, Math.min(rows.length, Math.floor((geo.h - 1) * 88 / 46)));
   return hubHead(c, SPECIAL.alerts_hub.eyebrow, link) +
-    `<div class="vqc-alerts-list">${rows.slice(0, room).map(r => `
+    `<div class="vqc-alerts-list">${rows.length ? rows.slice(0, room).map(r => `
       <a href="${esc(r.href)}" class="vqc-alert-item vqc-alert-item--${r.k}">
         <span class="vqc-alert-dot"></span>
         <span class="vqc-alert-msg">${r.msg}</span>
         <span class="vqc-alert-btn">${esc(r.cta)} &rarr;</span>
-      </a>`).join("")}</div>`;
+      </a>`).join("") : '<p class="vq-rail-empty">No actions required</p>'}</div>`;
 }
 
 function bodyGrowthEngine(c, geo){
   const link = c.targetUrl || c.link || storePath('/reports');
-  const stats = [
-    { l:'Revenue Velocity',   v:'+18.4%', s:'Pace vs prev month' },
-    { l:'Target On-Track',    v:'94.2%',  s:'Rs 2.8M / 3.0M goal' },
-    { l:'Customer Retention', v:'68.5%',  s:'Repeat shoppers' },
-  ];
   return hubHead(c, SPECIAL.growth_engine.eyebrow, link) +
     `<div class="vqc-hub-title-wrap"><div class="vqc-action-hub-title">${esc(titleOf(c))}</div>
       <div class="vqc-action-hub-sub">${esc(SPECIAL.growth_engine.sub)}</div></div>` +
-    `<div class="vqc-growth-grid">${stats.map(s => `
-      <div class="vqc-growth-stat">
-        <span class="vqc-growth-label">${esc(s.l)}</span>
-        <span class="vqc-growth-val">${esc(s.v)}</span>
-        <span class="vqc-growth-sub">${esc(s.s)}</span>
-      </div>`).join("")}</div>`;
+    `<div class="vqc-growth-grid"><p class="vq-rail-empty">No growth data yet</p></div>`;
 }
 
 function bodyCustomButton(c, geo){
@@ -2962,17 +2938,20 @@ function renderLibrary(){
    browser, per store, and comes back on the next visit. A reset swaps in a
    starting layout rather than silently destroying their work. */
 const BOARD_KEY = () => `vq-dashboard-v6:${STORE_SLUG || "default"}`;
+const BOARD_SCHEMA_VERSION = 4;
+let SKIP_LEGACY_SERVER_LAYOUT = false;
 let PERSIST_ON = false;            /* off until the first board is in place */
 function persistBoard(){
   if (!PERSIST_ON || typeof localStorage === "undefined") return;
-  try { localStorage.setItem(BOARD_KEY(), JSON.stringify({ v: 2, cards: CARDS })); }
+  try { localStorage.setItem(BOARD_KEY(), JSON.stringify({ v: BOARD_SCHEMA_VERSION, cards: CARDS })); }
   catch {}
 }
 function loadBoard(){
   if (typeof localStorage === "undefined") return null;
   try {
     const data = JSON.parse(localStorage.getItem(BOARD_KEY()) || "null");
-    if (!data || data.v !== 2 || !Array.isArray(data.cards) || !data.cards.length) return null;
+    if (data && data.v !== BOARD_SCHEMA_VERSION) SKIP_LEGACY_SERVER_LAYOUT = true;
+    if (!data || data.v !== BOARD_SCHEMA_VERSION || !Array.isArray(data.cards) || !data.cards.length) return null;
     return availableCards(data.cards.filter(c => c && (c.type ? SPECIAL[c.type] : true)));
   } catch { return null; }
 }
@@ -2983,7 +2962,7 @@ function loadBoard(){
    `type` a hub. Anything else is the ordinary card contract. */
 const PRESETS = {
   retail: {
-    name: "Retail overview", desc: "Sales, money, stock and alerts — the everyday board.",
+    name: "Retail overview", category: "Retail", desc: "Sales, money, stock and alerts — the everyday board.",
     panel: "money",
     cards: [
       { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:7, period:"Month" },
@@ -2999,7 +2978,7 @@ const PRESETS = {
     ],
   },
   finance: {
-    name: "Money & accounts", desc: "Cash flow, dues, expenses and the bank picture.",
+    name: "Money & accounts", category: "Professional", desc: "Cash flow, dues, expenses and the bank picture.",
     panel: "credit",
     cards: [
       { key:"finance.cash_flow_trend", chart:"composed", variant:"bar-line-area", cat:"C5", w:6, h:7, period:"Month" },
@@ -3018,7 +2997,7 @@ const PRESETS = {
     ],
   },
   inventory: {
-    name: "Stock & purchasing", desc: "What's on the shelf, what's running out, what's on order.",
+    name: "Stock & purchasing", category: "Operations", desc: "What's on the shelf, what's running out, what's on order.",
     panel: "operations",
     cards: [
       { key:"inventory.stock_value", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Month" },
@@ -3035,7 +3014,7 @@ const PRESETS = {
     ],
   },
   command: {
-    name: "Command centre", desc: "The revenue chart front and centre, everything else around it.",
+    name: "Command centre", category: "Professional", desc: "The revenue chart front and centre, everything else around it.",
     panel: "operations",
     cards: [
       { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
@@ -3050,7 +3029,7 @@ const PRESETS = {
     ],
   },
   classic: {
-    name: "Familiar (like the old dashboard)", desc: "The layout you know — numbers on top, trend and lists below, money and activity on the right.",
+    name: "Familiar", category: "General", desc: "Numbers on top, trends and lists below, money and activity on the right.",
     panel: "money",
     cards: [
       { key:"sales.revenue", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Today" },
@@ -3066,7 +3045,7 @@ const PRESETS = {
     ],
   },
   base: {
-    name: "Start simple", desc: "One chart, the day's numbers, and room to grow.",
+    name: "Start simple", category: "General", desc: "One chart, the day's numbers, and room to grow.",
     panel: null,
     cards: [
       { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:12, h:6, period:"Month" },
@@ -3078,6 +3057,71 @@ const PRESETS = {
     ],
   },
 };
+
+// Presets are composed as complete 12-column bands. Keeping equal-height cards
+// together prevents the browser from creating the tall, unusable cavities that
+// appeared when unrelated card sizes were interleaved.
+const cleanPresetLayout = ({ hero = 'sales.revenue_trend', finance = false, composition = 'hero' } = {}) => {
+  const metricBand = [
+    { key:'sales.revenue', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Today' },
+    { key:'finance.receivables', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Month' },
+    { key:'finance.payables', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Month' },
+    { key:'inventory.low_stock_count', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Today' },
+  ];
+  const chartBand = [
+    { key: finance ? 'finance.expenses_by_category' : 'sales.payment_breakdown', chart:'pie', variant:'donut', cat:'C4', w:4, h:6, period:'Month' },
+    { key: finance ? 'finance.receivables_aging' : 'sales.top_products', chart:'bar', variant:'solid', cat:'C4', w:4, h:6, period:'Month' },
+    { key: finance ? 'finance.profit_trend' : 'sales.live_feed', chart: finance ? 'line' : 'feed', variant: finance ? 'smooth' : 'live', cat:'C4', w:4, h:6, period: finance ? 'Month' : 'Today' },
+  ];
+  const heroCard = { key:hero, chart: finance ? 'composed' : 'area', variant: finance ? 'bar-line-area' : 'gradient', cat:'C5', w:12, h:6, period:'Month' };
+  const footer = [
+    { type:'launchpad', cat:'C4', w:6, h:3 },
+    { type:'alerts_hub', cat:'C4', w:6, h:3 },
+  ];
+
+  if (composition === 'metrics-first') return [...metricBand, heroCard, ...chartBand, ...footer];
+  if (composition === 'split') return [
+    { ...heroCard, w:8 },
+    { type:'alerts_hub', cat:'C4', w:4, h:6 },
+    ...metricBand,
+    ...chartBand,
+    { type:'launchpad', cat:'C4', w:12, h:3 },
+  ];
+  if (composition === 'charts-first') return [...chartBand, ...metricBand, heroCard, ...footer];
+  return [
+    heroCard, ...metricBand, ...chartBand, ...footer,
+  ];
+};
+
+PRESETS.retail.cards = cleanPresetLayout();
+PRESETS.classic.cards = cleanPresetLayout({ composition: 'metrics-first' });
+PRESETS.command.cards = cleanPresetLayout({ composition: 'split' });
+PRESETS.base.cards = cleanPresetLayout({ composition: 'charts-first' });
+PRESETS.finance.cards = cleanPresetLayout({ hero: 'finance.cash_flow_trend', finance: true });
+PRESETS.inventory.cards = cleanPresetLayout({ composition: 'charts-first' });
+
+const businessPreset = (name, category, desc, baseId, panel) => ({
+  name, category, desc,
+  panel: panel === undefined ? PRESETS[baseId].panel : panel,
+  cards: PRESETS[baseId].cards.map(card => ({ ...card })),
+});
+
+Object.assign(PRESETS, {
+  grocery: businessPreset('Grocery & supermarket', 'Retail', 'Fast-moving products, daily sales, stock and reorder signals.', 'retail'),
+  pharmacy: businessPreset('Pharmacy', 'Retail', 'Sales, stock availability, purchasing and operational alerts.', 'inventory'),
+  fashion: businessPreset('Fashion & apparel', 'Retail', 'Revenue, popular products, customers and inventory movement.', 'retail'),
+  electronics: businessPreset('Electronics store', 'Retail', 'High-value sales, cash position, stock and customer activity.', 'command'),
+  wholesale: businessPreset('Wholesale & distribution', 'Operations', 'Receivables, purchasing, stock levels and order activity.', 'inventory'),
+  restaurant: businessPreset('Restaurant & café', 'Food', 'Daily revenue, payment mix, live activity and quick operations.', 'retail', 'operations'),
+  bakery: businessPreset('Bakery', 'Food', 'Daily sales, best sellers, stock needs and essential actions.', 'retail', 'operations'),
+  salon: businessPreset('Salon & spa', 'Services', 'Revenue, customers, payments and a compact daily command view.', 'command'),
+  services: businessPreset('Professional services', 'Services', 'Invoices, receivables, cash flow and customer activity.', 'finance'),
+  healthcare: businessPreset('Clinic & healthcare', 'Services', 'Revenue, payments, activity and a clear operational overview.', 'command'),
+  ecommerce: businessPreset('Online commerce', 'Retail', 'Revenue trends, top products, payment mix and fulfilment signals.', 'retail'),
+  manufacturing: businessPreset('Manufacturing', 'Operations', 'Inventory value, purchasing, production inputs and alerts.', 'inventory'),
+  construction: businessPreset('Construction & projects', 'Operations', 'Cash flow, payables, expenses and financial control.', 'finance'),
+  education: businessPreset('Education & training', 'Professional', 'Revenue, receivables, customers and financial performance.', 'command'),
+});
 const DEFAULT_PRESET = "retail";
 
 /** A preset never hands over a card the store's modules cannot answer. */
@@ -3106,6 +3150,7 @@ function applyPreset(id){
 /* ── boot ──────────────────────────────────────────────────────────────── */
 function boot(presetId){
   CARDS = []; EDIT = null;          /* a reset replaces the board, never doubles it */
+  SKIP_LEGACY_SERVER_LAYOUT = false;
   PERSIST_ON = false;
   if (presetId){
     applyPreset(presetId);
@@ -3124,7 +3169,7 @@ function boot(presetId){
           const list = res?.data?.data || [];
           if (Array.isArray(list) && list.length > 0) {
             const activeBoard = list.find(b => b.is_default) || list[0];
-            if (activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
+            if (!SKIP_LEGACY_SERVER_LAYOUT && activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
               const backendCards = activeBoard.cards.map(bc => ({
                 id: bc.id || newId(),
                 key: bc.reading_key || bc.key,
@@ -3169,6 +3214,7 @@ function boot(presetId){
 
 // Expose engines and chart constraint helpers to React component
 window.VenQoreCards = {
+  engineVersion: ENGINE_VERSION,
   getCards: () => CARDS,
   setCards: (newCards) => { CARDS = newCards.map(normaliseCard); draw(); },
   addCardObject: (card) => { CARDS.push(normaliseCard(card)); draw(); return card; },
@@ -3434,45 +3480,18 @@ const RAIL_DEFS = [
 ];
 
 /* demo data the rails draw — the same seeded world the cards use */
-const RAIL_ACCOUNTS = [
-  { n: 'Meezan Bank – Current', v: 'Rs 2,914,300' },
-  { n: 'HBL – Business', v: 'Rs 1,406,100' },
-  { n: 'JazzCash Wallet', v: 'Rs 500,000' },
-];
-const RAIL_ACTIVITY = [
-  { t: 'Sale · Noor Kiryana', v: '+ Rs 234,000', k: 'in', w: '13:00' },
-  { t: 'Purchase · Metro Supply', v: '− Rs 88,400', k: 'out', w: '12:20' },
-  { t: 'Payment in · Rana Traders', v: '+ Rs 45,000', k: 'in', w: '11:45' },
-  { t: 'Sale · Bilal Pharmacy', v: '+ Rs 123,000', k: 'in', w: '11:20' },
-  { t: 'Expense · Utilities', v: '− Rs 18,500', k: 'out', w: '10:05' },
-  { t: 'Sale · Sana Mart', v: '+ Rs 109,000', k: 'in', w: '09:40' },
-];
-const RAIL_ALERTS = [
-  { k: 'warn', mods: ['inventory'], msg: <><strong>4 products</strong> reached reorder limit</>, href: '/inventory' },
-  { k: 'bad',  mods: ['khata_credit', 'payments'], msg: <><strong>Rs 10,260</strong> dues overdue 30+ days</>, href: '/finance' },
-  { k: 'info', mods: ['purchase_orders'], msg: <><strong>2 purchase orders</strong> awaiting receipt</>, href: '/purchase-orders' },
-  { k: 'warn', mods: ['batches_expiry'], msg: <><strong>6 batches</strong> expire within 30 days</>, href: '/inventory' },
-  { k: 'info', mods: ['quotations'], msg: <><strong>3 quotations</strong> awaiting reply</>, href: '/sales' },
-];
-const RAIL_TOP_PRODUCTS = [
-  { n: 'Basmati 5kg', v: 'Rs 88.4K', w: 100 }, { n: 'Surf Excel 1kg', v: 'Rs 62.9K', w: 71 },
-  { n: 'Tapal Danedar', v: 'Rs 42.1K', w: 48 }, { n: 'BMC Tonic 200ml', v: 'Rs 23.1K', w: 26 },
-];
-const RAIL_TOP_CUSTOMERS = [
-  { n: 'Rana Traders', v: 'Rs 310K', w: 100 }, { n: 'Bilal Pharmacy', v: 'Rs 264K', w: 85 },
-  { n: 'Zoya Retail', v: 'Rs 158K', w: 51 },
-];
-const RAIL_REMINDERS = [
-  { n: 'Ahmad Stores', v: 'Rs 42,000', d: '12 days overdue', k: 'bad' },
-  { n: 'Noor Kiryana', v: 'Rs 18,600', d: '6 days overdue', k: 'warn' },
-  { n: 'Sana Mart', v: 'Rs 9,200', d: 'due tomorrow', k: 'info' },
-  { n: 'Zoya Retail', v: 'Rs 5,750', d: 'due in 3 days', k: 'info' },
-];
+
 
 /** One rail, rendered. Fixed-purpose, fixed-width; the board stays the
     place for anything the user wants to size and restyle. */
-function DashRail({ id, storePath, onQuickActions, enabledModules = [] }) {
+function DashRail({
+  id, storePath, onQuickActions, enabledModules = [],
+  cashData = null, bankAccounts = [], cashAccounts = [],
+  recentTransactions = [], topSellingItems = [], lowStockItems = [],
+  performance = {}, currencySymbol = 'Rs', isDemo = false,
+}) {
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
+
   if (id === 'action_trio') return (
     <section className="vq-rail-card vq-rail-card--trio">
       <div className="vq-rail-trio">
@@ -3491,67 +3510,119 @@ function DashRail({ id, storePath, onQuickActions, enabledModules = [] }) {
       </div>
     </section>
   );
-  if (id === 'balances') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Cash &amp; accounts</span><a href={storePath('/finance')} className="vq-rail-link">Open</a></header>
-      <div className="vq-rail-hero">
-        <span className="vq-rail-hero-l">Cash in hand</span>
-        <span className="vq-rail-hero-v">Rs 1,816,149</span>
-        <span className="vq-rail-hero-s">Drawer &amp; safe · counted 09:00</span>
-      </div>
-      <ul className="vq-rail-list">
-        {RAIL_ACCOUNTS.map(a => (
-          <li key={a.n} className="vq-rail-row">
-            <span className="vq-rail-row-n">{a.n}</span>
-            <span className="vq-rail-row-v">{a.v}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="vq-rail-total">
-        <span>Total liquid</span><strong>Rs 6,636,549</strong>
-      </div>
-    </section>
-  );
-  if (id === 'today') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Today at a glance</span></header>
-      <div className="vq-rail-minigrid">
-        <div className="vq-rail-mini"><span>Sales</span><strong>Rs 1.05M</strong></div>
-        <div className="vq-rail-mini"><span>Expenses</span><strong>Rs 86K</strong></div>
-        <div className="vq-rail-mini"><span>Money in</span><strong>Rs 412K</strong></div>
-        <div className="vq-rail-mini"><span>Money out</span><strong>Rs 158K</strong></div>
-      </div>
-    </section>
-  );
-  if (id === 'activity') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Recent activity</span><a href={storePath('/reports')} className="vq-rail-link">All</a></header>
-      <ul className="vq-rail-list">
-        {RAIL_ACTIVITY.map((a, i) => (
-          <li key={i} className="vq-rail-row">
-            <span className={`vq-rail-dot is-${a.k}`} aria-hidden="true" />
-            <span className="vq-rail-row-n">{a.t}<em>{a.w}</em></span>
-            <span className={`vq-rail-row-v is-${a.k}`}>{a.v}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-  if (id === 'alerts') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Actions required</span></header>
-      <ul className="vq-rail-list">
-        {RAIL_ALERTS.filter(a => modOk(a.mods)).map((a, i) => (
-          <li key={i}>
-            <a href={storePath(a.href)} className={`vq-rail-alert is-${a.k}`}>
-              <span className="vq-rail-dot" aria-hidden="true" />
-              <span className="vq-rail-alert-m">{a.msg}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
+
+  if (id === 'balances') {
+    // Build account rows from real server data
+    const allAccounts = [
+      ...cashAccounts.map(a => ({ n: a.name || 'Cash', v: `${currencySymbol} ${(a.current_balance ?? 0).toLocaleString()}` })),
+      ...bankAccounts.map(a => ({ n: a.name || a.bank_name || 'Bank', v: `${currencySymbol} ${(a.current_balance ?? 0).toLocaleString()}` })),
+    ];
+    const totalLiquid = [
+      ...(cashAccounts || []).map(a => a.current_balance ?? 0),
+      ...(bankAccounts || []).map(a => a.current_balance ?? 0),
+    ].reduce((s, v) => s + v, 0);
+    const cashBalance = cashData?.balance ?? 0;
+
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Cash &amp; accounts</span><a href={storePath('/finance')} className="vq-rail-link">Open</a></header>
+        <div className="vq-rail-hero">
+          <span className="vq-rail-hero-l">Cash in hand</span>
+          <span className="vq-rail-hero-v">{currencySymbol} {cashBalance.toLocaleString()}</span>
+          <span className="vq-rail-hero-s">GL cash account</span>
+        </div>
+        {allAccounts.length > 0 ? (
+          <ul className="vq-rail-list">
+            {allAccounts.map(a => (
+              <li key={a.n} className="vq-rail-row">
+                <span className="vq-rail-row-n">{a.n}</span>
+                <span className="vq-rail-row-v">{a.v}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="vq-rail-empty">No bank accounts added yet</p>
+        )}
+        {allAccounts.length > 0 && (
+          <div className="vq-rail-total">
+            <span>Total liquid</span><strong>{currencySymbol} {totalLiquid.toLocaleString()}</strong>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  if (id === 'today') {
+    const today = performance?.Today || {};
+    const sales    = today?.sales    ?? 0;
+    const expenses = today?.expenses ?? 0;
+    const moneyIn  = today?.money_in ?? 0;
+    const moneyOut = today?.money_out ?? 0;
+    const fmt = v => v > 0 ? `${currencySymbol} ${v.toLocaleString()}` : '—';
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Today at a glance</span></header>
+        <div className="vq-rail-minigrid">
+          <div className="vq-rail-mini"><span>Sales</span><strong>{fmt(sales)}</strong></div>
+          <div className="vq-rail-mini"><span>Expenses</span><strong>{fmt(expenses)}</strong></div>
+          <div className="vq-rail-mini"><span>Money in</span><strong>{fmt(moneyIn)}</strong></div>
+          <div className="vq-rail-mini"><span>Money out</span><strong>{fmt(moneyOut)}</strong></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (id === 'activity') {
+    // recentTransactions from GL: { type, amount, time, description, activityType }
+    const txList = recentTransactions.slice(0, 6);
+    const kindClass = t => ({ sale: 'in', payment_in: 'in', purchase: 'out', expense: 'out', payment_out: 'out', return: 'warn' }[t] || 'info');
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Recent activity</span><a href={storePath('/reports')} className="vq-rail-link">All</a></header>
+        {txList.length > 0 ? (
+          <ul className="vq-rail-list">
+            {txList.map((a, i) => (
+              <li key={a.id || i} className="vq-rail-row">
+                <span className={`vq-rail-dot is-${kindClass(a.activityType)}`} aria-hidden="true" />
+                <span className="vq-rail-row-n">{a.type || a.description}<em>{a.time}</em></span>
+                <span className={`vq-rail-row-v is-${kindClass(a.activityType)}`}>{a.amount}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="vq-rail-empty">No activity yet today</p>
+        )}
+      </section>
+    );
+  }
+
+  if (id === 'alerts') {
+    // Drive from lowStockItems — real server data
+    const alerts = [];
+    if (lowStockItems.length > 0) {
+      alerts.push({ k: 'warn', mods: ['inventory'], msg: <><strong>{lowStockItems.length} products</strong> low on stock</>, href: '/inventory' });
+    }
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Actions required</span></header>
+        {alerts.filter(a => modOk(a.mods)).length > 0 ? (
+          <ul className="vq-rail-list">
+            {alerts.filter(a => modOk(a.mods)).map((a, i) => (
+              <li key={i}>
+                <a href={storePath(a.href)} className={`vq-rail-alert is-${a.k}`}>
+                  <span className="vq-rail-dot" aria-hidden="true" />
+                  <span className="vq-rail-alert-m">{a.msg}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="vq-rail-empty">No actions required</p>
+        )}
+      </section>
+    );
+  }
+
   if (id === 'quick_actions') return (
     <section className="vq-rail-card">
       <header className="vq-rail-h"><span>Quick actions</span></header>
@@ -3571,67 +3642,48 @@ function DashRail({ id, storePath, onQuickActions, enabledModules = [] }) {
       </div>
     </section>
   );
+
   if (id === 'targets') return (
     <section className="vq-rail-card">
       <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
-      <div className="vq-rail-meter">
-        <div className="vq-rail-meter-t"><span>Monthly target</span><strong>94.2%</strong></div>
-        <div className="vq-rail-bar"><i style={{ width: '94.2%' }} /></div>
-        <span className="vq-rail-meter-s">Rs 2.8M of Rs 3.0M</span>
-      </div>
-      <div className="vq-rail-meter">
-        <div className="vq-rail-meter-t"><span>Revenue velocity</span><strong>+18.4%</strong></div>
-        <div className="vq-rail-bar"><i style={{ width: '68%' }} /></div>
-        <span className="vq-rail-meter-s">Pace vs last month</span>
-      </div>
-      <div className="vq-rail-meter">
-        <div className="vq-rail-meter-t"><span>Repeat customers</span><strong>68.5%</strong></div>
-        <div className="vq-rail-bar"><i style={{ width: '68.5%' }} /></div>
-        <span className="vq-rail-meter-s">Came back this month</span>
-      </div>
+      <p className="vq-rail-empty">Configure targets in Settings</p>
     </section>
   );
-  if (id === 'top_lists') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Top performers</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
-      <span className="vq-rail-sub">Products</span>
-      <ul className="vq-rail-list">
-        {RAIL_TOP_PRODUCTS.map(t => (
-          <li key={t.n} className="vq-rail-rank">
-            <span className="vq-rail-row-n">{t.n}</span>
-            <span className="vq-rail-track"><i style={{ width: `${t.w}%` }} /></span>
-            <span className="vq-rail-row-v">{t.v}</span>
-          </li>
-        ))}
-      </ul>
-      <span className="vq-rail-sub">Customers</span>
-      <ul className="vq-rail-list">
-        {RAIL_TOP_CUSTOMERS.map(t => (
-          <li key={t.n} className="vq-rail-rank">
-            <span className="vq-rail-row-n">{t.n}</span>
-            <span className="vq-rail-track"><i style={{ width: `${t.w}%` }} /></span>
-            <span className="vq-rail-row-v">{t.v}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
+
+  if (id === 'top_lists') {
+    // Use real topSellingItems from controller
+    const topMax = topSellingItems[0]?.net_revenue ?? 0;
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Top performers</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
+        <span className="vq-rail-sub">Products this month</span>
+        {topSellingItems.length > 0 ? (
+          <ul className="vq-rail-list">
+            {topSellingItems.slice(0, 5).map(t => (
+              <li key={t.id} className="vq-rail-rank">
+                <span className="vq-rail-row-n">{t.name}</span>
+                <span className="vq-rail-track"><i style={{ width: `${topMax > 0 ? Math.round((t.net_revenue / topMax) * 100) : 0}%` }} /></span>
+                <span className="vq-rail-row-v">{t.revenue}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="vq-rail-empty">No sales yet this month</p>
+        )}
+      </section>
+    );
+  }
+
   if (id === 'reminders') return (
     <section className="vq-rail-card">
       <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/finance')} className="vq-rail-link">All</a></header>
-      <ul className="vq-rail-list">
-        {RAIL_REMINDERS.map(r => (
-          <li key={r.n} className="vq-rail-row">
-            <span className={`vq-rail-dot is-${r.k}`} aria-hidden="true" />
-            <span className="vq-rail-row-n">{r.n}<em>{r.d}</em></span>
-            <span className="vq-rail-row-v">{r.v}</span>
-          </li>
-        ))}
-      </ul>
+      <p className="vq-rail-empty">No overdue payments</p>
     </section>
   );
+
   return null;
 }
+
 
 /* ── a preset, drawn: simulate the grid's row-major auto-placement on 8
    columns and paint the little rectangles. A picker you choose by eye. */
@@ -3684,6 +3736,26 @@ export default function NewDashboard(props) {
   const auth = props?.auth || {};
   const user = auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
   const settings = props?.settings || {};
+  const isDemo = props?.is_demo === true;
+  /* Real data from DashboardController ───────────────────────────── */
+  const cashData          = props?.cashData          || null;
+  const bankAccounts      = props?.bankAccounts      || [];
+  const cashAccounts      = props?.cashAccounts      || [];
+  const recentTransactions = props?.recentTransactions || [];
+  const topSellingItems   = props?.topSellingItems   || [];
+  const lowStockItems     = props?.lowStockItems     || [];
+  const performance       = props?.performance       || {};
+  DASHBOARD_RUNTIME_DATA = {
+    cashData,
+    bankAccounts,
+    cashAccounts,
+    recentTransactions,
+    topSellingItems,
+    lowStockItems,
+    performance,
+  };
+  /* ─────────────────────────────────────────────────────────────── */
+
   const readingsProp = props?.readings || null;
   if (typeof window !== 'undefined' && Array.isArray(readingsProp) && readingsProp.length > 0) {
     window.__VENQORE_READINGS__ = readingsProp;
@@ -3770,6 +3842,8 @@ export default function NewDashboard(props) {
 
   /* ── the add-card wizard ─────────────────────────────────────────────── */
   const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const [presetSearch, setPresetSearch] = useState('');
+  const [presetCategory, setPresetCategory] = useState('All');
   const [stepperModalOpen, setStepperModalOpen] = useState(false);
   const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0 readings · 1 hubs · 2 shortcuts
   const [step, setStep] = useState(1);
@@ -3939,6 +4013,7 @@ export default function NewDashboard(props) {
       if (!panelDesign) setRailsModalOpen(true);
       else setRailOpt({ collapsed: !railPrefs.collapsed });
     };
+    const onOpenSidePanel = () => setRailsModalOpen(true);
     const onStartFresh = () => setPresetModalOpen(true);
     const onQuickActions = () => setGlassModalOpen(true);
 
@@ -3947,7 +4022,7 @@ export default function NewDashboard(props) {
     window.addEventListener('vq:add-card', onAddCard);
     window.addEventListener('vq:open-add-card', onAddCard);
     window.addEventListener('vq:toggle-side-panel', onToggleSidePanel);
-    window.addEventListener('vq:open-side-panel', onToggleSidePanel);
+    window.addEventListener('vq:open-side-panel', onOpenSidePanel);
     window.addEventListener('vq:start-fresh', onStartFresh);
     window.addEventListener('vq:open-quick-actions', onQuickActions);
 
@@ -3964,7 +4039,7 @@ export default function NewDashboard(props) {
       window.removeEventListener('vq:add-card', onAddCard);
       window.removeEventListener('vq:open-add-card', onAddCard);
       window.removeEventListener('vq:toggle-side-panel', onToggleSidePanel);
-      window.removeEventListener('vq:open-side-panel', onToggleSidePanel);
+      window.removeEventListener('vq:open-side-panel', onOpenSidePanel);
       window.removeEventListener('vq:start-fresh', onStartFresh);
       window.removeEventListener('vq:open-quick-actions', onQuickActions);
     };
@@ -5034,7 +5109,16 @@ export default function NewDashboard(props) {
                     <div className="vq-rails-scroll">
                       {activeRails.map(id => <DashRail key={id} id={id} storePath={storePath}
                                                        enabledModules={enabledModules}
-                                                       onQuickActions={() => setGlassModalOpen(true)} />)}
+                                                       onQuickActions={() => setGlassModalOpen(true)}
+                                                       cashData={cashData}
+                                                       bankAccounts={bankAccounts}
+                                                       cashAccounts={cashAccounts}
+                                                       recentTransactions={recentTransactions}
+                                                       topSellingItems={topSellingItems}
+                                                       lowStockItems={lowStockItems}
+                                                       performance={performance}
+                                                       currencySymbol={store?.currency_symbol || 'Rs'}
+                                                       isDemo={isDemo} />)}
                     </div>
                   </div>
                 </aside>
@@ -5045,7 +5129,7 @@ export default function NewDashboard(props) {
       </div>
 
       {/* ── Choose a starting layout ────────────────────────────────────── */}
-      {presetModalOpen && (
+      {presetModalOpen && typeof document !== 'undefined' && createPortal((
         <div className="vq-modal-overlay" onClick={() => setPresetModalOpen(false)} role="dialog" aria-modal="true">
           <div className="vq-modal-card vq-preset-modal" onClick={e => e.stopPropagation()}>
             <div className="vq-modal-top-bar">
@@ -5061,8 +5145,35 @@ export default function NewDashboard(props) {
               Pick a starting point — it replaces what's on the board now, and you can
               add, resize and remove anything afterwards.
             </div>
+            <div className="vq-modal-filter-zone">
+              <div className="vq-modal-search-wrapper">
+                <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input
+                  className="vq-modal-search"
+                  type="search"
+                  value={presetSearch}
+                  onChange={event => setPresetSearch(event.target.value)}
+                  placeholder="Search business layouts"
+                  aria-label="Search business layouts"
+                />
+              </div>
+              <div className="vq-family-tabs" role="tablist" aria-label="Business category">
+                {['All', 'Retail', 'Food', 'Services', 'Professional', 'Operations', 'General'].map(category => (
+                  <button key={category} type="button" role="tab" aria-selected={presetCategory === category}
+                    className={`vq-family-tab ${presetCategory === category ? 'is-active' : ''}`}
+                    onClick={() => setPresetCategory(category)}>
+                    <span className="vq-family-tab-title">{category}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="vq-preset-grid">
-              {Object.entries(engine()?.getPresets?.() || {}).map(([id, p]) => {
+              {Object.entries(engine()?.getPresets?.() || {}).filter(([, preset]) => {
+                const matchesCategory = presetCategory === 'All' || preset.category === presetCategory;
+                const query = presetSearch.trim().toLowerCase();
+                const matchesSearch = !query || `${preset.name} ${preset.desc} ${preset.category}`.toLowerCase().includes(query);
+                return matchesCategory && matchesSearch;
+              }).map(([id, p]) => {
                 const railNames = (p.rails || [])
                   .map(rid => RAIL_DEFS.find(d => d.id === rid)?.name)
                   .filter(Boolean);
@@ -5088,10 +5199,10 @@ export default function NewDashboard(props) {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
 
       {/* ── The wizard ──────────────────────────────────────────────────── */}
-      {stepperModalOpen && (
+      {stepperModalOpen && typeof document !== 'undefined' && createPortal((
         <div className="vq-modal-overlay" onClick={() => setStepperModalOpen(false)} role="dialog" aria-modal="true">
           <div className="vq-modal-card" onClick={e => e.stopPropagation()}>
             <div className="vq-modal-top-bar">
@@ -5254,10 +5365,10 @@ export default function NewDashboard(props) {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
 
       {/* ── Choose a side panel ─────────────────────────────────────────── */}
-      {railsModalOpen && (
+      {railsModalOpen && typeof document !== 'undefined' && createPortal((
         <div className="vq-modal-overlay" onClick={() => setRailsModalOpen(false)} role="dialog" aria-modal="true">
           <div className="vq-modal-card vq-preset-modal" onClick={e => e.stopPropagation()}>
             <div className="vq-modal-top-bar">
@@ -5323,10 +5434,10 @@ export default function NewDashboard(props) {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
 
       {/* ── Quick actions ───────────────────────────────────────────────── */}
-      {glassModalOpen && (
+      {glassModalOpen && typeof document !== 'undefined' && createPortal((
         <div className="vq-glass-modal-overlay" onClick={() => setGlassModalOpen(false)} role="dialog" aria-modal="true" aria-label="Quick Actions">
           <div className="vq-glass-modal-card" onClick={e => e.stopPropagation()}>
             <div className="vq-glass-modal-header">
@@ -5348,7 +5459,7 @@ export default function NewDashboard(props) {
             }} />
           </div>
         </div>
-      )}
+      ), document.body)}
 
       {/* Engine-owned drawers — the library and the deep editor */}
       <aside className="side">

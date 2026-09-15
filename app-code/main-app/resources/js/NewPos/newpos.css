@@ -113,7 +113,7 @@
     --vq-z-rail: 300;
     --vq-z-dropdown: 400;
     --vq-z-drawer: 500;
-    --vq-z-modal: 600;
+    --vq-z-modal: 1100;
     --vq-z-popover: 700;
     --vq-z-tooltip: 800;
     --vq-z-toast: 900;
@@ -2834,4 +2834,3 @@ html.dark .nqp-docktotal .v,
         animation-duration: 1ms !important;
     }
 }
-

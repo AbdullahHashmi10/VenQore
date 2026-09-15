@@ -3,12 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { HeartHandshake, Check, X, Edit2 } from 'lucide-react';
 import axios from 'axios';
 
-export default function CharityButton({ showLabel = false }) {
-    const { store, settings } = usePage().props;
+export default function CharityButton({ showLabel = false, charityEnabled = false }) {
+    const { store } = usePage().props;
     const [stats, setStats] = useState({ 
         today: 0, 
-        default_amount: 10, 
-        enabled: String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true
+        default_amount: 10,
     });
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -19,8 +18,8 @@ export default function CharityButton({ showLabel = false }) {
     const editBoxRef = useRef(null);
 
     useEffect(() => {
-        fetchStats();
-    }, []);
+        if (charityEnabled) fetchStats();
+    }, [charityEnabled]);
 
     useEffect(() => {
         if (!showEdit) return;
@@ -37,8 +36,13 @@ export default function CharityButton({ showLabel = false }) {
     const fetchStats = async () => {
         try {
             const response = await axios.get(route('store.charity.stats', { store_slug: store.slug }));
-            setStats(response.data);
-            setCustomAmount(response.data.default_amount?.toString() || '10');
+            // Only update amounts — never let the API response re-enable a disabled button.
+            setStats(prev => ({
+                ...prev,
+                today: response.data.today ?? prev.today,
+                default_amount: response.data.default_amount ?? prev.default_amount,
+            }));
+            setCustomAmount((response.data.default_amount ?? 10).toString());
         } catch (error) {
             // Silent fail for offline consistency
         }
@@ -99,7 +103,7 @@ export default function CharityButton({ showLabel = false }) {
         }
     };
 
-    if (!stats.enabled) return null;
+    if (!charityEnabled) return null;
 
     const buttonContent = (
         <button

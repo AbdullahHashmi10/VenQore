@@ -155,7 +155,7 @@ export default function IslandShell({
       />
 
       <div
-        className="fixed z-command"
+        className="fixed z-toast"
         style={{
           left: anchor.cx,
           top: anchor.top,

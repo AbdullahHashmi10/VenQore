@@ -268,6 +268,24 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const { appearance, update: updateAppearance, isDark } = useAppearance();
 
  const isEffectiveDarkMode = store ? isDark : isDarkMode;
+ const charityEnabledFromServer = String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true;
+ const [charityEnabled, setCharityEnabled] = useState(charityEnabledFromServer);
+
+ useEffect(() => {
+  setCharityEnabled(charityEnabledFromServer);
+ }, [charityEnabledFromServer]);
+
+ const toggleCharityVisibility = () => {
+  const nextEnabled = !charityEnabled;
+  setCharityEnabled(nextEnabled);
+  router.post(route('store.settings.update', { store_slug: store.slug }), {
+   settings: { charity_enabled: nextEnabled ? '1' : '0' },
+  }, {
+   preserveScroll: true,
+   preserveState: true,
+   onError: () => setCharityEnabled(!nextEnabled),
+  });
+ };
 
   const toggleAppTheme = (targetMode) => {
       const nextMode = typeof targetMode === 'string' ? targetMode : (isEffectiveDarkMode ? 'light' : 'dark');
@@ -305,17 +323,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         }
     };
 
-    const handleBusinessLayouts = () => {
-        if (typeof window !== 'undefined' && (window.location.pathname.includes('/dashboard') || (typeof route === 'function' && route().current('store.dashboard')))) {
-            window.dispatchEvent(new CustomEvent('vq:business-layouts'));
-            return;
-        }
-        if (store?.slug) {
-            router.visit(route('store.dashboard', { store_slug: store.slug, layouts: 1 }));
-        } else {
-            router.visit('/dashboard?layouts=1');
-        }
-    };
 
     const handleToggleSidePanel = () => {
         if (typeof window !== 'undefined' && (window.location.pathname.includes('/dashboard') || (typeof route === 'function' && route().current('store.dashboard')))) {
@@ -1699,9 +1706,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   </div>
   )}
 
+  {charityEnabled && (
   <div className="hidden lg:block">
-  <CharityButton />
+  <CharityButton charityEnabled={charityEnabled} />
   </div>
+  )}
 
   {/* Display & Dashboard Customization Settings Dropdown */}
   <div className="hidden lg:block relative" ref={displayMenuRef}>
@@ -1784,15 +1793,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
               </button>
 
               <button
-                  onClick={() => {
-                      const newValue = (String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? '0' : '1';
-                      router.post(route("store.settings.update", {
-                          store_slug: store.slug
-                      }), {
-                          settings: { ...settings, charity_enabled: newValue }
-                      }, { preserveScroll: true });
-                  }}
-                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true)
+                  onClick={toggleCharityVisibility}
+                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${charityEnabled
                       ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
                       : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
               >
@@ -1800,8 +1802,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                       <HeartHandshake size={16} className="text-rose-500 shrink-0" />
                       <span className="text-sm font-semibold">Charity Donations</span>
                   </div>
-                  <div className={`w-8 h-4 rounded-full relative transition-colors ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? 'bg-rose-500' : 'bg-sunken'}`}>
-                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) ? 'left-4.5' : 'left-0.5'}`}></div>
+                  <div className={`w-8 h-4 rounded-full relative transition-colors ${charityEnabled ? 'bg-rose-500' : 'bg-sunken'}`}>
+                      <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${charityEnabled ? 'left-4.5' : 'left-0.5'}`}></div>
                   </div>
               </button>
 
@@ -1823,16 +1825,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                   <span className="flex-1 text-left">Edit Layout</span>
               </button>
 
-              <button
-                  onClick={() => {
-                      setIsDisplayMenuOpen(false);
-                      handleBusinessLayouts();
-                  }}
-                  className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-              >
-                  <LayoutDashboard size={16} className="text-sky-500 shrink-0" />
-                  <span className="flex-1 text-left">Business Layouts</span>
-              </button>
 
               <button
                   onClick={() => {
@@ -1903,7 +1895,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
       {isMobileMenuOpen && (
           <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-[14px] shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
               {/* Store Switcher & Charity Button Row */}
-              {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+              {(props.auth?.my_stores_count > 1 || charityEnabled) && (
                   <div className="p-2 border-b border-line flex items-center justify-between gap-3">
                       {props.auth?.my_stores_count > 1 ? (
                           <button
@@ -1922,9 +1914,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                       ) : (
                           <span className="text-xs font-semibold text-ink-secondary pl-2">Charity Donations</span>
                       )}
-                      {(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+                      {charityEnabled && (
                           <div className="flex-none">
-                              <CharityButton />
+                              <CharityButton charityEnabled={charityEnabled} />
                           </div>
                       )}
                   </div>
@@ -1945,17 +1937,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                   >
                       <PenLine size={16} className="text-brand-500 shrink-0" />
                       <span className="flex-1 text-left">Edit Layout</span>
-                  </button>
-
-                  <button
-                      onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          handleBusinessLayouts();
-                      }}
-                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all text-sm font-semibold"
-                  >
-                      <LayoutDashboard size={16} className="text-sky-500 shrink-0" />
-                      <span className="flex-1 text-left">Business Layouts</span>
                   </button>
 
                   <button

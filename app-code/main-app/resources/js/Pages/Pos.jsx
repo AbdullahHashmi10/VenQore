@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Head, usePage, router, Link } from '@inertiajs/react';
 import { useTerms, useTermText } from '@/lib/terms';
 import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
@@ -5174,7 +5175,7 @@ const POSInterface = ({
 
 
             {/* Variant Selection Modal */}
-            {variantModalOpen && selectedProductForVariant && (
+            {variantModalOpen && selectedProductForVariant && typeof document !== 'undefined' && createPortal((
                 <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
                         <div className="p-4 border-b border-line flex justify-between items-center">
@@ -5204,7 +5205,7 @@ const POSInterface = ({
                         </div>
                     </div>
                 </div>
-            )}
+            ), document.body)}
             {/* UI Modals */}
             {approvalRequest && <ApprovalPinModal
                 request={approvalRequest.info}
@@ -5341,8 +5342,8 @@ const POSInterface = ({
             )}
 
             {/* Custom Global Discount Preset Modal */}
-            {globalDiscountModal.show && (
-                <div className="fixed inset-0 z-drawer flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade">
+            {globalDiscountModal.show && typeof document !== 'undefined' && createPortal((
+                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade">
                     <div className="bg-neutral-900 w-full max-w-sm rounded-2xl shadow-2xl border border-white/10 overflow-hidden text-white">
                         <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <div>
@@ -5465,13 +5466,13 @@ const POSInterface = ({
                         </div>
                     </div>
                 </div>
-            )}
+            ), document.body)}
 
 
 
             {/* Quick Bank Account Modal */}
-            {showQuickAccountModal && (
-                <div className="fixed inset-0 z-drawer flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade">
+            {showQuickAccountModal && typeof document !== 'undefined' && createPortal((
+                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade">
                     <div className="bg-neutral-900 w-full max-w-md rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
                         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <div>
@@ -5566,7 +5567,7 @@ const POSInterface = ({
                         </div>
                     </div>
                 </div>
-            )}
+            ), document.body)}
 
             {/* NEW MODALS */}
             <QuickPartyModal
@@ -5629,7 +5630,7 @@ const POSInterface = ({
             </FormModal>
 
             {/* â”€â”€ Item Discount Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-            {itemDiscountModal.show && (
+            {itemDiscountModal.show && typeof document !== 'undefined' && createPortal((
                 <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
                         <div>
@@ -5703,10 +5704,10 @@ const POSInterface = ({
                         </div>
                     </div>
                 </div>
-            )}
+            ), document.body)}
 
             {/* â”€â”€ Converter Modal (Price / Qty / Total) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-            {converterModal.show && (
+            {converterModal.show && typeof document !== 'undefined' && createPortal((
                 <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
                         <div>
@@ -5771,10 +5772,10 @@ const POSInterface = ({
                         </div>
                     </div>
                 </div>
-            )}
+            ), document.body)}
         {/* --- OFFLINE SYNC HUB MODAL --- */}
-        {showSyncHub && (
-            <div className="fixed inset-0 z-drawer flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm vq-anim-fade">
+        {showSyncHub && typeof document !== 'undefined' && createPortal((
+            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm vq-anim-fade">
                 <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-line text-lg">
                     {/* Header */}
                     <div className="p-6 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
@@ -5886,7 +5887,7 @@ const POSInterface = ({
                     </div>
                 </div>
             </div>
-        )}
+        ), document.body)}
         {/* ── Cart Undo Floating Banner ────────────────────────────────────────────── */}
         {lastClearedCart && (
             <div className="fixed bottom-14 left-1/2 -translate-x-1/2 z-toast bg-overlay text-ink px-5 py-3 rounded-2xl shadow-2xl border border-white/15 flex items-center gap-4 vq-anim-rise">
@@ -5906,7 +5907,7 @@ const POSInterface = ({
                     and nothing ever rendered them, so Recent invoices was a
                     button that set a flag into the void. It is a sheet now,
                     like every other rank-2 capability. */}
-                {showRecentInvoices && (
+                {showRecentInvoices && typeof document !== 'undefined' && createPortal((
                     <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                         <div className="bg-surface rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden border border-line flex flex-col max-h-[86vh]">
                             <div className="p-5 border-b border-line flex items-center justify-between bg-sunken/40 gap-3">
@@ -5957,13 +5958,13 @@ const POSInterface = ({
                             </div>
                         </div>
                     </div>
-                )}
+                ), document.body)}
 
                 {/* ── PARKED SALES ────────────────────────────────────────
                     Was an absolutely-positioned dropdown hanging off the top
                     bar, which fell outside the viewport on a narrow screen.
                     A rank-2 capability belongs in a sheet. */}
-                {parkedDropdownOpen && (
+                {parkedDropdownOpen && typeof document !== 'undefined' && createPortal((
                     <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                         <div className="bg-surface rounded-lg shadow-2xl w-full max-w-lg overflow-hidden border border-line flex flex-col max-h-[80vh]">
                             <div className="p-5 border-b border-line flex items-center justify-between bg-sunken/40">
@@ -6013,7 +6014,7 @@ const POSInterface = ({
                             </div>
                         </div>
                     </div>
-                )}
+                ), document.body)}
 
                 {/* ══════════════════════════════════════════════════════════
                     REGISTER SETTINGS — rank 3, and rank 3 only

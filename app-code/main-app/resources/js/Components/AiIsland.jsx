@@ -1262,9 +1262,9 @@ export default function AiIsland({
 
                     {/* ── CAPTURE ──────────────────────────────────────────
                         AI Scan renders INSIDE the island. It used to portal
-                        itself at z-toast (900) while the island owns z-command
-                        (1000), so its popup opened underneath — the bug you
-                        saw. Hosting it here removes the stacking question
+                        itself outside the island, so its popup could open in a
+                        different stacking context. Hosting it here removes that
+                        stacking question
                         entirely rather than fighting the ladder. */}
                     {tab === 'capture' && (
                       <motion.div key="capture" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
