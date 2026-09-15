@@ -1,0 +1,366 @@
+import React, { useState, useMemo } from 'react';
+import ReportsLayout from '@/Layouts/ReportsLayout';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    AreaChart, Area, PieChart, Pie, Cell, Legend
+} from 'recharts';
+import {
+    Calendar, TrendingUp, TrendingDown, DollarSign,
+    CreditCard, ArrowLeft, Filter, ShoppingCart, ChevronDown, CheckCircle, AlertCircle, Clock
+} from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
+
+import { vq } from '@/theme/runtime';
+export default function GraphAnalytics({ trendData, paymentStatus, stats, filters, module = 'sales' }) {
+    const {
+        store
+    } = usePage().props;
+
+    const [range, setRange] = useState(filters.range || '30_days');
+    const [startDate, setStartDate] = useState(filters.start_date || '');
+    const [endDate, setEndDate] = useState(filters.end_date || '');
+    const [isModuleMenuOpen, setIsModuleMenuOpen] = useState(false);
+
+    const modules = [
+        { id: 'sales', label: 'Sales', icon: TrendingUp, color: 'text-brand-600' },
+        { id: 'purchases', label: 'Purchases', icon: ShoppingCart, color: 'text-amber-600' },
+        { id: 'expenses', label: 'Expenses', icon: CreditCard, color: 'text-rose-600' },
+    ];
+
+    const currentModule = modules.find(m => m.id === module) || modules[0];
+
+    const handleModuleChange = (moduleId) => {
+        router.get(route("store.reports.analytics", {
+            store_slug: store.slug
+        }), { module: moduleId }, { preserveState: false });
+        setIsModuleMenuOpen(false);
+    };
+
+    // Sync state with filters from server (e.g. on reload or back button)
+    React.useEffect(() => {
+        setRange(filters.range || '30_days');
+        setStartDate(filters.start_date || '');
+        setEndDate(filters.end_date || '');
+    }, [filters]);
+
+    const handleRangeChange = (r) => {
+        setRange(r);
+        if (r !== 'custom') {
+            router.get(route("store.reports.analytics", {
+                store_slug: store.slug
+            }), { module, range: r }, { preserveState: true, preserveScroll: true });
+        }
+    };
+
+    const applyCustomRange = () => {
+        router.get(route("store.reports.analytics", {
+            store_slug: store.slug
+        }), {
+            module,
+            range: 'custom',
+            start_date: startDate,
+            end_date: endDate
+        }, { preserveState: true, preserveScroll: true });
+    };
+
+
+    // Calculate Insights (Derived Data)
+    const insights = useMemo(() => {
+        if (!trendData || trendData.length < 2) return { growth: 0, trend: 'neutral' };
+        const firstHalf = trendData.slice(0, Math.floor(trendData.length / 2)).reduce((acc, curr) => acc + (curr.sales || 0), 0);
+        const secondHalf = trendData.slice(Math.floor(trendData.length / 2)).reduce((acc, curr) => acc + (curr.sales || 0), 0);
+        const growth = firstHalf > 0 ? ((secondHalf - firstHalf) / firstHalf) * 100 : 0;
+        return {
+            growth: growth.toFixed(1),
+            trend: growth > 0 ? 'up' : growth < 0 ? 'down' : 'neutral'
+        };
+    }, [trendData]);
+
+    return (
+        <ReportsLayout title={`${currentModule.label} Analytics`}>
+            <Head title={`${currentModule.label} Analytics`} />
+            {/* Main Container */}
+            <div className="flex flex-col h-full gap-2 overflow-hidden">
+
+                {/* 1. Header & Filters */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-2 bg-surface p-2 rounded-2xl border border-line shadow-sm shrink-0">
+                    <div className="flex items-center gap-3 pl-2">
+                        <Link href={route("store.reports.index", {
+                            store_slug: store.slug
+                        })} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
+                            <ArrowLeft size={16} />
+                        </Link>
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsModuleMenuOpen(!isModuleMenuOpen)}
+                                className="flex items-center gap-2 cursor-pointer group"
+                            >
+                                <h1 className="text-base font-bold text-ink uppercase tracking-tight flex items-center gap-2">
+                                    <currentModule.icon className={currentModule.color} size={18} /> {currentModule.label} Analytics
+                                </h1>
+                                <ChevronDown size={14} className={`text-ink-muted transition-transform ${isModuleMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Module Dropdown */}
+                            {isModuleMenuOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-normal">
+                                    {modules.map((m) => (
+                                        <button
+                                            key={m.id}
+                                            onClick={() => handleModuleChange(m.id)}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors ${module === m.id ? 'bg-sunken font-bold' : ''}`}
+                                        >
+                                            <m.icon size={16} className={m.color} />
+                                            <span className="text-sm text-ink-secondary dark:text-ink">{m.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row items-center gap-2">
+                        <div className="flex bg-sunken p-1 rounded-xl">
+                            {[
+                                { id: 'today', label: 'Today' },
+                                { id: '7_days', label: '7 Days' },
+                                { id: '30_days', label: '30 Days' },
+                                { id: 'year', label: 'Year' },
+                                { id: 'custom', label: 'Custom' }
+                            ].map((opt) => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => handleRangeChange(opt.id)}
+                                    className={`px-3 py-1 rounded-lg text-2xs font-bold uppercase transition-all ${range === opt.id
+                                        ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400'
+                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
+                                        }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {range === 'custom' && (
+                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-slow bg-surface border border-line p-1 rounded-xl">
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="px-2 py-1 bg-app border-none rounded-lg text-2xs focus:ring-1 focus:ring-brand-500 text-ink-secondary"
+                                />
+                                <span className="text-ink-muted text-2xs font-bold">TO</span>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="px-2 py-1 bg-app border-none rounded-lg text-2xs focus:ring-1 focus:ring-brand-500 text-ink-secondary"
+                                />
+                                <button
+                                    onClick={applyCustomRange}
+                                    className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-2xs font-bold uppercase transition-colors shadow-sm"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+
+                {/* 2. Key Metrics Cards (Compact) */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 shrink-0">
+                    <StatCard
+                        title="Total Revenue"
+                        value={formatCurrency(stats.total_revenue)}
+                        icon={<DollarSign />}
+                        color="indigo"
+                    />
+                    <StatCard
+                        title="Transactions"
+                        value={stats.total_transactions}
+                        icon={<CreditCard />}
+                        color="blue"
+                    />
+                    <StatCard
+                        title="Avg Ticket Size"
+                        value={formatCurrency(stats.avg_ticket)}
+                        icon={<TrendingUp />}
+                        color="emerald"
+                    />
+                    <StatCard
+                        title="Highest Sale"
+                        value={formatCurrency(stats.max_sale)}
+                        icon={<Calendar />}
+                        color="amber"
+                    />
+                </div>
+
+                {/* 3. MAIN ANALYTICS SECTION - Balanced Split */}
+                <div className="flex-1 min-h-0 flex flex-col gap-2">
+
+                    {/* A. SALES TREND */}
+                    <div className="bg-surface p-3 rounded-2xl border border-line shadow-sm flex flex-col relative overflow-hidden flex-[1.2]">
+                        <div className="flex items-center justify-between mb-2 shrink-0">
+                            <div>
+                                <h3 className="text-xs font-bold text-ink uppercase tracking-tight">Sales Trend Analysis</h3>
+                            </div>
+                            <div className={`px-2 py-0.5 rounded-full text-2xs font-bold flex items-center gap-1 ${insights.trend === 'up' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' :
+                                    insights.trend === 'down' ? 'bg-rose-50 text-rose-600 dark:bg-rose-900/30' :
+                                        'bg-sunken text-ink-secondary dark:bg-surface'
+                                }`}>
+                                {insights.trend === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                {Math.abs(insights.growth)}% Growth
+                            </div>
+                        </div>
+
+                        <div className="flex-1 w-full min-h-0">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                                <AreaChart data={trendData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor={vq.indigo[500]} stopOpacity={0.6} />
+                                            <stop offset="95%" stopColor={vq.indigo[500]} stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={vq.slate[200]} opacity={0.3} />
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: vq.slate[400] }}
+                                        dy={5}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fontSize: 10, fill: vq.slate[400] }}
+                                        tickFormatter={(val) => `${val / 1000}k`}
+                                    />
+                                    <Tooltip
+                                        formatter={(val) => formatCurrency(val)}
+                                        contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid rgb(var(--vq-slate-700))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: vq.slate[50] }}
+                                        itemStyle={{ color: vq.slate[50] }}
+                                        labelStyle={{ color: vq.slate[400], fontSize: '10px', marginBottom: '4px' }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="sales"
+                                        stroke={vq.indigo[500]}
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorSales)"
+                                        activeDot={{ r: 4, strokeWidth: 0, fill: '#fff' }}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* B. PAYMENT STATUS & RECOVERY - Adjusted Ratio & Internal Sizing */}
+                    <div className="bg-surface p-3 rounded-2xl border border-line shadow-sm relative overflow-hidden flex-1 flex flex-col">
+                        <div className="flex items-center justify-between mb-2 shrink-0">
+                            <div>
+                                <h3 className="text-xs font-bold text-ink uppercase tracking-tight">Payment Recovery</h3>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 flex items-center justify-between min-h-0">
+                            {/* Left: Chart - Bigger */}
+                            <div className="relative h-full flex-1">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                                    <PieChart>
+                                        <Pie
+                                            data={paymentStatus}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius="65%"
+                                            outerRadius="85%"
+                                            paddingAngle={4}
+                                            dataKey="value"
+                                            stroke="none"
+                                            cornerRadius={4}
+                                        >
+                                            {paymentStatus.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            formatter={(val) => formatCurrency(val)}
+                                            contentStyle={{ backgroundColor: vq.slate[800], borderRadius: '8px', border: '1px solid rgb(var(--vq-slate-700))', color: vq.slate[50] }}
+                                            itemStyle={{ color: vq.slate[50] }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                {/* Center Text */}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-2">
+                                    <div className="text-center">
+                                        <p className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-0.5">Recovery</p>
+                                        <p className="text-2xl font-bold text-ink">
+                                            {stats.total_revenue > 0 ? Math.round((paymentStatus[0].value / stats.total_revenue) * 100) : 0}%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right: Detailed Breakdown - More Spacing & Larger Text */}
+                            <div className="flex flex-col justify-center gap-3 pr-6 flex-[1.2]">
+                                {paymentStatus.map((status, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-app">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: status.fill }}></div>
+                                            <div>
+                                                <p className="text-sm font-bold text-ink-secondary">{status.name}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-bold text-ink">{formatCurrency(status.value)}</p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <div className="mt-1 p-2 rounded-xl bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-800/30 flex items-start gap-2">
+                                    <AlertCircle size={14} className="text-brand-600 mt-0.5 shrink-0" />
+                                    <p className="text-xs text-brand-700 dark:text-brand-300 leading-snug">
+                                        <strong>Tip:</strong> Outstanding payments typically clear within 7 days.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </ReportsLayout>
+    );
+}
+
+function StatCard({ title, value, icon, color }) {
+    const colors = {
+        indigo: 'text-brand-600 bg-brand-50 dark:bg-brand-900/20',
+        emerald: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20',
+        blue: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',
+        amber: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20',
+    };
+
+    return (
+        <div className="bg-surface border border-line rounded-xl p-2.5 flex items-center justify-between shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+            {/* Decorative Background */}
+            <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-neutral-50 to-transparent dark:from-neutral-800/50 opacity-50 group-hover:w-24 transition-all duration-slower" />
+
+            {/* Left: Icon + Label */}
+            <div className="flex items-center gap-3 relative z-10">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colors[color]}`}>
+                    {React.cloneElement(icon, { size: 16 })}
+                </div>
+                <p className="text-2xs font-bold text-ink-muted uppercase tracking-wide">{title}</p>
+            </div>
+
+            {/* Right: Value */}
+            <div className="relative z-10 text-right">
+                <h3 className="text-base font-bold text-ink tracking-tight">{value}</h3>
+            </div>
+        </div>
+    );
+}

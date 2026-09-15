@@ -1,0 +1,13 @@
+{
+  "name": "venqore-final-tester-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VenQore Test Command Center — live test dashboard with mathematically correct progress reporting.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
