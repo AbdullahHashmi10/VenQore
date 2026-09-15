@@ -11,7 +11,7 @@ import {
     Boxes, Layers, Ticket, DollarSign, TrendingUp, Tag, Gift,
     Inbox, MessagesSquare, Bot, FlaskConical, Megaphone, Package,
     HeartPulse, ShieldCheck, Server, Webhook, HardDrive, ToggleRight, RefreshCw, Settings,
-    KeyRound,
+    KeyRound, Cpu,
 } from 'lucide-react';
 
 /** Resolve a Ziggy route name safely; returns null if it doesn't exist. */
@@ -78,6 +78,7 @@ export const NAV_GROUPS = [
         key: 'operations',
         label: 'Operations',
         items: [
+            { key: 'ai-cost', label: 'AI Cost & Telemetry', icon: Cpu, route: 'platform.ai-usage.index', match: 'platform.ai-usage.*', desc: 'Provider bills, daily spend caps, per-tenant margin' },
             { key: 'support', label: 'Support Inbox', icon: Inbox, page: 'support', desc: 'Unified V1 + Vena + Digital tickets' },
             { key: 'agent', label: 'Live Chat / Agent', icon: MessagesSquare, route: 'platform.chatbot.inbox', desc: 'Live-chat agent console' },
             { key: 'chatbot', label: 'Chatbot (Vena)', icon: Bot, route: 'platform.chatbot.settings', desc: 'AI assistant configuration' },
