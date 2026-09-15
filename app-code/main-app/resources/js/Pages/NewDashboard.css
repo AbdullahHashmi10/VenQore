@@ -4643,7 +4643,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 .vq-canvas-body{ display: block; }
 .vq-canvas-body.has-rails{
-  display: flex; align-items: stretch; gap: 24px;
+  display: flex; align-items: flex-start; gap: 24px;
 }
 .vq-board-zone{ flex: 1 1 auto; min-width: 0; }
 .vq-rails{
@@ -4909,19 +4909,23 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   border: 1px solid var(--vq-line-soft, var(--vq-line));
 }
 
-/* ── the side panel is ONE container, running parallel to the cards ── */
+/* ── sticky side panel: stays pinned, parallel to top card, 24px above bottom ── */
 .vq-rails{
   flex: 0 0 var(--vq-rails-w, 340px);
   width: var(--vq-rails-w, 340px);
   min-width: 0;
   margin: 0;
-  align-self: stretch;
-  min-height: calc(100vh - var(--vq-header-h, 64px) - 48px);
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  height: calc(100vh - var(--vq-header-h, 64px) - 48px);
+  max-height: calc(100vh - var(--vq-header-h, 64px) - 48px);
   display: flex;
   flex-direction: column;
 }
 .vq-rails-shell{
   height: 100%;
+  max-height: 100%;
   flex: 1 1 auto;
   display: flex; flex-direction: column; min-width: 0;
   background: var(--vq-surface);
@@ -4958,9 +4962,13 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 .vq-rails-scroll .vq-rail-card:last-child{ border-bottom: 0; padding-bottom: 4px; }
 
-/* panel stretches parallel to the board cards from top to bottom */
+/* sticky panel stays pinned at top: 24px and scrolls internally */
 .vq-rails.is-sticky{
-  align-self: stretch;
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  height: calc(100vh - var(--vq-header-h, 64px) - 48px);
+  max-height: calc(100vh - var(--vq-header-h, 64px) - 48px);
 }
 .vq-rails.is-sticky .vq-rails-shell{
   height: 100%;
