@@ -823,16 +823,24 @@ class DashboardController extends Controller
         $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
         $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
-        $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
+        $reportingSvc = app(\App\Services\FinancialReportingService::class);
+        $pl = $reportingSvc->getProfitAndLoss($startStr, $endStr);
+        $cashFlow = $reportingSvc->getCashFlowReport($startStr, $endStr);
 
-        $sales = (float) $pl['revenue'];
-        $cogs = (float) $pl['cogs'];
-        $grossProfit = $sales - $cogs;
+        $sales = (float) ($pl['revenue'] ?? 0.0);
+        $cogs = (float) ($pl['cogs'] ?? 0.0);
+        $grossProfit = (float) ($pl['gross_profit'] ?? ($sales - $cogs));
+        $expenses = (float) ($pl['operating_expenses'] ?? ($pl['total_expenses'] ?? 0.0));
+        $moneyIn = (float) ($cashFlow['operating_inflow'] ?? 0.0);
+        $moneyOut = (float) ($cashFlow['operating_outflow'] ?? 0.0);
 
         return [
             'sales'        => $sales,
             'gross_profit' => $grossProfit,
             'cogs'         => $cogs,
+            'expenses'     => $expenses,
+            'money_in'     => $moneyIn,
+            'money_out'    => $moneyOut,
         ];
     }
 

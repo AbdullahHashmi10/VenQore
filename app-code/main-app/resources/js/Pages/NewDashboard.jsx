@@ -3064,215 +3064,20 @@ function loadBoard(){
   } catch { return null; }
 }
 
-/* ── starting layouts ──────────────────────────────────────────────────────
-   Composed to pack an 8-column board edge to edge; on wider or narrower
-   boards the grid re-flows and every size stays legal. `key` is a reading,
-   `type` a hub. Anything else is the ordinary card contract. */
-const PRESETS = {
-  retail: {
-    name: "Retail overview", category: "Retail", desc: "Sales, money, stock and alerts — the everyday board.",
-    panel: "money",
-    cards: [
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:7, period:"Month" },
-      { type:"bank_liquidity", cat:"C4", w:3, h:3 },
-      { key:"sales.avg_order_value", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Month" },
-      { type:"alerts_hub", cat:"C4", w:3, h:4 },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Today" },
-      { key:"sales.payment_breakdown", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"sales.top_products", chart:"bar", variant:"solid", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"sales.live_feed", chart:"feed", variant:"live", cat:"C4", w:4, h:6, period:"Today" },
-      { type:"launchpad", cat:"C4", w:6, h:3 },
-      { type:"growth_engine", cat:"C4", w:6, h:3 },
-    ],
-  },
-  finance: {
-    name: "Money & accounts", category: "Professional", desc: "Cash flow, dues, expenses and the bank picture.",
-    panel: "credit",
-    cards: [
-      { key:"finance.cash_flow_trend", chart:"composed", variant:"bar-line-area", cat:"C5", w:6, h:7, period:"Month" },
-      { type:"bank_liquidity", cat:"C4", w:3, h:3 },
-      { key:"bank_accounts.money_in_today", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
-      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"bank_accounts.money_out_today", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
-      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"finance.quick_ratio", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Month" },
-      { key:"finance.expenses_by_category", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"finance.expenses_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"finance.receivables_aging", chart:"bar", variant:"solid", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"finance.profit_trend", chart:"line", variant:"smooth", cat:"C4", w:6, h:4, period:"Month" },
-      { key:"finance.dso", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Month" },
-      { key:"finance.dpo", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Month" },
-    ],
-  },
-  inventory: {
-    name: "Stock & purchasing", category: "Operations", desc: "What's on the shelf, what's running out, what's on order.",
-    panel: "operations",
-    cards: [
-      { key:"inventory.stock_value", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Month" },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"inventory.out_of_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"inventory.low_stock_list", chart:"table", variant:"standard", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"inventory.by_warehouse", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"inventory.value_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"inventory.expiry_window", chart:"bar", variant:"solid", cat:"C4", w:4, h:5, period:"Month" },
-      { key:"purchasing.spend_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:5, period:"Month" },
-      { type:"alerts_hub", cat:"C4", w:4, h:5 },
-      { key:"purchase_orders.pending", chart:"stat", variant:"number", cat:"C2", w:6, h:1, period:"Month" },
-      { key:"batch_tracking.expiring_soon", chart:"stat", variant:"number", cat:"C2", w:6, h:1, period:"Month" },
-    ],
-  },
-  command: {
-    name: "Command centre", category: "Professional", desc: "The revenue chart front and centre, everything else around it.",
-    panel: "operations",
-    cards: [
-      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:8, period:"Month" },
-      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"operations.plan_usage", chart:"gauge", variant:"arc", cat:"C4", w:3, h:4, period:"Month" },
-      { key:"sales.top_products", chart:"table", variant:"bars", cat:"C4", w:3, h:4, period:"Month" },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
-      { key:"sales.avg_order_value", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"sales.live_feed", chart:"feed", variant:"live", cat:"C4", w:6, h:4, period:"Today" },
-      { key:"sales.top_customers", chart:"bar", variant:"solid", cat:"C4", w:6, h:4, period:"Month" },
-    ],
-  },
-  classic: {
-    name: "Familiar", category: "General", desc: "Numbers on top, trends and lists below, money and activity on the right.",
-    panel: "money",
-    cards: [
-      { key:"sales.revenue", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Today" },
-      { key:"finance.profit_trend", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
-      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
-      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:6, period:"Month" },
-      { type:"alerts_hub", cat:"C4", w:3, h:3 },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Today" },
-      { key:"purchasing.recent", chart:"feed", variant:"live", cat:"C4", w:3, h:6, period:"Month" },
-      { key:"sales.top_products", chart:"bar", variant:"solid", cat:"C4", w:6, h:5, period:"Month" },
-      { key:"operations.activity_feed", chart:"feed", variant:"live", cat:"C4", w:6, h:5, period:"Today" },
-    ],
-  },
-  base: {
-    name: "Start simple", category: "General", desc: "One chart, the day's numbers, and room to grow.",
-    panel: null,
-    cards: [
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:12, h:6, period:"Month" },
-      { key:"sales.revenue", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"finance.expenses_total", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { type:"launchpad", cat:"C4", w:6, h:3 },
-      { type:"alerts_hub", cat:"C4", w:6, h:3 },
-    ],
-  },
-};
-
-// Presets are composed as complete 12-column bands. Keeping equal-height cards
-// together prevents the browser from creating the tall, unusable cavities that
-// appeared when unrelated card sizes were interleaved.
-const cleanPresetLayout = ({ hero = 'sales.revenue_trend', finance = false, composition = 'hero' } = {}) => {
-  const metricBand = [
-    { key:'sales.revenue', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Today' },
-    { key:'finance.receivables', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Month' },
-    { key:'finance.payables', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Month' },
-    { key:'inventory.low_stock_count', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Today' },
-  ];
-  const chartBand = [
-    { key: finance ? 'finance.expenses_by_category' : 'sales.payment_breakdown', chart:'pie', variant:'donut', cat:'C4', w:4, h:6, period:'Month' },
-    { key: finance ? 'finance.receivables_aging' : 'sales.top_products', chart:'bar', variant:'solid', cat:'C4', w:4, h:6, period:'Month' },
-    { key: finance ? 'finance.profit_trend' : 'sales.live_feed', chart: finance ? 'line' : 'feed', variant: finance ? 'smooth' : 'live', cat:'C4', w:4, h:6, period: finance ? 'Month' : 'Today' },
-  ];
-  const heroCard = { key:hero, chart: finance ? 'composed' : 'area', variant: finance ? 'bar-line-area' : 'gradient', cat:'C5', w:12, h:6, period:'Month' };
-  const footer = [
-    { type:'launchpad', cat:'C4', w:6, h:3 },
-    { type:'alerts_hub', cat:'C4', w:6, h:3 },
-  ];
-
-  if (composition === 'metrics-first') return [...metricBand, heroCard, ...chartBand, ...footer];
-  if (composition === 'split') return [
-    { ...heroCard, w:8 },
-    { type:'alerts_hub', cat:'C4', w:4, h:6 },
-    ...metricBand,
-    ...chartBand,
-    { type:'launchpad', cat:'C4', w:12, h:3 },
-  ];
-  if (composition === 'charts-first') return [...chartBand, ...metricBand, heroCard, ...footer];
-  return [
-    heroCard, ...metricBand, ...chartBand, ...footer,
-  ];
-};
-
-PRESETS.retail.cards = cleanPresetLayout();
-PRESETS.classic.cards = cleanPresetLayout({ composition: 'metrics-first' });
-PRESETS.command.cards = cleanPresetLayout({ composition: 'split' });
-PRESETS.base.cards = cleanPresetLayout({ composition: 'charts-first' });
-PRESETS.finance.cards = cleanPresetLayout({ hero: 'finance.cash_flow_trend', finance: true });
-PRESETS.inventory.cards = cleanPresetLayout({ composition: 'charts-first' });
-
-const businessPreset = (name, category, desc, baseId, panel) => ({
-  name, category, desc,
-  panel: panel === undefined ? PRESETS[baseId].panel : panel,
-  cards: PRESETS[baseId].cards.map(card => ({ ...card })),
-});
-
-Object.assign(PRESETS, {
-  grocery: businessPreset('Grocery & supermarket', 'Retail', 'Fast-moving products, daily sales, stock and reorder signals.', 'retail'),
-  pharmacy: businessPreset('Pharmacy', 'Retail', 'Sales, stock availability, purchasing and operational alerts.', 'inventory'),
-  fashion: businessPreset('Fashion & apparel', 'Retail', 'Revenue, popular products, customers and inventory movement.', 'retail'),
-  electronics: businessPreset('Electronics store', 'Retail', 'High-value sales, cash position, stock and customer activity.', 'command'),
-  wholesale: businessPreset('Wholesale & distribution', 'Operations', 'Receivables, purchasing, stock levels and order activity.', 'inventory'),
-  restaurant: businessPreset('Restaurant & café', 'Food', 'Daily revenue, payment mix, live activity and quick operations.', 'retail', 'operations'),
-  bakery: businessPreset('Bakery', 'Food', 'Daily sales, best sellers, stock needs and essential actions.', 'retail', 'operations'),
-  salon: businessPreset('Salon & spa', 'Services', 'Revenue, customers, payments and a compact daily command view.', 'command'),
-  services: businessPreset('Professional services', 'Services', 'Invoices, receivables, cash flow and customer activity.', 'finance'),
-  healthcare: businessPreset('Clinic & healthcare', 'Services', 'Revenue, payments, activity and a clear operational overview.', 'command'),
-  ecommerce: businessPreset('Online commerce', 'Retail', 'Revenue trends, top products, payment mix and fulfilment signals.', 'retail'),
-  manufacturing: businessPreset('Manufacturing', 'Operations', 'Inventory value, purchasing, production inputs and alerts.', 'inventory'),
-  construction: businessPreset('Construction & projects', 'Operations', 'Cash flow, payables, expenses and financial control.', 'finance'),
-  education: businessPreset('Education & training', 'Professional', 'Revenue, receivables, customers and financial performance.', 'command'),
-});
-const DEFAULT_PRESET = "retail";
-
-/** A preset never hands over a card the store's modules cannot answer. */
+/** A card is only valid if the store's enabled modules can answer it. */
 function availableCards(cards){
-  return cards.filter(c => c.type
+  return (cards || []).filter(c => c && (c.type
     ? specialAvailable(c.type)
-    : (READINGS.some(r => r.key === c.key) && readingAvailable(readingOf(c.key))));
-}
-
-function applyPreset(id){
-  const p = PRESETS[id] || PRESETS[DEFAULT_PRESET];
-  const cols = boardCols();
-  const scale = cols < 12 ? cols / 12 : 1;
-  CARDS = availableCards(p.cards).map(c => {
-    const card = { ...c, id: newId() };
-    if (scale !== 1 && card.w){
-      card.w = Math.max(1, Math.min(cols, Math.round(card.w * scale)));
-    }
-    delete card.gx; delete card.gy;          /* presets always flow */
-    return normaliseCard(card);
-  });
-  if (FRAME_SLOTS.length) {
-    CARDS.forEach((card, index) => {
-      const slot = FRAME_SLOTS[index];
-      if (!slot) return;
-      card.frameSlot = Number(slot.slot);
-      card.gx = Number(slot.x); card.gy = Number(slot.y);
-      card.w = Number(slot.w); card.h = Number(slot.h); card.cat = slot.category;
-      const fitIndex = (FITS[card.cat] || []).findIndex(fit => fit[2] === slot.fit);
-      card.fit = fitIndex < 0 ? (DEFAULT_FIT[card.cat] || 0) : fitIndex;
-    });
-  }
-  EDIT = null;
-  draw();
+    : (READINGS.some(r => r.key === c.key) && readingAvailable(readingOf(c.key)))));
 }
 
 /* ── boot ──────────────────────────────────────────────────────────────── */
-function boot(presetId){
+function boot(frameKey){
   CARDS = []; EDIT = null;          /* a reset replaces the board, never doubles it */
   SKIP_LEGACY_SERVER_LAYOUT = false;
   PERSIST_ON = false;
-  if (presetId){
-    applyPreset(presetId);
+  if (frameKey && FRAME_SLOTS.length){
+    setFrame(frameKey, FRAME_SLOTS);
   } else {
     const saved = loadBoard();
     if (saved){
@@ -3281,38 +3086,35 @@ function boot(presetId){
       SEQ = maxSeq;
       CARDS = saved.map(c => normaliseCard(c));
       draw();
-    } else {
-      applyPreset(DEFAULT_PRESET);
-      if (typeof axios !== 'undefined') {
-        axios.get('/api/dashboards').then(res => {
-          const list = res?.data?.data || [];
-          if (Array.isArray(list) && list.length > 0) {
-            const activeBoard = list.find(b => b.is_default) || list[0];
-            if (!SKIP_LEGACY_SERVER_LAYOUT && activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
-              const backendCards = activeBoard.cards.map(bc => ({
-                id: bc.id || newId(),
-                key: bc.reading_key || bc.key,
-                chart: bc.chart,
-                period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_year' ? 'Year' : 'Month',
-                w: bc.w,
-                h: bc.h,
-                gx: bc.x,
-                gy: bc.y,
-                frameSlot: bc.frame_slot,
-                cat: bc.category || 'C4',
-                fit: bc.fit || 0,
-                type: bc.type,
-                variant: bc.variant || defaultVariant(bc.style || 'area'),
-              }));
-              CARDS = availableCards(backendCards).map(normaliseCard);
-              DASHBOARD_ID = activeBoard.id || DASHBOARD_ID;
-              ACTIVE_FRAME = activeBoard.frame_key || ACTIVE_FRAME;
-              FRAME_DIRTY = !!activeBoard.frame_dirty;
-              draw();
-            }
+    } else if (typeof axios !== 'undefined') {
+      axios.get('/api/dashboards').then(res => {
+        const list = res?.data?.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          const activeBoard = list.find(b => b.is_default) || list[0];
+          if (!SKIP_LEGACY_SERVER_LAYOUT && activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
+            const backendCards = activeBoard.cards.map(bc => ({
+              id: bc.id || newId(),
+              key: bc.reading_key || bc.key,
+              chart: chartKey(bc.chart),
+              period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
+              w: bc.w,
+              h: bc.h,
+              gx: bc.x,
+              gy: bc.y,
+              frameSlot: bc.frame_slot,
+              cat: bc.category || 'C4',
+              fit: bc.fit || 0,
+              type: bc.type,
+              variant: bc.variant || defaultVariant(chartKey(bc.chart)),
+            }));
+            CARDS = availableCards(backendCards).map(normaliseCard);
+            DASHBOARD_ID = activeBoard.id || DASHBOARD_ID;
+            ACTIVE_FRAME = activeBoard.frame_key || ACTIVE_FRAME;
+            FRAME_DIRTY = !!activeBoard.frame_dirty;
+            draw();
           }
-        }).catch(() => {});
-      }
+        }
+      }).catch(() => {});
     }
   }
   PERSIST_ON = true;
@@ -3401,8 +3203,6 @@ window.VenQoreCards = {
   deepLinkFor: getDeepLinkForCard,
   catForSize: (card, w, h) => catForSize(normaliseCard({ ...card }), w, h),
   fitValues,
-  getPresets: () => PRESETS,
-  applyPreset,
   setEnabledModules,
   specialAvailable,
   destinationName,
@@ -3816,47 +3616,6 @@ function DashRail({
 }
 
 
-/* ── a preset, drawn: simulate the grid's row-major auto-placement on 8
-   columns and paint the little rectangles. A picker you choose by eye. */
-function packPreset(cards, cols = 8) {
-  const taken = [];   /* taken[row] = boolean[cols] */
-  const rects = [];
-  const fits = (r, c, w, h) => {
-    for (let y = r; y < r + h; y++) { const row = taken[y]; if (row) for (let x = c; x < c + w; x++) if (row[x]) return false; }
-    return true;
-  };
-  const mark = (r, c, w, h) => {
-    for (let y = r; y < r + h; y++) { taken[y] ||= new Array(cols).fill(false); for (let x = c; x < c + w; x++) taken[y][x] = true; }
-  };
-  let cursorR = 0, cursorC = 0;
-  cards.forEach(card => {
-    const w = Math.min(cols, card.w || 3), h = card.h || 2;
-    let r = cursorR, c = cursorC, placed = false;
-    while (!placed) {
-      if (c + w > cols) { c = 0; r++; continue; }
-      if (fits(r, c, w, h)) { rects.push({ x: c, y: r, w, h, hub: !!card.type }); mark(r, c, w, h); cursorR = r; cursorC = c + w; placed = true; }
-      else c++;
-    }
-  });
-  return rects;
-}
-function PresetThumb({ cards }) {
-  const rects = useMemo(() => packPreset(cards), [cards]);
-  const rows = Math.min(14, rects.reduce((m, r) => Math.max(m, r.y + r.h), 0));
-  const CW = 112, U = 5, G = 1.6, colW = (CW - G * 7) / 8;
-  const H = rows * U + (rows - 1) * G;
-  return (
-    <svg className="vq-preset-thumb" width={CW} height={Math.max(30, H)} viewBox={`0 0 ${CW} ${Math.max(30, H)}`} aria-hidden="true">
-      {rects.filter(r => r.y < 14).map((r, i) => (
-        <rect key={i}
-          x={r.x * (colW + G)} y={r.y * (U + G)}
-          width={r.w * colW + (r.w - 1) * G} height={Math.min(r.h, 14 - r.y) * U + (Math.min(r.h, 14 - r.y) - 1) * G}
-          rx="1.6" fill="currentColor" opacity={r.hub ? 0.85 : 0.42} />
-      ))}
-    </svg>
-  );
-}
-
 export default function NewDashboard(props) {
   const containerRef = useRef(null);
   const previewRef = useRef(null);
@@ -3979,9 +3738,7 @@ export default function NewDashboard(props) {
   const railOnly = navMode === 'rail';
 
   /* ── the add-card wizard ─────────────────────────────────────────────── */
-  const [presetModalOpen, setPresetModalOpen] = useState(false);
-  const [presetSearch, setPresetSearch] = useState('');
-  const [presetCategory, setPresetCategory] = useState('All');
+  const [framePickerModalOpen, setFramePickerModalOpen] = useState(false);
   const [stepperModalOpen, setStepperModalOpen] = useState(false);
   const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0 readings · 1 hubs · 2 shortcuts
   const [step, setStep] = useState(1);
@@ -4091,14 +3848,7 @@ export default function NewDashboard(props) {
     return () => clearTimeout(t);
   }, [railsOn, railPrefs.width, vw, navMode, engineReady]);
 
-  /* Applying a preset sets the board AND the panel it was composed with. */
-  const choosePreset = (id) => {
-    const e = engine();
-    const p = e?.getPresets?.()[id];
-    e?.applyPreset?.(id);
-    if (p) setRailOpt({ design: PANEL_DESIGNS.some(d => d.id === p.panel) ? p.panel : null, collapsed: false });
-    setPresetModalOpen(false);
-  };
+
 
 
   useEffect(() => {
@@ -4172,7 +3922,7 @@ export default function NewDashboard(props) {
       else setRailOpt({ collapsed: !railPrefs.collapsed });
     };
     const onOpenSidePanel = () => setRailsModalOpen(true);
-    const onStartFresh = () => setPresetModalOpen(true);
+    const onStartFresh = () => setFramePickerModalOpen(true);
     const onQuickActions = () => setGlassModalOpen(true);
 
     window.addEventListener('vq:edit-layout', onEditLayout);
@@ -4188,7 +3938,7 @@ export default function NewDashboard(props) {
       const params = new URLSearchParams(window.location.search);
       if (params.get('edit') === '1') setIsEditMode(true);
       if (params.get('add_card') === '1') setTimeout(() => openPicker(0), 350);
-      if (params.get('reset') === '1') setPresetModalOpen(true);
+      if (params.get('reset') === '1') setFramePickerModalOpen(true);
     }
 
     return () => {
@@ -4616,7 +4366,7 @@ export default function NewDashboard(props) {
     setStep(1);
   };
 
-  const handleResetLayout = () => { setPresetModalOpen(true); setMenuOpen(false); };
+  const handleResetLayout = () => { setFramePickerModalOpen(true); setMenuOpen(false); };
 
   /* ── catalogue ───────────────────────────────────────────────────────── */
   const readings = engineReady
@@ -5291,74 +5041,31 @@ export default function NewDashboard(props) {
         </main>
       </div>
 
-      {/* ── Choose a starting layout ────────────────────────────────────── */}
-      {presetModalOpen && typeof document !== 'undefined' && createPortal((
-        <div className="vq-modal-overlay" onClick={() => setPresetModalOpen(false)} role="dialog" aria-modal="true">
+      {/* ── Choose a starting layout / Frame picker modal ─────────────────── */}
+      {framePickerModalOpen && typeof document !== 'undefined' && createPortal((
+        <div className="vq-modal-overlay" onClick={() => setFramePickerModalOpen(false)} role="dialog" aria-modal="true">
           <div className="vq-modal-card vq-preset-modal" onClick={e => e.stopPropagation()}>
             <div className="vq-modal-top-bar">
               <div>
                 <div className="vq-modal-step-sub">STARTING LAYOUTS</div>
-                <div className="vq-modal-heading">Start fresh</div>
+                <div className="vq-modal-heading">Choose a layout frame</div>
               </div>
-              <button type="button" className="vq-modal-close-x" onClick={() => setPresetModalOpen(false)} aria-label="Close">
+              <button type="button" className="vq-modal-close-x" onClick={() => setFramePickerModalOpen(false)} aria-label="Close">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
             <div className="vq-preset-note">
-              Pick a starting point — it replaces what's on the board now, and you can
-              add, resize and remove anything afterwards.
+              Pick a geometric frame — cards adapt seamlessly to the slots, and you can customize, resize, and add cards anytime.
             </div>
-            <div className="vq-modal-filter-zone">
-              <div className="vq-modal-search-wrapper">
-                <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input
-                  className="vq-modal-search"
-                  type="search"
-                  value={presetSearch}
-                  onChange={event => setPresetSearch(event.target.value)}
-                  placeholder="Search business layouts"
-                  aria-label="Search business layouts"
-                />
-              </div>
-              <div className="vq-family-tabs" role="tablist" aria-label="Business category">
-                {['All', 'Retail', 'Food', 'Services', 'Professional', 'Operations', 'General'].map(category => (
-                  <button key={category} type="button" role="tab" aria-selected={presetCategory === category}
-                    className={`vq-family-tab ${presetCategory === category ? 'is-active' : ''}`}
-                    onClick={() => setPresetCategory(category)}>
-                    <span className="vq-family-tab-title">{category}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="vq-preset-grid">
-              {Object.entries(engine()?.getPresets?.() || {}).filter(([, preset]) => {
-                const matchesCategory = presetCategory === 'All' || preset.category === presetCategory;
-                const query = presetSearch.trim().toLowerCase();
-                const matchesSearch = !query || `${preset.name} ${preset.desc} ${preset.category}`.toLowerCase().includes(query);
-                return matchesCategory && matchesSearch;
-              }).map(([id, p]) => {
-                const railNames = (p.rails || [])
-                  .map(rid => RAIL_DEFS.find(d => d.id === rid)?.name)
-                  .filter(Boolean);
-                return (
-                  <button key={id} type="button" className="vq-item-card vq-preset-card"
-                          onClick={() => choosePreset(id)}>
-                    <span className="vq-preset-row">
-                      <PresetThumb cards={p.cards} />
-                      <span className="vq-preset-text">
-                        <span className="vq-item-card-top">
-                          <span className="vq-item-card-title">{p.name}</span>
-                          <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                        </span>
-                        <span className="vq-item-card-desc">{p.desc}</span>
-                        {railNames.length > 0 && (
-                          <span className="vq-preset-rails">Side panel: {railNames.join(' · ')}</span>
-                        )}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="p-4 overflow-y-auto max-h-[70vh]">
+              <FramePicker
+                frames={frames}
+                value={activeFrameKey}
+                onChange={(frameKey) => {
+                  chooseFrame(frameKey);
+                  setFramePickerModalOpen(false);
+                }}
+              />
             </div>
           </div>
         </div>

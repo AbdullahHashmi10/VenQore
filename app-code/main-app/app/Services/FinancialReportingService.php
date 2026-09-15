@@ -1380,9 +1380,17 @@ class FinancialReportingService
      * @param string $end
      * @return array
      */
-    public function getCashFlowReport(string $start, string $end): array
+    public function getCashFlowReport(string $start, string $end, ?string $tenantId = null): array
     {
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return [
+                'operating_inflow'   => 0.0,
+                'operating_outflow'  => 0.0,
+                'net_cash_flow'      => 0.0,
+                'net_change_in_cash' => 0.0,
+            ];
+        }
         // Identify all Cash/Bank accounts (Codes 1000-1099)
         $cashAccounts = Account::where('tenant_id', $tenantId)
             ->where('type', 'asset')
