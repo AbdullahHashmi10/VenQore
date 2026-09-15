@@ -2606,7 +2606,7 @@ function ensureAllSlotsFilled(){
         CARDS.push(normaliseCard({
           id: newId(),
           key: availReading.key,
-          chart: defaultChart(availReading.key),
+          chart: legalFor(availReading.key)[0] || "stat",
           period: "Month",
           frameSlot: slotNum,
           gx: Number(slot.x),
@@ -3090,7 +3090,7 @@ function setFrame(frameKey, slots){
         matched = {
           id: newId(),
           key: availReading.key,
-          chart: defaultChart(availReading.key),
+          chart: legalFor(availReading.key)[0] || "stat",
           period: "Month",
           variant: "spark",
         };
