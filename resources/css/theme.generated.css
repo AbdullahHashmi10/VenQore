@@ -1,0 +1,1724 @@
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  GENERATED FILE — DO NOT EDIT
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *  Build-time default:  VenQore V6 (venqore-v6)
+ *  Source:              resources/js/theme/themes/venqore-v6.js
+ *  Runtime-selectable:  venqore-v6
+ *
+ *  Regenerate with:  npm run theme:build
+ *
+ *  Edits here are overwritten on every build. To change how the product
+ *  looks, edit the theme files above, or switch the build-time default in
+ *  resources/js/theme/active.js.
+ *
+ *  The :root block is what paints before any JavaScript runs. The
+ *  [data-vq-theme="…"] blocks let a user switch themes at runtime by
+ *  changing one attribute on <html> — see Contexts/AppearanceContext.jsx.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+:root {
+    /* Theme identity — readable from JS via getComputedStyle if ever needed */
+    --vq-theme-id: 'venqore-v6';
+
+    /* ═══════════════ COLOUR RAMPS ═══════════════
+       Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
+       opacity modifiers keep working: bg-brand-500/30 compiles to
+       rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every
+       /opacity class in the codebase. */
+
+    /* ramp: accent */
+    --vq-ramp-accent-50: 230 251 245;
+    --vq-ramp-accent-100: 198 245 233;
+    --vq-ramp-accent-200: 147 235 214;
+    --vq-ramp-accent-300: 89 219 192;
+    --vq-ramp-accent-400: 35 196 166;
+    --vq-ramp-accent-500: 11 170 143;
+    --vq-ramp-accent-600: 8 137 117;
+    --vq-ramp-accent-700: 7 107 94;
+    --vq-ramp-accent-800: 10 80 73;
+    --vq-ramp-accent-900: 11 58 53;
+    --vq-ramp-accent-950: 6 36 33;
+
+    /* ramp: brand */
+    --vq-ramp-brand-50: 230 251 245;
+    --vq-ramp-brand-100: 198 245 233;
+    --vq-ramp-brand-200: 147 235 214;
+    --vq-ramp-brand-300: 89 219 192;
+    --vq-ramp-brand-400: 35 196 166;
+    --vq-ramp-brand-500: 11 170 143;
+    --vq-ramp-brand-600: 8 137 117;
+    --vq-ramp-brand-700: 7 107 94;
+    --vq-ramp-brand-800: 10 80 73;
+    --vq-ramp-brand-900: 11 58 53;
+    --vq-ramp-brand-950: 6 36 33;
+
+    /* ramp: butter */
+    --vq-ramp-butter-50: 251 249 244;
+    --vq-ramp-butter-100: 255 243 214;
+    --vq-ramp-butter-200: 243 227 196;
+    --vq-ramp-butter-300: 255 221 142;
+    --vq-ramp-butter-400: 255 205 91;
+    --vq-ramp-butter-500: 245 179 46;
+    --vq-ramp-butter-600: 234 160 11;
+    --vq-ramp-butter-700: 166 116 10;
+    --vq-ramp-butter-800: 148 104 15;
+    --vq-ramp-butter-900: 112 80 15;
+    --vq-ramp-butter-950: 65 47 11;
+
+    /* ramp: coral */
+    --vq-ramp-coral-50: 251 245 244;
+    --vq-ramp-coral-100: 255 232 225;
+    --vq-ramp-coral-200: 242 206 197;
+    --vq-ramp-coral-300: 255 174 150;
+    --vq-ramp-coral-400: 255 138 107;
+    --vq-ramp-coral-500: 242 106 71;
+    --vq-ramp-coral-600: 229 60 16;
+    --vq-ramp-coral-700: 185 69 38;
+    --vq-ramp-coral-800: 145 44 18;
+    --vq-ramp-coral-900: 110 36 17;
+    --vq-ramp-coral-950: 64 23 12;
+
+    /* ramp: danger */
+    --vq-ramp-danger-50: 250 245 245;
+    --vq-ramp-danger-100: 253 234 231;
+    --vq-ramp-danger-200: 243 183 175;
+    --vq-ramp-danger-300: 222 174 170;
+    --vq-ramp-danger-400: 212 131 124;
+    --vq-ramp-danger-500: 204 91 82;
+    --vq-ramp-danger-600: 196 68 58;
+    --vq-ramp-danger-700: 155 57 49;
+    --vq-ramp-danger-800: 122 47 42;
+    --vq-ramp-danger-900: 93 39 35;
+    --vq-ramp-danger-950: 54 24 22;
+
+    /* ramp: highlight */
+    --vq-ramp-highlight-50: 251 245 244;
+    --vq-ramp-highlight-100: 255 232 225;
+    --vq-ramp-highlight-200: 242 206 197;
+    --vq-ramp-highlight-300: 255 174 150;
+    --vq-ramp-highlight-400: 255 138 107;
+    --vq-ramp-highlight-500: 242 106 71;
+    --vq-ramp-highlight-600: 229 60 16;
+    --vq-ramp-highlight-700: 185 69 38;
+    --vq-ramp-highlight-800: 145 44 18;
+    --vq-ramp-highlight-900: 110 36 17;
+    --vq-ramp-highlight-950: 64 23 12;
+
+    /* ramp: info */
+    --vq-ramp-info-50: 244 248 250;
+    --vq-ramp-info-100: 221 242 251;
+    --vq-ramp-info-200: 168 220 240;
+    --vq-ramp-info-300: 163 209 230;
+    --vq-ramp-info-400: 112 190 224;
+    --vq-ramp-info-500: 65 173 221;
+    --vq-ramp-info-600: 27 112 150;
+    --vq-ramp-info-700: 34 128 170;
+    --vq-ramp-info-800: 31 101 133;
+    --vq-ramp-info-900: 27 78 101;
+    --vq-ramp-info-950: 18 46 59;
+
+    /* ramp: ink */
+    --vq-ramp-ink-50: 241 245 242;
+    --vq-ramp-ink-100: 230 236 232;
+    --vq-ramp-ink-200: 211 220 215;
+    --vq-ramp-ink-300: 180 192 186;
+    --vq-ramp-ink-400: 127 142 135;
+    --vq-ramp-ink-500: 98 113 105;
+    --vq-ramp-ink-600: 83 97 89;
+    --vq-ramp-ink-700: 60 72 65;
+    --vq-ramp-ink-800: 41 51 45;
+    --vq-ramp-ink-900: 23 32 27;
+    --vq-ramp-ink-950: 13 20 18;
+
+    /* ramp: lime */
+    --vq-ramp-lime-50: 248 250 245;
+    --vq-ramp-lime-100: 238 249 215;
+    --vq-ramp-lime-200: 223 236 203;
+    --vq-ramp-lime-300: 200 238 126;
+    --vq-ramp-lime-400: 169 227 75;
+    --vq-ramp-lime-500: 140 203 46;
+    --vq-ramp-lime-600: 138 200 45;
+    --vq-ramp-lime-700: 94 140 21;
+    --vq-ramp-lime-800: 91 128 35;
+    --vq-ramp-lime-900: 70 98 30;
+    --vq-ramp-lime-950: 42 57 19;
+
+    /* ramp: neutral */
+    --vq-ramp-neutral-50: 241 245 242;
+    --vq-ramp-neutral-100: 230 236 232;
+    --vq-ramp-neutral-200: 211 220 215;
+    --vq-ramp-neutral-300: 180 192 186;
+    --vq-ramp-neutral-400: 127 142 135;
+    --vq-ramp-neutral-500: 98 113 105;
+    --vq-ramp-neutral-600: 83 97 89;
+    --vq-ramp-neutral-700: 60 72 65;
+    --vq-ramp-neutral-800: 41 51 45;
+    --vq-ramp-neutral-900: 23 32 27;
+    --vq-ramp-neutral-950: 13 20 18;
+
+    /* ramp: plum */
+    --vq-ramp-plum-50: 249 246 248;
+    --vq-ramp-plum-100: 243 237 242;
+    --vq-ramp-plum-200: 228 211 226;
+    --vq-ramp-plum-300: 224 180 224;
+    --vq-ramp-plum-400: 201 139 201;
+    --vq-ramp-plum-500: 178 102 168;
+    --vq-ramp-plum-600: 163 82 152;
+    --vq-ramp-plum-700: 126 62 118;
+    --vq-ramp-plum-800: 106 57 99;
+    --vq-ramp-plum-900: 81 46 77;
+    --vq-ramp-plum-950: 48 28 46;
+
+    /* ramp: sky */
+    --vq-ramp-sky-50: 245 249 250;
+    --vq-ramp-sky-100: 221 242 251;
+    --vq-ramp-sky-200: 202 227 236;
+    --vq-ramp-sky-300: 143 217 245;
+    --vq-ramp-sky-400: 85 196 236;
+    --vq-ramp-sky-500: 43 165 209;
+    --vq-ramp-sky-600: 42 160 203;
+    --vq-ramp-sky-700: 27 112 150;
+    --vq-ramp-sky-800: 33 104 130;
+    --vq-ramp-sky-900: 28 80 99;
+    --vq-ramp-sky-950: 19 47 58;
+
+    /* ramp: success */
+    --vq-ramp-success-50: 244 251 248;
+    --vq-ramp-success-100: 228 246 236;
+    --vq-ramp-success-200: 169 224 196;
+    --vq-ramp-success-300: 160 233 207;
+    --vq-ramp-success-400: 107 230 186;
+    --vq-ramp-success-500: 57 228 167;
+    --vq-ramp-success-600: 18 133 92;
+    --vq-ramp-success-700: 27 177 123;
+    --vq-ramp-success-800: 26 138 98;
+    --vq-ramp-success-900: 23 105 75;
+    --vq-ramp-success-950: 16 61 45;
+
+    /* ramp: teal */
+    --vq-ramp-teal-50: 230 251 245;
+    --vq-ramp-teal-100: 198 245 233;
+    --vq-ramp-teal-200: 147 235 214;
+    --vq-ramp-teal-300: 89 219 192;
+    --vq-ramp-teal-400: 35 196 166;
+    --vq-ramp-teal-500: 11 170 143;
+    --vq-ramp-teal-600: 8 137 117;
+    --vq-ramp-teal-700: 7 107 94;
+    --vq-ramp-teal-800: 10 80 73;
+    --vq-ramp-teal-900: 11 58 53;
+    --vq-ramp-teal-950: 6 36 33;
+
+    /* ramp: void */
+    --vq-ramp-void-50: 246 248 248;
+    --vq-ramp-void-100: 237 242 241;
+    --vq-ramp-void-200: 213 226 222;
+    --vq-ramp-void-300: 184 208 202;
+    --vq-ramp-void-400: 148 189 177;
+    --vq-ramp-void-500: 114 171 155;
+    --vq-ramp-void-600: 91 153 136;
+    --vq-ramp-void-700: 77 127 113;
+    --vq-ramp-void-800: 63 100 90;
+    --vq-ramp-void-900: 13 20 18;
+    --vq-ramp-void-950: 6 10 9;
+
+    /* ramp: warning */
+    --vq-ramp-warning-50: 251 248 244;
+    --vq-ramp-warning-100: 255 243 214;
+    --vq-ramp-warning-200: 242 208 138;
+    --vq-ramp-warning-300: 239 206 154;
+    --vq-ramp-warning-400: 240 184 97;
+    --vq-ramp-warning-500: 242 164 43;
+    --vq-ramp-warning-600: 166 105 10;
+    --vq-ramp-warning-700: 189 121 15;
+    --vq-ramp-warning-800: 147 96 17;
+    --vq-ramp-warning-900: 111 74 16;
+    --vq-ramp-warning-950: 65 44 12;
+
+    /* ═══════════════ PALETTE BINDINGS ═══════════════
+       Tailwind colour families pointed at ramps. This is the layer that
+       reskins the ~40,000 pre-existing colour classes without touching a
+       single component. */
+
+    /* slate, gray, zinc, stone, neutral → ink */
+    --vq-slate-50: var(--vq-ramp-ink-50);
+    --vq-slate-100: var(--vq-ramp-ink-100);
+    --vq-slate-200: var(--vq-ramp-ink-200);
+    --vq-slate-300: var(--vq-ramp-ink-300);
+    --vq-slate-400: var(--vq-ramp-ink-400);
+    --vq-slate-500: var(--vq-ramp-ink-500);
+    --vq-slate-600: var(--vq-ramp-ink-600);
+    --vq-slate-700: var(--vq-ramp-ink-700);
+    --vq-slate-800: var(--vq-ramp-ink-800);
+    --vq-slate-900: var(--vq-ramp-ink-900);
+    --vq-slate-950: var(--vq-ramp-ink-950);
+    --vq-gray-50: var(--vq-ramp-ink-50);
+    --vq-gray-100: var(--vq-ramp-ink-100);
+    --vq-gray-200: var(--vq-ramp-ink-200);
+    --vq-gray-300: var(--vq-ramp-ink-300);
+    --vq-gray-400: var(--vq-ramp-ink-400);
+    --vq-gray-500: var(--vq-ramp-ink-500);
+    --vq-gray-600: var(--vq-ramp-ink-600);
+    --vq-gray-700: var(--vq-ramp-ink-700);
+    --vq-gray-800: var(--vq-ramp-ink-800);
+    --vq-gray-900: var(--vq-ramp-ink-900);
+    --vq-gray-950: var(--vq-ramp-ink-950);
+    --vq-zinc-50: var(--vq-ramp-ink-50);
+    --vq-zinc-100: var(--vq-ramp-ink-100);
+    --vq-zinc-200: var(--vq-ramp-ink-200);
+    --vq-zinc-300: var(--vq-ramp-ink-300);
+    --vq-zinc-400: var(--vq-ramp-ink-400);
+    --vq-zinc-500: var(--vq-ramp-ink-500);
+    --vq-zinc-600: var(--vq-ramp-ink-600);
+    --vq-zinc-700: var(--vq-ramp-ink-700);
+    --vq-zinc-800: var(--vq-ramp-ink-800);
+    --vq-zinc-900: var(--vq-ramp-ink-900);
+    --vq-zinc-950: var(--vq-ramp-ink-950);
+    --vq-stone-50: var(--vq-ramp-ink-50);
+    --vq-stone-100: var(--vq-ramp-ink-100);
+    --vq-stone-200: var(--vq-ramp-ink-200);
+    --vq-stone-300: var(--vq-ramp-ink-300);
+    --vq-stone-400: var(--vq-ramp-ink-400);
+    --vq-stone-500: var(--vq-ramp-ink-500);
+    --vq-stone-600: var(--vq-ramp-ink-600);
+    --vq-stone-700: var(--vq-ramp-ink-700);
+    --vq-stone-800: var(--vq-ramp-ink-800);
+    --vq-stone-900: var(--vq-ramp-ink-900);
+    --vq-stone-950: var(--vq-ramp-ink-950);
+    --vq-neutral-50: var(--vq-ramp-ink-50);
+    --vq-neutral-100: var(--vq-ramp-ink-100);
+    --vq-neutral-200: var(--vq-ramp-ink-200);
+    --vq-neutral-300: var(--vq-ramp-ink-300);
+    --vq-neutral-400: var(--vq-ramp-ink-400);
+    --vq-neutral-500: var(--vq-ramp-ink-500);
+    --vq-neutral-600: var(--vq-ramp-ink-600);
+    --vq-neutral-700: var(--vq-ramp-ink-700);
+    --vq-neutral-800: var(--vq-ramp-ink-800);
+    --vq-neutral-900: var(--vq-ramp-ink-900);
+    --vq-neutral-950: var(--vq-ramp-ink-950);
+
+    /* indigo, teal → teal (teal under --vq-tw-*: V6 owns the plain name) */
+    --vq-indigo-50: var(--vq-ramp-teal-50);
+    --vq-indigo-100: var(--vq-ramp-teal-100);
+    --vq-indigo-200: var(--vq-ramp-teal-200);
+    --vq-indigo-300: var(--vq-ramp-teal-300);
+    --vq-indigo-400: var(--vq-ramp-teal-400);
+    --vq-indigo-500: var(--vq-ramp-teal-500);
+    --vq-indigo-600: var(--vq-ramp-teal-600);
+    --vq-indigo-700: var(--vq-ramp-teal-700);
+    --vq-indigo-800: var(--vq-ramp-teal-800);
+    --vq-indigo-900: var(--vq-ramp-teal-900);
+    --vq-indigo-950: var(--vq-ramp-teal-950);
+    --vq-tw-teal-50: var(--vq-ramp-teal-50);
+    --vq-tw-teal-100: var(--vq-ramp-teal-100);
+    --vq-tw-teal-200: var(--vq-ramp-teal-200);
+    --vq-tw-teal-300: var(--vq-ramp-teal-300);
+    --vq-tw-teal-400: var(--vq-ramp-teal-400);
+    --vq-tw-teal-500: var(--vq-ramp-teal-500);
+    --vq-tw-teal-600: var(--vq-ramp-teal-600);
+    --vq-tw-teal-700: var(--vq-ramp-teal-700);
+    --vq-tw-teal-800: var(--vq-ramp-teal-800);
+    --vq-tw-teal-900: var(--vq-ramp-teal-900);
+    --vq-tw-teal-950: var(--vq-ramp-teal-950);
+
+    /* violet, purple, fuchsia, pink → plum */
+    --vq-violet-50: var(--vq-ramp-plum-50);
+    --vq-violet-100: var(--vq-ramp-plum-100);
+    --vq-violet-200: var(--vq-ramp-plum-200);
+    --vq-violet-300: var(--vq-ramp-plum-300);
+    --vq-violet-400: var(--vq-ramp-plum-400);
+    --vq-violet-500: var(--vq-ramp-plum-500);
+    --vq-violet-600: var(--vq-ramp-plum-600);
+    --vq-violet-700: var(--vq-ramp-plum-700);
+    --vq-violet-800: var(--vq-ramp-plum-800);
+    --vq-violet-900: var(--vq-ramp-plum-900);
+    --vq-violet-950: var(--vq-ramp-plum-950);
+    --vq-purple-50: var(--vq-ramp-plum-50);
+    --vq-purple-100: var(--vq-ramp-plum-100);
+    --vq-purple-200: var(--vq-ramp-plum-200);
+    --vq-purple-300: var(--vq-ramp-plum-300);
+    --vq-purple-400: var(--vq-ramp-plum-400);
+    --vq-purple-500: var(--vq-ramp-plum-500);
+    --vq-purple-600: var(--vq-ramp-plum-600);
+    --vq-purple-700: var(--vq-ramp-plum-700);
+    --vq-purple-800: var(--vq-ramp-plum-800);
+    --vq-purple-900: var(--vq-ramp-plum-900);
+    --vq-purple-950: var(--vq-ramp-plum-950);
+    --vq-fuchsia-50: var(--vq-ramp-plum-50);
+    --vq-fuchsia-100: var(--vq-ramp-plum-100);
+    --vq-fuchsia-200: var(--vq-ramp-plum-200);
+    --vq-fuchsia-300: var(--vq-ramp-plum-300);
+    --vq-fuchsia-400: var(--vq-ramp-plum-400);
+    --vq-fuchsia-500: var(--vq-ramp-plum-500);
+    --vq-fuchsia-600: var(--vq-ramp-plum-600);
+    --vq-fuchsia-700: var(--vq-ramp-plum-700);
+    --vq-fuchsia-800: var(--vq-ramp-plum-800);
+    --vq-fuchsia-900: var(--vq-ramp-plum-900);
+    --vq-fuchsia-950: var(--vq-ramp-plum-950);
+    --vq-pink-50: var(--vq-ramp-plum-50);
+    --vq-pink-100: var(--vq-ramp-plum-100);
+    --vq-pink-200: var(--vq-ramp-plum-200);
+    --vq-pink-300: var(--vq-ramp-plum-300);
+    --vq-pink-400: var(--vq-ramp-plum-400);
+    --vq-pink-500: var(--vq-ramp-plum-500);
+    --vq-pink-600: var(--vq-ramp-plum-600);
+    --vq-pink-700: var(--vq-ramp-plum-700);
+    --vq-pink-800: var(--vq-ramp-plum-800);
+    --vq-pink-900: var(--vq-ramp-plum-900);
+    --vq-pink-950: var(--vq-ramp-plum-950);
+
+    /* blue, sky, cyan → sky (sky under --vq-tw-*: V6 owns the plain name) */
+    --vq-blue-50: var(--vq-ramp-sky-50);
+    --vq-blue-100: var(--vq-ramp-sky-100);
+    --vq-blue-200: var(--vq-ramp-sky-200);
+    --vq-blue-300: var(--vq-ramp-sky-300);
+    --vq-blue-400: var(--vq-ramp-sky-400);
+    --vq-blue-500: var(--vq-ramp-sky-500);
+    --vq-blue-600: var(--vq-ramp-sky-600);
+    --vq-blue-700: var(--vq-ramp-sky-700);
+    --vq-blue-800: var(--vq-ramp-sky-800);
+    --vq-blue-900: var(--vq-ramp-sky-900);
+    --vq-blue-950: var(--vq-ramp-sky-950);
+    --vq-tw-sky-50: var(--vq-ramp-sky-50);
+    --vq-tw-sky-100: var(--vq-ramp-sky-100);
+    --vq-tw-sky-200: var(--vq-ramp-sky-200);
+    --vq-tw-sky-300: var(--vq-ramp-sky-300);
+    --vq-tw-sky-400: var(--vq-ramp-sky-400);
+    --vq-tw-sky-500: var(--vq-ramp-sky-500);
+    --vq-tw-sky-600: var(--vq-ramp-sky-600);
+    --vq-tw-sky-700: var(--vq-ramp-sky-700);
+    --vq-tw-sky-800: var(--vq-ramp-sky-800);
+    --vq-tw-sky-900: var(--vq-ramp-sky-900);
+    --vq-tw-sky-950: var(--vq-ramp-sky-950);
+    --vq-cyan-50: var(--vq-ramp-sky-50);
+    --vq-cyan-100: var(--vq-ramp-sky-100);
+    --vq-cyan-200: var(--vq-ramp-sky-200);
+    --vq-cyan-300: var(--vq-ramp-sky-300);
+    --vq-cyan-400: var(--vq-ramp-sky-400);
+    --vq-cyan-500: var(--vq-ramp-sky-500);
+    --vq-cyan-600: var(--vq-ramp-sky-600);
+    --vq-cyan-700: var(--vq-ramp-sky-700);
+    --vq-cyan-800: var(--vq-ramp-sky-800);
+    --vq-cyan-900: var(--vq-ramp-sky-900);
+    --vq-cyan-950: var(--vq-ramp-sky-950);
+
+    /* emerald, green → success */
+    --vq-emerald-50: var(--vq-ramp-success-50);
+    --vq-emerald-100: var(--vq-ramp-success-100);
+    --vq-emerald-200: var(--vq-ramp-success-200);
+    --vq-emerald-300: var(--vq-ramp-success-300);
+    --vq-emerald-400: var(--vq-ramp-success-400);
+    --vq-emerald-500: var(--vq-ramp-success-500);
+    --vq-emerald-600: var(--vq-ramp-success-600);
+    --vq-emerald-700: var(--vq-ramp-success-700);
+    --vq-emerald-800: var(--vq-ramp-success-800);
+    --vq-emerald-900: var(--vq-ramp-success-900);
+    --vq-emerald-950: var(--vq-ramp-success-950);
+    --vq-green-50: var(--vq-ramp-success-50);
+    --vq-green-100: var(--vq-ramp-success-100);
+    --vq-green-200: var(--vq-ramp-success-200);
+    --vq-green-300: var(--vq-ramp-success-300);
+    --vq-green-400: var(--vq-ramp-success-400);
+    --vq-green-500: var(--vq-ramp-success-500);
+    --vq-green-600: var(--vq-ramp-success-600);
+    --vq-green-700: var(--vq-ramp-success-700);
+    --vq-green-800: var(--vq-ramp-success-800);
+    --vq-green-900: var(--vq-ramp-success-900);
+    --vq-green-950: var(--vq-ramp-success-950);
+
+    /* lime → lime (lime under --vq-tw-*: V6 owns the plain name) */
+    --vq-tw-lime-50: var(--vq-ramp-lime-50);
+    --vq-tw-lime-100: var(--vq-ramp-lime-100);
+    --vq-tw-lime-200: var(--vq-ramp-lime-200);
+    --vq-tw-lime-300: var(--vq-ramp-lime-300);
+    --vq-tw-lime-400: var(--vq-ramp-lime-400);
+    --vq-tw-lime-500: var(--vq-ramp-lime-500);
+    --vq-tw-lime-600: var(--vq-ramp-lime-600);
+    --vq-tw-lime-700: var(--vq-ramp-lime-700);
+    --vq-tw-lime-800: var(--vq-ramp-lime-800);
+    --vq-tw-lime-900: var(--vq-ramp-lime-900);
+    --vq-tw-lime-950: var(--vq-ramp-lime-950);
+
+    /* yellow, amber → warning */
+    --vq-yellow-50: var(--vq-ramp-warning-50);
+    --vq-yellow-100: var(--vq-ramp-warning-100);
+    --vq-yellow-200: var(--vq-ramp-warning-200);
+    --vq-yellow-300: var(--vq-ramp-warning-300);
+    --vq-yellow-400: var(--vq-ramp-warning-400);
+    --vq-yellow-500: var(--vq-ramp-warning-500);
+    --vq-yellow-600: var(--vq-ramp-warning-600);
+    --vq-yellow-700: var(--vq-ramp-warning-700);
+    --vq-yellow-800: var(--vq-ramp-warning-800);
+    --vq-yellow-900: var(--vq-ramp-warning-900);
+    --vq-yellow-950: var(--vq-ramp-warning-950);
+    --vq-amber-50: var(--vq-ramp-warning-50);
+    --vq-amber-100: var(--vq-ramp-warning-100);
+    --vq-amber-200: var(--vq-ramp-warning-200);
+    --vq-amber-300: var(--vq-ramp-warning-300);
+    --vq-amber-400: var(--vq-ramp-warning-400);
+    --vq-amber-500: var(--vq-ramp-warning-500);
+    --vq-amber-600: var(--vq-ramp-warning-600);
+    --vq-amber-700: var(--vq-ramp-warning-700);
+    --vq-amber-800: var(--vq-ramp-warning-800);
+    --vq-amber-900: var(--vq-ramp-warning-900);
+    --vq-amber-950: var(--vq-ramp-warning-950);
+
+    /* orange → coral */
+    --vq-orange-50: var(--vq-ramp-coral-50);
+    --vq-orange-100: var(--vq-ramp-coral-100);
+    --vq-orange-200: var(--vq-ramp-coral-200);
+    --vq-orange-300: var(--vq-ramp-coral-300);
+    --vq-orange-400: var(--vq-ramp-coral-400);
+    --vq-orange-500: var(--vq-ramp-coral-500);
+    --vq-orange-600: var(--vq-ramp-coral-600);
+    --vq-orange-700: var(--vq-ramp-coral-700);
+    --vq-orange-800: var(--vq-ramp-coral-800);
+    --vq-orange-900: var(--vq-ramp-coral-900);
+    --vq-orange-950: var(--vq-ramp-coral-950);
+
+    /* red, rose → danger */
+    --vq-red-50: var(--vq-ramp-danger-50);
+    --vq-red-100: var(--vq-ramp-danger-100);
+    --vq-red-200: var(--vq-ramp-danger-200);
+    --vq-red-300: var(--vq-ramp-danger-300);
+    --vq-red-400: var(--vq-ramp-danger-400);
+    --vq-red-500: var(--vq-ramp-danger-500);
+    --vq-red-600: var(--vq-ramp-danger-600);
+    --vq-red-700: var(--vq-ramp-danger-700);
+    --vq-red-800: var(--vq-ramp-danger-800);
+    --vq-red-900: var(--vq-ramp-danger-900);
+    --vq-red-950: var(--vq-ramp-danger-950);
+    --vq-rose-50: var(--vq-ramp-danger-50);
+    --vq-rose-100: var(--vq-ramp-danger-100);
+    --vq-rose-200: var(--vq-ramp-danger-200);
+    --vq-rose-300: var(--vq-ramp-danger-300);
+    --vq-rose-400: var(--vq-ramp-danger-400);
+    --vq-rose-500: var(--vq-ramp-danger-500);
+    --vq-rose-600: var(--vq-ramp-danger-600);
+    --vq-rose-700: var(--vq-ramp-danger-700);
+    --vq-rose-800: var(--vq-ramp-danger-800);
+    --vq-rose-900: var(--vq-ramp-danger-900);
+    --vq-rose-950: var(--vq-ramp-danger-950);
+
+    /* void → void */
+    --vq-void-50: var(--vq-ramp-void-50);
+    --vq-void-100: var(--vq-ramp-void-100);
+    --vq-void-200: var(--vq-ramp-void-200);
+    --vq-void-300: var(--vq-ramp-void-300);
+    --vq-void-400: var(--vq-ramp-void-400);
+    --vq-void-500: var(--vq-ramp-void-500);
+    --vq-void-600: var(--vq-ramp-void-600);
+    --vq-void-700: var(--vq-ramp-void-700);
+    --vq-void-800: var(--vq-ramp-void-800);
+    --vq-void-900: var(--vq-ramp-void-900);
+    --vq-void-950: var(--vq-ramp-void-950);
+
+    /* semantic role aliases — prefer these in new code */
+    --vq-neutral-50: var(--vq-ramp-neutral-50);
+    --vq-neutral-100: var(--vq-ramp-neutral-100);
+    --vq-neutral-200: var(--vq-ramp-neutral-200);
+    --vq-neutral-300: var(--vq-ramp-neutral-300);
+    --vq-neutral-400: var(--vq-ramp-neutral-400);
+    --vq-neutral-500: var(--vq-ramp-neutral-500);
+    --vq-neutral-600: var(--vq-ramp-neutral-600);
+    --vq-neutral-700: var(--vq-ramp-neutral-700);
+    --vq-neutral-800: var(--vq-ramp-neutral-800);
+    --vq-neutral-900: var(--vq-ramp-neutral-900);
+    --vq-neutral-950: var(--vq-ramp-neutral-950);
+    --vq-brand-50: var(--vq-ramp-brand-50);
+    --vq-brand-100: var(--vq-ramp-brand-100);
+    --vq-brand-200: var(--vq-ramp-brand-200);
+    --vq-brand-300: var(--vq-ramp-brand-300);
+    --vq-brand-400: var(--vq-ramp-brand-400);
+    --vq-brand-500: var(--vq-ramp-brand-500);
+    --vq-brand-600: var(--vq-ramp-brand-600);
+    --vq-brand-700: var(--vq-ramp-brand-700);
+    --vq-brand-800: var(--vq-ramp-brand-800);
+    --vq-brand-900: var(--vq-ramp-brand-900);
+    --vq-brand-950: var(--vq-ramp-brand-950);
+    --vq-accent-50: var(--vq-ramp-accent-50);
+    --vq-accent-100: var(--vq-ramp-accent-100);
+    --vq-accent-200: var(--vq-ramp-accent-200);
+    --vq-accent-300: var(--vq-ramp-accent-300);
+    --vq-accent-400: var(--vq-ramp-accent-400);
+    --vq-accent-500: var(--vq-ramp-accent-500);
+    --vq-accent-600: var(--vq-ramp-accent-600);
+    --vq-accent-700: var(--vq-ramp-accent-700);
+    --vq-accent-800: var(--vq-ramp-accent-800);
+    --vq-accent-900: var(--vq-ramp-accent-900);
+    --vq-accent-950: var(--vq-ramp-accent-950);
+    --vq-info-50: var(--vq-ramp-info-50);
+    --vq-info-100: var(--vq-ramp-info-100);
+    --vq-info-200: var(--vq-ramp-info-200);
+    --vq-info-300: var(--vq-ramp-info-300);
+    --vq-info-400: var(--vq-ramp-info-400);
+    --vq-info-500: var(--vq-ramp-info-500);
+    --vq-info-600: var(--vq-ramp-info-600);
+    --vq-info-700: var(--vq-ramp-info-700);
+    --vq-info-800: var(--vq-ramp-info-800);
+    --vq-info-900: var(--vq-ramp-info-900);
+    --vq-info-950: var(--vq-ramp-info-950);
+    --vq-success-50: var(--vq-ramp-success-50);
+    --vq-success-100: var(--vq-ramp-success-100);
+    --vq-success-200: var(--vq-ramp-success-200);
+    --vq-success-300: var(--vq-ramp-success-300);
+    --vq-success-400: var(--vq-ramp-success-400);
+    --vq-success-500: var(--vq-ramp-success-500);
+    --vq-success-600: var(--vq-ramp-success-600);
+    --vq-success-700: var(--vq-ramp-success-700);
+    --vq-success-800: var(--vq-ramp-success-800);
+    --vq-success-900: var(--vq-ramp-success-900);
+    --vq-success-950: var(--vq-ramp-success-950);
+    --vq-warning-50: var(--vq-ramp-warning-50);
+    --vq-warning-100: var(--vq-ramp-warning-100);
+    --vq-warning-200: var(--vq-ramp-warning-200);
+    --vq-warning-300: var(--vq-ramp-warning-300);
+    --vq-warning-400: var(--vq-ramp-warning-400);
+    --vq-warning-500: var(--vq-ramp-warning-500);
+    --vq-warning-600: var(--vq-ramp-warning-600);
+    --vq-warning-700: var(--vq-ramp-warning-700);
+    --vq-warning-800: var(--vq-ramp-warning-800);
+    --vq-warning-900: var(--vq-ramp-warning-900);
+    --vq-warning-950: var(--vq-ramp-warning-950);
+    --vq-danger-50: var(--vq-ramp-danger-50);
+    --vq-danger-100: var(--vq-ramp-danger-100);
+    --vq-danger-200: var(--vq-ramp-danger-200);
+    --vq-danger-300: var(--vq-ramp-danger-300);
+    --vq-danger-400: var(--vq-ramp-danger-400);
+    --vq-danger-500: var(--vq-ramp-danger-500);
+    --vq-danger-600: var(--vq-ramp-danger-600);
+    --vq-danger-700: var(--vq-ramp-danger-700);
+    --vq-danger-800: var(--vq-ramp-danger-800);
+    --vq-danger-900: var(--vq-ramp-danger-900);
+    --vq-danger-950: var(--vq-ramp-danger-950);
+    --vq-highlight-50: var(--vq-ramp-highlight-50);
+    --vq-highlight-100: var(--vq-ramp-highlight-100);
+    --vq-highlight-200: var(--vq-ramp-highlight-200);
+    --vq-highlight-300: var(--vq-ramp-highlight-300);
+    --vq-highlight-400: var(--vq-ramp-highlight-400);
+    --vq-highlight-500: var(--vq-ramp-highlight-500);
+    --vq-highlight-600: var(--vq-ramp-highlight-600);
+    --vq-highlight-700: var(--vq-ramp-highlight-700);
+    --vq-highlight-800: var(--vq-ramp-highlight-800);
+    --vq-highlight-900: var(--vq-ramp-highlight-900);
+    --vq-highlight-950: var(--vq-ramp-highlight-950);
+
+    /* ═══════════════ SEMANTIC — LIGHT MODE ═══════════════
+       Overridden by the dark blocks further down. */
+    --vq-bg-app: 241 245 242;
+    --vq-bg-sunken: 230 236 232;
+    --vq-bg-surface: 255 255 255;
+    --vq-bg-raised: 248 250 248;
+    --vq-bg-overlay: 255 255 255;
+    --vq-bg-scrim: 158 161 160;
+    --vq-ink: 23 32 27;
+    --vq-ink-secondary: 83 97 89;
+    --vq-ink-muted: 98 113 105;
+    --vq-ink-faint: 127 142 135;
+    --vq-ink-inverted: 255 255 255;
+    --vq-border: 211 220 215;
+    --vq-border-strong: 180 192 186;
+    --vq-border-subtle: 230 236 232;
+    --vq-interactive-hover: 241 245 242;
+    --vq-interactive-active: 230 236 232;
+    --vq-interactive-selected: 230 251 245;
+    --vq-focus-ring: 35 196 166;
+
+    /* ═══════════════ TYPOGRAPHY ═══════════════ */
+    --vq-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --vq-font-display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+    --vq-font-mono: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+    --vq-font-numeric: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+
+    /* type scale */
+    --vq-text-4xs: 0.5rem;
+    --vq-text-3xs: 0.5625rem;
+    --vq-text-2xs: 0.625rem;
+    --vq-text-1xs: 0.6875rem;
+    --vq-text-xs: 0.75rem;
+    --vq-text-xs--line-height: 1rem;
+    --vq-text-sm: 0.875rem;
+    --vq-text-sm--line-height: 1.5rem;
+    --vq-text-base: 17px;
+    --vq-text-base--line-height: 1.6;
+    --vq-text-lg: 1.125rem;
+    --vq-text-lg--line-height: 1.75rem;
+    --vq-text-xl: 23px;
+    --vq-text-xl--line-height: 1.30;
+    --vq-text-2xl: 1.5rem;
+    --vq-text-2xl--line-height: 1.25;
+    --vq-text-3xl: 32px;
+    --vq-text-3xl--line-height: 1.16;
+    --vq-text-4xl: 40px;
+    --vq-text-4xl--line-height: 1.0;
+    --vq-text-5xl: 42px;
+    --vq-text-5xl--line-height: 1.08;
+
+    /* weights */
+    --vq-weight-light: 300;
+    --vq-weight-normal: 400;
+    --vq-weight-medium: 500;
+    --vq-weight-semibold: 600;
+    --vq-weight-bold: 700;
+    --vq-weight-extrabold: 700;
+    --vq-weight-black: 700;
+
+    /* line heights */
+    --vq-leading-none: 1;
+    --vq-leading-tight: 1.08;
+    --vq-leading-snug: 1.30;
+    --vq-leading-normal: 1.6;
+    --vq-leading-relaxed: 1.55;
+    --vq-leading-loose: 2;
+
+    /* letter spacing */
+    --vq-tracking-tighter: -0.032em;
+    --vq-tracking-tight: -0.024em;
+    --vq-tracking-normal: 0em;
+    --vq-tracking-wide: 0.025em;
+    --vq-tracking-wider: 0.05em;
+    --vq-tracking-widest: 0.12em;
+
+    /* ═══════════════ SHAPE ═══════════════ */
+    --vq-radius-none: 0px;
+    --vq-radius-xs: 8px;
+    --vq-radius-sm: 12px;
+    --vq-radius-md: 14px;
+    --vq-radius-lg: 20px;
+    --vq-radius-xl: 28px;
+    --vq-radius-2xl: 36px;
+    --vq-radius-3xl: 36px;
+    --vq-radius-full: 999px;
+
+    /* elevation */
+    --vq-shadow-none: none;
+    --vq-shadow-xs: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-sm: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-md: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-lg: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-2xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-inner: inset 0 1px 0 rgb(255 255 255 / .55);
+    --vq-shadow-glow: 0 6px 20px -6px rgb(11 170 143 / .55);
+
+    /* ═══════════════ DENSITY ═══════════════ */
+    --vq-space-1: 4px;
+    --vq-space-2: 8px;
+    --vq-space-3: 12px;
+    --vq-space-4: 16px;
+    --vq-space-5: 20px;
+    --vq-space-6: 24px;
+    --vq-space-8: 32px;
+    --vq-space-10: 40px;
+    --vq-space-12: 48px;
+    --vq-space-16: 64px;
+    --vq-space-20: 80px;
+    --vq-space-24: 96px;
+    --vq-space-0_5: 0.125rem;
+    --vq-space-1_5: 0.375rem;
+
+    /* control sizing */
+    --vq-control-height-sm: 34px;
+    --vq-control-height-md: 42px;
+    --vq-control-height-lg: 48px;
+    --vq-control-padding-x: 20px;
+    --vq-control-gap: 8px;
+
+    /* layout */
+    --vq-layout-gutter: 24px;
+    --vq-layout-section-gap: 32px;
+    --vq-layout-card-padding: 20px;
+    --vq-layout-page-max-width: 1240px;
+    --vq-layout-sidebar-width: 264px;
+
+    /* ═══════════════ MOTION ═══════════════ */
+    --vq-duration-instant: 0ms;
+    --vq-duration-fast: 120ms;
+    --vq-duration-normal: 200ms;
+    --vq-duration-slow: 320ms;
+    --vq-duration-slower: 520ms;
+
+    /* easing curves */
+    --vq-ease-standard: cubic-bezier(.22, 1, .36, 1);
+    --vq-ease-entrance: cubic-bezier(.32, 1.28, .5, 1);
+    --vq-ease-exit: cubic-bezier(.65, 0, .35, 1);
+    --vq-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+
+    /* ═══════════════ GRADIENTS ═══════════════ */
+    --vq-gradient-brand: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%);
+    --vq-gradient-brand-soft: linear-gradient(135deg, #C6F5E9, #E6FBF5);
+    --vq-gradient-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%);
+    --vq-gradient-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-aurora: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%);
+    --vq-gradient-success: linear-gradient(135deg, #0BAA8F 0%, #076B5E 100%);
+    --vq-gradient-info: linear-gradient(135deg, #55C4EC 0%, #1B7096 100%);
+    --vq-gradient-danger: linear-gradient(135deg, #FF8A6B 0%, #B94526 100%);
+    --vq-gradient-hairline-accent: linear-gradient(to right, transparent, #0BAA8F, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME LIBRARY — LIGHT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── VenQore V6 (venqore-v6) ── */
+[data-vq-theme="venqore-v6"] {
+    /* Theme identity — readable from JS via getComputedStyle if ever needed */
+    --vq-theme-id: 'venqore-v6';
+
+    /* ═══════════════ COLOUR RAMPS ═══════════════
+       Stored as bare "R G B" channel triplets, not hex, so that Tailwind's
+       opacity modifiers keep working: bg-brand-500/30 compiles to
+       rgb(var(--vq-indigo-500) / 0.3). A hex value here would break every
+       /opacity class in the codebase. */
+
+    /* ramp: accent */
+    --vq-ramp-accent-50: 230 251 245;
+    --vq-ramp-accent-100: 198 245 233;
+    --vq-ramp-accent-200: 147 235 214;
+    --vq-ramp-accent-300: 89 219 192;
+    --vq-ramp-accent-400: 35 196 166;
+    --vq-ramp-accent-500: 11 170 143;
+    --vq-ramp-accent-600: 8 137 117;
+    --vq-ramp-accent-700: 7 107 94;
+    --vq-ramp-accent-800: 10 80 73;
+    --vq-ramp-accent-900: 11 58 53;
+    --vq-ramp-accent-950: 6 36 33;
+
+    /* ramp: brand */
+    --vq-ramp-brand-50: 230 251 245;
+    --vq-ramp-brand-100: 198 245 233;
+    --vq-ramp-brand-200: 147 235 214;
+    --vq-ramp-brand-300: 89 219 192;
+    --vq-ramp-brand-400: 35 196 166;
+    --vq-ramp-brand-500: 11 170 143;
+    --vq-ramp-brand-600: 8 137 117;
+    --vq-ramp-brand-700: 7 107 94;
+    --vq-ramp-brand-800: 10 80 73;
+    --vq-ramp-brand-900: 11 58 53;
+    --vq-ramp-brand-950: 6 36 33;
+
+    /* ramp: butter */
+    --vq-ramp-butter-50: 251 249 244;
+    --vq-ramp-butter-100: 255 243 214;
+    --vq-ramp-butter-200: 243 227 196;
+    --vq-ramp-butter-300: 255 221 142;
+    --vq-ramp-butter-400: 255 205 91;
+    --vq-ramp-butter-500: 245 179 46;
+    --vq-ramp-butter-600: 234 160 11;
+    --vq-ramp-butter-700: 166 116 10;
+    --vq-ramp-butter-800: 148 104 15;
+    --vq-ramp-butter-900: 112 80 15;
+    --vq-ramp-butter-950: 65 47 11;
+
+    /* ramp: coral */
+    --vq-ramp-coral-50: 251 245 244;
+    --vq-ramp-coral-100: 255 232 225;
+    --vq-ramp-coral-200: 242 206 197;
+    --vq-ramp-coral-300: 255 174 150;
+    --vq-ramp-coral-400: 255 138 107;
+    --vq-ramp-coral-500: 242 106 71;
+    --vq-ramp-coral-600: 229 60 16;
+    --vq-ramp-coral-700: 185 69 38;
+    --vq-ramp-coral-800: 145 44 18;
+    --vq-ramp-coral-900: 110 36 17;
+    --vq-ramp-coral-950: 64 23 12;
+
+    /* ramp: danger */
+    --vq-ramp-danger-50: 250 245 245;
+    --vq-ramp-danger-100: 253 234 231;
+    --vq-ramp-danger-200: 243 183 175;
+    --vq-ramp-danger-300: 222 174 170;
+    --vq-ramp-danger-400: 212 131 124;
+    --vq-ramp-danger-500: 204 91 82;
+    --vq-ramp-danger-600: 196 68 58;
+    --vq-ramp-danger-700: 155 57 49;
+    --vq-ramp-danger-800: 122 47 42;
+    --vq-ramp-danger-900: 93 39 35;
+    --vq-ramp-danger-950: 54 24 22;
+
+    /* ramp: highlight */
+    --vq-ramp-highlight-50: 251 245 244;
+    --vq-ramp-highlight-100: 255 232 225;
+    --vq-ramp-highlight-200: 242 206 197;
+    --vq-ramp-highlight-300: 255 174 150;
+    --vq-ramp-highlight-400: 255 138 107;
+    --vq-ramp-highlight-500: 242 106 71;
+    --vq-ramp-highlight-600: 229 60 16;
+    --vq-ramp-highlight-700: 185 69 38;
+    --vq-ramp-highlight-800: 145 44 18;
+    --vq-ramp-highlight-900: 110 36 17;
+    --vq-ramp-highlight-950: 64 23 12;
+
+    /* ramp: info */
+    --vq-ramp-info-50: 244 248 250;
+    --vq-ramp-info-100: 221 242 251;
+    --vq-ramp-info-200: 168 220 240;
+    --vq-ramp-info-300: 163 209 230;
+    --vq-ramp-info-400: 112 190 224;
+    --vq-ramp-info-500: 65 173 221;
+    --vq-ramp-info-600: 27 112 150;
+    --vq-ramp-info-700: 34 128 170;
+    --vq-ramp-info-800: 31 101 133;
+    --vq-ramp-info-900: 27 78 101;
+    --vq-ramp-info-950: 18 46 59;
+
+    /* ramp: ink */
+    --vq-ramp-ink-50: 241 245 242;
+    --vq-ramp-ink-100: 230 236 232;
+    --vq-ramp-ink-200: 211 220 215;
+    --vq-ramp-ink-300: 180 192 186;
+    --vq-ramp-ink-400: 127 142 135;
+    --vq-ramp-ink-500: 98 113 105;
+    --vq-ramp-ink-600: 83 97 89;
+    --vq-ramp-ink-700: 60 72 65;
+    --vq-ramp-ink-800: 41 51 45;
+    --vq-ramp-ink-900: 23 32 27;
+    --vq-ramp-ink-950: 13 20 18;
+
+    /* ramp: lime */
+    --vq-ramp-lime-50: 248 250 245;
+    --vq-ramp-lime-100: 238 249 215;
+    --vq-ramp-lime-200: 223 236 203;
+    --vq-ramp-lime-300: 200 238 126;
+    --vq-ramp-lime-400: 169 227 75;
+    --vq-ramp-lime-500: 140 203 46;
+    --vq-ramp-lime-600: 138 200 45;
+    --vq-ramp-lime-700: 94 140 21;
+    --vq-ramp-lime-800: 91 128 35;
+    --vq-ramp-lime-900: 70 98 30;
+    --vq-ramp-lime-950: 42 57 19;
+
+    /* ramp: neutral */
+    --vq-ramp-neutral-50: 241 245 242;
+    --vq-ramp-neutral-100: 230 236 232;
+    --vq-ramp-neutral-200: 211 220 215;
+    --vq-ramp-neutral-300: 180 192 186;
+    --vq-ramp-neutral-400: 127 142 135;
+    --vq-ramp-neutral-500: 98 113 105;
+    --vq-ramp-neutral-600: 83 97 89;
+    --vq-ramp-neutral-700: 60 72 65;
+    --vq-ramp-neutral-800: 41 51 45;
+    --vq-ramp-neutral-900: 23 32 27;
+    --vq-ramp-neutral-950: 13 20 18;
+
+    /* ramp: plum */
+    --vq-ramp-plum-50: 249 246 248;
+    --vq-ramp-plum-100: 243 237 242;
+    --vq-ramp-plum-200: 228 211 226;
+    --vq-ramp-plum-300: 224 180 224;
+    --vq-ramp-plum-400: 201 139 201;
+    --vq-ramp-plum-500: 178 102 168;
+    --vq-ramp-plum-600: 163 82 152;
+    --vq-ramp-plum-700: 126 62 118;
+    --vq-ramp-plum-800: 106 57 99;
+    --vq-ramp-plum-900: 81 46 77;
+    --vq-ramp-plum-950: 48 28 46;
+
+    /* ramp: sky */
+    --vq-ramp-sky-50: 245 249 250;
+    --vq-ramp-sky-100: 221 242 251;
+    --vq-ramp-sky-200: 202 227 236;
+    --vq-ramp-sky-300: 143 217 245;
+    --vq-ramp-sky-400: 85 196 236;
+    --vq-ramp-sky-500: 43 165 209;
+    --vq-ramp-sky-600: 42 160 203;
+    --vq-ramp-sky-700: 27 112 150;
+    --vq-ramp-sky-800: 33 104 130;
+    --vq-ramp-sky-900: 28 80 99;
+    --vq-ramp-sky-950: 19 47 58;
+
+    /* ramp: success */
+    --vq-ramp-success-50: 244 251 248;
+    --vq-ramp-success-100: 228 246 236;
+    --vq-ramp-success-200: 169 224 196;
+    --vq-ramp-success-300: 160 233 207;
+    --vq-ramp-success-400: 107 230 186;
+    --vq-ramp-success-500: 57 228 167;
+    --vq-ramp-success-600: 18 133 92;
+    --vq-ramp-success-700: 27 177 123;
+    --vq-ramp-success-800: 26 138 98;
+    --vq-ramp-success-900: 23 105 75;
+    --vq-ramp-success-950: 16 61 45;
+
+    /* ramp: teal */
+    --vq-ramp-teal-50: 230 251 245;
+    --vq-ramp-teal-100: 198 245 233;
+    --vq-ramp-teal-200: 147 235 214;
+    --vq-ramp-teal-300: 89 219 192;
+    --vq-ramp-teal-400: 35 196 166;
+    --vq-ramp-teal-500: 11 170 143;
+    --vq-ramp-teal-600: 8 137 117;
+    --vq-ramp-teal-700: 7 107 94;
+    --vq-ramp-teal-800: 10 80 73;
+    --vq-ramp-teal-900: 11 58 53;
+    --vq-ramp-teal-950: 6 36 33;
+
+    /* ramp: void */
+    --vq-ramp-void-50: 246 248 248;
+    --vq-ramp-void-100: 237 242 241;
+    --vq-ramp-void-200: 213 226 222;
+    --vq-ramp-void-300: 184 208 202;
+    --vq-ramp-void-400: 148 189 177;
+    --vq-ramp-void-500: 114 171 155;
+    --vq-ramp-void-600: 91 153 136;
+    --vq-ramp-void-700: 77 127 113;
+    --vq-ramp-void-800: 63 100 90;
+    --vq-ramp-void-900: 13 20 18;
+    --vq-ramp-void-950: 6 10 9;
+
+    /* ramp: warning */
+    --vq-ramp-warning-50: 251 248 244;
+    --vq-ramp-warning-100: 255 243 214;
+    --vq-ramp-warning-200: 242 208 138;
+    --vq-ramp-warning-300: 239 206 154;
+    --vq-ramp-warning-400: 240 184 97;
+    --vq-ramp-warning-500: 242 164 43;
+    --vq-ramp-warning-600: 166 105 10;
+    --vq-ramp-warning-700: 189 121 15;
+    --vq-ramp-warning-800: 147 96 17;
+    --vq-ramp-warning-900: 111 74 16;
+    --vq-ramp-warning-950: 65 44 12;
+
+    /* ═══════════════ PALETTE BINDINGS ═══════════════
+       Tailwind colour families pointed at ramps. This is the layer that
+       reskins the ~40,000 pre-existing colour classes without touching a
+       single component. */
+
+    /* slate, gray, zinc, stone, neutral → ink */
+    --vq-slate-50: var(--vq-ramp-ink-50);
+    --vq-slate-100: var(--vq-ramp-ink-100);
+    --vq-slate-200: var(--vq-ramp-ink-200);
+    --vq-slate-300: var(--vq-ramp-ink-300);
+    --vq-slate-400: var(--vq-ramp-ink-400);
+    --vq-slate-500: var(--vq-ramp-ink-500);
+    --vq-slate-600: var(--vq-ramp-ink-600);
+    --vq-slate-700: var(--vq-ramp-ink-700);
+    --vq-slate-800: var(--vq-ramp-ink-800);
+    --vq-slate-900: var(--vq-ramp-ink-900);
+    --vq-slate-950: var(--vq-ramp-ink-950);
+    --vq-gray-50: var(--vq-ramp-ink-50);
+    --vq-gray-100: var(--vq-ramp-ink-100);
+    --vq-gray-200: var(--vq-ramp-ink-200);
+    --vq-gray-300: var(--vq-ramp-ink-300);
+    --vq-gray-400: var(--vq-ramp-ink-400);
+    --vq-gray-500: var(--vq-ramp-ink-500);
+    --vq-gray-600: var(--vq-ramp-ink-600);
+    --vq-gray-700: var(--vq-ramp-ink-700);
+    --vq-gray-800: var(--vq-ramp-ink-800);
+    --vq-gray-900: var(--vq-ramp-ink-900);
+    --vq-gray-950: var(--vq-ramp-ink-950);
+    --vq-zinc-50: var(--vq-ramp-ink-50);
+    --vq-zinc-100: var(--vq-ramp-ink-100);
+    --vq-zinc-200: var(--vq-ramp-ink-200);
+    --vq-zinc-300: var(--vq-ramp-ink-300);
+    --vq-zinc-400: var(--vq-ramp-ink-400);
+    --vq-zinc-500: var(--vq-ramp-ink-500);
+    --vq-zinc-600: var(--vq-ramp-ink-600);
+    --vq-zinc-700: var(--vq-ramp-ink-700);
+    --vq-zinc-800: var(--vq-ramp-ink-800);
+    --vq-zinc-900: var(--vq-ramp-ink-900);
+    --vq-zinc-950: var(--vq-ramp-ink-950);
+    --vq-stone-50: var(--vq-ramp-ink-50);
+    --vq-stone-100: var(--vq-ramp-ink-100);
+    --vq-stone-200: var(--vq-ramp-ink-200);
+    --vq-stone-300: var(--vq-ramp-ink-300);
+    --vq-stone-400: var(--vq-ramp-ink-400);
+    --vq-stone-500: var(--vq-ramp-ink-500);
+    --vq-stone-600: var(--vq-ramp-ink-600);
+    --vq-stone-700: var(--vq-ramp-ink-700);
+    --vq-stone-800: var(--vq-ramp-ink-800);
+    --vq-stone-900: var(--vq-ramp-ink-900);
+    --vq-stone-950: var(--vq-ramp-ink-950);
+    --vq-neutral-50: var(--vq-ramp-ink-50);
+    --vq-neutral-100: var(--vq-ramp-ink-100);
+    --vq-neutral-200: var(--vq-ramp-ink-200);
+    --vq-neutral-300: var(--vq-ramp-ink-300);
+    --vq-neutral-400: var(--vq-ramp-ink-400);
+    --vq-neutral-500: var(--vq-ramp-ink-500);
+    --vq-neutral-600: var(--vq-ramp-ink-600);
+    --vq-neutral-700: var(--vq-ramp-ink-700);
+    --vq-neutral-800: var(--vq-ramp-ink-800);
+    --vq-neutral-900: var(--vq-ramp-ink-900);
+    --vq-neutral-950: var(--vq-ramp-ink-950);
+
+    /* indigo, teal → teal (teal under --vq-tw-*: V6 owns the plain name) */
+    --vq-indigo-50: var(--vq-ramp-teal-50);
+    --vq-indigo-100: var(--vq-ramp-teal-100);
+    --vq-indigo-200: var(--vq-ramp-teal-200);
+    --vq-indigo-300: var(--vq-ramp-teal-300);
+    --vq-indigo-400: var(--vq-ramp-teal-400);
+    --vq-indigo-500: var(--vq-ramp-teal-500);
+    --vq-indigo-600: var(--vq-ramp-teal-600);
+    --vq-indigo-700: var(--vq-ramp-teal-700);
+    --vq-indigo-800: var(--vq-ramp-teal-800);
+    --vq-indigo-900: var(--vq-ramp-teal-900);
+    --vq-indigo-950: var(--vq-ramp-teal-950);
+    --vq-tw-teal-50: var(--vq-ramp-teal-50);
+    --vq-tw-teal-100: var(--vq-ramp-teal-100);
+    --vq-tw-teal-200: var(--vq-ramp-teal-200);
+    --vq-tw-teal-300: var(--vq-ramp-teal-300);
+    --vq-tw-teal-400: var(--vq-ramp-teal-400);
+    --vq-tw-teal-500: var(--vq-ramp-teal-500);
+    --vq-tw-teal-600: var(--vq-ramp-teal-600);
+    --vq-tw-teal-700: var(--vq-ramp-teal-700);
+    --vq-tw-teal-800: var(--vq-ramp-teal-800);
+    --vq-tw-teal-900: var(--vq-ramp-teal-900);
+    --vq-tw-teal-950: var(--vq-ramp-teal-950);
+
+    /* violet, purple, fuchsia, pink → plum */
+    --vq-violet-50: var(--vq-ramp-plum-50);
+    --vq-violet-100: var(--vq-ramp-plum-100);
+    --vq-violet-200: var(--vq-ramp-plum-200);
+    --vq-violet-300: var(--vq-ramp-plum-300);
+    --vq-violet-400: var(--vq-ramp-plum-400);
+    --vq-violet-500: var(--vq-ramp-plum-500);
+    --vq-violet-600: var(--vq-ramp-plum-600);
+    --vq-violet-700: var(--vq-ramp-plum-700);
+    --vq-violet-800: var(--vq-ramp-plum-800);
+    --vq-violet-900: var(--vq-ramp-plum-900);
+    --vq-violet-950: var(--vq-ramp-plum-950);
+    --vq-purple-50: var(--vq-ramp-plum-50);
+    --vq-purple-100: var(--vq-ramp-plum-100);
+    --vq-purple-200: var(--vq-ramp-plum-200);
+    --vq-purple-300: var(--vq-ramp-plum-300);
+    --vq-purple-400: var(--vq-ramp-plum-400);
+    --vq-purple-500: var(--vq-ramp-plum-500);
+    --vq-purple-600: var(--vq-ramp-plum-600);
+    --vq-purple-700: var(--vq-ramp-plum-700);
+    --vq-purple-800: var(--vq-ramp-plum-800);
+    --vq-purple-900: var(--vq-ramp-plum-900);
+    --vq-purple-950: var(--vq-ramp-plum-950);
+    --vq-fuchsia-50: var(--vq-ramp-plum-50);
+    --vq-fuchsia-100: var(--vq-ramp-plum-100);
+    --vq-fuchsia-200: var(--vq-ramp-plum-200);
+    --vq-fuchsia-300: var(--vq-ramp-plum-300);
+    --vq-fuchsia-400: var(--vq-ramp-plum-400);
+    --vq-fuchsia-500: var(--vq-ramp-plum-500);
+    --vq-fuchsia-600: var(--vq-ramp-plum-600);
+    --vq-fuchsia-700: var(--vq-ramp-plum-700);
+    --vq-fuchsia-800: var(--vq-ramp-plum-800);
+    --vq-fuchsia-900: var(--vq-ramp-plum-900);
+    --vq-fuchsia-950: var(--vq-ramp-plum-950);
+    --vq-pink-50: var(--vq-ramp-plum-50);
+    --vq-pink-100: var(--vq-ramp-plum-100);
+    --vq-pink-200: var(--vq-ramp-plum-200);
+    --vq-pink-300: var(--vq-ramp-plum-300);
+    --vq-pink-400: var(--vq-ramp-plum-400);
+    --vq-pink-500: var(--vq-ramp-plum-500);
+    --vq-pink-600: var(--vq-ramp-plum-600);
+    --vq-pink-700: var(--vq-ramp-plum-700);
+    --vq-pink-800: var(--vq-ramp-plum-800);
+    --vq-pink-900: var(--vq-ramp-plum-900);
+    --vq-pink-950: var(--vq-ramp-plum-950);
+
+    /* blue, sky, cyan → sky (sky under --vq-tw-*: V6 owns the plain name) */
+    --vq-blue-50: var(--vq-ramp-sky-50);
+    --vq-blue-100: var(--vq-ramp-sky-100);
+    --vq-blue-200: var(--vq-ramp-sky-200);
+    --vq-blue-300: var(--vq-ramp-sky-300);
+    --vq-blue-400: var(--vq-ramp-sky-400);
+    --vq-blue-500: var(--vq-ramp-sky-500);
+    --vq-blue-600: var(--vq-ramp-sky-600);
+    --vq-blue-700: var(--vq-ramp-sky-700);
+    --vq-blue-800: var(--vq-ramp-sky-800);
+    --vq-blue-900: var(--vq-ramp-sky-900);
+    --vq-blue-950: var(--vq-ramp-sky-950);
+    --vq-tw-sky-50: var(--vq-ramp-sky-50);
+    --vq-tw-sky-100: var(--vq-ramp-sky-100);
+    --vq-tw-sky-200: var(--vq-ramp-sky-200);
+    --vq-tw-sky-300: var(--vq-ramp-sky-300);
+    --vq-tw-sky-400: var(--vq-ramp-sky-400);
+    --vq-tw-sky-500: var(--vq-ramp-sky-500);
+    --vq-tw-sky-600: var(--vq-ramp-sky-600);
+    --vq-tw-sky-700: var(--vq-ramp-sky-700);
+    --vq-tw-sky-800: var(--vq-ramp-sky-800);
+    --vq-tw-sky-900: var(--vq-ramp-sky-900);
+    --vq-tw-sky-950: var(--vq-ramp-sky-950);
+    --vq-cyan-50: var(--vq-ramp-sky-50);
+    --vq-cyan-100: var(--vq-ramp-sky-100);
+    --vq-cyan-200: var(--vq-ramp-sky-200);
+    --vq-cyan-300: var(--vq-ramp-sky-300);
+    --vq-cyan-400: var(--vq-ramp-sky-400);
+    --vq-cyan-500: var(--vq-ramp-sky-500);
+    --vq-cyan-600: var(--vq-ramp-sky-600);
+    --vq-cyan-700: var(--vq-ramp-sky-700);
+    --vq-cyan-800: var(--vq-ramp-sky-800);
+    --vq-cyan-900: var(--vq-ramp-sky-900);
+    --vq-cyan-950: var(--vq-ramp-sky-950);
+
+    /* emerald, green → success */
+    --vq-emerald-50: var(--vq-ramp-success-50);
+    --vq-emerald-100: var(--vq-ramp-success-100);
+    --vq-emerald-200: var(--vq-ramp-success-200);
+    --vq-emerald-300: var(--vq-ramp-success-300);
+    --vq-emerald-400: var(--vq-ramp-success-400);
+    --vq-emerald-500: var(--vq-ramp-success-500);
+    --vq-emerald-600: var(--vq-ramp-success-600);
+    --vq-emerald-700: var(--vq-ramp-success-700);
+    --vq-emerald-800: var(--vq-ramp-success-800);
+    --vq-emerald-900: var(--vq-ramp-success-900);
+    --vq-emerald-950: var(--vq-ramp-success-950);
+    --vq-green-50: var(--vq-ramp-success-50);
+    --vq-green-100: var(--vq-ramp-success-100);
+    --vq-green-200: var(--vq-ramp-success-200);
+    --vq-green-300: var(--vq-ramp-success-300);
+    --vq-green-400: var(--vq-ramp-success-400);
+    --vq-green-500: var(--vq-ramp-success-500);
+    --vq-green-600: var(--vq-ramp-success-600);
+    --vq-green-700: var(--vq-ramp-success-700);
+    --vq-green-800: var(--vq-ramp-success-800);
+    --vq-green-900: var(--vq-ramp-success-900);
+    --vq-green-950: var(--vq-ramp-success-950);
+
+    /* lime → lime (lime under --vq-tw-*: V6 owns the plain name) */
+    --vq-tw-lime-50: var(--vq-ramp-lime-50);
+    --vq-tw-lime-100: var(--vq-ramp-lime-100);
+    --vq-tw-lime-200: var(--vq-ramp-lime-200);
+    --vq-tw-lime-300: var(--vq-ramp-lime-300);
+    --vq-tw-lime-400: var(--vq-ramp-lime-400);
+    --vq-tw-lime-500: var(--vq-ramp-lime-500);
+    --vq-tw-lime-600: var(--vq-ramp-lime-600);
+    --vq-tw-lime-700: var(--vq-ramp-lime-700);
+    --vq-tw-lime-800: var(--vq-ramp-lime-800);
+    --vq-tw-lime-900: var(--vq-ramp-lime-900);
+    --vq-tw-lime-950: var(--vq-ramp-lime-950);
+
+    /* yellow, amber → warning */
+    --vq-yellow-50: var(--vq-ramp-warning-50);
+    --vq-yellow-100: var(--vq-ramp-warning-100);
+    --vq-yellow-200: var(--vq-ramp-warning-200);
+    --vq-yellow-300: var(--vq-ramp-warning-300);
+    --vq-yellow-400: var(--vq-ramp-warning-400);
+    --vq-yellow-500: var(--vq-ramp-warning-500);
+    --vq-yellow-600: var(--vq-ramp-warning-600);
+    --vq-yellow-700: var(--vq-ramp-warning-700);
+    --vq-yellow-800: var(--vq-ramp-warning-800);
+    --vq-yellow-900: var(--vq-ramp-warning-900);
+    --vq-yellow-950: var(--vq-ramp-warning-950);
+    --vq-amber-50: var(--vq-ramp-warning-50);
+    --vq-amber-100: var(--vq-ramp-warning-100);
+    --vq-amber-200: var(--vq-ramp-warning-200);
+    --vq-amber-300: var(--vq-ramp-warning-300);
+    --vq-amber-400: var(--vq-ramp-warning-400);
+    --vq-amber-500: var(--vq-ramp-warning-500);
+    --vq-amber-600: var(--vq-ramp-warning-600);
+    --vq-amber-700: var(--vq-ramp-warning-700);
+    --vq-amber-800: var(--vq-ramp-warning-800);
+    --vq-amber-900: var(--vq-ramp-warning-900);
+    --vq-amber-950: var(--vq-ramp-warning-950);
+
+    /* orange → coral */
+    --vq-orange-50: var(--vq-ramp-coral-50);
+    --vq-orange-100: var(--vq-ramp-coral-100);
+    --vq-orange-200: var(--vq-ramp-coral-200);
+    --vq-orange-300: var(--vq-ramp-coral-300);
+    --vq-orange-400: var(--vq-ramp-coral-400);
+    --vq-orange-500: var(--vq-ramp-coral-500);
+    --vq-orange-600: var(--vq-ramp-coral-600);
+    --vq-orange-700: var(--vq-ramp-coral-700);
+    --vq-orange-800: var(--vq-ramp-coral-800);
+    --vq-orange-900: var(--vq-ramp-coral-900);
+    --vq-orange-950: var(--vq-ramp-coral-950);
+
+    /* red, rose → danger */
+    --vq-red-50: var(--vq-ramp-danger-50);
+    --vq-red-100: var(--vq-ramp-danger-100);
+    --vq-red-200: var(--vq-ramp-danger-200);
+    --vq-red-300: var(--vq-ramp-danger-300);
+    --vq-red-400: var(--vq-ramp-danger-400);
+    --vq-red-500: var(--vq-ramp-danger-500);
+    --vq-red-600: var(--vq-ramp-danger-600);
+    --vq-red-700: var(--vq-ramp-danger-700);
+    --vq-red-800: var(--vq-ramp-danger-800);
+    --vq-red-900: var(--vq-ramp-danger-900);
+    --vq-red-950: var(--vq-ramp-danger-950);
+    --vq-rose-50: var(--vq-ramp-danger-50);
+    --vq-rose-100: var(--vq-ramp-danger-100);
+    --vq-rose-200: var(--vq-ramp-danger-200);
+    --vq-rose-300: var(--vq-ramp-danger-300);
+    --vq-rose-400: var(--vq-ramp-danger-400);
+    --vq-rose-500: var(--vq-ramp-danger-500);
+    --vq-rose-600: var(--vq-ramp-danger-600);
+    --vq-rose-700: var(--vq-ramp-danger-700);
+    --vq-rose-800: var(--vq-ramp-danger-800);
+    --vq-rose-900: var(--vq-ramp-danger-900);
+    --vq-rose-950: var(--vq-ramp-danger-950);
+
+    /* void → void */
+    --vq-void-50: var(--vq-ramp-void-50);
+    --vq-void-100: var(--vq-ramp-void-100);
+    --vq-void-200: var(--vq-ramp-void-200);
+    --vq-void-300: var(--vq-ramp-void-300);
+    --vq-void-400: var(--vq-ramp-void-400);
+    --vq-void-500: var(--vq-ramp-void-500);
+    --vq-void-600: var(--vq-ramp-void-600);
+    --vq-void-700: var(--vq-ramp-void-700);
+    --vq-void-800: var(--vq-ramp-void-800);
+    --vq-void-900: var(--vq-ramp-void-900);
+    --vq-void-950: var(--vq-ramp-void-950);
+
+    /* semantic role aliases — prefer these in new code */
+    --vq-neutral-50: var(--vq-ramp-neutral-50);
+    --vq-neutral-100: var(--vq-ramp-neutral-100);
+    --vq-neutral-200: var(--vq-ramp-neutral-200);
+    --vq-neutral-300: var(--vq-ramp-neutral-300);
+    --vq-neutral-400: var(--vq-ramp-neutral-400);
+    --vq-neutral-500: var(--vq-ramp-neutral-500);
+    --vq-neutral-600: var(--vq-ramp-neutral-600);
+    --vq-neutral-700: var(--vq-ramp-neutral-700);
+    --vq-neutral-800: var(--vq-ramp-neutral-800);
+    --vq-neutral-900: var(--vq-ramp-neutral-900);
+    --vq-neutral-950: var(--vq-ramp-neutral-950);
+    --vq-brand-50: var(--vq-ramp-brand-50);
+    --vq-brand-100: var(--vq-ramp-brand-100);
+    --vq-brand-200: var(--vq-ramp-brand-200);
+    --vq-brand-300: var(--vq-ramp-brand-300);
+    --vq-brand-400: var(--vq-ramp-brand-400);
+    --vq-brand-500: var(--vq-ramp-brand-500);
+    --vq-brand-600: var(--vq-ramp-brand-600);
+    --vq-brand-700: var(--vq-ramp-brand-700);
+    --vq-brand-800: var(--vq-ramp-brand-800);
+    --vq-brand-900: var(--vq-ramp-brand-900);
+    --vq-brand-950: var(--vq-ramp-brand-950);
+    --vq-accent-50: var(--vq-ramp-accent-50);
+    --vq-accent-100: var(--vq-ramp-accent-100);
+    --vq-accent-200: var(--vq-ramp-accent-200);
+    --vq-accent-300: var(--vq-ramp-accent-300);
+    --vq-accent-400: var(--vq-ramp-accent-400);
+    --vq-accent-500: var(--vq-ramp-accent-500);
+    --vq-accent-600: var(--vq-ramp-accent-600);
+    --vq-accent-700: var(--vq-ramp-accent-700);
+    --vq-accent-800: var(--vq-ramp-accent-800);
+    --vq-accent-900: var(--vq-ramp-accent-900);
+    --vq-accent-950: var(--vq-ramp-accent-950);
+    --vq-info-50: var(--vq-ramp-info-50);
+    --vq-info-100: var(--vq-ramp-info-100);
+    --vq-info-200: var(--vq-ramp-info-200);
+    --vq-info-300: var(--vq-ramp-info-300);
+    --vq-info-400: var(--vq-ramp-info-400);
+    --vq-info-500: var(--vq-ramp-info-500);
+    --vq-info-600: var(--vq-ramp-info-600);
+    --vq-info-700: var(--vq-ramp-info-700);
+    --vq-info-800: var(--vq-ramp-info-800);
+    --vq-info-900: var(--vq-ramp-info-900);
+    --vq-info-950: var(--vq-ramp-info-950);
+    --vq-success-50: var(--vq-ramp-success-50);
+    --vq-success-100: var(--vq-ramp-success-100);
+    --vq-success-200: var(--vq-ramp-success-200);
+    --vq-success-300: var(--vq-ramp-success-300);
+    --vq-success-400: var(--vq-ramp-success-400);
+    --vq-success-500: var(--vq-ramp-success-500);
+    --vq-success-600: var(--vq-ramp-success-600);
+    --vq-success-700: var(--vq-ramp-success-700);
+    --vq-success-800: var(--vq-ramp-success-800);
+    --vq-success-900: var(--vq-ramp-success-900);
+    --vq-success-950: var(--vq-ramp-success-950);
+    --vq-warning-50: var(--vq-ramp-warning-50);
+    --vq-warning-100: var(--vq-ramp-warning-100);
+    --vq-warning-200: var(--vq-ramp-warning-200);
+    --vq-warning-300: var(--vq-ramp-warning-300);
+    --vq-warning-400: var(--vq-ramp-warning-400);
+    --vq-warning-500: var(--vq-ramp-warning-500);
+    --vq-warning-600: var(--vq-ramp-warning-600);
+    --vq-warning-700: var(--vq-ramp-warning-700);
+    --vq-warning-800: var(--vq-ramp-warning-800);
+    --vq-warning-900: var(--vq-ramp-warning-900);
+    --vq-warning-950: var(--vq-ramp-warning-950);
+    --vq-danger-50: var(--vq-ramp-danger-50);
+    --vq-danger-100: var(--vq-ramp-danger-100);
+    --vq-danger-200: var(--vq-ramp-danger-200);
+    --vq-danger-300: var(--vq-ramp-danger-300);
+    --vq-danger-400: var(--vq-ramp-danger-400);
+    --vq-danger-500: var(--vq-ramp-danger-500);
+    --vq-danger-600: var(--vq-ramp-danger-600);
+    --vq-danger-700: var(--vq-ramp-danger-700);
+    --vq-danger-800: var(--vq-ramp-danger-800);
+    --vq-danger-900: var(--vq-ramp-danger-900);
+    --vq-danger-950: var(--vq-ramp-danger-950);
+    --vq-highlight-50: var(--vq-ramp-highlight-50);
+    --vq-highlight-100: var(--vq-ramp-highlight-100);
+    --vq-highlight-200: var(--vq-ramp-highlight-200);
+    --vq-highlight-300: var(--vq-ramp-highlight-300);
+    --vq-highlight-400: var(--vq-ramp-highlight-400);
+    --vq-highlight-500: var(--vq-ramp-highlight-500);
+    --vq-highlight-600: var(--vq-ramp-highlight-600);
+    --vq-highlight-700: var(--vq-ramp-highlight-700);
+    --vq-highlight-800: var(--vq-ramp-highlight-800);
+    --vq-highlight-900: var(--vq-ramp-highlight-900);
+    --vq-highlight-950: var(--vq-ramp-highlight-950);
+
+    /* ═══════════════ SEMANTIC — LIGHT MODE ═══════════════
+       Overridden by the dark blocks further down. */
+    --vq-bg-app: 241 245 242;
+    --vq-bg-sunken: 230 236 232;
+    --vq-bg-surface: 255 255 255;
+    --vq-bg-raised: 248 250 248;
+    --vq-bg-overlay: 255 255 255;
+    --vq-bg-scrim: 158 161 160;
+    --vq-ink: 23 32 27;
+    --vq-ink-secondary: 83 97 89;
+    --vq-ink-muted: 98 113 105;
+    --vq-ink-faint: 127 142 135;
+    --vq-ink-inverted: 255 255 255;
+    --vq-border: 211 220 215;
+    --vq-border-strong: 180 192 186;
+    --vq-border-subtle: 230 236 232;
+    --vq-interactive-hover: 241 245 242;
+    --vq-interactive-active: 230 236 232;
+    --vq-interactive-selected: 230 251 245;
+    --vq-focus-ring: 35 196 166;
+
+    /* ═══════════════ TYPOGRAPHY ═══════════════ */
+    --vq-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --vq-font-display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+    --vq-font-mono: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+    --vq-font-numeric: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+
+    /* type scale */
+    --vq-text-4xs: 0.5rem;
+    --vq-text-3xs: 0.5625rem;
+    --vq-text-2xs: 0.625rem;
+    --vq-text-1xs: 0.6875rem;
+    --vq-text-xs: 0.75rem;
+    --vq-text-xs--line-height: 1rem;
+    --vq-text-sm: 0.875rem;
+    --vq-text-sm--line-height: 1.5rem;
+    --vq-text-base: 17px;
+    --vq-text-base--line-height: 1.6;
+    --vq-text-lg: 1.125rem;
+    --vq-text-lg--line-height: 1.75rem;
+    --vq-text-xl: 23px;
+    --vq-text-xl--line-height: 1.30;
+    --vq-text-2xl: 1.5rem;
+    --vq-text-2xl--line-height: 1.25;
+    --vq-text-3xl: 32px;
+    --vq-text-3xl--line-height: 1.16;
+    --vq-text-4xl: 40px;
+    --vq-text-4xl--line-height: 1.0;
+    --vq-text-5xl: 42px;
+    --vq-text-5xl--line-height: 1.08;
+
+    /* weights */
+    --vq-weight-light: 300;
+    --vq-weight-normal: 400;
+    --vq-weight-medium: 500;
+    --vq-weight-semibold: 600;
+    --vq-weight-bold: 700;
+    --vq-weight-extrabold: 700;
+    --vq-weight-black: 700;
+
+    /* line heights */
+    --vq-leading-none: 1;
+    --vq-leading-tight: 1.08;
+    --vq-leading-snug: 1.30;
+    --vq-leading-normal: 1.6;
+    --vq-leading-relaxed: 1.55;
+    --vq-leading-loose: 2;
+
+    /* letter spacing */
+    --vq-tracking-tighter: -0.032em;
+    --vq-tracking-tight: -0.024em;
+    --vq-tracking-normal: 0em;
+    --vq-tracking-wide: 0.025em;
+    --vq-tracking-wider: 0.05em;
+    --vq-tracking-widest: 0.12em;
+
+    /* ═══════════════ SHAPE ═══════════════ */
+    --vq-radius-none: 0px;
+    --vq-radius-xs: 8px;
+    --vq-radius-sm: 12px;
+    --vq-radius-md: 14px;
+    --vq-radius-lg: 20px;
+    --vq-radius-xl: 28px;
+    --vq-radius-2xl: 36px;
+    --vq-radius-3xl: 36px;
+    --vq-radius-full: 999px;
+
+    /* elevation */
+    --vq-shadow-none: none;
+    --vq-shadow-xs: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-sm: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+    --vq-shadow-md: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-lg: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+    --vq-shadow-xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-2xl: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+    --vq-shadow-inner: inset 0 1px 0 rgb(255 255 255 / .55);
+    --vq-shadow-glow: 0 6px 20px -6px rgb(11 170 143 / .55);
+
+    /* ═══════════════ DENSITY ═══════════════ */
+    --vq-space-1: 4px;
+    --vq-space-2: 8px;
+    --vq-space-3: 12px;
+    --vq-space-4: 16px;
+    --vq-space-5: 20px;
+    --vq-space-6: 24px;
+    --vq-space-8: 32px;
+    --vq-space-10: 40px;
+    --vq-space-12: 48px;
+    --vq-space-16: 64px;
+    --vq-space-20: 80px;
+    --vq-space-24: 96px;
+    --vq-space-0_5: 0.125rem;
+    --vq-space-1_5: 0.375rem;
+
+    /* control sizing */
+    --vq-control-height-sm: 34px;
+    --vq-control-height-md: 42px;
+    --vq-control-height-lg: 48px;
+    --vq-control-padding-x: 20px;
+    --vq-control-gap: 8px;
+
+    /* layout */
+    --vq-layout-gutter: 24px;
+    --vq-layout-section-gap: 32px;
+    --vq-layout-card-padding: 20px;
+    --vq-layout-page-max-width: 1240px;
+    --vq-layout-sidebar-width: 264px;
+
+    /* ═══════════════ MOTION ═══════════════ */
+    --vq-duration-instant: 0ms;
+    --vq-duration-fast: 120ms;
+    --vq-duration-normal: 200ms;
+    --vq-duration-slow: 320ms;
+    --vq-duration-slower: 520ms;
+
+    /* easing curves */
+    --vq-ease-standard: cubic-bezier(.22, 1, .36, 1);
+    --vq-ease-entrance: cubic-bezier(.32, 1.28, .5, 1);
+    --vq-ease-exit: cubic-bezier(.65, 0, .35, 1);
+    --vq-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+
+    /* ═══════════════ GRADIENTS ═══════════════ */
+    --vq-gradient-brand: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%);
+    --vq-gradient-brand-soft: linear-gradient(135deg, #C6F5E9, #E6FBF5);
+    --vq-gradient-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%);
+    --vq-gradient-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-aurora: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%), radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%);
+    --vq-gradient-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%);
+    --vq-gradient-success: linear-gradient(135deg, #0BAA8F 0%, #076B5E 100%);
+    --vq-gradient-info: linear-gradient(135deg, #55C4EC 0%, #1B7096 100%);
+    --vq-gradient-danger: linear-gradient(135deg, #FF8A6B 0%, #B94526 100%);
+    --vq-gradient-hairline-accent: linear-gradient(to right, transparent, #0BAA8F, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   USER CUSTOMISATION — DENSITY
+   Attribute pairs, so specificity (0,2,0) beats the theme block above
+   without depending on source order.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-vq-theme="venqore-v6"][data-vq-density="compact"] {
+    --vq-space-1: 3.36px;
+    --vq-space-2: 6.72px;
+    --vq-space-3: 10.08px;
+    --vq-space-4: 13.44px;
+    --vq-space-5: 16.8px;
+    --vq-space-6: 20.16px;
+    --vq-space-8: 26.88px;
+    --vq-space-10: 33.6px;
+    --vq-space-12: 40.32px;
+    --vq-space-16: 53.76px;
+    --vq-space-20: 67.2px;
+    --vq-space-24: 80.64px;
+    --vq-space-0_5: 0.105rem;
+    --vq-space-1_5: 0.315rem;
+    --vq-control-height-sm: 28.56px;
+    --vq-control-height-md: 35.28px;
+    --vq-control-height-lg: 40.32px;
+    --vq-control-padding-x: 16.8px;
+    --vq-control-gap: 6.72px;
+    --vq-layout-gutter: 20.16px;
+    --vq-layout-section-gap: 26.88px;
+    --vq-layout-card-padding: 16.8px;
+}
+
+[data-vq-theme="venqore-v6"][data-vq-density="comfortable"] {
+    --vq-space-1: 4px;
+    --vq-space-2: 8px;
+    --vq-space-3: 12px;
+    --vq-space-4: 16px;
+    --vq-space-5: 20px;
+    --vq-space-6: 24px;
+    --vq-space-8: 32px;
+    --vq-space-10: 40px;
+    --vq-space-12: 48px;
+    --vq-space-16: 64px;
+    --vq-space-20: 80px;
+    --vq-space-24: 96px;
+    --vq-space-0_5: 0.125rem;
+    --vq-space-1_5: 0.375rem;
+    --vq-control-height-sm: 34px;
+    --vq-control-height-md: 42px;
+    --vq-control-height-lg: 48px;
+    --vq-control-padding-x: 20px;
+    --vq-control-gap: 8px;
+    --vq-layout-gutter: 24px;
+    --vq-layout-section-gap: 32px;
+    --vq-layout-card-padding: 20px;
+}
+
+[data-vq-theme="venqore-v6"][data-vq-density="spacious"] {
+    --vq-space-1: 4.72px;
+    --vq-space-2: 9.44px;
+    --vq-space-3: 14.16px;
+    --vq-space-4: 18.88px;
+    --vq-space-5: 23.6px;
+    --vq-space-6: 28.32px;
+    --vq-space-8: 37.76px;
+    --vq-space-10: 47.2px;
+    --vq-space-12: 56.64px;
+    --vq-space-16: 75.52px;
+    --vq-space-20: 94.4px;
+    --vq-space-24: 113.28px;
+    --vq-space-0_5: 0.148rem;
+    --vq-space-1_5: 0.443rem;
+    --vq-control-height-sm: 40.12px;
+    --vq-control-height-md: 49.56px;
+    --vq-control-height-lg: 56.64px;
+    --vq-control-padding-x: 23.6px;
+    --vq-control-gap: 9.44px;
+    --vq-layout-gutter: 28.32px;
+    --vq-layout-section-gap: 37.76px;
+    --vq-layout-card-padding: 23.6px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   USER CUSTOMISATION — CORNER RADIUS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-vq-theme="venqore-v6"][data-vq-radius="sharp"] {
+    --vq-radius-none: 0px;
+    --vq-radius-xs: 2.8px;
+    --vq-radius-sm: 4.2px;
+    --vq-radius-md: 4.9px;
+    --vq-radius-lg: 7px;
+    --vq-radius-xl: 9.8px;
+    --vq-radius-2xl: 12.6px;
+    --vq-radius-3xl: 12.6px;
+    --vq-radius-full: 349.65px;
+}
+
+[data-vq-theme="venqore-v6"][data-vq-radius="default"] {
+    --vq-radius-none: 0px;
+    --vq-radius-xs: 8px;
+    --vq-radius-sm: 12px;
+    --vq-radius-md: 14px;
+    --vq-radius-lg: 20px;
+    --vq-radius-xl: 28px;
+    --vq-radius-2xl: 36px;
+    --vq-radius-3xl: 36px;
+    --vq-radius-full: 999px;
+}
+
+[data-vq-theme="venqore-v6"][data-vq-radius="round"] {
+    --vq-radius-none: 0px;
+    --vq-radius-xs: 12.8px;
+    --vq-radius-sm: 19.2px;
+    --vq-radius-md: 22.4px;
+    --vq-radius-lg: 32px;
+    --vq-radius-xl: 44.8px;
+    --vq-radius-2xl: 57.6px;
+    --vq-radius-3xl: 57.6px;
+    --vq-radius-full: 1598.4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   USER CUSTOMISATION — TYPEFACE
+   Theme-independent, and emitted after the theme blocks because it shares
+   their specificity. No attribute set means "use the theme's own type".
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-vq-font="inter"] {
+    --vq-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --vq-font-display: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --vq-font-numeric: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+[data-vq-font="figtree"] {
+    --vq-font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --vq-font-display: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --vq-font-numeric: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+[data-vq-font="system"] {
+    --vq-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --vq-font-display: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --vq-font-numeric: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+[data-vq-font="grotesk"] {
+    --vq-font-sans: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --vq-font-display: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --vq-font-numeric: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+[data-vq-font="serif"] {
+    --vq-font-sans: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --vq-font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --vq-font-numeric: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+[data-vq-font="mono"] {
+    --vq-font-sans: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+    --vq-font-display: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+    --vq-font-numeric: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+
+/* ═══════════════ SEMANTIC — DARK MODE (build-time default) ═══════════════
+   Only the mode-dependent tokens are restated. Ramps deliberately do NOT
+   change between modes: the codebase expresses mode by picking different
+   stops (bg-white dark:bg-slate-900), so flipping the ramps would invert
+   every one of those pairs. */
+.dark {
+    --vq-bg-app: 12 18 17;
+    --vq-bg-sunken: 8 13 12;
+    --vq-bg-surface: 20 27 25;
+    --vq-bg-raised: 26 34 32;
+    --vq-bg-overlay: 29 38 36;
+    --vq-bg-scrim: 6 10 9;
+    --vq-ink: 237 242 239;
+    --vq-ink-secondary: 168 180 174;
+    --vq-ink-muted: 139 154 147;
+    --vq-ink-faint: 98 113 105;
+    --vq-ink-inverted: 12 18 17;
+    --vq-border: 44 50 48;
+    --vq-border-strong: 67 73 71;
+    --vq-border-subtle: 34 41 39;
+    --vq-interactive-hover: 26 34 32;
+    --vq-interactive-active: 29 38 36;
+    --vq-interactive-selected: 22 51 45;
+    --vq-focus-ring: 89 219 192;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME LIBRARY — DARK
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-vq-theme="venqore-v6"].dark {
+    --vq-bg-app: 12 18 17;
+    --vq-bg-sunken: 8 13 12;
+    --vq-bg-surface: 20 27 25;
+    --vq-bg-raised: 26 34 32;
+    --vq-bg-overlay: 29 38 36;
+    --vq-bg-scrim: 6 10 9;
+    --vq-ink: 237 242 239;
+    --vq-ink-secondary: 168 180 174;
+    --vq-ink-muted: 139 154 147;
+    --vq-ink-faint: 98 113 105;
+    --vq-ink-inverted: 12 18 17;
+    --vq-border: 44 50 48;
+    --vq-border-strong: 67 73 71;
+    --vq-border-subtle: 34 41 39;
+    --vq-interactive-hover: 26 34 32;
+    --vq-interactive-active: 29 38 36;
+    --vq-interactive-selected: 22 51 45;
+    --vq-focus-ring: 89 219 192;
+}
+
+/* Colour-scheme hint so native controls (scrollbars, date pickers, form
+   widgets) match the theme instead of rendering in stock light chrome. */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }

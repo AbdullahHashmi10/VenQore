@@ -1,0 +1,851 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\Stock;
+use App\Models\Sale;
+use App\Models\SaleItem;
+use App\Models\Party;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\Warehouse;
+use App\Queries\PartyBalanceQuery;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class SalesOrderController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = SalesOrder::with(['customer', 'user', 'items.product']);
+
+        // Search
+        if ($request->search) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('order_number', 'like', "%{$term}%")
+                  ->orWhere('reference_number', 'like', "%{$term}%")
+                  ->orWhereHas('customer', function ($q) use ($term) {
+                      $q->where('name', 'like', "%{$term}%");
+                  });
+            });
+        }
+
+        // Filter by Status
+        if ($request->filter && $request->filter !== 'all' && $request->filter !== 'custom') {
+            if ($request->filter === 'today') {
+                $query->whereDate('created_at', now()->toDateString());
+            } elseif ($request->filter === 'month') {
+                $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+            } elseif ($request->filter === 'year') {
+                $query->whereYear('created_at', now()->year);
+            } else {
+                // If it's a status
+                $query->where('status', $request->filter);
+            }
+        }
+
+        // Date Range
+        if ($request->from_date && $request->to_date) {
+            $query->whereBetween('created_at', [$request->from_date . ' 00:00:00', $request->to_date . ' 23:59:59']);
+        }
+
+        $orders = $query->latest()->paginate(50)->withQueryString();
+
+        if ($request->wantsJson()) {
+            return response()->json($orders);
+        }
+
+        // Calculate stats
+        $stats = [
+            'total_orders' => SalesOrder::sum('total_amount'),
+            'order_count' => SalesOrder::count(),
+            'confirmed_count' => SalesOrder::where('status', 'confirmed')->count(),
+            'pending_count' => SalesOrder::whereIn('status', ['pending', 'draft'])->count(),
+        ];
+
+        return Inertia::render('SalesOrders/PreSales', [
+            'orders' => $orders,
+            'filters' => $request->only(['search', 'filter', 'from_date', 'to_date']),
+            'stats' => $stats
+        ]);
+    }
+
+    public function create()
+    {
+        // Get total stock from 'stocks' table (correctly handles negative values)
+        $stockTotals = DB::table('stocks')
+            ->select('product_id', DB::raw('SUM(quantity) as total_on_hand'))
+            ->groupBy('product_id')
+            ->pluck('total_on_hand', 'product_id');
+
+        // Get reserved quantities from active Pre-Sales
+        $reservedTotals = DB::table('sales_order_items as soi')
+            ->join('sales_orders as so', 'soi.sales_order_id', '=', 'so.id')
+            ->select('soi.product_id', DB::raw('SUM(soi.quantity_reserved) as total_reserved'))
+            ->whereNull('so.deleted_at')
+            ->whereNull('soi.deleted_at')
+            ->whereNotIn('so.status', ['cancelled', 'completed', 'delivered'])
+            ->groupBy('soi.product_id')
+            ->pluck('total_reserved', 'product_id');
+
+        return Inertia::render('SalesOrders/CreatePreSale', [
+            'customers' => Party::where('type', 'customer')->get(),
+            'products' => Product::get()->map(function ($product) use ($stockTotals, $reservedTotals) {
+                $product->total_stock = (float)($stockTotals->get($product->id) ?? 0);
+                $product->reserved_stock = (float)($reservedTotals->get($product->id) ?? 0);
+                $product->available_stock = $product->total_stock - $product->reserved_stock;
+                return $product;
+            })
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_id' => 'nullable|exists:parties,id',
+            'order_date' => 'required|date',
+            /* The header money. Every one of these has been on the screen since
+               the screen existed and none of them has ever been saved: an order
+               could be discounted, taxed and carriage-charged and come back
+               tomorrow at list price. */
+            'reference'          => 'nullable|string|max:100',
+            'delivery_date'      => 'nullable|date',
+            'payment_terms'      => 'nullable|string|max:40',
+            'notes'              => 'nullable|string',
+            'discount'           => 'nullable|numeric|min:0',
+            'tax'                => 'nullable|numeric|min:0',
+            'tax_rate'           => 'nullable|numeric|min:0|max:100',
+            'delivery_charge'    => 'nullable|numeric|min:0',
+            'extra_charge_value' => 'nullable|numeric|min:0',
+            'extra_charge_label' => 'nullable|string|max:120',
+            /* A deposit taken when the order is placed. Real money, and until
+               now there was nowhere to put it. */
+            'amount_paid'        => 'nullable|numeric|min:0',
+            'payment_method'     => 'nullable|in:cash,credit',
+            'payment_account_id' => 'nullable',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:fixed,percent',
+            'items.*.tax_rate' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $order = DB::transaction(function () use ($validated, $request) {
+            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id;
+            $customerName = Party::find($customerId)->name;
+
+            $order = SalesOrder::create([
+                'order_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
+                'customer_id' => $customerId,
+                'party_id' => $customerId,
+                'customer_name' => $customerName,
+                'order_date' => $validated['order_date'],
+                'delivery_date' => $validated['delivery_date'] ?? null,
+                'reference' => $validated['reference'] ?? null,
+                'payment_terms' => $validated['payment_terms'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'discount' => $validated['discount'] ?? 0,
+                'tax' => $validated['tax'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 0,
+                'delivery_charge' => $validated['delivery_charge'] ?? 0,
+                'extra_charge_value' => $validated['extra_charge_value'] ?? 0,
+                'extra_charge_label' => $validated['extra_charge_label'] ?? null,
+                'amount_paid' => $validated['amount_paid'] ?? 0,
+                'payment_method' => $validated['payment_method'] ?? null,
+                'payment_account_id' => $validated['payment_account_id'] ?? null,
+                'status' => 'confirmed',
+                'user_id' => auth()->id(),
+                'total_amount' => 0
+            ]);
+
+            $totalAmount = 0;
+
+            foreach ($validated['items'] as $index => $item) {
+                $gross = $item['unit_price'] * $item['quantity'];
+                /* `discount` arrives already resolved to money — every screen in
+                   this app converts a percentage before it sends. Re-applying
+                   the percentage here turned a 10% discount on a 1,000 line
+                   into a 1,000 discount and the line came out free. The type is
+                   kept as a label so the screen can show it the way it was
+                   entered. */
+                $lineDiscount = (float) ($item['discount'] ?? 0);
+                $subtotal = max(0, $gross - $lineDiscount);
+                $totalAmount += $subtotal;
+
+                $totalStock = \App\Models\Stock::where('product_id', $item['product_id'])->sum('quantity');
+                $currentlyReserved = \App\Models\SalesOrderItem::where('product_id', $item['product_id'])
+                    ->whereHas('salesOrder', function($q) {
+                        $q->whereNotIn('status', ['cancelled', 'completed']);
+                    })->sum('quantity_reserved');
+                
+                $available = $totalStock - $currentlyReserved;
+                
+                if ($available < $item['quantity']) {
+                    /* Keyed to the line that actually failed. It was hardcoded to
+                       the first one, so a shortage on line seven lit up line one. */
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "items.{$index}.quantity" => [
+                            'Only ' . max(0, $available) . ' of '
+                            . (\App\Models\Product::find($item['product_id'])?->name ?? 'this item')
+                            . ' is free to reserve.',
+                        ],
+                    ]);
+                }
+
+                $reservedAmount = $item['quantity'];
+
+                SalesOrderItem::create([
+                    'sales_order_id' => $order->id,
+                    'product_id' => $item['product_id'],
+                    'quantity_requested' => $item['quantity'],
+                    'quantity_reserved' => $reservedAmount,
+                    'qty' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'discount' => $lineDiscount,
+                    /* Stored as 'fixed' because `discount` above is money, not a
+                       percentage. Keeping the operator's 'percent' label beside
+                       a resolved amount was a delayed fault: the line saved
+                       correctly, then re-opened showing 100 with the % toggle
+                       lit — a 100% discount — and the next save zeroed it. */
+                    'discount_type' => 'fixed',
+                    'tax_rate' => $item['tax_rate'] ?? 0,
+                    'subtotal' => $subtotal,
+                    'line_total' => $subtotal,
+                ]);
+            }
+
+            /* The goods, less the order discount, plus tax and carriage — the
+               figure the customer was actually quoted, rather than the sum of
+               the line subtotals with everything else thrown away. */
+            $net = max(0, $totalAmount - (float) ($validated['discount'] ?? 0));
+            $grand = round(
+                $net
+                + (float) ($validated['tax'] ?? 0)
+                + (float) ($validated['delivery_charge'] ?? 0)
+                + (float) ($validated['extra_charge_value'] ?? 0),
+                2
+            );
+            $order->update(['total_amount' => $grand]);
+
+            /* A deposit is money that has actually moved, so it goes to the
+               ledger like any other: the till goes up, and what the shop owes
+               the customer in goods goes up with it. */
+            $paid = round(min(max(0, (float) ($validated['amount_paid'] ?? 0)), $grand), 2);
+            if ($paid > 0.0001) {
+                $accounting = app(\App\Engines\AccountingService::class);
+                $cash = null;
+                if (! empty($validated['payment_account_id'])) {
+                    $cash = \App\Models\Account::find($validated['payment_account_id']);
+                }
+                $cash = $cash ?: $accounting->getAccountByCode('1000', 'Cash in Hand', 'asset');
+                /* Its own code. 2050 is already Customer Credit Balances — money
+                    owed back from a refund — and a deposit against an undelivered
+                    order is a different obligation. Sharing one line makes the
+                    balance impossible to reconcile. */
+                $advances = $accounting->getAccountByCode('2060', 'Customer Advances', 'liability');
+
+                $entry = $accounting->createEntry([
+                    'date' => $validated['order_date'],
+                    'reference_type' => 'sales_order_advance',
+                    'reference' => $order->id,
+                    'description' => "Advance on order #{$order->order_number}",
+                    'party_id' => $customerId,
+                ], [
+                    ['account_id' => $cash->id, 'debit' => $paid, 'credit' => 0,
+                     'description' => "Advance received on #{$order->order_number}", 'party_id' => $customerId],
+                    ['account_id' => $advances->id, 'debit' => 0, 'credit' => $paid,
+                     'description' => "Held against order #{$order->order_number}", 'party_id' => $customerId],
+                ]);
+                $order->update(['journal_entry_id' => $entry->id, 'amount_paid' => $paid]);
+            }
+
+            return $order;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pre-Sale created and inventory reserved.',
+            'order_id' => $order->id
+        ]);
+    }
+
+    public function show(SalesOrder $order)
+    {
+        $order->load(['customer', 'items.product']);
+        
+        if ($order->customer) {
+            $order->customer->current_balance = PartyBalanceQuery::partyNetBalance(
+                $order->customer->id,
+                $order->tenant_id ?? app('current.tenant')->id
+            );
+        }
+
+        if ($order->party_id ?? ($order->customer_id ?? null)) {
+            $partyId    = $order->party_id ?? $order->customer_id;
+            $tenantId   = $order->tenant_id ?? app('current.tenant')->id;
+            $net        = PartyBalanceQuery::partyNetBalance($partyId, $tenantId);
+            $balanceDue = max(0, (float) ($order->total ?? 0) - (float) ($order->amount_paid ?? 0));
+            $order->customer_net_balance  = $net;
+            $order->customer_prev_balance = $net - $balanceDue;
+            $order->append(['customer_net_balance', 'customer_prev_balance']);
+        }
+
+        // Get total stock from 'stocks' table
+        $stockTotals = DB::table('stocks')
+            ->select('product_id', DB::raw('SUM(quantity) as total_on_hand'))
+            ->groupBy('product_id')
+            ->pluck('total_on_hand', 'product_id');
+
+        $reservedTotals = DB::table('sales_order_items as soi')
+            ->join('sales_orders as so', 'soi.sales_order_id', '=', 'so.id')
+            ->select('soi.product_id', DB::raw('SUM(soi.quantity_reserved) as total_reserved'))
+            ->where('so.id', '!=', $order->id) 
+            ->whereNull('so.deleted_at')
+            ->whereNull('soi.deleted_at')
+            ->whereNotIn('so.status', ['cancelled', 'completed', 'delivered'])
+            ->groupBy('soi.product_id')
+            ->pluck('total_reserved', 'product_id');
+
+        return Inertia::render('SalesOrders/CreatePreSale', [
+            'sale' => $order,
+            'customers' => Party::where('type', 'customer')->get(),
+            'products' => Product::get()->map(function ($product) use ($stockTotals, $reservedTotals) {
+                $product->total_stock = (float)($stockTotals->get($product->id) ?? 0);
+                $product->reserved_stock = (float)($reservedTotals->get($product->id) ?? 0);
+                $product->available_stock = $product->total_stock - $product->reserved_stock;
+                return $product;
+            })
+        ]);
+    }
+
+    public function update(Request $request, SalesOrder $order)
+    {
+        if (in_array($order->status, ['completed', 'cancelled'])) {
+            return redirect()->back()->with('error', 'Completed/Converted Pre-Sale cannot be updated.');
+        }
+
+        /* The same shape as store(). An edit that silently dropped the header
+           money was how an order came back from a correction at list price. */
+        $validated = $request->validate([
+            'customer_id' => 'nullable|exists:parties,id',
+            'order_date' => 'required|date',
+            'reference'          => 'nullable|string|max:100',
+            'delivery_date'      => 'nullable|date',
+            'payment_terms'      => 'nullable|string|max:40',
+            'notes'              => 'nullable|string',
+            'discount'           => 'nullable|numeric|min:0',
+            'tax'                => 'nullable|numeric|min:0',
+            'tax_rate'           => 'nullable|numeric|min:0|max:100',
+            'delivery_charge'    => 'nullable|numeric|min:0',
+            'extra_charge_value' => 'nullable|numeric|min:0',
+            'extra_charge_label' => 'nullable|string|max:120',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:fixed,percent',
+            'items.*.tax_rate' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        DB::transaction(function () use ($validated, $order) {
+            $order->items()->delete();
+
+            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id;
+            $customerName = Party::find($customerId)->name;
+
+            // Update order header
+            $order->update([
+                'customer_id' => $customerId,
+                'party_id' => $customerId,
+                'customer_name' => $customerName,
+                'order_date' => $validated['order_date'],
+                'delivery_date' => $validated['delivery_date'] ?? $order->delivery_date,
+                'reference' => $validated['reference'] ?? $order->reference,
+                'payment_terms' => $validated['payment_terms'] ?? $order->payment_terms,
+                'notes' => $validated['notes'] ?? $order->notes,
+                'discount' => $validated['discount'] ?? 0,
+                'tax' => $validated['tax'] ?? 0,
+                'tax_rate' => $validated['tax_rate'] ?? 0,
+                'delivery_charge' => $validated['delivery_charge'] ?? 0,
+                'extra_charge_value' => $validated['extra_charge_value'] ?? 0,
+                'extra_charge_label' => $validated['extra_charge_label'] ?? null,
+                'total_amount' => 0
+            ]);
+
+            $totalAmount = 0;
+            foreach ($validated['items'] as $item) {
+                $gross = $item['unit_price'] * $item['quantity'];
+                /* `discount` arrives already resolved to money — every screen in
+                   this app converts a percentage before it sends. Re-applying
+                   the percentage here turned a 10% discount on a 1,000 line
+                   into a 1,000 discount and the line came out free. The type is
+                   kept as a label so the screen can show it the way it was
+                   entered. */
+                $lineDiscount = (float) ($item['discount'] ?? 0);
+                $subtotal = max(0, $gross - $lineDiscount);
+                $totalAmount += $subtotal;
+
+                SalesOrderItem::create([
+                    'sales_order_id' => $order->id,
+                    'product_id' => $item['product_id'],
+                    'quantity_requested' => $item['quantity'],
+                    'quantity_reserved' => $item['quantity'],
+                    'qty' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'discount' => $lineDiscount,
+                    /* Stored as 'fixed' because `discount` above is money, not a
+                       percentage. Keeping the operator's 'percent' label beside
+                       a resolved amount was a delayed fault: the line saved
+                       correctly, then re-opened showing 100 with the % toggle
+                       lit — a 100% discount — and the next save zeroed it. */
+                    'discount_type' => 'fixed',
+                    'tax_rate' => $item['tax_rate'] ?? 0,
+                    'subtotal' => $subtotal,
+                    'line_total' => $subtotal,
+                ]);
+            }
+            /* The goods, less the order discount, plus tax and carriage — the
+               figure the customer was actually quoted, rather than the sum of
+               the line subtotals with everything else thrown away. */
+            $net = max(0, $totalAmount - (float) ($validated['discount'] ?? 0));
+            $grand = round(
+                $net
+                + (float) ($validated['tax'] ?? 0)
+                + (float) ($validated['delivery_charge'] ?? 0)
+                + (float) ($validated['extra_charge_value'] ?? 0),
+                2
+            );
+            $order->update(['total_amount' => $grand]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pre-Sale updated successfully.',
+            'order_id' => $order->id
+        ]);
+    }
+
+    public function convertToSale(Request $request, SalesOrder $salesOrder)
+    {
+        $request->validate([
+            // S-011 manager approval, as on the POS checkout and the V3
+            // conversion. The PIN is checked and dropped, never stored.
+            'approved_by'  => 'nullable|string|max:64',
+            'approval_pin' => 'nullable|string|max:20',
+        ]);
+
+        $order = $salesOrder;
+        $tenantId = $order->tenant_id ?? app('current.tenant')->id;
+        $lock = \Illuminate\Support\Facades\Cache::lock("sales_order_convert_lock_{$order->id}", 10);
+
+        try {
+            $lock->block(5);
+
+            $order->refresh();
+            $order->load('items');
+            if (in_array($order->status, ['completed', 'cancelled'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sales Order has already been converted or cancelled.'
+                ], 422);
+            }
+
+            $sale = DB::transaction(function () use ($order, $tenantId, $request) {
+                $referenceNumber = \App\Services\SequenceService::generateTransactionNumber('SAL');
+
+                $warehouseId = Warehouse::first()?->id ?? 1;
+
+                // Cleanly compute totals from items
+                $subtotalGross = 0;
+                $totalDiscount = 0;
+                $totalTax = 0;
+
+                $items = \App\Models\SalesOrderItem::withoutTenantScope()
+                    ->where('sales_order_id', $order->id)
+                    ->get();
+
+                foreach ($items as $item) {
+                    $qty = (float)$item->quantity_requested;
+                    $unitPrice = (float)$item->unit_price;
+                    $itemDiscount = (float)($item->discount ?? 0);
+                    
+                    $subtotalGross += $qty * $unitPrice;
+                    $totalDiscount += $itemDiscount;
+                    
+                    $net = ($qty * $unitPrice) - $itemDiscount;
+                    $product = Product::find($item->product_id);
+                    $taxRate = (float) ($product->tax_rate ?? 0);
+                    $taxAmount = $net * ($taxRate / 100);
+                    $totalTax += $taxAmount;
+                }
+
+                // ── S-011: below-cost lines need a manager approval ──────────
+                // The same rule, through the same helper, as the POS checkout
+                // (PosSaleApprovalGuard → ManagerApproval) and the V3
+                // conversion: a line whose revenue is below the FIFO cost of
+                // the stock it will consume is refused with a 422
+                // code=approval_required unless a verified approval is sent (an
+                // owner/admin/manager converting it approves with their own
+                // session). Checked before anything is written. Discounts were
+                // fixed when the order was taken, so only the cost rule applies
+                // here — as on the V3 conversion.
+                $guardLines = [];
+                foreach ($items->values() as $i => $item) {
+                    $product = Product::find($item->product_id);
+                    $qty     = (float) $item->quantity_requested;
+                    $gross   = $qty * (float) $item->unit_price;
+                    $guardLines[$item->id] = [
+                        'index'      => $i,
+                        'product_id' => $item->product_id,
+                        'name'       => $product?->name,
+                        'type'       => $product?->type,
+                        'cost_price' => $product?->cost_price,
+                        'paid_qty'   => $qty,
+                        'free_qty'   => 0.0,
+                        'gross'      => $gross,
+                        'discount'   => 0.0,
+                        'revenue'    => $gross - (float) ($item->discount ?? 0),
+                    ];
+                }
+                $approvedBy = \App\Support\PosSaleApprovalGuard::authorize(
+                    array_values($guardLines),
+                    $tenantId,
+                    auth()->id(),
+                    $request->input('approved_by'),
+                    $request->filled('approval_pin') ? (string) $request->input('approval_pin') : null,
+                    $warehouseId,
+                    true
+                );
+
+                $deliveryCharge = (float)($order->delivery_charge ?? 0);
+                $extraCharge = (float)($order->extra_charge_value ?? 0);
+
+                $netSales = $subtotalGross - $totalDiscount;
+                $invoiceTotal = $netSales + $totalTax + $deliveryCharge + $extraCharge;
+
+                // withoutEvents: SaleObserver::created() books a stand-in
+                // "DR 1000 / CR income" entry for any posted sale that has no
+                // 'sale' entry yet — meant for bare test fixtures. Here the real
+                // entry is posted below, so the stand-in doubled the revenue and
+                // put cash that was never taken in the drawer. The POS checkout
+                // creates its sale the same way.
+                $sale = Sale::withoutEvents(fn () => Sale::create([
+                    'reference_number' => $referenceNumber,
+                    'party_id' => $order->customer_id,
+                    'status' => 'posted',
+                    'posted_at' => now(),
+                    'payment_status' => 'unpaid',
+                    'subtotal' => $subtotalGross,
+                    'tax' => $totalTax,
+                    'discount' => $totalDiscount,
+                    'global_discount' => $totalDiscount,
+                    'delivery_charge' => $deliveryCharge,
+                    'shipping_charges' => $deliveryCharge,
+                    'extra_charge_value' => $extraCharge,
+                    'extra_charge_label' => $order->extra_charge_label,
+                    'total' => $invoiceTotal,
+                    'subtotal_gross' => $subtotalGross,
+                    'net_sales' => $netSales,
+                    'total_tax' => $totalTax,
+                    'invoice_total' => $invoiceTotal,
+                    'user_id' => auth()->id() ?? \App\Models\User::first()->id,
+                    'warehouse_id' => $warehouseId,
+                    'tenant_id' => $tenantId
+                ]));
+
+                $fifo = app(\App\Engines\FifoService::class);
+                $totalCogs = 0.0;
+
+                foreach ($items as $item) {
+                    $totalQty = (float)$item->quantity_requested;
+                    $product = Product::find($item->product_id);
+
+                    // A. Deduct stock using FIFO (Batches)
+                    $lineCogs = 0;
+                    $deductions = null;
+                    
+                    if ($product->type === 'service') {
+                        $lineCogs = ($product->cost_price ?? 0) * $totalQty;
+                    } else {
+                        try {
+                            $deductions = $fifo->deductStock($item->product_id, $warehouseId, $totalQty);
+                            $lineCogs = collect($deductions)->sum('total_cost');
+                        } catch (\App\Exceptions\InsufficientStockException $e) {
+                            // Fallback: use static cost for backorders
+                            $lineCogs = ($product->cost_price ?? 0) * $totalQty;
+                            Log::warning("Backorder in conversion for product {$item->product_id}: using static cost.");
+                        }
+
+                        // Safety net: re-check against the cost actually consumed
+                        // (throws → the whole conversion rolls back).
+                        $approvedBy = \App\Support\PosSaleApprovalGuard::assertPostedCostCovered(
+                            $guardLines[$item->id],
+                            $deductions,
+                            (float) ($product->cost_price ?? 0) * $totalQty,
+                            $approvedBy,
+                            $tenantId,
+                            auth()->id()
+                        );
+
+                        // B. Deduct Physical Stock from 'stocks' table (handles negatives)
+                        $stock = Stock::where('product_id', $item->product_id)->where('warehouse_id', $warehouseId)->first();
+                        if ($stock) {
+                            $stock->decrement('quantity', $totalQty);
+                        } else {
+                            Stock::create([
+                                'product_id' => $item->product_id,
+                                'warehouse_id' => $warehouseId,
+                                'quantity' => -$totalQty,
+                                'tenant_id' => $tenantId
+                            ]);
+                        }
+                        // ... and the product master's counter, as the POS sale does.
+                        Product::where('id', $item->product_id)->decrement('stock_quantity', $totalQty);
+
+                        // C. Also handle StockMovement for history
+                        \App\Models\StockMovement::create([
+                            'product_id' => $item->product_id,
+                            'warehouse_id' => $warehouseId,
+                            'type' => 'sale',
+                            'quantity' => -$totalQty,
+                            'reference_id' => $sale->id,
+                            'description' => "Pre-Sale Conversion: {$order->order_number}",
+                            'user_id' => auth()->id(),
+                            'tenant_id' => $tenantId
+                        ]);
+                    }
+
+                    $totalCogs += $lineCogs;
+
+                    $qty = (float)$item->quantity_requested;
+                    $unitPrice = (float)$item->unit_price;
+                    $itemDiscount = (float)($item->discount ?? 0);
+                    $gross = $qty * $unitPrice;
+                    $net = $gross - $itemDiscount;
+                    $taxRate = (float) ($product->tax_rate ?? 0);
+                    $taxAmount = $net * ($taxRate / 100);
+                    $lineTotal = $net + $taxAmount;
+
+                    $saleItem = SaleItem::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $item->product_id,
+                        'quantity' => $totalQty,
+                        'unit_price' => $item->unit_price,
+                        'cost_price' => $totalQty > 0 ? $lineCogs / $totalQty : 0,
+                        'gross_amount' => $gross,
+                        'discount_amount' => $itemDiscount,
+                        'net_amount' => $net,
+                        'tax_rate' => $taxRate,
+                        'tax_amount' => $taxAmount,
+                        'line_total' => $lineTotal,
+                        'subtotal' => $lineTotal,
+                        'tenant_id' => $tenantId
+                    ]);
+
+                    // D. Record batch links if FIFO succeeded
+                    if ($deductions) {
+                        foreach ($deductions as $deduction) {
+                            DB::table('sale_item_batches')->insert([
+                                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                                'tenant_id' => $tenantId,
+                                'sale_item_id' => $saleItem->id,
+                                'inventory_batch_id' => $deduction['batch_id'],
+                                'qty_deducted' => $deduction['qty_taken'],
+                                'unit_cost' => $deduction['unit_cost'],
+                                'total_cogs' => $deduction['total_cost'],
+                                'is_reversed' => 0,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    }
+                }
+
+                // 2. Post Journal Entries
+                $accounting = resolve(\App\Engines\AccountingService::class);
+                $journalItems = [];
+                
+                // DR: AR (1200)
+                if ($invoiceTotal > 0) {
+                    $arAcc = $accounting->getAccountByCode('1200');
+                    $journalItems[] = ['account_id' => $arAcc->id, 'debit' => $invoiceTotal, 'credit' => 0, 'description' => "AR from Conversion #{$sale->reference_number}"];
+                }
+                
+                // CR: Revenue (4000)
+                if ($netSales > 0) {
+                    $revAcc = $accounting->getAccountByCode('4000');
+                    $journalItems[] = ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $netSales, 'description' => "Revenue from Conversion #{$sale->reference_number}"];
+                }
+
+                // CR: Delivery Charges (4100) if applicable
+                if ($deliveryCharge > 0) {
+                    $deliveryAcc = $accounting->getAccountByCode('4100', 'Other Income', 'income');
+                    $journalItems[] = ['account_id' => $deliveryAcc->id, 'debit' => 0, 'credit' => $deliveryCharge, 'description' => "Delivery charges from Conversion #{$sale->reference_number}"];
+                }
+
+                // CR: Extra Charges (4100) if applicable
+                if ($extraCharge > 0) {
+                    $extraAcc = $accounting->getAccountByCode('4100', 'Other Income', 'income');
+                    $journalItems[] = ['account_id' => $extraAcc->id, 'debit' => 0, 'credit' => $extraCharge, 'description' => "Extra charges from Conversion #{$sale->reference_number}"];
+                }
+                
+                // CR: Sales Tax Payable (2100) if applicable
+                if ($totalTax > 0) {
+                    $taxAcc = $accounting->getAccountByCode('2100');
+                    $journalItems[] = ['account_id' => $taxAcc->id, 'debit' => 0, 'credit' => $totalTax, 'description' => "Sales Tax from Conversion #{$sale->reference_number}"];
+                }
+
+                // DR: COGS (5000) / CR: Inventory (1100)
+                if ($totalCogs > 0) {
+                    $cogsAcc = $accounting->getAccountByCode('5000');
+                    $invAcc  = $accounting->getAccountByCode('1100');
+                    $journalItems[] = ['account_id' => $cogsAcc->id, 'debit' => $totalCogs, 'credit' => 0,          'description' => "COGS from Conversion #{$sale->reference_number}"];
+                    $journalItems[] = ['account_id' => $invAcc->id,  'debit' => 0,          'credit' => $totalCogs, 'description' => "Inventory relief from Conversion #{$sale->reference_number}"];
+                }
+
+                // Post
+                $accounting->createEntry([
+                    'date' => now()->toDateString(),
+                    'reference_type' => 'sale',
+                    'reference' => $sale->id,
+                    'description' => "Sale Conversion #{$sale->reference_number}",
+                    'party_id' => $order->customer_id,
+                    // S-011: the verified manager approval, as on the POS / V3.
+                    'approved_by' => $approvedBy,
+                ], $journalItems);
+
+                // 3. Update Order Status and release inventory reservation
+                $order->update(['status' => 'completed']);
+                \App\Models\SalesOrderItem::withoutTenantScope()
+                    ->where('sales_order_id', $order->id)
+                    ->update(['quantity_reserved' => 0]);
+                
+                return $sale;
+            });
+
+            if (request()->header('X-Inertia')) {
+                return redirect()->back()
+                    ->with('success', 'Sales Order converted to Invoice.')
+                    ->with('print_sale_id', $sale->id);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sales Order converted to Invoice.',
+                'sale_id' => $sale->id ?? null
+            ]);
+
+        } catch (\App\Exceptions\ApprovalRequiredException $e) {
+            if (request()->header('X-Inertia')) {
+                return redirect()->back()->withErrors($e->payload()['errors'] ?: ['approved_by' => $e->getMessage()])
+                    ->with('approval_required', $e->payload());
+            }
+            return response()->json($e->payload(), 422);
+        } catch (\Exception $e) {
+            Log::error("Conversion Error: " . $e->getMessage());
+            if (request()->header('X-Inertia')) {
+                return redirect()->back()->with('error', $e->getMessage());
+            }
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    public function destroy(SalesOrder $order)
+    {
+        DB::transaction(function () use ($order) {
+            $order->items()->delete();
+            $order->delete();
+        });
+
+        return redirect()->route('pre-sales.index')->with('success', 'Pre-sale moved to Recycle Bin.');
+    }
+
+    public function cancel(SalesOrder $salesOrder)
+    {
+        if ($salesOrder->status === 'cancelled') {
+            return back()->with('error', 'Order is already cancelled.');
+        }
+
+        DB::transaction(function () use ($salesOrder) {
+            $salesOrder->update(['status' => 'cancelled']);
+            $salesOrder->items()->update(['quantity_reserved' => 0]);
+        });
+
+        return back()->with('success', 'Sales Order cancelled.');
+    }
+
+    public function print(SalesOrder $salesOrder)
+    {
+        $salesOrder->load(['customer', 'user', 'items.product']);
+        $settings = \App\Models\Setting::all()->pluck('value', 'key');
+
+        $view = view()->exists('pdf.sales-order') ? 'pdf.sales-order' : 'pdf.receipt';
+
+        $pdf = Pdf::loadView($view, [
+            'sale' => $salesOrder,
+            'order' => $salesOrder, 
+            'type' => 'sales-order',
+            'settings' => $settings,
+        ]);
+
+        return $pdf->stream('sales-order-' . $salesOrder->order_number . '.pdf');
+    }
+
+    public function export(Request $request)
+    {
+        $query = SalesOrder::with(['customer', 'user']);
+
+        if ($request->search) {
+            $term = strtolower($request->search);
+            $query->where(function ($q) use ($term) {
+                $q->where('order_number', 'like', "%{$term}%")
+                    ->orWhereHas('customer', fn($p) => $p->where('name', 'like', "%{$term}%"));
+            });
+        }
+
+        if ($request->from_date && $request->to_date) {
+            $query->whereBetween('order_date', [$request->from_date, $request->to_date]);
+        }
+
+        $orders = $query->latest()->get();
+
+        $filename = "pre-sales_export_" . date('Y-m-d_H-i') . ".csv";
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function () use ($orders) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Date', 'Order No', 'Customer', 'Amount', 'Status', 'Created By']);
+
+            foreach ($orders as $order) {
+                fputcsv($file, [
+                    $order->order_date,
+                    $order->order_number,
+                    $order->customer_name ?? 'Walk-in',
+                    $order->total_amount,
+                    $order->status,
+                    $order->user->name ?? '-'
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+}

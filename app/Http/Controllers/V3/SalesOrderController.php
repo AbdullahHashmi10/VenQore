@@ -1,0 +1,190 @@
+<?php
+
+namespace App\Http\Controllers\V3;
+
+use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+
+class SalesOrderController extends Controller
+{
+    public function store(Request $request)
+    {
+        $tenantId = app('current.tenant')->id;
+
+        // Customer, warehouse and products must all belong to the current store.
+        $validated = $request->validate([
+            'customer_id'   => ['required', 'string', Rule::exists('parties', 'id')->where('tenant_id', $tenantId)],
+            'warehouse_id'  => ['required', 'string', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
+            'order_date'    => ['required', 'date'],
+            'delivery_date' => ['nullable', 'date', 'after_or_equal:order_date'],
+            'notes'         => ['nullable', 'string', 'max:1000'],
+            'items'         => ['required', 'array', 'min:1'],
+            'items.*.product_id'       => ['required', 'string', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
+            'items.*.qty'              => ['required', 'numeric', 'min:0.0001'],
+            'items.*.sale_uom'         => ['required', 'string', 'max:20'],
+            'items.*.unit_price'       => ['required', 'numeric', 'min:0'],
+            'items.*.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'items.*.tax_rate'         => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $orderId = Str::uuid()->toString();
+            $total   = 0.00;
+
+            foreach ($validated['items'] as $item) {
+                $line   = round($item['qty'] * $item['unit_price'], 2);
+                $disc   = round($line * ($item['discount_percent'] ?? 0) / 100, 2);
+                $total += $line - $disc;
+            }
+
+            $order = SalesOrder::create([
+                'id'            => $orderId,
+                'order_number'  => \App\Services\SequenceService::generateTransactionNumber('SO'),
+                'party_id'      => $validated['customer_id'],
+                'warehouse_id'  => $validated['warehouse_id'],
+                'order_date'    => $validated['order_date'],
+                'delivery_date' => $validated['delivery_date'] ?? null,
+                'status'        => 'open',
+                'total_amount'  => $total,
+                'notes'         => $validated['notes'] ?? null,
+                'user_id'       => auth()->id() ?? 1,
+                'created_by'    => auth()->id() ?? 1,
+            ]);
+
+            foreach ($validated['items'] as $item) {
+                $line = round($item['qty'] * $item['unit_price'], 2);
+                $disc = round($line * ($item['discount_percent'] ?? 0) / 100, 2);
+
+                // L017 FIX: write BOTH column conventions so every reader is correct.
+                //   - qty / sale_uom / discount_percent / tax_rate / line_total  -> V3 fields
+                //   - quantity_requested / quantity_reserved / subtotal          -> the columns
+                //     that the base schema, ReportController, InventoryController and the
+                //     reservation logic actually read from.
+                // Previously only the V3 fields were written, so quantity_requested (NOT NULL
+                // in the base table) was left unset -- failing the insert on strict MySQL or
+                // silently storing 0 and making the order quantity invisible to every report.
+                SalesOrderItem::create([
+                    'sales_order_id'    => $order->id,
+                    'product_id'        => $item['product_id'],
+                    'qty'               => $item['qty'],
+                    'quantity_requested'=> $item['qty'],       // mirror into the canonical column
+                    'quantity_reserved' => 0,                  // nothing held yet at creation
+                    'sale_uom'          => $item['sale_uom'],
+                    'unit_price'        => $item['unit_price'], // LOCKED here
+                    'discount_percent'  => $item['discount_percent'] ?? 0,
+                    'tax_rate'          => $item['tax_rate'] ?? 0,
+                    'line_total'        => $line - $disc,
+                    'subtotal'          => $line - $disc,      // mirror into the canonical column
+                ]);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Sales order created.');
+    }
+
+    public function cancel(Request $request, string $id)
+    {
+        $order = SalesOrder::findOrFail($id);
+
+        if ($order->status === 'converted') {
+            return back()->withErrors([
+                'order' => 'Cannot cancel a sales order that has already been converted to an invoice.',
+            ]);
+        }
+
+        $order->update([
+            'status'     => 'cancelled',
+        ]);
+
+        return redirect()->back()->with('success', 'Sales order cancelled.');
+    }
+
+    public function convert(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'payment_method'  => ['required', 'in:cash,bank,credit,split'],
+            'amount_received' => ['nullable', 'numeric', 'min:0'],
+            'sale_date'       => ['required', 'date', 'before_or_equal:today'],
+            'approved_by'     => ['nullable', 'string'],
+            'approval_pin'    => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $order = SalesOrder::findOrFail($id);
+
+        if ($order->status !== 'open') {
+            return back()->withErrors([
+                'order' => "Sales order is {$order->status} and cannot be converted.",
+            ]);
+        }
+
+        // S-011: approved_by unlocks below-cost lines in SaleService, so it must
+        // be a VERIFIED manager approval (active owner/admin/manager of this
+        // store, plus their PIN when they are not the logged-in user) — exactly
+        // what the V3 checkout (StoreSaleRequest) enforces. Previously any
+        // existing user id was passed straight through.
+        if (!empty($validated['approved_by'])) {
+            $problem = \App\Support\ManagerApproval::check(
+                $validated['approved_by'],
+                $validated['approval_pin'] ?? null,
+                app('current.tenant')->id,
+                auth()->id()
+            );
+            if ($problem !== null) {
+                throw ValidationException::withMessages(['approved_by' => $problem]);
+            }
+        }
+
+        $orderItems = $order->items;
+
+        // Build sale payload using LOCKED prices from the order
+        $saleData = [
+            'customer_id'     => $order->party_id,
+            'warehouse_id'    => $order->warehouse_id,
+            'sale_date'       => $validated['sale_date'],
+            'payment_method'  => $validated['payment_method'],
+            'amount_received' => $validated['amount_received'] ?? null,
+            'approved_by'     => $validated['approved_by']     ?? null,
+            'source_order_id' => $id,
+            'items'           => $orderItems->map(fn($item) => [
+                'product_id'       => $item->product_id,
+                'qty'              => $item->qty,
+                'sale_uom'         => $item->sale_uom,
+                'unit_price'       => $item->unit_price, // LOCKED price — not current
+                'discount_percent' => $item->discount_percent,
+                'tax_rate'         => $item->tax_rate,
+                'is_promotional'   => false,
+            ])->toArray(),
+        ];
+
+        try {
+            $sale = app(\App\Engines\SaleService::class)->post($saleData);
+        } catch (\App\Exceptions\BelowCostSaleException $e) {
+            // Surface as a validation error on approved_by (not a 500), as V3 checkout does.
+            throw ValidationException::withMessages(['approved_by' => $e->getMessage()]);
+        }
+
+        // Mark order as converted — cannot be converted again
+        $order->update([
+            'status'     => 'converted',
+        ]);
+
+        // Link the sale back to the source order
+        DB::table('sales')->where('sales.tenant_id', app('current.tenant')->id)->where('id', $sale->id)->update([
+            'source_order_id' => $id,
+            'updated_at'      => now(),
+        ]);
+
+        return redirect()->back()->with([
+            'success'    => 'Sales order converted to invoice.',
+            'invoice_id' => $sale->id,
+            'invoice_no' => $sale->reference_number,
+            'status'     => 'success',
+        ]);
+    }
+}

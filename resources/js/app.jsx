@@ -1,0 +1,236 @@
+import '../css/app.css';
+import './bootstrap';
+
+import { createInertiaApp, router } from '@inertiajs/react';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import React from 'react';
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import GlobalProviderLayout from '@/Layouts/GlobalProviderLayout';
+
+
+import GlobalErrorBoundary from '@/Components/GlobalErrorBoundary';
+
+import { vq } from '@/theme/runtime';
+import { applyAppearance } from '@/theme/appearance';
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// Intercept non-JSON responses from Inertia server calls (preventing the default modal block)
+router.on('invalid', (event) => {
+    event.preventDefault();
+    const status = event.detail?.response?.status || 500;
+    window.location.href = `/error/${status}`;
+});
+
+createInertiaApp({
+    title: (title) => {
+        const businessName = window.amdSettings?.business_name || appName;
+        return title ? `${title} - ${businessName}` : businessName;
+    },
+    resolve: (name) =>
+        resolvePageComponent(
+            `./Pages/${name}.jsx`,
+            import.meta.glob('./Pages/**/*.jsx'),
+        ).catch((error) => {
+            const errStr = String(error || '');
+            if (errStr.includes('Failed to fetch dynamically imported module') || error?.message?.includes('Failed to fetch dynamically imported module')) {
+                const now = Date.now();
+                const lastReload = parseInt(sessionStorage.getItem('last_vite_reload') || '0', 10);
+                if (now - lastReload > 15000) {
+                    sessionStorage.setItem('last_vite_reload', String(now));
+                    console.warn('[Vite] Dynamic import failed. Forcing single reload to get latest assets.');
+                    window.location.reload();
+                    return;
+                } else {
+                    console.error('[Vite] Repeated dynamic import failure detected. Suppressing reload loop.');
+                }
+            }
+            throw error;
+        }).then((module) => {
+            const page = module.default;
+
+            // Inertia resolves the page component again on EVERY visit, and the
+            // module object is cached — so without this guard each visit wrapped
+            // the previous wrapper in one more GlobalProviderLayout. The tree
+            // changed shape on every navigation, React remounted the page, and
+            // `preserveState` never held: e.g. a failed sign-in cleared the email
+            // field. Wrap once per page module.
+            if (page.__vqLayoutWrapped) {
+                return module;
+            }
+            page.__vqLayoutWrapped = true;
+            const originalLayout = page.layout;
+
+            // Robustly handle both functional and component layouts, or no layout
+            page.layout = (pageNode) => {
+                const layoutElement = originalLayout
+                    ? (typeof originalLayout === 'function' && originalLayout.length > 0
+                        ? originalLayout(pageNode) // If it's a layout function: page => <L>{page}</L>
+                        : React.createElement(originalLayout, {}, pageNode)) // If it's a Component
+                    : pageNode;
+
+                return (
+                    <GlobalProviderLayout>
+                        {layoutElement}
+                    </GlobalProviderLayout>
+                );
+            };
+            return module;
+        }),
+    setup({ el, App, props }) {
+        // Global settings initialization - ensures formatCurrency() has context 
+        // even during the very first render of any component.
+        const pageProps = props.initialPage.props;
+        const store = pageProps.store || {};
+        const settings = pageProps.settings || {};
+
+        window.amdSettings = {
+            ...settings,
+            currency:        settings.currency        || store.currency_code,
+            currency_code:   store.currency_code      || settings.currency_code,
+            currency_symbol: store.currency_symbol    || settings.currency_symbol,
+            timezone:        settings.timezone        || store.timezone || 'UTC',
+            store_name:      store.name               || settings.store_name || settings.business_name,
+            decimal_places:  parseInt(settings.decimal_places !== undefined ? settings.decimal_places : 2)
+        };
+
+        // Appearance, applied before the first render rather than from an effect
+        // after it.
+        //
+        // Blade has already put the theme, density, radius and font attributes on
+        // <html>, so the page painted correctly. What it could not do is the two
+        // custom colours: turning one hex into an eleven-stop ramp needs the
+        // perceptual curve in theme/color.js. Doing that here — synchronously,
+        // before createRoot().render() — means it lands in the same paint rather
+        // than as a visible recolour a moment later.
+        //
+        // Guarded to authenticated store sessions: the marketing site and the
+        // auth screens have no preference to apply and must keep their own look.
+        if (pageProps.auth?.user && pageProps.store) {
+            applyAppearance(pageProps.appearance || {});
+        }
+
+        const appElement = (
+            <GlobalErrorBoundary>
+                <App {...props} />
+            </GlobalErrorBoundary>
+        );
+
+        const isSSR = el.hasChildNodes();
+
+        if (isSSR) {
+            hydrateRoot(el, appElement);
+        } else {
+            createRoot(el).render(appElement);
+        }
+    },
+    progress: {
+        color: vq.gray[600],
+    },
+});
+
+window.addEventListener('vite:preloadError', (event) => {
+    event?.preventDefault?.();
+    const now = Date.now();
+    const lastReload = parseInt(sessionStorage.getItem('last_vite_reload') || '0', 10);
+    if (now - lastReload > 15000) {
+        sessionStorage.setItem('last_vite_reload', String(now));
+        console.warn('[Vite] Preload error detected. Forcing single reload.');
+        window.location.reload();
+    } else {
+        console.error('[Vite] Repeated preload errors detected. Suppressing auto-reload loop.');
+    }
+});
+
+// Global window error listener for non-React errors
+window.onerror = function (message, source, lineno, colno, error) {
+    try {
+        fetch('/api/report-error', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+            },
+            body: JSON.stringify({
+                message: message,
+                url: window.location.href,
+                stack_trace: error?.stack,
+                file: source,
+                line: lineno,
+            }),
+        });
+    } catch (e) {}
+};
+
+window.onunhandledrejection = function (event) {
+    try {
+        const reasonStr = String(event.reason || '');
+        if (reasonStr.includes('Failed to fetch dynamically imported module') || event.reason?.message?.includes('Failed to fetch dynamically imported module')) {
+            const now = Date.now();
+            const lastReload = parseInt(sessionStorage.getItem('last_vite_reload') || '0', 10);
+            if (now - lastReload > 15000) {
+                sessionStorage.setItem('last_vite_reload', String(now));
+                console.warn('[Vite] Unhandled rejection: Dynamic import failed. Forcing single reload.');
+                window.location.reload();
+            } else {
+                console.error('[Vite] Repeated dynamic import failures detected. Suppressing reload loop.');
+            }
+            return;
+        }
+
+        // Ignore network disconnects / offline client errors
+        if (reasonStr.includes('Failed to fetch') || reasonStr.includes('Network Error') || reasonStr.includes('Load failed')) {
+            return;
+        }
+
+        fetch('/api/report-error', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+            },
+            body: JSON.stringify({
+                message: 'Unhandled Promise Rejection: ' + event.reason,
+                url: window.location.href,
+                stack_trace: event.reason?.stack,
+                file: null,
+                line: null,
+            }),
+        });
+    } catch (e) {}
+};
+
+if ('serviceWorker' in navigator) {
+    const isDev = import.meta.env.DEV;
+
+    if (!isDev) {
+        window.addEventListener('load', () => {
+            // Proactively unregister any legacy conflicting service workers in production
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (const registration of registrations) {
+                    const url = registration.active?.scriptURL || '';
+                    if (url && !url.endsWith('/sw.js')) {
+                        console.log('[SW] Unregistering legacy conflicting service worker:', url);
+                        registration.unregister();
+                    }
+                }
+            });
+
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+        });
+    } else {
+        // In dev mode, unregister any previously registered SW to avoid stale caches
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (const registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        });
+    }
+}

@@ -1,0 +1,31 @@
+import React from 'react';
+
+export default function Toggle({ enabled, onChange, label, description, upcoming = false, comingSoon = false, variant = 'default', disabled = false }) {
+    return (
+        <div className={`flex items-center justify-between py-4 ${upcoming || comingSoon || disabled ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+            <div className="flex-1 pr-4">
+                <div className="flex items-center gap-2">
+                    <p className={`font-bold text-sm ${variant === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-ink'}`}>{label}</p>
+                    {upcoming && (
+                        <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-4xs font-bold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/30">Upcoming</span>
+                    )}
+                    {comingSoon && (
+                        <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-4xs font-bold uppercase tracking-wider rounded border border-blue-200 dark:border-blue-500/30">Coming Soon</span>
+                    )}
+                    {variant === 'danger' && (
+                        <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-4xs font-bold uppercase tracking-wider rounded border border-red-200 dark:border-red-500/30">Risk</span>
+                    )}
+                </div>
+                {description && <p className={`text-xs mt-0.5 ${variant === 'danger' ? 'text-red-500/80' : 'text-ink-muted'}`}>{description}</p>}
+            </div>
+            <button
+                type="button"
+                disabled={upcoming || comingSoon || disabled}
+                onClick={() => onChange(!enabled)}
+                className={`relative w-12 h-6 rounded-full transition-all duration-normal ${upcoming || comingSoon || disabled ? 'cursor-not-allowed bg-sunken' : enabled ? (variant === 'danger' ? 'bg-red-600 shadow-lg ' : 'bg-brand-600 shadow-lg ') : 'bg-sunken'}`}
+            >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-normal ${enabled && !upcoming && !comingSoon && !disabled ? 'left-7' : 'left-1'}`} />
+            </button>
+        </div>
+    );
+}
