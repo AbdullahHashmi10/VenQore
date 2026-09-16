@@ -284,9 +284,9 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         <p className="text-base font-bold text-blue-600">{computedStats.open}</p>
                     </div>
 
-                    <Link href={route('store.debit-notes.create', { store_slug: store.slug })} className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all">
-                        <Plus size={18} />
-                        <span className="font-bold text-sm">New Debit Note</span>
+                    <Link href={route('store.debit-notes.create', { store_slug: store.slug })} className="bg-red-600 hover:bg-red-700 !text-white px-3 py-2 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all" style={{ color: '#ffffff' }}>
+                        <Plus size={18} className="text-white shrink-0" />
+                        <span className="font-bold text-sm text-white">New Debit Note</span>
                     </Link>
                 </div>
 

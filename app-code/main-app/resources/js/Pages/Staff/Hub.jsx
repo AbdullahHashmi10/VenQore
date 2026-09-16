@@ -190,8 +190,8 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                 </div>
 
                                 {hasSupportAccess ? (
-                                    <Link href={route('platform.chatbot.inbox')} className="w-full text-center py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-bold text-white shadow-lg transition-all flex items-center justify-center gap-1.5">
-                                        Enter Support Command <ArrowRight size={12} />
+                                    <Link href={route('platform.chatbot.inbox')} className="w-full text-center py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-bold !text-white shadow-lg transition-all flex items-center justify-center gap-1.5" style={{ color: '#ffffff' }}>
+                                        Enter Support Command <ArrowRight size={12} className="text-white shrink-0" />
                                     </Link>
                                 ) : (
                                     <div className="w-full text-center py-2.5 rounded-xl bg-neutral-800 text-ink-muted text-xs font-bold flex items-center justify-center gap-1.5 cursor-not-allowed">

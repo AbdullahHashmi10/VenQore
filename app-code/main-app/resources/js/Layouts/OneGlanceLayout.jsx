@@ -1636,7 +1636,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <X size={16} className="text-red-500" />
  <span>Your subscription has expired. The system is in locked mode.</span>
  </div>
- <Link href={`/s/${store.slug}/billing`} className="px-3 py-1 rounded-md text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 transition-colors">
+ <Link href={`/s/${store.slug}/billing`} className="px-3 py-1 rounded-md text-xs font-bold !text-white bg-brand-500 hover:bg-brand-600 transition-colors" style={{ color: '#ffffff' }}>
  Upgrade Plan
  </Link>
  </div>
@@ -2084,7 +2084,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </p>
  <button
  onClick={() => setIsIdle(false)}
- className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold text-lg shadow-lg transition-all"
+ className="px-8 py-4 bg-brand-600 hover:bg-brand-500 !text-white rounded-2xl font-bold text-lg shadow-lg transition-all"
+ style={{ color: '#ffffff' }}
  >
  I'm Back, Resume Work
  </button>

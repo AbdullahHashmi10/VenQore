@@ -235,7 +235,8 @@ export default function BuilderIndex({
                         <button
                             type="button"
                             onClick={() => handleToggleOn(highlightMod)}
-                            className="shrink-0 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-bold hover:bg-brand-700 transition-colors"
+                            className="shrink-0 px-4 py-2 rounded-lg bg-brand-600 !text-white text-sm font-bold hover:bg-brand-700 transition-colors"
+                            style={{ color: '#ffffff' }}
                         >
                             Turn it on
                         </button>
@@ -485,7 +486,8 @@ export default function BuilderIndex({
                             <button
                                 type="button"
                                 onClick={confirmDisable}
-                                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors"
+                                className="px-4 py-2 rounded-lg bg-red-600 !text-white text-sm font-bold hover:bg-red-700 transition-colors"
+                                style={{ color: '#ffffff' }}
                             >
                                 Turn it off
                             </button>

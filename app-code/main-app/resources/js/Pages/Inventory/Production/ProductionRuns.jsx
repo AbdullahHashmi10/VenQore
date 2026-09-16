@@ -254,8 +254,8 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                             />
                         </div>
                         <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <Link href={route('store.production.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
-                                <Plus size={14} /> New Run
+                            <Link href={route('store.production.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors" style={{ color: '#ffffff' }}>
+                                <Plus size={14} className="text-white shrink-0" /> <span className="text-white">New Run</span>
                             </Link>
                         </div>
                     </div>

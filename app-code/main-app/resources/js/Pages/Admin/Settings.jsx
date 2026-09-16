@@ -414,11 +414,12 @@ export default function AdminSettings({ settings = {} }) {
  </div>
  <Link
  href={route('store.builder', { store_slug: store?.slug })}
- className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition-colors shrink-0"
+ className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 !text-white font-bold text-sm shadow-md transition-colors shrink-0"
+ style={{ color: '#ffffff' }}
  >
- <Sparkles size={16} />
- Open System Builder
- <ChevronRight size={16} />
+ <Sparkles size={16} className="text-white shrink-0" />
+ <span className="text-white">Open System Builder</span>
+ <ChevronRight size={16} className="text-white shrink-0" />
  </Link>
  </div>
  </div>
