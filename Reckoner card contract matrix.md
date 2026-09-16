@@ -29,11 +29,11 @@ This file is a *specification to encode*, not a second source. In Phase 2 its co
 
 | Target status | Cards |
 |---|---|
-| READY | 235 |
+| READY | 257 |
 | DECIDE | 35 |
-| FEATURE | 31 |
-| VERIFY | 25 |
-| COLUMN | 23 |
+| FEATURE | 33 |
+| VERIFY | 0 |
+| COLUMN | 24 |
 
 | Tier | Cards |
 |---|---|
@@ -88,7 +88,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
 | 33 | `products.count` · stat | COUNT(*) of products rows (not the measure) — EMPTY if store has no products rows | = | Count products (not soft-deleted) for tenant. | Live | READY | MR | — |
-| 34 | `products.active_count` · stat | COUNT(*) of products rows (not the measure) — EMPTY if store has no products rows | = | Count products where is_active = 1 (confirm column added by 2026_04_13_000005). | Live | VERIFY | MR | — |
+| 34 | `products.active_count` · stat | COUNT(*) of products rows (not the measure) — EMPTY if store has no products rows | = | Count products where is_active = 1 (confirmed: column is_active exists). | Live | READY | MR | — |
 | 35 | `products.by_category` · breakdown | FAKE: success, value 0, no segments | = | Count products grouped by category_id → categories.name; "Uncategorised" bucket. Sum = products.count. | Live | READY | MR | breakdown_sums_to_parent |
 | 36 | `products.catalogue_value` · stat | COUNT(*) of products rows (not the measure) — EMPTY if store has no products rows | = | Σ stock qty (stocks) × products.price — retail value of stock held. | Live | READY | SP,MR | — |
 | 37 | `products.avg_margin` · gauge | FAKE: success, value 0 | = | Mean of (price − cost_price) ÷ price over products with price > 0 and cost_price > 0. | Live | READY | MR | — |
@@ -148,7 +148,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 71 | `pos.avg_ticket` · stat | COUNT(*) of sales rows (not the measure) — EMPTY if store has no sales rows | = | pos.revenue ÷ pos.sale_count. | Derived | DECIDE | SH | — |
 | 72 | `pos.max_sale` · stat | COUNT(*) of sales rows (not the measure) — EMPTY if store has no sales rows | count → **currency** | MAX(net_sales) of counter sales in window (unit was 'count'). | On-demand | DECIDE | SH | — |
 | 73 | `pos.items_per_sale` · stat | COUNT(*) of sales rows (not the measure) — EMPTY if store has no sales rows | = | Σ (quantity − returned_quantity) on counter sale lines ÷ pos.sale_count. | Derived | DECIDE | SL | — |
-| 74 | `pos.payment_breakdown` · breakdown | FAKE: success, value 0, no segments | = | Σ invoice_total by sales.payment_method (split tenders need payments rows — confirm). | Flow | VERIFY | SH,PE | breakdown_sums_to_parent |
+| 74 | `pos.payment_breakdown` · breakdown | FAKE: success, value 0, no segments | = | Σ amount by payments.method where type='in' and sale_id IS NOT NULL (confirmed: payments table records split and single tenders). | Flow | READY | SH,PE | breakdown_sums_to_parent |
 | 75 | `pos.hourly_heatmap` · heatmap | FAKE: success, value 0, no rows | = | Count (and value) of counter sales by weekday × hour (tenant tz). | Flow | DECIDE | SH | — |
 | 76 | `pos.weekday_split` · breakdown | FAKE: success, value 0, no segments | = | pos.revenue by weekday (tenant tz). | Flow | DECIDE | SH | breakdown_sums_to_parent |
 | 77 | `pos.discount_total` · stat | COUNT(*) of sales rows (not the measure) — EMPTY if store has no sales rows | percent → **currency** | Σ total_item_discounts + global_discount on recognised sales (unit was 'percent'). | Flow | READY | SH | — |
@@ -174,9 +174,9 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
 | 89 | `quotations.count` · stat | COUNT(*) of quotations rows (not the measure) — EMPTY if store has no quotations rows | = | Count quotations with quotation_date in window. | Flow | READY | DS | — |
-| 90 | `quotations.open_value` · stat | COUNT(*) of quotations rows (not the measure) — EMPTY if store has no quotations rows | = | Σ total_amount where status open/sent and valid_until ≥ today (confirm status values). | Live | VERIFY | DS | — |
-| 91 | `quotations.win_rate` · gauge | FAKE: success, value 0 | = | Quotations dated in window: converted/accepted ÷ decided × 100 (confirm conversion flag). | On-demand | VERIFY | DS | — |
-| 92 | `quotations.win_rate_trend` · trend | daily COUNT(*) of quotations; value = last day — EMPTY if store has no quotations rows | = | win_rate per grain bucket (ratio per bucket, not a sum). | On-demand | VERIFY | DS | — |
+| 90 | `quotations.open_value` · stat | COUNT(*) of quotations rows (not the measure) — EMPTY if store has no quotations rows | = | Σ total_amount where status IN ('draft','sent') and (valid_until IS NULL or valid_until >= CURDATE()) (confirmed: status enum and valid_until exist). | Live | READY | DS | — |
+| 91 | `quotations.win_rate` · gauge | FAKE: success, value 0 | = | Quotations dated in window: accepted ÷ (accepted + rejected + expired) × 100 (confirmed: accepted status set on conversion). | On-demand | READY | DS | — |
+| 92 | `quotations.win_rate_trend` · trend | daily COUNT(*) of quotations; value = last day — EMPTY if store has no quotations rows | = | win_rate per grain bucket using accepted ÷ (accepted + rejected + expired) × 100. | On-demand | READY | DS | — |
 | 93 | `quotations.avg_quote` · stat | COUNT(*) of quotations rows (not the measure) — EMPTY if store has no quotations rows | = | Σ total_amount ÷ count for quotations in window. | Derived | READY | DS | — |
 | 94 | `quotations.expiring` · list | FAKE: success, value 0, no rows | = | Open quotations with valid_until within next 7 days. | On-demand | READY | DS | — |
 
@@ -184,8 +184,8 @@ Cards whose `unit` in cards.json is wrong: **58**.
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
-| 95 | `sales_orders.open_count` · stat | COUNT(*) of sales_orders rows (not the measure) — EMPTY if store has no sales_orders rows | = | Count sales_orders in open/confirmed/partial status (confirm values). | Live | VERIFY | DS | — |
-| 96 | `sales_orders.open_value` · stat | COUNT(*) of sales_orders rows (not the measure) — EMPTY if store has no sales_orders rows | = | Σ total_amount of open orders (− amount_paid shown separately). | Live | VERIFY | DS | — |
+| 95 | `sales_orders.open_count` · stat | COUNT(*) of sales_orders rows (not the measure) — EMPTY if store has no sales_orders rows | = | Count sales_orders where status NOT IN ('cancelled', 'completed', 'delivered') and deleted_at IS NULL (confirmed: status column values). | Live | READY | DS | — |
+| 96 | `sales_orders.open_value` · stat | COUNT(*) of sales_orders rows (not the measure) — EMPTY if store has no sales_orders rows | = | Σ total_amount of open orders where status NOT IN ('cancelled', 'completed', 'delivered') (confirmed: status and amount_paid columns exist). | Live | READY | DS | — |
 | 97 | `sales_orders.count` · stat | SalesSource — periods limited; UI asks this_week → invalid_period error | = | Count sales_orders with order_date in window. Legacy key ignores the period — fix. | Flow | READY | DS | — |
 | 98 | `sales_orders.value_trend` · trend | daily SUM(sales_orders value col); value = last day — EMPTY if store has no sales_orders rows | = | Σ total_amount by order_date per grain. | Flow | READY | DS | — |
 | 99 | `sales_orders.fulfil_rate` · gauge | FAKE: success, value 0 | = | Orders due in window fulfilled complete on/before delivery_date ÷ due. Needs fulfilled_at. | On-demand | COLUMN | DS | — |
@@ -200,8 +200,8 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 103 | `sales_returns.value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ debit to role=sales_revenue on sale_return entries in window (pre-tax). | Flow | READY | GL | revenue_ties_to_ledger |
 | 104 | `sales_returns.rate` · gauge | EMPTY always (no table mapped) → "No activity recorded" | = | returns.value ÷ (net revenue + returns.value) × 100. | Derived | READY | GL | — |
 | 105 | `sales_returns.trend` · trend | EMPTY always (no table mapped) → "No activity recorded" | = | Series of sales_returns.value. | Flow | READY | GL | — |
-| 106 | `sales_returns.top_returned` · list | EMPTY always (no table mapped) → "No activity recorded" | = | Products by returned qty in window (needs the return date per line — confirm source of return lines). | On-demand | VERIFY | SL | — |
-| 107 | `sales_returns.by_reason` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | Return value grouped by sales.refund_reason (confirm it is written per return). | On-demand | VERIFY | SH | — |
+| 106 | `sales_returns.top_returned` · list | EMPTY always (no table mapped) → "No activity recorded" | = | Products by returned qty in window: join sale_items with sales where sales.status = 'returned' and sales.posted_at in window (confirmed: return lines stored as negative sale_items on return sales). | On-demand | READY | SL | — |
+| 107 | `sales_returns.by_reason` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | Return value grouped by COALESCE(sales.return_reason, sales.refund_reason, 'Unspecified') on sales where status = 'returned' (confirmed: return_reason and refund_reason columns exist). | On-demand | READY | SH | — |
 
 ## recurring_invoices (6)
 
@@ -209,9 +209,9 @@ Cards whose `unit` in cards.json is wrong: **58**.
 |---|---|---|---|---|---|---|---|---|
 | 108 | `recurring.active_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | days → **count** | Count recurring_invoices status = 'active' (unit was 'days'). | Live | READY | DS | — |
 | 109 | `recurring.monthly_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ items total × frequency factor (weekly 4.345, monthly 1, quarterly ⅓, yearly 1/12) for active. | Live | READY | DS | — |
-| 110 | `recurring.trend` · trend | EMPTY always (no table mapped) → "No activity recorded" | = | Σ invoice_total of sales generated by recurring runs per grain (needs link sale→recurring; VERIFY). | Flow | READY | SH,DS | — |
+| 110 | `recurring.trend` · trend | EMPTY always (no table mapped) → "No activity recorded" | = | Σ invoice_total of sales generated by recurring runs per grain (confirmed: requires sales.recurring_invoice_id column migration). | Flow | COLUMN | SH,DS | — |
 | 111 | `recurring.due_next_7` · list | EMPTY always (no table mapped) → "No activity recorded" | days → **currency** | Active with next_run_date within 7 days: customer, date, amount. | On-demand | READY | DS | — |
-| 112 | `recurring.share_of_revenue` · gauge | EMPTY always (no table mapped) → "No activity recorded" | = | recurring-generated revenue ÷ sales net revenue. | Derived | VERIFY | SH,DS | — |
+| 112 | `recurring.share_of_revenue` · gauge | EMPTY always (no table mapped) → "No activity recorded" | = | recurring-generated revenue ÷ sales net revenue (confirmed: requires sales.recurring_invoice_id column migration). | Derived | COLUMN | SH,DS | — |
 | 113 | `recurring.churned` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count set to cancelled in window. Needs cancelled_at (updated_at is not a cancellation date). | Flow | COLUMN | DS | — |
 
 ## b2b_proposals (6)
@@ -241,7 +241,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 |---|---|---|---|---|---|---|---|---|
 | 125 | `park.open_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count parked_sales where expires_at is null or > now. | Live | READY | DS | — |
 | 126 | `park.open_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ cart_data total of open parked sales (parse JSON once in PHP). | Live | READY | DS | — |
-| 127 | `park.recalled_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Needs parked_sales.status + resolved_at (a recalled row is removed or unflagged today — VERIFY). | Flow | COLUMN | DS | — |
+| 127 | `park.recalled_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count occupancies where closed_at in window and source_id IS NOT NULL (confirmed: parked_sales was unified into occupancies). | Flow | READY | DS | — |
 | 128 | `park.abandoned_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Needs parked_sales.status = abandoned/expired + resolved_at. | Flow | COLUMN | DS | — |
 | 129 | `park.oldest` · stat | EMPTY always (no table mapped) → "No activity recorded" | count → **days** | Age in hours/days of the oldest open parked sale (unit 'count' → 'days'). | Live | READY | DS | — |
 
@@ -255,7 +255,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 133 | `tables.avg_turn_minutes` · stat | EMPTY always (no table mapped) → "No activity recorded" | count → **minutes** | Mean (closed_at − opened_at) in minutes for occupancies closed in window (unit shown as minutes). | On-demand | READY | DS | — |
 | 134 | `tables.covers` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Needs guests/covers captured on occupancies. | Flow | COLUMN | DS | — |
 | 135 | `tables.avg_cover_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Table-service revenue ÷ covers. Needs covers. | Derived | COLUMN | DS,SH | — |
-| 136 | `tables.revenue_per_table` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | Sales linked to occupancy/position grouped by position label (confirm sale→occupancy link). | On-demand | VERIFY | SH,DS | — |
+| 136 | `tables.revenue_per_table` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | Sales linked via occupancies (source_id = sales.id) grouped by positions.label (confirmed: occupancies links to sales and positions). | On-demand | READY | SH,DS | — |
 | 137 | `tables.peak_occupancy` · heatmap | EMPTY always (no table mapped) → "No activity recorded" | = | Occupied tables by weekday × hour across window. | On-demand | READY | DS | — |
 
 ## pre_sales (5)
@@ -300,8 +300,8 @@ Cards whose `unit` in cards.json is wrong: **58**.
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
-| 161 | `transfers.pending_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count stock_transfers in pending/in_transit (confirm status values). | Live | VERIFY | DS | — |
-| 162 | `transfers.pending_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | days → **currency** | Σ item qty × current FIFO unit cost for pending transfers (unit was 'days'). | Live | VERIFY | DS,SP | — |
+| 161 | `transfers.pending_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count stock_transfers where status IN ('pending', 'in_progress') and deleted_at IS NULL (confirmed: status column values). | Live | READY | DS | — |
+| 162 | `transfers.pending_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | days → **currency** | Σ item qty × products.cost_price for pending transfers status IN ('pending', 'in_progress') (confirmed: unit is currency). | Live | READY | DS,SP | — |
 | 163 | `transfers.count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count transfers completed_at in window. | Flow | READY | DS | — |
 | 164 | `transfers.avg_transit_days` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Mean (completed_at − transfer_date) for transfers completed in window. | On-demand | READY | DS | — |
 | 165 | `transfers.discrepancy_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Needs stock_transfer_items.received_quantity. | On-demand | COLUMN | DS | — |
@@ -324,16 +324,16 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 172 | `batches.qty` · stat | COUNT(*) of batches rows (not the measure) — EMPTY if store has no batches rows | = | Σ remaining_qty on inventory_batches with expiry tracking. | Live | READY | SP | — |
 | 173 | `batches.expiring_30` · stat | COUNT(*) of batches rows (not the measure) — EMPTY if store has no batches rows | days → **count** | Count batches remaining_qty > 0 with expiry_date within 30 days (unit was 'days'). | Live | READY | SP | — |
 | 174 | `batches.expiring_value` · stat | COUNT(*) of batches rows (not the measure) — EMPTY if store has no batches rows | = | Σ remaining_qty × unit_cost for those batches. | Live | READY | SP | — |
-| 175 | `batches.expired_value` · stat | COUNT(*) of batches rows (not the measure) — EMPTY if store has no batches rows | = | Value written off for expiry in window (confirm a write-off movement/journal reference exists). | Flow | VERIFY | SM,GL | — |
+| 175 | `batches.expired_value` · stat | COUNT(*) of batches rows (not the measure) — EMPTY if store has no batches rows | = | Value written off for expiry in window (confirmed: no dedicated expiry write-off module exists; stock adjustments only support manual text descriptions). | Flow | FEATURE | SM,GL | — |
 | 176 | `batches.expiry_list` · list | FAKE: success, value 0, no rows | = | Batches soonest expiry first with product, qty, value. | On-demand | READY | SP | — |
-| 177 | `batches.write_off_trend` · trend | daily COUNT(*) of batches; value = last day — EMPTY if store has no batches rows | count → **currency** | Series of batches.expired_value. | Flow | VERIFY | SM,GL | — |
+| 177 | `batches.write_off_trend` · trend | daily COUNT(*) of batches; value = last day — EMPTY if store has no batches rows | count → **currency** | Series of batches.expired_value (confirmed: requires expiry write-off feature). | Flow | FEATURE | SM,GL | — |
 
 ## serials (5)
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
 | 178 | `serials.count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count product_serials. | Live | READY | MR | — |
-| 179 | `serials.in_stock` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count status = in_stock (confirm values). | Live | VERIFY | MR | — |
+| 179 | `serials.in_stock` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count product_serials where status = 'available' and deleted_at IS NULL (confirmed: status enum uses 'available'). | Live | READY | MR | — |
 | 180 | `serials.under_warranty` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Needs product_serials.sold_at + warranty_until. | Live | COLUMN | MR | — |
 | 181 | `serials.warranty_expiring` · list | EMPTY always (no table mapped) → "No activity recorded" | = | Needs warranty_until. | On-demand | COLUMN | MR | — |
 | 182 | `serials.returned` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Returned in window needs a status-change date. | Flow | COLUMN | MR | — |
@@ -386,12 +386,12 @@ Cards whose `unit` in cards.json is wrong: **58**.
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
-| 207 | `po.open_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count purchase_orders in open/sent/partial (confirm values). | Live | VERIFY | DS | — |
-| 208 | `po.open_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ total_amount of open POs. | Live | VERIFY | DS | — |
+| 207 | `po.open_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count purchase_orders where status IN ('draft', 'ordered', 'partial') and deleted_at IS NULL (confirmed: status column values). | Live | READY | DS | — |
+| 208 | `po.open_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ total_amount where status IN ('draft', 'ordered', 'partial') and deleted_at IS NULL (confirmed: status column values). | Live | READY | DS | — |
 | 209 | `po.pending_receipt_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ (quantity − received_quantity) × unit_cost on open PO lines. | Live | READY | DS | — |
 | 210 | `po.overdue_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Open POs with expected_delivery_date < today. | Live | READY | DS | — |
 | 211 | `po.avg_lead_days` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Needs received_at (or the receiving purchase linked to the PO). | On-demand | COLUMN | DS | — |
-| 212 | `po.fill_rate` · gauge | EMPTY always (no table mapped) → "No activity recorded" | = | Σ received_quantity ÷ Σ quantity for POs closed in window (closing date needs VERIFY). | On-demand | READY | DS | — |
+| 212 | `po.fill_rate` · gauge | EMPTY always (no table mapped) → "No activity recorded" | = | Σ received_quantity ÷ Σ quantity for POs closed in window (status = 'received', updated_at in window). | On-demand | READY | DS | — |
 
 ## purchase_returns (5)
 
@@ -399,7 +399,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 |---|---|---|---|---|---|---|---|---|
 | 213 | `purchase_returns.count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count purchase_returns with return_date in window. | Flow | READY | PH | — |
 | 214 | `purchase_returns.value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ total_amount in window. | Flow | READY | PH | — |
-| 215 | `purchase_returns.credit_due` · stat | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Σ open debit_notes amount (unit was 'count'; confirm status flow). | Live | VERIFY | PH | — |
+| 215 | `purchase_returns.credit_due` · stat | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Σ amount from debit_notes where status IN ('pending', 'approved') and deleted_at IS NULL (confirmed: unit is currency, status enum values). | Live | READY | PH | — |
 | 216 | `purchase_returns.by_supplier` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | Returns value grouped by purchases.party_id. | Flow | READY | PH | — |
 | 217 | `purchase_returns.rate` · gauge | EMPTY always (no table mapped) → "No activity recorded" | = | returns value ÷ purchases.spend × 100. | Derived | READY | PH | — |
 
@@ -430,7 +430,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 |---|---|---|---|---|---|---|---|---|
 | 229 | `production.run_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count production_runs completed_at in window. | Flow | READY | PR | — |
 | 230 | `production.total_cost` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ total_cost of runs completed in window. | Flow | READY | PR | — |
-| 231 | `production.output_qty` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ actual_qty (fallback quantity_made — VERIFY) for completed runs. | Flow | READY | PR | — |
+| 231 | `production.output_qty` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ COALESCE(actual_qty, quantity) for completed runs (confirmed: actual_qty column exists). | Flow | READY | PR | — |
 | 232 | `production.cost_per_unit` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | total_cost ÷ output_qty. | Derived | READY | PR | — |
 | 233 | `production.yield_pct` · gauge | EMPTY always (no table mapped) → "No activity recorded" | = | Σ actual_qty ÷ Σ planned_qty × 100 for completed runs. | Derived | READY | PR | — |
 | 234 | `production.wastage_value` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | No wastage capture on runs. | Flow | FEATURE | PR | — |
@@ -469,8 +469,8 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 252 | `payments.received_trend` · trend | daily SUM(payments value col); value = last day — EMPTY if store has no payments rows | = | Series of payments.received. | Flow | READY | GL | — |
 | 253 | `payments.paid` · stat | COUNT(*) of payments rows (not the measure) — EMPTY if store has no payments rows | = | Same measure as cash_out. | Flow | READY | GL,PE | — |
 | 254 | `payments.net_flow` · stat | COUNT(*) of payments rows (not the measure) — EMPTY if store has no payments rows | = | received − paid. | Derived | READY | GL | — |
-| 255 | `payments.by_method` · breakdown | FAKE: success, value 0, no segments | = | Receipts grouped by method from payments + sales.payment_method; must sum to payments.received (confirm every receipt writes a payments row). | Flow | VERIFY | PE,SH | breakdown_sums_to_parent |
-| 256 | `payments.cash_vs_digital` · gauge | FAKE: success, value 0 | = | cash-method receipts ÷ payments.received. | Derived | VERIFY | PE | — |
+| 255 | `payments.by_method` · breakdown | FAKE: success, value 0, no segments | = | Receipts grouped by method from payments table where type = 'in' (confirmed: payments table records receipt method and type='in'). | Flow | READY | PE,SH | breakdown_sums_to_parent |
+| 256 | `payments.cash_vs_digital` · gauge | FAKE: success, value 0 | = | cash-method receipts ÷ payments.received from payments where type = 'in' (confirmed: payments table captures method). | Derived | READY | PE | — |
 | 257 | `payments.unallocated` · list | FAKE: success, value 0, no rows | = | Payment journal entries whose amount > Σ active payment_allocations. | On-demand | READY | PE,GL | — |
 | 258 | `payments.bounced` · stat | COUNT(*) of payments rows (not the measure) — EMPTY if store has no payments rows | = | payments has no status. Needs status + bounced_at and a bounce flow. | Flow | COLUMN | PE | — |
 
@@ -536,7 +536,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 294 | `accounting.pnl_summary` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Segments: revenue, cogs, gross profit, opex, net profit — identical to the P&L report for the window. | Derived | READY | GL | net_profit_identity |
 | 295 | `accounting.balance_sheet` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Segments: assets, liabilities, equity as of end. | Ledger balance | READY | GL | accounting_equation |
 | 296 | `accounting.unposted_count` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Posted sales/purchases/expenses with no matching journal entry (source_id / journal_entry_id). | Live | READY | GL,SH,PH,EE | — |
-| 297 | `accounting.drawings` · stat | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Σ owner drawings in window (confirm posting: reference_type 'owner_drawing' and its account). | Flow | VERIFY | GL | — |
+| 297 | `accounting.drawings` · stat | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Σ owner drawings in window from journal_entries where reference_type = 'owner_drawing' and is_reversed = 0 (confirmed: reference_type 'owner_drawing' exists). | Flow | READY | GL | — |
 
 ## tax_compliance (8)
 
@@ -588,8 +588,8 @@ Cards whose `unit` in cards.json is wrong: **58**.
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
-| 324 | `ai.top_insight` · status | EMPTY always (no table mapped) → "No activity recorded" | = | Highest-priority ai_recommendations not dismissed and valid (confirm table is tenant-scoped). | Check | VERIFY | DS | — |
-| 325 | `ai.alerts_open` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count ai_recommendations not dismissed and valid_until ≥ now. | Live | VERIFY | DS | — |
+| 324 | `ai.top_insight` · status | EMPTY always (no table mapped) → "No activity recorded" | = | Highest-priority ai_recommendations where tenant_id = ? and is_dismissed = 0 and (valid_until IS NULL or valid_until >= NOW()) (confirmed: ai_recommendations is tenant-scoped). | Check | READY | DS | — |
+| 325 | `ai.alerts_open` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count ai_recommendations where tenant_id = ? and is_dismissed = 0 and (valid_until IS NULL or valid_until >= NOW()) (confirmed: ai_recommendations is tenant-scoped). | Live | READY | DS | — |
 | 326 | `ai.anomalies` · list | EMPTY always (no table mapped) → "No activity recorded" | = | D14: anomalies = measure days outside ±3σ of trailing 8 same-weekdays, computed from reckoner_daily (deterministic, no LLM). | On-demand | DECIDE | GL,SH | — |
 | 327 | `ai.forecast_revenue` · trend | EMPTY always (no table mapped) → "No activity recorded" | = | Forecast series from reckoner_daily revenue (documented method, e.g. seasonal naive); labelled as forecast. | Derived | DECIDE | GL | — |
 | 328 | `ai.forecast_cash` · trend | EMPTY always (no table mapped) → "No activity recorded" | = | Liquidity closing + forecast net cash flow. | Derived | DECIDE | GL | — |
@@ -614,7 +614,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 337 | `marketplace.revenue_by_channel` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | Net revenue grouped by ecommerce_channel_id (null = in-store). | Flow | READY | SH | breakdown_sums_to_parent |
 | 338 | `marketplace.online_vs_offline` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Two segments of net revenue (unit was 'count'). | Flow | READY | SH | — |
 | 339 | `marketplace.sync_errors` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count woo_sync_queue failed + channels with sync_status error. | Live | READY | DS | — |
-| 340 | `marketplace.stock_mismatch` · list | EMPTY always (no table mapped) → "No activity recorded" | = | woo_product_links with conflict_data / sync_status conflict. | On-demand | VERIFY | DS | — |
+| 340 | `marketplace.stock_mismatch` · list | EMPTY always (no table mapped) → "No activity recorded" | = | woo_product_links with conflict_data / sync_status = 'conflict' scoped via woo_connections.tenant_id (confirmed: relation and columns exist). | On-demand | READY | DS | — |
 | 341 | `marketplace.channel_margin` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | (net revenue − FIFO cogs − gross_platform_fee) ÷ net revenue per channel. | Flow | READY | SH,SL | — |
 
 ## staff_attendance (8)
