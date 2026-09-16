@@ -1,1 +1,0 @@
-import{u as m}from"./app-9BpDs2tz.js";function p(){const{auth:r}=m().props,e=r?.user?.permissions||[],s=r?.user?.role,o=s==="platform_admin"||s==="admin"||s==="owner"||!!r?.user?.is_platform_admin;return{hasPerm:(...i)=>o?!0:i.some(n=>e.some(t=>t===n||t.startsWith(n+"."))),isAdmin:o,role:s,permissions:e}}export{p as u};

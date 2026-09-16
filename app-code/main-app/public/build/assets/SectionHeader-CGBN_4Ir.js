@@ -1,1 +1,0 @@
-import{j as e}from"./app-9BpDs2tz.js";function a({title:s,description:t,className:n=""}){return e.jsxs("div",{className:`mb-6 ${n}`,children:[e.jsx("h3",{className:"text-lg font-bold text-ink",children:s}),t&&e.jsx("p",{className:"text-sm text-ink-muted",children:t})]})}export{a as S};
