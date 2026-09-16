@@ -1,0 +1,6198 @@
+{
+  "core.revenue": {
+    "key": "core.revenue",
+    "title": "Revenue",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 99,
+    "topic": "revenue",
+    "insight": "Everything that came in through sales in the chosen period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.revenue_trend": {
+    "key": "core.revenue_trend",
+    "title": "Revenue Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 96,
+    "topic": "revenue",
+    "insight": "The same revenue number plotted day by day, so you see the shape, not just the total.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.net_profit": {
+    "key": "core.net_profit",
+    "title": "Net Profit",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 98,
+    "topic": "profit",
+    "insight": "What is actually left after cost of goods and every expense.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.profit_trend": {
+    "key": "core.profit_trend",
+    "title": "Profit Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 93,
+    "topic": "profit",
+    "insight": "Net profit day by day — shows whether good months are a habit or a fluke.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.gross_profit": {
+    "key": "core.gross_profit",
+    "title": "Gross Profit",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 90,
+    "topic": "profit",
+    "insight": "Sales minus what those goods cost you, before running expenses.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.gross_margin_pct": {
+    "key": "core.gross_margin_pct",
+    "title": "Gross Margin %",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": null,
+    "period": true,
+    "weight": 89,
+    "topic": "profit",
+    "insight": "How many paisa of every rupee of sales survives the cost of goods.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.net_margin_pct": {
+    "key": "core.net_margin_pct",
+    "title": "Net Margin %",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": null,
+    "period": true,
+    "weight": 87,
+    "topic": "profit",
+    "insight": "How many paisa of every rupee of sales you finally keep.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.cogs": {
+    "key": "core.cogs",
+    "title": "Cost of Goods Sold",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 85,
+    "topic": null,
+    "insight": "What the things you sold actually cost you to buy or make.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.expenses_total": {
+    "key": "core.expenses_total",
+    "title": "Total Expenses",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 91,
+    "topic": "expenses",
+    "insight": "Every rupee spent on running the business in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.expense_ratio": {
+    "key": "core.expense_ratio",
+    "title": "Expense Ratio",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": null,
+    "period": true,
+    "weight": 78,
+    "topic": "expenses",
+    "insight": "Expenses as a share of revenue — the single fastest overspending alarm.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.receivables": {
+    "key": "core.receivables",
+    "title": "Receivables",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": false,
+    "weight": 95,
+    "topic": "receivable",
+    "insight": "Money sitting with other people that belongs to you.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.receivables_aging": {
+    "key": "core.receivables_aging",
+    "title": "Receivables Aging",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": null,
+    "period": false,
+    "weight": 88,
+    "topic": "receivable",
+    "insight": "Your receivables split into 0-30, 31-60, 61-90 and 90+ days. Old money is lost money.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.payables": {
+    "key": "core.payables",
+    "title": "Payables",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": false,
+    "weight": 92,
+    "topic": "payable",
+    "insight": "Money you owe and have not paid yet.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.payables_aging": {
+    "key": "core.payables_aging",
+    "title": "Payables Aging",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": null,
+    "period": false,
+    "weight": 76,
+    "topic": "payable",
+    "insight": "What you owe, bucketed by how overdue it is.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.total_liquidity": {
+    "key": "core.total_liquidity",
+    "title": "Total Liquidity",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": false,
+    "weight": 97,
+    "topic": "liquidity",
+    "insight": "Cash in hand plus every bank balance — what you could pay out today.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.liquidity_trend": {
+    "key": "core.liquidity_trend",
+    "title": "Liquidity Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 94,
+    "topic": "liquidity",
+    "insight": "Total liquidity plotted across the period, so you see whether you are building cash or bleeding it.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.cash_flow_trend": {
+    "key": "core.cash_flow_trend",
+    "title": "Cash In vs Cash Out",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 90,
+    "topic": "liquidity",
+    "insight": "Two lines: money arriving and money leaving, day by day.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.net_cash_position": {
+    "key": "core.net_cash_position",
+    "title": "Net Cash Position",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": false,
+    "weight": 82,
+    "topic": "liquidity",
+    "insight": "Liquidity minus what you owe — the honest version of 'how much do I have'.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.working_capital": {
+    "key": "core.working_capital",
+    "title": "Working Capital",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": false,
+    "weight": 74,
+    "topic": "liquidity",
+    "insight": "Current assets minus current liabilities. Room to breathe.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.revenue_vs_prev": {
+    "key": "core.revenue_vs_prev",
+    "title": "Revenue vs Last Period",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 86,
+    "topic": "revenue",
+    "insight": "This period's revenue against the one before it, as a percentage.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.profit_vs_prev": {
+    "key": "core.profit_vs_prev",
+    "title": "Profit vs Last Period",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 81,
+    "topic": "profit",
+    "insight": "This period's profit against the one before it.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.transaction_count": {
+    "key": "core.transaction_count",
+    "title": "Transactions",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 72,
+    "topic": "salesvol",
+    "insight": "How many documents of any kind were posted in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.avg_transaction_value": {
+    "key": "core.avg_transaction_value",
+    "title": "Average Transaction Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 75,
+    "topic": "salesvol",
+    "insight": "Total value divided by number of transactions.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.busiest_day": {
+    "key": "core.busiest_day",
+    "title": "Busiest Day",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 62,
+    "topic": null,
+    "insight": "Which day of the period brought in the most money.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.peak_hour": {
+    "key": "core.peak_hour",
+    "title": "Peak Hour",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 60,
+    "topic": null,
+    "insight": "The hour of the day that consistently earns the most.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.balance_sheet_ok": {
+    "key": "core.balance_sheet_ok",
+    "title": "Books Balanced",
+    "viz": "status",
+    "shape": "status",
+    "module": null,
+    "period": false,
+    "weight": 70,
+    "topic": null,
+    "insight": "A live check that debits equal credits. Green means your numbers are arithmetically sound.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.journal_entries_count": {
+    "key": "core.journal_entries_count",
+    "title": "Journal Entries Posted",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 55,
+    "topic": null,
+    "insight": "How many double-entry rows the ledger engine wrote for you automatically.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.audit_trail_count": {
+    "key": "core.audit_trail_count",
+    "title": "Audit Events Logged",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 50,
+    "topic": null,
+    "insight": "Every change anyone made, counted. Nothing happens without a record.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.reversal_count": {
+    "key": "core.reversal_count",
+    "title": "Reversals & Corrections",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 52,
+    "topic": null,
+    "insight": "How many entries had to be reversed — a quiet measure of data discipline.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.document_sequence_ok": {
+    "key": "core.document_sequence_ok",
+    "title": "Document Numbering Intact",
+    "viz": "status",
+    "shape": "status",
+    "module": null,
+    "period": false,
+    "weight": 48,
+    "topic": null,
+    "insight": "Confirms no invoice or bill number is missing or duplicated.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.user_activity": {
+    "key": "core.user_activity",
+    "title": "Active Users",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 46,
+    "topic": null,
+    "insight": "Who has actually logged in and worked today.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "core.plan_usage": {
+    "key": "core.plan_usage",
+    "title": "Plan Usage",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": null,
+    "period": false,
+    "weight": 44,
+    "topic": null,
+    "insight": "How much of your plan's limits you have used this cycle.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ]
+  },
+  "products.count": {
+    "key": "products.count",
+    "title": "Products",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "products",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "How many products exist in your catalogue right now.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.active_count": {
+    "key": "products.active_count",
+    "title": "Active Products",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "products",
+    "period": false,
+    "weight": 66,
+    "topic": null,
+    "insight": "Products that are switched on and sellable today.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.by_category": {
+    "key": "products.by_category",
+    "title": "Products by Category",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "products",
+    "period": false,
+    "weight": 63,
+    "topic": null,
+    "insight": "Your catalogue split by category, so you see where it is thick and where it is thin.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.catalogue_value": {
+    "key": "products.catalogue_value",
+    "title": "Catalogue Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "products",
+    "period": false,
+    "weight": 71,
+    "topic": null,
+    "insight": "Every product's selling price times the quantity you hold.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.avg_margin": {
+    "key": "products.avg_margin",
+    "title": "Average Product Margin",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "products",
+    "period": false,
+    "weight": 77,
+    "topic": null,
+    "insight": "The average gap between cost and selling price across the catalogue.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.top_margin": {
+    "key": "products.top_margin",
+    "title": "Best-Margin Products",
+    "viz": "list",
+    "shape": "list",
+    "module": "products",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "The products that earn you the most per unit sold.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.lowest_margin": {
+    "key": "products.lowest_margin",
+    "title": "Thinnest-Margin Products",
+    "viz": "list",
+    "shape": "list",
+    "module": "products",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "Products you sell a lot of but barely earn on.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.never_sold": {
+    "key": "products.never_sold",
+    "title": "Products Never Sold",
+    "viz": "list",
+    "shape": "list",
+    "module": "products",
+    "period": false,
+    "weight": 65,
+    "topic": null,
+    "insight": "Items sitting in the catalogue that nobody has ever bought.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.missing_cost": {
+    "key": "products.missing_cost",
+    "title": "Products Missing a Cost",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "products",
+    "period": false,
+    "weight": 58,
+    "topic": null,
+    "insight": "Items with no purchase cost recorded — these silently break your margin numbers.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "products.new_this_period": {
+    "key": "products.new_this_period",
+    "title": "Products Added",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "products",
+    "period": true,
+    "weight": 49,
+    "topic": null,
+    "insight": "New items added to the catalogue in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "services.count": {
+    "key": "services.count",
+    "title": "Services Offered",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "services",
+    "period": false,
+    "weight": 72,
+    "topic": null,
+    "insight": "How many billable services you have defined.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "services.revenue": {
+    "key": "services.revenue",
+    "title": "Service Revenue",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "services",
+    "period": true,
+    "weight": 88,
+    "topic": "revenue",
+    "insight": "Money earned from labour and services, separate from goods.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "services.revenue_trend": {
+    "key": "services.revenue_trend",
+    "title": "Service Revenue Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "services",
+    "period": true,
+    "weight": 80,
+    "topic": "revenue",
+    "insight": "Service earnings day by day across the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "services.share_of_revenue": {
+    "key": "services.share_of_revenue",
+    "title": "Services Share of Revenue",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "services",
+    "period": true,
+    "weight": 75,
+    "topic": null,
+    "insight": "What portion of the business is labour rather than product.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "services.top_services": {
+    "key": "services.top_services",
+    "title": "Top Services",
+    "viz": "list",
+    "shape": "list",
+    "module": "services",
+    "period": true,
+    "weight": 79,
+    "topic": null,
+    "insight": "Which services bring in the most money.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "services.avg_ticket": {
+    "key": "services.avg_ticket",
+    "title": "Average Service Ticket",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "services",
+    "period": true,
+    "weight": 71,
+    "topic": null,
+    "insight": "What a typical service job is worth.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "services.jobs_count": {
+    "key": "services.jobs_count",
+    "title": "Jobs Completed",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "services",
+    "period": true,
+    "weight": 73,
+    "topic": null,
+    "insight": "How many service jobs you finished in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "customers.count": {
+    "key": "customers.count",
+    "title": "Total Customers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "customers",
+    "period": false,
+    "weight": 84,
+    "topic": null,
+    "insight": "Every customer on your books.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.new": {
+    "key": "customers.new",
+    "title": "New Customers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "customers",
+    "period": true,
+    "weight": 81,
+    "topic": null,
+    "insight": "People who bought from you for the first time in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.new_trend": {
+    "key": "customers.new_trend",
+    "title": "New Customer Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "customers",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "First-time buyers plotted across the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.active": {
+    "key": "customers.active",
+    "title": "Active Customers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "customers",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "Customers who actually bought something in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.dormant": {
+    "key": "customers.dormant",
+    "title": "Dormant Customers",
+    "viz": "list",
+    "shape": "list",
+    "module": "customers",
+    "period": false,
+    "weight": 73,
+    "topic": null,
+    "insight": "Regulars who have gone quiet — the cheapest sales list you own.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.repeat_rate": {
+    "key": "customers.repeat_rate",
+    "title": "Repeat Customer Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "customers",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "What share of sales came from people who had bought before.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.top_customers": {
+    "key": "customers.top_customers",
+    "title": "Top Customers",
+    "viz": "list",
+    "shape": "list",
+    "module": "customers",
+    "period": true,
+    "weight": 86,
+    "topic": null,
+    "insight": "Who spends the most with you.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.avg_spend": {
+    "key": "customers.avg_spend",
+    "title": "Average Customer Spend",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "customers",
+    "period": true,
+    "weight": 69,
+    "topic": null,
+    "insight": "What a typical customer is worth in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.owing": {
+    "key": "customers.owing",
+    "title": "Customers Who Owe You",
+    "viz": "list",
+    "shape": "list",
+    "module": "customers",
+    "period": false,
+    "weight": 87,
+    "topic": "receivable",
+    "insight": "Every customer with a balance, largest first.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "customers.by_area": {
+    "key": "customers.by_area",
+    "title": "Customers by Area",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "customers",
+    "period": false,
+    "weight": 54,
+    "topic": null,
+    "insight": "Where your customers are, so you know which area actually pays.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ]
+  },
+  "suppliers.count": {
+    "key": "suppliers.count",
+    "title": "Total Suppliers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "suppliers",
+    "period": false,
+    "weight": 68,
+    "topic": null,
+    "insight": "Every supplier on your books.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "suppliers.active": {
+    "key": "suppliers.active",
+    "title": "Active Suppliers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "suppliers",
+    "period": true,
+    "weight": 60,
+    "topic": null,
+    "insight": "Suppliers you actually bought from in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "suppliers.top_suppliers": {
+    "key": "suppliers.top_suppliers",
+    "title": "Top Suppliers by Spend",
+    "viz": "list",
+    "shape": "list",
+    "module": "suppliers",
+    "period": true,
+    "weight": 79,
+    "topic": null,
+    "insight": "Where your purchase money is going.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "suppliers.spend_total": {
+    "key": "suppliers.spend_total",
+    "title": "Total Supplier Spend",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "suppliers",
+    "period": true,
+    "weight": 82,
+    "topic": null,
+    "insight": "Everything you bought, added up.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "suppliers.spend_trend": {
+    "key": "suppliers.spend_trend",
+    "title": "Supplier Spend Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "suppliers",
+    "period": true,
+    "weight": 71,
+    "topic": null,
+    "insight": "Purchase spend plotted across the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "suppliers.owed_list": {
+    "key": "suppliers.owed_list",
+    "title": "What You Owe, Supplier by Supplier",
+    "viz": "list",
+    "shape": "list",
+    "module": "suppliers",
+    "period": false,
+    "weight": 85,
+    "topic": "payable",
+    "insight": "Your payables broken out per supplier — the list you check before paying anyone.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "suppliers.concentration": {
+    "key": "suppliers.concentration",
+    "title": "Supplier Concentration",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "suppliers",
+    "period": true,
+    "weight": 62,
+    "topic": null,
+    "insight": "How much of your buying depends on one supplier. High means fragile.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "suppliers.new": {
+    "key": "suppliers.new",
+    "title": "New Suppliers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "suppliers",
+    "period": true,
+    "weight": 45,
+    "topic": null,
+    "insight": "Suppliers added in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ]
+  },
+  "pos.revenue": {
+    "key": "pos.revenue",
+    "title": "Counter Revenue",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pos",
+    "period": true,
+    "weight": 97,
+    "topic": "revenue",
+    "insight": "Money taken at the counter in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.revenue_trend": {
+    "key": "pos.revenue_trend",
+    "title": "Counter Revenue Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "pos",
+    "period": true,
+    "weight": 91,
+    "topic": "revenue",
+    "insight": "Counter takings day by day.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.sale_count": {
+    "key": "pos.sale_count",
+    "title": "Sales Rung Up",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pos",
+    "period": true,
+    "weight": 85,
+    "topic": "salesvol",
+    "insight": "How many separate sales went through the till.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.avg_ticket": {
+    "key": "pos.avg_ticket",
+    "title": "Average Ticket",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pos",
+    "period": true,
+    "weight": 87,
+    "topic": "salesvol",
+    "insight": "What a typical sale is worth — the number to move if you want growth without more footfall.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.max_sale": {
+    "key": "pos.max_sale",
+    "title": "Largest Sale",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pos",
+    "period": true,
+    "weight": 64,
+    "topic": null,
+    "insight": "The single biggest sale of the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.items_per_sale": {
+    "key": "pos.items_per_sale",
+    "title": "Items per Sale",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pos",
+    "period": true,
+    "weight": 72,
+    "topic": "salesvol",
+    "insight": "How many things the average customer walks out with.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.payment_breakdown": {
+    "key": "pos.payment_breakdown",
+    "title": "Payment Method Split",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "pos",
+    "period": true,
+    "weight": 83,
+    "topic": null,
+    "insight": "Cash, card, wallet, credit — how people actually pay you.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.hourly_heatmap": {
+    "key": "pos.hourly_heatmap",
+    "title": "Sales by Hour",
+    "viz": "heatmap",
+    "shape": "heatmap",
+    "module": "pos",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Which hours earn and which hours you are paying staff to stand still.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.weekday_split": {
+    "key": "pos.weekday_split",
+    "title": "Sales by Day of Week",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "pos",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "Your week's rhythm, so rosters and stock match reality.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.discount_total": {
+    "key": "pos.discount_total",
+    "title": "Discounts Given",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pos",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "How much margin walked out as discount.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "pos.live_feed": {
+    "key": "pos.live_feed",
+    "title": "Live Sale Feed",
+    "viz": "list",
+    "shape": "list",
+    "module": "pos",
+    "period": false,
+    "weight": 67,
+    "topic": null,
+    "insight": "The last few sales as they happen.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ]
+  },
+  "invoicing.count": {
+    "key": "invoicing.count",
+    "title": "Invoices Issued",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": true,
+    "weight": 84,
+    "topic": "salesvol",
+    "insight": "How many invoices you raised in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.value": {
+    "key": "invoicing.value",
+    "title": "Invoiced Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": true,
+    "weight": 93,
+    "topic": "revenue",
+    "insight": "Total value of everything you billed.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.value_trend": {
+    "key": "invoicing.value_trend",
+    "title": "Invoiced Value Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "invoicing",
+    "period": true,
+    "weight": 82,
+    "topic": "revenue",
+    "insight": "Billing plotted across the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.unpaid_value": {
+    "key": "invoicing.unpaid_value",
+    "title": "Unpaid Invoice Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": false,
+    "weight": 94,
+    "topic": "receivable",
+    "insight": "Billed but not yet in your hands.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.overdue_count": {
+    "key": "invoicing.overdue_count",
+    "title": "Overdue Invoices",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": false,
+    "weight": 92,
+    "topic": "receivable",
+    "insight": "Invoices past their due date. Chase these first.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.overdue_value": {
+    "key": "invoicing.overdue_value",
+    "title": "Overdue Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": false,
+    "weight": 90,
+    "topic": "receivable",
+    "insight": "How much of your money is genuinely late.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.avg_invoice": {
+    "key": "invoicing.avg_invoice",
+    "title": "Average Invoice Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": true,
+    "weight": 70,
+    "topic": "salesvol",
+    "insight": "What a typical invoice is worth.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.avg_days_to_pay": {
+    "key": "invoicing.avg_days_to_pay",
+    "title": "Average Days to Get Paid",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": true,
+    "weight": 86,
+    "topic": "collection",
+    "insight": "How long customers actually take, versus the terms you gave them.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.largest_open": {
+    "key": "invoicing.largest_open",
+    "title": "Largest Open Invoices",
+    "viz": "list",
+    "shape": "list",
+    "module": "invoicing",
+    "period": false,
+    "weight": 88,
+    "topic": "receivable",
+    "insight": "The biggest unpaid invoices, largest first.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "invoicing.draft_count": {
+    "key": "invoicing.draft_count",
+    "title": "Drafts Waiting to Send",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "invoicing",
+    "period": false,
+    "weight": 63,
+    "topic": null,
+    "insight": "Invoices written but never sent — money you forgot to ask for.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ]
+  },
+  "quotations.count": {
+    "key": "quotations.count",
+    "title": "Quotes Issued",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "quotations",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "How many quotes you sent out.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "quotations.open_value": {
+    "key": "quotations.open_value",
+    "title": "Open Quote Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "quotations",
+    "period": false,
+    "weight": 83,
+    "topic": null,
+    "insight": "Money on the table, waiting for a yes.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "quotations.win_rate": {
+    "key": "quotations.win_rate",
+    "title": "Quote Win Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "quotations",
+    "period": true,
+    "weight": 86,
+    "topic": null,
+    "insight": "What share of quotes turn into real sales.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "quotations.win_rate_trend": {
+    "key": "quotations.win_rate_trend",
+    "title": "Win Rate Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "quotations",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "Whether your hit rate is improving or slipping.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "quotations.avg_quote": {
+    "key": "quotations.avg_quote",
+    "title": "Average Quote Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "quotations",
+    "period": true,
+    "weight": 66,
+    "topic": null,
+    "insight": "What a typical quote is worth.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "quotations.expiring": {
+    "key": "quotations.expiring",
+    "title": "Quotes Expiring Soon",
+    "viz": "list",
+    "shape": "list",
+    "module": "quotations",
+    "period": false,
+    "weight": 79,
+    "topic": null,
+    "insight": "Quotes about to lapse — one phone call each.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "sales_orders.open_count": {
+    "key": "sales_orders.open_count",
+    "title": "Open Sales Orders",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "sales_orders",
+    "period": false,
+    "weight": 88,
+    "topic": null,
+    "insight": "Orders accepted but not yet delivered.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ]
+  },
+  "sales_orders.open_value": {
+    "key": "sales_orders.open_value",
+    "title": "Open Order Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "sales_orders",
+    "period": false,
+    "weight": 89,
+    "topic": null,
+    "insight": "Committed revenue you have not yet earned.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ]
+  },
+  "sales_orders.count": {
+    "key": "sales_orders.count",
+    "title": "Orders Taken",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "sales_orders",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "New orders accepted in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ]
+  },
+  "sales_orders.value_trend": {
+    "key": "sales_orders.value_trend",
+    "title": "Order Intake Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "sales_orders",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "Order value coming in, day by day — your earliest demand signal.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ]
+  },
+  "sales_orders.fulfil_rate": {
+    "key": "sales_orders.fulfil_rate",
+    "title": "Fulfilment Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "sales_orders",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "What share of orders you delivered complete and on time.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ]
+  },
+  "sales_orders.overdue": {
+    "key": "sales_orders.overdue",
+    "title": "Overdue Orders",
+    "viz": "list",
+    "shape": "list",
+    "module": "sales_orders",
+    "period": false,
+    "weight": 84,
+    "topic": null,
+    "insight": "Orders past their promised date. Every one is an unhappy customer.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ]
+  },
+  "sales_orders.by_customer": {
+    "key": "sales_orders.by_customer",
+    "title": "Open Orders by Customer",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "sales_orders",
+    "period": false,
+    "weight": 65,
+    "topic": null,
+    "insight": "Who is waiting on you, and for how much.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ]
+  },
+  "sales_returns.count": {
+    "key": "sales_returns.count",
+    "title": "Returns Taken",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "sales_returns",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "How many sales came back.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ]
+  },
+  "sales_returns.value": {
+    "key": "sales_returns.value",
+    "title": "Return Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "sales_returns",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "The money value of what was returned.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ]
+  },
+  "sales_returns.rate": {
+    "key": "sales_returns.rate",
+    "title": "Return Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "sales_returns",
+    "period": true,
+    "weight": 79,
+    "topic": null,
+    "insight": "Returns as a share of sales. A rising number is a product or expectation problem.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ]
+  },
+  "sales_returns.trend": {
+    "key": "sales_returns.trend",
+    "title": "Returns Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "sales_returns",
+    "period": true,
+    "weight": 64,
+    "topic": null,
+    "insight": "Returns plotted across the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ]
+  },
+  "sales_returns.top_returned": {
+    "key": "sales_returns.top_returned",
+    "title": "Most-Returned Products",
+    "viz": "list",
+    "shape": "list",
+    "module": "sales_returns",
+    "period": true,
+    "weight": 75,
+    "topic": null,
+    "insight": "Which items keep coming back — usually a quality or sizing story.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ]
+  },
+  "sales_returns.by_reason": {
+    "key": "sales_returns.by_reason",
+    "title": "Returns by Reason",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "sales_returns",
+    "period": true,
+    "weight": 68,
+    "topic": null,
+    "insight": "Why things come back, grouped.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ]
+  },
+  "recurring.active_count": {
+    "key": "recurring.active_count",
+    "title": "Active Recurring Invoices",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "recurring_invoices",
+    "period": false,
+    "weight": 82,
+    "topic": null,
+    "insight": "How many customers are on an automatic billing cycle.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "recurring.monthly_value": {
+    "key": "recurring.monthly_value",
+    "title": "Recurring Revenue per Month",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "recurring_invoices",
+    "period": false,
+    "weight": 90,
+    "topic": null,
+    "insight": "Money you can count on every month without selling again.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "recurring.trend": {
+    "key": "recurring.trend",
+    "title": "Recurring Revenue Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "recurring_invoices",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Whether your predictable base is growing.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "recurring.due_next_7": {
+    "key": "recurring.due_next_7",
+    "title": "Due in Next 7 Days",
+    "viz": "list",
+    "shape": "list",
+    "module": "recurring_invoices",
+    "period": false,
+    "weight": 77,
+    "topic": null,
+    "insight": "What is about to bill, so nothing surprises anyone.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "recurring.share_of_revenue": {
+    "key": "recurring.share_of_revenue",
+    "title": "Recurring Share of Revenue",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "recurring_invoices",
+    "period": true,
+    "weight": 73,
+    "topic": null,
+    "insight": "How much of the business runs on autopilot.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "recurring.churned": {
+    "key": "recurring.churned",
+    "title": "Cancelled Subscriptions",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "recurring_invoices",
+    "period": true,
+    "weight": 71,
+    "topic": null,
+    "insight": "Recurring customers who stopped in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "proposals.count": {
+    "key": "proposals.count",
+    "title": "Proposals Sent",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "b2b_proposals",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "How many formal proposals went out.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "proposals.pipeline_value": {
+    "key": "proposals.pipeline_value",
+    "title": "Proposal Pipeline Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "b2b_proposals",
+    "period": false,
+    "weight": 85,
+    "topic": null,
+    "insight": "Total value of everything still in play.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "proposals.win_rate": {
+    "key": "proposals.win_rate",
+    "title": "Proposal Win Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "b2b_proposals",
+    "period": true,
+    "weight": 81,
+    "topic": null,
+    "insight": "What share of proposals convert.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "proposals.avg_value": {
+    "key": "proposals.avg_value",
+    "title": "Average Proposal Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "b2b_proposals",
+    "period": true,
+    "weight": 66,
+    "topic": null,
+    "insight": "The size of a typical deal.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "proposals.stale": {
+    "key": "proposals.stale",
+    "title": "Proposals Going Cold",
+    "viz": "list",
+    "shape": "list",
+    "module": "b2b_proposals",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "Deals with no movement for too long.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "proposals.avg_cycle_days": {
+    "key": "proposals.avg_cycle_days",
+    "title": "Average Sales Cycle",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "b2b_proposals",
+    "period": true,
+    "weight": 62,
+    "topic": null,
+    "insight": "How many days a deal takes from sent to signed.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "sales.headers"
+    ]
+  },
+  "pricing.tier_count": {
+    "key": "pricing.tier_count",
+    "title": "Price Tiers in Use",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pricing_tiers",
+    "period": false,
+    "weight": 58,
+    "topic": null,
+    "insight": "How many price levels you actually run.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.lines",
+      "master.registry"
+    ]
+  },
+  "pricing.revenue_by_tier": {
+    "key": "pricing.revenue_by_tier",
+    "title": "Revenue by Price Tier",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "pricing_tiers",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "Which tier carries the business.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.lines",
+      "master.registry"
+    ]
+  },
+  "pricing.customers_by_tier": {
+    "key": "pricing.customers_by_tier",
+    "title": "Customers per Tier",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "pricing_tiers",
+    "period": false,
+    "weight": 63,
+    "topic": null,
+    "insight": "How your customer base is spread across tiers.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.lines",
+      "master.registry"
+    ]
+  },
+  "pricing.avg_realised_price": {
+    "key": "pricing.avg_realised_price",
+    "title": "Average Realised Price",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pricing_tiers",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "What you actually get paid, after every tier and discount.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.lines",
+      "master.registry"
+    ]
+  },
+  "pricing.discount_vs_list": {
+    "key": "pricing.discount_vs_list",
+    "title": "Discount vs List Price",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "pricing_tiers",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "The gap between your sticker price and reality.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "sales.lines",
+      "master.registry"
+    ]
+  },
+  "park.open_count": {
+    "key": "park.open_count",
+    "title": "Parked Sales Open Now",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "park_recall",
+    "period": false,
+    "weight": 66,
+    "topic": null,
+    "insight": "Sales held mid-way and not yet completed.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status"
+    ]
+  },
+  "park.open_value": {
+    "key": "park.open_value",
+    "title": "Value Sitting in Parked Sales",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "park_recall",
+    "period": false,
+    "weight": 68,
+    "topic": null,
+    "insight": "Money waiting in unfinished transactions.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status"
+    ]
+  },
+  "park.recalled_count": {
+    "key": "park.recalled_count",
+    "title": "Parked Sales Recalled",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "park_recall",
+    "period": true,
+    "weight": 52,
+    "topic": null,
+    "insight": "How many parked sales were picked back up and completed.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status"
+    ]
+  },
+  "park.abandoned_count": {
+    "key": "park.abandoned_count",
+    "title": "Parked Sales Abandoned",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "park_recall",
+    "period": true,
+    "weight": 60,
+    "topic": null,
+    "insight": "Held sales nobody ever finished — usually a queue or staffing signal.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status"
+    ]
+  },
+  "park.oldest": {
+    "key": "park.oldest",
+    "title": "Oldest Parked Sale",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "park_recall",
+    "period": false,
+    "weight": 50,
+    "topic": null,
+    "insight": "How long the stalest held sale has been sitting there.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status"
+    ]
+  },
+  "tables.occupied": {
+    "key": "tables.occupied",
+    "title": "Tables Occupied Now",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "table_service",
+    "period": false,
+    "weight": 92,
+    "topic": null,
+    "insight": "How much of the floor is working right now.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "tables.occupancy_rate": {
+    "key": "tables.occupancy_rate",
+    "title": "Table Occupancy Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "table_service",
+    "period": true,
+    "weight": 86,
+    "topic": null,
+    "insight": "What share of your seats earn, across the period.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "tables.kitchen_pending": {
+    "key": "tables.kitchen_pending",
+    "title": "Kitchen Orders Pending",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "table_service",
+    "period": false,
+    "weight": 90,
+    "topic": null,
+    "insight": "Orders fired but not yet served.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "tables.avg_turn_minutes": {
+    "key": "tables.avg_turn_minutes",
+    "title": "Average Table Turn",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "table_service",
+    "period": true,
+    "weight": 84,
+    "topic": null,
+    "insight": "How long a table takes from seated to cleared.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "tables.covers": {
+    "key": "tables.covers",
+    "title": "Covers Served",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "table_service",
+    "period": true,
+    "weight": 82,
+    "topic": null,
+    "insight": "How many people you actually fed.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "tables.avg_cover_value": {
+    "key": "tables.avg_cover_value",
+    "title": "Average Spend per Cover",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "table_service",
+    "period": true,
+    "weight": 85,
+    "topic": null,
+    "insight": "What one diner is worth — the lever for upselling.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "tables.revenue_per_table": {
+    "key": "tables.revenue_per_table",
+    "title": "Revenue per Table",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "table_service",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "Which tables earn and which are dead space.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "tables.peak_occupancy": {
+    "key": "tables.peak_occupancy",
+    "title": "Peak Occupancy by Hour",
+    "viz": "heatmap",
+    "shape": "heatmap",
+    "module": "table_service",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "When the floor fills, hour by hour.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "doc.status"
+    ]
+  },
+  "presales.count": {
+    "key": "presales.count",
+    "title": "Pre-orders Taken",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pre_sales",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "Orders taken before the goods exist.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "stock.positions"
+    ]
+  },
+  "presales.value": {
+    "key": "presales.value",
+    "title": "Pre-order Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pre_sales",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Committed value against stock you have not made or received.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "stock.positions"
+    ]
+  },
+  "presales.advance_collected": {
+    "key": "presales.advance_collected",
+    "title": "Advances Collected",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pre_sales",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Cash already in hand against future delivery.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "stock.positions"
+    ]
+  },
+  "presales.pending_delivery": {
+    "key": "presales.pending_delivery",
+    "title": "Awaiting Delivery",
+    "viz": "list",
+    "shape": "list",
+    "module": "pre_sales",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "What you owe customers, oldest first.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "stock.positions"
+    ]
+  },
+  "presales.overdue": {
+    "key": "presales.overdue",
+    "title": "Overdue Pre-orders",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "pre_sales",
+    "period": false,
+    "weight": 79,
+    "topic": null,
+    "insight": "Promises you have already broken.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "stock.positions"
+    ]
+  },
+  "inventory.stock_value": {
+    "key": "inventory.stock_value",
+    "title": "Stock Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "inventory",
+    "period": false,
+    "weight": 96,
+    "topic": "stockvalue",
+    "insight": "What everything on your shelves cost you.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.stock_value_trend": {
+    "key": "inventory.stock_value_trend",
+    "title": "Stock Value Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "inventory",
+    "period": true,
+    "weight": 84,
+    "topic": "stockvalue",
+    "insight": "Stock value across the period — rising stock with flat sales is cash going to sleep.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.product_count": {
+    "key": "inventory.product_count",
+    "title": "Items Stocked",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "inventory",
+    "period": false,
+    "weight": 72,
+    "topic": null,
+    "insight": "How many distinct items you carry.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.units_on_hand": {
+    "key": "inventory.units_on_hand",
+    "title": "Units on Hand",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "inventory",
+    "period": false,
+    "weight": 68,
+    "topic": "stockvalue",
+    "insight": "Total physical count across every item.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.low_stock_count": {
+    "key": "inventory.low_stock_count",
+    "title": "Low Stock Items",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "inventory",
+    "period": false,
+    "weight": 93,
+    "topic": "lowstock",
+    "insight": "Items about to run out.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.low_stock_list": {
+    "key": "inventory.low_stock_list",
+    "title": "What's Running Low",
+    "viz": "list",
+    "shape": "list",
+    "module": "inventory",
+    "period": false,
+    "weight": 91,
+    "topic": "lowstock",
+    "insight": "The actual list, so you can order without hunting.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.out_of_stock_count": {
+    "key": "inventory.out_of_stock_count",
+    "title": "Out of Stock",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "inventory",
+    "period": false,
+    "weight": 90,
+    "topic": "lowstock",
+    "insight": "Items you cannot sell right now. Every one is a refused customer.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.dead_stock_value": {
+    "key": "inventory.dead_stock_value",
+    "title": "Dead Stock Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "inventory",
+    "period": false,
+    "weight": 85,
+    "topic": "stockvalue",
+    "insight": "Money buried in things that have not moved in months.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.turnover_ratio": {
+    "key": "inventory.turnover_ratio",
+    "title": "Stock Turnover",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "inventory",
+    "period": true,
+    "weight": 83,
+    "topic": null,
+    "insight": "How many times your stock sells through. The single best inventory health number.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.days_of_cover": {
+    "key": "inventory.days_of_cover",
+    "title": "Days of Stock Cover",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "inventory",
+    "period": true,
+    "weight": 81,
+    "topic": null,
+    "insight": "At the current rate, how many days before you are empty.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.value_by_category": {
+    "key": "inventory.value_by_category",
+    "title": "Stock Value by Category",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "inventory",
+    "period": false,
+    "weight": 75,
+    "topic": "stockvalue",
+    "insight": "Where your stock money actually sits.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "inventory.top_by_value": {
+    "key": "inventory.top_by_value",
+    "title": "Biggest Stock Holdings",
+    "viz": "list",
+    "shape": "list",
+    "module": "inventory",
+    "period": false,
+    "weight": 73,
+    "topic": "stockvalue",
+    "insight": "The items tying up the most cash.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ]
+  },
+  "locations.count": {
+    "key": "locations.count",
+    "title": "Locations Active",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "multi_location",
+    "period": false,
+    "weight": 70,
+    "topic": null,
+    "insight": "How many branches are trading.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ]
+  },
+  "locations.revenue_by_location": {
+    "key": "locations.revenue_by_location",
+    "title": "Revenue by Location",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "multi_location",
+    "period": true,
+    "weight": 92,
+    "topic": "revenue",
+    "insight": "Which branch earns, side by side.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ]
+  },
+  "locations.profit_by_location": {
+    "key": "locations.profit_by_location",
+    "title": "Profit by Location",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "multi_location",
+    "period": true,
+    "weight": 90,
+    "topic": "profit",
+    "insight": "Revenue is vanity — this is which branch actually makes money.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ]
+  },
+  "locations.stock_by_location": {
+    "key": "locations.stock_by_location",
+    "title": "Stock Value by Location",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "multi_location",
+    "period": false,
+    "weight": 82,
+    "topic": "stockvalue",
+    "insight": "Where your inventory money is parked.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ]
+  },
+  "locations.revenue_trend_by_location": {
+    "key": "locations.revenue_trend_by_location",
+    "title": "Location Revenue Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "multi_location",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "Every branch's revenue on one chart across the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ]
+  },
+  "locations.stock_imbalance": {
+    "key": "locations.stock_imbalance",
+    "title": "Stock Imbalance Between Branches",
+    "viz": "list",
+    "shape": "list",
+    "module": "multi_location",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "One branch is out while another is overstocked — this is that list.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ]
+  },
+  "transfers.pending_count": {
+    "key": "transfers.pending_count",
+    "title": "Pending Transfers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_transfers",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Stock moves started but not received.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "transfers.pending_value": {
+    "key": "transfers.pending_value",
+    "title": "Value in Transit",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_transfers",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "How much stock is currently in nobody's hands.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "transfers.count": {
+    "key": "transfers.count",
+    "title": "Transfers Completed",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_transfers",
+    "period": true,
+    "weight": 60,
+    "topic": null,
+    "insight": "Moves completed in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "transfers.avg_transit_days": {
+    "key": "transfers.avg_transit_days",
+    "title": "Average Transit Time",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_transfers",
+    "period": true,
+    "weight": 64,
+    "topic": null,
+    "insight": "How long stock takes to get from A to B.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "transfers.discrepancy_count": {
+    "key": "transfers.discrepancy_count",
+    "title": "Transfers with Discrepancies",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_transfers",
+    "period": false,
+    "weight": 74,
+    "topic": null,
+    "insight": "Moves where what arrived did not match what was sent.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "stocktakes.pending_count": {
+    "key": "stocktakes.pending_count",
+    "title": "Stock Takes Pending",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_takes",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "Counts started and not finished.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "stocktakes.variance_value": {
+    "key": "stocktakes.variance_value",
+    "title": "Counting Variance Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_takes",
+    "period": true,
+    "weight": 82,
+    "topic": null,
+    "insight": "The money difference between what the system said and what you actually found.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "stocktakes.variance_pct": {
+    "key": "stocktakes.variance_pct",
+    "title": "Count Accuracy",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "stock_takes",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "How close your records are to physical reality.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "stocktakes.last_count_days": {
+    "key": "stocktakes.last_count_days",
+    "title": "Days Since Last Count",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "stock_takes",
+    "period": false,
+    "weight": 72,
+    "topic": null,
+    "insight": "How stale your stock figures might be.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "stocktakes.top_variances": {
+    "key": "stocktakes.top_variances",
+    "title": "Biggest Count Variances",
+    "viz": "list",
+    "shape": "list",
+    "module": "stock_takes",
+    "period": true,
+    "weight": 75,
+    "topic": null,
+    "insight": "The items your records get wrong most often — usually where leakage lives.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.movements",
+      "doc.status"
+    ]
+  },
+  "batches.count": {
+    "key": "batches.count",
+    "title": "Batches Tracked",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "batches_expiry",
+    "period": false,
+    "weight": 64,
+    "topic": null,
+    "insight": "How many batches or lots are under tracking.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements"
+    ]
+  },
+  "batches.qty": {
+    "key": "batches.qty",
+    "title": "Units in Tracked Batches",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "batches_expiry",
+    "period": false,
+    "weight": 58,
+    "topic": null,
+    "insight": "Physical units covered by batch tracking.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements"
+    ]
+  },
+  "batches.expiring_30": {
+    "key": "batches.expiring_30",
+    "title": "Expiring Within 30 Days",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "batches_expiry",
+    "period": false,
+    "weight": 91,
+    "topic": null,
+    "insight": "Stock on a clock. Discount it or lose it.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements"
+    ]
+  },
+  "batches.expiring_value": {
+    "key": "batches.expiring_value",
+    "title": "Value Expiring Soon",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "batches_expiry",
+    "period": false,
+    "weight": 89,
+    "topic": null,
+    "insight": "The rupee value of everything about to expire.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements"
+    ]
+  },
+  "batches.expired_value": {
+    "key": "batches.expired_value",
+    "title": "Expired Stock Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "batches_expiry",
+    "period": true,
+    "weight": 85,
+    "topic": null,
+    "insight": "Money already lost to expiry in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "stock.movements"
+    ]
+  },
+  "batches.expiry_list": {
+    "key": "batches.expiry_list",
+    "title": "Expiry Watchlist",
+    "viz": "list",
+    "shape": "list",
+    "module": "batches_expiry",
+    "period": false,
+    "weight": 88,
+    "topic": null,
+    "insight": "Batch by batch, soonest first.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements"
+    ]
+  },
+  "batches.write_off_trend": {
+    "key": "batches.write_off_trend",
+    "title": "Expiry Write-off Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "batches_expiry",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "Whether your expiry losses are getting better or worse.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "stock.movements"
+    ]
+  },
+  "serials.count": {
+    "key": "serials.count",
+    "title": "Serial-Tracked Units",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "serials",
+    "period": false,
+    "weight": 62,
+    "topic": null,
+    "insight": "Individual units you can trace by serial number.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "serials.in_stock": {
+    "key": "serials.in_stock",
+    "title": "Serials in Stock",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "serials",
+    "period": false,
+    "weight": 68,
+    "topic": null,
+    "insight": "Traceable units you still hold.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "serials.under_warranty": {
+    "key": "serials.under_warranty",
+    "title": "Units Under Warranty",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "serials",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "Sold units you are still on the hook for.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "serials.warranty_expiring": {
+    "key": "serials.warranty_expiring",
+    "title": "Warranties Expiring Soon",
+    "viz": "list",
+    "shape": "list",
+    "module": "serials",
+    "period": false,
+    "weight": 72,
+    "topic": null,
+    "insight": "A ready-made list for renewal or service calls.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "serials.returned": {
+    "key": "serials.returned",
+    "title": "Serials Returned",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "serials",
+    "period": true,
+    "weight": 60,
+    "topic": null,
+    "insight": "Traceable units that came back.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "variants.count": {
+    "key": "variants.count",
+    "title": "Variants Tracked",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "variants",
+    "period": false,
+    "weight": 62,
+    "topic": null,
+    "insight": "Size, colour and style combinations you carry.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "sales.lines"
+    ]
+  },
+  "variants.top_variants": {
+    "key": "variants.top_variants",
+    "title": "Best-Selling Variants",
+    "viz": "list",
+    "shape": "list",
+    "module": "variants",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Which exact size and colour sells — not just which product.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "sales.lines"
+    ]
+  },
+  "variants.slow_variants": {
+    "key": "variants.slow_variants",
+    "title": "Slow-Moving Variants",
+    "viz": "list",
+    "shape": "list",
+    "module": "variants",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "The sizes and colours that always get left behind.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "sales.lines"
+    ]
+  },
+  "variants.out_of_stock": {
+    "key": "variants.out_of_stock",
+    "title": "Variants Out of Stock",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "variants",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Gaps in your size or colour run.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "stock.positions",
+      "sales.lines"
+    ]
+  },
+  "variants.size_colour_mix": {
+    "key": "variants.size_colour_mix",
+    "title": "Size / Colour Mix",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "variants",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "How demand splits across your run, so next order matches reality.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "stock.positions",
+      "sales.lines"
+    ]
+  },
+  "barcodes.coverage_pct": {
+    "key": "barcodes.coverage_pct",
+    "title": "Products with Barcodes",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "barcodes_labels",
+    "period": false,
+    "weight": 64,
+    "topic": null,
+    "insight": "What share of your catalogue can be scanned.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "barcodes.missing_count": {
+    "key": "barcodes.missing_count",
+    "title": "Products Missing Barcodes",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "barcodes_labels",
+    "period": false,
+    "weight": 66,
+    "topic": null,
+    "insight": "Items still being typed in by hand at the counter.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "barcodes.labels_printed": {
+    "key": "barcodes.labels_printed",
+    "title": "Labels Printed",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "barcodes_labels",
+    "period": true,
+    "weight": 44,
+    "topic": null,
+    "insight": "Labels produced in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "barcodes.scan_share": {
+    "key": "barcodes.scan_share",
+    "title": "Share of Sales Scanned",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "barcodes_labels",
+    "period": true,
+    "weight": 60,
+    "topic": null,
+    "insight": "How much of your counter work is scanned rather than searched. Scanning is faster and wrong less.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "barcodes.duplicate_count": {
+    "key": "barcodes.duplicate_count",
+    "title": "Duplicate Barcodes",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "barcodes_labels",
+    "period": false,
+    "weight": 58,
+    "topic": null,
+    "insight": "The same code on two products — a silent source of wrong sales.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines"
+    ]
+  },
+  "uom.count": {
+    "key": "uom.count",
+    "title": "Units of Measure in Use",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "units_of_measure",
+    "period": false,
+    "weight": 52,
+    "topic": null,
+    "insight": "How many units you buy and sell in.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "uom.conversion_count": {
+    "key": "uom.conversion_count",
+    "title": "Conversion Rules Defined",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "units_of_measure",
+    "period": false,
+    "weight": 56,
+    "topic": null,
+    "insight": "Rules that turn a bought unit into a sold unit.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "uom.sales_by_uom": {
+    "key": "uom.sales_by_uom",
+    "title": "Sales Volume by Unit",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "units_of_measure",
+    "period": true,
+    "weight": 62,
+    "topic": null,
+    "insight": "How much you move in each unit — kilos, pieces, cartons.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "uom.missing_conversion": {
+    "key": "uom.missing_conversion",
+    "title": "Items Missing a Conversion",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "units_of_measure",
+    "period": false,
+    "weight": 68,
+    "topic": null,
+    "insight": "Items that will cost you wrong until a conversion is set.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "uom.bulk_vs_retail": {
+    "key": "uom.bulk_vs_retail",
+    "title": "Bulk vs Retail Split",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "units_of_measure",
+    "period": true,
+    "weight": 64,
+    "topic": null,
+    "insight": "Whether you are really a bulk business or a retail one.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "purchases.spend": {
+    "key": "purchases.spend",
+    "title": "Purchase Spend",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchases",
+    "period": true,
+    "weight": 90,
+    "topic": null,
+    "insight": "Everything you bought in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.spend_trend": {
+    "key": "purchases.spend_trend",
+    "title": "Purchase Spend Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "purchases",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Buying plotted day by day.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.count": {
+    "key": "purchases.count",
+    "title": "Purchase Bills",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchases",
+    "period": true,
+    "weight": 68,
+    "topic": null,
+    "insight": "How many supplier bills you entered.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.unpaid_value": {
+    "key": "purchases.unpaid_value",
+    "title": "Unpaid Purchase Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchases",
+    "period": false,
+    "weight": 89,
+    "topic": "payable",
+    "insight": "Bills received and not yet settled.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.overdue_value": {
+    "key": "purchases.overdue_value",
+    "title": "Overdue to Suppliers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchases",
+    "period": false,
+    "weight": 86,
+    "topic": "payable",
+    "insight": "What is already late. Relationships live here.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.paid_to_suppliers": {
+    "key": "purchases.paid_to_suppliers",
+    "title": "Paid to Suppliers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchases",
+    "period": true,
+    "weight": 83,
+    "topic": null,
+    "insight": "Cash that actually left for suppliers.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.by_supplier": {
+    "key": "purchases.by_supplier",
+    "title": "Spend by Supplier",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "purchases",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "Where your buying money goes.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.by_category": {
+    "key": "purchases.by_category",
+    "title": "Spend by Category",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "purchases",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "What you are buying, grouped.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "purchases.price_increases": {
+    "key": "purchases.price_increases",
+    "title": "Items That Got Pricier",
+    "viz": "list",
+    "shape": "list",
+    "module": "purchases",
+    "period": true,
+    "weight": 81,
+    "topic": null,
+    "insight": "Products whose cost has crept up — the quiet margin killer.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ]
+  },
+  "po.open_count": {
+    "key": "po.open_count",
+    "title": "Open Purchase Orders",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_orders",
+    "period": false,
+    "weight": 82,
+    "topic": null,
+    "insight": "Orders placed with suppliers, not yet received.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "purchase.headers"
+    ]
+  },
+  "po.open_value": {
+    "key": "po.open_value",
+    "title": "Open PO Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_orders",
+    "period": false,
+    "weight": 84,
+    "topic": null,
+    "insight": "Money committed to suppliers but not yet spent.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "purchase.headers"
+    ]
+  },
+  "po.pending_receipt_value": {
+    "key": "po.pending_receipt_value",
+    "title": "Awaiting Delivery Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_orders",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Stock you have paid for or promised to pay for, still on the road.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "doc.status",
+      "purchase.headers"
+    ]
+  },
+  "po.overdue_count": {
+    "key": "po.overdue_count",
+    "title": "Overdue POs",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_orders",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "Suppliers who are late on you.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "purchase.headers"
+    ]
+  },
+  "po.avg_lead_days": {
+    "key": "po.avg_lead_days",
+    "title": "Average PO Lead Time",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_orders",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "How long suppliers really take, versus what they promise.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "doc.status",
+      "purchase.headers"
+    ]
+  },
+  "po.fill_rate": {
+    "key": "po.fill_rate",
+    "title": "Supplier Fill Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "purchase_orders",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "What share of what you ordered actually arrived.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "doc.status",
+      "purchase.headers"
+    ]
+  },
+  "purchase_returns.count": {
+    "key": "purchase_returns.count",
+    "title": "Returns to Suppliers",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_returns",
+    "period": true,
+    "weight": 62,
+    "topic": null,
+    "insight": "How many times you sent goods back.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "purchase_returns.value": {
+    "key": "purchase_returns.value",
+    "title": "Value Returned",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_returns",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "The money value of what you returned.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "purchase_returns.credit_due": {
+    "key": "purchase_returns.credit_due",
+    "title": "Credit Notes Due",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchase_returns",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Money suppliers still owe you for returns. Easy to forget, easy to lose.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "purchase_returns.by_supplier": {
+    "key": "purchase_returns.by_supplier",
+    "title": "Returns by Supplier",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "purchase_returns",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "Which supplier sends you bad goods.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "purchase_returns.rate": {
+    "key": "purchase_returns.rate",
+    "title": "Supplier Return Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "purchase_returns",
+    "period": true,
+    "weight": 68,
+    "topic": null,
+    "insight": "Returns as a share of what you bought.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "landed.total": {
+    "key": "landed.total",
+    "title": "Landed Cost Added",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "landed_cost",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "Freight, duty and clearing added onto goods in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.lines",
+      "ledger.journal"
+    ]
+  },
+  "landed.pct_of_goods": {
+    "key": "landed.pct_of_goods",
+    "title": "Landed Cost as % of Goods",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "landed_cost",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "How much your true cost exceeds the invoice price.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "purchase.lines",
+      "ledger.journal"
+    ]
+  },
+  "landed.by_type": {
+    "key": "landed.by_type",
+    "title": "Landed Cost by Type",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "landed_cost",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "Freight versus duty versus clearing, split out.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.lines",
+      "ledger.journal"
+    ]
+  },
+  "landed.true_cost_gap": {
+    "key": "landed.true_cost_gap",
+    "title": "List Cost vs True Cost",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "landed_cost",
+    "period": true,
+    "weight": 82,
+    "topic": null,
+    "insight": "The gap between what the supplier billed and what the goods actually cost you. Price on the wrong one and you lose money on every sale.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.lines",
+      "ledger.journal"
+    ]
+  },
+  "landed.trend": {
+    "key": "landed.trend",
+    "title": "Landed Cost Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "landed_cost",
+    "period": true,
+    "weight": 66,
+    "topic": null,
+    "insight": "Whether import costs are climbing.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.lines",
+      "ledger.journal"
+    ]
+  },
+  "cookbook.recipe_count": {
+    "key": "cookbook.recipe_count",
+    "title": "Recipes Defined",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cookbook",
+    "period": false,
+    "weight": 66,
+    "topic": null,
+    "insight": "How many dishes have a costed recipe.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "cookbook.recipe_cost_pct": {
+    "key": "cookbook.recipe_cost_pct",
+    "title": "Recipe Cost %",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "cookbook",
+    "period": true,
+    "weight": 90,
+    "topic": null,
+    "insight": "What share of the selling price is raw material. In a kitchen this is food cost %; on a workbench it is material cost. Either way it is the number the trade lives or dies by.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "cookbook.best_margin": {
+    "key": "cookbook.best_margin",
+    "title": "Best-Margin Recipes",
+    "viz": "list",
+    "shape": "list",
+    "module": "cookbook",
+    "period": true,
+    "weight": 84,
+    "topic": null,
+    "insight": "What to push — the items that earn most per unit made.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "cookbook.worst_margin": {
+    "key": "cookbook.worst_margin",
+    "title": "Worst-Margin Recipes",
+    "viz": "list",
+    "shape": "list",
+    "module": "cookbook",
+    "period": true,
+    "weight": 86,
+    "topic": null,
+    "insight": "What to reprice, re-spec or drop.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "cookbook.ingredient_cost_trend": {
+    "key": "cookbook.ingredient_cost_trend",
+    "title": "Input Cost Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "cookbook",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Whether your inputs are getting more expensive while your selling price stands still.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "cookbook.wastage_value": {
+    "key": "cookbook.wastage_value",
+    "title": "Recipe Wastage Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cookbook",
+    "period": true,
+    "weight": 82,
+    "topic": null,
+    "insight": "Material that was bought, consumed and never turned into a sale.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ]
+  },
+  "production.run_count": {
+    "key": "production.run_count",
+    "title": "Production Runs",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "production_runs",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "How many batches you made.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "production.total_cost": {
+    "key": "production.total_cost",
+    "title": "Production Cost",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "production_runs",
+    "period": true,
+    "weight": 86,
+    "topic": null,
+    "insight": "Everything consumed to make goods in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "production.output_qty": {
+    "key": "production.output_qty",
+    "title": "Units Produced",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "production_runs",
+    "period": true,
+    "weight": 84,
+    "topic": null,
+    "insight": "What actually came out.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "production.cost_per_unit": {
+    "key": "production.cost_per_unit",
+    "title": "Cost per Unit Produced",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "production_runs",
+    "period": true,
+    "weight": 88,
+    "topic": null,
+    "insight": "Your true manufacturing cost per piece — the basis for every price you set.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "production.yield_pct": {
+    "key": "production.yield_pct",
+    "title": "Production Yield",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "production_runs",
+    "period": true,
+    "weight": 85,
+    "topic": null,
+    "insight": "What share of raw material became sellable goods.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "production.wastage_value": {
+    "key": "production.wastage_value",
+    "title": "Production Wastage",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "production_runs",
+    "period": true,
+    "weight": 81,
+    "topic": null,
+    "insight": "Material lost in the making.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "production.in_progress": {
+    "key": "production.in_progress",
+    "title": "Runs in Progress",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "production_runs",
+    "period": false,
+    "weight": 74,
+    "topic": null,
+    "insight": "What is on the floor right now.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "production.output_trend": {
+    "key": "production.output_trend",
+    "title": "Output Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "production_runs",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "Production volume across the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "production.entries",
+      "stock.movements"
+    ]
+  },
+  "composite.count": {
+    "key": "composite.count",
+    "title": "Bundles & Kits Defined",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "composite_items",
+    "period": false,
+    "weight": 60,
+    "topic": null,
+    "insight": "How many multi-item products you sell as one.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "composite.revenue": {
+    "key": "composite.revenue",
+    "title": "Bundle Revenue",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "composite_items",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "What bundles brought in.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "composite.margin": {
+    "key": "composite.margin",
+    "title": "Bundle Margin",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "composite_items",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "Whether bundling is earning or just discounting.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "composite.top_bundles": {
+    "key": "composite.top_bundles",
+    "title": "Best-Selling Bundles",
+    "viz": "list",
+    "shape": "list",
+    "module": "composite_items",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "Which combinations customers actually want.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "composite.component_shortage": {
+    "key": "composite.component_shortage",
+    "title": "Bundles Blocked by Shortages",
+    "viz": "list",
+    "shape": "list",
+    "module": "composite_items",
+    "period": false,
+    "weight": 74,
+    "topic": null,
+    "insight": "Kits you cannot build because one part is missing.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ]
+  },
+  "khata.receivable_total": {
+    "key": "khata.receivable_total",
+    "title": "Udhaar Out",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "khata_credit",
+    "period": false,
+    "weight": 97,
+    "topic": "receivable",
+    "insight": "Total credit sitting with customers.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.payable_total": {
+    "key": "khata.payable_total",
+    "title": "Udhaar In",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "khata_credit",
+    "period": false,
+    "weight": 90,
+    "topic": "payable",
+    "insight": "Total credit you have taken from suppliers.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.net_position": {
+    "key": "khata.net_position",
+    "title": "Net Khata Position",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "khata_credit",
+    "period": false,
+    "weight": 88,
+    "topic": "receivable",
+    "insight": "What you are owed minus what you owe, on credit alone.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.biggest_debtors": {
+    "key": "khata.biggest_debtors",
+    "title": "Who Owes You Most",
+    "viz": "list",
+    "shape": "list",
+    "module": "khata_credit",
+    "period": false,
+    "weight": 95,
+    "topic": "receivable",
+    "insight": "Your collection list, largest first.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.overdue_total": {
+    "key": "khata.overdue_total",
+    "title": "Overdue Udhaar",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "khata_credit",
+    "period": false,
+    "weight": 93,
+    "topic": "receivable",
+    "insight": "Credit that has crossed its agreed date.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.aging": {
+    "key": "khata.aging",
+    "title": "Udhaar Aging",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "khata_credit",
+    "period": false,
+    "weight": 89,
+    "topic": "receivable",
+    "insight": "Your credit split by how old it is. Past 90 days, most of it never comes.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.collected": {
+    "key": "khata.collected",
+    "title": "Udhaar Collected",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "khata_credit",
+    "period": true,
+    "weight": 86,
+    "topic": "collection",
+    "insight": "How much old credit you actually recovered in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.collection_trend": {
+    "key": "khata.collection_trend",
+    "title": "Collection Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "khata_credit",
+    "period": true,
+    "weight": 78,
+    "topic": "collection",
+    "insight": "Whether your recovery is improving.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "khata.over_limit": {
+    "key": "khata.over_limit",
+    "title": "Customers Over Credit Limit",
+    "viz": "list",
+    "shape": "list",
+    "module": "khata_credit",
+    "period": false,
+    "weight": 84,
+    "topic": null,
+    "insight": "People you should stop giving credit to today.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "party.balances",
+      "payment.entries"
+    ]
+  },
+  "payments.received": {
+    "key": "payments.received",
+    "title": "Money Received",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "payments",
+    "period": true,
+    "weight": 94,
+    "topic": "collection",
+    "insight": "Every rupee that came in, by any method.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "payments.received_trend": {
+    "key": "payments.received_trend",
+    "title": "Money Received Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "payments",
+    "period": true,
+    "weight": 85,
+    "topic": "collection",
+    "insight": "Collections plotted day by day.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "payments.paid": {
+    "key": "payments.paid",
+    "title": "Money Paid Out",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "payments",
+    "period": true,
+    "weight": 88,
+    "topic": null,
+    "insight": "Every rupee that left.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "payments.net_flow": {
+    "key": "payments.net_flow",
+    "title": "Net Money Movement",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "payments",
+    "period": true,
+    "weight": 90,
+    "topic": "liquidity",
+    "insight": "In minus out. The most honest number on the dashboard.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "payments.by_method": {
+    "key": "payments.by_method",
+    "title": "Payments by Method",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "payments",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Cash, bank, wallet, cheque — how money actually moves.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "payments.cash_vs_digital": {
+    "key": "payments.cash_vs_digital",
+    "title": "Cash vs Digital",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "payments",
+    "period": true,
+    "weight": 74,
+    "topic": null,
+    "insight": "How much of your business is still paper money.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "payments.unallocated": {
+    "key": "payments.unallocated",
+    "title": "Unallocated Payments",
+    "viz": "list",
+    "shape": "list",
+    "module": "payments",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Money received but not matched to any bill. Fix these before they become arguments.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "payments.bounced": {
+    "key": "payments.bounced",
+    "title": "Bounced / Failed Payments",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "payments",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "Payments that did not clear.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "payment.entries"
+    ]
+  },
+  "expenses.count": {
+    "key": "expenses.count",
+    "title": "Expense Entries",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "expenses",
+    "period": true,
+    "weight": 62,
+    "topic": null,
+    "insight": "How many expense entries were logged in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.trend": {
+    "key": "expenses.trend",
+    "title": "Expense Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "expenses",
+    "period": true,
+    "weight": 84,
+    "topic": "expenses",
+    "insight": "Spending plotted day by day.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.by_category": {
+    "key": "expenses.by_category",
+    "title": "Expenses by Category",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "expenses",
+    "period": true,
+    "weight": 89,
+    "topic": "expenses",
+    "insight": "Where the money goes, grouped. Usually the first real surprise an owner gets.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.top_categories": {
+    "key": "expenses.top_categories",
+    "title": "Biggest Expense Categories",
+    "viz": "list",
+    "shape": "list",
+    "module": "expenses",
+    "period": true,
+    "weight": 85,
+    "topic": "expenses",
+    "insight": "Your top spending buckets, largest first.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.unpaid": {
+    "key": "expenses.unpaid",
+    "title": "Unpaid Expenses",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "expenses",
+    "period": false,
+    "weight": 79,
+    "topic": null,
+    "insight": "Bills already booked as expenses but not yet actually paid out.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.largest": {
+    "key": "expenses.largest",
+    "title": "Largest Expenses",
+    "viz": "list",
+    "shape": "list",
+    "module": "expenses",
+    "period": true,
+    "weight": 76,
+    "topic": "expenses",
+    "insight": "The individual entries worth looking at twice.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.recurring_total": {
+    "key": "expenses.recurring_total",
+    "title": "Recurring Fixed Costs",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "expenses",
+    "period": false,
+    "weight": 80,
+    "topic": "expenses",
+    "insight": "What leaves every month whether you sell anything or not.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.per_day": {
+    "key": "expenses.per_day",
+    "title": "Average Daily Burn",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "expenses",
+    "period": true,
+    "weight": 78,
+    "topic": "expenses",
+    "insight": "What one day of existing costs you.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "expenses.vs_prev": {
+    "key": "expenses.vs_prev",
+    "title": "Expenses vs Last Period",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "expenses",
+    "period": true,
+    "weight": 74,
+    "topic": "expenses",
+    "insight": "Spending against the period before.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ]
+  },
+  "register.open_count": {
+    "key": "register.open_count",
+    "title": "Registers Open Now",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cash_register",
+    "period": false,
+    "weight": 70,
+    "topic": null,
+    "insight": "Tills currently in an open shift.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "payment.entries",
+      "doc.status"
+    ]
+  },
+  "register.cash_in_drawer": {
+    "key": "register.cash_in_drawer",
+    "title": "Cash in Drawer",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cash_register",
+    "period": false,
+    "weight": 88,
+    "topic": "liquidity",
+    "insight": "Physical money that should be there right now.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries",
+      "doc.status"
+    ]
+  },
+  "register.cash_sales": {
+    "key": "register.cash_sales",
+    "title": "Cash Sales This Shift",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cash_register",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "Cash taken since the till was opened.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries",
+      "doc.status"
+    ]
+  },
+  "register.expected_vs_actual": {
+    "key": "register.expected_vs_actual",
+    "title": "Expected vs Counted Cash",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cash_register",
+    "period": false,
+    "weight": 86,
+    "topic": null,
+    "insight": "What the system says versus what was physically counted.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "payment.entries",
+      "doc.status"
+    ]
+  },
+  "register.variance_total": {
+    "key": "register.variance_total",
+    "title": "Till Variance",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cash_register",
+    "period": true,
+    "weight": 84,
+    "topic": null,
+    "insight": "The running difference. Small and consistent is normal; growing is not.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries",
+      "doc.status"
+    ]
+  },
+  "register.by_staff": {
+    "key": "register.by_staff",
+    "title": "Till Variance by Staff",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "cash_register",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "Which person's shifts keep coming up short.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "payment.entries",
+      "doc.status"
+    ]
+  },
+  "register.shift_count": {
+    "key": "register.shift_count",
+    "title": "Shifts Closed",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "cash_register",
+    "period": true,
+    "weight": 58,
+    "topic": null,
+    "insight": "Completed shifts in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "payment.entries",
+      "doc.status"
+    ]
+  },
+  "bank.account_count": {
+    "key": "bank.account_count",
+    "title": "Bank Accounts",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_accounts",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "How many accounts feed into your books.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.balances_total": {
+    "key": "bank.balances_total",
+    "title": "Bank Balances Total",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_accounts",
+    "period": false,
+    "weight": 91,
+    "topic": "liquidity",
+    "insight": "What is sitting in the banks, excluding cash in hand.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.balance_trend": {
+    "key": "bank.balance_trend",
+    "title": "Bank Balance Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "bank_accounts",
+    "period": true,
+    "weight": 88,
+    "topic": "liquidity",
+    "insight": "Bank money plotted across the period — today next to where you were thirty days ago.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.balance_by_account": {
+    "key": "bank.balance_by_account",
+    "title": "Balance in Each Account",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "bank_accounts",
+    "period": false,
+    "weight": 93,
+    "topic": "liquidity",
+    "insight": "Account by account, how much is actually in each one.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.top_account": {
+    "key": "bank.top_account",
+    "title": "Largest Account Balance",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_accounts",
+    "period": false,
+    "weight": 70,
+    "topic": null,
+    "insight": "Which account holds the most.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.money_in": {
+    "key": "bank.money_in",
+    "title": "Money Into Bank",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_accounts",
+    "period": true,
+    "weight": 82,
+    "topic": null,
+    "insight": "Deposits and receipts in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.money_out": {
+    "key": "bank.money_out",
+    "title": "Money Out of Bank",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_accounts",
+    "period": true,
+    "weight": 81,
+    "topic": null,
+    "insight": "Withdrawals and payments in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.cash_vs_bank": {
+    "key": "bank.cash_vs_bank",
+    "title": "Cash vs Bank Split",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "bank_accounts",
+    "period": false,
+    "weight": 74,
+    "topic": null,
+    "insight": "How much of your liquidity is in hand versus in the bank.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "bank.idle_accounts": {
+    "key": "bank.idle_accounts",
+    "title": "Accounts With No Movement",
+    "viz": "list",
+    "shape": "list",
+    "module": "bank_accounts",
+    "period": false,
+    "weight": 58,
+    "topic": null,
+    "insight": "Accounts nothing has touched — usually forgotten money or forgotten fees.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "payment.entries"
+    ]
+  },
+  "recon.unreconciled_count": {
+    "key": "recon.unreconciled_count",
+    "title": "Unreconciled Entries",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_reconciliation",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "Bank lines not yet matched to a book entry.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "doc.status"
+    ]
+  },
+  "recon.unreconciled_value": {
+    "key": "recon.unreconciled_value",
+    "title": "Unreconciled Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_reconciliation",
+    "period": false,
+    "weight": 82,
+    "topic": null,
+    "insight": "The money value of everything unmatched.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "doc.status"
+    ]
+  },
+  "recon.matched_pct": {
+    "key": "recon.matched_pct",
+    "title": "Reconciliation Coverage",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "bank_reconciliation",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "What share of bank movement is accounted for.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "ledger.accounts",
+      "doc.status"
+    ]
+  },
+  "recon.last_recon_days": {
+    "key": "recon.last_recon_days",
+    "title": "Days Since Last Reconciliation",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_reconciliation",
+    "period": false,
+    "weight": 74,
+    "topic": null,
+    "insight": "How long since your books and your bank last agreed.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "doc.status"
+    ]
+  },
+  "recon.difference": {
+    "key": "recon.difference",
+    "title": "Book vs Bank Difference",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "bank_reconciliation",
+    "period": false,
+    "weight": 84,
+    "topic": null,
+    "insight": "The single number that should be zero.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "doc.status"
+    ]
+  },
+  "accounting.trial_balance_ok": {
+    "key": "accounting.trial_balance_ok",
+    "title": "Trial Balance",
+    "viz": "status",
+    "shape": "status",
+    "module": "accounting_workspace",
+    "period": false,
+    "weight": 84,
+    "topic": null,
+    "insight": "Whether every debit has its credit. Green means you can trust every other number.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.assets_total": {
+    "key": "accounting.assets_total",
+    "title": "Total Assets",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "accounting_workspace",
+    "period": false,
+    "weight": 82,
+    "topic": null,
+    "insight": "Everything the business owns.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.liabilities_total": {
+    "key": "accounting.liabilities_total",
+    "title": "Total Liabilities",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "accounting_workspace",
+    "period": false,
+    "weight": 81,
+    "topic": null,
+    "insight": "Everything the business owes.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.equity_total": {
+    "key": "accounting.equity_total",
+    "title": "Owner's Equity",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "accounting_workspace",
+    "period": false,
+    "weight": 86,
+    "topic": null,
+    "insight": "What is genuinely yours once everyone else is paid.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.equity_trend": {
+    "key": "accounting.equity_trend",
+    "title": "Equity Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "accounting_workspace",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Your stake in the business, plotted over time. The long-game number.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.pnl_summary": {
+    "key": "accounting.pnl_summary",
+    "title": "Profit & Loss Summary",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "accounting_workspace",
+    "period": true,
+    "weight": 88,
+    "topic": "profit",
+    "insight": "The full P&L in one card.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.balance_sheet": {
+    "key": "accounting.balance_sheet",
+    "title": "Balance Sheet Snapshot",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "accounting_workspace",
+    "period": false,
+    "weight": 83,
+    "topic": null,
+    "insight": "Assets, liabilities and equity side by side.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.unposted_count": {
+    "key": "accounting.unposted_count",
+    "title": "Unposted Transactions",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "accounting_workspace",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "Entries not yet in the ledger — until these post, the books are incomplete.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "accounting.drawings": {
+    "key": "accounting.drawings",
+    "title": "Owner Drawings",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "accounting_workspace",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "What you have taken out of the business personally.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts"
+    ]
+  },
+  "tax.collected": {
+    "key": "tax.collected",
+    "title": "Tax Collected",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "tax_compliance",
+    "period": true,
+    "weight": 84,
+    "topic": null,
+    "insight": "Output tax you charged customers.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "tax.paid": {
+    "key": "tax.paid",
+    "title": "Tax Paid",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "tax_compliance",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "Input tax you paid suppliers.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "tax.net_liability": {
+    "key": "tax.net_liability",
+    "title": "Net Tax Payable",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "tax_compliance",
+    "period": false,
+    "weight": 88,
+    "topic": null,
+    "insight": "What you owe the authority once input is set against output. Money you are holding, not earning.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "tax.liability_trend": {
+    "key": "tax.liability_trend",
+    "title": "Tax Liability Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "tax_compliance",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "Your tax position across the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "tax.by_rate": {
+    "key": "tax.by_rate",
+    "title": "Tax by Rate Band",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "tax_compliance",
+    "period": true,
+    "weight": 66,
+    "topic": null,
+    "insight": "Sales split across each rate you apply.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "tax.taxable_vs_exempt": {
+    "key": "tax.taxable_vs_exempt",
+    "title": "Taxable vs Exempt Sales",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "tax_compliance",
+    "period": true,
+    "weight": 68,
+    "topic": null,
+    "insight": "Which part of your business is in the net.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "tax.filing_due": {
+    "key": "tax.filing_due",
+    "title": "Next Filing Due",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "tax_compliance",
+    "period": false,
+    "weight": 82,
+    "topic": null,
+    "insight": "How many days until the next return.",
+    "unit": "days",
+    "precision": 0,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "tax.invoices_missing_tax": {
+    "key": "tax.invoices_missing_tax",
+    "title": "Invoices Missing Tax Detail",
+    "viz": "list",
+    "shape": "list",
+    "module": "tax_compliance",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "Documents that will fail an audit, listed before the auditor finds them.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ]
+  },
+  "assets.count": {
+    "key": "assets.count",
+    "title": "Fixed Assets",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "fixed_assets",
+    "period": false,
+    "weight": 66,
+    "topic": null,
+    "insight": "Machines, vehicles and equipment on the register.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "assets.gross_value": {
+    "key": "assets.gross_value",
+    "title": "Asset Purchase Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "fixed_assets",
+    "period": false,
+    "weight": 72,
+    "topic": null,
+    "insight": "What you originally paid for them.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "assets.net_book_value": {
+    "key": "assets.net_book_value",
+    "title": "Net Book Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "fixed_assets",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "What they are worth now, after depreciation.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "assets.depreciation_period": {
+    "key": "assets.depreciation_period",
+    "title": "Depreciation This Period",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "fixed_assets",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "The cost of your equipment wearing out — a real expense most small businesses forget.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "assets.by_category": {
+    "key": "assets.by_category",
+    "title": "Assets by Category",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "fixed_assets",
+    "period": false,
+    "weight": 62,
+    "topic": null,
+    "insight": "Your asset base, grouped.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "assets.warranty_amc_due": {
+    "key": "assets.warranty_amc_due",
+    "title": "Warranty / AMC Expiring",
+    "viz": "list",
+    "shape": "list",
+    "module": "fixed_assets",
+    "period": false,
+    "weight": 70,
+    "topic": null,
+    "insight": "Cover about to lapse on equipment you depend on.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "loans.count": {
+    "key": "loans.count",
+    "title": "Active Loans",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loans",
+    "period": false,
+    "weight": 70,
+    "topic": null,
+    "insight": "How many facilities you are servicing.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "loans.outstanding_total": {
+    "key": "loans.outstanding_total",
+    "title": "Total Outstanding",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loans",
+    "period": false,
+    "weight": 86,
+    "topic": null,
+    "insight": "What you still owe on borrowings.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "loans.outstanding_trend": {
+    "key": "loans.outstanding_trend",
+    "title": "Loan Balance Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "loans",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Your debt plotted over time — the line you want falling.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "loans.emi_due": {
+    "key": "loans.emi_due",
+    "title": "Instalment Due",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loans",
+    "period": false,
+    "weight": 84,
+    "topic": null,
+    "insight": "What is payable next, and when.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "loans.interest_paid": {
+    "key": "loans.interest_paid",
+    "title": "Interest Paid",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loans",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "The pure cost of borrowing in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "loans.by_lender": {
+    "key": "loans.by_lender",
+    "title": "Balance by Lender",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "loans",
+    "period": false,
+    "weight": 68,
+    "topic": null,
+    "insight": "Who you owe, broken out.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.accounts",
+      "master.registry"
+    ]
+  },
+  "reports.pnl_shortcut": {
+    "key": "reports.pnl_shortcut",
+    "title": "P&L Quick View",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "reports",
+    "period": true,
+    "weight": 80,
+    "topic": "profit",
+    "insight": "Your profit and loss, one tap away.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ]
+  },
+  "reports.sales_shortcut": {
+    "key": "reports.sales_shortcut",
+    "title": "Sales Summary Quick View",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "reports",
+    "period": true,
+    "weight": 78,
+    "topic": "revenue",
+    "insight": "The sales report as a card.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ]
+  },
+  "reports.stock_shortcut": {
+    "key": "reports.stock_shortcut",
+    "title": "Stock Summary Quick View",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "reports",
+    "period": false,
+    "weight": 74,
+    "topic": null,
+    "insight": "The stock report as a card.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ]
+  },
+  "reports.saved_count": {
+    "key": "reports.saved_count",
+    "title": "Saved Reports",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "reports",
+    "period": false,
+    "weight": 48,
+    "topic": null,
+    "insight": "Reports you have set up for reuse.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ]
+  },
+  "reports.most_used": {
+    "key": "reports.most_used",
+    "title": "Most-Used Reports",
+    "viz": "list",
+    "shape": "list",
+    "module": "reports",
+    "period": true,
+    "weight": 52,
+    "topic": null,
+    "insight": "What you and your staff actually open.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ]
+  },
+  "reports.scheduled_count": {
+    "key": "reports.scheduled_count",
+    "title": "Scheduled Reports",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "reports",
+    "period": false,
+    "weight": 50,
+    "topic": null,
+    "insight": "Reports that arrive without anyone asking.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ]
+  },
+  "ai.top_insight": {
+    "key": "ai.top_insight",
+    "title": "Today's Top Insight",
+    "viz": "status",
+    "shape": "status",
+    "module": "ai_insights",
+    "period": false,
+    "weight": 82,
+    "topic": null,
+    "insight": "The one thing the system thinks you should look at today.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ]
+  },
+  "ai.alerts_open": {
+    "key": "ai.alerts_open",
+    "title": "Open AI Alerts",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "ai_insights",
+    "period": false,
+    "weight": 76,
+    "topic": null,
+    "insight": "Things flagged and not yet dealt with.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ]
+  },
+  "ai.anomalies": {
+    "key": "ai.anomalies",
+    "title": "Anomalies Detected",
+    "viz": "list",
+    "shape": "list",
+    "module": "ai_insights",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "Numbers that broke their own pattern — before you would have noticed.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ]
+  },
+  "ai.forecast_revenue": {
+    "key": "ai.forecast_revenue",
+    "title": "Revenue Forecast",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "ai_insights",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "Where your revenue is heading if nothing changes.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ]
+  },
+  "ai.forecast_cash": {
+    "key": "ai.forecast_cash",
+    "title": "Cash Forecast",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "ai_insights",
+    "period": true,
+    "weight": 84,
+    "topic": null,
+    "insight": "Whether you will have enough cash next month.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ]
+  },
+  "ai.reorder_suggestions": {
+    "key": "ai.reorder_suggestions",
+    "title": "Suggested Reorders",
+    "viz": "list",
+    "shape": "list",
+    "module": "ai_insights",
+    "period": false,
+    "weight": 74,
+    "topic": "lowstock",
+    "insight": "What to buy next, based on how things actually sell.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ]
+  },
+  "loyalty.member_count": {
+    "key": "loyalty.member_count",
+    "title": "Loyalty Members",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loyalty_gift",
+    "period": false,
+    "weight": 72,
+    "topic": null,
+    "insight": "How many customers are enrolled.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.headers"
+    ]
+  },
+  "loyalty.new_members": {
+    "key": "loyalty.new_members",
+    "title": "New Members",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loyalty_gift",
+    "period": true,
+    "weight": 66,
+    "topic": null,
+    "insight": "People who joined in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "master.registry",
+      "sales.headers"
+    ]
+  },
+  "loyalty.member_revenue_share": {
+    "key": "loyalty.member_revenue_share",
+    "title": "Member Share of Revenue",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "loyalty_gift",
+    "period": true,
+    "weight": 80,
+    "topic": null,
+    "insight": "How much of your business comes from people who came back on purpose.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "master.registry",
+      "sales.headers"
+    ]
+  },
+  "loyalty.member_avg_spend": {
+    "key": "loyalty.member_avg_spend",
+    "title": "Member vs Non-Member Spend",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "loyalty_gift",
+    "period": true,
+    "weight": 78,
+    "topic": null,
+    "insight": "Whether the programme actually makes people spend more.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.headers"
+    ]
+  },
+  "loyalty.liability": {
+    "key": "loyalty.liability",
+    "title": "Outstanding Points Liability",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loyalty_gift",
+    "period": false,
+    "weight": 70,
+    "topic": null,
+    "insight": "The value of points customers could redeem tomorrow. It is a debt.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.headers"
+    ]
+  },
+  "loyalty.gift_card_balance": {
+    "key": "loyalty.gift_card_balance",
+    "title": "Unredeemed Gift Card Value",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "loyalty_gift",
+    "period": false,
+    "weight": 68,
+    "topic": null,
+    "insight": "Money taken for gift cards that has not been spent yet.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "master.registry",
+      "sales.headers"
+    ]
+  },
+  "marketplace.channel_count": {
+    "key": "marketplace.channel_count",
+    "title": "Channels Connected",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "marketplace_sync",
+    "period": false,
+    "weight": 64,
+    "topic": null,
+    "insight": "How many online storefronts feed into this system.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "marketplace.revenue_by_channel": {
+    "key": "marketplace.revenue_by_channel",
+    "title": "Revenue by Channel",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 86,
+    "topic": "revenue",
+    "insight": "Which channel actually sells.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "marketplace.online_vs_offline": {
+    "key": "marketplace.online_vs_offline",
+    "title": "Online vs In-Store",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 82,
+    "topic": null,
+    "insight": "The split between your counter and your screens.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "marketplace.sync_errors": {
+    "key": "marketplace.sync_errors",
+    "title": "Sync Errors",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "marketplace_sync",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "Listings or orders that failed to come across. Each one is an order you may never see.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "marketplace.stock_mismatch": {
+    "key": "marketplace.stock_mismatch",
+    "title": "Stock Mismatches",
+    "viz": "list",
+    "shape": "list",
+    "module": "marketplace_sync",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Where online stock disagrees with your shelf — the cause of most oversells.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "marketplace.channel_margin": {
+    "key": "marketplace.channel_margin",
+    "title": "Margin by Channel",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "After fees, which channel is actually worth it.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ]
+  },
+  "staff.member_count": {
+    "key": "staff.member_count",
+    "title": "Staff Members",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "staff_attendance",
+    "period": false,
+    "weight": 66,
+    "topic": null,
+    "insight": "People on the roster.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  },
+  "staff.on_shift_count": {
+    "key": "staff.on_shift_count",
+    "title": "On Shift Now",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "staff_attendance",
+    "period": false,
+    "weight": 80,
+    "topic": null,
+    "insight": "Who is working right now.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  },
+  "staff.present_today": {
+    "key": "staff.present_today",
+    "title": "Present Today",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "staff_attendance",
+    "period": false,
+    "weight": 78,
+    "topic": null,
+    "insight": "Attendance for the day at a glance.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  },
+  "staff.absent_today": {
+    "key": "staff.absent_today",
+    "title": "Absent Today",
+    "viz": "list",
+    "shape": "list",
+    "module": "staff_attendance",
+    "period": false,
+    "weight": 74,
+    "topic": null,
+    "insight": "Who did not come in.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  },
+  "staff.hours_worked": {
+    "key": "staff.hours_worked",
+    "title": "Hours Worked",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "staff_attendance",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "Total hours across the team in the period.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  },
+  "staff.attendance_rate": {
+    "key": "staff.attendance_rate",
+    "title": "Attendance Rate",
+    "viz": "gauge",
+    "shape": "gauge",
+    "module": "staff_attendance",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "How reliably the team turns up.",
+    "unit": "percent",
+    "precision": 1,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  },
+  "staff.sales_by_staff": {
+    "key": "staff.sales_by_staff",
+    "title": "Sales by Staff Member",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": "staff_attendance",
+    "period": true,
+    "weight": 84,
+    "topic": null,
+    "insight": "Who sells. The fairest basis for a bonus you will find.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  },
+  "staff.revenue_per_staff": {
+    "key": "staff.revenue_per_staff",
+    "title": "Revenue per Staff Member",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "staff_attendance",
+    "period": true,
+    "weight": 76,
+    "topic": null,
+    "insight": "What each person brings in, on average.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  }
+}

@@ -289,6 +289,16 @@ final class Reckoner
 
             $sourceClass = $definition['source'] ?? null;
             if (! $sourceClass || ! class_exists($sourceClass)) {
+                if (\App\Reckoner\Resolvers\ResolverRegistry::has($key)) {
+                    $ctx = new ReckonerContext($t, $u);
+                    $result = \App\Reckoner\Resolvers\ResolverRegistry::resolve($key, $ctx, $period, $request->args ?? []);
+                    if ($ttl > 0 && $result->ok) {
+                        Cache::put($cacheKey, $result->data, $ttl);
+                    }
+                    $results[$id] = $result;
+                    continue;
+                }
+
                 $results[$id] = ReckonerResult::failure($id, $key, 'resolver_failed', "No source configured for '{$key}'.");
 
                 continue;
@@ -446,10 +456,11 @@ final class Reckoner
 
                 if ($item['is_compare']) {
                     $primaryId = $item['primary_id'];
-                    $resolvedCompare[$primaryId] = $value;
+                    $compareNumeric = is_array($value) ? ($value['value'] ?? 0.0) : $value;
+                    $resolvedCompare[$primaryId] = $compareNumeric;
 
                     // Cache resolved comparison as a standalone result
-                    $compareData = ['value' => $value, 'previous' => null, 'change_pct' => null, 'compare_label' => ''];
+                    $compareData = ['value' => $compareNumeric, 'previous' => null, 'change_pct' => null, 'compare_label' => ''];
                     if ($item['ttl'] > 0) {
                         Cache::put($item['cacheKey'], $compareData, $item['ttl']);
                     }
@@ -603,6 +614,20 @@ final class Reckoner
     {
         if ($definition['shape'] !== ReckonerShape::SCALAR) {
             return $value;
+        }
+
+        if (is_array($value)) {
+            $current = is_numeric($value['value'] ?? null) ? (float) $value['value'] : null;
+            $prev = $previous ?? ($value['previous'] ?? null);
+            return [
+                'value'         => $current,
+                'previous'      => $prev,
+                'change_pct'    => ($prev !== null && $prev > 0 && $current !== null)
+                    ? round((($current - $prev) / $prev) * 100, 1)
+                    : ($value['change_pct'] ?? null),
+                'compare_label' => $period->compareLabel ?: ($value['compare_label'] ?? ''),
+                'series'        => $value['series'] ?? null,
+            ];
         }
 
         $current = is_numeric($value) ? (float) $value : null;

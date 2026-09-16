@@ -15,9 +15,8 @@ use App\Reckoner\ReckonerContext;
  * SerialTrackingController) lands in Operations per the build spec's source
  * inventory table.
  *
- * These are all Eloquent models with HasTenant, so plain model queries are
- * already tenant-scoped — no manual tenant_id filter needed, unlike the
- * DB::table() raw queries elsewhere in Phase 2.
+ * These models use HasTenant; explicit tenant_id filters are layered on
+ * top as defense-in-depth to guarantee tenant isolation across all contexts.
  */
 final class OperationsSource implements ReckonerSource
 {
@@ -49,9 +48,18 @@ final class OperationsSource implements ReckonerSource
             $status = $args['status'] ?? 'all';
 
             $out[$id] = match ($key) {
-                'operations.open_sales_orders' => SalesOrder::query()->where('status', 'open')->count(),
-                'operations.pending_stock_takes' => StockTake::query()->where('status', 'draft')->count(),
-                'operations.pending_stock_transfers' => StockTransfer::query()->where('status', 'pending')->count(),
+                'operations.open_sales_orders' => SalesOrder::query()
+                    ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+                    ->where('status', 'open')
+                    ->count(),
+                'operations.pending_stock_takes' => StockTake::query()
+                    ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+                    ->where('status', 'draft')
+                    ->count(),
+                'operations.pending_stock_transfers' => StockTransfer::query()
+                    ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+                    ->where('status', 'pending')
+                    ->count(),
                 'reminders.count' => \Illuminate\Support\Facades\Schema::hasTable('invoice_reminders')
                     ? (int) \Illuminate\Support\Facades\DB::table('invoice_reminders')
                         ->where('tenant_id', $tenantId)
@@ -107,13 +115,14 @@ final class OperationsSource implements ReckonerSource
                         ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                         ->count()
                     : 0,
-                'plan.usage_summary' => (function() use ($ctx) {
+                'plan.usage_summary' => (function() use ($ctx, $tenantId) {
                     $tenant = $ctx->tenant;
-                    $productCount = \App\Models\Product::count();
+                    $productCount = \App\Models\Product::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))->count();
                     $staffCount = \App\Models\User::whereNotIn('role', ['platform_admin'])->count();
-                    $warehouseCount = \App\Models\Warehouse::count();
+                    $warehouseCount = \App\Models\Warehouse::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))->count();
 
-                    $txCount = \App\Models\Sale::where('status', 'posted')
+                    $txCount = \App\Models\Sale::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+                        ->where('status', 'posted')
                         ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
                         ->count();
 

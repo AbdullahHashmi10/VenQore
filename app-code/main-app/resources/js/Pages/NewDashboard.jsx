@@ -175,35 +175,13 @@ function readingDesc(r){
    modules sees the cards those five modules can actually answer, nothing
    else. An empty enabled-set (no tenant bound, the dev harness) gates
    nothing. A reading matching no rule is always available. */
-const READING_MODULE_RULES = [
-  [/^accounting\./,           ["accounting_workspace"]],
-  [/^bank_accounts\./,        ["bank_accounts"]],
-  [/^bank_reconciliation\./,  ["bank_reconciliation"]],
-  [/^batch_tracking\./,       ["batches_expiry"]],
-  [/^debit_notes\./,          ["purchase_returns"]],
-  [/^finance\.expenses/,      ["expenses"]],
-  [/^finance\.tax/,           ["tax_compliance"]],
-  [/^finance\./,              ["khata_credit", "payments", "accounting_workspace"]],
-  [/^party\./,                ["customers", "suppliers"]],
-  [/^inventory\./,            ["inventory"]],
-  [/^production\./,           ["production_runs"]],
-  [/^pre_sales\./,            ["pre_sales"]],
-  [/^proposals\./,            ["quotations"]],
-  [/^purchase_orders\./,      ["purchase_orders"]],
-  [/^purchasing\./,           ["purchases", "purchase_orders"]],
-  [/^recurring_invoices\./,   ["recurring_invoices"]],
-  [/^reminders\./,            ["khata_credit"]],
-  [/^returns\./,              ["sales_returns"]],
-  [/^sales_orders\./,         ["sales_orders"]],
-  [/^sales\./,                ["pos", "invoicing"]],
-  [/^serial_tracking\./,      ["serials"]],
-  [/^staff\./,                ["staff_attendance"]],
-  [/^staff_attendance\./,     ["staff_attendance"]],
-  [/^operations\./,           []],
-];
 function modulesOf(key){
-  for (const [re, mods] of READING_MODULE_RULES) if (re.test(key)) return mods;
-  return [];
+  if (typeof READINGS !== "undefined" && Array.isArray(READINGS)) {
+    const found = READINGS.find(r => r.key === key);
+    if (found && Array.isArray(found.modules)) return found.modules;
+  }
+  const fallback = Array.isArray(RECKONER_CATALOG) ? RECKONER_CATALOG.find(r => r.key === key) : null;
+  return fallback && Array.isArray(fallback.modules) ? fallback.modules : [];
 }
 
 function prepareReadings(source) {
@@ -211,19 +189,19 @@ function prepareReadings(source) {
   if (typeof window !== "undefined" && window.__VENQORE_DEMO_MODE__) {
     list.push(
       { key:"finance.expenses_trend", label:"Expense trend", shape:"SERIES", unit:"currency",
-        area:"Finance", module:"Extra", short:"Expense trend", extra:true,
+        area:"Finance", module:"Extra", modules:["expenses"], short:"Expense trend", extra:true,
         rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
         sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
       { key:"operations.activity_feed", label:"Recent activity", shape:"FEED", unit:"currency",
-        area:"Operations", module:"Extra", short:"Recent activity", extra:true,
+        area:"Operations", module:"Extra", modules:[], short:"Recent activity", extra:true,
         rowNames:["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],
         sliceNames:["New","Returning","Dormant"] },
       { key:"bank_accounts.liquid_net", label:"Total Liquid Net", shape:"SCALAR", unit:"currency",
-        area:"Finance", module:"BankAccounts", short:"Total Liquid Net", extra:true,
+        area:"Finance", module:"BankAccounts", modules:["bank_accounts"], short:"Total Liquid Net", extra:true,
         rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
         sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
       { key:"purchasing.recent", label:"Recent purchases", shape:"FEED", unit:"currency",
-        area:"Purchasing", module:"Extra", short:"Recent purchases", extra:true,
+        area:"Purchasing", module:"Extra", modules:["purchases"], short:"Recent purchases", extra:true,
         rowNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],
         sliceNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"] },
     );
@@ -232,7 +210,7 @@ function prepareReadings(source) {
   }
   list.forEach(r => {
     r.desc = readingDesc(r);
-    r.modules = modulesOf(r.key);
+    r.modules = Array.isArray(r.modules) ? r.modules : modulesOf(r.key);
     if (!Array.isArray(r.rowNames) || r.rowNames.length === 0) {
       r.rowNames = ["Cash", "Card", "Credit", "Bank", "Online", "Other"];
     }
@@ -382,6 +360,7 @@ let RECKONER_FETCH_TIMER = null;
 
 function toReckonerPeriod(period) {
   const map = {
+    Day: "today",
     Today: "today",
     Week: "this_week",
     Month: "this_month",
@@ -397,7 +376,11 @@ function queueLiveReadings(cards, onComplete) {
   cards.forEach(c => {
     if (!c || c.type) return;
     const uiPer = c.period || "Month";
-    const reckPer = toReckonerPeriod(uiPer);
+    const rd = readingOf(c.key);
+    let reckPer = toReckonerPeriod(uiPer);
+    if (rd && rd.periods && Array.isArray(rd.periods) && rd.periods.length > 0 && !rd.periods.includes(reckPer)) {
+      reckPer = rd.default_period || rd.periods[0] || "live";
+    }
     const reqKey = `${c.key}|${uiPer}`;
     const mappedKey = `${c.key}|${reckPer}`;
     if (!PENDING_RECKONER_REQUESTS.has(reqKey) && !LIVE_RECKONER_DATA[reqKey] && !LIVE_RECKONER_DATA[mappedKey]) {
@@ -406,11 +389,16 @@ function queueLiveReadings(cards, onComplete) {
     }
     if (Array.isArray(c.extraKeys)) {
       c.extraKeys.forEach(ek => {
+        const ekRd = readingOf(ek);
+        let ekReckPer = toReckonerPeriod(uiPer);
+        if (ekRd && ekRd.periods && Array.isArray(ekRd.periods) && ekRd.periods.length > 0 && !ekRd.periods.includes(ekReckPer)) {
+          ekReckPer = ekRd.default_period || ekRd.periods[0] || "live";
+        }
         const ekReqKey = `${ek}|${uiPer}`;
-        const ekMappedKey = `${ek}|${reckPer}`;
+        const ekMappedKey = `${ek}|${ekReckPer}`;
         if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && !LIVE_RECKONER_DATA[ekReqKey] && !LIVE_RECKONER_DATA[ekMappedKey]) {
           PENDING_RECKONER_REQUESTS.add(ekReqKey);
-          requests.push({ key: ek, period: reckPer, reqKey: ekReqKey, uiPeriod: uiPer });
+          requests.push({ key: ek, period: ekReckPer, reqKey: ekReqKey, uiPeriod: uiPer });
         }
       });
     }
@@ -431,13 +419,15 @@ function queueLiveReadings(cards, onComplete) {
       requests: chunk.map(r => ({ key: r.key, period: r.period }))
     }).then(res => {
       const items = res?.data?.data || [];
-      items.forEach((item, idx) => {
+      items.forEach((item) => {
         if (item && item.key) {
-          const req = chunk[idx] || chunk.find(r => r.key === item.key);
+          const req = chunk.find(r => r.key === item.key && (r.period === item.period?.key || r.period === item.period))
+            || chunk.find(r => r.key === item.key);
           const perKey = item.period?.key || req?.period || "today";
           const uiP = req?.uiPeriod || "Month";
           LIVE_RECKONER_DATA[`${item.key}|${perKey}`] = item;
           LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
+          LIVE_RECKONER_DATA[`${item.key}|latest`] = item;
         }
       });
     }).catch(error => {
@@ -462,6 +452,7 @@ function queueLiveReadings(cards, onComplete) {
 function liveReading(card){
   return LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
     || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`]
+    || LIVE_RECKONER_DATA[`${card.key}|latest`]
     || null;
 }
 
@@ -484,7 +475,7 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     </div>`;
     return true;
   }
-  if (live?.status === "locked"){
+  if (live?.status === "locked" || live?.status === "plan_locked" || live?.status === "module_locked"){
     host.innerHTML = `<div class="ck-state is-unavailable" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <b>Module not active</b>
@@ -493,10 +484,11 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     return true;
   }
   if (live && (!live.ok || live.status === "error")){
+    const errText = live.error?.message || "New transactions will automatically stream here.";
     host.innerHTML = `<div class="ck-state is-unavailable" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <b>No feed records yet</b>
-      <span>New transactions will automatically stream here.</span>
+      <span>${esc(errText)}</span>
     </div>`;
     return true;
   }
@@ -518,11 +510,49 @@ const SIGNED = /profit|net_|cash_flow|margin|variance/;
 function valuesFor(key, period, unit){
   const { n, grain } = PERIOD[period] || PERIOD.Month;
   const reqKey = `${key}|${period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`];
+  const live = LIVE_RECKONER_DATA[reqKey]
+    || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`]
+    || LIVE_RECKONER_DATA[`${key}|latest`];
 
-  if (live && live.ok && live.data !== undefined && live.data !== null) {
-    if (live.data.series && Array.isArray(live.data.series)) {
-      const pts = live.data.series.map(pt => (typeof pt.y === 'number' ? pt.y : typeof pt.value === 'number' ? pt.value : 0));
+  if (live && live.ok) {
+    const seriesSource = (live.data && (live.data.series || live.data.points)) || live.series;
+    if (seriesSource && Array.isArray(seriesSource) && seriesSource.length > 0) {
+      const firstX = String(seriesSource[0]?.x ?? '');
+      const times = timeline(period);
+
+      if (firstX.includes('-') || (grain === 'hour' && firstX.length <= 2)) {
+        const xMap = new Map();
+        seriesSource.forEach(pt => {
+          const k = String(pt.x);
+          const v = typeof pt.y === 'number' ? pt.y : (typeof pt.value === 'number' ? pt.value : Number(pt) || 0);
+          xMap.set(k, v);
+        });
+
+        const mapped = times.map(t => {
+          let k;
+          if (grain === 'hour') {
+            k = String(t.getHours()).padStart(2, '0');
+          } else if (grain === 'month') {
+            k = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`;
+          } else {
+            const y = t.getFullYear();
+            const m = String(t.getMonth() + 1).padStart(2, '0');
+            const d = String(t.getDate()).padStart(2, '0');
+            k = `${y}-${m}-${d}`;
+          }
+          return xMap.has(k) ? xMap.get(k) : null;
+        });
+
+        if (mapped.some(v => v !== null)) {
+          return mapped.map(v => v ?? 0);
+        }
+      }
+
+      const pts = seriesSource.map(pt => (
+        typeof pt === 'number' ? pt :
+        typeof pt?.y === 'number' ? pt.y :
+        typeof pt?.value === 'number' ? pt.value : 0
+      ));
       if (pts.length > 0) {
         if (pts.length === n) return pts;
         if (pts.length < n) {
@@ -542,9 +572,16 @@ function valuesFor(key, period, unit){
     if (typeof live.data === 'number') {
       return new Array(n).fill(live.data);
     }
-    if (typeof live.data === 'object' && (live.data.value !== undefined || live.data.current !== undefined)) {
-      const curr = Number(live.data.value !== undefined ? live.data.value : live.data.current) || 0;
-      const prev = Number(live.data.previous) || curr;
+    if (typeof live.value === 'number' && (typeof live.data !== 'object' || live.data === null || (live.data.value === undefined && live.data.current === undefined))) {
+      return new Array(n).fill(live.value);
+    }
+    if (typeof live.data === 'object' && live.data !== null && (live.data.value !== undefined || live.data.current !== undefined || live.value !== undefined)) {
+      const curr = Number(live.data.value !== undefined ? live.data.value : (live.data.current !== undefined ? live.data.current : live.value)) || 0;
+      const prev = (live.data.previous !== undefined && live.data.previous !== null)
+        ? Number(live.data.previous)
+        : ((live.delta && typeof live.delta.value === 'number')
+          ? (curr - live.delta.value)
+          : curr);
       const out = [];
       for (let i = 0; i < n; i++) {
         out.push(prev + (curr - prev) * (i / Math.max(1, n - 1)));
@@ -1477,8 +1514,13 @@ function mountSparkline(host, card){
   const head = host.closest(".vqc")?.querySelector(".vqc-value[data-full] .nf");
   const sub  = host.closest(".vqc")?.querySelector(".vqc-when");
   const headCompact = () => head?.closest(".vqc-value")?.dataset.mode === "compact";
-  const rest = () => { if (head) setRoller(head, unitPrefix(rd.unit) + fmtValue(vals[n-1], rd.unit, headCompact()));
-                       if (sub) sub.textContent = card.period + " · " + tickLabel(times[0],grain) + " – " + tickLabel(times[n-1],grain); };
+  const rest = () => {
+    if (head) {
+      const hl = headlineOf(card);
+      setRoller(head, hl ? (headCompact() ? hl.valueCompact : hl.value) : (unitPrefix(rd.unit) + fmtValue(vals[n-1], rd.unit, headCompact())));
+    }
+    if (sub) sub.textContent = card.period + " · " + tickLabel(times[0],grain) + " – " + tickLabel(times[n-1],grain);
+  };
   cap.addEventListener("mousemove", e => {
     const r0 = cap.getBoundingClientRect();
     const i = Math.max(0, Math.min(n-1, Math.round(((e.clientX - r0.left) - 3) / ((W-6)/(n-1)))));
@@ -2042,42 +2084,65 @@ function addCard(key, opts = {}){
 function headlineOf(card){
   const rd = readingOf(card.key);
   const reqKey = `${card.key}|${card.period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
+  const live = liveReading(card);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
 
-  if (live && live.ok && live.data !== undefined && live.data !== null) {
+  if (live && live.ok && (live.data !== undefined && live.data !== null || live.value !== undefined)) {
     let last = 0;
     let prev = 0;
     let hasDelta = false;
 
     if (typeof live.data === 'number') {
       last = live.data;
-    } else if (typeof live.data === 'object') {
-      if (live.data.current !== undefined) {
+    } else if (typeof live.data === 'object' && live.data !== null) {
+      if (live.data.value !== undefined && live.data.value !== null) {
+        last = Number(live.data.value) || 0;
+        if (live.data.previous !== undefined && live.data.previous !== null) {
+          prev = Number(live.data.previous) || 0;
+          hasDelta = true;
+        }
+      } else if (live.value !== undefined && live.value !== null) {
+        last = Number(live.value) || 0;
+      } else if (live.data.total !== undefined && live.data.total !== null) {
+        last = Number(live.data.total) || 0;
+      } else if (live.data.current !== undefined && live.data.current !== null) {
         last = Number(live.data.current) || 0;
         prev = Number(live.data.previous) || 0;
         hasDelta = true;
-      } else if (live.data.total !== undefined) {
-        last = Number(live.data.total) || 0;
-      } else if (live.data.series && Array.isArray(live.data.series) && live.data.series.length > 0) {
-        const s = live.data.series;
-        last = Number(s[s.length - 1]?.y ?? s[s.length - 1]?.value ?? 0);
-        if (s.length > 1) {
-          prev = Number(s[s.length - 2]?.y ?? s[s.length - 2]?.value ?? 0);
-          hasDelta = true;
-        }
       } else if (Array.isArray(live.data.slices) && live.data.slices.length > 0) {
         last = live.data.slices.reduce((acc, x) => acc + Number(x.value || 0), 0);
+      } else {
+        const seriesSource = live.data.series || live.data.points || live.series;
+        if (Array.isArray(seriesSource) && seriesSource.length > 0) {
+          last = Number(seriesSource[seriesSource.length - 1]?.y ?? seriesSource[seriesSource.length - 1]?.value ?? 0);
+          if (seriesSource.length > 1) {
+            prev = Number(seriesSource[seriesSource.length - 2]?.y ?? seriesSource[seriesSource.length - 2]?.value ?? 0);
+            hasDelta = true;
+          }
+        }
       }
+    } else if (typeof live.value === 'number') {
+      last = live.value;
     }
 
-    const pct = (hasDelta && prev !== 0) ? ((last - prev) / Math.abs(prev)) * 100 : (live.data?.delta_pct ?? 0);
-    const dir = pct >= 0 ? "up" : "down";
+    let pctNum = null;
+    if (hasDelta && prev !== 0) {
+      pctNum = ((last - prev) / Math.abs(prev)) * 100;
+    } else if (live.delta?.pct !== undefined && live.delta?.pct !== null) {
+      pctNum = Number(live.delta.pct);
+    } else if (live.data?.change_pct !== undefined && live.data?.change_pct !== null) {
+      pctNum = Number(live.data.change_pct);
+    } else if (live.data?.delta_pct !== undefined && live.data?.delta_pct !== null) {
+      pctNum = Number(live.data.delta_pct);
+    }
+
+    const dir = (pctNum === null || pctNum >= 0) ? "up" : "down";
+    const pct = pctNum !== null ? (Math.abs(pctNum).toFixed(1) + "%") : "";
 
     return {
       value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
       valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
-      dir, pct: Math.abs(pct).toFixed(1) + "%",
+      dir, pct,
       when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
     };
   }
@@ -2483,8 +2548,7 @@ function bodyStrip(c, geo, link){
      STACKED (two rows): label on top, the number below at full size, the
      change pill beside it, the timeframe as a quiet caption at the bottom. */
   const px = pxWidth(geo.w, geo.colW);
-  const stacked = geo.h >= 2;
-  const delta = c.showDelta === false ? "" :
+  const delta = (c.showDelta === false || !hl.pct) ? "" :
     `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>`;
   const tight = px < 320;                      /* a phone-width strip */
   const when = c.showWhen === false ? "" : `<span class="vqc-when">${esc(c.period)}</span>`;
@@ -2566,7 +2630,7 @@ function bodyChartCard(c, geo, link){
     <div class="vqc-bd">
       ${showHead ? `<div class="vqc-head">
         ${valueHTML(hl)}
-        ${showDelta ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
+        ${(showDelta && hl.pct) ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
       </div>` : ""}
       ${showWhen ? `<p class="vqc-when">${esc(hl.when)}</p>` : ""}
       ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}
@@ -3025,31 +3089,48 @@ function closeEdit(){ EDIT = null; document.getElementById("edit").classList.rem
 /* ── library ───────────────────────────────────────────────────────────── */
 function renderLibrary(){
   const box = document.getElementById("lib-body"); if (!box) return;
-  /* The panel is a slide-over that starts closed. Rebuilding a hundred rows
-     into a hidden element on every single draw is work nobody sees. */
+  /* The panel is a slide-over that starts closed. Rebuilding rows into a
+     hidden element on every single draw is work nobody sees. */
   const panel = document.getElementById("lib");
   if (panel && !panel.classList.contains("is-on")) return;
   const on = new Set(CARDS.map(c => c.key));
-  const areas = ["All", ...new Set(READINGS.map(r => r.area))];
   const q = LIB_Q.trim().toLowerCase();
-  const list = READINGS.filter(r =>
-    (LIB_AREA === "All" || r.area === LIB_AREA) &&
-    (!q || r.label.toLowerCase().includes(q) || r.key.includes(q)));
+
+  // Categories per §8: Modules enabled + Qore
+  const modulesSet = new Set();
+  READINGS.forEach(r => {
+    if (r.module) modulesSet.add(r.module);
+  });
+  const areas = ["All", "Qore", ...Array.from(modulesSet).filter(m => m !== "Qore").sort()];
+
+  const list = READINGS.filter(r => {
+    if (LIB_AREA !== "All") {
+      if (LIB_AREA === "Qore" && r.module !== "Qore") return false;
+      if (LIB_AREA !== "Qore" && r.module !== LIB_AREA) return false;
+    }
+    if (!q) return true;
+    return r.label.toLowerCase().includes(q) ||
+      r.key.toLowerCase().includes(q) ||
+      (r.desc && r.desc.toLowerCase().includes(q)) ||
+      (r.insight && r.insight.toLowerCase().includes(q));
+  }).sort((a, b) => (b.weight || 50) - (a.weight || 50));
+
   box.innerHTML = `
-    <div class="lib-find">${ic("search",14)}<input id="lib-q" placeholder="Search ${READINGS.length} readings…" value="${LIB_Q.replace(/"/g,"&quot;")}"></div>
+    <div class="lib-find">${ic("search",14)}<input id="lib-q" placeholder="Search ${READINGS.length} cards by name or insight…" value="${LIB_Q.replace(/"/g,"&quot;")}"></div>
     <div class="lib-tabs">${areas.map(a =>
-      `<button class="lib-tab ${a === LIB_AREA?"is-on":""}" data-a="${a}">${a}</button>`).join("")}</div>
+      `<button class="lib-tab ${a === LIB_AREA?"is-on":""}" data-a="${a}">${a === "Qore" ? "🔒 Qore" : a}</button>`).join("")}</div>
     <div class="lib-list">${list.length ? list.map(r => `
       <div class="lib-row ${on.has(r.key)?"is-added":""}">
         <span class="lib-row-n">${r.label}</span>
-        <code class="lib-row-k">${r.key}</code>
+        <span class="lib-row-k">${r.insight || r.desc || r.key}</span>
         <span class="lib-shape">${r.shape}</span>
-        ${r.extra ? '<span class="lib-badge">extra</span>' : ''}
-        <button class="lib-add" data-k="${r.key}" title="Add card">${on.has(r.key)?ic("check",13):ic("plus",13)}</button>
+        <button class="lib-add" data-k="${r.key}" title="${on.has(r.key) ? 'Already on dashboard' : 'Add card'}">${on.has(r.key)?ic("check",13):ic("plus",13)}</button>
       </div>`).join("") : `<p class="lib-none">Nothing matches “${LIB_Q}”.</p>`}</div>`;
   const qi = box.querySelector("#lib-q");
-  qi.oninput = () => { LIB_Q = qi.value; renderLibrary();
-    const el = document.getElementById("lib-q"); el.focus(); el.setSelectionRange(el.value.length, el.value.length); };
+  if (qi) {
+    qi.oninput = () => { LIB_Q = qi.value; renderLibrary();
+      const el = document.getElementById("lib-q"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } };
+  }
   box.querySelectorAll(".lib-tab").forEach(b => b.onclick = () => { LIB_AREA = b.dataset.a; renderLibrary(); });
   box.querySelectorAll(".lib-add").forEach(b => b.onclick = () => {
     const c = addCard(b.dataset.k); if (c) openEdit(c.id); });

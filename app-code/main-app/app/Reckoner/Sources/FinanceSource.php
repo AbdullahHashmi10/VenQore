@@ -68,7 +68,7 @@ final class FinanceSource implements ReckonerSource
             }
 
             if ($key === 'inventory.stock_value') {
-                $out[$id] = (float) $this->reporting->getInventoryValue();
+                $out[$id] = (float) $this->reporting->getInventoryValue($ctx->tenant?->id);
 
                 continue;
             }
@@ -182,7 +182,10 @@ final class FinanceSource implements ReckonerSource
                 $summary = $reportResult['summary'] ?? [];
                 $total = (float) array_sum($summary);
                 if ($total <= 0) {
-                    $out[$id] = null;
+                    $out[$id] = [
+                        'slices' => [],
+                        'total' => 0.0,
+                    ];
                     continue;
                 }
 
@@ -283,12 +286,24 @@ final class FinanceSource implements ReckonerSource
             // total_expenses includes COGS in the P&L, this does not.
             $expensesTotal = (float) $pl['total_expenses'] - $cogs;
 
+            $profitSeries = [];
+            $revenueSeries = [];
+            $cogsSeries = [];
+            try {
+                $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), 'daily', $ctx->tenant?->id);
+                foreach ($profitByPeriod as $d => $m) {
+                    $profitSeries[] = ['x' => (string) $d, 'y' => (float) ($m['profit'] ?? 0.0)];
+                    $revenueSeries[] = ['x' => (string) $d, 'y' => (float) ($m['revenue'] ?? 0.0)];
+                    $cogsSeries[] = ['x' => (string) $d, 'y' => (float) ($m['cogs'] ?? 0.0)];
+                }
+            } catch (\Throwable) {}
+
             foreach ($window['items'] as $item) {
                 $id = $item['id'];
                 $key = $item['key'];
                 $args = $item['args'] ?? [];
                 $out[$id] = match ($key) {
-                    'finance.net_profit' => $netProfit,
+                    'finance.net_profit' => !empty($profitSeries) ? ['value' => $netProfit, 'series' => $profitSeries] : $netProfit,
                     'finance.expenses_total' => (function () use ($expensesTotal, $args, $ctx, $period) {
                         $groupBy = $args['group_by'] ?? 'none';
                         if ($groupBy === 'category') {
@@ -318,10 +333,10 @@ final class FinanceSource implements ReckonerSource
                         }
                         return $expensesTotal;
                     })(),
-                    'finance.gross_profit' => $grossProfit,
+                    'finance.gross_profit' => !empty($profitSeries) ? ['value' => $grossProfit, 'series' => $profitSeries] : $grossProfit,
                     'sales.gross_margin_pct' => $revenue > 0 ? round(($grossProfit / $revenue) * 100, 2) : null,
                     'finance.net_margin_pct' => $revenue > 0 ? round(($netProfit / $revenue) * 100, 2) : null,
-                    'finance.cogs' => $cogs,
+                    'finance.cogs' => !empty($cogsSeries) ? ['value' => $cogs, 'series' => $cogsSeries] : $cogs,
                     default => null,
                 };
             }

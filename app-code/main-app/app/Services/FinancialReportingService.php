@@ -1227,9 +1227,9 @@ class FinancialReportingService
      *
      * @return float
      */
-    public function getInventoryValue(): float
+    public function getInventoryValue(int|string|null $tenantId = null): float
     {
-        $tenantId = app('current.tenant')?->id;
+        $tenantId = $tenantId ?? app('current.tenant')?->id;
         if (!$tenantId) return 0.0;
         return (float) DB::table('inventory_batches')
             ->where('tenant_id', $tenantId)

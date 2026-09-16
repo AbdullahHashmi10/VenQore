@@ -24,6 +24,12 @@ const STORAGE_RECENT_QUERIES = 'venqore_island_recent_queries';
 const STORAGE_SOUND_ENABLED = 'venqore_island_sound_enabled';
 const STORAGE_READ_ALERTS = 'venqore_island_read_alert_ids';
 
+const getScopedStorageKey = (baseKey, storeSlug, userId) => {
+  const storeKey = storeSlug || 'global';
+  const userKey = userId ? `u${userId}` : 'anon';
+  return `${baseKey}.${storeKey}.${userKey}`;
+};
+
 /* ═══════════════════════════════════════════════════════════════════════════
    VenQore Dynamic Island
 
@@ -304,10 +310,31 @@ export default function AiIsland({
   const [alertCountdown, setAlertCountdown] = useState(100);
   const [isHoveringAlert, setIsHoveringAlert] = useState(false);
 
+  const recentStorageKey = useMemo(
+    () => getScopedStorageKey(STORAGE_RECENT_QUERIES, store?.slug, auth?.user?.id),
+    [store?.slug, auth?.user?.id]
+  );
+  const alertsStorageKey = useMemo(
+    () => getScopedStorageKey(STORAGE_READ_ALERTS, store?.slug, auth?.user?.id),
+    [store?.slug, auth?.user?.id]
+  );
+
   const [recentQueries, setRecentQueries] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_RECENT_QUERIES) || '[]'); }
-    catch { return []; }
+    try {
+      const key = getScopedStorageKey(STORAGE_RECENT_QUERIES, store?.slug, auth?.user?.id);
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    } catch {
+      return [];
+    }
   });
+
+  useEffect(() => {
+    try {
+      setRecentQueries(JSON.parse(localStorage.getItem(recentStorageKey) || '[]'));
+    } catch {
+      setRecentQueries([]);
+    }
+  }, [recentStorageKey]);
 
   const [orbPaused, setOrbPaused] = useState(
     () => typeof window !== 'undefined' &&
@@ -554,7 +581,7 @@ export default function AiIsland({
     if (!text?.trim()) return;
     const next = [text, ...recentQueries.filter(q => q.toLowerCase() !== text.toLowerCase())].slice(0, 6);
     setRecentQueries(next);
-    try { localStorage.setItem(STORAGE_RECENT_QUERIES, JSON.stringify(next)); } catch {}
+    try { localStorage.setItem(recentStorageKey, JSON.stringify(next)); } catch {}
   };
 
   const askVena = (text) => {
@@ -628,19 +655,28 @@ export default function AiIsland({
 
   const [readAlertIds, setReadAlertIds] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_READ_ALERTS) || '[]');
+      const key = getScopedStorageKey(STORAGE_READ_ALERTS, store?.slug, auth?.user?.id);
+      return JSON.parse(localStorage.getItem(key) || '[]');
     } catch {
       return [];
     }
   });
 
+  useEffect(() => {
+    try {
+      setReadAlertIds(JSON.parse(localStorage.getItem(alertsStorageKey) || '[]'));
+    } catch {
+      setReadAlertIds([]);
+    }
+  }, [alertsStorageKey]);
+
   const toggleAlertRead = useCallback((id) => {
     setReadAlertIds((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      try { localStorage.setItem(STORAGE_READ_ALERTS, JSON.stringify(next)); } catch (e) {}
+      try { localStorage.setItem(alertsStorageKey, JSON.stringify(next)); } catch (e) {}
       return next;
     });
-  }, []);
+  }, [alertsStorageKey]);
 
   const allAlerts = useMemo(
     () => [...(extraAlerts || []), ...(notifications.latest || [])],
@@ -652,8 +688,8 @@ export default function AiIsland({
     const hasUnread = allIds.some((id) => !readAlertIds.includes(id));
     const next = hasUnread ? Array.from(new Set([...readAlertIds, ...allIds])) : [];
     setReadAlertIds(next);
-    try { localStorage.setItem(STORAGE_READ_ALERTS, JSON.stringify(next)); } catch (e) {}
-  }, [allAlerts, readAlertIds]);
+    try { localStorage.setItem(alertsStorageKey, JSON.stringify(next)); } catch (e) {}
+  }, [allAlerts, readAlertIds, alertsStorageKey]);
 
   const unread = useMemo(() => {
     return allAlerts.filter((n, i) => !readAlertIds.includes(String(n.id || `alert-${i}`))).length;

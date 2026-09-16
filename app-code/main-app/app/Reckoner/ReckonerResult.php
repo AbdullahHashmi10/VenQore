@@ -128,7 +128,7 @@ final class ReckonerResult implements \JsonSerializable
     public function jsonSerialize(): array
     {
         $data = is_array($this->data) ? $this->data : [];
-        $value = $data['value'] ?? null;
+        $value = $this->status === 'ok' ? ($data['value'] ?? (is_numeric($this->data) ? $this->data : null)) : null;
 
         return [
             'id' => $this->id,
@@ -166,6 +166,14 @@ final class ReckonerResult implements \JsonSerializable
                 'message' => $this->errorMessage,
             ],
         ];
+    }
+
+    public function __get(string $name): mixed
+    {
+        if ($name === 'value') {
+            return $this->jsonSerialize()['value'];
+        }
+        return null;
     }
 
     public function toArray(): array

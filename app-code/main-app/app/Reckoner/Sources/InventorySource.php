@@ -49,6 +49,8 @@ final class InventorySource implements ReckonerSource
     {
         $out = [];
 
+        $tenantId = $ctx->tenant?->id;
+
         foreach ($requests as $request) {
             $key = $request['key'];
             $id = $request['id'];
@@ -56,16 +58,21 @@ final class InventorySource implements ReckonerSource
             $out[$id] = match ($key) {
                 'inventory.low_stock_count' => $this->lowStockCount($ctx),
                 'inventory.out_of_stock_count' => $this->outOfStockCount($ctx),
-                'inventory.product_count' => Product::query()->count(),
+                'inventory.product_count' => Product::query()
+                    ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+                    ->count(),
                 'inventory.overstock_count' => $this->overstockCount($ctx),
-                'inventory.low_stock_list' => (function() use ($ctx) {
+                'inventory.low_stock_list' => (function() use ($ctx, $tenantId) {
                     $globalThreshold = (int) (\App\Helpers\SettingsHelper::getLowStockThreshold() ?? 0);
                     $stockSums = Stock::query()
+                        ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
                         ->selectRaw('product_id, SUM(quantity) as qty')
                         ->groupBy('product_id')
                         ->pluck('qty', 'product_id');
 
-                    $products = Product::query()->get(['id', 'name', 'alert_quantity']);
+                    $products = Product::query()
+                        ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+                        ->get(['id', 'name', 'alert_quantity']);
 
                     $lowStockProducts = $products->filter(function ($product) use ($globalThreshold, $stockSums) {
                         $qty = (float) ($stockSums[$product->id] ?? 0.0);
@@ -117,13 +124,17 @@ final class InventorySource implements ReckonerSource
     private function stockSnapshot(ReckonerContext $ctx): array
     {
         $globalThreshold = (int) (\App\Helpers\SettingsHelper::getLowStockThreshold() ?? 0);
+        $tenantId = $ctx->tenant?->id;
 
         $stockSums = Stock::query()
+            ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
             ->selectRaw('product_id, SUM(quantity) as qty')
             ->groupBy('product_id')
             ->pluck('qty', 'product_id');
 
-        $products = Product::query()->get(['id', 'alert_quantity']);
+        $products = Product::query()
+            ->when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
+            ->get(['id', 'alert_quantity']);
 
         return compact('globalThreshold', 'stockSums', 'products');
     }
