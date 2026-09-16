@@ -8,7 +8,8 @@ import {
     Home, ShoppingCart, Box, Users, DollarSign, TrendingUp, History, Trash2, Settings,
     FileText, CreditCard, BarChart2, PlusCircle, Printer, Database, Shield, Sparkles,
     Package, Tag, Warehouse, BookOpen, Receipt, Clock, Calculator, Percent, Building2,
-    UserPlus, FilePlus, Download, Upload, Layers, Activity, Eye, Edit, ArrowRightLeft
+    UserPlus, FilePlus, Download, Upload, Layers, Activity, Eye, Edit, ArrowRightLeft,
+    Armchair, Utensils
 } from 'lucide-react';
 
 // ============================================
@@ -55,6 +56,24 @@ export const APP_REGISTRY = [
         icon: ShoppingCart,
         category: CATEGORIES.NAVIGATION,
         route: 'store.pos',
+    },
+    {
+        id: 'tables-floor',
+        title: 'Table Service (Floor View)',
+        subtitle: 'Open the dining room floor plan & live table orders',
+        keywords: ['tables', 'table service', 'floor plan', 'dine in', 'restaurant', 'seating', 'covers', 'waiter', 'orders', 'lane'],
+        icon: Armchair,
+        category: CATEGORIES.NAVIGATION,
+        route: 'store.tables.index',
+    },
+    {
+        id: 'tables-plan',
+        title: 'Floor Plan Builder (Zones & Tables)',
+        subtitle: 'Design dining zones, add tables, configure seats and numbers',
+        keywords: ['floor builder', 'table layout', 'dining room setup', 'zones', 'patio', 'terrace', 'restaurant layout'],
+        icon: Utensils,
+        category: CATEGORIES.NAVIGATION,
+        route: 'store.tables.plan',
     },
 
     // ==========================================

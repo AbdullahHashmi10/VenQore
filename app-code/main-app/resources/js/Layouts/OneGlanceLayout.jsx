@@ -646,7 +646,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		icon: ShoppingCart,
 		// PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
 		subs: userRole === 'cashier' ? [] : [
-			{ group: 'Transactions', items: ['Orders', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
+			{ group: 'Transactions', items: ['Orders', 'Tables', 'Floor Plan', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
 			{ group: 'Post-Sale', items: ['Returns History', 'Invoice Reminders', 'Recurring Invoices'] },
 			{ group: 'Config', items: ['E-Invoicing'] }
 		],
@@ -753,6 +753,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	// When all sub-items in a top-level group are gone, the entire group hides.
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
+		'Tables': 'pos',
+		'Floor Plan': 'pos',
 		'Service Jobs': 'services',
 		'Dispatch Calendar': 'services',
 		'Tools & Equipment': 'services',
@@ -849,6 +851,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 	const SUBITEM_ROUTES = {
 		'Orders': ['store.sales-orders.index', 'store.sales.index'],
+		'Tables': ['store.tables.index', 'store.tables.plan'],
+		'Floor Plan': ['store.tables.plan', 'store.tables.index'],
 		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
 		'Dispatch Calendar': ['store.service-jobs.calendar'],
 		'Tools & Equipment': ['store.tools.index'],

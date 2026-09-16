@@ -201,6 +201,8 @@ export default function SidebarItem({
                             'Agent Inbox': 'store.admin.chatbot.inbox',
                             'Chatbot Settings': 'store.admin.chatbot.settings',
                             'POS': 'store.pos',
+                            'Tables': 'store.tables.index',
+                            'Floor Plan': 'store.tables.plan',
                             'Analytics': 'store.sales.analytics',
                             'Orders': 'store.sales.index',
                             'Invoices': 'store.sales.invoice.create',
