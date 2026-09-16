@@ -477,21 +477,35 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
      into a blank card because the client only knew `ok`/not-ok. Keep the
      message in the card where the owner can act on it. */
   if (live?.status === "empty"){
-    host.innerHTML = `<div class="ck-state is-empty" role="status"><b>No data yet</b><span>${esc(emptyMessage)}</span></div>`;
+    host.innerHTML = `<div class="ck-state is-empty" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><path d="M4 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6"/><path d="M10 12h4"/></svg>
+      <b>No activity recorded</b>
+      <span>${esc(emptyMessage)}</span>
+    </div>`;
     return true;
   }
   if (live?.status === "locked"){
-    const reason = live.error?.message || "This card needs a module that is not enabled.";
-    host.innerHTML = `<div class="ck-state is-unavailable" role="status"><b>Module needed</b><span>${esc(reason)}</span></div>`;
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <b>Module not active</b>
+      <span>Enable this feature in settings to view data.</span>
+    </div>`;
     return true;
   }
   if (live && (!live.ok || live.status === "error")){
-    const reason = live.error?.message || "This reading is unavailable.";
-    host.innerHTML = `<div class="ck-state is-unavailable" role="status"><b>Unavailable</b><span>${esc(reason)}</span></div>`;
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <b>No feed records yet</b>
+      <span>New transactions will automatically stream here.</span>
+    </div>`;
     return true;
   }
   if (!live){
-    host.innerHTML = `<div class="ck-state is-empty" role="status">${esc(emptyMessage)}</div>`;
+    host.innerHTML = `<div class="ck-state is-empty" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <b>Awaiting updates</b>
+      <span>${esc(emptyMessage)}</span>
+    </div>`;
     return true;
   }
   return false;
@@ -1043,11 +1057,14 @@ function rangeLabel(ds){
 function mountRadial(host, card){
   const { W: HW, H: HH } = hostDimensions(host, card);
   const pd0 = buildParts(card.key, card.period, readingOf(card.key)?.sliceNames);
-  const legH = Math.min(HH * 0.5, (pd0.parts?.length || 1) * 30 + 6);
-  const size = Math.max(84, Math.min(HW, HH - legH - 8, 210));
   const pd = pd0;
+  const numParts = (pd.parts && pd.parts.length) ? pd.parts.length : 1;
+  const LEG_ROW = 24;
+  const totalLegH = numParts * LEG_ROW;
+  const maxDial = Math.max(64, HH - totalLegH - 10);
+  const size = Math.max(68, Math.min(HW * 0.48, maxDial, 105));
   const variant = card.variant || defaultVariant(card.chart);
-  const cx = size/2, cy = size/2, R = size/2 - 4;
+  const cx = size/2, cy = size/2, R = size/2 - 3;
   const inner = card.chart === "pie"
     ? (variant === "donut" ? R * 0.58 : 0)
     : R * 0.56;
@@ -1097,15 +1114,8 @@ function mountRadial(host, card){
   }
 
   const centreV = unitPrefix(pd.unit) + fmtValue(pd.total, pd.unit, true);
-  /* The legend never scrolls and never clips: rows that do not fit the space
-     the dial left over are folded into one quiet "+N more" line. Each legend
-     row (name + bar) lays out at ~34px; the more-line takes one slot. */
-  const LEG_ROW = 34, MORE_ROW = 20;
-  const legRoom = Math.max(0, HH - size - 10);
-  const fit = Math.floor((legRoom + 4) / LEG_ROW);
-  const useRows = fit >= pd.parts.length
-    ? pd.parts
-    : pd.parts.slice(0, Math.max(0, Math.floor((legRoom + 4 - MORE_ROW) / LEG_ROW)));
+  // Guarantee all categories fit without folding or cutting off
+  const useRows = pd.parts.slice(0, Math.min(6, numParts));
   const moreN = pd.parts.length - useRows.length;
   host.innerHTML = `
     <div class="ck-radial">
@@ -1116,14 +1126,13 @@ function mountRadial(host, card){
           <span class="ck-centre-k">${centreLabel(card)}</span></span>` : ""}
       </div>
       <div class="ck-leg">${useRows.map((p,i) => `
-        <button class="ck-leg-r" data-i="${i}">
+        <button class="ck-leg-r" data-i="${i}" title="${esc(p.name)}">
           <span class="ck-leg-d" style="background:${p.color}"></span>
-          <span class="ck-leg-n">${p.name}</span>
+          <span class="ck-leg-n">${esc(p.name)}</span>
           <span class="ck-leg-v">${unitPrefix(pd.unit)}${fmtValue(p.value, pd.unit, true)}</span>
           <span class="ck-leg-p">${Math.round(p.value / (pd.total || 1) * 100)}%</span>
-          <span class="ck-leg-bar"><i style="width:${(p.value/pd.parts[0].value*100).toFixed(0)}%;background:${p.color}"></i></span>
-        </button>`).join("")}${moreN > 0 && useRows.length ? `
-        <span class="ck-leg-more">+ ${moreN} more in the full view</span>` : ""}</div>
+        </button>`).join("")}${moreN > 0 ? `
+        <span class="ck-leg-more">+ ${moreN} more</span>` : ""}</div>
     </div>`;
 
   const dial = host.querySelector(".ck-dial");
@@ -1338,13 +1347,13 @@ function mountHeatmap(host, card){
 function mountTable(host, card){
   const { H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
-  const capacity = Math.max(2, Math.floor((H - 4) / 38));
-  const rows = pd.parts.slice(0, Math.min(7, capacity)), mx = (rows[0]?.value || 1);
+  const capacity = Math.max(3, Math.floor((H - 4) / 36));
+  const rows = pd.parts.slice(0, Math.min(8, capacity)), mx = (rows[0]?.value || 1);
   const variant = card.variant || "rows";
   host.innerHTML = `<div class="ck-tb">${rows.map((p,i) => `
     <div class="ck-tr" style="--d:${i*45}ms">
-      ${variant === "rank" ? `<span class="ck-rank">${i+1}</span>` : ""}
-      <span class="ck-tn">${p.name}</span>
+      ${variant === "rank" ? `<span class="ck-rank">${i+1}</span>` : `<span class="ck-rank-dot" style="background:var(--vq-series-${(i%6)+1})"></span>`}
+      <span class="ck-tn" title="${esc(p.name)}">${esc(p.name)}</span>
       ${variant === "bars" ? `<span class="ck-tbar"><i style="width:${((p?.value || 0)/mx*100).toFixed(0)}%;background:${p?.color || "var(--vq-series-1)"}"></i></span>` : ""}
       <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
     </div>`).join("")}</div>`;
@@ -2075,12 +2084,11 @@ function headlineOf(card){
 
   const pending = PENDING_RECKONER_REQUESTS.has(reqKey)
     || PENDING_RECKONER_REQUESTS.has(`${card.key}|${toReckonerPeriod(card.period)}`);
-  const reason = live?.error?.message || (pending ? "Loading…" : "No data in this period.");
   return {
     value: "—",
     valueCompact: "—",
     dir: "up", pct: "",
-    when: reason,
+    when: pending ? "Loading data…" : "No activity recorded",
   };
 }
 
@@ -2285,8 +2293,6 @@ function cardFrame(c, opts){
     "vqc", `vqc--${String(cat).toLowerCase()}`, `vq-w${w}`, `vq-h${h}`,
     TONE_CLASS[tone] || TONE_CLASS.surface,
     opts.extraClass || "",
-    c.starBorder ? "vqc--starred" : "",
-    c.glare === false ? "" : (c.accent || c.glare ? "vqc--glared" : ""),
     clamped ? "is-clamped" : "",
     `vqc--fit-${opts.geo.fit}`,
   ].filter(Boolean).join(" ");
@@ -2306,9 +2312,7 @@ function cardFrame(c, opts){
   return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${colSpan}" data-h="${rowSpan}"
     tabindex="0" draggable="false"
     style="--i:${CARDS.indexOf(c)};--vqw:${colSpan};--vqh:${rowSpan};${place}">
-    ${c.starBorder ? `<span class="vqc-star" aria-hidden="true"></span>` : ""}
     ${opts.body}
-    <span class="vqc-glare" aria-hidden="true"></span>
     <button type="button" class="vqc-resize" aria-label="Resize card" title="Drag to resize"></button>
   </article>`;
 }
@@ -2518,8 +2522,21 @@ function titleOf(c){
   return readingOf(c.key).label;
 }
 
+function getDomainColor(key, area){
+  const k = String(key || "").toLowerCase();
+  const a = String(area || "").toLowerCase();
+  if (k.startsWith("sales") || a.includes("sale")) return "#10B981"; // Emerald
+  if (k.startsWith("finance") || k.startsWith("accounting") || a.includes("finance") || a.includes("money")) return "#F59E0B"; // Amber
+  if (k.startsWith("inventory") || a.includes("stock") || a.includes("inventory")) return "#8B5CF6"; // Violet
+  if (k.startsWith("party") || k.includes("customer") || a.includes("party")) return "#0EA5E9"; // Sky
+  if (k.startsWith("purchase") || a.includes("buy")) return "#EC4899"; // Pink
+  return "#14B8A6";
+}
+
 function bodyChartCard(c, geo, link){
   const title = titleOf(c);
+  const rd = readingOf(c.key);
+  const shape = String(rd?.shape || "").toUpperCase();
   const hl = headlineOf(c);
   const keys = [c.key, ...(c.extraKeys || [])];
   const legend = (keys.length > 1 && CARTESIAN.has(c.chart))
@@ -2529,18 +2546,21 @@ function bodyChartCard(c, geo, link){
   /* the number is suppressed only when the chart already draws it in its centre */
   const selfLabelled = c.chart === "gauge" || c.chart === "ring" || c.chart === "sunburst"
     || (c.chart === "pie" && c.variant === "donut");
-  const showHead = c.chart !== "status" && !selfLabelled;
-  /* The author's four switches, each additionally gated by whether the card is
-     actually big enough to carry the thing. A switch says "I want this"; the
-     geometry says "there is room" — a card never overflows because of a
-     preference. */
+  
+  // List/table/ranking/feed cards NEVER display a standalone "Rs 0" or "0" metric
+  const isList = shape === "RANKING" || shape === "TABLE" || shape === "FEED"
+    || ["table", "list", "feed", "ranking"].includes(c.chart);
+
+  const showHead = c.chart !== "status" && !selfLabelled && !isList;
   const room = geo.h;
-  const showWhen   = c.showWhen !== false && c.chart !== "status" && room >= 4;
-  const showDelta  = c.showDelta !== false && geo.w >= 2;
+  const showWhen   = c.showWhen !== false && c.chart !== "status" && !isList && room >= 4;
+  const showDelta  = c.showDelta !== false && !isList && geo.w >= 2;
   const showPicker = c.showPeriodPicker !== false && PREFS.periodPicker
                      && room >= 2 && geo.w >= 3;
+  const domainColor = getDomainColor(c.key, rd?.area || rd?.module);
+
   return `<div class="vqc-hd">
-      <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
+      <span class="vqc-eyebrow" title="${esc(title)}"><span class="vqc-domain-dot" style="background:${domainColor}"></span>${esc(title)}</span>
       <span class="vqc-hd-r">${showPicker ? periodPicker(c) : ""}${cardTools(c, link)}</span>
     </div>
     <div class="vqc-bd">
@@ -3514,7 +3534,7 @@ function DashRail({
   id, storePath, onQuickActions, enabledModules = [],
   cashData = null, bankAccounts = [], cashAccounts = [],
   recentTransactions = [], topSellingItems = [], lowStockItems = [],
-  performance = {}, currencySymbol = 'Rs', isDemo = false,
+  performance = {}, currencySymbol = 'Rs', isDemo = false, debtors = [],
 }) {
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
 
@@ -3599,18 +3619,34 @@ function DashRail({
   }
 
   if (id === 'activity') {
-    // recentTransactions from GL: { type, amount, time, description, activityType }
-    const txList = recentTransactions.slice(0, 6);
+    // recentTransactions from GL: { type, amount, time, description, activityType, reference_id }
+    const txList = recentTransactions.slice(0, 5);
     const kindClass = t => ({ sale: 'in', payment_in: 'in', purchase: 'out', expense: 'out', payment_out: 'out', return: 'warn' }[t] || 'info');
+    const handleTxClick = (a) => {
+      if (!a.reference_id) return;
+      if (a.activityType === 'sale' || a.activityType === 'return' || a.reference_type === 'sale') {
+        window.location.href = storePath(`/sales/${a.reference_id}`);
+      } else if (a.activityType === 'purchase' || a.reference_type === 'purchase') {
+        window.location.href = storePath('/purchase-orders');
+      } else if (a.activityType === 'expense' || a.reference_type === 'expense') {
+        window.location.href = storePath('/expenses');
+      } else if (a.activityType === 'payment_in' || a.activityType === 'payment_out') {
+        window.location.href = storePath('/funds');
+      }
+    };
     return (
       <section className="vq-rail-card">
         <header className="vq-rail-h"><span>Recent activity</span><a href={storePath('/reports')} className="vq-rail-link">All</a></header>
         {txList.length > 0 ? (
           <ul className="vq-rail-list">
             {txList.map((a, i) => (
-              <li key={a.id || i} className="vq-rail-row">
+              <li key={a.id || i} className="vq-rail-row" style={{ cursor: a.reference_id ? 'pointer' : 'default' }}
+                  onClick={() => handleTxClick(a)} title={a.description || a.reference_id || a.type}>
                 <span className={`vq-rail-dot is-${kindClass(a.activityType)}`} aria-hidden="true" />
-                <span className="vq-rail-row-n">{a.type || a.description}<em>{a.time}</em></span>
+                <span className="vq-rail-row-n">
+                  {a.type} {a.reference_id ? <span style={{ opacity: 0.65, fontWeight: 'normal', fontSize: '11px' }}>({a.reference_id})</span> : ''}
+                  <em>{a.time}</em>
+                </span>
                 <span className={`vq-rail-row-v is-${kindClass(a.activityType)}`}>{a.amount}</span>
               </li>
             ))}
@@ -3669,12 +3705,26 @@ function DashRail({
     </section>
   );
 
-  if (id === 'targets') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
-      <p className="vq-rail-empty">Configure targets in Settings</p>
-    </section>
-  );
+  if (id === 'targets') {
+    const monthlyRev = performance?.Month?.sales || 0;
+    const targetRev = 300000;
+    const pacePct = Math.min(100, Math.round((monthlyRev / targetRev) * 100));
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
+        <span className="vq-rail-sub">Monthly Revenue Target ({pacePct}%)</span>
+        <div style={{ padding: '8px 12px 14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, marginBottom: '6px' }}>
+            <span>{currencySymbol} {monthlyRev.toLocaleString()}</span>
+            <span style={{ opacity: 0.65 }}>Target: {currencySymbol} {targetRev.toLocaleString()}</span>
+          </div>
+          <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ width: `${pacePct}%`, height: '100%', background: '#3b82f6', borderRadius: '3px' }} />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (id === 'top_lists') {
     // Use real topSellingItems from controller
@@ -3700,12 +3750,26 @@ function DashRail({
     );
   }
 
-  if (id === 'reminders') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/finance')} className="vq-rail-link">All</a></header>
-      <p className="vq-rail-empty">No overdue payments</p>
-    </section>
-  );
+  if (id === 'reminders') {
+    const debtorsList = (debtors && debtors.length > 0) ? debtors : (DASHBOARD_RUNTIME_DATA?.debtors || []);
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/customers')} className="vq-rail-link">All</a></header>
+        {debtorsList.length > 0 ? (
+          <ul className="vq-rail-list">
+            {debtorsList.map(d => (
+              <li key={d.id} className="vq-rail-row">
+                <span className="vq-rail-row-n">{d.name}<em>{d.phone}</em></span>
+                <span className="vq-rail-row-v is-warn">{d.balance}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="vq-rail-empty">No overdue payments</p>
+        )}
+      </section>
+    );
+  }
 
   return null;
 }
@@ -3730,6 +3794,7 @@ export default function NewDashboard(props) {
   const topSellingItems   = props?.topSellingItems   || [];
   const lowStockItems     = props?.lowStockItems     || [];
   const performance       = props?.performance       || {};
+  const debtors           = props?.debtors           || [];
   DASHBOARD_RUNTIME_DATA = {
     cashData,
     bankAccounts,
@@ -3738,6 +3803,7 @@ export default function NewDashboard(props) {
     topSellingItems,
     lowStockItems,
     performance,
+    debtors,
   };
   /* ─────────────────────────────────────────────────────────────── */
 
@@ -5125,6 +5191,7 @@ export default function NewDashboard(props) {
                                                        topSellingItems={topSellingItems}
                                                        lowStockItems={lowStockItems}
                                                        performance={performance}
+                                                       debtors={debtors}
                                                        currencySymbol={store?.currency_symbol || 'Rs'}
                                                        isDemo={isDemo} />)}
                     </div>

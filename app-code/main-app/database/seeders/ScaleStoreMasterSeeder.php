@@ -40,6 +40,7 @@ class ScaleStoreMasterSeeder extends Seeder
             'payments',
             'purchase_items',
             'purchases',
+            'inventory_batches',
             'expenses',
             'stocks',
             'stock_movements',
@@ -206,8 +207,8 @@ class ScaleStoreMasterSeeder extends Seeder
             'account_number'  => 'PK00MEZN00123456789012',
             'type'            => 'bank',
             'account_type'    => 'checking',
-            'opening_balance' => 500000.00,
-            'current_balance' => 500000.00,
+            'opening_balance' => 3000000.00,
+            'current_balance' => 3000000.00,
             'created_at'      => Carbon::parse('2024-01-01 08:00:00'),
             'updated_at'      => Carbon::parse('2024-01-01 08:00:00'),
         ]);
@@ -287,8 +288,8 @@ class ScaleStoreMasterSeeder extends Seeder
             ['code' => 'P11', 'name' => 'Portable Power Bank 20000mAh',    'cat' => 'electronics', 'price' => 5500.0, 'cost' => 3400.0, 'stock' => 40,  'min' => 10],
             ['code' => 'P12', 'name' => 'Handmade Herbal Soap Bar',        'cat' => 'personal',    'price' => 380.0,  'cost' => 190.0,  'stock' => 250, 'min' => 35],
             ['code' => 'P13', 'name' => 'Natural Lavender Shampoo 400ml',   'cat' => 'personal',    'price' => 1100.0, 'cost' => 680.0,  'stock' => 95,  'min' => 20],
-            ['code' => 'P14', 'name' => 'Multi-Surface Disinfectant 1L',   'cat' => 'personal',    'price' => 650.0,  'cost' => 380.0,  'stock' => 110, 'min' => 25],
-            ['code' => 'P15', 'name' => 'Whole Wheat Pasta 500g',          'cat' => 'staples',     'price' => 480.0,  'cost' => 290.0,  'stock' => 170, 'min' => 30],
+            ['code' => 'P14', 'name' => 'Multi-Surface Disinfectant 1L',   'cat' => 'personal',    'price' => 650.0,  'cost' => 380.0,  'stock' => 4,   'min' => 15],
+            ['code' => 'P15', 'name' => 'Whole Wheat Pasta 500g',          'cat' => 'staples',     'price' => 480.0,  'cost' => 290.0,  'stock' => 3,   'min' => 10],
         ];
 
         $productMap = [];
@@ -324,6 +325,21 @@ class ScaleStoreMasterSeeder extends Seeder
                 'status'            => 'in_stock',
                 'created_at'        => Carbon::parse('2024-01-01 09:30:00'),
                 'updated_at'        => Carbon::parse('2024-01-01 09:30:00'),
+            ]);
+
+            // Create inventory batch record so FinancialReportingService::getInventoryValue() works
+            DB::table('inventory_batches')->insert([
+                'id'            => (string) Str::uuid(),
+                'tenant_id'     => $tenantId,
+                'product_id'    => $pId,
+                'warehouse_id'  => $warehouseId,
+                'batch_type'    => 'opening_balance',
+                'initial_qty'   => $p['stock'],
+                'original_qty'  => $p['stock'],
+                'remaining_qty' => $p['stock'],
+                'unit_cost'     => $p['cost'],
+                'created_at'    => Carbon::parse('2024-01-01 09:30:00'),
+                'updated_at'    => Carbon::parse('2024-01-01 09:30:00'),
             ]);
 
             $totalOpeningStockVal += ($p['cost'] * $p['stock']);
@@ -422,10 +438,11 @@ class ScaleStoreMasterSeeder extends Seeder
         // 8. OPENING CAPITAL JOURNAL ENTRY
         // ─────────────────────────────────────────────────────────────────
         echo "7. Posting Opening Capital Entry...\n";
-        $totalOpeningEquity = 60000.00 + 750000.00 + $totalOpeningStockVal;
+        $totalOpeningBank = 3000000.00 + 250000.00;
+        $totalOpeningEquity = 60000.00 + $totalOpeningBank + $totalOpeningStockVal;
         $postJournal('2024-01-01 10:00:00', 'OB-2024-001', 'opening_balance', 'Opening Capital, Bank, Cash & Inventory', [
             ['account_id' => $accountMap['1000'], 'debit' => 60000.00,             'credit' => 0.0, 'desc' => 'Cash in Drawer Opening'],
-            ['account_id' => $accountMap['1010'], 'debit' => 750000.00,            'credit' => 0.0, 'desc' => 'Bank Accounts Opening (Meezan & Standard Chartered)'],
+            ['account_id' => $accountMap['1010'], 'debit' => $totalOpeningBank,     'credit' => 0.0, 'desc' => 'Bank Accounts Opening (Meezan & Standard Chartered)'],
             ['account_id' => $accountMap['1100'], 'debit' => $totalOpeningStockVal, 'credit' => 0.0, 'desc' => 'Opening Inventory at Cost'],
             ['account_id' => $accountMap['3000'], 'debit' => 0.0,                  'credit' => $totalOpeningEquity, 'desc' => "Owner's Initial Capital Contribution"],
         ]);
@@ -689,66 +706,217 @@ class ScaleStoreMasterSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────────────────────────────
+        // 10. PURCHASES (SEPTEMBER 2026)
+        // ─────────────────────────────────────────────────────────────────
+        echo "9. Seeding September 2026 Purchases...\n";
+        $purchaseSeq = 1;
+        $postPurchase = function(string $dtStr, string $supplierId, array $items, string $workflowStatus = 'received') use (
+            $tenantId, $warehouseId, $accountMap, $postJournal, $bankMeezanId, &$purchaseSeq
+        ) {
+            $dt = Carbon::parse($dtStr);
+            $poId = (string) Str::uuid();
+            $invNum = sprintf('PO-%s-%04d', $dt->format('ymd'), $purchaseSeq++);
+            $subtotal = 0.0;
+            $poItems = [];
+
+            foreach ($items as $item) {
+                $qty = (float) $item['qty'];
+                $cost = (float) $item['cost'];
+                $lineTotal = round($qty * $cost, 2);
+                $subtotal += $lineTotal;
+
+                $batchId = (string) Str::uuid();
+                DB::table('inventory_batches')->insert([
+                    'id'                  => $batchId,
+                    'tenant_id'           => $tenantId,
+                    'product_id'          => $item['id'],
+                    'purchase_invoice_id' => $poId,
+                    'warehouse_id'        => $warehouseId,
+                    'batch_type'          => 'purchase',
+                    'initial_qty'         => $qty,
+                    'original_qty'        => $qty,
+                    'remaining_qty'       => $qty,
+                    'unit_cost'           => $cost,
+                    'created_at'          => $dt,
+                    'updated_at'          => $dt,
+                ]);
+
+                $poItems[] = [
+                    'id'                 => (string) Str::uuid(),
+                    'tenant_id'          => $tenantId,
+                    'purchase_id'        => $poId,
+                    'product_id'         => $item['id'],
+                    'qty'                => $qty,
+                    'received_qty'       => $qty,
+                    'unit_cost'          => $cost,
+                    'discount_amount'    => 0,
+                    'tax_rate'           => 0,
+                    'business_pct'       => 100,
+                    'line_total'         => $lineTotal,
+                    'inventory_batch_id' => $batchId,
+                    'created_at'         => $dt,
+                    'updated_at'         => $dt,
+                ];
+            }
+
+            DB::table('purchases')->insert([
+                'id'              => $poId,
+                'tenant_id'       => $tenantId,
+                'party_id'        => $supplierId,
+                'warehouse_id'    => $warehouseId,
+                'invoice_number'  => $invNum,
+                'reference'       => 'REF-' . $invNum,
+                'purchase_date'   => $dt->toDateString(),
+                'subtotal'        => $subtotal,
+                'tax'             => 0,
+                'discount'        => 0,
+                'round_off'       => 0,
+                'total'           => $subtotal,
+                'payment_status'  => 'paid',
+                'workflow_status' => $workflowStatus,
+                'payment_method'  => 'bank_transfer',
+                'created_at'      => $dt,
+                'updated_at'      => $dt,
+            ]);
+
+            DB::table('purchase_items')->insert($poItems);
+
+            // Double Entry: Debit Inventory Asset (1100), Credit Bank Account (1010)
+            $postJournal($dtStr, $invNum, 'purchase', "Purchase {$invNum} from Supplier", [
+                ['account_id' => $accountMap['1100'], 'debit' => $subtotal, 'credit' => 0.0,       'desc' => "Inventory received {$invNum}"],
+                ['account_id' => $accountMap['1010'], 'debit' => 0.0,       'credit' => $subtotal, 'desc' => "Payment via Meezan Bank for {$invNum}"],
+            ]);
+
+            return ['id' => $poId, 'inv' => $invNum, 'total' => $subtotal];
+        };
+
+        // Purchase 1: National Food Distributors (Sept 03)
+        $postPurchase('2026-09-03 11:00:00', $supplierMap['S1']['id'], [
+            ['id' => $productMap['P07']['id'], 'qty' => 50, 'cost' => 1750.0],
+            ['id' => $productMap['P08']['id'], 'qty' => 20, 'cost' => 2200.0],
+        ]);
+
+        // Purchase 2: Indus Beverage Supply Co. (Sept 08)
+        $postPurchase('2026-09-08 14:00:00', $supplierMap['S2']['id'], [
+            ['id' => $productMap['P05']['id'], 'qty' => 100, 'cost' => 140.0],
+            ['id' => $productMap['P06']['id'], 'qty' => 50,  'cost' => 260.0],
+        ]);
+
+        // Purchase 3: Prime Electronics Logistics (Sept 12)
+        $postPurchase('2026-09-12 10:30:00', $supplierMap['S3']['id'], [
+            ['id' => $productMap['P09']['id'], 'qty' => 40, 'cost' => 400.0],
+            ['id' => $productMap['P10']['id'], 'qty' => 15, 'cost' => 2900.0],
+        ]);
+
+        $now = Carbon::now();
+        $startOfToday = Carbon::today();
+        $minutesSinceMidnight = $startOfToday->diffInMinutes($now);
+        $availableMinutes = max(15, intval($minutesSinceMidnight) - 2);
+
+        // Calculate chronological timestamps for today (strictly in past, strictly on today)
+        $todayTimestamp = function(int $stepIndex, int $totalSteps = 11) use ($now, $availableMinutes) {
+            $minsAgo = intval($availableMinutes * (1 - (($stepIndex + 1) / ($totalSteps + 1)))) + 2;
+            return $now->copy()->subMinutes($minsAgo)->format('Y-m-d H:i:s');
+        };
+
+        // Purchase 4: Organic Valley Farms (Sept 16 - Today)
+        $todayPoTime = $todayTimestamp(4, 11);
+        $postPurchase($todayPoTime, $supplierMap['S4']['id'], [
+            ['id' => $productMap['P01']['id'], 'qty' => 25, 'cost' => 1200.0],
+            ['id' => $productMap['P02']['id'], 'qty' => 30, 'cost' => 550.0],
+        ]);
+
+        // ─────────────────────────────────────────────────────────────────
         // 11. TODAY TRANSACTIONS (2026-09-15 & 2026-09-16)
         // ─────────────────────────────────────────────────────────────────
         echo "10. Seeding TODAY transactions with exact known metrics...\n";
 
-        $seedDayTransactions = function(string $dateStr) use ($productMap, $customerMap, $postSale, $postExpense) {
+        $seedDayTransactions = function(string $dateStr) use ($productMap, $customerMap, $postSale, $postExpense, $todayTimestamp) {
+            $isToday = ($dateStr === Carbon::today()->toDateString());
+
+            if ($isToday) {
+                $tSales = [
+                    $todayTimestamp(0, 11),  // Sale 1
+                    $todayTimestamp(1, 11),  // Sale 2
+                    $todayTimestamp(2, 11),  // Sale 3
+                    $todayTimestamp(5, 11),  // Sale 4
+                    $todayTimestamp(6, 11),  // Sale 5
+                    $todayTimestamp(8, 11),  // Sale 6
+                    $todayTimestamp(9, 11),  // Sale 7
+                    $todayTimestamp(10, 11), // Sale 8 (most recent)
+                ];
+                $tExp1 = $todayTimestamp(3, 11); // Expense 1
+                $tExp2 = $todayTimestamp(7, 11); // Expense 2
+            } else {
+                $tSales = [
+                    "{$dateStr} 09:15:00",
+                    "{$dateStr} 10:30:00",
+                    "{$dateStr} 12:15:00",
+                    "{$dateStr} 14:00:00",
+                    "{$dateStr} 15:45:00",
+                    "{$dateStr} 17:20:00",
+                    "{$dateStr} 18:50:00",
+                    "{$dateStr} 20:10:00",
+                ];
+                $tExp1 = "{$dateStr} 13:00:00";
+                $tExp2 = "{$dateStr} 16:30:00";
+            }
+
             $todaySales = [];
             // Sale 1: Coffee (2x 1800) + Green Tea (1x 850) = Rs 4,450.00 (Cash)
-            $todaySales[] = $postSale("{$dateStr} 09:15:00", [
+            $todaySales[] = $postSale($tSales[0], [
                 ['id' => $productMap['P01']['id'], 'qty' => 2, 'price' => 1800.0, 'cost' => 1200.0],
                 ['id' => $productMap['P02']['id'], 'qty' => 1, 'price' => 850.0,  'cost' => 550.0],
             ], 'cash', $customerMap['C1']['id']);
 
             // Sale 2: Chocolate (3x 1250) + Almonds (1x 1600) = Rs 5,350.00 (Card)
-            $todaySales[] = $postSale("{$dateStr} 10:30:00", [
+            $todaySales[] = $postSale($tSales[1], [
                 ['id' => $productMap['P03']['id'], 'qty' => 3, 'price' => 1250.0, 'cost' => 750.0],
                 ['id' => $productMap['P04']['id'], 'qty' => 1, 'price' => 1600.0, 'cost' => 1100.0],
             ], 'card', $customerMap['C2']['id']);
 
             // Sale 3: Earbuds (1x 4800) + USB-C Cable (2x 950) = Rs 6,700.00 (Bank)
-            $todaySales[] = $postSale("{$dateStr} 12:15:00", [
+            $todaySales[] = $postSale($tSales[2], [
                 ['id' => $productMap['P10']['id'], 'qty' => 1, 'price' => 4800.0, 'cost' => 2900.0],
                 ['id' => $productMap['P09']['id'], 'qty' => 2, 'price' => 950.0,  'cost' => 400.0],
             ], 'bank_transfer', $customerMap['C3']['id']);
 
             // Sale 4: Power Bank (1x 5500) = Rs 5,500.00 (Card)
-            $todaySales[] = $postSale("{$dateStr} 14:00:00", [
+            $todaySales[] = $postSale($tSales[3], [
                 ['id' => $productMap['P11']['id'], 'qty' => 1, 'price' => 5500.0, 'cost' => 3400.0],
             ], 'card', $customerMap['C4']['id']);
 
             // Sale 5: Basmati Rice (2x 2400) + Olive Oil (1x 3200) + Pasta (2x 480) = Rs 8,960.00 (Cash)
-            $todaySales[] = $postSale("{$dateStr} 15:45:00", [
+            $todaySales[] = $postSale($tSales[4], [
                 ['id' => $productMap['P07']['id'], 'qty' => 2, 'price' => 2400.0, 'cost' => 1750.0],
                 ['id' => $productMap['P08']['id'], 'qty' => 1, 'price' => 3200.0, 'cost' => 2200.0],
                 ['id' => $productMap['P15']['id'], 'qty' => 2, 'price' => 480.0,  'cost' => 290.0],
             ], 'cash', $customerMap['C5']['id']);
 
             // Sale 6: Water (6x 250) + Juice (4x 420) + Soap (3x 380) = Rs 4,320.00 (Cash)
-            $todaySales[] = $postSale("{$dateStr} 17:20:00", [
+            $todaySales[] = $postSale($tSales[5], [
                 ['id' => $productMap['P05']['id'], 'qty' => 6, 'price' => 250.0, 'cost' => 140.0],
                 ['id' => $productMap['P06']['id'], 'qty' => 4, 'price' => 420.0, 'cost' => 260.0],
                 ['id' => $productMap['P12']['id'], 'qty' => 3, 'price' => 380.0, 'cost' => 190.0],
             ], 'cash', $customerMap['C6']['id']);
 
             // Sale 7: Almonds (2x 1600) + Coffee (1x 1800) + Shampoo (2x 1100) = Rs 7,200.00 (Khata / Credit)
-            $todaySales[] = $postSale("{$dateStr} 18:50:00", [
+            $todaySales[] = $postSale($tSales[6], [
                 ['id' => $productMap['P04']['id'], 'qty' => 2, 'price' => 1600.0, 'cost' => 1100.0],
                 ['id' => $productMap['P01']['id'], 'qty' => 1, 'price' => 1800.0, 'cost' => 1200.0],
                 ['id' => $productMap['P13']['id'], 'qty' => 2, 'price' => 1100.0, 'cost' => 680.0],
             ], 'khata', $customerMap['C4']['id']);
 
             // Sale 8: Earbuds (2x 4800) + Chocolate (2x 1250) = Rs 12,100.00 (Card - Largest Sale)
-            $todaySales[] = $postSale("{$dateStr} 20:10:00", [
+            $todaySales[] = $postSale($tSales[7], [
                 ['id' => $productMap['P10']['id'], 'qty' => 2, 'price' => 4800.0, 'cost' => 2900.0],
                 ['id' => $productMap['P03']['id'], 'qty' => 2, 'price' => 1250.0, 'cost' => 750.0],
             ], 'card', $customerMap['C7']['id']);
 
             // Today's Expenses
             $todayExpenses = [];
-            $todayExpenses[] = $postExpense("{$dateStr} 13:00:00", 'Supplies', 850.00, 'cash', "Store Refreshment & Daily Tea ({$dateStr})");
-            $todayExpenses[] = $postExpense("{$dateStr} 16:30:00", 'Miscellaneous', 1200.00, 'cash', "Courier & Local Dispatch ({$dateStr})");
+            $todayExpenses[] = $postExpense($tExp1, 'Supplies', 850.00, 'cash', "Store Refreshment & Daily Tea ({$dateStr})");
+            $todayExpenses[] = $postExpense($tExp2, 'Miscellaneous', 1200.00, 'cash', "Courier & Local Dispatch ({$dateStr})");
 
             return ['sales' => $todaySales, 'expenses' => $todayExpenses];
         };

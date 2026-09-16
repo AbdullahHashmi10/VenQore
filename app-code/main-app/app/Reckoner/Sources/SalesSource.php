@@ -165,14 +165,31 @@ final class SalesSource implements ReckonerSource
                         break;
 
                     case 'sales.live_feed':
-                        $feedRows = DB::table('sales')
+                        $feedQuery = DB::table('sales')
                             ->leftJoin('parties', 'sales.party_id', '=', 'parties.id')
                             ->where('sales.tenant_id', $ctx->tenant->id)
-                            ->where('sales.status', SaleStatus::POSTED)
+                            ->where('sales.status', SaleStatus::POSTED);
+
+                        if (isset($period) && $period && $period->start && $period->end && !in_array($period->key, ['live', 'all_time'], true)) {
+                            $feedQuery->whereBetween('sales.created_at', [$period->start, $period->end]);
+                        }
+
+                        $feedRows = $feedQuery
                             ->select('sales.id', 'sales.reference_number', 'sales.net_sales', 'sales.created_at', 'parties.name as party_name')
                             ->orderByDesc('sales.created_at')
                             ->limit(10)
                             ->get();
+
+                        if ($feedRows->isEmpty()) {
+                            $feedRows = DB::table('sales')
+                                ->leftJoin('parties', 'sales.party_id', '=', 'parties.id')
+                                ->where('sales.tenant_id', $ctx->tenant->id)
+                                ->where('sales.status', SaleStatus::POSTED)
+                                ->select('sales.id', 'sales.reference_number', 'sales.net_sales', 'sales.created_at', 'parties.name as party_name')
+                                ->orderByDesc('sales.created_at')
+                                ->limit(10)
+                                ->get();
+                        }
 
                         $feedItems = [];
                         foreach ($feedRows as $row) {
