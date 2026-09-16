@@ -145,8 +145,7 @@ $devVendorDirs = @(
     "$releaseDir\vendor\fakerphp",
     "$releaseDir\vendor\sebastian",
     "$releaseDir\vendor\phar-io",
-    "$releaseDir\vendor\theseer",
-    "$releaseDir\vendor\myclabs\deep-copy"
+    "$releaseDir\vendor\theseer"
 )
 foreach ($dir in $devVendorDirs) {
     if (Test-Path $dir) {
