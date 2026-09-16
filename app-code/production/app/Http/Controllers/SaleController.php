@@ -927,7 +927,11 @@ class SaleController extends Controller
 
     public function show($id)
     {
-        $sale = Sale::with(['customer', 'user', 'items.product', 'items.productVariant', 'payments'])->findOrFail($id);
+        $sale = Sale::with(['customer', 'user', 'items.product', 'items.productVariant', 'payments'])
+            ->where(function ($q) use ($id) {
+                $q->where('id', $id)->orWhere('reference_number', $id);
+            })
+            ->firstOrFail();
         
         // Get bank accounts for refund source selection
         $bankAccounts = \App\Models\Account::where('type', 'asset')

@@ -42,13 +42,13 @@ body {
   color: var(--vq-text-3);
 }
 
-a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="vq-nav__link"]):not([class*="vq-mega__link"]) {
+:where(a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="vq-nav__link"]):not([class*="vq-mega__link"]):not([class*="text-"])) {
   color: var(--vq-accent-text);
   text-decoration-color: var(--vq-accent-quiet-line);
   text-underline-offset: 3px;
   transition: color var(--vq-dur-1) var(--vq-ease-out);
 }
-a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="vq-nav__link"]):not([class*="vq-mega__link"]):hover {
+:where(a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="vq-nav__link"]):not([class*="vq-mega__link"]):not([class*="text-"]):hover) {
   color: var(--vq-accent-fill-hover);
   text-decoration-color: currentColor;
 }

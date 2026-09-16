@@ -298,7 +298,7 @@ export default function AddCardModal({ isOpen, onClose, catalogue = [], onSubmit
 
     if (!isOpen) return null;
 
-    const Chart = getChartComponent(chart);
+    const Chart = getChartComponent(chart, picked?.shape);
     const previewCard = picked ? {
         id: '__preview',
         reading_key: picked.key,

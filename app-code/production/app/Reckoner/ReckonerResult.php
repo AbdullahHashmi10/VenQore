@@ -3,7 +3,11 @@
 namespace App\Reckoner;
 
 /**
- * The envelope every reading returns — success or failure. See §3.3.
+ * The envelope every reading returns — success, an honest empty state, a
+ * lock, or a fault.  Keeping these states separate is important: an empty
+ * tenant is not a broken calculation and a disabled module is not missing
+ * data.  The legacy `ok` flag remains for existing callers; new consumers
+ * must render `status`.
  *
  * Error codes: not_found, forbidden, plan_locked, not_applicable,
  * invalid_period, resolver_failed, timeout.
@@ -26,6 +30,9 @@ final class ReckonerResult implements \JsonSerializable
         public readonly ?string $errorCode,
         public readonly ?string $errorMessage,
         public readonly ?string $id = null,
+        public readonly string $status = 'error',
+        public readonly array $sources = [],
+        public readonly array $checks = [],
     ) {
     }
 
@@ -38,8 +45,12 @@ final class ReckonerResult implements \JsonSerializable
         mixed $data,
         array $meta = [],
     ): self {
+        $status = ! empty($meta['stale']) ? 'stale' : (! empty($meta['empty']) ? 'empty' : 'ok');
+
         return new self(
             key: $key,
+            // `ok` answers whether the calculation completed. An empty
+            // period still completed; it must not be rendered as an error.
             ok: true,
             shape: $shape,
             unit: $definition['unit'] ?? null,
@@ -65,11 +76,18 @@ final class ReckonerResult implements \JsonSerializable
             errorCode: null,
             errorMessage: null,
             id: $id,
+            status: $status,
+            sources: array_values($definition['streams'] ?? [$definition['source'] ?? '']),
+            checks: $meta['checks'] ?? [],
         );
     }
 
     public static function failure(string $id, string $key, string $code, string $message): self
     {
+        $status = in_array($code, ['plan_locked', 'module_locked', 'not_applicable'], true)
+            ? 'locked'
+            : 'error';
+
         return new self(
             key: $key,
             ok: false,
@@ -86,27 +104,37 @@ final class ReckonerResult implements \JsonSerializable
             errorCode: $code,
             errorMessage: $message,
             id: $id,
+            status: $status,
+            sources: [],
+            checks: [],
         );
+    }
+
+    /** A resolver ran successfully but found no records in the chosen period. */
+    public static function empty(
+        string $id,
+        string $key,
+        ReckonerShape $shape,
+        array $definition,
+        ReckonerPeriod $period,
+        array $meta = [],
+    ): self {
+        return self::success($id, $key, $shape, $definition, $period, ['value' => null], [
+            ...$meta,
+            'empty' => true,
+        ]);
     }
 
     public function jsonSerialize(): array
     {
-        if (! $this->ok) {
-            return [
-                'id' => $this->id,
-                'key' => $this->key,
-                'ok' => false,
-                'error' => [
-                    'code' => $this->errorCode,
-                    'message' => $this->errorMessage,
-                ],
-            ];
-        }
+        $data = is_array($this->data) ? $this->data : [];
+        $value = $data['value'] ?? null;
 
         return [
             'id' => $this->id,
             'key' => $this->key,
-            'ok' => true,
+            'ok' => $this->ok,
+            'status' => $this->status,
             'shape' => $this->shape?->value,
             'unit' => $this->unit,
             'precision' => $this->precision,
@@ -117,6 +145,26 @@ final class ReckonerResult implements \JsonSerializable
             'data' => $this->data,
             'meta' => $this->meta,
             'drill' => $this->drill,
+            // Normalised envelope fields. `data` is retained during the
+            // migration so established chart components keep working.
+            'value' => $value,
+            'delta' => isset($data['change_pct']) ? [
+                'value' => $data['previous'] ?? null,
+                'pct' => $data['change_pct'],
+                'basis' => $data['compare_label'] ?? ($this->period['compare_label'] ?? ''),
+            ] : null,
+            'series' => $data['series'] ?? null,
+            'segments' => $data['segments'] ?? $data['slices'] ?? null,
+            'rows' => isset($data['rows']) || isset($data['items'])
+                ? ['truncated' => (bool) ($data['truncated'] ?? false), 'items' => $data['rows'] ?? $data['items'] ?? []]
+                : null,
+            'asOf' => $this->meta['computed_at'] ?? null,
+            'sources' => array_values(array_filter($this->sources)),
+            'checks' => $this->checks,
+            'error' => $this->errorCode === null ? null : [
+                'code' => $this->errorCode,
+                'message' => $this->errorMessage,
+            ],
         ];
     }
 

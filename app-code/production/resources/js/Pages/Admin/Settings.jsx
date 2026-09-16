@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import PasscodeModal from '@/Components/PasscodeModal';
 import PrintPreview from '@/Components/PrintPreview';
 import Swal from 'sweetalert2';
@@ -12,6 +12,7 @@ import TransactionSettingsSection from '@/Components/TransactionSettingsSection'
 import TaxSettingsSection from '@/Components/TaxSettingsSection';
 import SystemSettingsSection from '@/Components/SystemSettingsSection';
 import DangerSettingsSection from '@/Components/DangerSettingsSection';
+import TerminalPairingSection from '@/Components/Settings/TerminalPairingSection';
 import {
  Settings, Building2, Globe, Bell, Shield, Database, Mail, Printer,
  CreditCard, Clock, Save, Check, RefreshCw, AlertTriangle, FileText,
@@ -26,27 +27,13 @@ import SectionHeader from '@/Components/SectionHeader';
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
 // ── Settings IA (restructured) ──────────────────────────────────────────
-// This used to be 18 flat sections (several of them rendered by the exact
-// same shared component split across two unrelated categories, plus a
-// duplicated set of "POS & Sales" / "Transaction" fields, plus a "Messages"
-// section that was fully built but never included in any category so it
-// could never appear in the sidebar). Consolidated to 14 sections:
-// - System / Notifications / Security / Backup / Integrations all used to
-// render <SystemSettingsSection activeSubSection="..."/> from two
-// different categories — System+Notifications now share one
-// "Preferences" tab, AI+Integrations share one tab, and Backup & Data
-// is replaced by a link-out to the "Data & Backup" hub (see
-// Pages/Admin/DataManagement.jsx) instead of a 4th place to manage backups.
-// - "POS & Sales" and "Transaction" are merged into "Sales & Invoicing"
-// with two subsections, since they previously duplicated the same
-// pos_auto_fill_cash / round_off_total / show_margin_percentage fields.
-// - "Messages" (WhatsApp/SMS) is now actually reachable.
+// Consolidated settings into a single authoritative surface across 4 categories:
 const SETTINGS_CATEGORIES = [
  {
  id: 'org',
  name: 'Organization',
  icon: Building2,
- sections: ['business', 'preferences']
+ sections: ['business', 'modules', 'preferences']
  },
  {
  id: 'ops',
@@ -58,7 +45,7 @@ const SETTINGS_CATEGORIES = [
  id: 'adv',
  name: 'Advanced',
  icon: Sparkles,
- sections: ['security', 'ai_integrations', 'backup']
+ sections: ['security', 'terminals', 'ai_integrations', 'backup']
  },
  {
  id: 'zone',
@@ -69,17 +56,19 @@ const SETTINGS_CATEGORIES = [
 ];
 
 const SETTINGS_SECTIONS = [
- { id: 'business', name: 'Business Info', icon: Building2, description: 'Company details and branding' },
+ { id: 'business', name: 'Business Info', icon: Building2, description: 'Company details, custom domain and branding' },
+ { id: 'modules', name: 'Modules & Features', icon: Sparkles, description: 'Turn business capabilities on or off' },
  { id: 'preferences', name: 'Preferences', icon: Settings, description: 'Passcode, multi-firm, language & alerts' },
  { id: 'sales', name: 'Sales & Invoicing', icon: ShoppingCart, description: 'Checkout behavior and invoice fields' },
  { id: 'taxes', name: 'Taxes', icon: Percent, description: 'Tax rates and groups' },
- { id: 'print', name: 'Print', icon: Printer, description: 'Regular & Thermal printer layouts' },
+ { id: 'print', name: 'Print & Templates', icon: Printer, description: 'Regular, Thermal printer & B2B invoice layouts' },
  { id: 'messages', name: 'Messages', icon: MessageSquare, description: 'WhatsApp & SMS notifications' },
  { id: 'party', name: 'Party', icon: Users, description: 'Customer & Supplier preferences' },
  { id: 'item', name: 'Item', icon: Package, description: 'Inventory, MRP & batch tracking' },
  { id: 'reminders', name: 'Reminders', icon: Clock, description: 'Service and payment alerts' },
  { id: 'accounting', name: 'Accounting', icon: BookOpen, description: 'Ledgers, depreciation & fiscal year' },
- { id: 'security', name: 'Security', icon: Shield, description: 'Access control & 2FA' },
+ { id: 'security', name: 'Security & SSO', icon: Shield, description: 'Access control, 2FA & SAML Single Sign-On' },
+ { id: 'terminals', name: 'Terminals', icon: Smartphone, description: 'Pair VenQore Station devices' },
  { id: 'ai_integrations', name: 'AI & Integrations', icon: Sparkles, description: 'Gemini, OpenAI, FBR & Stripe' },
  { id: 'backup', name: 'Backup & Data', icon: Database, description: 'Now lives in the Data & Backup hub' },
  { id: 'reset', name: 'Factory Reset', icon: Trash2, description: 'Erase data & start fresh' },
@@ -310,18 +299,33 @@ export default function AdminSettings({ settings = {} }) {
  woocommerce_consumer_secret: settings.woocommerce_consumer_secret || '',
  woocommerce_enabled: settings.woocommerce_enabled === '1' || settings.woocommerce_enabled === true,
 
+ // Store & Domain
+ custom_domain: settings.custom_domain || store?.custom_domain || '',
+ product_cost_update_policy: settings.product_cost_update_policy || 'never',
+
+ // Invoice Styling & Margin Display
+ invoice_theme: settings.invoice_theme || 'classic',
+ invoice_primary_color: settings.invoice_primary_color || 'rgb(var(--vq-indigo-600))',
+ show_margin_on_invoice: settings.show_margin_on_invoice === '1' || settings.show_margin_on_invoice === true,
+
+ // SSO / SAML
+ sso_enabled: settings.sso_enabled === '1' || settings.sso_enabled === true,
+ sso_idp_entity_id: settings.sso_idp_entity_id || '',
+ sso_url: settings.sso_url || '',
+ sso_certificate: settings.sso_certificate || '',
+
  // Managed Lists
- tax_rates: settings.tax_rates ? JSON.parse(settings.tax_rates) : [
+ tax_rates: settings.tax_rates ? (typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates) : [
  { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
  { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
  ],
- service_reminders: settings.service_reminders ? JSON.parse(settings.service_reminders) : [],
+ service_reminders: settings.service_reminders ? (typeof settings.service_reminders === 'string' ? JSON.parse(settings.service_reminders) : settings.service_reminders) : [],
  });
 
 
 
  const saveSettings = (code) => {
- post(route('store.admin.settings.update', { store_slug: store?.slug }), {
+ post(route('store.settings.update', { store_slug: store?.slug }), {
  onSuccess: () => {
  setSaved(true);
  setTimeout(() => setSaved(false), 3000);
@@ -346,7 +350,7 @@ export default function AdminSettings({ settings = {} }) {
  denyButtonColor: vq.red[500],
  }).then((result) => {
  if (result.isConfirmed) {
- post(route('store.admin.settings.update', { store_slug: store?.slug }), {
+ post(route('store.settings.update', { store_slug: store?.slug }), {
  onSuccess: () => {
  setSaved(true);
  setTimeout(() => setSaved(false), 3000);
@@ -385,6 +389,42 @@ export default function AdminSettings({ settings = {} }) {
  switch (activeSection) {
  case 'business':
  return <BusinessSettingsSection data={data} setData={setData} />;
+
+ case 'modules':
+ return (
+ <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <SectionHeader
+ title="Modules & Features"
+ description="Turn business capabilities on or off at any time with zero data loss"
+ />
+ <div className="bg-surface rounded-2xl border border-line p-8 space-y-6 shadow-xs">
+ <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+ <div className="space-y-2">
+ <div className="flex items-center gap-2.5">
+ <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center">
+ <Sparkles size={18} />
+ </div>
+ <h3 className="text-lg font-bold text-ink">System Builder</h3>
+ </div>
+ <p className="text-sm text-ink-muted max-w-xl leading-relaxed">
+ Configure which modules your store uses across Catalog, Sell, Stock, Buy, Make, Finance, and Grow.
+ Modules can be enabled or disabled at any time. When a module is turned off, all your historical
+ data is preserved safely and hidden until you turn it back on.
+ </p>
+ </div>
+ <Link
+ href={route('store.builder', { store_slug: store?.slug })}
+ className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 !text-white font-bold text-sm shadow-md transition-colors shrink-0"
+ style={{ color: '#ffffff' }}
+ >
+ <Sparkles size={16} className="text-white shrink-0" />
+ <span className="text-white">Open System Builder</span>
+ <ChevronRight size={16} className="text-white shrink-0" />
+ </Link>
+ </div>
+ </div>
+ </div>
+ );
 
  case 'preferences':
  // Merges the old "General", "System" and "Notifications" tabs.
@@ -566,7 +606,61 @@ export default function AdminSettings({ settings = {} }) {
  );
 
  case 'print':
- return <PrintSettingsSection data={data} setData={setData} saveSettings={saveSettings} />;
+ return (
+  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+    <PrintSettingsSection data={data} setData={setData} saveSettings={saveSettings} />
+    <div className="bg-surface rounded-2xl border border-line p-6">
+      <SectionHeader title="Invoice & PDF Customization" description="Manage the design and interactive elements of generated B2B invoices." />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-bold text-ink-secondary mb-2">Invoice Template Theme</label>
+          <select
+            value={data.invoice_theme || 'classic'}
+            onChange={(e) => setData('invoice_theme', e.target.value)}
+            className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+          >
+            <option value="classic">Classic Minimalist</option>
+            <option value="modern">Modern Professional</option>
+            <option value="elegant">Elegant Serif</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-bold text-ink-secondary mb-2">Primary Brand Color</label>
+          <div className="flex gap-2">
+            <input
+              type="color"
+              value={data.invoice_primary_color || '#6366f1'}
+              onChange={(e) => setData('invoice_primary_color', e.target.value)}
+              className="h-11 w-14 bg-sunken border border-line dark:border-line rounded-xl cursor-pointer p-1"
+            />
+            <input
+              type="text"
+              value={data.invoice_primary_color || '#6366f1'}
+              onChange={(e) => setData('invoice_primary_color', e.target.value)}
+              className="flex-1 px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none font-mono"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2 md:col-span-2">
+          <div className="flex items-center justify-between p-4 bg-sunken rounded-xl border border-line">
+            <div>
+              <h4 className="text-sm font-bold text-ink">B2B Margin Display</h4>
+              <p className="text-xs text-ink-muted">Display item-level profit margin column directly on B2B invoices.</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={data.show_margin_on_invoice === '1' || data.show_margin_on_invoice === true}
+              onChange={(e) => setData('show_margin_on_invoice', e.target.checked)}
+              className="w-5 h-5 accent-brand-500 rounded border-line focus:ring-brand-500"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ );
 
  case 'taxes':
  return <TaxSettingsSection data={data} setData={setData} />;
@@ -730,6 +824,13 @@ export default function AdminSettings({ settings = {} }) {
  case 'security':
  return <SystemSettingsSection data={data} setData={setData} activeSubSection="security" />;
 
+ case 'terminals':
+ return (
+  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+    <TerminalPairingSection storeSlug={store?.slug} />
+  </div>
+ );
+
  case 'backup':
  // Automatic backups, manual snapshots, cloud sync and restore all
  // moved to the "Data & Backup" hub (Pages/Admin/DataManagement.jsx) —
@@ -863,8 +964,8 @@ export default function AdminSettings({ settings = {} }) {
  }
  };
  return (
- <OneGlanceLayout title="System Settings" mode="admin">
- <Head title="System Settings" />
+  <OneGlanceLayout title="Settings" activeMenu="Settings">
+ <Head title="Settings" />
 
  <div className="h-full flex gap-6 overflow-hidden">
  {/* Sidebar - Midnight Nebula Styled - Collapsible */}
@@ -882,8 +983,8 @@ export default function AdminSettings({ settings = {} }) {
  <Settings size={18} />
  </div>
  <div>
- <h2 className="text-base font-bold text-white tracking-tight">System</h2>
- <p className="text-3xs font-bold uppercase tracking-[0.2em] text-brand-400">Control</p>
+ <h2 className="text-base font-bold text-white tracking-tight">Settings</h2>
+ <p className="text-3xs font-bold uppercase tracking-[0.2em] text-brand-400">Store Config</p>
  </div>
  </div>
  )}

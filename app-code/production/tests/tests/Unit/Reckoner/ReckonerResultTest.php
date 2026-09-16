@@ -34,14 +34,18 @@ class ReckonerResultTest extends TestCase
         $this->assertFalse($arr['ok']);
         $this->assertSame('plan_locked', $arr['error']['code']);
         $this->assertSame('Upgrade required.', $arr['error']['message']);
-        $this->assertArrayNotHasKey('data', $arr);
+        $this->assertSame('locked', $arr['status']);
+        $this->assertNull($arr['value']);
     }
 
-    public function test_failure_does_not_expose_shape_or_period(): void
+    public function test_failure_is_a_complete_reading_envelope(): void
     {
         $arr = ReckonerResult::failure('x|today|hash', 'x', 'not_found', 'x')->toArray();
-        $this->assertArrayNotHasKey('shape', $arr);
-        $this->assertArrayNotHasKey('period', $arr);
+        $this->assertSame('error', $arr['status']);
+        $this->assertArrayHasKey('shape', $arr);
+        $this->assertArrayHasKey('period', $arr);
+        $this->assertArrayHasKey('data', $arr);
+        $this->assertArrayHasKey('sources', $arr);
     }
 
     /* ------------------------------------------------------------------ *
@@ -77,6 +81,21 @@ class ReckonerResultTest extends TestCase
     public function test_success_is_ok(): void
     {
         $this->assertTrue($this->makeSuccessResult(['value' => 1234.56])->ok);
+    }
+
+    public function test_empty_reading_is_not_an_error(): void
+    {
+        $period = \App\Reckoner\ReckonerPeriod::resolve('today', null, app('current.tenant'));
+        $definition = [
+            'key' => 'sales.revenue', 'label' => 'Revenue', 'shape' => ReckonerShape::SCALAR,
+            'unit' => 'currency', 'precision' => 2, 'streams' => ['sales.headers'],
+        ];
+
+        $result = ReckonerResult::empty('sales.revenue|today|hash', 'sales.revenue', ReckonerShape::SCALAR, $definition, $period);
+
+        $this->assertTrue($result->ok);
+        $this->assertSame('empty', $result->toArray()['status']);
+        $this->assertNull($result->toArray()['value']);
     }
 
     public function test_success_exposes_data(): void

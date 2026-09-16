@@ -541,7 +541,7 @@ class WorkspaceBuilderController extends Controller
             // The matched preset key from analyze(). Never trusted blindly —
             // only written as business_type when it names a real, shippable
             // preset (see $businessType below) — because this one column is
-            // what config/dashboard_presets.php keys the tenant's first
+            // what config/dashboard_pool.php keys the tenant's first
             // dashboard board on. Left null it silently falls through to
             // 'default', same as an unrecognised value always has.
             'preset_key'    => 'nullable|string|max:64',

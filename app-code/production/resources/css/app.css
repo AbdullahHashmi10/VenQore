@@ -26,6 +26,53 @@
     .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
 }
 
+/* ════════════════════════════════════════════════════════════════════════════
+   CRITICAL CONTRAST SAFEGUARD FOR BUTTONS AND ACTION LINKS
+   Guarantees that action buttons and links with text-white or on dark/brand backgrounds
+   render with crisp, readable white text and matching icons, completely immune to any
+   bare anchor or inherited link colors.
+   ════════════════════════════════════════════════════════════════════════════ */
+:where(a, button, [role="button"]).text-white,
+a.text-white,
+button.text-white,
+a[class*="text-white"],
+button[class*="text-white"],
+a.\!text-white,
+button.\!text-white {
+    color: #ffffff !important;
+}
+
+:where(a, button, [role="button"]).text-white svg,
+a.text-white svg,
+button.text-white svg,
+a[class*="text-white"] svg,
+button[class*="text-white"] svg {
+    color: currentColor;
+    stroke: currentColor;
+}
+
+a.text-white:hover,
+button.text-white:hover,
+a[class*="text-white"]:hover,
+button[class*="text-white"]:hover {
+    color: #ffffff !important;
+}
+
+/* Action buttons with brand/dark backgrounds */
+a[class*="bg-brand-"].text-white,
+a[class*="bg-brand-"][class*="text-white"],
+a[class*="bg-neutral-900"].text-white,
+a[class*="bg-neutral-900"][class*="text-white"],
+a[class*="bg-emerald-600"].text-white,
+a[class*="bg-red-600"].text-white,
+button[class*="bg-brand-"].text-white,
+button[class*="bg-brand-"][class*="text-white"],
+button[class*="bg-neutral-900"].text-white,
+button[class*="bg-neutral-900"][class*="text-white"] {
+    color: #ffffff !important;
+}
+
+
 /* ============================================================================================
    EDITABLE-PREVIEW DISCOVERABILITY (free tools: Invoice, Receipt, PO, Quote, etc.)
    ============================================================================================

@@ -119,7 +119,7 @@ final class FinanceSource implements ReckonerSource
                     'this_year', 'last_year', 'last_12_months' => 'monthly',
                     default => 'daily',
                 };
-                $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), $granularity);
+                $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), $granularity, $ctx->tenant->id);
                 $series = [];
                 foreach ($profitByPeriod as $date => $metrics) {
                     $series[] = [
@@ -341,6 +341,16 @@ final class FinanceSource implements ReckonerSource
         $tenantId = $ctx->tenant->id;
 
         $net = function (string $code, string $expression) use ($tenantId) {
+            $accountExists = DB::table('accounts')
+                ->where('tenant_id', $tenantId)
+                ->where('code', $code)
+                ->exists();
+            if (! $accountExists) {
+                throw new \App\Exceptions\MissingFinancialAccountException(
+                    "Chart of accounts incomplete: account {$code} is missing."
+                );
+            }
+
             return (float) DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
@@ -353,8 +363,8 @@ final class FinanceSource implements ReckonerSource
         };
 
         return [
-            'receivables' => max(0, $net('1200', 'COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0)')),
-            'payables' => max(0, $net('2000', 'COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0)')),
+            'receivables' => $net('1200', 'COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0)'),
+            'payables' => $net('2000', 'COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0)'),
         ];
     }
 

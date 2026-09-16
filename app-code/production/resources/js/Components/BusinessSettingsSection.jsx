@@ -68,6 +68,35 @@ export default function BusinessSettingsSection({ data, setData }) {
                                 <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
                             </div>
                         </div>
+                        <div className="space-y-1.5 group/input">
+                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted ml-1">Custom Domain Mapping</label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={data.custom_domain || ''}
+                                    onChange={(e) => setData('custom_domain', e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2.5 bg-app border border-line rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                                    placeholder="e.g. store.mydomain.com"
+                                />
+                                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
+                            </div>
+                        </div>
+                        <div className="space-y-1.5 group/input">
+                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted ml-1">Auto-Update Product Cost</label>
+                            <div className="relative">
+                                <select
+                                    value={data.product_cost_update_policy || 'never'}
+                                    onChange={(e) => setData('product_cost_update_policy', e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2.5 bg-app border border-line rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all appearance-none cursor-pointer"
+                                >
+                                    <option value="never">Never (Keep V3 FIFO Batches Only)</option>
+                                    <option value="always">Always (Update to Latest Purchase Price)</option>
+                                    <option value="increase_only">On Cost Increase Only</option>
+                                    <option value="decrease_only">On Cost Decrease Only</option>
+                                </select>
+                                <ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted rotate-90 pointer-events-none" size={14} />
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -546,7 +546,8 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                     <div className="shrink-0 self-stretch flex items-center">
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="relative h-full px-5 py-2.5 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl"
+                            className="relative h-full px-5 py-2.5 !text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl"
+                            style={{ color: '#ffffff' }}
                         >
                             {/* Midnight Nebula Background */}
                             <div className="absolute inset-0 bg-neutral-900 z-0">
@@ -555,8 +556,8 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
                             </div>
                             {/* Content */}
-                            <Plus size={16} strokeWidth={3} className="relative z-10" />
-                            <span className="hidden sm:inline relative z-10">Invite Member</span>
+                            <Plus size={16} strokeWidth={3} className="relative z-10 text-white" />
+                            <span className="hidden sm:inline relative z-10 text-white font-bold">Invite Member</span>
                         </button>
                     </div>
                 </div>

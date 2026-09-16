@@ -91,6 +91,16 @@ class FinancialReportingService
         // Income accounts have a credit-normal balance.
         // Revenue for period = credits posted - debits posted in that range.
         $incomeAccounts = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->get();
+        if ($incomeAccounts->isEmpty()) {
+            $tenant = \App\Models\Tenant::find($tenantId);
+            if ($tenant) {
+                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
+                $incomeAccounts = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->get();
+            }
+        }
+        if ($incomeAccounts->isEmpty()) {
+            throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: no income account is configured.');
+        }
         $incomeDetails  = [];
         $totalRevenue   = 0;
 
@@ -188,8 +198,27 @@ class FinancialReportingService
         }
 
         $incomeIds = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->pluck('id')->all();
-        if (empty($incomeIds)) { $incomeIds = ['00000000-0000-0000-0000-000000000000']; }
-        $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id') ?? '00000000-0000-0000-0000-000000000000';
+        if (empty($incomeIds)) {
+            $tenant = \App\Models\Tenant::find($tenantId);
+            if ($tenant) {
+                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
+                $incomeIds = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->pluck('id')->all();
+            }
+        }
+        if (empty($incomeIds)) {
+            throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: no income account is configured.');
+        }
+        $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id');
+        if ($cogsId === null) {
+            $tenant = \App\Models\Tenant::find($tenantId);
+            if ($tenant) {
+                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
+                $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id');
+            }
+        }
+        if ($cogsId === null) {
+            throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: cost of goods sold account 5000 is missing.');
+        }
 
         // je.date is a DATE (no time). Hourly is only meaningful for the same-day "Today" view,
         // so hourly buckets by the hour of je.created_at; daily/monthly bucket by je.date.
@@ -295,23 +324,25 @@ class FinancialReportingService
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getGrossProfitByProduct(string $start, string $end): \Illuminate\Support\Collection
+    public function getGrossProfitByProduct(string $start, string $end, int|string|null $tenantId = null): \Illuminate\Support\Collection
     {
-        $tenantId = app('current.tenant')->id;
+        $tenantId ??= app()->bound('current.tenant') ? app('current.tenant')->id : null;
+        if ($tenantId === null) {
+            throw new \InvalidArgumentException('A tenant id is required for product profitability.');
+        }
+        $fifo = DB::table('sale_item_batches')
+            ->where('tenant_id', $tenantId)
+            ->where('is_reversed', 0)
+            ->selectRaw('sale_item_id, SUM(total_cogs) as fifo_cogs')
+            ->groupBy('sale_item_id');
+
         // Step 1: All sale items in period with FIFO COGS
         $rows = DB::table('sale_items')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
-            ->leftJoin(
-                DB::raw("(SELECT sale_item_id, SUM(total_cogs) as fifo_cogs
-                          FROM sale_item_batches
-                          WHERE tenant_id = '{$tenantId}'
-                          AND is_reversed = 0
-                          GROUP BY sale_item_id) as sib"),
-                'sib.sale_item_id', '=', 'sale_items.id'
-            )
+            ->leftJoinSub($fifo, 'sib', 'sib.sale_item_id', '=', 'sale_items.id')
             ->where('sales.tenant_id', $tenantId)
-            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereIn('sales.status', \App\Support\SaleStatus::REVENUE_RECOGNISED)
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'products.id as product_id',
@@ -1349,9 +1380,17 @@ class FinancialReportingService
      * @param string $end
      * @return array
      */
-    public function getCashFlowReport(string $start, string $end): array
+    public function getCashFlowReport(string $start, string $end, ?string $tenantId = null): array
     {
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return [
+                'operating_inflow'   => 0.0,
+                'operating_outflow'  => 0.0,
+                'net_cash_flow'      => 0.0,
+                'net_change_in_cash' => 0.0,
+            ];
+        }
         // Identify all Cash/Bank accounts (Codes 1000-1099)
         $cashAccounts = Account::where('tenant_id', $tenantId)
             ->where('type', 'asset')

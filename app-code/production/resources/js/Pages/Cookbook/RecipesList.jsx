@@ -63,10 +63,11 @@ export default function CookbookIndex({ recipes = [], store }) {
                         actions={
                             <Link
                                 href={route('store.cookbook.create', { store_slug: store.slug })}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors shadow-sm hover:shadow-md font-medium"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 !text-white rounded-xl hover:bg-brand-700 transition-colors shadow-sm hover:shadow-md font-medium"
+                                style={{ color: '#ffffff' }}
                             >
-                                <Plus size={18} />
-                                <span>New Recipe</span>
+                                <Plus size={18} className="text-white shrink-0" />
+                                <span className="text-white">New Recipe</span>
                             </Link>
                         }
                     />

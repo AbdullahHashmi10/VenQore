@@ -372,8 +372,8 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
  </div>
  <div className="flex items-center gap-0.5 border-l border-line pl-2">
- <Link href={route('store.pre-sales.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
- <Plus size={14} /> {tt('New Pre-Order')}
+ <Link href={route('store.pre-sales.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors" style={{ color: '#ffffff' }}>
+ <Plus size={14} className="text-white shrink-0" /> <span className="text-white">{tt('New Pre-Order')}</span>
  </Link>
  </div>
  </div>

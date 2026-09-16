@@ -24,6 +24,7 @@ class DashboardCard extends Model
         // does not fail on mass-assignment.
         'category',
         'fit',
+        'frame_slot',
         'size',
         'x',
         'y',
@@ -42,6 +43,7 @@ class DashboardCard extends Model
         'y' => 'integer',
         'w' => 'integer',
         'h' => 'integer',
+        'frame_slot' => 'integer',
     ];
 
     /**

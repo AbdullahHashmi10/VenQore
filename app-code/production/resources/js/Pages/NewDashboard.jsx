@@ -5,6 +5,7 @@ import axios from 'axios';
 import './NewDashboard.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useAppearance } from '@/Contexts/AppearanceContext';
+import FramePicker from '@/Dashboard/components/FramePicker';
 
 /* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
    lucide icon NAMES — the same contract QoreShell consumes. */
@@ -253,6 +254,9 @@ function runCardBuilder(opts) {
   if (typeof window !== "undefined" && window.VenQoreCards?.engineVersion === ENGINE_VERSION && window.__vqCardEngine){
     window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
     window.VenQoreCards.setEnabledModules(opts && opts.modules);
+    if (opts && opts.layoutLaw && window.VenQoreCards.setLayoutLaw) {
+      window.VenQoreCards.setLayoutLaw(opts.layoutLaw);
+    }
     if (opts && opts.readings && window.VenQoreCards.setReadings) {
       window.VenQoreCards.setReadings(opts.readings);
     }
@@ -436,7 +440,14 @@ function queueLiveReadings(cards, onComplete) {
           LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
         }
       });
-    }).catch(() => {})
+    }).catch(error => {
+      const message = error?.response?.data?.message || error?.message || "This reading could not be loaded.";
+      chunk.forEach(req => {
+        const failure = { key: req.key, ok: false, error: { code: "request_failed", message } };
+        LIVE_RECKONER_DATA[`${req.key}|${req.period}`] = failure;
+        LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`] = failure;
+      });
+    })
     .finally(() => {
       chunk.forEach(r => PENDING_RECKONER_REQUESTS.delete(r.reqKey));
     })
@@ -448,10 +459,56 @@ function queueLiveReadings(cards, onComplete) {
   });
 }
 
-function seed(str){
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
+function liveReading(card){
+  return LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
+    || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`]
+    || null;
+}
+
+function renderDataState(host, card, emptyMessage = "No data in this period."){
+  const pending = PENDING_RECKONER_REQUESTS.has(`${card.key}|${card.period}`)
+    || PENDING_RECKONER_REQUESTS.has(`${card.key}|${toReckonerPeriod(card.period)}`);
+  const live = liveReading(card);
+  if (pending && !live){
+    host.innerHTML = `<div class="ck-state is-loading" role="status">Loading…</div>`;
+    return true;
+  }
+  /* The Reckoner returns a reading envelope. These states used to collapse
+     into a blank card because the client only knew `ok`/not-ok. Keep the
+     message in the card where the owner can act on it. */
+  if (live?.status === "empty"){
+    host.innerHTML = `<div class="ck-state is-empty" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><path d="M4 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6"/><path d="M10 12h4"/></svg>
+      <b>No activity recorded</b>
+      <span>${esc(emptyMessage)}</span>
+    </div>`;
+    return true;
+  }
+  if (live?.status === "locked"){
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <b>Module not active</b>
+      <span>Enable this feature in settings to view data.</span>
+    </div>`;
+    return true;
+  }
+  if (live && (!live.ok || live.status === "error")){
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <b>No feed records yet</b>
+      <span>New transactions will automatically stream here.</span>
+    </div>`;
+    return true;
+  }
+  if (!live){
+    host.innerHTML = `<div class="ck-state is-empty" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <b>Awaiting updates</b>
+      <span>${esc(emptyMessage)}</span>
+    </div>`;
+    return true;
+  }
+  return false;
 }
 /* readings that genuinely swing either side of zero — a profit/loss chart
    is meaningless if the data can only ever be positive */
@@ -485,8 +542,8 @@ function valuesFor(key, period, unit){
     if (typeof live.data === 'number') {
       return new Array(n).fill(live.data);
     }
-    if (typeof live.data === 'object' && live.data.current !== undefined) {
-      const curr = Number(live.data.current) || 0;
+    if (typeof live.data === 'object' && (live.data.value !== undefined || live.data.current !== undefined)) {
+      const curr = Number(live.data.value !== undefined ? live.data.value : live.data.current) || 0;
       const prev = Number(live.data.previous) || curr;
       const out = [];
       for (let i = 0; i < n; i++) {
@@ -1000,11 +1057,14 @@ function rangeLabel(ds){
 function mountRadial(host, card){
   const { W: HW, H: HH } = hostDimensions(host, card);
   const pd0 = buildParts(card.key, card.period, readingOf(card.key)?.sliceNames);
-  const legH = Math.min(HH * 0.5, (pd0.parts?.length || 1) * 30 + 6);
-  const size = Math.max(84, Math.min(HW, HH - legH - 8, 210));
   const pd = pd0;
+  const numParts = (pd.parts && pd.parts.length) ? pd.parts.length : 1;
+  const LEG_ROW = 24;
+  const totalLegH = numParts * LEG_ROW;
+  const maxDial = Math.max(64, HH - totalLegH - 10);
+  const size = Math.max(68, Math.min(HW * 0.48, maxDial, 105));
   const variant = card.variant || defaultVariant(card.chart);
-  const cx = size/2, cy = size/2, R = size/2 - 4;
+  const cx = size/2, cy = size/2, R = size/2 - 3;
   const inner = card.chart === "pie"
     ? (variant === "donut" ? R * 0.58 : 0)
     : R * 0.56;
@@ -1054,15 +1114,8 @@ function mountRadial(host, card){
   }
 
   const centreV = unitPrefix(pd.unit) + fmtValue(pd.total, pd.unit, true);
-  /* The legend never scrolls and never clips: rows that do not fit the space
-     the dial left over are folded into one quiet "+N more" line. Each legend
-     row (name + bar) lays out at ~34px; the more-line takes one slot. */
-  const LEG_ROW = 34, MORE_ROW = 20;
-  const legRoom = Math.max(0, HH - size - 10);
-  const fit = Math.floor((legRoom + 4) / LEG_ROW);
-  const useRows = fit >= pd.parts.length
-    ? pd.parts
-    : pd.parts.slice(0, Math.max(0, Math.floor((legRoom + 4 - MORE_ROW) / LEG_ROW)));
+  // Guarantee all categories fit without folding or cutting off
+  const useRows = pd.parts.slice(0, Math.min(6, numParts));
   const moreN = pd.parts.length - useRows.length;
   host.innerHTML = `
     <div class="ck-radial">
@@ -1073,14 +1126,13 @@ function mountRadial(host, card){
           <span class="ck-centre-k">${centreLabel(card)}</span></span>` : ""}
       </div>
       <div class="ck-leg">${useRows.map((p,i) => `
-        <button class="ck-leg-r" data-i="${i}">
+        <button class="ck-leg-r" data-i="${i}" title="${esc(p.name)}">
           <span class="ck-leg-d" style="background:${p.color}"></span>
-          <span class="ck-leg-n">${p.name}</span>
+          <span class="ck-leg-n">${esc(p.name)}</span>
           <span class="ck-leg-v">${unitPrefix(pd.unit)}${fmtValue(p.value, pd.unit, true)}</span>
           <span class="ck-leg-p">${Math.round(p.value / (pd.total || 1) * 100)}%</span>
-          <span class="ck-leg-bar"><i style="width:${(p.value/pd.parts[0].value*100).toFixed(0)}%;background:${p.color}"></i></span>
-        </button>`).join("")}${moreN > 0 && useRows.length ? `
-        <span class="ck-leg-more">+ ${moreN} more in the full view</span>` : ""}</div>
+        </button>`).join("")}${moreN > 0 ? `
+        <span class="ck-leg-more">+ ${moreN} more</span>` : ""}</div>
     </div>`;
 
   const dial = host.querySelector(".ck-dial");
@@ -1219,12 +1271,20 @@ function mountRadar(host, card){
 }
 
 function mountScatter(host, card){
+  if (renderDataState(host, card)) return;
   const { W, H } = hostDimensions(host, card);
   const m = { l:44, r:12, t:10, b:26 }, pw = W-m.l-m.r, ph = H-m.t-m.b;
-  const r = seed(card.key + "|sc" + card.period);
   const rd = readingOf(card.key);
-  const pts = Array.from({length: 34}, () => { const x = r(), y = Math.min(1, Math.max(0, x*0.6 + r()*0.5));
-    return { x, y, w: 4 + r()*9 }; });
+  const live = liveReading(card);
+  const sourceRows = live?.data?.rows || live?.data?.series || [];
+  const pts = sourceRows.map((point, index) => ({
+    x: Number(point.x ?? index) / Math.max(1, sourceRows.length - 1),
+    y: Number(point.y ?? point.value ?? 0),
+    w: Number(point.w ?? point.weight ?? 4),
+  }));
+  if (!pts.length){ host.innerHTML = `<div class="ck-state is-empty" role="status">No data in this period.</div>`; return; }
+  const maxY = Math.max(...pts.map(point => Math.abs(point.y)), 1);
+  pts.forEach(point => { point.y = Math.max(0, Math.min(1, point.y / maxY)); });
   const xs = niceTicks(0, 100, 5), ys = niceTicks(0, 100, 5);
   const grid = ys.ticks.map(v => { const y = m.t+ph-(v/100)*ph;
     return `<line class="ck-grid" x1="${m.l}" x2="${W-m.r}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>
@@ -1281,37 +1341,19 @@ function mountHeatmap(host, card){
     return;
   }
 
-  const r = seed(card.key + "|hm" + card.period);
-  const cols = card.period === "Today"
-    ? ["09","11","13","15","17","19"] : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  const rows = card.period === "Today" ? ["Mon","Tue","Wed","Thu"] : ["09h","12h","15h","18h"];
-  const grid = rows.map(() => cols.map(() => Math.round(r()*100)));
-  const mx = Math.max(...grid.flat()) || 1;
-  const cells = grid.flatMap((row, ri) => row.map((v, ci) => {
-    const lvl = Math.min(4, Math.floor(v/mx*5));
-    const d = (ri*cols.length+ci)*11;
-    if (variant === "dots") return `<span class="ck-hd2" style="--d:${d}ms"><i style="transform:scale(${(0.3+v/mx*0.7).toFixed(2)});background:var(--vq-seq-${lvl+1})"></i>
-      <span class="ck-hint">${rows[ri]} · ${cols[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
-    return `<span class="ck-hc ${variant==="rounded"?"is-round":""}" style="background:var(--vq-seq-${lvl+1});--d:${d}ms">
-      <span class="ck-hint">${rows[ri]} · ${cols[ci]} — ${fmtValue(v, rd.unit)}</span></span>`;
-  })).join("");
-  host.innerHTML = `<div class="ck-hm" style="--c:${cols.length}">
-    <div class="ck-hm-x"><span></span>${cols.map(c=>`<b>${c}</b>`).join("")}</div>
-    <div class="ck-hm-b"><div class="ck-hm-y">${rows.map(x=>`<b>${x}</b>`).join("")}</div>
-    <div class="ck-hm-g">${cells}</div></div>
-    <div class="ck-hm-l"><span>Low</span>${[1,2,3,4,5].map(i=>`<i style="background:var(--vq-seq-${i})"></i>`).join("")}<span>High</span></div></div>`;
+  renderDataState(host, card);
 }
 
 function mountTable(host, card){
   const { H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
-  const capacity = Math.max(2, Math.floor((H - 4) / 38));
-  const rows = pd.parts.slice(0, Math.min(7, capacity)), mx = (rows[0]?.value || 1);
+  const capacity = Math.max(3, Math.floor((H - 4) / 36));
+  const rows = pd.parts.slice(0, Math.min(8, capacity)), mx = (rows[0]?.value || 1);
   const variant = card.variant || "rows";
   host.innerHTML = `<div class="ck-tb">${rows.map((p,i) => `
     <div class="ck-tr" style="--d:${i*45}ms">
-      ${variant === "rank" ? `<span class="ck-rank">${i+1}</span>` : ""}
-      <span class="ck-tn">${p.name}</span>
+      ${variant === "rank" ? `<span class="ck-rank">${i+1}</span>` : `<span class="ck-rank-dot" style="background:var(--vq-series-${(i%6)+1})"></span>`}
+      <span class="ck-tn" title="${esc(p.name)}">${esc(p.name)}</span>
       ${variant === "bars" ? `<span class="ck-tbar"><i style="width:${((p?.value || 0)/mx*100).toFixed(0)}%;background:${p?.color || "var(--vq-series-1)"}"></i></span>` : ""}
       <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
     </div>`).join("")}</div>`;
@@ -1369,10 +1411,15 @@ function mountSankey(host, card){
 }
 
 function mountChoropleth(host, card){
+  if (renderDataState(host, card)) return;
   const rd = readingOf(card.key);
-  const r = seed(card.key + "|geo" + card.period);
-  const regs = ["Punjab","Sindh","KPK","Balochistan","Islamabad","Gilgit-Baltistan"]
-    .map(n => ({ n, v: Math.round(unitBase(rd.unit) * (0.2 + r())) }));
+  const live = liveReading(card);
+  const sourceRows = live?.data?.rows || live?.data?.regions || [];
+  const regs = sourceRows.map(row => ({
+    n: row.name ?? row.region ?? row.label ?? "—",
+    v: Number(row.value ?? row.total ?? row.count ?? 0),
+  }));
+  if (!regs.length){ host.innerHTML = `<div class="ck-state is-empty" role="status">No regional data in this period.</div>`; return; }
   regs.sort((a,b) => b.v - a.v);
   const mx = regs[0].v;
   if (card.variant === "list"){
@@ -1488,10 +1535,13 @@ function mountStat(host, card){
 }
 
 function mountStatus(host, card){
+  if (renderDataState(host, card)) return;
   const rd = readingOf(card.key);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
-  const ok = seed(card.key + "|st")() > 0.25;
-  const state = ok ? "Balanced" : "Needs review";
+  const live = liveReading(card);
+  const status = live?.data || {};
+  const ok = status.severity === "ok" || status.state === "balanced" || status.ok === true;
+  const state = status.label || status.state || (ok ? "OK" : "Needs review");
   const body = (card.variant === "dot")
     ? `<span class="ck-dotstate ${ok ? "is-ok" : "is-warn"}"><i></i><b>${state}</b></span>`
     : `<span class="ck-badge ${ok ? "is-ok" : "is-warn"}"><i></i>${state}</span>`;
@@ -1517,10 +1567,17 @@ const MOUNT = {
   gauge: mountGauge, funnel: mountFunnel, radar: mountRadar, scatter: mountScatter,
   heatmap: mountHeatmap, table: mountTable, feed: mountFeed, sankey: mountSankey,
   choropleth: mountChoropleth, sparkline: mountSparkline,
-  stat: mountStat, status: mountStatus,
+  stat: mountStat, status: mountStatus, list: mountTable,
 };
 function mountChart(host, card){
   if (!host) return;
+  if (!isSpecial(card) && renderDataState(host, card)) return;
+  const shape = String(readingOf(card.key)?.shape || "").toUpperCase();
+  const legacyTimeChart = CARTESIAN.has(card.chart) || ["sparkline", "stat", "gauge", "ring"].includes(card.chart);
+  if (shape === "RANKING" && (card.chart === "bar" || legacyTimeChart)) return mountTable(host, card);
+  if (shape === "BREAKDOWN" && legacyTimeChart) return mountRadial(host, { ...card, chart: "pie" });
+  if (shape === "TABLE" && legacyTimeChart) return mountTable(host, card);
+  if (shape === "FEED" && legacyTimeChart) return mountFeed(host, card);
   if (CARTESIAN.has(card.chart)) return mountCartesian(host, card);
   if (RADIAL.has(card.chart))    return mountRadial(host, card);
   const fn = MOUNT[card.chart];
@@ -1531,43 +1588,14 @@ function mountChart(host, card){
 
 /* Every reading carries a value over time, so every reading can take a time
    chart. Shape decides what is *natural*, not what is permitted. */
-const TIME_CHARTS = ["stat","sparkline","area","line","bar","composed","pl","live","gauge","ring"];
-const LEGAL = {
-  SCALAR:       TIME_CHARTS.concat(["heatmap","scatter","table"]),
-  STATUS:       ["status","stat","sparkline","area","line","bar"],
-  SERIES:       TIME_CHARTS.concat(["heatmap","scatter","table"]),
-  MULTI_SERIES: ["composed","line","area","bar","pl","live","stat","sparkline"],
-  BREAKDOWN:    ["pie","ring","sunburst","funnel","bar","radar","sankey","choropleth","table","stat","treemap"]
-                  .filter(c => c !== "treemap"),
-  RANKING:      ["bar","table","funnel","choropleth","pie","ring","radar","stat"],
-  TABLE:        ["table","heatmap","scatter","bar","line","area","stat"],
-  GAUGE:        ["gauge","ring","stat","sparkline","area","line","bar"],
-  FEED:         ["feed","table","bar","stat"],
-};
-const CHART_NAME = {
-  stat:"Number", sparkline:"Sparkline", gauge:"Gauge", ring:"Ring", status:"Status",
-  area:"Area", line:"Line", bar:"Bar", pl:"Profit / loss", live:"Live line",
-  composed:"Combo", pie:"Pie", sunburst:"Sunburst", funnel:"Funnel", radar:"Radar",
-  sankey:"Sankey", choropleth:"Regions", table:"Table", heatmap:"Heatmap",
-  scatter:"Scatter", feed:"Feed",
-};
-const MIN_CAT = {
-  stat:"C2", status:"C2", sparkline:"C3", feed:"C4", table:"C4", gauge:"C4", ring:"C4",
-  bar:"C4", funnel:"C4", pie:"C4", radar:"C4",
-  area:"C5", line:"C5", pl:"C5", live:"C5", composed:"C5", scatter:"C5",
-  heatmap:"C5", sunburst:"C5", sankey:"C5", choropleth:"C5",
-};
-const CATS = ["C1","C2","C3","C4","C5","C6"];
-const CAT_NAME = { C1:"Tile", C2:"Strip", C3:"Metric", C4:"Panel", C5:"Board", C6:"Canvas" };
-const FITS = {
-  C1: [[2,1,"icon+label"],[1,1,"icon"]],
-  C2: [[4,1,"inline"],[3,2,"stacked"]],
-  C3: [[4,3,"full"],[3,2,"standard"],[2,2,"compact"],[2,3,"stacked"]],
-  C4: [[4,4,"full"],[3,4,"standard"],[3,5,"compact"],[2,6,"list"]],
-  C5: [[6,6,"full"],[5,7,"narrow"],[4,8,"min"]],
-  C6: [[8,8,"full"],[6,10,"narrow"],[4,12,"min"]],
-};
-const DEFAULT_FIT = { C1:0, C2:0, C3:0, C4:0, C5:2, C6:1 };
+let LEGAL = {};
+let CHART_NAME = {};
+let MIN_CAT = {};
+let CATS = [];
+let CAT_NAME = {};
+let FITS = {};
+let DEFAULT_FIT = {};
+let GRID = {};
 
 /* ══ Layout Law §6 — the allowed-size system ═══════════════════════════════
    A category is a list of FITS (the interiors) plus a MAX rectangle. A size is
@@ -1575,22 +1603,44 @@ const DEFAULT_FIT = { C1:0, C2:0, C3:0, C4:0, C5:2, C6:1 };
    fits and no larger than the category's maximum. Everything the UI offers is
    generated from this — no hand-written size list may exist anywhere else,
    because a hand-written list is how a card ends up wider than the grid. */
-const CAT_MAX = {
-  C1: [3, 2],    /* Tile   — shortcut, quick action, single glyph        */
-  C2: [6, 2],    /* Strip  — one KPI on one line                         */
-  C3: [6, 4],    /* Metric — KPI with delta, sparkline or comparison     */
-  C4: [6, 6],    /* Panel  — ranked list, breakdown, small chart         */
-  C5: [12, 9],   /* Board  — full chart, multi-series, wide table        */
-  C6: [12, 16],  /* Canvas — hero chart, statement, cohort grid, map     */
-};
-const CAT_DESC = {
-  C1: "Shortcut, quick action, single glyph",
-  C2: "One KPI on one line",
-  C3: "KPI with delta, sparkline or comparison",
-  C4: "Ranked list, breakdown, small chart",
-  C5: "Full chart, multi-series, wide table",
-  C6: "Hero chart, statement, cohort grid",
-};
+let CAT_MAX = {};
+let CAT_DESC = {};
+
+const chartKey = key => ({ profit_loss_line: "pl", live_line: "live" }[key] || key);
+function setLayoutLaw(law){
+  if (!law || !law.categories || !law.chartLegality || !law.chartCategories) return false;
+  const categories = law.categories;
+  GRID = {
+    cols: Number(law.grid.columns),
+    unit: Number(law.grid.unit),
+    gutter: Number(law.grid.gutter),
+  };
+  CATS = Object.keys(categories).filter(key => /^C\d+$/.test(key));
+  CAT_NAME = Object.fromEntries(CATS.map(key => [key, categories[key].name]));
+  CAT_DESC = Object.fromEntries(CATS.map(key => [key, categories[key].role]));
+  CAT_MAX = Object.fromEntries(CATS.map(key => [key, [Number(categories[key].max.w), Number(categories[key].max.h)]]));
+  FITS = Object.fromEntries(CATS.map(key => [key, categories[key].fits.map(fit => [Number(fit.w), Number(fit.h), fit.key, Number(fit.floor)])]));
+  DEFAULT_FIT = Object.fromEntries(CATS.map(key => {
+    const found = categories[key].fits.findIndex(fit => fit.default === true);
+    return [key, found < 0 ? 0 : found];
+  }));
+  LEGAL = Object.fromEntries(Object.entries(law.chartLegality)
+    .filter(([shape]) => !shape.startsWith("$"))
+    .map(([shape, charts]) => [shape, charts.map(chartKey)]));
+  MIN_CAT = Object.fromEntries(Object.entries(law.chartCategories)
+    .filter(([chart]) => !chart.startsWith("$"))
+    .map(([chart, cats]) => [chartKey(chart), cats[0]]));
+  CHART_NAME = Object.fromEntries([...new Set(Object.values(LEGAL).flat())].map(chart => [
+    chart,
+    ({ stat:"Number", pl:"Profit / loss", live:"Live line", composed:"Combo", choropleth:"Regions" }[chart]
+      || chart.replaceAll("_", " ").replace(/^./, c => c.toUpperCase())),
+  ]));
+  if (typeof window !== "undefined") window.__VENQORE_LAYOUT_LAW__ = law;
+  return true;
+}
+
+setLayoutLaw((opts && opts.layoutLaw) || (typeof window !== "undefined" && window.__VENQORE_LAYOUT_LAW__));
+if (!CATS.length) throw new Error("[VenQoreCards] Layout Law was not provided by the server.");
 /* What each fit changes inside the card — shown against every size so the
    choice is never blind. Straight out of the Law's own tables. */
 const FIT_INSIDE = {
@@ -1775,16 +1825,8 @@ const SPECIAL = {
 const isSpecial = c => !!(c && c.type && SPECIAL[c.type]);
 /* Hubs are laid out on their own ladder rather than the reading ladder: a hub
    is a row of items, so its fits trade columns for rows exactly like C4's. */
-const SPECIAL_FITS = {
-  C1: [[2,1,"icon+label"],[1,1,"icon"]],
-  C2: [[4,1,"inline"],[3,2,"stacked"]],
-  C3: [[4,2,"full"],[3,2,"standard"],[2,3,"stacked"]],
-  C4: [[4,2,"full"],[3,3,"standard"],[3,4,"compact"],[2,5,"list"]],
-  C5: [[6,3,"full"],[5,4,"narrow"],[4,5,"min"]],
-  C6: [[8,4,"full"],[6,6,"narrow"],[4,8,"min"]],
-};
 /** The fit ladder a card resolves against — hubs stack shallower than charts. */
-const fitsTable = c => (isSpecial(c) ? SPECIAL_FITS : FITS);
+const fitsTable = () => FITS;
 
 /** A stat showing only its number — no chart body to make room for. */
 const isBare = c => c.chart === "stat" && c.variant === "number";
@@ -1849,6 +1891,24 @@ function fitCat(card){ return catsFor(card)[0] || (isSpecial(card) ? SPECIAL[car
    max and the live grid. A card can therefore never be smaller than it can
    draw, nor wider than the screen it is on. */
 function geometryOf(card, cols, colW){
+  const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(card.frameSlot));
+  if (frameSlot && (cols || 12) >= 12) {
+    const sw = Number(frameSlot.w);
+    const sh = Number(frameSlot.h);
+    const scat = frameSlot.category || card.cat || "C4";
+    const T = fitsTable(card);
+    const [gw, gh] = fitToGrid(sw, sh, cols);
+    return {
+      w: gw,
+      h: gh,
+      authoredW: sw,
+      authoredH: sh,
+      cat: scat,
+      colW: colW || COL_W,
+      fit: resolveFit(scat, gw, gh, T) ?? 0,
+      clamped: false,
+    };
+  }
   const cat = card.cat || fitCat(card);
   const T = fitsTable(card);
   const [MW, MH] = CAT_MAX[cat] || [12, 16];
@@ -1926,6 +1986,11 @@ const ic = (n, s=14) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fil
 
 /* ── state ─────────────────────────────────────────────────────────────── */
 let CARDS = [], EDIT = null, SEQ = 0, LIB_AREA = "All", LIB_Q = "";
+let ACTIVE_FRAME = (opts && opts.activeFrame) || null;
+let FRAME_SLOTS = Array.isArray(opts && opts.frameSlots) ? opts.frameSlots : [];
+let FRAME_DIRTY = !!(opts && opts.frameDirty);
+let DASHBOARD_ID = (opts && opts.dashboardId) || null;
+let SAVE_LAYOUT_TIMER = null;
 /* Board-wide preferences — set once in the editor, applied to every card. */
 const PREFS = { periodPicker: true };
 const newId = () => "c" + (++SEQ);
@@ -2017,14 +2082,13 @@ function headlineOf(card){
     };
   }
 
-  const vals = valuesFor(card.key, card.period, rd.unit);
-  const last = vals[vals.length - 1], prev = vals[vals.length - 2] ?? last;
-  const pct = prev ? ((last - prev) / prev) * 100 : 0;
+  const pending = PENDING_RECKONER_REQUESTS.has(reqKey)
+    || PENDING_RECKONER_REQUESTS.has(`${card.key}|${toReckonerPeriod(card.period)}`);
   return {
-    value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
-    valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
-    dir: pct >= 0 ? "up" : "down", pct: Math.abs(pct).toFixed(1) + "%",
-    when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
+    value: "—",
+    valueCompact: "—",
+    dir: "up", pct: "",
+    when: pending ? "Loading data…" : "No activity recorded",
   };
 }
 
@@ -2079,8 +2143,6 @@ function tools(){
 }
 
 /* The grid's own geometry — resize snaps to this, nothing else. */
-const GRID = { cols: 12, unit: 64, gutter: 24 };
-
 /** The rendered [cols, rows] — clamped to the card's floor, its category max
     and the live grid. Nothing else in the file may compute a card's size. */
 function sizeOf(c, cols, colW){
@@ -2231,23 +2293,26 @@ function cardFrame(c, opts){
     "vqc", `vqc--${String(cat).toLowerCase()}`, `vq-w${w}`, `vq-h${h}`,
     TONE_CLASS[tone] || TONE_CLASS.surface,
     opts.extraClass || "",
-    c.starBorder ? "vqc--starred" : "",
-    c.glare === false ? "" : (c.accent || c.glare ? "vqc--glared" : ""),
     clamped ? "is-clamped" : "",
     `vqc--fit-${opts.geo.fit}`,
   ].filter(Boolean).join(" ");
   /* --vqw / --vqh let the stylesheet reason about a card's own span without a
      container query, so an interior can thin out at 2 rows and fill out at 6. */
-  const pinned = Number.isInteger(c.gx) && Number.isInteger(c.gy) && (opts.cols || 12) >= 12;
+  const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
+  const is12 = (opts.cols || 12) >= 12;
+  const pinned = ((frameSlot && is12)
+    || (Number.isInteger(c.gx) && Number.isInteger(c.gy) && is12));
+  const colSpan = (frameSlot && is12) ? Number(frameSlot.w) : w;
+  const rowSpan = (frameSlot && is12) ? Number(frameSlot.h) : h;
+  const colStart = (frameSlot ? Number(frameSlot.x) : c.gx) + 1;
+  const rowStart = (frameSlot ? Number(frameSlot.y) : c.gy) + 1;
   const place = pinned
-    ? `grid-column:${Math.max(1, Math.min((opts.cols || 12) - w + 1, c.gx + 1))} / span ${w};grid-row:${c.gy + 1} / span ${h};`
+    ? `grid-column:${colStart} / span ${colSpan};grid-row:${rowStart} / span ${rowSpan};`
     : "";
-  return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${w}" data-h="${h}"
+  return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${colSpan}" data-h="${rowSpan}"
     tabindex="0" draggable="false"
-    style="--i:${CARDS.indexOf(c)};--vqw:${w};--vqh:${h};${place}">
-    ${c.starBorder ? `<span class="vqc-star" aria-hidden="true"></span>` : ""}
+    style="--i:${CARDS.indexOf(c)};--vqw:${colSpan};--vqh:${rowSpan};${place}">
     ${opts.body}
-    <span class="vqc-glare" aria-hidden="true"></span>
     <button type="button" class="vqc-resize" aria-label="Resize card" title="Drag to resize"></button>
   </article>`;
 }
@@ -2457,8 +2522,21 @@ function titleOf(c){
   return readingOf(c.key).label;
 }
 
+function getDomainColor(key, area){
+  const k = String(key || "").toLowerCase();
+  const a = String(area || "").toLowerCase();
+  if (k.startsWith("sales") || a.includes("sale")) return "#10B981"; // Emerald
+  if (k.startsWith("finance") || k.startsWith("accounting") || a.includes("finance") || a.includes("money")) return "#F59E0B"; // Amber
+  if (k.startsWith("inventory") || a.includes("stock") || a.includes("inventory")) return "#8B5CF6"; // Violet
+  if (k.startsWith("party") || k.includes("customer") || a.includes("party")) return "#0EA5E9"; // Sky
+  if (k.startsWith("purchase") || a.includes("buy")) return "#EC4899"; // Pink
+  return "#14B8A6";
+}
+
 function bodyChartCard(c, geo, link){
   const title = titleOf(c);
+  const rd = readingOf(c.key);
+  const shape = String(rd?.shape || "").toUpperCase();
   const hl = headlineOf(c);
   const keys = [c.key, ...(c.extraKeys || [])];
   const legend = (keys.length > 1 && CARTESIAN.has(c.chart))
@@ -2468,18 +2546,21 @@ function bodyChartCard(c, geo, link){
   /* the number is suppressed only when the chart already draws it in its centre */
   const selfLabelled = c.chart === "gauge" || c.chart === "ring" || c.chart === "sunburst"
     || (c.chart === "pie" && c.variant === "donut");
-  const showHead = c.chart !== "status" && !selfLabelled;
-  /* The author's four switches, each additionally gated by whether the card is
-     actually big enough to carry the thing. A switch says "I want this"; the
-     geometry says "there is room" — a card never overflows because of a
-     preference. */
+  
+  // List/table/ranking/feed cards NEVER display a standalone "Rs 0" or "0" metric
+  const isList = shape === "RANKING" || shape === "TABLE" || shape === "FEED"
+    || ["table", "list", "feed", "ranking"].includes(c.chart);
+
+  const showHead = c.chart !== "status" && !selfLabelled && !isList;
   const room = geo.h;
-  const showWhen   = c.showWhen !== false && c.chart !== "status" && room >= 4;
-  const showDelta  = c.showDelta !== false && geo.w >= 2;
+  const showWhen   = c.showWhen !== false && c.chart !== "status" && !isList && room >= 4;
+  const showDelta  = c.showDelta !== false && !isList && geo.w >= 2;
   const showPicker = c.showPeriodPicker !== false && PREFS.periodPicker
                      && room >= 2 && geo.w >= 3;
+  const domainColor = getDomainColor(c.key, rd?.area || rd?.module);
+
   return `<div class="vqc-hd">
-      <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
+      <span class="vqc-eyebrow" title="${esc(title)}"><span class="vqc-domain-dot" style="background:${domainColor}"></span>${esc(title)}</span>
       <span class="vqc-hd-r">${showPicker ? periodPicker(c) : ""}${cardTools(c, link)}</span>
     </div>
     <div class="vqc-bd">
@@ -2539,17 +2620,54 @@ const HOST_RO = typeof ResizeObserver === "undefined" ? null : new ResizeObserve
     if (card) mountChart(host, card);
   }
 });
+
+function ensureAllSlotsFilled(){
+  if (!FRAME_SLOTS || !FRAME_SLOTS.length) return;
+  const occupiedSlots = new Set(CARDS.map(c => Number(c.frameSlot)).filter(Number.isFinite));
+  const usedKeys = new Set(CARDS.map(c => c.key).filter(Boolean));
+
+  FRAME_SLOTS.forEach(slot => {
+    const slotNum = Number(slot.slot);
+    if (!occupiedSlots.has(slotNum)) {
+      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
+        || READINGS.find(r => readingAvailable(r))
+        || READINGS[0];
+      if (availReading) {
+        usedKeys.add(availReading.key);
+        const fitIndex = (FITS[slot.category] || []).findIndex(fit => fit[2] === slot.fit);
+        CARDS.push(normaliseCard({
+          id: newId(),
+          key: availReading.key,
+          chart: legalFor(availReading.key)[0] || "stat",
+          period: "Month",
+          frameSlot: slotNum,
+          gx: Number(slot.x),
+          gy: Number(slot.y),
+          w: Number(slot.w),
+          h: Number(slot.h),
+          cat: slot.category,
+          fit: fitIndex < 0 ? (DEFAULT_FIT[slot.category] || 0) : fitIndex,
+          variant: "spark",
+          accent: slotNum === 1,
+        }));
+        occupiedSlots.add(slotNum);
+      }
+    }
+  });
+}
+
 function draw(){
   const board = document.getElementById("board");
   if (!board) return;
   const cols = boardCols(board);
   COL_W = boardColW(board);
   LAST_COLS = cols;
-  /* innerHTML discards the old hosts, but a ResizeObserver keeps a strong
-     reference to everything it observes — so without this the observer would
-     accumulate one dead host per redraw for the life of the page. */
+  if (cols >= 12 && FRAME_SLOTS && FRAME_SLOTS.length) {
+    ensureAllSlotsFilled();
+  }
   HOST_RO?.disconnect();
-  board.innerHTML = CARDS.map(c => renderCard(c, cols)).join("")
+  const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("");
+  board.innerHTML = cardsHtml
     || `<p class="board-empty">No cards yet — open <strong>Add card</strong> and pick what you want to see.</p>`;
   const count = document.getElementById("count");
   if (count) count.textContent = CARDS.length;
@@ -2566,7 +2684,7 @@ function draw(){
     el.querySelector(".vqc-del") ?.addEventListener("click", e => {
       e.stopPropagation();
       el.classList.add("is-going");
-      setTimeout(() => { CARDS = CARDS.filter(x => x.id !== c.id); if (EDIT === c.id) closeEdit(); draw(); }, 200);
+      setTimeout(() => { CARDS = CARDS.filter(x => x.id !== c.id); markFrameDirty(); if (EDIT === c.id) closeEdit(); draw(); }, 200);
     });
     /* the hub's own "quick actions" button opens the React popup */
     el.querySelectorAll('[data-glass]').forEach(b => b.addEventListener("click", e => {
@@ -2708,6 +2826,8 @@ function wireResize(el, c){
       el.classList.remove("is-resizing");
       document.body.classList.remove("is-reordering");
       hint.remove();
+      delete c.frameSlot;
+      markFrameDirty();
       draw();                       /* the interior may resolve to a new fit */
       if (EDIT === c.id) openEdit(c.id);
     };
@@ -2766,6 +2886,8 @@ function beginMove(e0, el, c){
     if (gx != null && gy != null && cols >= 12){
       const spot = freeSpot(c, gx, gy, w, h, cols);
       c.gx = spot.x; c.gy = spot.y;
+      delete c.frameSlot;
+      markFrameDirty();
       draw();
     } else if (gx != null){
       /* small grid: reorder by drop position instead of pinning */
@@ -2946,6 +3068,107 @@ function persistBoard(){
   try { localStorage.setItem(BOARD_KEY(), JSON.stringify({ v: BOARD_SCHEMA_VERSION, cards: CARDS })); }
   catch {}
 }
+
+function serverCard(c){
+  if (!c.key || c.type) return null;
+  const [w, h] = authoredSizeOf(c);
+  const fit = (FITS[c.cat] || [])[c.fit]?.[2];
+  return {
+    id: /^[0-9a-f-]{32,36}$/i.test(String(c.id || "")) ? c.id : undefined,
+    reading_key: c.key,
+    chart: ({ pl:"profit_loss_line", live:"live_line" }[c.chart] || c.chart),
+    period: ({ Today:"today", Week:"this_week", Month:"this_month", Quarter:"this_quarter", Year:"this_year" }[c.period] || "this_month"),
+    category: c.cat,
+    fit,
+    w,
+    h,
+    x: Number.isInteger(c.gx) ? c.gx : 0,
+    y: Number.isInteger(c.gy) ? c.gy : 0,
+    frame_slot: Number.isFinite(Number(c.frameSlot)) ? Number(c.frameSlot) : null,
+    style: { variant: c.variant, accent: !!c.accent },
+  };
+}
+function saveServerLayout(){
+  if (!DASHBOARD_ID || typeof axios === "undefined") return;
+  clearTimeout(SAVE_LAYOUT_TIMER);
+  SAVE_LAYOUT_TIMER = setTimeout(() => {
+    const cards = CARDS.map(serverCard).filter(Boolean);
+    axios.put(`/api/dashboards/${DASHBOARD_ID}/layout`, { cards, frame_dirty: FRAME_DIRTY })
+      .catch(error => console.error("[VenQoreCards] Could not save dashboard layout.", error));
+  }, 250);
+}
+function markFrameDirty(){
+  FRAME_DIRTY = true;
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("vq:frame-dirty", { detail: true }));
+  saveServerLayout();
+}
+function setFrame(frameKey, slots){
+  ACTIVE_FRAME = frameKey;
+  FRAME_SLOTS = Array.isArray(slots) ? slots : [];
+  FRAME_DIRTY = false;
+
+  const oldCards = [...CARDS];
+  const usedKeys = new Set();
+  const newCards = [];
+
+  FRAME_SLOTS.forEach((slot) => {
+    let matched = oldCards.find(c => !usedKeys.has(c.key) && c.cat === slot.category);
+    if (!matched) matched = oldCards.find(c => !usedKeys.has(c.key));
+    if (!matched) {
+      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
+        || READINGS.find(r => readingAvailable(r))
+        || READINGS[0];
+      if (availReading) {
+        matched = {
+          id: newId(),
+          key: availReading.key,
+          chart: legalFor(availReading.key)[0] || "stat",
+          period: "Month",
+          variant: "spark",
+        };
+      }
+    }
+
+    if (matched) {
+      usedKeys.add(matched.key);
+      const fitIndex = (FITS[slot.category] || []).findIndex(fit => fit[2] === slot.fit);
+      newCards.push({
+        ...matched,
+        id: matched.id || newId(),
+        frameSlot: Number(slot.slot),
+        gx: Number(slot.x),
+        gy: Number(slot.y),
+        w: Number(slot.w),
+        h: Number(slot.h),
+        cat: slot.category,
+        fit: fitIndex < 0 ? (DEFAULT_FIT[slot.category] || 0) : fitIndex,
+        accent: Number(slot.slot) === 1,
+      });
+    }
+  });
+
+  CARDS = newCards.map(normaliseCard);
+  draw();
+
+  if (DASHBOARD_ID && typeof axios !== "undefined") {
+    axios.put(`/api/dashboards/${DASHBOARD_ID}`, { frame_key: frameKey })
+      .then(() => axios.get(`/api/dashboards/${DASHBOARD_ID}`))
+      .then(response => {
+        const cards = response?.data?.data?.cards;
+        if (!Array.isArray(cards) || !cards.length) return;
+        CARDS = availableCards(cards.map(bc => ({
+          id: bc.id || newId(), key: bc.reading_key || bc.key, chart: chartKey(bc.chart),
+          period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
+          w: bc.w, h: bc.h, gx: bc.x, gy: bc.y, cat: bc.category || "C4",
+          fit: Math.max(0, (FITS[bc.category] || []).findIndex(fit => fit[2] === bc.fit)),
+          frameSlot: bc.frame_slot, variant: bc.style?.variant || defaultVariant(chartKey(bc.chart)),
+          accent: !!bc.style?.accent,
+        }))).map(normaliseCard);
+        draw();
+      })
+      .catch(error => console.error("[VenQoreCards] Could not switch dashboard frame.", error));
+  }
+}
 function loadBoard(){
   if (typeof localStorage === "undefined") return null;
   try {
@@ -2956,204 +3179,20 @@ function loadBoard(){
   } catch { return null; }
 }
 
-/* ── starting layouts ──────────────────────────────────────────────────────
-   Composed to pack an 8-column board edge to edge; on wider or narrower
-   boards the grid re-flows and every size stays legal. `key` is a reading,
-   `type` a hub. Anything else is the ordinary card contract. */
-const PRESETS = {
-  retail: {
-    name: "Retail overview", category: "Retail", desc: "Sales, money, stock and alerts — the everyday board.",
-    panel: "money",
-    cards: [
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:7, period:"Month" },
-      { type:"bank_liquidity", cat:"C4", w:3, h:3 },
-      { key:"sales.avg_order_value", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Month" },
-      { type:"alerts_hub", cat:"C4", w:3, h:4 },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Today" },
-      { key:"sales.payment_breakdown", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"sales.top_products", chart:"bar", variant:"solid", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"sales.live_feed", chart:"feed", variant:"live", cat:"C4", w:4, h:6, period:"Today" },
-      { type:"launchpad", cat:"C4", w:6, h:3 },
-      { type:"growth_engine", cat:"C4", w:6, h:3 },
-    ],
-  },
-  finance: {
-    name: "Money & accounts", category: "Professional", desc: "Cash flow, dues, expenses and the bank picture.",
-    panel: "credit",
-    cards: [
-      { key:"finance.cash_flow_trend", chart:"composed", variant:"bar-line-area", cat:"C5", w:6, h:7, period:"Month" },
-      { type:"bank_liquidity", cat:"C4", w:3, h:3 },
-      { key:"bank_accounts.money_in_today", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
-      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"bank_accounts.money_out_today", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
-      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"finance.quick_ratio", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Month" },
-      { key:"finance.expenses_by_category", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"finance.expenses_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"finance.receivables_aging", chart:"bar", variant:"solid", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"finance.profit_trend", chart:"line", variant:"smooth", cat:"C4", w:6, h:4, period:"Month" },
-      { key:"finance.dso", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Month" },
-      { key:"finance.dpo", chart:"stat", variant:"spark", cat:"C3", w:3, h:4, period:"Month" },
-    ],
-  },
-  inventory: {
-    name: "Stock & purchasing", category: "Operations", desc: "What's on the shelf, what's running out, what's on order.",
-    panel: "operations",
-    cards: [
-      { key:"inventory.stock_value", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Month" },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"inventory.out_of_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"inventory.low_stock_list", chart:"table", variant:"standard", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"inventory.by_warehouse", chart:"pie", variant:"donut", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"inventory.value_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:6, period:"Month" },
-      { key:"inventory.expiry_window", chart:"bar", variant:"solid", cat:"C4", w:4, h:5, period:"Month" },
-      { key:"purchasing.spend_trend", chart:"line", variant:"smooth", cat:"C4", w:4, h:5, period:"Month" },
-      { type:"alerts_hub", cat:"C4", w:4, h:5 },
-      { key:"purchase_orders.pending", chart:"stat", variant:"number", cat:"C2", w:6, h:1, period:"Month" },
-      { key:"batch_tracking.expiring_soon", chart:"stat", variant:"number", cat:"C2", w:6, h:1, period:"Month" },
-    ],
-  },
-  command: {
-    name: "Command centre", category: "Professional", desc: "The revenue chart front and centre, everything else around it.",
-    panel: "operations",
-    cards: [
-      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:8, period:"Month" },
-      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"operations.plan_usage", chart:"gauge", variant:"arc", cat:"C4", w:3, h:4, period:"Month" },
-      { key:"sales.top_products", chart:"table", variant:"bars", cat:"C4", w:3, h:4, period:"Month" },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Today" },
-      { key:"sales.avg_order_value", chart:"stat", variant:"number", cat:"C2", w:3, h:2, period:"Month" },
-      { key:"sales.live_feed", chart:"feed", variant:"live", cat:"C4", w:6, h:4, period:"Today" },
-      { key:"sales.top_customers", chart:"bar", variant:"solid", cat:"C4", w:6, h:4, period:"Month" },
-    ],
-  },
-  classic: {
-    name: "Familiar", category: "General", desc: "Numbers on top, trends and lists below, money and activity on the right.",
-    panel: "money",
-    cards: [
-      { key:"sales.revenue", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Today" },
-      { key:"finance.profit_trend", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
-      { key:"finance.receivables", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
-      { key:"finance.payables", chart:"stat", variant:"number", cat:"C2", w:3, h:1, period:"Month" },
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:6, h:6, period:"Month" },
-      { type:"alerts_hub", cat:"C4", w:3, h:3 },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"spark", cat:"C3", w:3, h:3, period:"Today" },
-      { key:"purchasing.recent", chart:"feed", variant:"live", cat:"C4", w:3, h:6, period:"Month" },
-      { key:"sales.top_products", chart:"bar", variant:"solid", cat:"C4", w:6, h:5, period:"Month" },
-      { key:"operations.activity_feed", chart:"feed", variant:"live", cat:"C4", w:6, h:5, period:"Today" },
-    ],
-  },
-  base: {
-    name: "Start simple", category: "General", desc: "One chart, the day's numbers, and room to grow.",
-    panel: null,
-    cards: [
-      { key:"sales.revenue_trend", chart:"area", variant:"gradient", cat:"C5", w:12, h:6, period:"Month" },
-      { key:"sales.revenue", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"finance.expenses_total", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { key:"inventory.low_stock_count", chart:"stat", variant:"number", cat:"C2", w:4, h:1, period:"Today" },
-      { type:"launchpad", cat:"C4", w:6, h:3 },
-      { type:"alerts_hub", cat:"C4", w:6, h:3 },
-    ],
-  },
-};
-
-// Presets are composed as complete 12-column bands. Keeping equal-height cards
-// together prevents the browser from creating the tall, unusable cavities that
-// appeared when unrelated card sizes were interleaved.
-const cleanPresetLayout = ({ hero = 'sales.revenue_trend', finance = false, composition = 'hero' } = {}) => {
-  const metricBand = [
-    { key:'sales.revenue', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Today' },
-    { key:'finance.receivables', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Month' },
-    { key:'finance.payables', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Month' },
-    { key:'inventory.low_stock_count', chart:'stat', variant:'number', cat:'C2', w:3, h:2, period:'Today' },
-  ];
-  const chartBand = [
-    { key: finance ? 'finance.expenses_by_category' : 'sales.payment_breakdown', chart:'pie', variant:'donut', cat:'C4', w:4, h:6, period:'Month' },
-    { key: finance ? 'finance.receivables_aging' : 'sales.top_products', chart:'bar', variant:'solid', cat:'C4', w:4, h:6, period:'Month' },
-    { key: finance ? 'finance.profit_trend' : 'sales.live_feed', chart: finance ? 'line' : 'feed', variant: finance ? 'smooth' : 'live', cat:'C4', w:4, h:6, period: finance ? 'Month' : 'Today' },
-  ];
-  const heroCard = { key:hero, chart: finance ? 'composed' : 'area', variant: finance ? 'bar-line-area' : 'gradient', cat:'C5', w:12, h:6, period:'Month' };
-  const footer = [
-    { type:'launchpad', cat:'C4', w:6, h:3 },
-    { type:'alerts_hub', cat:'C4', w:6, h:3 },
-  ];
-
-  if (composition === 'metrics-first') return [...metricBand, heroCard, ...chartBand, ...footer];
-  if (composition === 'split') return [
-    { ...heroCard, w:8 },
-    { type:'alerts_hub', cat:'C4', w:4, h:6 },
-    ...metricBand,
-    ...chartBand,
-    { type:'launchpad', cat:'C4', w:12, h:3 },
-  ];
-  if (composition === 'charts-first') return [...chartBand, ...metricBand, heroCard, ...footer];
-  return [
-    heroCard, ...metricBand, ...chartBand, ...footer,
-  ];
-};
-
-PRESETS.retail.cards = cleanPresetLayout();
-PRESETS.classic.cards = cleanPresetLayout({ composition: 'metrics-first' });
-PRESETS.command.cards = cleanPresetLayout({ composition: 'split' });
-PRESETS.base.cards = cleanPresetLayout({ composition: 'charts-first' });
-PRESETS.finance.cards = cleanPresetLayout({ hero: 'finance.cash_flow_trend', finance: true });
-PRESETS.inventory.cards = cleanPresetLayout({ composition: 'charts-first' });
-
-const businessPreset = (name, category, desc, baseId, panel) => ({
-  name, category, desc,
-  panel: panel === undefined ? PRESETS[baseId].panel : panel,
-  cards: PRESETS[baseId].cards.map(card => ({ ...card })),
-});
-
-Object.assign(PRESETS, {
-  grocery: businessPreset('Grocery & supermarket', 'Retail', 'Fast-moving products, daily sales, stock and reorder signals.', 'retail'),
-  pharmacy: businessPreset('Pharmacy', 'Retail', 'Sales, stock availability, purchasing and operational alerts.', 'inventory'),
-  fashion: businessPreset('Fashion & apparel', 'Retail', 'Revenue, popular products, customers and inventory movement.', 'retail'),
-  electronics: businessPreset('Electronics store', 'Retail', 'High-value sales, cash position, stock and customer activity.', 'command'),
-  wholesale: businessPreset('Wholesale & distribution', 'Operations', 'Receivables, purchasing, stock levels and order activity.', 'inventory'),
-  restaurant: businessPreset('Restaurant & café', 'Food', 'Daily revenue, payment mix, live activity and quick operations.', 'retail', 'operations'),
-  bakery: businessPreset('Bakery', 'Food', 'Daily sales, best sellers, stock needs and essential actions.', 'retail', 'operations'),
-  salon: businessPreset('Salon & spa', 'Services', 'Revenue, customers, payments and a compact daily command view.', 'command'),
-  services: businessPreset('Professional services', 'Services', 'Invoices, receivables, cash flow and customer activity.', 'finance'),
-  healthcare: businessPreset('Clinic & healthcare', 'Services', 'Revenue, payments, activity and a clear operational overview.', 'command'),
-  ecommerce: businessPreset('Online commerce', 'Retail', 'Revenue trends, top products, payment mix and fulfilment signals.', 'retail'),
-  manufacturing: businessPreset('Manufacturing', 'Operations', 'Inventory value, purchasing, production inputs and alerts.', 'inventory'),
-  construction: businessPreset('Construction & projects', 'Operations', 'Cash flow, payables, expenses and financial control.', 'finance'),
-  education: businessPreset('Education & training', 'Professional', 'Revenue, receivables, customers and financial performance.', 'command'),
-});
-const DEFAULT_PRESET = "retail";
-
-/** A preset never hands over a card the store's modules cannot answer. */
+/** A card is only valid if the store's enabled modules can answer it. */
 function availableCards(cards){
-  return cards.filter(c => c.type
+  return (cards || []).filter(c => c && (c.type
     ? specialAvailable(c.type)
-    : (READINGS.some(r => r.key === c.key) && readingAvailable(readingOf(c.key))));
-}
-
-function applyPreset(id){
-  const p = PRESETS[id] || PRESETS[DEFAULT_PRESET];
-  const cols = boardCols();
-  const scale = cols < 12 ? cols / 12 : 1;
-  CARDS = availableCards(p.cards).map(c => {
-    const card = { ...c, id: newId() };
-    if (scale !== 1 && card.w){
-      card.w = Math.max(1, Math.min(cols, Math.round(card.w * scale)));
-    }
-    delete card.gx; delete card.gy;          /* presets always flow */
-    return normaliseCard(card);
-  });
-  EDIT = null;
-  draw();
+    : (READINGS.some(r => r.key === c.key) && readingAvailable(readingOf(c.key)))));
 }
 
 /* ── boot ──────────────────────────────────────────────────────────────── */
-function boot(presetId){
+function boot(frameKey){
   CARDS = []; EDIT = null;          /* a reset replaces the board, never doubles it */
   SKIP_LEGACY_SERVER_LAYOUT = false;
   PERSIST_ON = false;
-  if (presetId){
-    applyPreset(presetId);
+  if (frameKey && FRAME_SLOTS.length){
+    setFrame(frameKey, FRAME_SLOTS);
   } else {
     const saved = loadBoard();
     if (saved){
@@ -3162,34 +3201,35 @@ function boot(presetId){
       SEQ = maxSeq;
       CARDS = saved.map(c => normaliseCard(c));
       draw();
-    } else {
-      applyPreset(DEFAULT_PRESET);
-      if (typeof axios !== 'undefined') {
-        axios.get('/api/dashboards').then(res => {
-          const list = res?.data?.data || [];
-          if (Array.isArray(list) && list.length > 0) {
-            const activeBoard = list.find(b => b.is_default) || list[0];
-            if (!SKIP_LEGACY_SERVER_LAYOUT && activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
-              const backendCards = activeBoard.cards.map(bc => ({
-                id: bc.id || newId(),
-                key: bc.reading_key || bc.key,
-                chart: bc.style || bc.chart,
-                period: bc.period === 'today' ? 'Today' : bc.period === 'this_week' ? 'Week' : bc.period === 'this_year' ? 'Year' : 'Month',
-                w: bc.w,
-                h: bc.h,
-                gx: bc.x,
-                gy: bc.y,
-                cat: bc.cat || 'C4',
-                fit: bc.fit || 0,
-                type: bc.type,
-                variant: bc.variant || defaultVariant(bc.style || 'area'),
-              }));
-              CARDS = availableCards(backendCards).map(normaliseCard);
-              draw();
-            }
+    } else if (typeof axios !== 'undefined') {
+      axios.get('/api/dashboards').then(res => {
+        const list = res?.data?.data || [];
+        if (Array.isArray(list) && list.length > 0) {
+          const activeBoard = list.find(b => b.is_default) || list[0];
+          if (!SKIP_LEGACY_SERVER_LAYOUT && activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
+            const backendCards = activeBoard.cards.map(bc => ({
+              id: bc.id || newId(),
+              key: bc.reading_key || bc.key,
+              chart: chartKey(bc.chart),
+              period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
+              w: bc.w,
+              h: bc.h,
+              gx: bc.x,
+              gy: bc.y,
+              frameSlot: bc.frame_slot,
+              cat: bc.category || 'C4',
+              fit: bc.fit || 0,
+              type: bc.type,
+              variant: bc.variant || defaultVariant(chartKey(bc.chart)),
+            }));
+            CARDS = availableCards(backendCards).map(normaliseCard);
+            DASHBOARD_ID = activeBoard.id || DASHBOARD_ID;
+            ACTIVE_FRAME = activeBoard.frame_key || ACTIVE_FRAME;
+            FRAME_DIRTY = !!activeBoard.frame_dirty;
+            draw();
           }
-        }).catch(() => {});
-      }
+        }
+      }).catch(() => {});
     }
   }
   PERSIST_ON = true;
@@ -3231,12 +3271,18 @@ window.VenQoreCards = {
       draw();
     }
   },
+  setLayoutLaw: (law) => {
+    if (setLayoutLaw(law)) draw();
+  },
+  setFrame,
+  getFrame: () => ACTIVE_FRAME,
+  isFrameDirty: () => FRAME_DIRTY,
   getCats: () => CATS,
   getCatNames: () => CAT_NAME,
   getCatDescs: () => CAT_DESC,
   getCatMax: () => CAT_MAX,
   getFits: () => FITS,
-  getSpecialFits: () => SPECIAL_FITS,
+  getSpecialFits: () => FITS,
   getSpecials: () => SPECIAL,
   getLegalCharts: () => LEGAL,
   getChartNames: () => CHART_NAME,
@@ -3272,8 +3318,6 @@ window.VenQoreCards = {
   deepLinkFor: getDeepLinkForCard,
   catForSize: (card, w, h) => catForSize(normaliseCard({ ...card }), w, h),
   fitValues,
-  getPresets: () => PRESETS,
-  applyPreset,
   setEnabledModules,
   specialAvailable,
   destinationName,
@@ -3403,7 +3447,9 @@ const PERIOD_LABELS = ['Today', 'Week', 'Month', 'Quarter', 'Year'];
 
 /* Used only before the engine has booted, so the first paint of the wizard is
    never wrong. The engine's own CAT_MAX is authoritative from then on. */
-const CAT_MAX_FALLBACK = { C1:[3,2], C2:[6,2], C3:[6,4], C4:[6,6], C5:[12,9], C6:[12,16] };
+const catMaxFromLaw = law => Object.fromEntries(Object.entries(law?.categories || {})
+  .filter(([key]) => /^C\d+$/.test(key))
+  .map(([key, category]) => [key, [Number(category.max.w), Number(category.max.h)]]));
 
 /* One small proportional diagram of a w×h card, so a size is chosen by eye and
    not by arithmetic. Drawn against the category's own maximum. */
@@ -3488,7 +3534,7 @@ function DashRail({
   id, storePath, onQuickActions, enabledModules = [],
   cashData = null, bankAccounts = [], cashAccounts = [],
   recentTransactions = [], topSellingItems = [], lowStockItems = [],
-  performance = {}, currencySymbol = 'Rs', isDemo = false,
+  performance = {}, currencySymbol = 'Rs', isDemo = false, debtors = [],
 }) {
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
 
@@ -3573,18 +3619,34 @@ function DashRail({
   }
 
   if (id === 'activity') {
-    // recentTransactions from GL: { type, amount, time, description, activityType }
-    const txList = recentTransactions.slice(0, 6);
+    // recentTransactions from GL: { type, amount, time, description, activityType, reference_id }
+    const txList = recentTransactions.slice(0, 5);
     const kindClass = t => ({ sale: 'in', payment_in: 'in', purchase: 'out', expense: 'out', payment_out: 'out', return: 'warn' }[t] || 'info');
+    const handleTxClick = (a) => {
+      if (!a.reference_id) return;
+      if (a.activityType === 'sale' || a.activityType === 'return' || a.reference_type === 'sale') {
+        window.location.href = storePath(`/sales/${a.reference_id}`);
+      } else if (a.activityType === 'purchase' || a.reference_type === 'purchase') {
+        window.location.href = storePath('/purchase-orders');
+      } else if (a.activityType === 'expense' || a.reference_type === 'expense') {
+        window.location.href = storePath('/expenses');
+      } else if (a.activityType === 'payment_in' || a.activityType === 'payment_out') {
+        window.location.href = storePath('/funds');
+      }
+    };
     return (
       <section className="vq-rail-card">
         <header className="vq-rail-h"><span>Recent activity</span><a href={storePath('/reports')} className="vq-rail-link">All</a></header>
         {txList.length > 0 ? (
           <ul className="vq-rail-list">
             {txList.map((a, i) => (
-              <li key={a.id || i} className="vq-rail-row">
+              <li key={a.id || i} className="vq-rail-row" style={{ cursor: a.reference_id ? 'pointer' : 'default' }}
+                  onClick={() => handleTxClick(a)} title={a.description || a.reference_id || a.type}>
                 <span className={`vq-rail-dot is-${kindClass(a.activityType)}`} aria-hidden="true" />
-                <span className="vq-rail-row-n">{a.type || a.description}<em>{a.time}</em></span>
+                <span className="vq-rail-row-n">
+                  {a.type} {a.reference_id ? <span style={{ opacity: 0.65, fontWeight: 'normal', fontSize: '11px' }}>({a.reference_id})</span> : ''}
+                  <em>{a.time}</em>
+                </span>
                 <span className={`vq-rail-row-v is-${kindClass(a.activityType)}`}>{a.amount}</span>
               </li>
             ))}
@@ -3643,12 +3705,26 @@ function DashRail({
     </section>
   );
 
-  if (id === 'targets') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
-      <p className="vq-rail-empty">Configure targets in Settings</p>
-    </section>
-  );
+  if (id === 'targets') {
+    const monthlyRev = performance?.Month?.sales || 0;
+    const targetRev = 300000;
+    const pacePct = Math.min(100, Math.round((monthlyRev / targetRev) * 100));
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Growth &amp; targets</span><a href={storePath('/reports')} className="vq-rail-link">Open</a></header>
+        <span className="vq-rail-sub">Monthly Revenue Target ({pacePct}%)</span>
+        <div style={{ padding: '8px 12px 14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, marginBottom: '6px' }}>
+            <span>{currencySymbol} {monthlyRev.toLocaleString()}</span>
+            <span style={{ opacity: 0.65 }}>Target: {currencySymbol} {targetRev.toLocaleString()}</span>
+          </div>
+          <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ width: `${pacePct}%`, height: '100%', background: '#3b82f6', borderRadius: '3px' }} />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (id === 'top_lists') {
     // Use real topSellingItems from controller
@@ -3674,57 +3750,30 @@ function DashRail({
     );
   }
 
-  if (id === 'reminders') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/finance')} className="vq-rail-link">All</a></header>
-      <p className="vq-rail-empty">No overdue payments</p>
-    </section>
-  );
+  if (id === 'reminders') {
+    const debtorsList = (debtors && debtors.length > 0) ? debtors : (DASHBOARD_RUNTIME_DATA?.debtors || []);
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Payment reminders</span><a href={storePath('/customers')} className="vq-rail-link">All</a></header>
+        {debtorsList.length > 0 ? (
+          <ul className="vq-rail-list">
+            {debtorsList.map(d => (
+              <li key={d.id} className="vq-rail-row">
+                <span className="vq-rail-row-n">{d.name}<em>{d.phone}</em></span>
+                <span className="vq-rail-row-v is-warn">{d.balance}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="vq-rail-empty">No overdue payments</p>
+        )}
+      </section>
+    );
+  }
 
   return null;
 }
 
-
-/* ── a preset, drawn: simulate the grid's row-major auto-placement on 8
-   columns and paint the little rectangles. A picker you choose by eye. */
-function packPreset(cards, cols = 8) {
-  const taken = [];   /* taken[row] = boolean[cols] */
-  const rects = [];
-  const fits = (r, c, w, h) => {
-    for (let y = r; y < r + h; y++) { const row = taken[y]; if (row) for (let x = c; x < c + w; x++) if (row[x]) return false; }
-    return true;
-  };
-  const mark = (r, c, w, h) => {
-    for (let y = r; y < r + h; y++) { taken[y] ||= new Array(cols).fill(false); for (let x = c; x < c + w; x++) taken[y][x] = true; }
-  };
-  let cursorR = 0, cursorC = 0;
-  cards.forEach(card => {
-    const w = Math.min(cols, card.w || 3), h = card.h || 2;
-    let r = cursorR, c = cursorC, placed = false;
-    while (!placed) {
-      if (c + w > cols) { c = 0; r++; continue; }
-      if (fits(r, c, w, h)) { rects.push({ x: c, y: r, w, h, hub: !!card.type }); mark(r, c, w, h); cursorR = r; cursorC = c + w; placed = true; }
-      else c++;
-    }
-  });
-  return rects;
-}
-function PresetThumb({ cards }) {
-  const rects = useMemo(() => packPreset(cards), [cards]);
-  const rows = Math.min(14, rects.reduce((m, r) => Math.max(m, r.y + r.h), 0));
-  const CW = 112, U = 5, G = 1.6, colW = (CW - G * 7) / 8;
-  const H = rows * U + (rows - 1) * G;
-  return (
-    <svg className="vq-preset-thumb" width={CW} height={Math.max(30, H)} viewBox={`0 0 ${CW} ${Math.max(30, H)}`} aria-hidden="true">
-      {rects.filter(r => r.y < 14).map((r, i) => (
-        <rect key={i}
-          x={r.x * (colW + G)} y={r.y * (U + G)}
-          width={r.w * colW + (r.w - 1) * G} height={Math.min(r.h, 14 - r.y) * U + (Math.min(r.h, 14 - r.y) - 1) * G}
-          rx="1.6" fill="currentColor" opacity={r.hub ? 0.85 : 0.42} />
-      ))}
-    </svg>
-  );
-}
 
 export default function NewDashboard(props) {
   const containerRef = useRef(null);
@@ -3745,6 +3794,7 @@ export default function NewDashboard(props) {
   const topSellingItems   = props?.topSellingItems   || [];
   const lowStockItems     = props?.lowStockItems     || [];
   const performance       = props?.performance       || {};
+  const debtors           = props?.debtors           || [];
   DASHBOARD_RUNTIME_DATA = {
     cashData,
     bankAccounts,
@@ -3753,12 +3803,20 @@ export default function NewDashboard(props) {
     topSellingItems,
     lowStockItems,
     performance,
+    debtors,
   };
   /* ─────────────────────────────────────────────────────────────── */
 
   const readingsProp = props?.readings || null;
+  const layoutLawProp = props?.layoutLaw || null;
+  const frames = Array.isArray(props?.frames) ? props.frames : [];
+  const [activeFrameKey, setActiveFrameKey] = useState(props?.activeFrame || 'classic');
+  const [frameDirty, setFrameDirty] = useState(!!props?.frameDirty);
   if (typeof window !== 'undefined' && Array.isArray(readingsProp) && readingsProp.length > 0) {
     window.__VENQORE_READINGS__ = readingsProp;
+  }
+  if (typeof window !== 'undefined' && layoutLawProp) {
+    window.__VENQORE_LAYOUT_LAW__ = layoutLawProp;
   }
   const [seniorMode, setSeniorMode] = useState(() => String(settings?.senior_mode) === '1');
 
@@ -3841,9 +3899,7 @@ export default function NewDashboard(props) {
   const railOnly = navMode === 'rail';
 
   /* ── the add-card wizard ─────────────────────────────────────────────── */
-  const [presetModalOpen, setPresetModalOpen] = useState(false);
-  const [presetSearch, setPresetSearch] = useState('');
-  const [presetCategory, setPresetCategory] = useState('All');
+  const [framePickerModalOpen, setFramePickerModalOpen] = useState(false);
   const [stepperModalOpen, setStepperModalOpen] = useState(false);
   const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0 readings · 1 hubs · 2 shortcuts
   const [step, setStep] = useState(1);
@@ -3953,14 +4009,7 @@ export default function NewDashboard(props) {
     return () => clearTimeout(t);
   }, [railsOn, railPrefs.width, vw, navMode, engineReady]);
 
-  /* Applying a preset sets the board AND the panel it was composed with. */
-  const choosePreset = (id) => {
-    const e = engine();
-    const p = e?.getPresets?.()[id];
-    e?.applyPreset?.(id);
-    if (p) setRailOpt({ design: PANEL_DESIGNS.some(d => d.id === p.panel) ? p.panel : null, collapsed: false });
-    setPresetModalOpen(false);
-  };
+
 
 
   useEffect(() => {
@@ -3973,9 +4022,29 @@ export default function NewDashboard(props) {
     [props?.modules]);
 
   useEffect(() => {
-    runCardBuilder({ storeSlug, modules: enabledModules, readings: readingsProp });
+    const activeFrame = frames.find(frame => frame.key === activeFrameKey);
+    runCardBuilder({
+      storeSlug, modules: enabledModules, readings: readingsProp, layoutLaw: layoutLawProp,
+      dashboardId: props?.dashboardId, activeFrame: activeFrameKey,
+      frameSlots: frameDirty ? [] : (activeFrame?.slots || []), frameDirty,
+    });
     setEngineReady(true);
-  }, [storeSlug, enabledModules, readingsProp]);
+  }, [storeSlug, enabledModules, readingsProp, layoutLawProp, props?.dashboardId]);
+
+  useEffect(() => {
+    const onDirty = event => setFrameDirty(!!event.detail);
+    window.addEventListener('vq:frame-dirty', onDirty);
+    return () => window.removeEventListener('vq:frame-dirty', onDirty);
+  }, []);
+
+  const chooseFrame = (frameKey) => {
+    if (frameDirty && !window.confirm('This dashboard has custom changes. Switching frames will re-flow its cards. Continue?')) return;
+    const frame = frames.find(item => item.key === frameKey);
+    if (!frame) return;
+    engine()?.setFrame?.(frame.key, frame.slots);
+    setActiveFrameKey(frame.key);
+    setFrameDirty(false);
+  };
 
   /* Edit mode is a page state; the engine paints from a class on the shell. */
   useEffect(() => {
@@ -4014,7 +4083,7 @@ export default function NewDashboard(props) {
       else setRailOpt({ collapsed: !railPrefs.collapsed });
     };
     const onOpenSidePanel = () => setRailsModalOpen(true);
-    const onStartFresh = () => setPresetModalOpen(true);
+    const onStartFresh = () => setFramePickerModalOpen(true);
     const onQuickActions = () => setGlassModalOpen(true);
 
     window.addEventListener('vq:edit-layout', onEditLayout);
@@ -4030,7 +4099,7 @@ export default function NewDashboard(props) {
       const params = new URLSearchParams(window.location.search);
       if (params.get('edit') === '1') setIsEditMode(true);
       if (params.get('add_card') === '1') setTimeout(() => openPicker(0), 350);
-      if (params.get('reset') === '1') setPresetModalOpen(true);
+      if (params.get('reset') === '1') setFramePickerModalOpen(true);
     }
 
     return () => {
@@ -4115,7 +4184,7 @@ export default function NewDashboard(props) {
     try { return e.catsFor(draftCard); } catch { return ['C3']; }
   }, [draftCard, engineReady]);
 
-  const catMax = engine()?.getCatMax?.() || CAT_MAX_FALLBACK;
+  const catMax = engine()?.getCatMax?.() || catMaxFromLaw(layoutLawProp);
   const catNames = engine()?.getCatNames?.() || {};
   const catDescs = engine()?.getCatDescs?.() || {};
 
@@ -4458,7 +4527,7 @@ export default function NewDashboard(props) {
     setStep(1);
   };
 
-  const handleResetLayout = () => { setPresetModalOpen(true); setMenuOpen(false); };
+  const handleResetLayout = () => { setFramePickerModalOpen(true); setMenuOpen(false); };
 
   /* ── catalogue ───────────────────────────────────────────────────────── */
   const readings = engineReady
@@ -4568,7 +4637,7 @@ export default function NewDashboard(props) {
      interior, exactly like the board's own resize. */
   const applyDragSize = (wRaw, hRaw) => {
     const e = engine(); if (!e || !draftCard) return;
-    const catMaxTbl = e.getCatMax?.() || CAT_MAX_FALLBACK;
+    const catMaxTbl = e.getCatMax?.() || catMaxFromLaw(layoutLawProp);
     const w = Math.max(1, Math.min(12, wRaw)), h = Math.max(1, Math.min(16, hRaw));
     let cats = [];
     try { cats = isShortcutCard ? ['C1'] : e.catsFor({ ...draftCard, variant: statFamily ? 'number' : draftVariant }); }
@@ -5098,6 +5167,11 @@ export default function NewDashboard(props) {
           <div className="vq-canvas">
             <div className={`vq-canvas-body ${railsOn ? 'has-rails' : ''}`}>
               <div className="vq-board-zone">
+                {isEditMode && frames.length > 0 && (
+                  <section className="vq-frame-picker" aria-label="Dashboard frame settings">
+                    <FramePicker frames={frames} value={activeFrameKey} onChange={chooseFrame} />
+                  </section>
+                )}
                 <div className="vq-grid" id="board" />
               </div>
 
@@ -5117,6 +5191,7 @@ export default function NewDashboard(props) {
                                                        topSellingItems={topSellingItems}
                                                        lowStockItems={lowStockItems}
                                                        performance={performance}
+                                                       debtors={debtors}
                                                        currencySymbol={store?.currency_symbol || 'Rs'}
                                                        isDemo={isDemo} />)}
                     </div>
@@ -5128,74 +5203,31 @@ export default function NewDashboard(props) {
         </main>
       </div>
 
-      {/* ── Choose a starting layout ────────────────────────────────────── */}
-      {presetModalOpen && typeof document !== 'undefined' && createPortal((
-        <div className="vq-modal-overlay" onClick={() => setPresetModalOpen(false)} role="dialog" aria-modal="true">
+      {/* ── Choose a starting layout / Frame picker modal ─────────────────── */}
+      {framePickerModalOpen && typeof document !== 'undefined' && createPortal((
+        <div className="vq-modal-overlay" onClick={() => setFramePickerModalOpen(false)} role="dialog" aria-modal="true">
           <div className="vq-modal-card vq-preset-modal" onClick={e => e.stopPropagation()}>
             <div className="vq-modal-top-bar">
               <div>
                 <div className="vq-modal-step-sub">STARTING LAYOUTS</div>
-                <div className="vq-modal-heading">Start fresh</div>
+                <div className="vq-modal-heading">Choose a layout frame</div>
               </div>
-              <button type="button" className="vq-modal-close-x" onClick={() => setPresetModalOpen(false)} aria-label="Close">
+              <button type="button" className="vq-modal-close-x" onClick={() => setFramePickerModalOpen(false)} aria-label="Close">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
             <div className="vq-preset-note">
-              Pick a starting point — it replaces what's on the board now, and you can
-              add, resize and remove anything afterwards.
+              Pick a geometric frame — cards adapt seamlessly to the slots, and you can customize, resize, and add cards anytime.
             </div>
-            <div className="vq-modal-filter-zone">
-              <div className="vq-modal-search-wrapper">
-                <svg className="vq-modal-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input
-                  className="vq-modal-search"
-                  type="search"
-                  value={presetSearch}
-                  onChange={event => setPresetSearch(event.target.value)}
-                  placeholder="Search business layouts"
-                  aria-label="Search business layouts"
-                />
-              </div>
-              <div className="vq-family-tabs" role="tablist" aria-label="Business category">
-                {['All', 'Retail', 'Food', 'Services', 'Professional', 'Operations', 'General'].map(category => (
-                  <button key={category} type="button" role="tab" aria-selected={presetCategory === category}
-                    className={`vq-family-tab ${presetCategory === category ? 'is-active' : ''}`}
-                    onClick={() => setPresetCategory(category)}>
-                    <span className="vq-family-tab-title">{category}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="vq-preset-grid">
-              {Object.entries(engine()?.getPresets?.() || {}).filter(([, preset]) => {
-                const matchesCategory = presetCategory === 'All' || preset.category === presetCategory;
-                const query = presetSearch.trim().toLowerCase();
-                const matchesSearch = !query || `${preset.name} ${preset.desc} ${preset.category}`.toLowerCase().includes(query);
-                return matchesCategory && matchesSearch;
-              }).map(([id, p]) => {
-                const railNames = (p.rails || [])
-                  .map(rid => RAIL_DEFS.find(d => d.id === rid)?.name)
-                  .filter(Boolean);
-                return (
-                  <button key={id} type="button" className="vq-item-card vq-preset-card"
-                          onClick={() => choosePreset(id)}>
-                    <span className="vq-preset-row">
-                      <PresetThumb cards={p.cards} />
-                      <span className="vq-preset-text">
-                        <span className="vq-item-card-top">
-                          <span className="vq-item-card-title">{p.name}</span>
-                          <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                        </span>
-                        <span className="vq-item-card-desc">{p.desc}</span>
-                        {railNames.length > 0 && (
-                          <span className="vq-preset-rails">Side panel: {railNames.join(' · ')}</span>
-                        )}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="p-4 overflow-y-auto max-h-[70vh]">
+              <FramePicker
+                frames={frames}
+                value={activeFrameKey}
+                onChange={(frameKey) => {
+                  chooseFrame(frameKey);
+                  setFramePickerModalOpen(false);
+                }}
+              />
             </div>
           </div>
         </div>

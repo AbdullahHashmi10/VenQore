@@ -62,10 +62,10 @@ class BuilderController extends Controller
             ->values();
 
         return Inertia::render('Builder/Index', [
-            'modules'      => $modules,
-            'groupLabels'  => ['A' => 'Catalog', 'B' => 'Sell', 'C' => 'Stock', 'D' => 'Buy', 'E' => 'Make', 'F' => 'Money', 'G' => 'Grow'],
-            'highlight'    => $request->query('add'),
-            'businessType' => $tenant->business_type,
+            'builderModules' => $modules,
+            'groupLabels'    => ['A' => 'Catalog', 'B' => 'Sell', 'C' => 'Stock', 'D' => 'Buy', 'E' => 'Make', 'F' => 'Money', 'G' => 'Grow'],
+            'highlight'      => $request->query('add'),
+            'businessType'   => $tenant->business_type,
         ]);
     }
 
