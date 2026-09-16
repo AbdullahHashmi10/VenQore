@@ -409,6 +409,13 @@ class AdminController extends Controller
     {
         $settingsData = $request->except(['_token', 'print_logo_file']);
 
+        // Support both flat key-value pairs and nested ['settings' => [...]] payloads
+        if ($request->has('settings') && is_array($request->input('settings'))) {
+            $nested = $request->input('settings');
+            unset($settingsData['settings']);
+            $settingsData = array_merge($settingsData, $nested);
+        }
+
         // Handle Logo Upload
         if ($request->hasFile('print_logo_file')) {
             // Validate: images only, max 4MB — prevents arbitrary/oversized file
@@ -431,6 +438,16 @@ class AdminController extends Controller
         }
 
         foreach ($settingsData as $key => $value) {
+            if ($key === 'admin_passcode') {
+                if ($value === null || $value === '') {
+                    continue;
+                }
+                // Only hash if not already bcrypt-hashed
+                if (!str_starts_with((string)$value, '$2y$')) {
+                    $value = \Illuminate\Support\Facades\Hash::make($value);
+                }
+            }
+
             if (is_bool($value)) {
                 $value = $value ? '1' : '0';
             }
@@ -464,6 +481,11 @@ class AdminController extends Controller
 
             if (isset($settingsData['timezone'])) {
                 $tenant->timezone = $settingsData['timezone'];
+                $syncNeeded = true;
+            }
+
+            if (isset($settingsData['custom_domain'])) {
+                $tenant->custom_domain = $settingsData['custom_domain'];
                 $syncNeeded = true;
             }
 

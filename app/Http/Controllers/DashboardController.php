@@ -325,67 +325,8 @@ class DashboardController extends Controller
         $tenantId = app('current.tenant')->id;
         $glCash = Account::where('code', '1000')->first();
         
-        if (($canSeeFinance || $canSeeSales) && $glCash) {
-            $glRecent = \App\Models\JournalItem::where('account_id', $glCash->id)
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.tenant_id', $tenantId)
-                ->where('journal_entries.is_reversed', 0)
-                ->select(
-                    'journal_items.id as item_id',
-                    'journal_entries.id as entry_id',
-                    'journal_entries.date',
-                    'journal_entries.created_at as time',
-                    'journal_entries.description',
-                    'journal_entries.reference_type',
-                    'journal_entries.reference as reference_id',
-                    'journal_items.debit',
-                    'journal_items.credit'
-                )
-                ->orderBy('journal_entries.date', 'desc')
-                ->orderBy('journal_entries.created_at', 'desc')
-                ->take(10)
-                ->get();
-
-            $recentTransactions = $glRecent->map(function($item) use ($currencySym) {
-                $isIn = (float)$item->debit > 0;
-                $refType = $item->reference_type;
-                
-                // Determine Label & Activity Type
-                $typeLabel = 'Transaction';
-                $activityType = 'other';
-                
-                if (in_array($refType, ['sale', 'pos_sale'])) {
-                    $typeLabel = 'Sale'; 
-                    $activityType = 'sale';
-                } elseif ($refType === 'sale_return') {
-                    $typeLabel = 'Return';
-                    $activityType = 'return';
-                } elseif (in_array($refType, ['purchase', 'purchase_payment'])) {
-                    $typeLabel = 'Purchase';
-                    $activityType = 'purchase';
-                } elseif ($refType === 'expense') {
-                    $typeLabel = 'Expense';
-                    $activityType = 'expense';
-                } elseif (str_contains($refType, 'fund_add') || $refType === 'payment_in') {
-                    $typeLabel = 'Payment In';
-                    $activityType = 'payment_in';
-                } elseif (str_contains($refType, 'fund_remove') || $refType === 'payment_out') {
-                    $typeLabel = 'Payment Out';
-                    $activityType = 'payment_out';
-                }
-
-                return [
-                    'id' => 'gl-' . $item->item_id,
-                    'type' => $typeLabel,
-                    'amount' => ($isIn ? '+' : '-') . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float)($isIn ? $item->debit : $item->credit)),
-                    'time' => \Carbon\Carbon::parse($item->time)->diffForHumans(),
-                    'status' => 'Completed',
-                    'description' => $item->description ?: 'Cash Transaction',
-                    'activityType' => $activityType,
-                    'reference_type' => $refType,
-                    'reference_id' => $item->reference_id
-                ];
-            });
+        if ($canSeeFinance || $canSeeSales) {
+            $recentTransactions = $this->getRecentTransactions($currencySym);
         }
 
         // P&L Summary
@@ -514,10 +455,12 @@ class DashboardController extends Controller
                 $accountingSvc = resolve(\App\Engines\AccountingService::class);
                 $cashBalance = (float) $accountingSvc->getBalance('1000');
 
-                $cashData = [
-                    'balance'      => $cashBalance,
-                    'transactions' => $cashTx,
-                ];
+                if ($cashTx->isNotEmpty() || $cashBalance != 0.0) {
+                    $cashData = [
+                        'balance'      => $cashBalance,
+                        'transactions' => $cashTx,
+                    ];
+                }
             } // End if($glCash)
     } // End if($canSeeFinance)
 
@@ -553,8 +496,26 @@ class DashboardController extends Controller
         'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
     ];
 
+    $debtors = \App\Models\Party::where('tenant_id', $tenantId)
+        ->where('type', 'customer')
+        ->where('current_balance', '>', 0)
+        ->orderByDesc('current_balance')
+        ->take(5)
+        ->get(['id', 'name', 'phone', 'current_balance'])
+        ->map(function ($p) use ($currencySym) {
+            return [
+                'id'      => $p->id,
+                'name'    => $p->name,
+                'phone'   => $p->phone,
+                'amount'  => (float) $p->current_balance,
+                'balance' => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float) $p->current_balance),
+            ];
+        });
+
     return Inertia::render('NewDashboard', [
         'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+        'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
+        ...$this->dashboardFrameProps($tenant, $user),
         'revenue'            => $performance['Month']['sales'] ?? 0.0,
         'performance'        => $performance,
         'outstanding'        => $outstanding,
@@ -570,6 +531,7 @@ class DashboardController extends Controller
         'cashData'           => $cashData,
         'inventoryValue'     => $inventoryValue,
         'charityStats'       => $charityStats,
+        'debtors'            => $debtors,
     ]);
 }
 
@@ -673,38 +635,40 @@ class DashboardController extends Controller
 
             if ($glCash) {
                 $cashBalance = (float) resolve(\App\Engines\AccountingService::class)->getBalance('1000');
-                $cashData    = ['balance' => $cashBalance, 'transactions' => collect([])];
-
-                $recentTransactions = \App\Models\JournalItem::where('account_id', $glCash->id)
+                $glEntries = \App\Models\JournalItem::where('account_id', $glCash->id)
                     ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                     ->where('journal_entries.tenant_id', $tenantId)
                     ->where('journal_entries.is_reversed', 0)
-                    ->select('journal_items.id as item_id', 'journal_entries.id as entry_id',
-                        'journal_entries.date', 'journal_entries.created_at as time',
-                        'journal_entries.description', 'journal_entries.reference_type',
-                        'journal_entries.reference as reference_id',
-                        'journal_items.debit', 'journal_items.credit')
+                    ->select(
+                        'journal_items.id as item_id',
+                        'journal_entries.created_at as time',
+                        'journal_entries.description',
+                        'journal_items.debit',
+                        'journal_items.credit'
+                    )
                     ->orderBy('journal_entries.date', 'desc')
                     ->orderBy('journal_entries.created_at', 'desc')
-                    ->take(10)->get()
-                    ->map(function ($item) use ($currencySym) {
-                        $isIn = (float)$item->debit > 0;
-                        $refType = $item->reference_type;
-                        $actMap = ['sale'=>'sale','pos_sale'=>'sale','sale_return'=>'return',
-                            'purchase'=>'purchase','purchase_payment'=>'purchase',
-                            'expense'=>'expense'];
-                        return [
-                            'id'             => 'gl-' . $item->item_id,
-                            'type'           => ucfirst(str_replace('_', ' ', $refType ?? 'Transaction')),
-                            'amount'         => ($isIn ? '+' : '-') . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float)($isIn ? $item->debit : $item->credit)),
-                            'time'           => \Carbon\Carbon::parse($item->time)->diffForHumans(),
-                            'description'    => $item->description ?: 'Cash Transaction',
-                            'activityType'   => $actMap[$refType] ?? 'other',
-                            'reference_type' => $refType,
-                            'reference_id'   => $item->reference_id,
-                        ];
-                    });
+                    ->take(10)
+                    ->get();
+
+                $cashTx = $glEntries->map(function($item) {
+                    $isIn = (float)$item->debit > 0;
+                    return [
+                        'id'     => 'gl-' . $item->item_id,
+                        'date'   => $item->time,
+                        'desc'   => $item->description ?: ($isIn ? 'Cash Inflow' : 'Cash Outflow'),
+                        'amount' => (float) ($isIn ? $item->debit : $item->credit),
+                        'type'   => $isIn ? 'in' : 'out',
+                    ];
+                });
+
+                $cashData = [
+                    'balance'      => $cashBalance,
+                    'transactions' => $cashTx,
+                ];
             }
+
+            $recentTransactions = $this->getRecentTransactions($currencySym);
         }
 
         $inventoryValue = ($canSeeInventory || $canSeeFinance)
@@ -721,8 +685,26 @@ class DashboardController extends Controller
             'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
         ];
 
+        $debtors = \App\Models\Party::where('tenant_id', $tenantId)
+            ->where('type', 'customer')
+            ->where('current_balance', '>', 0)
+            ->orderByDesc('current_balance')
+            ->take(5)
+            ->get(['id', 'name', 'phone', 'current_balance'])
+            ->map(function ($p) use ($currencySym) {
+                return [
+                    'id'      => $p->id,
+                    'name'    => $p->name,
+                    'phone'   => $p->phone,
+                    'amount'  => (float) $p->current_balance,
+                    'balance' => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float) $p->current_balance),
+                ];
+            });
+
         return Inertia::render('NewDashboard', [
             'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+            'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
+            ...$this->dashboardFrameProps($tenant, $user),
             'revenue'            => $performance['Month']['sales'] ?? 0.0,
             'performance'        => $performance,
             'outstanding'        => $outstanding,
@@ -736,6 +718,7 @@ class DashboardController extends Controller
             'cashData'           => $cashData,
             'inventoryValue'     => $inventoryValue,
             'charityStats'       => $charityStats,
+            'debtors'            => $debtors,
         ]);
 }
 
@@ -817,16 +800,42 @@ class DashboardController extends Controller
         $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
         $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
-        $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
+        $reportingSvc = app(\App\Services\FinancialReportingService::class);
+        $pl = $reportingSvc->getProfitAndLoss($startStr, $endStr);
+        $cashFlow = $reportingSvc->getCashFlowReport($startStr, $endStr);
 
-        $sales = (float) $pl['revenue'];
-        $cogs = (float) $pl['cogs'];
-        $grossProfit = $sales - $cogs;
+        $sales = (float) ($pl['revenue'] ?? 0.0);
+        $cogs = (float) ($pl['cogs'] ?? 0.0);
+        $grossProfit = (float) ($pl['gross_profit'] ?? ($sales - $cogs));
+        $expenses = (float) ($pl['operating_expenses'] ?? ($pl['total_expenses'] ?? 0.0));
+        $moneyIn = (float) ($cashFlow['operating_inflow'] ?? 0.0);
+        $moneyOut = (float) ($cashFlow['operating_outflow'] ?? 0.0);
 
         return [
             'sales'        => $sales,
             'gross_profit' => $grossProfit,
             'cogs'         => $cogs,
+            'expenses'     => $expenses,
+            'money_in'     => $moneyIn,
+            'money_out'    => $moneyOut,
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function dashboardFrameProps($tenant, $user): array
+    {
+        $dashboard = \App\Models\Dashboard::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->orderByDesc('is_default')
+            ->orderBy('position')
+            ->first();
+
+        return [
+            'frames' => app(\App\Services\Dashboard\FrameRepository::class)->allFor($tenant, $user),
+            'dashboardId' => $dashboard?->id,
+            'activeFrame' => $dashboard?->frame_key ?? 'classic',
+            'frameDirty' => (bool) ($dashboard?->frame_dirty ?? false),
         ];
     }
 
@@ -986,5 +995,78 @@ class DashboardController extends Controller
     private function autoHealTimestamps(): void
     {
         // NO-OP — moved to Artisan command (pending Day 1 task).
+    }
+
+    /**
+     * Builds the recent transactions collection from Journal Entries across all operational types.
+     */
+    private function getRecentTransactions(string $currencySym): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')?->id;
+        if (!$tenantId) return collect([]);
+
+        $glRecent = \App\Models\JournalEntry::where('tenant_id', $tenantId)
+            ->where('is_reversed', 0)
+            ->with(['items.account'])
+            ->orderBy('date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return $glRecent->map(function ($entry) use ($currencySym) {
+            $refType = $entry->reference_type;
+            $isIn = true;
+            $typeLabel = ucfirst(str_replace('_', ' ', $refType ?? 'Transaction'));
+            $activityType = 'other';
+            $amount = 0.0;
+
+            if (in_array($refType, ['sale', 'pos_sale'])) {
+                $typeLabel = 'Sale';
+                $activityType = 'sale';
+                $isIn = true;
+                $revItem = $entry->items->first(fn($i) => str_starts_with($i->account?->code ?? '', '4'));
+                $amount = $revItem ? (float) $revItem->credit : (float) $entry->items->where('credit', '>', 0)->max('credit');
+            } elseif ($refType === 'sale_return') {
+                $typeLabel = 'Return';
+                $activityType = 'return';
+                $isIn = false;
+                $amount = (float) $entry->items->where('credit', '>', 0)->max('credit');
+            } elseif (in_array($refType, ['purchase', 'purchase_payment'])) {
+                $typeLabel = 'Purchase';
+                $activityType = 'purchase';
+                $isIn = false;
+                $amount = (float) $entry->items->where('debit', '>', 0)->max('debit');
+            } elseif ($refType === 'expense') {
+                $typeLabel = 'Expense';
+                $activityType = 'expense';
+                $isIn = false;
+                $expItem = $entry->items->first(fn($i) => str_starts_with($i->account?->code ?? '', '6'));
+                $amount = $expItem ? (float) $expItem->debit : (float) $entry->items->where('debit', '>', 0)->max('debit');
+            } elseif (str_contains($refType, 'fund_add') || $refType === 'payment_in') {
+                $typeLabel = 'Payment In';
+                $activityType = 'payment_in';
+                $isIn = true;
+                $amount = (float) $entry->items->where('debit', '>', 0)->max('debit');
+            } elseif (str_contains($refType, 'fund_remove') || $refType === 'payment_out') {
+                $typeLabel = 'Payment Out';
+                $activityType = 'payment_out';
+                $isIn = false;
+                $amount = (float) $entry->items->where('credit', '>', 0)->max('credit');
+            } else {
+                $amount = (float) $entry->items->where('debit', '>', 0)->max('debit');
+            }
+
+            return [
+                'id'             => 'je-' . $entry->id,
+                'type'           => $typeLabel,
+                'amount'         => ($isIn ? '+' : '-') . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($amount),
+                'time'           => \Carbon\Carbon::parse($entry->created_at)->diffForHumans(),
+                'status'         => 'Completed',
+                'description'    => $entry->description ?: ($isIn ? 'Incoming Transaction' : 'Outgoing Transaction'),
+                'activityType'   => $activityType,
+                'reference_type' => $refType,
+                'reference_id'   => $entry->reference,
+            ];
+        });
     }
 }

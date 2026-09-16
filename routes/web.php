@@ -481,9 +481,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/google/backup/delete/{fileId}',   [\App\Http\Controllers\VqBackupController::class, 'deleteFromGoogleDrive'])->middleware('permission:admin.data_recovery')->name('google.backup.delete');
         Route::post('/google/backup/restore/{fileId}',  [\App\Http\Controllers\VqBackupController::class, 'restoreFromGoogleDrive'])->middleware(['permission:admin.data_recovery', 'throttle:5,1'])->name('google.backup.restore');
 
-        // Store settings
-        Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->middleware('permission:admin.settings_view,admin.settings_manage')->name('settings');
-        Route::post('/settings',                   [\App\Http\Controllers\SettingsController::class, 'update'])->middleware('permission:admin.settings_manage')->name('settings.update');
+        // Store settings (Unified store & admin settings hub)
+        Route::get('/settings',                    [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:admin.settings_view,admin.settings_manage')->name('settings');
+        Route::post('/settings',                   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('settings.update');
 
         // SmartCapture (AI Scan) API
         // NOTE: /extract costs exactly one upstream AI request per call. The
@@ -543,7 +543,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['permission:admin.settings_manage']], function () {
             Route::get('/',            [\App\Http\Controllers\AdminController::class, 'index'])->name('home');
             Route::get('/dashboard',   [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
-            Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
+            Route::get('/settings',    function () { return redirect()->route('store.settings', ['store_slug' => app('current.tenant')->slug]); })->name('settings');
             Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('settings.update');
             Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
             // Member management — single source of truth
@@ -1979,7 +1979,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('legacy.admin.users.store');
         Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->middleware('permission:users.manage')->name('legacy.admin.users.update');
         Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->middleware('permission:users.manage')->name('legacy.admin.users.destroy');
-        Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->name('legacy.admin.settings');
+        Route::get('/admin-panel/settings', function () { return redirect()->route('store.settings', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.settings');
         Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
         Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:reports.audit')->name('legacy.admin.logs');
         Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->name('legacy.admin.database');

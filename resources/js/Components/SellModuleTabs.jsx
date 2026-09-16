@@ -195,7 +195,8 @@ export default function SellModuleTabs({ activeTab }) {
                     <div className="shrink-0 self-stretch flex items-center">
                         <Link
                             href={route('store.sales.invoice.create', { store_slug: store?.slug })}
-                            className="relative h-full w-full lg:w-auto px-5 py-2.5 text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl"
+                            className="relative h-full w-full lg:w-auto px-5 py-2.5 !text-white rounded-xl text-sm font-bold uppercase tracking-wide transition-all duration-slow flex items-center justify-center gap-2 overflow-hidden group shadow-xl"
+                            style={{ color: '#ffffff' }}
                         >
                             {/* Midnight Nebula Background */}
                             <div className="absolute inset-0 bg-neutral-900 z-0">
@@ -204,8 +205,8 @@ export default function SellModuleTabs({ activeTab }) {
                                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-500 to-transparent opacity-60"></div>
                             </div>
                             {/* Content */}
-                            <Plus size={18} strokeWidth={3} className="relative z-10" />
-                            <span className="relative z-10">New Invoice</span>
+                            <Plus size={18} strokeWidth={3} className="relative z-10 text-white" />
+                            <span className="relative z-10 text-white font-bold">New Invoice</span>
                         </Link>
                     </div>
                 )}

@@ -27,7 +27,14 @@ const SPRING = { type: 'spring', stiffness: 400, damping: 34, mass: 0.8 };
 | would have refused to produce itself.
 |==============================================================================
 */
-export default function BuilderIndex({ modules = [], groupLabels = {}, highlight = null, businessType = null }) {
+export default function BuilderIndex({
+    modules: rawModules = [],
+    builderModules = null,
+    groupLabels = {},
+    highlight = null,
+    businessType = null,
+}) {
+    const modules = builderModules || (Array.isArray(rawModules) && typeof rawModules[0] === 'object' ? rawModules : []);
     const { store } = usePage().props;
     const still = useReducedMotion();
 
@@ -228,7 +235,8 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
                         <button
                             type="button"
                             onClick={() => handleToggleOn(highlightMod)}
-                            className="shrink-0 px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-bold hover:bg-brand-700 transition-colors"
+                            className="shrink-0 px-4 py-2 rounded-lg bg-brand-600 !text-white text-sm font-bold hover:bg-brand-700 transition-colors"
+                            style={{ color: '#ffffff' }}
                         >
                             Turn it on
                         </button>
@@ -478,7 +486,8 @@ export default function BuilderIndex({ modules = [], groupLabels = {}, highlight
                             <button
                                 type="button"
                                 onClick={confirmDisable}
-                                className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors"
+                                className="px-4 py-2 rounded-lg bg-red-600 !text-white text-sm font-bold hover:bg-red-700 transition-colors"
+                                style={{ color: '#ffffff' }}
                             >
                                 Turn it off
                             </button>

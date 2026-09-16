@@ -254,6 +254,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                                 fillOpacity={0.32}
                                 gradientToOpacity={0}
                                 strokeWidth={2}
+                                showMarkers
+                                markers={{ radius: rows.length <= 14 ? 5 : 0 }}
                             />
                         );
                     }
@@ -264,6 +266,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                             curve={curveCatmullRom.alpha(0.42)}
                             stroke={i === 2 ? 'var(--chart-1)' : seriesColor(i)}
                             strokeWidth={2.5}
+                            showMarkers
+                            markers={{ radius: rows.length <= 14 ? 5 : 0 }}
                         />
                     );
                 })}
@@ -275,6 +279,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         curve={curveCatmullRom.alpha(0.42)}
                         stroke="var(--chart-1)"
                         strokeWidth={2.5}
+                        showMarkers
+                        markers={{ radius: rows.length <= 14 ? 5 : 0 }}
                     />
                 )}
                 {realDates ? <XAxis numTicks={8} /> : null}
@@ -326,7 +332,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         strokeWidth={2.5}
                         /* `line` strips the wash back to the stroke and its
                            points; `split` keeps the filled read. */
-                        showMarkers={variant === 'line' && rows.length <= 14}
+                        showMarkers
+                        markers={{ radius: rows.length <= 14 ? 5 : 0 }}
                     />
                 ))}
                 {xAxis}
@@ -371,6 +378,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         fillOpacity={bare || (pattern && i === 0) ? 0 : (solid ? 0.4 : 0.22)}
                         gradientToOpacity={solid ? 0.28 : 0}
                         strokeWidth={2}
+                        showMarkers
+                        markers={{ radius: rows.length <= 14 ? 5 : 0 }}
                     />
                 ))}
                 {xAxis}
@@ -402,7 +411,8 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                     dashFromIndex={variant === 'dashtail'
                         ? Math.max(0, rows.length - 4)
                         : undefined}
-                    showMarkers={variant === 'dots' || rows.length <= 12}
+                    showMarkers
+                    markers={{ radius: rows.length <= 14 ? 5 : 0 }}
                 />
             ))}
             {xAxis}

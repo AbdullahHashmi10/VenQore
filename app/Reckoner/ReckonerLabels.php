@@ -44,20 +44,32 @@ final class ReckonerLabels
      */
     public static function resolve(string $key, array $definition, mixed $value): string
     {
-        $defaultLabel = $definition['label'] ?? $key;
+        $label = $definition['label'] ?? $key;
 
-        if (empty($definition['signed']) || ! isset(self::SIGNED_LABELS[$key])) {
-            return $defaultLabel;
+        if (! empty($definition['signed']) && isset(self::SIGNED_LABELS[$key])) {
+            $numericValue = is_array($value) ? ($value['value'] ?? null) : $value;
+
+            if (is_numeric($numericValue)) {
+                [$positiveLabel, $negativeLabel] = self::SIGNED_LABELS[$key];
+                $label = $numericValue < 0 ? $negativeLabel : $positiveLabel;
+            }
         }
 
-        $numericValue = is_array($value) ? ($value['value'] ?? null) : $value;
-
-        if (! is_numeric($numericValue)) {
-            return $defaultLabel;
+        $termKey = $definition['term'] ?? null;
+        if (! is_string($termKey) || $termKey === '') {
+            return $label;
         }
 
-        [$positiveLabel, $negativeLabel] = self::SIGNED_LABELS[$key];
+        $fallbacks = \App\Support\Terms::fallbacks()[$termKey] ?? null;
+        if (! is_array($fallbacks)) {
+            return $label;
+        }
 
-        return $numericValue < 0 ? $negativeLabel : $positiveLabel;
+        $plural = $fallbacks['plural'];
+        if (stripos($label, $plural) !== false) {
+            return str_ireplace($plural, \App\Support\Terms::get($termKey, 'plural'), $label);
+        }
+
+        return str_ireplace($fallbacks['singular'], \App\Support\Terms::get($termKey), $label);
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import SidebarItem from '@/Components/SidebarItem';
 import CommandPalette from '@/Components/CommandPalette';
@@ -262,8 +262,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  };
  }, [isMobileFabsOpen]);
 
- const showExpandedSidebar = isSidebarOpen || mobileSidebarOpen;
- const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const showExpandedSidebar = mobileSidebarOpen || isSidebarOpen;
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
  const { isDarkMode, setIsDarkMode } = useTheme();
  const { appearance, update: updateAppearance, isDark } = useAppearance();
 
@@ -646,7 +646,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		icon: ShoppingCart,
 		// PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
 		subs: userRole === 'cashier' ? [] : [
-			{ group: 'Transactions', items: ['Orders', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
+			{ group: 'Transactions', items: ['Orders', 'Tables', 'Floor Plan', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
 			{ group: 'Post-Sale', items: ['Returns History', 'Invoice Reminders', 'Recurring Invoices'] },
 			{ group: 'Config', items: ['E-Invoicing'] }
 		],
@@ -726,7 +726,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  subs: [
  { group: 'Executive', items: ['Executive Dashboard'] },
  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
- { group: 'System & Data', items: ['Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
+ { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
  { group: 'AI Support', items: ['Agent Inbox'] }
  ],
  route: store ? 'store.admin.dashboard' : null,
@@ -735,10 +735,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage')) ? {
  name: 'Settings',
  icon: Settings,
- subs: [
- { group: 'Store Configuration', items: ['Store Settings', 'System Settings', 'Builder'] },
- { group: 'AI & Automation', items: ['Chatbot Settings'] }
- ],
+ subs: [],
  route: store ? 'store.settings' : null,
  routeParams: store ? { store_slug: store.slug } : {}
  } : null,
@@ -756,6 +753,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	// When all sub-items in a top-level group are gone, the entire group hides.
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
+		'Tables': 'pos',
+		'Floor Plan': 'pos',
 		'Service Jobs': 'services',
 		'Dispatch Calendar': 'services',
 		'Tools & Equipment': 'services',
@@ -852,6 +851,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 	const SUBITEM_ROUTES = {
 		'Orders': ['store.sales-orders.index', 'store.sales.index'],
+		'Tables': ['store.tables.index', 'store.tables.plan'],
+		'Floor Plan': ['store.tables.plan', 'store.tables.index'],
 		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
 		'Dispatch Calendar': ['store.service-jobs.calendar'],
 		'Tools & Equipment': ['store.tools.index'],
@@ -890,7 +891,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'WooCommerce Sync': ['store.vensynq.index', 'store.woocommerce.index'],
 	};
 
-	const enabledModuleSet = Array.isArray(props?.modules) ? new Set(props.modules) : null;
+	const enabledModuleSet = Array.isArray(props?.modules)
+		? new Set(
+				props.modules.map((m) => {
+					if (typeof m === 'string') return m;
+					if (typeof m === 'object' && m !== null) {
+						return m.enabled ? m.key : null;
+					}
+					return null;
+				}).filter(Boolean)
+		  )
+		: null;
 	const derivedNavRoutes = Array.isArray(props?.nav) ? new Set(props.nav.map(n => n.route)) : null;
 
 	const subitemModuleVisible = (item) => {
@@ -1001,8 +1012,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  route: store ? 'store.admin.users' : null,
  routeParams: store ? { store_slug: store.slug } : {} },
 
- { name: 'System Settings', icon: Settings, subs: [],
- route: store ? 'store.admin.settings' : null,
+  { name: 'Settings', icon: Settings, subs: [],
+ route: store ? 'store.settings' : null,
  routeParams: store ? { store_slug: store.slug } : {} },
 
  { name: 'Data & Backup', icon: HardDrive, subs: [],
@@ -1116,6 +1127,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  );
  });
 
+
+
  // Helper to check if a menu item is active
  const isMenuItemActive = (item) => {
  if (activeMenu) return activeMenu === item.name;
@@ -1142,28 +1155,28 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
  };
 
- // Handle hover-to-expand: expand sidebar AND open the specific menu
- const handleHoverExpand = useCallback((menuKey) => {
- if (!isSidebarOpen) {
- wasHoverExpandedRef.current = true; // Mark as hover-expanded
- setIsSidebarOpen(true);
- setExpandedMenu(menuKey);
- }
- }, [isSidebarOpen]);
+  // Handle hover-to-expand: expand sidebar AND open the specific menu
+  const handleHoverExpand = useCallback((menuKey) => {
+    if (!isSidebarOpen) {
+      wasHoverExpandedRef.current = true; // Mark as hover-expanded
+      setIsSidebarOpen(true);
+      setExpandedMenu(menuKey);
+    }
+  }, [isSidebarOpen]);
 
- // Handle sidebar mouse leave - auto-collapse if it was hover-expanded
- const handleSidebarMouseLeave = useCallback(() => {
- if (wasHoverExpandedRef.current && isSidebarOpen) {
- // Small delay to prevent accidental collapse during quick movements
- setTimeout(() => {
- if (wasHoverExpandedRef.current) {
- setIsSidebarOpen(false);
- setExpandedMenu(null);
- wasHoverExpandedRef.current = false;
- }
- }, 300);
- }
- }, [isSidebarOpen]);
+  // Handle sidebar mouse leave - auto-collapse if it was hover-expanded
+  const handleSidebarMouseLeave = useCallback(() => {
+    if (wasHoverExpandedRef.current && isSidebarOpen) {
+      // Small delay to prevent accidental collapse during quick movements
+      setTimeout(() => {
+        if (wasHoverExpandedRef.current) {
+          setIsSidebarOpen(false);
+          setExpandedMenu(null);
+          wasHoverExpandedRef.current = false;
+        }
+      }, 300);
+    }
+  }, [isSidebarOpen]);
 
  // Handle manual sidebar toggle - mark as NOT hover-expanded
  const handleManualToggle = useCallback(() => {
@@ -1313,70 +1326,70 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  onMouseLeave={handleSidebarMouseLeave}
  onClick={handleSidebarInteraction}
  className={`
- fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer lg:z-40
- transform lg:transform-none transition-all duration-slow lg:duration-slower lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
- flex flex-col amd-no-drag
- ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
- ${isPlatformAdmin && !store
- ? (isEffectiveDarkMode ? 'bg-neutral-950/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-line')
- : 'bg-surface border-r border-line dark:border-line'}
- ${showExpandedSidebar ? 'w-[280px]' : 'w-[280px] lg:w-[88px]'}
- ${isPlatformAdmin && !store
- ? (isEffectiveDarkMode ? 'm-4 rounded-xl h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-line shadow-sm transition-all')
- : ''}
+  fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer lg:z-40
+  transform lg:transform-none transition-all duration-slow lg:duration-slower lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
+  flex flex-col amd-no-drag
+  ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+  ${isPlatformAdmin && !store
+  ? (isEffectiveDarkMode ? 'bg-neutral-950/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-line')
+  : 'bg-surface border-r border-line dark:border-line'}
+   ${showExpandedSidebar ? 'w-[var(--vq-nav-w-full)]' : 'w-[var(--vq-nav-w-full)] lg:w-[var(--vq-nav-w-rail)]'}
+   ${isPlatformAdmin && !store
+   ? (isEffectiveDarkMode ? 'm-4 rounded-xl h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-line shadow-sm transition-all')
+   : ''}
+ `}
+  >
+
+
+  {/* Logo */}
+  <div className="h-24 flex items-center justify-center shrink-0 relative z-10">
+  <div className="flex items-center justify-center">
+  <img 
+  src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"} 
+  alt="Logo" 
+  className="w-16 h-16 object-contain drop-shadow-md transition-all duration-normal" 
+  />
+  </div>
+  </div>
+
+  <button
+  onClick={handleManualToggle}
+  className={`
+  hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-surface border border-line rounded-full shadow-md z-50 items-center justify-center text-ink-muted hover:text-brand-500 transition-all group
+  ${!showExpandedSidebar && 'rotate-180'}
 `}
- >
+  >
+  <ChevronLeft size={14} className="transition-transform" />
+  </button>
 
-
- {/* Logo */}
- <div className="h-24 flex items-center justify-center shrink-0 relative z-10">
- <div className="flex items-center justify-center">
- <img 
- src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"} 
- alt="Logo" 
- className="w-16 h-16 object-contain drop-shadow-md transition-all duration-normal" 
- />
- </div>
- </div>
-
- <button
- onClick={handleManualToggle}
- className={`
- hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-surface border border-line rounded-full shadow-md z-50 items-center justify-center text-ink-muted hover:text-brand-500 transition-all group
- ${!showExpandedSidebar && 'rotate-180'}
-`}
- >
- <ChevronLeft size={14} className="transition-transform" />
- </button>
-
- {/* Menu */}
- <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10" onClick={() => setMobileSidebarOpen(false)}>
- {menuItems.map((item) => (
- <SidebarItem
- key={item.name}
- id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
- name={tt(item.name)}
- icon={item.icon}
- subItems={item.subs}
- route={item.route}
- routeParams={item.routeParams || { store_slug: store?.slug }}
- menuKey={item.name}
- onHoverExpand={handleHoverExpand}
- isPlatformHQ={isPlatformAdmin && !store}
- isExpanded={showExpandedSidebar}
- isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && activeMenu === 'Home' && item.name === 'Dashboard')}
- isActive={activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home')}
- onToggle={() => {
- if (item.onClick) {
- item.onClick();
- return;
- }
- toggleMenu(item.name);
- if (!showExpandedSidebar) setIsSidebarOpen(true);
- }}
- onClick={item.onClick}
- />
- ))}
+  {/* Menu */}
+  <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10" onClick={() => setMobileSidebarOpen(false)}>
+  {menuItems.map((item) => (
+    <SidebarItem
+      key={item.name}
+      id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
+      name={tt(item.name)}
+      icon={item.icon}
+      subItems={item.subs}
+      route={item.route}
+      routeParams={item.routeParams || { store_slug: store?.slug }}
+      menuKey={item.name}
+      onHoverExpand={handleHoverExpand}
+      isPlatformHQ={isPlatformAdmin && !store}
+      isExpanded={showExpandedSidebar}
+      isMenuExpanded={expandedMenu === item.name || (expandedMenu === null && activeMenu === 'Home' && item.name === 'Dashboard')}
+      isActive={activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home')}
+      onToggle={() => {
+        if (item.onClick) {
+          item.onClick();
+          return;
+        }
+        toggleMenu(item.name);
+        if (!showExpandedSidebar) setIsSidebarOpen(true);
+      }}
+      onClick={item.onClick}
+    />
+  ))}
 
 						{/* Activity Hub Button — opens centered pop-up modal */}
 						{!(isPlatformAdmin && !store) && (
@@ -1627,7 +1640,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <X size={16} className="text-red-500" />
  <span>Your subscription has expired. The system is in locked mode.</span>
  </div>
- <Link href={`/s/${store.slug}/billing`} className="px-3 py-1 rounded-md text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 transition-colors">
+ <Link href={`/s/${store.slug}/billing`} className="px-3 py-1 rounded-md text-xs font-bold !text-white bg-brand-500 hover:bg-brand-600 transition-colors" style={{ color: '#ffffff' }}>
  Upgrade Plan
  </Link>
  </div>
@@ -1751,6 +1764,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
               </div>
 
               <div className="h-px bg-line my-1" />
+
+
 
               {/* Header Controls */}
               <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
@@ -2046,6 +2061,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   )}
 
 
+
+
  {/* DYNAMIC CONTENT AREA */}
  <div className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-6'}`}>
  {children}
@@ -2071,7 +2088,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </p>
  <button
  onClick={() => setIsIdle(false)}
- className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold text-lg shadow-lg transition-all"
+ className="px-8 py-4 bg-brand-600 hover:bg-brand-500 !text-white rounded-2xl font-bold text-lg shadow-lg transition-all"
+ style={{ color: '#ffffff' }}
  >
  I'm Back, Resume Work
  </button>

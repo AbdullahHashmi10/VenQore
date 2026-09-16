@@ -161,6 +161,7 @@ class DashboardSanitizer
                 'chart' => $chart,
                 'category' => $geometry['category'],
                 'fit' => $geometry['fit'],
+                'frame_slot' => isset($item['frame_slot']) ? (int) $item['frame_slot'] : null,
                 'x' => $geometry['x'],
                 'y' => min(500, $geometry['y']),
                 'w' => $geometry['w'],

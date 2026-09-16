@@ -403,8 +403,8 @@ body {
   color: var(--vq-text-3);
 }
 
-a { color: var(--vq-accent-text); text-decoration-color: var(--vq-accent-quiet-line); text-underline-offset: 3px; transition: color var(--vq-dur-1) var(--vq-ease-out); }
-a:hover { color: var(--vq-accent-fill-hover); text-decoration-color: currentColor; }
+:where(.new-dashboard, .vqc) :where(a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="text-"])) { color: var(--vq-accent-text); text-decoration-color: var(--vq-accent-quiet-line); text-underline-offset: 3px; transition: color var(--vq-dur-1) var(--vq-ease-out); }
+:where(.new-dashboard, .vqc) :where(a:not([class*="vq-btn"]):not([class*="vq-brand"]):not([class*="text-"]):hover) { color: var(--vq-accent-fill-hover); text-decoration-color: currentColor; }
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--vq-focus);
@@ -489,7 +489,7 @@ body { margin: 0; background: var(--vq-bg); }
    Implemented by grid-auto-rows + gap. We never add margin-bottom. */
 .vq-grid{
   display: grid;
-  grid-auto-flow: dense;
+  grid-auto-flow: row;
   grid-template-columns: repeat(var(--vq-cols), minmax(0, 1fr));
   grid-auto-rows: var(--vq-unit);
   gap: var(--vq-gutter);
@@ -516,10 +516,10 @@ body { margin: 0; background: var(--vq-bg); }
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--vq-surface);
-  border: 1px solid var(--vq-line);
-  border-radius: var(--vq-r-lg);
-  box-shadow: var(--vq-elev-1);
+  background: var(--vq-surface, #FFFFFF);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--vq-r-lg, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 14px -2px rgba(0, 0, 0, 0.04);
   padding: var(--vq-space-5);          /* card_pad 20 */
   font-family: var(--vq-font-sans);
   color: var(--vq-text);
@@ -527,10 +527,14 @@ body { margin: 0; background: var(--vq-bg); }
   transition:
     border-color var(--vq-dur-2) var(--vq-ease-out),
     box-shadow  var(--vq-dur-2) var(--vq-ease-out),
-    background  var(--vq-dur-2) var(--vq-ease-out);
+    transform   var(--vq-dur-2) var(--vq-ease-out);
 }
-/* Hover moves border + shadow. It never scales. (DESIGN-RULES §2.1) */
-.vqc:hover{ border-color: var(--vq-line-strong); box-shadow: var(--vq-elev-2); }
+/* Hover moves border + shadow. Gives subtle lift and liveliness */
+.vqc:hover{
+  border-color: rgba(16, 185, 129, 0.28);
+  box-shadow: 0 6px 18px -3px rgba(0, 0, 0, 0.06), 0 12px 28px -6px rgba(0, 0, 0, 0.07);
+  transform: translateY(-1px);
+}
 
 .vqc:focus-visible,
 .vqc a:focus-visible,
@@ -560,14 +564,53 @@ body { margin: 0; background: var(--vq-bg); }
   gap: var(--vq-space-2); flex-shrink: 0;
 }
 .vqc-eyebrow{
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-family: var(--vq-font-sans);
-  font-size: var(--vq-fs-eyebrow);
+  font-size: 11.5px;
   line-height: var(--vq-lh-eyebrow);
-  letter-spacing: var(--vq-ls-eyebrow);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-weight: var(--vq-fw-semi);
-  color: var(--vq-text-2);            /* §11: ink-500 measures 4.33:1 — fails */
+  font-weight: 600;
+  color: #334155;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vqc-domain-dot{
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  box-shadow: 0 0 5px currentColor;
+}
+
+/* ── Empty, Loading & Unavailable States ────────────────────────────────── */
+.ck-state{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  height: 100%;
+  padding: 16px;
+  color: var(--vq-text-2);
+}
+.ck-state-ic{
+  color: var(--vq-text-3, #94a3b8);
+  margin-bottom: 2px;
+}
+.ck-state b{
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vq-text, #1e293b);
+}
+.ck-state span{
+  font-size: 11.5px;
+  color: var(--vq-text-2, #64748b);
+  max-width: 240px;
+  line-height: 1.4;
 }
 .vqc-act{
   display: grid; place-items: center;
@@ -1303,24 +1346,22 @@ body{
   color: var(--vq-text-3, var(--vq-text-2));
   padding: 2px var(--vq-space-2); white-space:nowrap;
 }
-.ck-leg-r{ display:grid; grid-template-columns:auto 1fr auto auto; align-items:center;
-  gap: var(--vq-space-2) var(--vq-space-3); width:100%; text-align:left; cursor:pointer;
-  background:none; border:0; border-radius: var(--vq-r-sm);
-  padding: var(--vq-space-2) var(--vq-space-2);
-  font-family: var(--vq-font-sans); font-size: var(--vq-fs-caption); color: var(--vq-text-2);
-  transition: background 200ms var(--vq-ease-out), opacity 320ms var(--vq-ease-out); }
+.ck-leg-r{ display:flex; align-items:center; justify-content:space-between;
+  gap: var(--vq-space-2); width:100%; text-align:left; cursor:pointer;
+  background:none; border:0; border-radius: var(--vq-r-sm, 6px);
+  padding: 3px 6px;
+  font-family: var(--vq-font-sans); font-size: 11.5px; color: var(--vq-text-2);
+  transition: background 160ms var(--vq-ease-out), opacity 200ms var(--vq-ease-out); }
+.ck-leg-r:hover{ background: var(--vq-surface-2, rgba(0,0,0,0.025)); }
 .ck-leg-r.is-on{ background: var(--vq-sunken); }
-.ck-leg-r.is-dim{ opacity:.4; }
-.ck-leg-d{ width:9px; height:9px; border-radius: var(--vq-r-full); }
+.ck-leg-r.is-dim{ opacity:.35; }
+.ck-leg-d{ width:8px; height:8px; border-radius: var(--vq-r-full); flex:0 0 auto; }
 .ck-leg-n{ font-weight: var(--vq-fw-semi); color: var(--vq-text);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ck-leg-v, .ck-leg-p{ font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; }
-.ck-leg-p{ color: var(--vq-text-3, var(--vq-text-2)); min-width:34px; text-align:right; }
-.ck-leg-bar{ grid-column:1/-1; height:4px; border-radius: var(--vq-r-full);
-  background: var(--vq-chart-track-data); overflow:hidden; }
-.ck-leg-bar i{ display:block; height:100%; border-radius: var(--vq-r-full);
-  transform-origin:left; animation: ckGrow 900ms var(--vq-ease-out) backwards; }
-@keyframes ckGrow{ from{ transform:scaleX(0) } to{ transform:scaleX(1) } }
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; min-width:0; }
+.ck-leg-v, .ck-leg-p{ font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; flex:0 0 auto; }
+.ck-leg-v{ font-weight:600; color:var(--vq-text); margin-left:auto; text-align:right; white-space:nowrap; }
+.ck-leg-p{ color: var(--vq-text-3, var(--vq-text-2)); min-width:28px; text-align:right; font-size:11px; margin-left:6px; }
+.ck-leg-bar{ display:none; }
 
 /* ══ funnel · table · feed · heatmap · regions ════════════════════════════ */
 .ck-fnw{ display:flex; gap: var(--vq-space-4); height:100%; align-items:stretch; }
@@ -1340,27 +1381,32 @@ body{
 .ck-fnr em{ font-style:normal; opacity:.7; min-width:32px; text-align:right; }
 
 /* rows are counted to fit before render — the list never scrolls in a card */
-.ck-tb{ display:flex; flex-direction:column; gap: var(--vq-space-1); width:100%;
+.ck-tb{ display:flex; flex-direction:column; gap: var(--vq-space-2); width:100%;
   overflow:hidden; max-height:100%; }
-.ck-tr{ display:grid; grid-template-columns:auto 1fr auto auto; align-items:center;
-  gap: var(--vq-space-2) var(--vq-space-3); font-size: var(--vq-fs-caption);
-  color: var(--vq-text-2); padding: var(--vq-space-2) 0;
+.ck-tr{ display:flex; align-items:center; justify-content:space-between; width:100%;
+  gap: var(--vq-space-3); font-size: var(--vq-fs-caption);
+  color: var(--vq-text-2); padding: 7px 10px;
   border-bottom:1px solid var(--vq-line-soft);
+  border-radius: var(--vq-r-sm, 6px);
+  transition: background 150ms var(--vq-ease-out);
   animation: ckSlide 520ms var(--vq-ease-out) backwards; animation-delay: var(--d,0ms); }
-@keyframes ckSlide{ from{ opacity:0; transform:translateY(6px) } to{ opacity:1; transform:none } }
+.ck-tr:hover{ background: var(--vq-surface-2, rgba(0,0,0,0.025)); }
 .ck-tr:last-child{ border-bottom:0; }
 .ck-rank{ font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold);
-  color: var(--vq-text-2); min-width:16px; }
+  color: var(--vq-text-2); min-width:18px; flex:0 0 auto; }
+.ck-rank-dot{ width:7px; height:7px; border-radius:var(--vq-r-full, 999px); flex:0 0 auto; }
 .ck-tn{ font-weight: var(--vq-fw-medium); color: var(--vq-text);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ck-tt{ font-size: var(--vq-fs-eyebrow); opacity:.75; white-space:nowrap; }
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  flex:1 1 auto; min-width:0; text-align:left; }
+.ck-tt{ font-size: var(--vq-fs-eyebrow); opacity:.75; white-space:nowrap; flex:0 0 auto; margin-right:8px; }
 .ck-tv{ font-family: var(--vq-font-numeric); color: var(--vq-text);
-  font-variant-numeric: tabular-nums; }
+  font-variant-numeric: tabular-nums; font-weight: var(--vq-fw-bold);
+  flex:0 0 auto; margin-left:auto; text-align:right; white-space:nowrap; }
 .ck-tbar{ width:64px; height:5px; border-radius: var(--vq-r-full);
-  background: var(--vq-chart-track-data); overflow:hidden; }
+  background: var(--vq-chart-track-data); overflow:hidden; flex:0 0 auto; margin-right:8px; }
 .ck-tbar i{ display:block; height:100%; transform-origin:left;
   animation: ckGrow 780ms var(--vq-ease-out) backwards; }
-.ck-fd{ width:8px; height:8px; border-radius: var(--vq-r-full); }
+.ck-fd{ width:8px; height:8px; border-radius: var(--vq-r-full); flex:0 0 auto; }
 
 .ck-hm{ display:flex; flex-direction:column; gap: var(--vq-space-2); height:100%; }
 .ck-hm-x{ display:grid; grid-template-columns:34px repeat(var(--c),1fr); gap:3px; }
@@ -2326,16 +2372,16 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    drew the board flush against the sidebar. */
 .vq-canvas {
   width: 100%; max-width: 100%;
-  padding: 24px 24px 48px;
+  padding: 24px;
   box-sizing: border-box;
 }
 
 .vq-grid {
   display: grid;
-  grid-auto-flow: dense;
+  grid-auto-flow: row;
   grid-template-columns: repeat(var(--vq-cols, 12), minmax(0, 1fr));
   grid-auto-rows: var(--vq-unit, 64px);
-  gap: var(--vq-gutter, 24px);
+  gap: 24px !important;
   width: 100%;
   align-content: start;
   /* Belt and braces: if anything ever asks for a span wider than the grid,
@@ -3206,17 +3252,12 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   padding: 3px 6px; border-radius: var(--vq-r-full, 999px);
 }
 
-/* ── 2. Emphasis: glare and the star border ────────────────────────────── */
-.vqc-glare {
-  position: absolute; inset: 0; z-index: 3; pointer-events: none;
-  border-radius: inherit; opacity: 0;
-  background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / .22) 46%, transparent 62%);
-  background-size: 260% 100%; background-position: 120% 0;
-  transition: opacity var(--vq-dur-2,180ms) var(--vq-ease-out);
-}
-.vqc--glared:hover .vqc-glare { opacity: 1; animation: vqGlare 900ms var(--vq-ease-out) 1; }
-@keyframes vqGlare { from { background-position: 120% 0 } to { background-position: -40% 0 } }
-.vqc:not(.vqc--glared) .vqc-glare { display: none; }
+/* ── 2. Emphasis: glare and the star border (disabled per user directive) ─ */
+.vqc-glare { display: none !important; }
+.vqc--glared { animation: none !important; }
+.vqc--glared:hover .vqc-glare { display: none !important; animation: none !important; }
+.vqc--starred { border-color: inherit !important; }
+.vqc-star { display: none !important; }
 
 /* The star border is a rotating conic ring behind the card, masked to the
    1.5px the frame does not cover — so it never eats interior width. */
@@ -4909,15 +4950,30 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   border: 1px solid var(--vq-line-soft, var(--vq-line));
 }
 
-/* ── the side panel is ONE container, like the old dashboard's ── */
-.vq-rails{ flex: 0 0 var(--vq-rails-w, 340px); width: var(--vq-rails-w, 340px); }
+/* ── sticky side panel: stays pinned, parallel to top card, 24px above bottom ── */
+.vq-rails{
+  flex: 0 0 var(--vq-rails-w, 340px);
+  width: var(--vq-rails-w, 340px);
+  min-width: 0;
+  margin: 0;
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  height: auto !important;
+  max-height: none !important;
+  display: flex;
+  flex-direction: column;
+}
 .vq-rails-shell{
+  height: auto !important;
+  max-height: none !important;
+  flex: 0 0 auto;
   display: flex; flex-direction: column; min-width: 0;
   background: var(--vq-surface);
   border: 1px solid var(--vq-line);
-  border-radius: var(--vq-r-lg, 14px);
-  box-shadow: var(--vq-elev-1);
-  overflow: hidden;
+  border-radius: var(--vq-r-lg, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px -2px rgba(0, 0, 0, 0.05);
+  overflow: visible !important;
 }
 .vq-rails-head{
   flex: 0 0 auto;
@@ -4933,10 +4989,16 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 .vq-rails-collapse:hover{ color: var(--vq-text); }
 .vq-rails-scroll{
-  flex: 1 1 auto; min-height: 0;
+  flex: 0 0 auto; min-height: 0;
+  height: auto !important;
+  max-height: none !important;
   display: flex; flex-direction: column;
   padding: 6px 18px 18px;
+  overflow: visible !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
 }
+.vq-rails-scroll::-webkit-scrollbar{ display: none !important; width: 0 !important; }
 /* rails inside the shell are sections, not floating cards */
 .vq-rails-scroll .vq-rail-card{
   background: transparent; border: 0; box-shadow: none;
@@ -4945,17 +5007,24 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 .vq-rails-scroll .vq-rail-card:last-child{ border-bottom: 0; padding-bottom: 4px; }
 
-/* sticky: the panel takes the full viewport height and scrolls inside */
-.vq-rails.is-sticky{ align-self: flex-start; position: sticky; top: 0; }
+/* sticky panel stays pinned at top: 24px and sizes to content */
+.vq-rails.is-sticky{
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  height: auto !important;
+  max-height: none !important;
+}
 .vq-rails.is-sticky .vq-rails-shell{
-  max-height: calc(100vh - var(--vq-header-h, 64px) - 48px);
-  display: flex;
+  height: auto !important;
+  max-height: none !important;
 }
-.vq-rails.is-sticky .vq-rails-scroll{ overflow-y: auto; overscroll-behavior: contain; }
-.vq-rails.is-sticky .vq-rails-scroll::-webkit-scrollbar{ width: 6px; }
-.vq-rails.is-sticky .vq-rails-scroll::-webkit-scrollbar-thumb{
-  background: var(--vq-line-strong, var(--vq-line)); border-radius: var(--vq-r-full, 999px);
+.vq-rails.is-sticky .vq-rails-scroll{
+  overflow: visible !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
 }
+.vq-rails.is-sticky .vq-rails-scroll::-webkit-scrollbar{ display: none !important; width: 0 !important; }
 
 /* the reopen tab when the panel is collapsed */
 .vq-rails-tab{
@@ -5132,3 +5201,29 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vqc--c1 .vqc-bd > *{ min-width: 0; }
 .vqc--c1 .vqc-label{ flex: 1 1 auto; }
 .vqc--c1 .vqc-value{ flex: 0 0 auto; }
+.vq-frame-picker {
+  margin-block-end: 24px;
+  padding: 16px;
+  border: 1px solid var(--vq-border, rgba(127, 127, 127, .22));
+  border-radius: 16px;
+  background: var(--vq-surface, #fff);
+}
+
+.vq-frame-empty {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--vq-border, rgba(127, 127, 127, .45));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--vq-surface, #fff) 82%, transparent);
+}
+
+.vq-frame-empty-add {
+  border: 0;
+  background: transparent;
+  color: var(--vq-muted, #667085);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}

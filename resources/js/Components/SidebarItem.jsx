@@ -23,7 +23,8 @@ export default function SidebarItem({
     onHoverExpand,
     menuKey,
     id,
-    isPlatformHQ = false // New prop for premium HQ styling
+    isPlatformHQ = false, // New prop for premium HQ styling
+    compact = false,
 }) {
     // Priority: use 'name' if provided, then 'label'
     const displayName = name || label;
@@ -70,27 +71,10 @@ export default function SidebarItem({
     return (
         <div
             id={id}
-            className="flex flex-col w-full mb-2"
+            className={`flex flex-col w-full ${compact ? 'mb-1' : 'mb-2'}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {/*
-              * THE ROW.
-              *
-              * `overflow-hidden` used to live on this element and it was the
-              * cause of the reported bug. It clipped three things at once: the
-              * icon's hover ring, which sat 4px outside its own box; the icon
-              * itself, which scaled 25% on hover; and the collapsed-state
-              * tooltip, which is positioned at `left-full` — entirely outside
-              * this box, so it never rendered AT ALL, in any state, on any
-              * hover. `z-50` did not save it: clipping happens during paint,
-              * before stacking is considered, and no z-index escapes an
-              * `overflow-hidden` ancestor. That misunderstanding is why the app
-              * accumulated 31 hand-written z-index values.
-              *
-              * The clip now lives only on the thing that needs clipping, and
-              * the tooltip is portalled to <body>.
-              */}
             <div
                 ref={rowRef}
                 className={`
@@ -101,14 +85,6 @@ export default function SidebarItem({
                     }
 `}
             >
-                {/*
-                  * Active state, per DESIGN-RULES v3.0 §13: a quiet accent wash
-                  * and a 3px accent rule down the left edge. What was here
-                  * before — two blurred 128px colour blobs, a noise texture and
-                  * a gradient hairline — was four decorative layers on the
-                  * single most-looked-at pixel in the product, in a colour that
-                  * was not the brand.
-                  */}
                 {isActive && (
                     <span
                         aria-hidden="true"
@@ -126,33 +102,23 @@ export default function SidebarItem({
                         }
                     }}
                     className={`flex-1 flex items-center relative z-10 outline-none ${
-                        isExpanded ? 'gap-3 p-3 justify-start' : 'p-3 justify-center'
+                        isExpanded
+                            ? (compact ? 'gap-2 px-2.5 py-1.5 justify-start' : 'gap-3 p-3 justify-start')
+                            : (compact ? 'p-2 justify-center' : 'p-3 justify-center')
                     }`}
                 >
-                    {/*
-                      * Icon: colour only, never a transform. A standalone icon
-                      * that scales under the pointer is the hover contract's
-                      * one absolute prohibition (§9).
-                      *
-                      * The `-inset-1` ring that used to sit here is gone. It
-                      * extended 4px past the icon on every side, so it was
-                      * clipped before the icon was — and it carried
-                      * `animate-pulse`, an ambient loop, which the product does
-                      * not do. A collapsed item with children is already marked
-                      * by its tooltip.
-                      */}
                     <div className="relative">
                         <Icon
-                            size={isPlatformHQ ? 22 : 20}
+                            size={compact ? 16 : (isPlatformHQ ? 22 : 20)}
                             className={`transition-colors duration-fast ${
                                 isActive ? 'text-accent-text' : 'group-hover:text-accent-text'
                             }`}
                         />
                     </div>
-                    {/* 700 on a nav label was doing hierarchy work that colour
-                        should do. §13: medium inactive, semibold active. */}
                     {isExpanded && (
-                        <span className={`text-sm whitespace-nowrap overflow-hidden transition-colors duration-fast ${
+                        <span className={`whitespace-nowrap overflow-hidden transition-colors duration-fast ${
+                            compact ? 'text-xs' : 'text-sm'
+                        } ${
                             isActive
                                 ? 'font-semibold text-accent-text'
                                 : 'font-medium text-ink-muted group-hover:text-ink-secondary'
@@ -170,9 +136,9 @@ export default function SidebarItem({
                             e.stopPropagation();
                             if (onToggle) onToggle();
                         }}
-                        className="p-3 relative z-raised hover:bg-interactive-active transition-colors duration-fast rounded-r-md"
+                        className={`${compact ? 'p-1.5' : 'p-3'} relative z-raised hover:bg-interactive-active transition-colors duration-fast rounded-r-md`}
                     >
-                        <ChevronRight size={16} className={`transition-transform duration-fast ${isMenuExpanded ? 'rotate-90' : ''} ${isActive ? 'text-accent-text' : 'text-ink-muted group-hover:text-ink-secondary'}`} />
+                        <ChevronRight size={compact ? 14 : 16} className={`transition-transform duration-fast ${isMenuExpanded ? 'rotate-90' : ''} ${isActive ? 'text-accent-text' : 'text-ink-muted group-hover:text-ink-secondary'}`} />
                     </button>
                 )}
 
@@ -228,10 +194,15 @@ export default function SidebarItem({
                             'System Settings': 'store.admin.settings',
                             'Store Settings': 'store.settings',
                             'Builder': 'store.builder',
+                            'Modules & Features': 'store.builder',
+                            'System Builder': 'store.builder',
+                            'Customize Modules': 'store.builder',
                             'Subscription': 'store.billing',
                             'Agent Inbox': 'store.admin.chatbot.inbox',
                             'Chatbot Settings': 'store.admin.chatbot.settings',
                             'POS': 'store.pos',
+                            'Tables': 'store.tables.index',
+                            'Floor Plan': 'store.tables.plan',
                             'Analytics': 'store.sales.analytics',
                             'Orders': 'store.sales.index',
                             'Invoices': 'store.sales.invoice.create',

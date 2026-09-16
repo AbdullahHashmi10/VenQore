@@ -184,10 +184,22 @@ final class Reckoner
 
             // 5b. Module — a reading owned by a tenant module disappears with
             // the module, exactly as its nav item does (ModuleNavBuilder).
-            // "Switched off" is not "plan-locked" and not "no data yet", so it
-            // reports as not_applicable.
+            // This is a lock, not an empty period. The reading envelope lets
+            // the card explain how to make itself available instead of looking
+            // like a failed query.
             if ($t !== null && ! $this->passesModules($t, $u, $definition['module'] ?? null)) {
-                $results[$id] = ReckonerResult::failure($id, $key, 'not_applicable', 'This store has this module switched off.');
+                $module = $definition['module'] ?? null;
+                $moduleKeys = array_filter((array) $module);
+                $moduleLabel = collect($moduleKeys)
+                    ->map(fn (string $moduleKey) => config("modules.{$moduleKey}.label", str_replace('_', ' ', $moduleKey)))
+                    ->implode(' or ');
+
+                $results[$id] = ReckonerResult::failure(
+                    $id,
+                    $key,
+                    'module_locked',
+                    'Needs the '.($moduleLabel !== '' ? $moduleLabel : 'required').' module.'
+                );
 
                 continue;
             }
@@ -334,6 +346,7 @@ final class Reckoner
         $resolvedCompare = [];
 
         foreach ($toResolve as $sourceClass => $items) {
+            $source = null;
             try {
                 /** @var \App\Reckoner\Sources\ReckonerSource $source */
                 $source = app($sourceClass);
@@ -349,19 +362,67 @@ final class Reckoner
             } catch (Throwable $e) {
                 report($e);
 
-                foreach ($items as $item) {
-                    $primaryId = $item['is_compare'] ? $item['primary_id'] : $item['id'];
-                    $results[$primaryId] = ReckonerResult::failure($primaryId, $item['key'], 'resolver_failed', 'This reading could not be computed.');
+                // A source that cannot even be constructed cannot safely be
+                // retried item-by-item. Return an error for its own cards only.
+                if ($source === null) {
+                    foreach ($items as $item) {
+                        $primaryId = $item['is_compare'] ? $item['primary_id'] : $item['id'];
+                        $results[$primaryId] = ReckonerResult::failure(
+                            $primaryId,
+                            $item['key'],
+                            'resolver_failed',
+                            'This reading could not be computed.',
+                        );
+                    }
+                    continue;
                 }
 
-                continue;
+                /* One bad resolver must not erase every other card handled by
+                 * the same source. Sources batch for speed; this retry is the
+                 * containment path when that batch throws. Each request is
+                 * retried alone so a bad card gets an error envelope while its
+                 * neighbours still receive their reading. */
+                $payloads = [];
+                foreach ($items as $item) {
+                    try {
+                        $single = $source->resolveBatch([[
+                            'id' => $item['id'],
+                            'key' => $item['key'],
+                            'period' => $item['period'],
+                            'args' => $item['args'],
+                        ]], $ctx);
+                        if (array_key_exists($item['id'], $single)) {
+                            $payloads[$item['id']] = $single[$item['id']];
+                            continue;
+                        }
+                    } catch (Throwable $singleError) {
+                        report($singleError);
+                        $e = $singleError;
+                    }
+
+                    $primaryId = $item['is_compare'] ? $item['primary_id'] : $item['id'];
+                    $unavailable = $e instanceof \App\Exceptions\MissingFinancialAccountException;
+                    $results[$primaryId] = ReckonerResult::failure(
+                        $primaryId,
+                        $item['key'],
+                        $unavailable ? 'unavailable' : 'resolver_failed',
+                        $unavailable ? $e->getMessage() : 'This reading could not be computed.',
+                    );
+                }
             }
 
             foreach ($items as $item) {
                 $itemId = $item['id'];
+                $primaryId = $item['is_compare'] ? $item['primary_id'] : $itemId;
+
+                // The isolated retry already produced this card's definitive
+                // error envelope. Do not overwrite it with the less useful
+                // generic "source did not return" message below.
+                if (isset($results[$primaryId]) && ! $results[$primaryId]->ok) {
+                    continue;
+                }
 
                 if (! array_key_exists($itemId, $payloads)) {
-                    $primaryId = $item['is_compare'] ? $item['primary_id'] : $itemId;
                     $results[$primaryId] = ReckonerResult::failure($primaryId, $item['key'], 'resolver_failed', "Source did not return a value.");
 
                     continue;

@@ -16,7 +16,8 @@ import {
     Calculator,
     Tag,
     ArrowRight,
-    Command
+    Command,
+    Sparkles
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 
@@ -88,6 +89,7 @@ const CommandPalette = () => {
         { id: 'parties', name: 'Parties / Contacts', keywords: 'parties customers suppliers contacts', icon: Users, action: () => router.visit(route('store.parties.index', { store_slug: store?.slug })), category: 'Navigation' },
         { id: 'reports', name: 'Reports', keywords: 'reports analytics insights', icon: BarChart2, action: () => router.visit(route('store.reports.index', { store_slug: store?.slug })), category: 'Navigation' },
         { id: 'settings', name: 'Settings', keywords: 'settings preferences config', icon: Settings, action: () => router.visit(route('store.settings', { store_slug: store?.slug })), category: 'Navigation' },
+        { id: 'builder', name: 'System Builder (Customize Modules)', keywords: 'builder modules features apps add turn on off enable disable', icon: Sparkles, action: () => router.visit(route('store.builder', { store_slug: store?.slug })), category: 'Navigation' },
 
         // Quick Actions
         { id: 'new-sale', name: tt('New Sale Invoice'), keywords: 'new sale invoice create', icon: Plus, action: () => router.visit(route('store.new-invoice', { store_slug: store?.slug })), category: 'Quick Actions' },

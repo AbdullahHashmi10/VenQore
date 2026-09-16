@@ -209,9 +209,10 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                         </div>
                         <button
                             onClick={handleCreate}
-                            className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
+                            className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
+                            style={{ color: '#ffffff' }}
                         >
-                            <Plus size={14} /> Add Account
+                            <Plus size={14} className="text-white shrink-0" /> <span className="text-white">Add Account</span>
                         </button>
                     </div>
                 </div>

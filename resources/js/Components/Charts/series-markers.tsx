@@ -287,6 +287,7 @@ function SeriesMarkersActiveHighlight({
       cy={activePoint.cy}
       scale={activeScale}
       {...markerStyle}
+      radius={markerStyle.radius === 0 ? 5 : markerStyle.radius}
     />
   );
 }

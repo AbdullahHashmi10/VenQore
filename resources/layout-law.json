@@ -156,6 +156,20 @@
           "h": 3,
           "floor": 163,
           "label": "Stacked"
+        },
+        {
+          "key": "wide",
+          "w": 4,
+          "h": 2,
+          "floor": 386,
+          "label": "Wide"
+        },
+        {
+          "key": "band",
+          "w": 6,
+          "h": 2,
+          "floor": 560,
+          "label": "Band"
         }
       ]
     },
@@ -195,6 +209,27 @@
           "h": 6,
           "floor": 200,
           "label": "List"
+        },
+        {
+          "key": "wide",
+          "w": 6,
+          "h": 3,
+          "floor": 700,
+          "label": "Wide"
+        },
+        {
+          "key": "broad",
+          "w": 6,
+          "h": 4,
+          "floor": 700,
+          "label": "Broad"
+        },
+        {
+          "key": "column",
+          "w": 4,
+          "h": 6,
+          "floor": 492,
+          "label": "Column"
         }
       ]
     },
@@ -227,6 +262,34 @@
           "h": 8,
           "floor": 295,
           "label": "Minimum"
+        },
+        {
+          "key": "band",
+          "w": 8,
+          "h": 3,
+          "floor": 733,
+          "label": "Band"
+        },
+        {
+          "key": "wideband",
+          "w": 7,
+          "h": 4,
+          "floor": 660,
+          "label": "Wide band"
+        },
+        {
+          "key": "stage",
+          "w": 8,
+          "h": 6,
+          "floor": 733,
+          "label": "Stage"
+        },
+        {
+          "key": "pillar",
+          "w": 5,
+          "h": 8,
+          "floor": 415,
+          "label": "Pillar"
         }
       ]
     },
@@ -259,6 +322,20 @@
           "h": 12,
           "floor": 295,
           "label": "Minimum"
+        },
+        {
+          "key": "banner",
+          "w": 12,
+          "h": 4,
+          "floor": 1100,
+          "label": "Banner"
+        },
+        {
+          "key": "hero",
+          "w": 12,
+          "h": 5,
+          "floor": 1100,
+          "label": "Hero"
         }
       ]
     }
@@ -294,13 +371,12 @@
       "pie",
       "ring",
       "sunburst",
-      "funnel",
-      "bar"
+      "funnel"
     ],
     "RANKING": [
-      "bar",
+      "list",
       "table",
-      "funnel"
+      "bar"
     ],
     "TABLE": [
       "table",
@@ -352,6 +428,12 @@
       "C3",
       "C4",
       "C5"
+    ],
+    "list": [
+      "C3",
+      "C4",
+      "C5",
+      "C6"
     ],
     "bar": [
       "C4",
@@ -1081,6 +1163,7 @@
     "funnel": "C4",
     "feed": "C4",
     "radar": "C4",
+    "list": "C4",
     "bar": "C5",
     "line": "C5",
     "area": "C5",
