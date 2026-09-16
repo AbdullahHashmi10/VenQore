@@ -726,7 +726,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  subs: [
  { group: 'Executive', items: ['Executive Dashboard'] },
  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
- { group: 'System & Data', items: ['Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
+ { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
  { group: 'AI Support', items: ['Agent Inbox'] }
  ],
  route: store ? 'store.admin.dashboard' : null,
@@ -887,7 +887,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'WooCommerce Sync': ['store.vensynq.index', 'store.woocommerce.index'],
 	};
 
-	const enabledModuleSet = Array.isArray(props?.modules) ? new Set(props.modules) : null;
+	const enabledModuleSet = Array.isArray(props?.modules)
+		? new Set(
+				props.modules.map((m) => {
+					if (typeof m === 'string') return m;
+					if (typeof m === 'object' && m !== null) {
+						return m.enabled ? m.key : null;
+					}
+					return null;
+				}).filter(Boolean)
+		  )
+		: null;
 	const derivedNavRoutes = Array.isArray(props?.nav) ? new Set(props.nav.map(n => n.route)) : null;
 
 	const subitemModuleVisible = (item) => {

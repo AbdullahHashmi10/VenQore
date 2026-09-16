@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import PasscodeModal from '@/Components/PasscodeModal';
 import PrintPreview from '@/Components/PrintPreview';
 import Swal from 'sweetalert2';
@@ -33,7 +33,7 @@ const SETTINGS_CATEGORIES = [
  id: 'org',
  name: 'Organization',
  icon: Building2,
- sections: ['business', 'preferences']
+ sections: ['business', 'modules', 'preferences']
  },
  {
  id: 'ops',
@@ -57,6 +57,7 @@ const SETTINGS_CATEGORIES = [
 
 const SETTINGS_SECTIONS = [
  { id: 'business', name: 'Business Info', icon: Building2, description: 'Company details, custom domain and branding' },
+ { id: 'modules', name: 'Modules & Features', icon: Sparkles, description: 'Turn business capabilities on or off' },
  { id: 'preferences', name: 'Preferences', icon: Settings, description: 'Passcode, multi-firm, language & alerts' },
  { id: 'sales', name: 'Sales & Invoicing', icon: ShoppingCart, description: 'Checkout behavior and invoice fields' },
  { id: 'taxes', name: 'Taxes', icon: Percent, description: 'Tax rates and groups' },
@@ -388,6 +389,41 @@ export default function AdminSettings({ settings = {} }) {
  switch (activeSection) {
  case 'business':
  return <BusinessSettingsSection data={data} setData={setData} />;
+
+ case 'modules':
+ return (
+ <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <SectionHeader
+ title="Modules & Features"
+ description="Turn business capabilities on or off at any time with zero data loss"
+ />
+ <div className="bg-surface rounded-2xl border border-line p-8 space-y-6 shadow-xs">
+ <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+ <div className="space-y-2">
+ <div className="flex items-center gap-2.5">
+ <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center">
+ <Sparkles size={18} />
+ </div>
+ <h3 className="text-lg font-bold text-ink">System Builder</h3>
+ </div>
+ <p className="text-sm text-ink-muted max-w-xl leading-relaxed">
+ Configure which modules your store uses across Catalog, Sell, Stock, Buy, Make, Finance, and Grow.
+ Modules can be enabled or disabled at any time. When a module is turned off, all your historical
+ data is preserved safely and hidden until you turn it back on.
+ </p>
+ </div>
+ <Link
+ href={route('store.builder', { store_slug: store?.slug })}
+ className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition-colors shrink-0"
+ >
+ <Sparkles size={16} />
+ Open System Builder
+ <ChevronRight size={16} />
+ </Link>
+ </div>
+ </div>
+ </div>
+ );
 
  case 'preferences':
  // Merges the old "General", "System" and "Notifications" tabs.

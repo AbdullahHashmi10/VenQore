@@ -39,6 +39,15 @@ export const APP_REGISTRY = [
         route: 'home',
     },
     {
+        id: 'system-builder',
+        title: 'System Builder (Modules & Features)',
+        subtitle: 'Turn business modules on or off any time with zero data loss',
+        keywords: ['builder', 'modules', 'features', 'customize', 'add module', 'enable', 'disable', 'apps', 'plugins', 'setup'],
+        icon: Sparkles,
+        category: CATEGORIES.NAVIGATION,
+        route: 'store.builder',
+    },
+    {
         id: 'pos',
         title: 'Point of Sale',
         subtitle: 'Open the POS terminal',

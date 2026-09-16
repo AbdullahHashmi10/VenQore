@@ -27,7 +27,14 @@ const SPRING = { type: 'spring', stiffness: 400, damping: 34, mass: 0.8 };
 | would have refused to produce itself.
 |==============================================================================
 */
-export default function BuilderIndex({ modules = [], groupLabels = {}, highlight = null, businessType = null }) {
+export default function BuilderIndex({
+    modules: rawModules = [],
+    builderModules = null,
+    groupLabels = {},
+    highlight = null,
+    businessType = null,
+}) {
+    const modules = builderModules || (Array.isArray(rawModules) && typeof rawModules[0] === 'object' ? rawModules : []);
     const { store } = usePage().props;
     const still = useReducedMotion();
 
