@@ -433,11 +433,6 @@ function queueLiveReadings(cards, onComplete) {
 
     const existing = LIVE_RECKONER_DATA[compositeId] || LIVE_RECKONER_DATA[reqKey];
     const isExpired = existing && existing._expiresAt && now > existing._expiresAt;
-    if (isExpired) {
-      delete LIVE_RECKONER_DATA[compositeId];
-      delete LIVE_RECKONER_DATA[reqKey];
-      delete LIVE_RECKONER_DATA[`${c.key}|${reckPer}`];
-    }
 
     if (!PENDING_RECKONER_REQUESTS.has(reqKey) && (!existing || isExpired)) {
       PENDING_RECKONER_REQUESTS.add(reqKey);
@@ -455,11 +450,6 @@ function queueLiveReadings(cards, onComplete) {
         const ekReqKey = `${ek}|${uiPer}`;
         const ekExisting = LIVE_RECKONER_DATA[ekCompositeId] || LIVE_RECKONER_DATA[ekReqKey];
         const ekIsExpired = ekExisting && ekExisting._expiresAt && now > ekExisting._expiresAt;
-        if (ekIsExpired) {
-          delete LIVE_RECKONER_DATA[ekCompositeId];
-          delete LIVE_RECKONER_DATA[ekReqKey];
-          delete LIVE_RECKONER_DATA[`${ek}|${ekReckPer}`];
-        }
 
         if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && (!ekExisting || ekIsExpired)) {
           PENDING_RECKONER_REQUESTS.add(ekReqKey);
@@ -487,7 +477,7 @@ function queueLiveReadings(cards, onComplete) {
       const receivedAt = Date.now();
       items.forEach((item) => {
         if (item && item.key) {
-          const ttlSec = Number(item.meta?.ttl) || 60;
+          const ttlSec = Math.max(300, Number(item.meta?.ttl) || 300);
           item._expiresAt = receivedAt + ttlSec * 1000;
 
           // Match by item.id if composite id returned, or key + period
@@ -511,9 +501,11 @@ function queueLiveReadings(cards, onComplete) {
       const message = error?.response?.data?.message || error?.message || "This reading could not be loaded.";
       chunk.forEach(req => {
         const failure = { key: req.key, ok: false, status: "error", error: { code: "request_failed", message } };
-        LIVE_RECKONER_DATA[`${req.key}|${req.period}|${req.granularity}`] = failure;
-        LIVE_RECKONER_DATA[`${req.key}|${req.period}`] = failure;
-        LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`] = failure;
+        if (!LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`]) {
+          LIVE_RECKONER_DATA[`${req.key}|${req.period}|${req.granularity}`] = failure;
+          LIVE_RECKONER_DATA[`${req.key}|${req.period}`] = failure;
+          LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`] = failure;
+        }
       });
     })
     .finally(() => {
@@ -531,17 +523,11 @@ function queueLiveReadings(cards, onComplete) {
 function liveReading(card){
   const reckPer = toReckonerPeriod(card.period);
   const gran = PERIOD[card.period]?.grain || "day";
-  const now = Date.now();
 
-  const candidate = LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
+  return LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
     || LIVE_RECKONER_DATA[`${card.key}|${reckPer}|${gran}`]
     || LIVE_RECKONER_DATA[`${card.key}|${reckPer}`]
     || null;
-
-  if (candidate && candidate._expiresAt && now > candidate._expiresAt) {
-    return null;
-  }
-  return candidate;
 }
 
 function renderDataState(host, card, emptyMessage = "No data in this period."){
@@ -1164,8 +1150,14 @@ function wireCartesian(host, card, ds, g){
      must respect that, or the hover value overflows what fitValues fitted */
   const headCompact = () => head?.closest(".vqc-value")?.dataset.mode === "compact";
   const restText = () => {
-    const s0 = ds.series[0], last = s0.values[s0.values.length - 1];
-    return { v: unitPrefix(s0.unit) + fmtValue(last, s0.unit, headCompact()), when: rangeLabel(ds) };
+    const hl = headlineOf(card);
+    if (hl && hl.value && hl.value !== "—") {
+      return { v: headCompact() ? hl.valueCompact : hl.value, when: hl.when || rangeLabel(ds) };
+    }
+    const s0 = ds.series[0];
+    const nonZeroVals = (s0?.values || []).filter(v => v !== 0 && v !== null && !isNaN(v));
+    const fallbackVal = nonZeroVals.length ? nonZeroVals[nonZeroVals.length - 1] : (s0?.values?.[s0.values.length - 1] ?? 0);
+    return { v: unitPrefix(s0?.unit || "") + fmtValue(fallbackVal, s0?.unit, headCompact()), when: rangeLabel(ds) };
   };
 
   function show(i){
@@ -2241,6 +2233,9 @@ function headlineOf(card){
         if (live.data.previous !== undefined && live.data.previous !== null) {
           prev = Number(live.data.previous);
           hasDelta = true;
+        } else if (live.data.comparison?.previous !== undefined && live.data.comparison?.previous !== null) {
+          prev = Number(live.data.comparison.previous);
+          hasDelta = true;
         }
       } else if (live.value !== undefined && live.value !== null) {
         last = Number(live.value);
@@ -2251,16 +2246,29 @@ function headlineOf(card){
         if (live.data.previous !== undefined && live.data.previous !== null) {
           prev = Number(live.data.previous);
           hasDelta = true;
+        } else if (live.data.comparison?.previous !== undefined && live.data.comparison?.previous !== null) {
+          prev = Number(live.data.comparison.previous);
+          hasDelta = true;
         }
       } else if (Array.isArray(live.data.slices) && live.data.slices.length > 0) {
         last = live.data.slices.reduce((acc, x) => acc + (x.value !== undefined && x.value !== null ? Number(x.value) : 0), 0);
       } else {
         const seriesSource = live.data.series || live.data.points || live.series;
         if (Array.isArray(seriesSource) && seriesSource.length > 0) {
-          const lastPt = seriesSource[seriesSource.length - 1];
-          const rawVal = lastPt?.y ?? lastPt?.value ?? (typeof lastPt === 'number' ? lastPt : null);
-          if (rawVal !== null && rawVal !== undefined) {
-            last = Number(rawVal);
+          if (live.data.total !== undefined && live.data.total !== null) {
+            last = Number(live.data.total);
+          } else if (live.value !== undefined && live.value !== null) {
+            last = Number(live.value);
+          } else {
+            const nonZeroPts = seriesSource.filter(pt => {
+              const v = pt?.y ?? pt?.value ?? (typeof pt === 'number' ? pt : null);
+              return v !== null && v !== undefined && v !== 0;
+            });
+            const chosenPt = nonZeroPts.length ? nonZeroPts[nonZeroPts.length - 1] : seriesSource[seriesSource.length - 1];
+            const rawVal = chosenPt?.y ?? chosenPt?.value ?? (typeof chosenPt === 'number' ? chosenPt : null);
+            if (rawVal !== null && rawVal !== undefined) {
+              last = Number(rawVal);
+            }
           }
           if (seriesSource.length > 1) {
             const prevPt = seriesSource[seriesSource.length - 2];
@@ -2290,6 +2298,8 @@ function headlineOf(card){
       pctNum = ((last - prev) / Math.abs(prev)) * 100;
     } else if (live.delta?.pct !== undefined && live.delta?.pct !== null) {
       pctNum = Number(live.delta.pct);
+    } else if (live.data?.comparison?.percent !== undefined && live.data?.comparison?.percent !== null) {
+      pctNum = Number(live.data.comparison.percent);
     } else if (live.data?.change_pct !== undefined && live.data?.change_pct !== null) {
       pctNum = Number(live.data.change_pct);
     } else if (live.data?.delta_pct !== undefined && live.data?.delta_pct !== null) {
@@ -2797,7 +2807,7 @@ function bodyChartCard(c, geo, link){
         ${valueHTML(hl)}
         ${(showDelta && hl.pct) ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
       </div>` : ""}
-      ${showWhen ? `<p class="vqc-when"${hl.asOf ? ` title="As of ${esc(hl.asOf)}"` : ''}>${esc(hl.when)}${hl.freshness === 'mixed' ? ' · updating…' : ''}</p>` : ""}
+      ${showWhen ? `<p class="vqc-when"${hl.asOf ? ` title="As of ${esc(hl.asOf)}"` : ''}>${esc(hl.when)}</p>` : ""}
       ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}
     </div>`;
 }

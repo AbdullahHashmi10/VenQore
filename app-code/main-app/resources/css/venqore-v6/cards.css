@@ -79,34 +79,60 @@
    The board has to say which number matters. Exactly one card per board takes
    the fill, and it is the headline — that is enforced server-side by the
    accent budget, not here. */
+/* The one filled card. M1: exactly one per board, and it is the headline.
+   Mesh ground from V6 standalone with Vena AiIsland visual consistency. */
 .vqc--accent {
     background: var(--vq-accent-card);
-    border-color: transparent;
-    color: var(--vq-on-accent-text);
-    box-shadow: var(--vq-glow-accent);
+    background-color: #0A0B0F;
+    border: 1px solid rgba(35, 196, 166, 0.28);
+    color: var(--vq-on-accent-text, #FFFFFF);
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
+    --chart-1: #59DBC0;
+    --chart-2: #8FD9F5;
+    --chart-3: #FFD56B;
+    --chart-line-primary: #59DBC0;
+    --chart-line-secondary: #8FD9F5;
+    --chart-grid: rgba(255, 255, 255, 0.09);
+    --chart-label: rgba(241, 245, 242, 0.74);
+    --chart-foreground: #FFFFFF;
+    --chart-foreground-muted: rgba(241, 245, 242, 0.70);
+    --vq-series-1-ink: #59DBC0;
+    --chart-track: rgba(255, 255, 255, 0.12);
+    --chart-track-data: rgba(255, 255, 255, 0.40);
+    --chart-indicator-color: #59DBC0;
+    --chart-crosshair: rgba(255, 255, 255, 0.25);
+    --chart-tooltip-background: #111815;
+    --chart-tooltip-foreground: #FFFFFF;
+    --chart-tooltip-muted: rgba(241, 245, 242, 0.70);
 }
 .vqc--accent:hover {
-    border-color: transparent;
-    box-shadow: var(--vq-glow-accent-strong);
+    border-color: rgba(89, 219, 192, 0.55);
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.60), 0 0 28px -2px rgba(11, 170, 143, 0.32);
 }
-.vqc--accent .vqc-eyebrow,
+.vqc--accent .vqc-eyebrow {
+    color: #59DBC0;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
 .vqc--accent .vqc-when,
 .vqc--accent .vqc-unit,
-.vqc--accent .vqc-ctx { color: var(--vq-on-accent-muted); }
-.vqc--accent .vqc-value { color: var(--vq-on-accent-text); }
+.vqc--accent .vqc-ctx { color: rgba(241, 245, 242, 0.76); }
+.vqc--accent .vqc-value { color: #FFFFFF; }
+.vqc--accent .vqc-label { color: rgba(241, 245, 242, 0.90); }
 
-/* M6 · dark is a re-render. The accent card gains an accent edge and the
-   strong bloom, so it separates from a near-black surface without the fill
-   lightening far enough to drop white text under 4.5:1. */
+/* M6 · dark theme — maintain rich mesh radiance and refined edge */
 :root[data-theme="dark"] .vqc--accent,
 html.dark .vqc--accent,
 .vq-dark .vqc--accent {
-    border-color: var(--vq-teal-600);
-    box-shadow: var(--vq-glow-accent-strong);
+    border-color: rgba(35, 196, 166, 0.35);
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.60), 0 0 24px -2px rgba(11, 170, 143, 0.24);
 }
 :root[data-theme="dark"] .vqc--accent:hover,
 html.dark .vqc--accent:hover,
-.vq-dark .vqc--accent:hover { border-color: var(--vq-teal-500); }
+.vq-dark .vqc--accent:hover {
+    border-color: rgba(89, 219, 192, 0.60);
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.70), 0 0 32px -2px rgba(11, 170, 143, 0.36);
+}
 
 /* States the board puts a card into while it is being moved. */
 .vqc.is-going   { opacity: 0; }
@@ -210,10 +236,24 @@ html.dark .vqc--accent:hover,
 .vqc-act.vqc-del:hover { background: var(--vq-danger-line); }
 
 .vqc--accent .vqc-act {
-    background: var(--vq-on-accent-quiet);
-    color: var(--vq-on-accent-text);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
 }
-.vqc--accent .vqc-act:hover { background: var(--vq-on-accent-quiet-2); }
+.vqc--accent .vqc-act:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(89, 219, 192, 0.45);
+    color: #FFFFFF;
+}
+.vqc--accent .vqc-act.vqc-del {
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(239, 68, 68, 0.32);
+    color: #FF9B9B;
+}
+.vqc--accent .vqc-act.vqc-del:hover {
+    background: rgba(239, 68, 68, 0.30);
+    color: #FFFFFF;
+}
 
 /* On the one- and two-row cards there is no header row to hang them off, so
    they float over the face instead. */
@@ -258,11 +298,18 @@ html.dark .vqc--accent:hover,
 .vqc-per-b[aria-expanded="true"] svg { transform: rotate(180deg); }
 
 .vqc--accent .vqc-per-b {
-    background: var(--vq-on-accent-quiet);
-    border-color: transparent;
-    color: var(--vq-on-accent-text);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #FFFFFF;
 }
-.vqc--accent .vqc-per-b:hover { background: var(--vq-on-accent-quiet-2); }
+.vqc--accent .vqc-per-b:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(89, 219, 192, 0.45);
+    color: #FFFFFF;
+}
+.vqc--accent .vqc-per-b svg {
+    color: rgba(241, 245, 242, 0.82);
+}
 
 .vqc-per-m {
     position: absolute;
@@ -377,12 +424,26 @@ html.dark .vqc--accent:hover,
 .vqc-delta--up   { color: var(--vq-success-ink); background: var(--vq-success-bg); }
 .vqc-delta--down { color: var(--vq-danger-ink);  background: var(--vq-danger-bg); }
 .vqc-delta--flat { color: var(--vq-text-2);      background: var(--vq-sunken); }
-/* A pale green pill on a mint fill is invisible, so on the accent card the
-   pill goes to a dark scrim and the GLYPH keeps carrying the direction —
-   which is what M3 actually requires. */
+/* Delta pills on the dark mesh ground — distinct up/down/flat contrast */
 .vqc--accent .vqc-delta {
-    background: var(--vq-on-accent-wash);
-    color: var(--vq-on-accent-text);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(241, 245, 242, 0.85);
+}
+.vqc--accent .vqc-delta--up {
+    background: rgba(35, 196, 166, 0.18);
+    border: 1px solid rgba(35, 196, 166, 0.35);
+    color: #59DBC0;
+}
+.vqc--accent .vqc-delta--down {
+    background: rgba(242, 106, 71, 0.18);
+    border: 1px solid rgba(242, 106, 71, 0.35);
+    color: #FFB3AC;
+}
+.vqc--accent .vqc-delta--flat {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(241, 245, 242, 0.85);
 }
 
 .vqc-ctx {
@@ -812,42 +873,12 @@ html.dark .vqc--accent:hover,
 }
 .vqc:hover .vqc-glare { background-position: 160% 160%, 0 0; }
 
-/* StarBorder — only on the one accent card, because it is the one card that
-   is allowed to ask for attention. */
+/* StarBorder — disabled per user directive */
 .vqc--accent::before,
 .vqc--accent::after {
-    content: '';
-    position: absolute;
-    z-index: 0;
-    width: 300%;
-    height: 50%;
-    opacity: .55;
-    /* 50%, not --vq-r-full. This is an ELLIPSE, not a surface: the shape is
-       three times wider than the card, so a 999px radius resolves to a stadium
-       with flat sides and the soft sweep renders as two hard slabs across the
-       fill. A percentage radius is the only way to say "ellipse", and the
-       surface-radius scale does not apply to a decorative mask. */
-    border-radius: 50%;
-    pointer-events: none;
-    background: radial-gradient(circle, var(--vq-on-accent-text) 0%, transparent 62%);
-}
-.vqc--accent::before {
-    top: -13px;
-    left: -250%;
-    animation: vqc-star-top 7s linear infinite alternate;
-}
-.vqc--accent::after {
-    bottom: -13px;
-    right: -250%;
-    animation: vqc-star-bottom 7s linear infinite alternate;
-}
-@keyframes vqc-star-top {
-    0%   { transform: translate(0, 0);    opacity: .7; }
-    100% { transform: translate(100%, 0); opacity: 0; }
-}
-@keyframes vqc-star-bottom {
-    0%   { transform: translate(0, 0);     opacity: .7; }
-    100% { transform: translate(-100%, 0); opacity: 0; }
+    display: none !important;
+    content: none !important;
+    animation: none !important;
 }
 .vqc--accent > * { position: relative; z-index: 1; }
 
@@ -1173,3 +1204,58 @@ html.dark .vqc--accent:hover,
 @media (prefers-reduced-motion: reduce) {
     .vqc-cmp-track i { animation: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   13 · MESH CARD CHART & DATA POLISH
+   High-contrast rendering for lines, graphs, axes, ticks, and fact panels
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.vqc--accent .visx-line,
+.vqc--tone-accent .visx-line,
+.vqc--accent .ck-gr,
+.vqc--tone-accent .ck-gr {
+    stroke: rgba(255, 255, 255, 0.09) !important;
+}
+
+.vqc--accent .visx-axis-tick text,
+.vqc--accent .visx-axis text,
+.vqc--tone-accent .visx-axis-tick text,
+.vqc--tone-accent .visx-axis text,
+.vqc--accent .vqx-tick,
+.vqc--tone-accent .vqx-tick {
+    fill: rgba(241, 245, 242, 0.74) !important;
+    color: rgba(241, 245, 242, 0.74) !important;
+}
+
+.vqc--accent .visx-axis-line,
+.vqc--tone-accent .visx-axis-line,
+.vqc--accent .ck-ax,
+.vqc--tone-accent .ck-ax {
+    stroke: rgba(255, 255, 255, 0.14) !important;
+}
+
+.vqc--accent .vqc-stat-note,
+.vqc--tone-accent .vqc-stat-note {
+    color: rgba(241, 245, 242, 0.76);
+}
+
+.vqc--accent .vqc-fact,
+.vqc--tone-accent .vqc-fact {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+}
+.vqc--accent .vqc-fact span,
+.vqc--tone-accent .vqc-fact span { color: rgba(241, 245, 242, 0.74); }
+.vqc--accent .vqc-fact b,
+.vqc--tone-accent .vqc-fact b { color: #FFFFFF; }
+.vqc--accent .vqc-fact em,
+.vqc--tone-accent .vqc-fact em { color: rgba(241, 245, 242, 0.74); }
+
+.vqc--accent .vqc-cmp-value,
+.vqc--tone-accent .vqc-cmp-value { color: #FFFFFF; }
+.vqc--accent .vqc-cmp-label,
+.vqc--tone-accent .vqc-cmp-label { color: rgba(241, 245, 242, 0.76); }
+.vqc--accent .vqc-cmp-track,
+.vqc--tone-accent .vqc-cmp-track { background: rgba(255, 255, 255, 0.14); }
+
+.vqc--accent .vqc-glare { display: none; }

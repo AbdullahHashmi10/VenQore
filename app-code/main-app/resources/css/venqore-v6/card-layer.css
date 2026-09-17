@@ -42,10 +42,11 @@
   --vq-on-accent-wash:    rgb(0 0 0 / .26);
 
   /* ── The one accent-filled card ───────────────────────────────────────────
-     M1: exactly one per board, and it is the headline metric. A gradient
-     rather than a slab, so dark mode is a re-render and not an inversion.
-     Deep enough that white clears 4.5:1 at 11px — teal-700 is 6.34:1. */
-  --vq-accent-card: linear-gradient(135deg, var(--vq-teal-700) 0%, var(--vq-teal-900) 100%);
+     Hero mesh background — signature 3-lobe radial mesh from V6 standalone / Vena */
+  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
+                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
+                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+                    #0A0B0F;
 
   /* ── Chart furniture that carries data ────────────────────────────────────
      §11 splits tracks in two. A track that ENCODES something — the inactive
@@ -79,12 +80,11 @@
 }
 
 :root[data-theme="dark"], html.dark, .vq-dark {
-  /* A different gradient geometry, not a lighter one. The accent card has to
-     separate from a near-black surface without the fill getting so light that
-     white text drops under 4.5:1 — so the angle changes and the dark stop goes
-     deeper, and the separation comes from the accent edge and the bloom the
-     plain cards do not have. */
-  --vq-accent-card: linear-gradient(118deg, var(--vq-teal-700) 0%, var(--vq-teal-950) 100%);
+  /* Mesh hero card ground in dark theme */
+  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
+                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
+                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+                    #0A0B0F;
 
   /* A 28% white track measured 2.56:1 against #141B19. 38% is 3.1:1. */
   --vq-chart-track-data: rgb(255 255 255 / .38);
