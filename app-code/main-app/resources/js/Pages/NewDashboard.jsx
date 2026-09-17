@@ -38,6 +38,8 @@ const NAV_GROUP_ORDER = ['A','B','C','D','E','F','G'];
 
 // React Bits Components
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
+import V6FinancialSidebar from '@/Components/V6FinancialSidebar';
+import RightPanel from '@/Components/RightPanel';
 import RECKONER_CATALOG from './ReckonerCatalog.json';
 
 /* ══ human copy ════════════════════════════════════════════════════════════
@@ -895,22 +897,14 @@ function pathStep(pts){
   }
   return d;
 }
-/* Monotone-aware smooth curve: flattens slope at local peaks & valleys so curves stay perfectly rounded and never overshoot above the data bounds */
-function pathSmooth(pts, t = 0.38){
+/* Catmull-Rom → flowing organic cubic bezier (alpha ≈ 0.42) */
+function pathSmooth(pts, t = 0.42){
   if (pts.length < 3) return pathLinear(pts);
   let d = "M" + P(pts[0][0], pts[0][1]);
   for (let i = 0; i < pts.length - 1; i++){
     const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
-    let dy1 = (p2[1] - p0[1]) * t / 3;
-    let dy2 = (p3[1] - p1[1]) * t / 3;
-
-    // If p1 is a local extremum (peak/trough), flatten slope at the vertex
-    if ((p1[1] - p0[1]) * (p2[1] - p1[1]) <= 0) dy1 = 0;
-    // If p2 is a local extremum, flatten entry slope at the vertex
-    if ((p2[1] - p1[1]) * (p3[1] - p2[1]) <= 0) dy2 = 0;
-
-    const c1 = [p1[0] + (p2[0] - p0[0]) * t / 3, p1[1] + dy1];
-    const c2 = [p2[0] - (p3[0] - p1[0]) * t / 3, p2[1] - dy2];
+    const c1 = [p1[0] + (p2[0]-p0[0]) * t/3, p1[1] + (p2[1]-p0[1]) * t/3];
+    const c2 = [p2[0] - (p3[0]-p1[0]) * t/3, p2[1] - (p3[1]-p1[1]) * t/3];
     d += ` C${P(c1[0],c1[1])} ${P(c2[0],c2[1])} ${P(p2[0],p2[1])}`;
   }
   return d;
@@ -1633,14 +1627,13 @@ function mountSparkline(host, card){
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
   const rawMn = Math.min(...vals), rawMx = Math.max(...vals);
   const span = Math.max(1, rawMx - rawMn);
-  /* Generous 28% top headroom + 8% bottom floor + 16px top padding guarantees
-     that Catmull-Rom cubic bezier overshoots at peaks and dips will never
-     touch or clip against the SVG bounds. */
-  const mn = rawMn < 0 ? rawMn - span * 0.12 : Math.max(0, rawMn - span * 0.08);
-  const mx = rawMx + span * 0.28;
+  /* 42% top headroom and 14% bottom floor gives the organic flowing Catmull-Rom
+     curves full space to peak and wave naturally with zero clipping or flattening. */
+  const mn = rawMn < 0 ? rawMn - span * 0.16 : Math.max(0, rawMn - span * 0.12);
+  const mx = rawMx + span * 0.42;
   const rg = (mx - mn) || 1;
   const n = vals.length;
-  const padTop = 16, padBottom = 8, padX = 6;
+  const padTop = 22, padBottom = 10, padX = 6;
   const availH = Math.max(10, H - padTop - padBottom);
   const pts = vals.map((v, i) => [
     (i * (W - padX * 2)) / Math.max(1, n - 1) + padX,
@@ -1655,7 +1648,7 @@ function mountSparkline(host, card){
       y="${pts[i][1].toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, H-padBottom-pts[i][1]).toFixed(1)}" rx="2"
       fill="var(--vq-series-1-ink)"/>`).join("");
   } else {
-    const d = pathSmooth(pts);
+    const d = pathSmooth(pts, 0.42);
     body = (variant === "area"
       ? `<defs><linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1">
          <stop offset="0%" stop-color="var(--vq-series-1-ink)" stop-opacity=".3"/>
@@ -1663,13 +1656,13 @@ function mountSparkline(host, card){
          <path d="${d} L${P(pts[n-1][0],H)} L${P(pts[0][0],H)} Z" fill="url(#${uid})"/>` : "")
       + `<path class="ck-line" d="${d}" stroke="var(--vq-series-1-ink)" stroke-width="2.5"/>`;
   }
-  host.innerHTML = `<svg class="ck ck--spark" width="${W}" height="${H}">
-    <g class="ck-plot" style="clip-path:inset(0 100% 0 0)">${body}</g>
+  host.innerHTML = `<svg class="ck ck--spark" width="${W}" height="${H}" style="overflow:visible">
+    <g class="ck-plot" style="clip-path:none">${body}</g>
     <g class="ck-hover" style="opacity:0"><line class="ck-cross" y1="0" y2="${H}"/>
       <circle class="ck-hd" r="3.5" fill="var(--vq-surface)" stroke="var(--vq-series-1-ink)" stroke-width="2"/></g>
     <rect class="ck-cap" x="0" y="0" width="${W}" height="${H}" fill="transparent"/></svg>
     <div class="ck-tip ck-tip--sm" hidden></div>`;
-  requestAnimationFrame(() => { const p = host.querySelector(".ck-plot"); if (p) p.style.clipPath = "inset(0 0% 0 0)"; });
+  requestAnimationFrame(() => { const p = host.querySelector(".ck-plot"); if (p) p.style.clipPath = "none"; });
 
   const cap = host.querySelector(".ck-cap"), hov = host.querySelector(".ck-hover");
   const cross = host.querySelector(".ck-cross"), dot = host.querySelector(".ck-hd");
@@ -3784,6 +3777,12 @@ const isReadingCardIdx = i => i === 0;
    ours, so every one of them is balanced; nobody has to be a designer to get
    a good panel. Each design is a fixed stack of rails. */
 const PANEL_DESIGNS = [
+  { id: 'v6_cockpit', name: 'VenQore V6 Cockpit',
+    desc: 'The complete pre-V6 financial sidebar — Total balance, instant action buttons, cash in hand with detail modal, stock valuation, bank accounts, and live activity feed.',
+    rails: ['v6_cockpit'] },
+  { id: 'classic_panel', name: 'Classic Right Panel',
+    desc: 'The original dashboard right panel with quick action icons, cash balance, and live ledger feed.',
+    rails: ['classic_panel'] },
   { id: 'dark_hub', name: 'Dark hub',
     desc: 'Deep ink panel with teal mesh — the pre-V6 look, as a standalone dark sidebar.',
     rails: ['action_trio', 'balances', 'activity'] },
@@ -3808,6 +3807,10 @@ const PANEL_DESIGNS = [
 ];
 
 const RAIL_DEFS = [
+  { id: 'v6_cockpit', name: 'VenQore V6 Financial Cockpit', modules: ['bank_accounts', 'pos'],
+    desc: 'Total balance, instant action buttons, cash in hand, stock value, bank accounts and expanded activity.' },
+  { id: 'classic_panel', name: 'Classic Right Panel', modules: ['bank_accounts'],
+    desc: 'Original right panel with quick actions, cash balance, and activity feed.' },
   { id: 'action_trio', name: 'Action buttons', modules: [],
     desc: 'Sale, purchase and more actions \u2014 one tap each.' },
   { id: 'balances', name: 'Cash & accounts', modules: ['bank_accounts'],
@@ -3840,6 +3843,33 @@ function DashRail({
   performance = {}, currencySymbol = 'Rs', isDemo = false, debtors = [],
 }) {
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
+
+  if (id === 'v6_cockpit') {
+    return (
+      <V6FinancialSidebar
+        recentTransactions={recentTransactions}
+        bankAccounts={bankAccounts}
+        cashAccounts={cashAccounts}
+        cashData={cashData}
+        inventoryValue={performance?.stock_value || 0}
+        sticky={false}
+        className="w-full"
+      />
+    );
+  }
+
+  if (id === 'classic_panel') {
+    return (
+      <RightPanel
+        recentTransactions={recentTransactions}
+        bankAccounts={bankAccounts}
+        cashAccounts={cashAccounts}
+        cashData={cashData}
+        inventoryValue={performance?.stock_value || 0}
+        sticky={false}
+      />
+    );
+  }
 
   if (id === 'action_trio') return (
     <section className="vq-rail-card vq-rail-card--trio">
