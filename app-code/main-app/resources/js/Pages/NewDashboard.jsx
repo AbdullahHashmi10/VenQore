@@ -895,14 +895,22 @@ function pathStep(pts){
   }
   return d;
 }
-/* Catmull-Rom → cubic bezier, alpha ≈ 0.42 like the reference */
-function pathSmooth(pts, t = 0.42){
+/* Monotone-aware smooth curve: flattens slope at local peaks & valleys so curves stay perfectly rounded and never overshoot above the data bounds */
+function pathSmooth(pts, t = 0.38){
   if (pts.length < 3) return pathLinear(pts);
   let d = "M" + P(pts[0][0], pts[0][1]);
   for (let i = 0; i < pts.length - 1; i++){
     const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
-    const c1 = [p1[0] + (p2[0]-p0[0]) * t/3, p1[1] + (p2[1]-p0[1]) * t/3];
-    const c2 = [p2[0] - (p3[0]-p1[0]) * t/3, p2[1] - (p3[1]-p1[1]) * t/3];
+    let dy1 = (p2[1] - p0[1]) * t / 3;
+    let dy2 = (p3[1] - p1[1]) * t / 3;
+
+    // If p1 is a local extremum (peak/trough), flatten slope at the vertex
+    if ((p1[1] - p0[1]) * (p2[1] - p1[1]) <= 0) dy1 = 0;
+    // If p2 is a local extremum, flatten entry slope at the vertex
+    if ((p2[1] - p1[1]) * (p3[1] - p2[1]) <= 0) dy2 = 0;
+
+    const c1 = [p1[0] + (p2[0] - p0[0]) * t / 3, p1[1] + dy1];
+    const c2 = [p2[0] - (p3[0] - p1[0]) * t / 3, p2[1] - dy2];
     d += ` C${P(c1[0],c1[1])} ${P(c2[0],c2[1])} ${P(p2[0],p2[1])}`;
   }
   return d;
@@ -1623,16 +1631,28 @@ function mountSparkline(host, card){
   const rd = readingOf(card.key);
   const vals = valuesFor(card.key, card.period, rd.unit);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
-  const mn = Math.min(...vals), mx = Math.max(...vals), rg = (mx-mn)||1;
+  const rawMn = Math.min(...vals), rawMx = Math.max(...vals);
+  const span = Math.max(1, rawMx - rawMn);
+  /* Generous 28% top headroom + 8% bottom floor + 16px top padding guarantees
+     that Catmull-Rom cubic bezier overshoots at peaks and dips will never
+     touch or clip against the SVG bounds. */
+  const mn = rawMn < 0 ? rawMn - span * 0.12 : Math.max(0, rawMn - span * 0.08);
+  const mx = rawMx + span * 0.28;
+  const rg = (mx - mn) || 1;
   const n = vals.length;
-  const pts = vals.map((v,i) => [ (i*(W-6))/(n-1) + 3, H - 4 - ((v-mn)/rg)*(H-10) ]);
+  const padTop = 16, padBottom = 8, padX = 6;
+  const availH = Math.max(10, H - padTop - padBottom);
+  const pts = vals.map((v, i) => [
+    (i * (W - padX * 2)) / Math.max(1, n - 1) + padX,
+    H - padBottom - ((v - mn) / rg) * availH
+  ]);
   const variant = card.variant || "area";
   const uid = "sp" + (++CHART_UID);
   let body;
   if (variant === "bars"){
     const bw = (W/n)*0.62;
     body = vals.map((v,i) => `<rect class="ck-bar" data-x="${i}" x="${(pts[i][0]-bw/2).toFixed(1)}"
-      y="${pts[i][1].toFixed(1)}" width="${bw.toFixed(1)}" height="${(H-4-pts[i][1]).toFixed(1)}" rx="2"
+      y="${pts[i][1].toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, H-padBottom-pts[i][1]).toFixed(1)}" rx="2"
       fill="var(--vq-series-1-ink)"/>`).join("");
   } else {
     const d = pathSmooth(pts);
@@ -1641,7 +1661,7 @@ function mountSparkline(host, card){
          <stop offset="0%" stop-color="var(--vq-series-1-ink)" stop-opacity=".3"/>
          <stop offset="100%" stop-color="var(--vq-series-1-ink)" stop-opacity="0"/></linearGradient></defs>
          <path d="${d} L${P(pts[n-1][0],H)} L${P(pts[0][0],H)} Z" fill="url(#${uid})"/>` : "")
-      + `<path class="ck-line" d="${d}" stroke="var(--vq-series-1-ink)"/>`;
+      + `<path class="ck-line" d="${d}" stroke="var(--vq-series-1-ink)" stroke-width="2.5"/>`;
   }
   host.innerHTML = `<svg class="ck ck--spark" width="${W}" height="${H}">
     <g class="ck-plot" style="clip-path:inset(0 100% 0 0)">${body}</g>

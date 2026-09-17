@@ -145,7 +145,7 @@ export default function StatChart({ data, definition, meta, settings, card }) {
                             xDataKey="name"
                             className="h-full"
                             aspectRatio="auto"
-                            margin={{ top: 4, right: 0, bottom: 2, left: 0 }}
+                            margin={{ top: 14, right: 0, bottom: 2, left: 0 }}
                             {...motion}
                         >
                             <Bar dataKey="s0" fill="var(--chart-1)" lineCap={2} />
@@ -156,7 +156,7 @@ export default function StatChart({ data, definition, meta, settings, card }) {
                             xDataKey="date"
                             className="h-full"
                             aspectRatio="auto"
-                            margin={{ top: 4, right: 0, bottom: 2, left: 0 }}
+                            margin={{ top: 14, right: 0, bottom: 2, left: 0 }}
                             {...motion}
                         >
                             <Line dataKey="s0" stroke="var(--chart-1)" strokeWidth={2} />
@@ -167,7 +167,7 @@ export default function StatChart({ data, definition, meta, settings, card }) {
                             xDataKey="date"
                             className="h-full"
                             aspectRatio="auto"
-                            margin={{ top: 4, right: 0, bottom: 2, left: 0 }}
+                            margin={{ top: 14, right: 0, bottom: 2, left: 0 }}
                             {...motion}
                         >
                             <Area
