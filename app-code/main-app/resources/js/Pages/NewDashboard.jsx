@@ -5595,21 +5595,22 @@ export default function NewDashboard(props) {
               </div>
 
               {railsOn && (
-                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${['v6_cockpit', 'dark_hub', 'money'].includes(railPrefs.design) ? 'vq-rails--cockpit' : ''}`}
-                       style={{
-                         '--vq-rails-w': `${railPrefs.width || 340}px`,
-                         width: `${railPrefs.width || 340}px`,
-                         flex: `0 0 ${railPrefs.width || 340}px`,
-                         minWidth: `${railPrefs.width || 340}px`,
-                         maxWidth: `${railPrefs.width || 340}px`,
-                         position: 'sticky',
-                         top: '16px',
-                         height: 'calc(100vh - 32px)',
-                         maxHeight: 'calc(100vh - 32px)',
-                         overflow: 'hidden',
-                         alignSelf: 'flex-start',
-                       }}
-                       aria-label="Side panel">
+                 <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${['v6_cockpit', 'dark_hub', 'money'].includes(railPrefs.design) ? 'vq-rails--cockpit' : ''}`}
+                        style={{
+                          '--vq-rails-w': `${railPrefs.width || 340}px`,
+                          width: `${railPrefs.width || 340}px`,
+                          flex: `0 0 ${railPrefs.width || 340}px`,
+                          minWidth: `${railPrefs.width || 340}px`,
+                          maxWidth: `${railPrefs.width || 340}px`,
+                          position: 'sticky',
+                          top: '16px',
+                          height: 'calc(100vh - 104px)',
+                          maxHeight: 'calc(100vh - 104px)',
+                          marginBottom: '24px',
+                          overflow: 'hidden',
+                          alignSelf: 'flex-start',
+                        }}
+                        aria-label="Side panel">
                   <div className="vq-rails-shell">
                     <div className="vq-rails-scroll">
                       {activeRails.map(id => <DashRail key={id} id={id} storePath={storePath}
