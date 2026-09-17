@@ -38,6 +38,15 @@
     --vq-bar-h: 44px;
     --vq-dock-h: 0px;
     --vq-catband-h: 0px;
+    --vq-touch: 44px;
+
+    /* V6 Radius tokens */
+    --vq-r-xs: 8px;
+    --vq-r-sm: 12px;
+    --vq-r-md: 14px;
+    --vq-r-lg: 20px;
+    --vq-r-xl: 28px;
+    --vq-r: var(--vq-r-lg, 20px);
 
     /* The terminal's own type ramp. Every font-size inside the register reads
        from these six and nothing else, so senior mode is one override rather
@@ -583,8 +592,8 @@
 .vq-dock:empty { display: none; }
 
 .vq-dock-btn {
-    min-height: var(--vq-touch);
-    border-radius: var(--vq-r);
+    min-height: var(--vq-touch, 44px);
+    border-radius: var(--vq-r-md, 14px);
     padding: 0 18px;
     display: flex;
     align-items: center;
@@ -593,22 +602,35 @@
     font-weight: 700;
     font-size: var(--vq-t-md);
     white-space: nowrap;
+    transition: all var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1));
 }
-.vq-dock-btn[data-primary='1'] { flex: 1 1 auto; font-size: var(--vq-t-lg); }
-.vq-dock-btn[data-primary='0'] { flex: 0 0 auto; }
+.vq-dock-btn[data-primary='1'] {
+    flex: 1 1 auto;
+    font-size: var(--vq-t-lg);
+    background: linear-gradient(135deg, var(--vq-teal-500, #0BAA8F), var(--vq-teal-600, #088975));
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(11, 170, 143, 0.25);
+}
+.vq-dock-btn[data-primary='1']:hover {
+    background: linear-gradient(135deg, var(--vq-teal-400, #23c4a6), var(--vq-teal-500, #0baa8f));
+}
+.vq-dock-btn[data-primary='0'] {
+    flex: 0 0 auto;
+}
 
 /* The tender bar — what a Tender pane becomes when it is stacked. The total
    is printed INSIDE the pay control, so the amount is on screen in every
    composition the law can produce. */
 .vq-tender-bar {
-    min-height: 88px;
+    min-height: 80px;
     display: flex;
     align-items: center;
     gap: var(--vq-gutter);
-    padding: 0 var(--vq-pad);
-    border-radius: var(--vq-r);
+    padding: 12px var(--vq-pad);
+    border-radius: var(--vq-r-lg, 20px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
-.vq-term[data-senior='1'] .vq-tender-bar { min-height: 104px; }
+.vq-term[data-senior='1'] .vq-tender-bar { min-height: 96px; }
 
 /* --------------------------------------------------------------------------
    7. SHEETS — a slide-over that keeps its state
