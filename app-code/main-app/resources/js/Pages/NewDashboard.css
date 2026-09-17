@@ -4742,17 +4742,29 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    A distinct dark panel — deep ink (#0D1412) with a soft teal mesh gradient
    sweep. Cards inside it invert to sit ON the dark ground, not beside it.
    This is the pre-V6 style the user liked, re-introduced as an opt-in preset. */
+.vq-rails--cockpit,
 .vq-rails--dark {
   background:
-    radial-gradient(60% 55% at 20% 10%, rgba(35, 196, 166, 0.20), transparent 65%),
-    radial-gradient(48% 48% at 85% 90%, rgba(7, 107, 94, 0.26), transparent 62%),
-    #0D1412;
-  border-radius: var(--vq-r-lg, 16px);
-  padding: 20px 16px;
-  gap: 20px;
-  /* Teal border to match the hero card aesthetic */
-  border: 1px solid rgba(35, 196, 166, 0.18);
-  box-shadow: 0 12px 40px -6px rgba(0, 0, 0, 0.45), 0 0 0 0 transparent;
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
+    #0A0B0F;
+  border-radius: var(--vq-r-xl, 24px);
+  padding: 16px 14px;
+  gap: 12px;
+  /* Signature teal border matching V6 hero cards */
+  border: 1px solid rgba(35, 196, 166, 0.28);
+  box-shadow: 0 12px 36px -6px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
+  max-height: calc(100vh - 100px);
+}
+.vq-rails--cockpit .vq-rails-shell,
+.vq-rails--dark .vq-rails-shell,
+.vq-rails--cockpit .vq-rails-scroll,
+.vq-rails--dark .vq-rails-scroll {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 /* inside the dark panel, adjust rail card backgrounds */
 .vq-rails--dark .vq-rail-card {

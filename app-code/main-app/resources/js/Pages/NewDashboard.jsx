@@ -897,15 +897,57 @@ function pathStep(pts){
   }
   return d;
 }
-/* Catmull-Rom → flowing organic cubic bezier (alpha ≈ 0.42) */
-function pathSmooth(pts, t = 0.42){
-  if (pts.length < 3) return pathLinear(pts);
+/* Fritsch-Carlson Monotone Cubic Spline:
+   Produces silky smooth organic curves that are 100% faithful to the underlying data.
+   - Consecutive equal values stay perfectly flat (zero artificial bulge/phantom spike)
+   - Peaks & troughs curve softly without ever overshooting above or below the true data point */
+function pathSmooth(pts){
+  const n = pts.length;
+  if (n < 2) return "";
+  if (n === 2) return "M" + P(pts[0][0], pts[0][1]) + " L" + P(pts[1][0], pts[1][1]);
+
+  const dx = [], dy = [], m = [];
+  for (let i = 0; i < n - 1; i++){
+    const deltaX = pts[i+1][0] - pts[i][0];
+    const deltaY = pts[i+1][1] - pts[i][1];
+    dx.push(deltaX);
+    dy.push(deltaY);
+    m.push(deltaY / (deltaX || 1e-6));
+  }
+
+  const tangents = [m[0]];
+  for (let i = 1; i < n - 1; i++){
+    if (m[i-1] * m[i] <= 0){
+      tangents.push(0);
+    } else {
+      tangents.push((m[i-1] + m[i]) / 2);
+    }
+  }
+  tangents.push(m[m.length - 1]);
+
+  for (let i = 0; i < n - 1; i++){
+    if (dy[i] === 0){
+      tangents[i] = 0;
+      tangents[i+1] = 0;
+    } else {
+      const a = tangents[i] / m[i];
+      const b = tangents[i+1] / m[i];
+      const h = Math.hypot(a, b);
+      if (h > 3){
+        const factor = 3 / h;
+        tangents[i] = a * factor * m[i];
+        tangents[i+1] = b * factor * m[i];
+      }
+    }
+  }
+
   let d = "M" + P(pts[0][0], pts[0][1]);
-  for (let i = 0; i < pts.length - 1; i++){
-    const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
-    const c1 = [p1[0] + (p2[0]-p0[0]) * t/3, p1[1] + (p2[1]-p0[1]) * t/3];
-    const c2 = [p2[0] - (p3[0]-p1[0]) * t/3, p2[1] - (p3[1]-p1[1]) * t/3];
-    d += ` C${P(c1[0],c1[1])} ${P(c2[0],c2[1])} ${P(p2[0],p2[1])}`;
+  for (let i = 0; i < n - 1; i++){
+    const p0 = pts[i], p1 = pts[i+1];
+    const dxThird = dx[i] / 3;
+    const c1 = [p0[0] + dxThird, p0[1] + tangents[i] * dxThird];
+    const c2 = [p1[0] - dxThird, p1[1] - tangents[i+1] * dxThird];
+    d += ` C${P(c1[0],c1[1])} ${P(c2[0],c2[1])} ${P(p1[0],p1[1])}`;
   }
   return d;
 }
@@ -1627,13 +1669,13 @@ function mountSparkline(host, card){
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
   const rawMn = Math.min(...vals), rawMx = Math.max(...vals);
   const span = Math.max(1, rawMx - rawMn);
-  /* 42% top headroom and 14% bottom floor gives the organic flowing Catmull-Rom
-     curves full space to peak and wave naturally with zero clipping or flattening. */
-  const mn = rawMn < 0 ? rawMn - span * 0.16 : Math.max(0, rawMn - span * 0.12);
-  const mx = rawMx + span * 0.42;
+  /* Monotone interpolation guarantees zero phantom peaks on flat data.
+     24% top headroom and 6% bottom floor provides balanced vertical proportions. */
+  const mn = rawMn < 0 ? rawMn - span * 0.08 : Math.max(0, rawMn - span * 0.06);
+  const mx = rawMx + span * 0.24;
   const rg = (mx - mn) || 1;
   const n = vals.length;
-  const padTop = 22, padBottom = 10, padX = 6;
+  const padTop = 14, padBottom = 6, padX = 6;
   const availH = Math.max(10, H - padTop - padBottom);
   const pts = vals.map((v, i) => [
     (i * (W - padX * 2)) / Math.max(1, n - 1) + padX,
@@ -1648,7 +1690,7 @@ function mountSparkline(host, card){
       y="${pts[i][1].toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, H-padBottom-pts[i][1]).toFixed(1)}" rx="2"
       fill="var(--vq-series-1-ink)"/>`).join("");
   } else {
-    const d = pathSmooth(pts, 0.42);
+    const d = pathSmooth(pts);
     body = (variant === "area"
       ? `<defs><linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1">
          <stop offset="0%" stop-color="var(--vq-series-1-ink)" stop-opacity=".3"/>
@@ -5552,7 +5594,7 @@ export default function NewDashboard(props) {
               </div>
 
               {railsOn && (
-                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${railPrefs.design === 'dark_hub' ? 'vq-rails--dark' : ''}`}
+                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${railPrefs.design === 'v6_cockpit' ? 'vq-rails--cockpit' : (railPrefs.design === 'dark_hub' ? 'vq-rails--dark' : '')}`}
                        style={{ '--vq-rails-w': `${railPrefs.width || 340}px` }}
                        aria-label="Side panel">
                   <div className="vq-rails-shell">
