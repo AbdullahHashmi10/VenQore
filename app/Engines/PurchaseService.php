@@ -1186,6 +1186,10 @@ class PurchaseService
                         unset($cashLine['account_code']);
                         $cashLine['account_id'] = $acc->id;
                     }
+                    $ba = \App\Models\BankAccount::find($paymentAccountId);
+                    if ($ba) {
+                        $cashLine['bank_account_id'] = $ba->id;
+                    }
                 }
             }
             $lines[] = $cashLine;

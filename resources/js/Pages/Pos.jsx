@@ -4633,21 +4633,21 @@ const POSInterface = ({
            law can produce. */
         if (tenderDock && tenderDock.inline) {
             return (
-                <div className="vq-dock">
-                    <div className="vq-tender-bar flex-1 bg-surface border border-line shadow-sm min-w-0">
+                <div className="vq-dock flex items-center gap-3">
+                    <div className="vq-tender-bar flex-1 bg-surface border border-line rounded-[20px] shadow-sm min-w-0 px-5 py-3.5 flex items-center gap-4">
                         <div className="min-w-0">
-                            <span className="text-3xs uppercase font-bold text-ink-muted block">
+                            <span className="text-3xs uppercase font-extrabold tracking-wider text-ink-muted block mb-0.5">
                                 {activeSale.cart.length} lines · {cartQty} qty
                             </span>
-                            <span className="vq-num font-bold text-emerald-600 dark:text-emerald-400 block leading-none"
-                                  style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
+                            <span className="vq-num font-extrabold text-emerald-600 dark:text-emerald-400 block leading-none text-2xl font-numeric"
+                                  title={money(cartTotal)}>
                                 {money(cartTotal)}
                             </span>
                         </div>
                         <div className="flex-1" />
                         <button
                             onClick={openTender}
-                            className="vq-dock-btn bg-sunken text-ink-secondary border border-line shrink-0 cursor-pointer"
+                            className="h-11 px-5 rounded-[14px] bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-ink font-bold text-sm border border-line transition-all shrink-0 cursor-pointer active:scale-95"
                             data-primary="0"
                         >
                             Details
@@ -4655,7 +4655,7 @@ const POSInterface = ({
                         <button
                             onClick={handleCheckoutClick}
                             disabled={processingPayment || activeSale.cart.length === 0}
-                            className="vq-dock-btn bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 shrink-0 cursor-pointer"
+                            className="h-11 px-8 rounded-[14px] bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-900/25 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 shrink-0 cursor-pointer active:scale-95"
                             data-primary="1"
                         >
                             {processingPayment
@@ -4667,7 +4667,7 @@ const POSInterface = ({
                     {catalogDock && (
                         <button
                             onClick={() => setOpenSheet('catalog')}
-                            className="vq-dock-btn bg-surface border border-line text-ink shrink-0 cursor-pointer"
+                            className="h-full min-h-[76px] px-6 rounded-[20px] bg-surface hover:bg-slate-50 dark:hover:bg-white/5 border border-line text-ink font-bold text-sm shadow-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer transition-all active:scale-95"
                             data-primary="0"
                         >
                             <LayoutGrid size={18} />
@@ -4683,12 +4683,12 @@ const POSInterface = ({
                 {tenderDock && (
                     <button
                         onClick={openTender}
-                        className="vq-dock-btn bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
+                        className="w-full h-14 rounded-[20px] bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-900/25 transition-all flex items-center justify-center gap-3 cursor-pointer active:scale-95"
                         data-primary="1"
                     >
-                        <Receipt size={18} />
+                        <Receipt size={20} />
                         <span className="vq-clip">Take payment</span>
-                        <span className="vq-num px-2 py-1 rounded-lg bg-white/20 border border-white/10 shrink-0">
+                        <span className="vq-num px-3 py-1 rounded-[10px] bg-white/20 border border-white/10 shrink-0 font-bold font-numeric">
                             {money(cartTotal)}
                         </span>
                     </button>

@@ -168,6 +168,8 @@ class ScaleStoreMasterSeeder extends Seeder
                     'tenant_id'        => $tenantId,
                     'journal_entry_id' => $entryId,
                     'account_id'       => $line['account_id'],
+                    'party_id'         => $line['party_id'] ?? null,
+                    'bank_account_id'  => $line['bank_account_id'] ?? null,
                     'debit'            => $deb,
                     'credit'           => $crd,
                     'description'      => $line['desc'] ?? $desc,
@@ -275,21 +277,21 @@ class ScaleStoreMasterSeeder extends Seeder
         }
 
         $productsDef = [
-            ['code' => 'P01', 'name' => 'Premium Roast Coffee 500g',      'cat' => 'staples',     'price' => 1800.0, 'cost' => 1200.0, 'stock' => 150, 'min' => 20],
-            ['code' => 'P02', 'name' => 'Organic Green Tea 100pk',         'cat' => 'staples',     'price' => 850.0,  'cost' => 550.0,  'stock' => 180, 'min' => 25],
-            ['code' => 'P03', 'name' => 'Artisan Chocolate Box 250g',      'cat' => 'snacks',      'price' => 1250.0, 'cost' => 750.0,  'stock' => 90,  'min' => 15],
-            ['code' => 'P04', 'name' => 'Roasted Almonds 500g',            'cat' => 'snacks',      'price' => 1600.0, 'cost' => 1100.0, 'stock' => 85,  'min' => 15],
-            ['code' => 'P05', 'name' => 'Natural Sparkling Water 1L',      'cat' => 'beverages',   'price' => 250.0,  'cost' => 140.0,  'stock' => 300, 'min' => 40],
-            ['code' => 'P06', 'name' => 'Fresh Orange Juice 1L',           'cat' => 'beverages',   'price' => 420.0,  'cost' => 260.0,  'stock' => 140, 'min' => 25],
-            ['code' => 'P07', 'name' => 'Basmati Rice Super Kernel 5kg',   'cat' => 'staples',     'price' => 2400.0, 'cost' => 1750.0, 'stock' => 200, 'min' => 30],
-            ['code' => 'P08', 'name' => 'Extra Virgin Olive Oil 750ml',    'cat' => 'staples',     'price' => 3200.0, 'cost' => 2200.0, 'stock' => 75,  'min' => 15],
-            ['code' => 'P09', 'name' => 'Fast Charging USB-C Cable 2m',    'cat' => 'electronics', 'price' => 950.0,  'cost' => 400.0,  'stock' => 160, 'min' => 20],
-            ['code' => 'P10', 'name' => 'Wireless Bluetooth Earbuds Pro',  'cat' => 'electronics', 'price' => 4800.0, 'cost' => 2900.0, 'stock' => 50,  'min' => 10],
-            ['code' => 'P11', 'name' => 'Portable Power Bank 20000mAh',    'cat' => 'electronics', 'price' => 5500.0, 'cost' => 3400.0, 'stock' => 40,  'min' => 10],
-            ['code' => 'P12', 'name' => 'Handmade Herbal Soap Bar',        'cat' => 'personal',    'price' => 380.0,  'cost' => 190.0,  'stock' => 250, 'min' => 35],
-            ['code' => 'P13', 'name' => 'Natural Lavender Shampoo 400ml',   'cat' => 'personal',    'price' => 1100.0, 'cost' => 680.0,  'stock' => 95,  'min' => 20],
-            ['code' => 'P14', 'name' => 'Multi-Surface Disinfectant 1L',   'cat' => 'personal',    'price' => 650.0,  'cost' => 380.0,  'stock' => 4,   'min' => 15],
-            ['code' => 'P15', 'name' => 'Whole Wheat Pasta 500g',          'cat' => 'staples',     'price' => 480.0,  'cost' => 290.0,  'stock' => 3,   'min' => 10],
+            ['code' => 'P01', 'name' => 'Premium Roast Coffee 500g',      'cat' => 'staples',     'price' => 1800.0, 'cost' => 1200.0, 'stock' => 350, 'min' => 20],
+            ['code' => 'P02', 'name' => 'Organic Green Tea 100pk',         'cat' => 'staples',     'price' => 850.0,  'cost' => 550.0,  'stock' => 350, 'min' => 25],
+            ['code' => 'P03', 'name' => 'Artisan Chocolate Box 250g',      'cat' => 'snacks',      'price' => 1250.0, 'cost' => 750.0,  'stock' => 300, 'min' => 15],
+            ['code' => 'P04', 'name' => 'Roasted Almonds 500g',            'cat' => 'snacks',      'price' => 1600.0, 'cost' => 1100.0, 'stock' => 350, 'min' => 15],
+            ['code' => 'P05', 'name' => 'Natural Sparkling Water 1L',      'cat' => 'beverages',   'price' => 250.0,  'cost' => 140.0,  'stock' => 500, 'min' => 40],
+            ['code' => 'P06', 'name' => 'Fresh Orange Juice 1L',           'cat' => 'beverages',   'price' => 420.0,  'cost' => 260.0,  'stock' => 350, 'min' => 25],
+            ['code' => 'P07', 'name' => 'Basmati Rice Super Kernel 5kg',   'cat' => 'staples',     'price' => 2400.0, 'cost' => 1750.0, 'stock' => 400, 'min' => 30],
+            ['code' => 'P08', 'name' => 'Extra Virgin Olive Oil 750ml',    'cat' => 'staples',     'price' => 3200.0, 'cost' => 2200.0, 'stock' => 250, 'min' => 15],
+            ['code' => 'P09', 'name' => 'Fast Charging USB-C Cable 2m',    'cat' => 'electronics', 'price' => 950.0,  'cost' => 400.0,  'stock' => 300, 'min' => 20],
+            ['code' => 'P10', 'name' => 'Wireless Bluetooth Earbuds Pro',  'cat' => 'electronics', 'price' => 4800.0, 'cost' => 2900.0, 'stock' => 250, 'min' => 10],
+            ['code' => 'P11', 'name' => 'Portable Power Bank 20000mAh',    'cat' => 'electronics', 'price' => 5500.0, 'cost' => 3400.0, 'stock' => 200, 'min' => 10],
+            ['code' => 'P12', 'name' => 'Handmade Herbal Soap Bar',        'cat' => 'personal',    'price' => 380.0,  'cost' => 190.0,  'stock' => 400, 'min' => 35],
+            ['code' => 'P13', 'name' => 'Natural Lavender Shampoo 400ml',   'cat' => 'personal',    'price' => 1100.0, 'cost' => 680.0,  'stock' => 250, 'min' => 20],
+            ['code' => 'P14', 'name' => 'Multi-Surface Disinfectant 1L',   'cat' => 'personal',    'price' => 650.0,  'cost' => 380.0,  'stock' => 200, 'min' => 15],
+            ['code' => 'P15', 'name' => 'Whole Wheat Pasta 500g',          'cat' => 'staples',     'price' => 480.0,  'cost' => 290.0,  'stock' => 250, 'min' => 10],
         ];
 
         $productMap = [];
@@ -488,6 +490,37 @@ class ScaleStoreMasterSeeder extends Seeder
                     'created_at'      => $dt,
                     'updated_at'      => $dt,
                 ];
+
+                // Deplete FIFO inventory batches
+                $remainingToDeduct = $qty;
+                $batches = DB::table('inventory_batches')
+                    ->where('tenant_id', $tenantId)
+                    ->where('product_id', $item['id'])
+                    ->where('remaining_qty', '>', 0)
+                    ->orderBy('created_at', 'ASC')
+                    ->get();
+
+                foreach ($batches as $b) {
+                    if ($remainingToDeduct <= 0) break;
+                    $take = min((float) $b->remaining_qty, $remainingToDeduct);
+                    DB::table('inventory_batches')->where('id', $b->id)->decrement('remaining_qty', $take);
+                    $remainingToDeduct -= $take;
+                }
+
+                DB::table('stocks')
+                    ->where('tenant_id', $tenantId)
+                    ->where('product_id', $item['id'])
+                    ->decrement('quantity', $qty);
+
+                DB::table('products')
+                    ->where('tenant_id', $tenantId)
+                    ->where('id', $item['id'])
+                    ->decrement('quantity', $qty);
+
+                DB::table('products')
+                    ->where('tenant_id', $tenantId)
+                    ->where('id', $item['id'])
+                    ->decrement('stock_quantity', $qty);
             }
 
             $netSales = $subtotalGross;
@@ -552,7 +585,14 @@ class ScaleStoreMasterSeeder extends Seeder
 
             // Post double-entry journal for Sale (Revenue & COGS)
             $postJournal($dt->toDateTimeString(), $invNum, 'sale', "Sale {$invNum} ({$paymentMethod})", [
-                ['account_id' => $debitAccount,         'debit' => $totalAmount, 'credit' => 0.0,          'desc' => "Payment In ({$paymentMethod})"],
+                [
+                    'account_id'      => $debitAccount,
+                    'debit'           => $totalAmount,
+                    'credit'          => 0.0,
+                    'desc'            => "Payment In ({$paymentMethod})",
+                    'party_id'        => ($debitAccount === $accountMap['1200'] ? $customerId : null),
+                    'bank_account_id' => ($debitAccount === $accountMap['1010'] ? $bankMeezanId : null),
+                ],
                 ['account_id' => $accountMap['4000'],   'debit' => 0.0,          'credit' => $netSales,    'desc' => "Sales Revenue"],
                 ['account_id' => $accountMap['5000'],   'debit' => $cogsTotal,   'credit' => 0.0,          'desc' => "Cost of Goods Sold"],
                 ['account_id' => $accountMap['1100'],   'debit' => 0.0,          'credit' => $cogsTotal,   'desc' => "Inventory Reduction"],
@@ -605,7 +645,13 @@ class ScaleStoreMasterSeeder extends Seeder
 
             $postJournal($dt->toDateTimeString(), $ref, 'expense', $desc, [
                 ['account_id' => $accountMap[$accountCode], 'debit' => $amount, 'credit' => 0.0,    'desc' => $desc],
-                ['account_id' => $creditAccount,           'debit' => 0.0,    'credit' => $amount, 'desc' => "Payment via {$paymentMethod}"],
+                [
+                    'account_id'      => $creditAccount,
+                    'debit'           => 0.0,
+                    'credit'          => $amount,
+                    'desc'            => "Payment via {$paymentMethod}",
+                    'bank_account_id' => ($creditAccount === $accountMap['1010'] ? $bankMeezanId : null),
+                ],
             ]);
 
             return [
@@ -618,97 +664,7 @@ class ScaleStoreMasterSeeder extends Seeder
             ];
         };
 
-        // ─────────────────────────────────────────────────────────────────
-        // 9. HISTORICAL SEEDING (2024, 2025, Jan-Aug 2026)
-        // ─────────────────────────────────────────────────────────────────
-        echo "8. Seeding multi-year history (2024, 2025, 2026 Q1-Q3)...\n";
-
-        // 2024 Monthly Recurring
-        for ($m = 1; $m <= 12; $m++) {
-            $mStr = sprintf('2024-%02d', $m);
-            $postExpense("{$mStr}-01 09:00:00", 'Rent', 25000.00, 'bank_transfer', "Monthly Rent - {$mStr}");
-            $postExpense("{$mStr}-15 11:00:00", 'Utilities', 7500.00, 'bank_transfer', "Commercial Utilities - {$mStr}");
-            $postExpense("{$mStr}-28 17:00:00", 'Salaries', 40000.00, 'bank_transfer', "Staff Payroll - {$mStr}");
-            $postExpense("{$mStr}-20 14:00:00", 'Supplies', 3500.00, 'cash', "Store Supplies & Packing - {$mStr}");
-
-            for ($s = 1; $s <= 8; $s++) {
-                $day = rand(2, 27);
-                $p = $productMap['P0' . rand(1, 9)];
-                $qty = rand(3, 8);
-                $postSale("{$mStr}-{$day} 14:30:00", [
-                    ['id' => $p['id'], 'qty' => $qty, 'price' => $p['price'], 'cost' => $p['cost']]
-                ], ($s % 2 === 0 ? 'cash' : 'card'), $customerMap['C' . rand(1, 8)]['id']);
-            }
-        }
-
-        // 2025 Monthly Recurring
-        for ($m = 1; $m <= 12; $m++) {
-            $mStr = sprintf('2025-%02d', $m);
-            $postExpense("{$mStr}-01 09:00:00", 'Rent', 28000.00, 'bank_transfer', "Monthly Rent - {$mStr}");
-            $postExpense("{$mStr}-15 11:00:00", 'Utilities', 8500.00, 'bank_transfer', "Commercial Utilities - {$mStr}");
-            $postExpense("{$mStr}-28 17:00:00", 'Salaries', 45000.00, 'bank_transfer', "Staff Payroll - {$mStr}");
-            $postExpense("{$mStr}-10 12:00:00", 'Marketing', 5000.00, 'bank_transfer', "Digital Marketing Ads - {$mStr}");
-            $postExpense("{$mStr}-22 14:00:00", 'Supplies', 4000.00, 'cash', "Store Consumables - {$mStr}");
-
-            for ($s = 1; $s <= 10; $s++) {
-                $day = rand(2, 27);
-                $p1 = $productMap['P0' . rand(1, 9)];
-                $p2 = $productMap['P' . rand(10, 15)];
-                $postSale("{$mStr}-{$day} 16:15:00", [
-                    ['id' => $p1['id'], 'qty' => rand(2, 5), 'price' => $p1['price'], 'cost' => $p1['cost']],
-                    ['id' => $p2['id'], 'qty' => rand(1, 3), 'price' => $p2['price'], 'cost' => $p2['cost']],
-                ], (['cash', 'card', 'bank_transfer'][$s % 3]), $customerMap['C' . rand(1, 8)]['id']);
-            }
-        }
-
-        // 2026 Jan - Aug Recurring
-        for ($m = 1; $m <= 8; $m++) {
-            $mStr = sprintf('2026-%02d', $m);
-            $postExpense("{$mStr}-01 09:00:00", 'Rent', 30000.00, 'bank_transfer', "Monthly Rent - {$mStr}");
-            $postExpense("{$mStr}-15 11:00:00", 'Utilities', 9200.00, 'bank_transfer', "Commercial Utilities - {$mStr}");
-            $postExpense("{$mStr}-28 17:00:00", 'Salaries', 48000.00, 'bank_transfer', "Staff Payroll - {$mStr}");
-            $postExpense("{$mStr}-10 12:00:00", 'Marketing', 6000.00, 'bank_transfer', "Marketing Campaign - {$mStr}");
-            $postExpense("{$mStr}-22 14:00:00", 'Supplies', 4500.00, 'cash', "Packaging & Receipt rolls - {$mStr}");
-
-            for ($s = 1; $s <= 12; $s++) {
-                $day = rand(2, 28);
-                $p1 = $productMap['P0' . rand(1, 9)];
-                $p2 = $productMap['P' . rand(10, 15)];
-                $postSale("{$mStr}-{$day} 13:45:00", [
-                    ['id' => $p1['id'], 'qty' => rand(2, 6), 'price' => $p1['price'], 'cost' => $p1['cost']],
-                    ['id' => $p2['id'], 'qty' => rand(1, 4), 'price' => $p2['price'], 'cost' => $p2['cost']],
-                ], (['cash', 'card', 'bank_transfer', 'credit'][$s % 4]), $customerMap['C' . rand(1, 8)]['id']);
-            }
-        }
-
-        // ─────────────────────────────────────────────────────────────────
-        // 10. CURRENT MONTH (September 1 - 14, 2026)
-        // ─────────────────────────────────────────────────────────────────
-        echo "9. Seeding Current Month (September 1 to 14, 2026)...\n";
-        $postExpense('2026-09-01 09:00:00', 'Rent', 30000.00, 'bank_transfer', 'Monthly Rent - September 2026');
-        $postExpense('2026-09-05 11:30:00', 'Marketing', 6500.00, 'bank_transfer', 'Digital Ads September Boost');
-        $postExpense('2026-09-10 14:00:00', 'Utilities', 9800.00, 'bank_transfer', 'High-Speed Commercial Power & Net');
-        $postExpense('2026-09-12 16:20:00', 'Supplies', 4200.00, 'cash', 'Packaging, Bags & Labels');
-        $postExpense('2026-09-14 18:00:00', 'Salaries', 20000.00, 'bank_transfer', 'Staff Mid-Month Payroll Advance');
-
-        // Sales for Sept 1 to Sept 14
-        for ($day = 1; $day <= 14; $day++) {
-            $dStr = sprintf('2026-09-%02d', $day);
-            $pA = $productMap['P0' . (($day % 9) + 1)];
-            $pB = $productMap['P' . (($day % 6) + 10)];
-            $postSale("{$dStr} 11:15:00", [
-                ['id' => $pA['id'], 'qty' => 3, 'price' => $pA['price'], 'cost' => $pA['cost']],
-            ], ($day % 2 === 0 ? 'cash' : 'card'), $customerMap['C' . (($day % 8) + 1)]['id']);
-
-            $postSale("{$dStr} 17:40:00", [
-                ['id' => $pB['id'], 'qty' => 2, 'price' => $pB['price'], 'cost' => $pB['cost']],
-            ], ($day % 3 === 0 ? 'bank_transfer' : ($day % 3 === 1 ? 'cash' : 'card')), $customerMap['C' . ((($day + 3) % 8) + 1)]['id']);
-        }
-
-        // ─────────────────────────────────────────────────────────────────
-        // 10. PURCHASES (SEPTEMBER 2026)
-        // ─────────────────────────────────────────────────────────────────
-        echo "9. Seeding September 2026 Purchases...\n";
+        // Helper to post Purchase Order with batches and inventory movement
         $purchaseSeq = 1;
         $postPurchase = function(string $dtStr, string $supplierId, array $items, string $workflowStatus = 'received') use (
             $tenantId, $warehouseId, $accountMap, $postJournal, $bankMeezanId, &$purchaseSeq
@@ -740,6 +696,21 @@ class ScaleStoreMasterSeeder extends Seeder
                     'created_at'          => $dt,
                     'updated_at'          => $dt,
                 ]);
+
+                DB::table('stocks')
+                    ->where('tenant_id', $tenantId)
+                    ->where('product_id', $item['id'])
+                    ->increment('quantity', $qty);
+
+                DB::table('products')
+                    ->where('tenant_id', $tenantId)
+                    ->where('id', $item['id'])
+                    ->increment('quantity', $qty);
+
+                DB::table('products')
+                    ->where('tenant_id', $tenantId)
+                    ->where('id', $item['id'])
+                    ->increment('stock_quantity', $qty);
 
                 $poItems[] = [
                     'id'                 => (string) Str::uuid(),
@@ -784,11 +755,150 @@ class ScaleStoreMasterSeeder extends Seeder
             // Double Entry: Debit Inventory Asset (1100), Credit Bank Account (1010)
             $postJournal($dtStr, $invNum, 'purchase', "Purchase {$invNum} from Supplier", [
                 ['account_id' => $accountMap['1100'], 'debit' => $subtotal, 'credit' => 0.0,       'desc' => "Inventory received {$invNum}"],
-                ['account_id' => $accountMap['1010'], 'debit' => 0.0,       'credit' => $subtotal, 'desc' => "Payment via Meezan Bank for {$invNum}"],
+                [
+                    'account_id'      => $accountMap['1010'],
+                    'debit'           => 0.0,
+                    'credit'          => $subtotal,
+                    'desc'            => "Payment via Meezan Bank for {$invNum}",
+                    'bank_account_id' => $bankMeezanId,
+                ],
             ]);
 
             return ['id' => $poId, 'inv' => $invNum, 'total' => $subtotal];
         };
+
+        // ─────────────────────────────────────────────────────────────────
+        // 9. HISTORICAL SEEDING (2024, 2025, Jan-Aug 2026)
+        // ─────────────────────────────────────────────────────────────────
+        echo "8. Seeding multi-year history (2024, 2025, 2026 Q1-Q3)...\n";
+
+        // 2024 Monthly Recurring
+        for ($m = 1; $m <= 12; $m++) {
+            $mStr = sprintf('2024-%02d', $m);
+            $postExpense("{$mStr}-01 09:00:00", 'Rent', 25000.00, 'bank_transfer', "Monthly Rent - {$mStr}");
+            $postExpense("{$mStr}-15 11:00:00", 'Utilities', 7500.00, 'bank_transfer', "Commercial Utilities - {$mStr}");
+            $postExpense("{$mStr}-28 17:00:00", 'Salaries', 40000.00, 'bank_transfer', "Staff Payroll - {$mStr}");
+            $postExpense("{$mStr}-20 14:00:00", 'Supplies', 3500.00, 'cash', "Store Supplies & Packing - {$mStr}");
+
+            // Quarterly restock
+            if ($m % 3 === 0) {
+                $postPurchase("{$mStr}-05 10:00:00", $supplierMap['S1']['id'], [
+                    ['id' => $productMap['P01']['id'], 'qty' => 20, 'cost' => 1200.0],
+                    ['id' => $productMap['P02']['id'], 'qty' => 25, 'cost' => 550.0],
+                    ['id' => $productMap['P07']['id'], 'qty' => 25, 'cost' => 1750.0],
+                ]);
+                $postPurchase("{$mStr}-08 14:00:00", $supplierMap['S2']['id'], [
+                    ['id' => $productMap['P05']['id'], 'qty' => 30, 'cost' => 140.0],
+                    ['id' => $productMap['P06']['id'], 'qty' => 25, 'cost' => 260.0],
+                ]);
+            }
+
+            for ($s = 1; $s <= 8; $s++) {
+                $day = rand(2, 27);
+                $p = $productMap['P0' . rand(1, 9)];
+                $qty = rand(3, 8);
+                $postSale("{$mStr}-{$day} 14:30:00", [
+                    ['id' => $p['id'], 'qty' => $qty, 'price' => $p['price'], 'cost' => $p['cost']]
+                ], ($s % 2 === 0 ? 'cash' : 'card'), $customerMap['C' . rand(1, 8)]['id']);
+            }
+        }
+
+        // 2025 Monthly Recurring
+        for ($m = 1; $m <= 12; $m++) {
+            $mStr = sprintf('2025-%02d', $m);
+            $postExpense("{$mStr}-01 09:00:00", 'Rent', 28000.00, 'bank_transfer', "Monthly Rent - {$mStr}");
+            $postExpense("{$mStr}-15 11:00:00", 'Utilities', 8500.00, 'bank_transfer', "Commercial Utilities - {$mStr}");
+            $postExpense("{$mStr}-28 17:00:00", 'Salaries', 45000.00, 'bank_transfer', "Staff Payroll - {$mStr}");
+            $postExpense("{$mStr}-10 12:00:00", 'Marketing', 5000.00, 'bank_transfer', "Digital Marketing Ads - {$mStr}");
+            $postExpense("{$mStr}-22 14:00:00", 'Supplies', 4000.00, 'cash', "Store Consumables - {$mStr}");
+
+            // Quarterly restock
+            if ($m % 3 === 0) {
+                $postPurchase("{$mStr}-05 10:00:00", $supplierMap['S1']['id'], [
+                    ['id' => $productMap['P01']['id'], 'qty' => 25, 'cost' => 1200.0],
+                    ['id' => $productMap['P03']['id'], 'qty' => 20, 'cost' => 750.0],
+                    ['id' => $productMap['P04']['id'], 'qty' => 25, 'cost' => 1100.0],
+                ]);
+                $postPurchase("{$mStr}-08 14:00:00", $supplierMap['S3']['id'], [
+                    ['id' => $productMap['P09']['id'], 'qty' => 20, 'cost' => 400.0],
+                    ['id' => $productMap['P10']['id'], 'qty' => 15, 'cost' => 2900.0],
+                    ['id' => $productMap['P11']['id'], 'qty' => 10, 'cost' => 3400.0],
+                ]);
+            }
+
+            for ($s = 1; $s <= 10; $s++) {
+                $day = rand(2, 27);
+                $p1 = $productMap['P0' . rand(1, 9)];
+                $p2 = $productMap['P' . rand(10, 15)];
+                $postSale("{$mStr}-{$day} 16:15:00", [
+                    ['id' => $p1['id'], 'qty' => rand(2, 5), 'price' => $p1['price'], 'cost' => $p1['cost']],
+                    ['id' => $p2['id'], 'qty' => rand(1, 3), 'price' => $p2['price'], 'cost' => $p2['cost']],
+                ], (['cash', 'card', 'bank_transfer'][$s % 3]), $customerMap['C' . rand(1, 8)]['id']);
+            }
+        }
+
+        // 2026 Jan - Aug Recurring
+        for ($m = 1; $m <= 8; $m++) {
+            $mStr = sprintf('2026-%02d', $m);
+            $postExpense("{$mStr}-01 09:00:00", 'Rent', 30000.00, 'bank_transfer', "Monthly Rent - {$mStr}");
+            $postExpense("{$mStr}-15 11:00:00", 'Utilities', 9200.00, 'bank_transfer', "Commercial Utilities - {$mStr}");
+            $postExpense("{$mStr}-28 17:00:00", 'Salaries', 48000.00, 'bank_transfer', "Staff Payroll - {$mStr}");
+            $postExpense("{$mStr}-10 12:00:00", 'Marketing', 6000.00, 'bank_transfer', "Marketing Campaign - {$mStr}");
+            $postExpense("{$mStr}-22 14:00:00", 'Supplies', 4500.00, 'cash', "Packaging & Receipt rolls - {$mStr}");
+
+            // Bi-monthly restock
+            if ($m % 2 === 0) {
+                $postPurchase("{$mStr}-05 10:00:00", $supplierMap['S1']['id'], [
+                    ['id' => $productMap['P07']['id'], 'qty' => 30, 'cost' => 1750.0],
+                    ['id' => $productMap['P08']['id'], 'qty' => 20, 'cost' => 2200.0],
+                ]);
+                $postPurchase("{$mStr}-08 14:00:00", $supplierMap['S4']['id'], [
+                    ['id' => $productMap['P01']['id'], 'qty' => 20, 'cost' => 1200.0],
+                    ['id' => $productMap['P04']['id'], 'qty' => 25, 'cost' => 1100.0],
+                    ['id' => $productMap['P10']['id'], 'qty' => 10, 'cost' => 2900.0],
+                    ['id' => $productMap['P11']['id'], 'qty' => 10, 'cost' => 3400.0],
+                ]);
+            }
+
+            for ($s = 1; $s <= 12; $s++) {
+                $day = rand(2, 28);
+                $p1 = $productMap['P0' . rand(1, 9)];
+                $p2 = $productMap['P' . rand(10, 15)];
+                $postSale("{$mStr}-{$day} 13:45:00", [
+                    ['id' => $p1['id'], 'qty' => rand(2, 6), 'price' => $p1['price'], 'cost' => $p1['cost']],
+                    ['id' => $p2['id'], 'qty' => rand(1, 4), 'price' => $p2['price'], 'cost' => $p2['cost']],
+                ], (['cash', 'card', 'bank_transfer', 'credit'][$s % 4]), $customerMap['C' . rand(1, 8)]['id']);
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // 10. CURRENT MONTH (September 1 - 14, 2026)
+        // ─────────────────────────────────────────────────────────────────
+        echo "9. Seeding Current Month (September 1 to 14, 2026)...\n";
+        $postExpense('2026-09-01 09:00:00', 'Rent', 30000.00, 'bank_transfer', 'Monthly Rent - September 2026');
+        $postExpense('2026-09-05 11:30:00', 'Marketing', 6500.00, 'bank_transfer', 'Digital Ads September Boost');
+        $postExpense('2026-09-10 14:00:00', 'Utilities', 9800.00, 'bank_transfer', 'High-Speed Commercial Power & Net');
+        $postExpense('2026-09-12 16:20:00', 'Supplies', 4200.00, 'cash', 'Packaging, Bags & Labels');
+        $postExpense('2026-09-14 18:00:00', 'Salaries', 20000.00, 'bank_transfer', 'Staff Mid-Month Payroll Advance');
+
+        // Sales for Sept 1 to Sept 14
+        for ($day = 1; $day <= 14; $day++) {
+            $dStr = sprintf('2026-09-%02d', $day);
+            $pA = $productMap['P0' . (($day % 9) + 1)];
+            $pB = $productMap['P' . (($day % 6) + 10)];
+            $postSale("{$dStr} 11:15:00", [
+                ['id' => $pA['id'], 'qty' => 3, 'price' => $pA['price'], 'cost' => $pA['cost']],
+            ], ($day % 2 === 0 ? 'cash' : 'card'), $customerMap['C' . (($day % 8) + 1)]['id']);
+
+            $postSale("{$dStr} 17:40:00", [
+                ['id' => $pB['id'], 'qty' => 2, 'price' => $pB['price'], 'cost' => $pB['cost']],
+            ], ($day % 3 === 0 ? 'bank_transfer' : ($day % 3 === 1 ? 'cash' : 'card')), $customerMap['C' . ((($day + 3) % 8) + 1)]['id']);
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // 10. PURCHASES (SEPTEMBER 2026)
+        // ─────────────────────────────────────────────────────────────────
+        echo "9. Seeding September 2026 Purchases...\n";
 
         // Purchase 1: National Food Distributors (Sept 03)
         $postPurchase('2026-09-03 11:00:00', $supplierMap['S1']['id'], [

@@ -24,4 +24,20 @@ enum ReckonerShape: string
     case STATUS = 'status';
     case FEED = 'feed';
     case GEO = 'geo';
+
+    public static function fromCardShape(string $shape): self
+    {
+        return match (strtolower($shape)) {
+            'stat', 'scalar' => self::SCALAR,
+            'trend', 'series' => self::SERIES,
+            'breakdown' => self::BREAKDOWN,
+            'list', 'ranking' => self::RANKING,
+            'table', 'heatmap' => self::TABLE,
+            'gauge' => self::GAUGE,
+            'status' => self::STATUS,
+            'feed' => self::FEED,
+            'geo' => self::GEO,
+            default => self::SCALAR,
+        };
+    }
 }

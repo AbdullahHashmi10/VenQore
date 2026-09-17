@@ -205,48 +205,46 @@ class TenantDefaultSeeder
     {
         $accounts = [
             // Assets (1xxx) — aligned with SaleController::postSaleJournal() codes
-            ['code' => '1000', 'name' => 'Cash in Hand',             'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '1010', 'name' => 'Bank Account',             'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '1100', 'name' => 'Inventory Asset',          'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '1200', 'name' => 'Accounts Receivable',      'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '1205', 'name' => 'Marketplace Clearing',      'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '1300', 'name' => 'Prepaid Expenses',         'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '1500', 'name' => 'Fixed Assets',             'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
+            ['code' => '1000', 'name' => 'Cash in Hand',             'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'cash',                     'is_current' => true],
+            ['code' => '1010', 'name' => 'Bank Account',             'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'bank',                     'is_current' => true],
+            ['code' => '1100', 'name' => 'Inventory Asset',          'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'inventory',                'is_current' => true],
+            ['code' => '1200', 'name' => 'Accounts Receivable',      'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'ar',                       'is_current' => true],
+            ['code' => '1205', 'name' => 'Marketplace Clearing',      'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'marketplace_clearing',     'is_current' => true],
+            ['code' => '1300', 'name' => 'Prepaid Expenses',         'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'prepaid',                  'is_current' => true],
+            ['code' => '1500', 'name' => 'Fixed Assets',             'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'fixed_asset',              'is_current' => false],
 
             // Liabilities (2xxx)
-            // ... (rest is same, but let's write out fully)
-            ['code' => '2000', 'name' => 'Accounts Payable',         'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '2050', 'name' => 'Customer Credit Balances', 'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '2100', 'name' => 'Sales Tax Payable',        'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
+            ['code' => '2000', 'name' => 'Accounts Payable',         'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit', 'role' => 'ap',                       'is_current' => true],
+            ['code' => '2050', 'name' => 'Customer Credit Balances', 'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit', 'role' => 'customer_credit',          'is_current' => true],
+            ['code' => '2100', 'name' => 'Sales Tax Payable',        'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit', 'role' => 'tax_output',               'is_current' => true],
             // Tips are collected FOR the staff, so they are owed on from the moment
             // they are taken. Never income — see SaleController::postSaleJournal().
-            ['code' => '2150', 'name' => 'Tips Payable',             'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '2200', 'name' => 'Loans Payable',            'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '2300', 'name' => 'Input Tax Recoverable',    'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
+            ['code' => '2150', 'name' => 'Tips Payable',             'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit', 'role' => 'tips',                     'is_current' => true],
+            ['code' => '2200', 'name' => 'Loans Payable',            'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit', 'role' => 'loan',                     'is_current' => false],
+            ['code' => '2300', 'name' => 'Input Tax Recoverable',    'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit',  'role' => 'tax_input',                'is_current' => true],
 
             // Equity (3xxx)
-            // ...
-            ['code' => '3000', 'name' => "Owner's Capital",          'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '3100', 'name' => 'Retained Earnings',        'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '3999', 'name' => 'Historical Variance',      'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '7000', 'name' => 'Opening Balance Equity',   'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
+            ['code' => '3000', 'name' => "Owner's Capital",          'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'equity',                   'is_current' => false],
+            ['code' => '3100', 'name' => 'Retained Earnings',        'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'equity',                   'is_current' => false],
+            ['code' => '3999', 'name' => 'Historical Variance',      'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'equity',                   'is_current' => false],
+            ['code' => '7000', 'name' => 'Opening Balance Equity',   'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'equity',                   'is_current' => false],
 
             // Revenue (4xxx) — credit-normal: positive balance = credit > debit
-            ['code' => '4000', 'name' => 'Sales Revenue',            'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '4100', 'name' => 'Other Income',             'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '4200', 'name' => 'Stock Adjustment Gain',    'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
-            ['code' => '4900', 'name' => 'Round Off Income',         'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
+            ['code' => '4000', 'name' => 'Sales Revenue',            'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'sales_revenue',             'is_current' => true],
+            ['code' => '4100', 'name' => 'Other Income',             'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'other_income',              'is_current' => true],
+            ['code' => '4200', 'name' => 'Stock Adjustment Gain',    'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'other_income',              'is_current' => true],
+            ['code' => '4900', 'name' => 'Round Off Income',         'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit', 'role' => 'other_income',              'is_current' => true],
 
             // Expenses (5xxx) — debit-normal: positive balance = debit > credit
-            ['code' => '5000', 'name' => 'Cost of Goods Sold',       'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '5100', 'name' => 'Salaries & Wages',         'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '5200', 'name' => 'Rent Expense',             'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '5300', 'name' => 'Utilities',                'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '5400', 'name' => 'Marketplace & Gateway Fees', 'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '5410', 'name' => 'Marketplace Fee Variance',  'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '5900', 'name' => 'Round Off Expense',        'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '6000', 'name' => 'Operating Expenses',       'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
-            ['code' => '6300', 'name' => 'Stock Adjustment Loss',    'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
+            ['code' => '5000', 'name' => 'Cost of Goods Sold',       'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'cogs',                     'is_current' => true],
+            ['code' => '5100', 'name' => 'Salaries & Wages',         'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
+            ['code' => '5200', 'name' => 'Rent Expense',             'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
+            ['code' => '5300', 'name' => 'Utilities',                'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
+            ['code' => '5400', 'name' => 'Marketplace & Gateway Fees', 'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
+            ['code' => '5410', 'name' => 'Marketplace Fee Variance',  'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
+            ['code' => '5900', 'name' => 'Round Off Expense',        'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
+            ['code' => '6000', 'name' => 'Operating Expenses',       'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
+            ['code' => '6300', 'name' => 'Stock Adjustment Loss',    'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit',  'role' => 'opex',                     'is_current' => true],
         ];
 
         $now = now();
@@ -259,6 +257,8 @@ class TenantDefaultSeeder
                     'type'           => $account['type'],
                     'balance'        => $account['balance'],
                     'normal_balance' => $account['normal_balance'],
+                    'role'           => $account['role'],
+                    'is_current'     => $account['is_current'],
                     'is_active'      => true,
                     'created_at'     => $now,
                     'updated_at'     => $now,

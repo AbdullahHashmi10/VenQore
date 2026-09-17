@@ -22,6 +22,8 @@ class Account extends Model
         // every auto-created liability/income/equity account silently became
         // debit-normal (the column default).
         'normal_balance',
+        'role',
+        'is_current',
         'parent_id',
         'balance',
         'depreciation_rate',

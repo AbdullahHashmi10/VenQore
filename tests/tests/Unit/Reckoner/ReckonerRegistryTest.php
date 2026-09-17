@@ -350,9 +350,10 @@ class ReckonerRegistryTest extends TestCase
 
     public function test_registry_has_expected_key_count(): void
     {
-        // 58 tenant readings + 2 platform readings = 60 total (after finance.net_margin_pct canonical collapse).
+        // 349 canonical cards + legacy compatibility keys + 2 platform metrics = 397 total.
+        $this->assertSame(349, \App\Reckoner\CardRegistry::count());
         $this->assertCount(
-            60,
+            397,
             $this->registry,
             'Registry key count changed unexpectedly. Update this test if you intentionally added or removed a key.'
         );

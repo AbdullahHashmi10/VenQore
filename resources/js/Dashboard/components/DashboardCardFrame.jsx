@@ -173,7 +173,9 @@ export default function DashboardCardFrame({
                 {tools}
                 <Body loading={loading} error={error} category={category}>
                     <div className="vqc-bd vqc-bd--tile">
-                        <span className="vqc-label" title={title}>{title}</span>
+                        <span className="vqc-label" title={title}>
+                            {title}
+                        </span>
                         {value}
                         {lockedReportTier && (
                             <Link
@@ -198,7 +200,9 @@ export default function DashboardCardFrame({
                 {tools}
                 <Body loading={loading} error={error} category={category}>
                     <div className="vqc-bd vqc-bd--strip is-inline">
-                        <span className="vqc-eyebrow" title={title}>{title}</span>
+                        <span className="vqc-eyebrow" title={title}>
+                            {title}
+                        </span>
                         <span className="vqc-head flex-col items-end">
                             <span className="flex items-center gap-2">
                                 {value}

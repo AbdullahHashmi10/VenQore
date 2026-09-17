@@ -30,6 +30,7 @@ class CustomerPaymentController extends Controller
             'customer_id'    => ['required', 'string', Rule::exists('parties', 'id')->where('tenant_id', $tenantId)],
             'payment_date'   => ['required', 'date', 'before_or_equal:today'],
             'payment_method' => ['required', 'in:cash,bank'],
+            'bank_account_id' => ['nullable', 'string', Rule::exists('bank_accounts', 'id')->where('tenant_id', $tenantId)],
             'amount'         => ['required', 'numeric', 'min:0.01'],
             'reference'      => ['nullable', 'string', 'max:100'],
             'allocations'    => ['required', 'array', 'min:1'],
@@ -61,9 +62,16 @@ class CustomerPaymentController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($validated) {
+            DB::transaction(function () use ($validated, $tenantId) {
 
                 $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
+                $bankAccountId = $validated['bank_account_id'] ?? null;
+                if ($validated['payment_method'] === 'bank' && empty($bankAccountId)) {
+                    $firstBank = \App\Models\BankAccount::where('tenant_id', $tenantId)
+                        ->where('type', 'bank')
+                        ->first();
+                    $bankAccountId = $firstBank?->id;
+                }
 
                 // B4 Journal:
                 // DR 1000/1010 Cash or Bank
@@ -79,9 +87,10 @@ class CustomerPaymentController extends Controller
                     'party_id'       => $validated['customer_id'],
                 ], [
                     [
-                        'account_code' => $cashAccount,
-                        'debit'        => $validated['amount'],
-                        'credit'       => 0,
+                        'account_code'    => $cashAccount,
+                        'debit'           => $validated['amount'],
+                        'credit'          => 0,
+                        'bank_account_id' => $validated['payment_method'] === 'bank' ? $bankAccountId : null,
                     ],
                     [
                         'account_code' => '1200',

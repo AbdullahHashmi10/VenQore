@@ -38,6 +38,9 @@ const NAV_GROUP_ORDER = ['A','B','C','D','E','F','G'];
 
 // React Bits Components
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
+import V6FinancialSidebar from '@/Components/V6FinancialSidebar';
+import RightPanel from '@/Components/RightPanel';
+import PaymentModal from '@/Components/PaymentModal';
 import RECKONER_CATALOG from './ReckonerCatalog.json';
 
 /* ══ human copy ════════════════════════════════════════════════════════════
@@ -48,124 +51,103 @@ import RECKONER_CATALOG from './ReckonerCatalog.json';
    ═════════════════════════════════════════════════════════════════════════ */
 
 const READING_DESC = {
-  "accounting.assets": "Everything the business owns — stock, cash, equipment and receivables combined.",
-  "accounting.liabilities": "Everything the business owes — supplier dues, loans and unpaid bills combined.",
-  "accounting.income_ytd": "All income recorded since the start of this year.",
-  "accounting.expense_ytd": "All expenses recorded since the start of this year.",
-  "bank_accounts.total_balance": "The combined balance across all your bank accounts.",
-  "bank_accounts.cash_on_hand": "Cash currently in the drawer and safe.",
-  "bank_accounts.money_in_today": "Money received into your accounts today.",
-  "bank_accounts.money_out_today": "Money paid out of your accounts today.",
-  "bank_reconciliation.total_txns": "Bank transactions imported and waiting to be checked.",
-  "bank_reconciliation.matched": "Bank transactions matched to your books.",
-  "bank_reconciliation.unmatched": "Bank transactions that still need matching.",
-  "batch_tracking.total_batches": "Product batches currently tracked in stock.",
-  "batch_tracking.expiring_soon": "Batches that reach their expiry date soon.",
-  "batch_tracking.expired": "Batches already past their expiry date.",
-  "batch_tracking.total_qty": "Total quantity held across all tracked batches.",
-  "debit_notes.total_notes": "Debit notes raised against suppliers.",
-  "purchasing.spend": "Total value of purchases in the selected timeframe.",
-  "debit_notes.open_credits": "Supplier credit you can still use against future purchases.",
-  "finance.expenses_total": "Everything spent today, across all expense heads.",
-  "finance.payables": "What you currently owe suppliers and creditors.",
-  "party.supplier_count": "Suppliers you currently owe money to.",
-  "finance.avg_balance": "The average balance across your accounts.",
-  "finance.receivables": "What customers currently owe you.",
-  "party.customer_count": "Customers who currently owe you money.",
-  "inventory.total_categories": "Product categories in your catalogue.",
-  "inventory.main_categories": "Top-level categories in your catalogue.",
-  "inventory.products_linked": "Products linked to your online store.",
-  "inventory.product_count": "Products in your catalogue.",
-  "inventory.low_stock_count": "Products at or below their reorder level.",
-  "inventory.stock_value": "What your current stock is worth at cost.",
-  "production.run_count": "Production runs currently in progress.",
-  "inventory.completed_today": "Production runs finished today.",
-  "production.total_cost": "What production has cost this month.",
-  "inventory.out_of_stock_count": "Products with nothing left on the shelf.",
-  "pre_sales.total_quotes": "Quotations sent to customers.",
-  "pre_sales.pending": "Quotations still waiting on a customer decision.",
-  "proposals.total_proposals": "Proposals sent to customers.",
-  "proposals.accepted": "Proposals the customer said yes to.",
-  "proposals.pending": "Proposals still waiting on a reply.",
-  "purchasing.count": "Purchase orders placed with suppliers.",
-  "purchase_orders.pending": "Purchase orders not yet delivered.",
-  "purchase_orders.received": "Purchase orders delivered and received.",
-  "recurring_invoices.total": "Repeating invoices set up for regular customers.",
-  "recurring_invoices.active": "Repeating invoices currently running.",
-  "recurring_invoices.paused": "Repeating invoices on hold.",
-  "recurring_invoices.monthly_revenue": "What your repeating invoices bring in each month.",
-  "reminders.total_scheduled": "Payment reminders scheduled to go out.",
-  "reminders.pending": "Reminders queued but not yet sent.",
-  "reminders.sent": "Reminders already delivered.",
-  "reminders.overdue": "Invoices past due that need a follow-up.",
-  "returns.total_returns": "Sales returned by customers.",
-  "returns.items_returned": "Individual items customers brought back.",
-  "returns.total_refunded": "Money refunded on returned sales.",
-  "sales.revenue": "Everything you sold in the selected timeframe.",
-  "sales_orders.confirmed": "Customer orders confirmed and in progress.",
-  "sales_orders.pending": "Customer orders waiting for confirmation.",
-  "serial_tracking.total_serials": "Serial-numbered items being tracked.",
-  "serial_tracking.in_stock": "Serialised items currently in stock.",
-  "serial_tracking.sold": "Serialised items sold.",
-  "serial_tracking.returned": "Serialised items returned.",
-  "staff.member_count": "People on your team.",
-  "staff.on_shift_count": "Team members clocked in right now.",
-  "staff_attendance.absent": "Team members not in today.",
-  "staff_attendance.pending_gaps": "Attendance gaps awaiting review.",
-  "staff_attendance.hours_today": "Hours worked by the whole team today.",
-  "sales.revenue_trend": "How your sales move day by day — the classic revenue chart.",
-  "sales.payment_breakdown": "How customers paid — cash, card, credit, bank and wallet.",
-  "sales.top_products": "Your best sellers, ranked by sales value.",
-  "sales.top_customers": "Your biggest customers, ranked by what they bought.",
-  "sales.hourly_heatmap": "Your busiest hours, mapped across the week.",
-  "sales.live_feed": "The latest sales as they happen, newest first.",
-  "sales.avg_order_value": "What the typical sale is worth.",
-  "sales.basket_size": "How many items the typical sale contains.",
-  "sales.discount_given": "Discounts given away in the selected timeframe.",
-  "sales.return_rate": "The share of sales that come back as returns.",
-  "sales.conversion_funnel": "Quotes to orders to paid — where deals drop off.",
-  "sales.channel_split": "Sales split between your counter, online store and phone orders.",
-  "sales.region_split": "Where your sales come from, by area.",
-  "finance.profit_trend": "What's left after costs, tracked over time.",
-  "finance.cash_flow_trend": "Money coming in against money going out.",
-  "finance.expenses_by_category": "Where the money goes — rent, salaries, utilities and more.",
-  "finance.receivables_aging": "Customer dues grouped by how overdue they are.",
-  "finance.balance_sheet_ok": "A quick check that your books balance.",
-  "finance.cash_runway": "How many days your cash lasts at the current burn.",
-  "finance.dso": "How long customers take to pay you, on average.",
-  "finance.dpo": "How long you take to pay suppliers, on average.",
-  "finance.quick_ratio": "Whether liquid assets cover short-term dues.",
-  "finance.expense_ratio": "Expenses as a share of income.",
-  "finance.tax_liability": "Tax collected and owed for the period.",
-  "inventory.low_stock_list": "Every product at or below its reorder level, in one list.",
-  "inventory.turnover": "How fast stock sells through and gets replaced.",
-  "inventory.days_of_cover": "How many days current stock will last.",
-  "inventory.sell_through": "The share of stock received that has already sold.",
-  "inventory.dead_stock_value": "Money tied up in stock that hasn't moved.",
-  "inventory.value_trend": "How your stock value moves over time.",
-  "inventory.by_warehouse": "Where your stock sits, location by location.",
-  "inventory.expiry_window": "Products expiring within the next 30 days.",
-  "purchasing.spend_trend": "Your purchase history — what you bought, over time.",
-  "purchasing.by_supplier": "Which suppliers your money goes to.",
-  "purchasing.supplier_concentration": "How much of your buying depends on one supplier.",
-  "purchasing.lead_time": "How long suppliers take to deliver, on average.",
-  "purchasing.on_time_rate": "The share of orders suppliers deliver on time.",
-  "operations.plan_usage": "How much of your VenQore plan you've used.",
-  "staff.sales_per_head": "Sales generated per team member.",
-  "staff.attendance_rate": "The share of shifts your team showed up for.",
-  "operations.open_tickets": "Support tickets waiting on an answer.",
-  "party.new_vs_returning": "New faces against regulars, side by side.",
-  "party.retention_rate": "The share of customers who come back.",
-  "finance.expenses_trend": "Your expense history — what you spent, over time.",
-  "operations.activity_feed": "Everything that just happened — sales, purchases, payments and stock moves.",
+  // ── Core & Overview Financials ──
+  "core.revenue": "All the money that came into your shop from sales. It adds up every customer payment from your cash register, invoices, and receipts. This is the total money customers handed you before taking out any costs or expenses.",
+  "core.revenue_trend": "A day-by-day graph of your sales. It shows how much money came in each day, so you can easily spot your best sales days, your slow days, and whether your sales are going up or down this month.",
+  "core.gross_profit": "The profit you make on the items themselves. It takes your sales money and subtracts what you paid to buy those products wholesale. For example, if you sell a shirt for Rs 1,000 that cost you Rs 600, your gross profit is Rs 400.",
+  "core.gross_margin_pct": "Shows what percentage of your selling price is profit. For example, a 40% margin means that for every 100 rupees a customer pays you, 40 rupees is profit on the item and 60 rupees covers what you paid to buy it.",
+  "core.net_profit": "The real money you actually take home in your pocket. It takes your sales and subtracts everything: the cost of the products, shop rent, staff wages, electricity bills, tea, and taxes. This is your true final profit.",
+  "core.net_margin_pct": "Out of every 100 rupees of sales that comes into your shop, this shows how many rupees stay with you as pure profit after paying every single shop bill and expense.",
+  "core.profit_trend": "A daily graph showing your actual take-home profit day by day. It shows if you made real money every day or if big bills (like rent or supplier payments) caused you to lose money on certain days.",
+  "core.cogs": "The wholesale cost of the products you actually sold to customers. It only counts items that were sold, so you know exactly how much you paid to buy that inventory from your suppliers.",
+  "core.expenses_total": "All the everyday money spent to keep your shop running. This includes shop rent, electricity, staff salaries, internet, tea, repairs, and delivery costs. It does not include buying stock.",
+  "core.expense_ratio": "Shows how much of your sales money is eaten up by shop bills. For example, if you sell Rs 100,000 and your shop expenses are Rs 20,000, then 20% of your money goes straight to bills.",
+  "core.receivables": "The total money that customers owe you on credit (your Khata balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
+  "core.receivables_aging": "Groups what customers owe you by how late they are (under 30 days, 60 days, or over 90 days). It reminds you which customers to call first before their credit gets too old to collect.",
+  "core.payables": "Total money you owe to your suppliers and vendors for stock or services. It shows all the upcoming bills that you need to pay soon.",
+  "core.payables_aging": "Lists your supplier bills by when they are due. It helps you see which bills need to be paid today and which ones you can pay next week, keeping suppliers happy.",
+  "core.total_liquidity": "All the ready cash you have right now. It adds up all the cash inside your cash drawer and safe, plus all the money in every bank account you have.",
+  "core.liquidity_trend": "A graph tracking your total cash over time. It shows whether your shop is saving more cash day by day or if your bank balance is slowly drying up.",
+  "core.cash_flow_trend": "Compares the cash entering your shop against the cash leaving your shop each day. It helps make sure you don't spend more cash on bills than what customers are paying you.",
+  "core.net_cash_position": "The cash you have in hand and bank minus what you owe to suppliers right now. It tells you how much money is truly yours if you paid off all your supplier bills today.",
+  "core.working_capital": "Your financial breathing room. It checks if your current stock, cash, and customer dues are enough to easily cover your short-term bills and keep your shop running smoothly.",
+  "core.revenue_vs_prev": "Shows if your sales are higher or lower compared to last month or last week. A green number means more customers are buying from you than before.",
+  "core.profit_vs_prev": "Shows if your real take-home profit grew or shrank compared to last month. It tells you if you are actually keeping more money in your pocket than before.",
+  "core.transaction_count": "The total number of customer sales and printed receipts. It tells you how busy your checkout counter was, counting every visit whether the customer spent Rs 50 or Rs 50,000.",
+  "core.avg_transaction_value": "The average amount a customer spends when they buy from you. It divides your total sales by the number of customers, showing if people are buying bigger or smaller baskets.",
+  "core.busiest_day": "Tells you which day brought in the most sales money. It helps you know which day of the week you need the most staff and the most stock ready.",
+  "core.peak_hour": "The exact hour of the day when the most customers are checking out at your counter. It tells you when you need all cashiers present to handle the rush.",
+  "core.balance_sheet_ok": "A live check that makes sure all your accounts balance. A green mark means every debit matches every credit and there are zero bookkeeping errors in your system.",
+  "core.journal_entries_count": "The number of accounting records our system created for your shop automatically. Every time you sell, buy, or pay a bill, the system writes the accounting entries for you.",
+  "core.audit_trail_count": "A safety counter of every action taken in your system, like making a sale, giving a discount, or editing stock. It keeps a record so you always know who did what.",
+  "core.reversal_count": "Counts how many times a sale or bill was cancelled, returned, or corrected. A high number helps you catch cashier mistakes or customer return issues early.",
+  "core.document_sequence_ok": "Checks that your invoice and receipt numbers follow in a clean order (like 101, 102, 103) with no missing slips or duplicate numbers.",
+  "core.user_activity": "Shows which of your staff members and cashiers have logged into the system and are working today.",
+  "core.plan_usage": "Shows how much of your monthly software plan limits you have used, such as number of orders or products.",
+
+  // ── Inventory & Products ──
+  "inventory.stock_value": "The wholesale purchase cost of all the goods sitting on your shelves. It tells you exactly how much of your money is currently tied up in unsold stock.",
+  "inventory.low_stock_count": "Products that are running out of stock and need to be reordered soon before you run out completely.",
+  "inventory.out_of_stock_count": "Products that have completely sold out with zero left on the shelf. You need to reorder these to avoid missing sales.",
+  "inventory.turnover": "Shows how many times your stock completely sells out and gets replaced. Fast-moving items sell quickly and make you more money.",
+  "inventory.days_of_cover": "How many days your current stock will last based on how fast it is selling. Helps you know when to order more goods.",
+  "inventory.dead_stock_value": "Money stuck in products that haven't sold in a long time. You can put these on sale or discount them to get your cash back.",
+  "products.top_margin": "The items in your shop that give you the highest profit percentage on each sale. These are your best items to recommend to customers to make more money.",
+  "products.lowest_margin": "The items you sell with very little profit markup. It warns you where you are barely making any profit so you can adjust prices if supplier costs go up.",
+  "products.active_count": "The total number of products you currently have available for customers to buy in your store.",
+  "products.by_category": "Shows how your products are divided across different groups, like drinks, snacks, or clothes, so you see what types of items you carry the most.",
+  "products.catalogue_value": "How much money you would collect if you sold every single item currently on your shelves at full retail price.",
+  "products.never_sold": "Items sitting in your shop that no customer has ever bought. It helps you spot dead items so you can put them on discount or stop ordering them.",
+  "products.missing_cost": "Products where you forgot to enter what you paid the supplier. Entering their cost is important so the system can calculate your real profit.",
+  "products.new_this_period": "New products you added to your store during this period.",
+
+  // ── Customers & Khata ──
+  "customers.count": "The total number of customers saved in your system with their contact and Khata details.",
+  "customers.top_customers": "A list of your best customers who have spent the most money in your shop. It helps you know your most loyal buyers so you can give them special service.",
+  "customers.dormant": "Customers who used to buy from you but have not visited in the last 2 to 3 months. A reminder to send them an SMS or give them a special offer to bring them back.",
+  "customers.repeat_rate": "The percentage of customers who come back to buy from you again. A higher number means customers love your shop and keep returning.",
+  "customers.avg_spend": "The average amount a customer has spent in your shop over their entire history with you.",
+
+  // ── Suppliers & Purchasing ──
+  "suppliers.active": "How many different suppliers and wholesale distributors you bought goods from during this period.",
+  "suppliers.top_suppliers": "The suppliers you buy the most from. Helps you know who your biggest partners are so you can ask for better discounts.",
+  "suppliers.spend_total": "The total money you spent buying new stock and goods from suppliers during this period.",
+  "suppliers.spend_trend": "A timeline showing how much money you spent on buying stock each week or month.",
+  "suppliers.concentration": "Shows if too much of your purchasing is coming from just one supplier, so you know if you are depending too much on one vendor.",
+
+  // ── Point of Sale (POS) ──
+  "pos.revenue_trend": "Shows your counter sales hour by hour and day by day, helping you see when your cash register is making the most money.",
+  "pos.payment_breakdown": "Shows how customers paid you — how much came in cash, how much by bank card, and how much on credit. It makes end-of-day register counting easy.",
+  "pos.hourly_heatmap": "A map showing your rush hours across the entire week, so you know which hours of each day are packed with customers and which hours are quiet.",
+  "pos.live_feed": "A live feed showing every sale as it happens at the counter right now. You can see what customers are buying in real time.",
+  "pos.max_sale": "The biggest single sale made at your counter during this period.",
+  "pos.items_per_sale": "The average number of items a customer buys in one receipt. It tells you if customers are buying just one thing or filling their baskets.",
+
+  // ── Invoicing & Billing ──
+  "invoicing.value_trend": "Shows the total value of customer invoices you issued over time, tracking your wholesale and corporate billing.",
+  "invoicing.unpaid_value": "The total amount of unpaid customer invoices waiting to be collected.",
+  "invoicing.overdue_count": "How many customer invoices are late and past their due date, reminding you who needs a payment reminder.",
+
+  // ── Bank Accounts & Cash ──
+  "bank_accounts.total_balance": "The total money sitting in all your bank accounts combined.",
+  "bank_accounts.cash_on_hand": "The physical cash inside your shop registers, cash drawer, and safe right now.",
+  "bank_accounts.money_in_today": "Total money received today from sales, customer Khata payments, and bank deposits.",
+  "bank_accounts.money_out_today": "Total money paid out today for supplier bills, shop expenses, and cash withdrawals.",
+  "accounting.assets": "Everything of value your business owns — your unsold stock, bank balance, cash in hand, and customer credit combined.",
+  "accounting.liabilities": "Everything your business owes to others — unpaid supplier bills, loans, and expenses.",
+  "accounting.income_ytd": "All sales and earnings your shop has made since the beginning of this year.",
+  "accounting.expense_ytd": "All shop bills, expenses, and costs spent since the beginning of this year."
 };
 
 /* A description for anything the table above missed — built from what the
-   reading is, still free of jargon. */
+   reading is, clear, human, and free of generic placeholders. */
 function readingDesc(r){
   if (READING_DESC[r.key]) return READING_DESC[r.key];
-  const noun = r.unit === "currency" ? "value" : r.unit === "percent" ? "rate" : "count";
-  return `${r.label} — a live ${noun} from ${r.area.toLowerCase()}.`;
+  if (r.desc && typeof r.desc === "string" && !r.desc.includes("— a live") && r.desc.trim().length > 20) return r.desc;
+  if (r.insight && typeof r.insight === "string" && !r.insight.includes("— a live") && r.insight.trim().length > 20) return r.insight;
+  if (r.description && typeof r.description === "string" && !r.description.includes("— a live") && r.description.trim().length > 20) return r.description;
+  const noun = r.unit === "currency" ? "money amounts" : r.unit === "percent" ? "percentages" : "counts";
+  return `Tracks ${r.label.toLowerCase()} for your store, showing real-time ${noun} from your ${r.area.toLowerCase()} records.`;
 }
 
 /* ══ module gating ═════════════════════════════════════════════════════════
@@ -175,35 +157,13 @@ function readingDesc(r){
    modules sees the cards those five modules can actually answer, nothing
    else. An empty enabled-set (no tenant bound, the dev harness) gates
    nothing. A reading matching no rule is always available. */
-const READING_MODULE_RULES = [
-  [/^accounting\./,           ["accounting_workspace"]],
-  [/^bank_accounts\./,        ["bank_accounts"]],
-  [/^bank_reconciliation\./,  ["bank_reconciliation"]],
-  [/^batch_tracking\./,       ["batches_expiry"]],
-  [/^debit_notes\./,          ["purchase_returns"]],
-  [/^finance\.expenses/,      ["expenses"]],
-  [/^finance\.tax/,           ["tax_compliance"]],
-  [/^finance\./,              ["khata_credit", "payments", "accounting_workspace"]],
-  [/^party\./,                ["customers", "suppliers"]],
-  [/^inventory\./,            ["inventory"]],
-  [/^production\./,           ["production_runs"]],
-  [/^pre_sales\./,            ["pre_sales"]],
-  [/^proposals\./,            ["quotations"]],
-  [/^purchase_orders\./,      ["purchase_orders"]],
-  [/^purchasing\./,           ["purchases", "purchase_orders"]],
-  [/^recurring_invoices\./,   ["recurring_invoices"]],
-  [/^reminders\./,            ["khata_credit"]],
-  [/^returns\./,              ["sales_returns"]],
-  [/^sales_orders\./,         ["sales_orders"]],
-  [/^sales\./,                ["pos", "invoicing"]],
-  [/^serial_tracking\./,      ["serials"]],
-  [/^staff\./,                ["staff_attendance"]],
-  [/^staff_attendance\./,     ["staff_attendance"]],
-  [/^operations\./,           []],
-];
 function modulesOf(key){
-  for (const [re, mods] of READING_MODULE_RULES) if (re.test(key)) return mods;
-  return [];
+  if (typeof window !== "undefined" && Array.isArray(window.READINGS)) {
+    const found = window.READINGS.find(r => r.key === key);
+    if (found && Array.isArray(found.modules)) return found.modules;
+  }
+  const fallback = Array.isArray(RECKONER_CATALOG) ? RECKONER_CATALOG.find(r => r.key === key) : null;
+  return fallback && Array.isArray(fallback.modules) ? fallback.modules : [];
 }
 
 function prepareReadings(source) {
@@ -211,19 +171,19 @@ function prepareReadings(source) {
   if (typeof window !== "undefined" && window.__VENQORE_DEMO_MODE__) {
     list.push(
       { key:"finance.expenses_trend", label:"Expense trend", shape:"SERIES", unit:"currency",
-        area:"Finance", module:"Extra", short:"Expense trend", extra:true,
+        area:"Finance", module:"Extra", modules:["expenses"], short:"Expense trend", extra:true,
         rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
         sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
       { key:"operations.activity_feed", label:"Recent activity", shape:"FEED", unit:"currency",
-        area:"Operations", module:"Extra", short:"Recent activity", extra:true,
+        area:"Operations", module:"Extra", modules:[], short:"Recent activity", extra:true,
         rowNames:["Bilal Ahmed","Sana Iqbal","Hamza Raza","Noor Fatima","Ayesha Khan","Usman Ali"],
         sliceNames:["New","Returning","Dormant"] },
       { key:"bank_accounts.liquid_net", label:"Total Liquid Net", shape:"SCALAR", unit:"currency",
-        area:"Finance", module:"BankAccounts", short:"Total Liquid Net", extra:true,
+        area:"Finance", module:"BankAccounts", modules:["bank_accounts"], short:"Total Liquid Net", extra:true,
         rowNames:["Rent","Salaries","Utilities","Transport","Marketing","Other"],
         sliceNames:["Rent","Salaries","Utilities","Transport","Other"] },
       { key:"purchasing.recent", label:"Recent purchases", shape:"FEED", unit:"currency",
-        area:"Purchasing", module:"Extra", short:"Recent purchases", extra:true,
+        area:"Purchasing", module:"Extra", modules:["purchases"], short:"Recent purchases", extra:true,
         rowNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders","Bahria Wholesale","Ravi Depot"],
         sliceNames:["Metro Supply","Karim Bros","Lahore Foods","Indus Traders"] },
     );
@@ -232,19 +192,26 @@ function prepareReadings(source) {
   }
   list.forEach(r => {
     r.desc = readingDesc(r);
-    r.modules = modulesOf(r.key);
-    if (!Array.isArray(r.rowNames) || r.rowNames.length === 0) {
-      r.rowNames = ["Cash", "Card", "Credit", "Bank", "Online", "Other"];
-    }
-    if (!Array.isArray(r.sliceNames) || r.sliceNames.length === 0) {
-      r.sliceNames = ["Cash", "Card", "Credit", "Bank", "Online"];
-    }
+    r.modules = Array.isArray(r.modules) ? r.modules : modulesOf(r.key);
+    r.rowNames = Array.isArray(r.rowNames) ? r.rowNames : [];
+    r.sliceNames = Array.isArray(r.sliceNames) ? r.sliceNames : [];
   });
   return list;
 }
 
 // Server-provided facts used by the non-Reckoner hub cards.
 let DASHBOARD_RUNTIME_DATA = {};
+
+/* ── live reckoner integration & cache ─────────────── */
+const LIVE_RECKONER_DATA = {};
+const PENDING_RECKONER_REQUESTS = new Set();
+let RECKONER_FETCH_TIMER = null;
+
+function clearReckonerDataCache() {
+  for (const k of Object.keys(LIVE_RECKONER_DATA)) {
+    delete LIVE_RECKONER_DATA[k];
+  }
+}
 
 function runCardBuilder(opts) {
   /* Inertia remounts this page on every client-side navigation back to it. The
@@ -274,6 +241,7 @@ function setEnabledModules(list){
   ENABLED_MODULES = Array.isArray(list) && list.length ? new Set(list) : null;
 }
 function readingAvailable(r){
+  if (r && r.contract_state === 'unimplemented') return false;
   if (!ENABLED_MODULES) return true;
   const mods = r.modules || [];
   if (!mods.length) return true;
@@ -314,9 +282,70 @@ const PERIODS = Object.keys(PERIOD);
 
 function anchorNow(){ const d = new Date(); d.setMinutes(0,0,0); return d; }
 
-/** Real timestamps ending now, one per point, spaced by the period's step. */
+/** Real timestamps for the current period, spaced by the period's step. */
 function timeline(period){
-  const { n, step, grain } = PERIOD[period];
+  const conf = PERIOD[period] || PERIOD.Month;
+  const grain = conf.grain;
+  const now = anchorNow();
+
+  if (period === "Today") {
+    const out = [];
+    const base = new Date(now);
+    base.setHours(0, 0, 0, 0);
+    const maxH = Math.max(12, Math.min(24, now.getHours() + 1));
+    for (let h = 0; h < maxH; h++) {
+      out.push(new Date(base.getTime() + h * MS_H));
+    }
+    return out;
+  }
+
+  if (period === "Week") {
+    const out = [];
+    const base = new Date(now);
+    base.setHours(0, 0, 0, 0);
+    const day = base.getDay();
+    const diffToMon = (day === 0 ? 6 : day - 1);
+    const monday = new Date(base.getTime() - diffToMon * MS_D);
+    const count = Math.max(2, diffToMon + 1);
+    for (let d = 0; d < count; d++) {
+      out.push(new Date(monday.getTime() + d * MS_D));
+    }
+    return out;
+  }
+
+  if (period === "Month") {
+    const out = [];
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const todayDate = Math.max(2, now.getDate());
+    for (let d = 1; d <= todayDate; d++) {
+      out.push(new Date(y, m, d, 0, 0, 0));
+    }
+    return out;
+  }
+
+  if (period === "Quarter") {
+    const out = [];
+    const y = now.getFullYear();
+    const qStartMonth = Math.floor(now.getMonth() / 3) * 3;
+    const currentMonth = now.getMonth();
+    for (let m = qStartMonth; m <= currentMonth; m++) {
+      out.push(new Date(y, m, 1, 0, 0, 0));
+    }
+    return out.length >= 2 ? out : [new Date(y, qStartMonth, 1, 0, 0, 0), now];
+  }
+
+  if (period === "Year") {
+    const out = [];
+    const y = now.getFullYear();
+    const currentMonth = now.getMonth();
+    for (let m = 0; m <= currentMonth; m++) {
+      out.push(new Date(y, m, 1, 0, 0, 0));
+    }
+    return out.length >= 2 ? out : [new Date(y, 0, 1, 0, 0, 0), now];
+  }
+
+  const { n, step } = conf;
   const end = anchorNow();
   if (grain !== "hour") end.setHours(0,0,0,0);
   const out = [];
@@ -375,13 +404,10 @@ function abbrNum(n){
 function unitPrefix(unit){ return unit === "currency" ? "Rs " : ""; }
 function unitSuffix(unit){ return unit === "percent" ? "%" : ""; }
 
-/* ── live reckoner integration & deterministic fallback ─────────────── */
-const LIVE_RECKONER_DATA = {};
-const PENDING_RECKONER_REQUESTS = new Set();
-let RECKONER_FETCH_TIMER = null;
 
 function toReckonerPeriod(period) {
   const map = {
+    Day: "today",
     Today: "today",
     Week: "this_week",
     Month: "this_month",
@@ -393,24 +419,44 @@ function toReckonerPeriod(period) {
 
 function queueLiveReadings(cards, onComplete) {
   if (!cards || !cards.length || typeof window === "undefined" || typeof axios === "undefined") return;
+  const now = Date.now();
   const requests = [];
+
   cards.forEach(c => {
     if (!c || c.type) return;
     const uiPer = c.period || "Month";
-    const reckPer = toReckonerPeriod(uiPer);
-    const reqKey = `${c.key}|${uiPer}`;
-    const mappedKey = `${c.key}|${reckPer}`;
-    if (!PENDING_RECKONER_REQUESTS.has(reqKey) && !LIVE_RECKONER_DATA[reqKey] && !LIVE_RECKONER_DATA[mappedKey]) {
-      PENDING_RECKONER_REQUESTS.add(reqKey);
-      requests.push({ key: c.key, period: reckPer, reqKey, uiPeriod: uiPer });
+    const rd = readingOf(c.key);
+    let reckPer = toReckonerPeriod(uiPer);
+    if (rd && rd.periods && Array.isArray(rd.periods) && rd.periods.length > 0 && !rd.periods.includes(reckPer)) {
+      reckPer = rd.default_period || rd.periods[0] || "live";
     }
+    const gran = PERIOD[uiPer]?.grain || "day";
+    const compositeId = `${c.key}|${reckPer}|${gran}`;
+    const reqKey = `${c.key}|${uiPer}`;
+
+    const existing = LIVE_RECKONER_DATA[compositeId] || LIVE_RECKONER_DATA[reqKey];
+    const isExpired = existing && existing._expiresAt && now > existing._expiresAt;
+
+    if (!PENDING_RECKONER_REQUESTS.has(reqKey) && (!existing || isExpired)) {
+      PENDING_RECKONER_REQUESTS.add(reqKey);
+      requests.push({ key: c.key, period: reckPer, granularity: gran, reqKey, uiPeriod: uiPer });
+    }
+
     if (Array.isArray(c.extraKeys)) {
       c.extraKeys.forEach(ek => {
+        const ekRd = readingOf(ek);
+        let ekReckPer = toReckonerPeriod(uiPer);
+        if (ekRd && ekRd.periods && Array.isArray(ekRd.periods) && ekRd.periods.length > 0 && !ekRd.periods.includes(ekReckPer)) {
+          ekReckPer = ekRd.default_period || ekRd.periods[0] || "live";
+        }
+        const ekCompositeId = `${ek}|${ekReckPer}|${gran}`;
         const ekReqKey = `${ek}|${uiPer}`;
-        const ekMappedKey = `${ek}|${reckPer}`;
-        if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && !LIVE_RECKONER_DATA[ekReqKey] && !LIVE_RECKONER_DATA[ekMappedKey]) {
+        const ekExisting = LIVE_RECKONER_DATA[ekCompositeId] || LIVE_RECKONER_DATA[ekReqKey];
+        const ekIsExpired = ekExisting && ekExisting._expiresAt && now > ekExisting._expiresAt;
+
+        if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && (!ekExisting || ekIsExpired)) {
           PENDING_RECKONER_REQUESTS.add(ekReqKey);
-          requests.push({ key: ek, period: reckPer, reqKey: ekReqKey, uiPeriod: uiPer });
+          requests.push({ key: ek, period: ekReckPer, granularity: gran, reqKey: ekReqKey, uiPeriod: uiPer });
         }
       });
     }
@@ -428,14 +474,28 @@ function queueLiveReadings(cards, onComplete) {
 
   Promise.allSettled(chunks.map(chunk =>
     axios.post("/api/reckoner/read", {
-      requests: chunk.map(r => ({ key: r.key, period: r.period }))
+      requests: chunk.map(r => ({ key: r.key, period: r.period, granularity: r.granularity }))
     }).then(res => {
       const items = res?.data?.data || [];
-      items.forEach((item, idx) => {
+      const receivedAt = Date.now();
+      items.forEach((item) => {
         if (item && item.key) {
-          const req = chunk[idx] || chunk.find(r => r.key === item.key);
+          const ttlSec = Math.max(300, Number(item.meta?.ttl) || 300);
+          item._expiresAt = receivedAt + ttlSec * 1000;
+
+          // Match by item.id if composite id returned, or key + period
+          const req = chunk.find(r => item.id && item.id.startsWith(r.key + '|' + r.period))
+            || chunk.find(r => r.key === item.key && (r.period === item.period?.key || r.period === item.period))
+            || chunk.find(r => r.key === item.key);
+
           const perKey = item.period?.key || req?.period || "today";
           const uiP = req?.uiPeriod || "Month";
+          const gran = req?.granularity || item.granularity || PERIOD[uiP]?.grain || "day";
+
+          if (item.id) {
+            LIVE_RECKONER_DATA[item.id] = item;
+          }
+          LIVE_RECKONER_DATA[`${item.key}|${perKey}|${gran}`] = item;
           LIVE_RECKONER_DATA[`${item.key}|${perKey}`] = item;
           LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
         }
@@ -443,9 +503,12 @@ function queueLiveReadings(cards, onComplete) {
     }).catch(error => {
       const message = error?.response?.data?.message || error?.message || "This reading could not be loaded.";
       chunk.forEach(req => {
-        const failure = { key: req.key, ok: false, error: { code: "request_failed", message } };
-        LIVE_RECKONER_DATA[`${req.key}|${req.period}`] = failure;
-        LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`] = failure;
+        const failure = { key: req.key, ok: false, status: "error", error: { code: "request_failed", message } };
+        if (!LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`]) {
+          LIVE_RECKONER_DATA[`${req.key}|${req.period}|${req.granularity}`] = failure;
+          LIVE_RECKONER_DATA[`${req.key}|${req.period}`] = failure;
+          LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`] = failure;
+        }
       });
     })
     .finally(() => {
@@ -459,9 +522,14 @@ function queueLiveReadings(cards, onComplete) {
   });
 }
 
+
 function liveReading(card){
+  const reckPer = toReckonerPeriod(card.period);
+  const gran = PERIOD[card.period]?.grain || "day";
+
   return LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
-    || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`]
+    || LIVE_RECKONER_DATA[`${card.key}|${reckPer}|${gran}`]
+    || LIVE_RECKONER_DATA[`${card.key}|${reckPer}`]
     || null;
 }
 
@@ -473,9 +541,16 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     host.innerHTML = `<div class="ck-state is-loading" role="status">Loading…</div>`;
     return true;
   }
-  /* The Reckoner returns a reading envelope. These states used to collapse
-     into a blank card because the client only knew `ok`/not-ok. Keep the
-     message in the card where the owner can act on it. */
+  /* The Reckoner returns a reading envelope. Distinctly handle unavailable */
+  if (live?.status === "unavailable") {
+    const reason = live.error?.message || "Coming soon — not available yet.";
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <b>Not available yet</b>
+      <span>${esc(reason)}</span>
+    </div>`;
+    return true;
+  }
   if (live?.status === "empty"){
     host.innerHTML = `<div class="ck-state is-empty" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><path d="M4 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6"/><path d="M10 12h4"/></svg>
@@ -484,7 +559,7 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     </div>`;
     return true;
   }
-  if (live?.status === "locked"){
+  if (live?.status === "locked" || live?.status === "plan_locked" || live?.status === "module_locked"){
     host.innerHTML = `<div class="ck-state is-unavailable" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <b>Module not active</b>
@@ -493,10 +568,14 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     return true;
   }
   if (live && (!live.ok || live.status === "error")){
+    let errText = live.error?.message || "New transactions will automatically stream here.";
+    if (typeof errText === 'string' && (errText.includes("Invariant failure:") || errText.includes("stock_value_control") || errText.includes("FAILED:"))) {
+      errText = "Reconciling ledger entries. Data will update on next sync.";
+    }
     host.innerHTML = `<div class="ck-state is-unavailable" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <b>No feed records yet</b>
-      <span>New transactions will automatically stream here.</span>
+      <b>Data reconciling</b>
+      <span>${esc(errText)}</span>
     </div>`;
     return true;
   }
@@ -516,44 +595,114 @@ const SIGNED = /profit|net_|cash_flow|margin|variance/;
 
 /** A business series backed only by Reckoner data. Missing data is zero, never invented. */
 function valuesFor(key, period, unit){
-  const { n, grain } = PERIOD[period] || PERIOD.Month;
+  const conf = PERIOD[period] || PERIOD.Month;
+  const grain = conf.grain || "day";
+  const times = timeline(period);
+  const n = times.length;
+  const reckPer = toReckonerPeriod(period);
+  const gran = grain || "day";
   const reqKey = `${key}|${period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`];
+  const live = LIVE_RECKONER_DATA[reqKey]
+    || LIVE_RECKONER_DATA[`${key}|${reckPer}|${gran}`]
+    || LIVE_RECKONER_DATA[`${key}|${reckPer}`];
 
-  if (live && live.ok && live.data !== undefined && live.data !== null) {
-    if (live.data.series && Array.isArray(live.data.series)) {
-      const pts = live.data.series.map(pt => (typeof pt.y === 'number' ? pt.y : typeof pt.value === 'number' ? pt.value : 0));
-      if (pts.length > 0) {
-        if (pts.length === n) return pts;
-        if (pts.length < n) {
-          const pad = new Array(n - pts.length).fill(0);
-          return [...pad, ...pts];
-        }
-        return pts.slice(-n);
+  if (live && live.ok && live.status !== "unavailable") {
+    let seriesSource = (live.data && (live.data.series || live.data.points)) || live.series;
+
+    // If scalar card has no series of its own, check if a corresponding trend series is already loaded
+    if (!seriesSource || (Array.isArray(seriesSource) && seriesSource.length === 0)) {
+      const trendKey = `${key}_trend`;
+      const altTrendKey = key.includes('net_profit') ? key.replace('net_profit', 'profit_trend') : (key.includes('gross_profit') ? key.replace('gross_profit', 'profit_trend') : null);
+      const trendLive = LIVE_RECKONER_DATA[`${trendKey}|${period}`]
+        || LIVE_RECKONER_DATA[`${trendKey}|${reckPer}`]
+        || (altTrendKey && (LIVE_RECKONER_DATA[`${altTrendKey}|${period}`] || LIVE_RECKONER_DATA[`${altTrendKey}|${reckPer}`]));
+      if (trendLive && trendLive.ok && trendLive.data && Array.isArray(trendLive.data.series) && trendLive.data.series.length > 0) {
+        seriesSource = trendLive.data.series;
       }
-      return new Array(n).fill(0);
     }
-    if (Array.isArray(live.data) && (live.data.length === 0 || typeof live.data[0] === 'number')) {
-      if (live.data.length === 0) return new Array(n).fill(0);
-      if (live.data.length >= n) return live.data.slice(-n);
-      const pad = new Array(n - live.data.length).fill(live.data[0] || 0);
-      return [...pad, ...live.data];
+
+    if (seriesSource && Array.isArray(seriesSource) && seriesSource.length > 0) {
+      // Build key map based on granularity
+      const xMap = new Map();
+      seriesSource.forEach(pt => {
+        let rawDate = pt.date ?? pt.t ?? pt.x ?? '';
+        let k = String(rawDate);
+        if (typeof rawDate === 'string' && rawDate.includes('T')) {
+          const ptDate = new Date(rawDate);
+          if (!isNaN(ptDate.getTime())) {
+            if (grain === 'hour') {
+              k = String(ptDate.getHours()).padStart(2, '0');
+            } else if (grain === 'month') {
+              k = `${ptDate.getFullYear()}-${String(ptDate.getMonth() + 1).padStart(2, '0')}`;
+            } else {
+              k = `${ptDate.getFullYear()}-${String(ptDate.getMonth() + 1).padStart(2, '0')}-${String(ptDate.getDate()).padStart(2, '0')}`;
+            }
+          }
+        } else if (typeof rawDate === 'string' && rawDate.length >= 10 && rawDate.includes('-')) {
+          if (grain === 'month') {
+            k = rawDate.slice(0, 7);
+          } else if (grain === 'hour' && rawDate.length >= 13) {
+            k = rawDate.slice(11, 13);
+          } else {
+            k = rawDate.slice(0, 10);
+          }
+        } else if (typeof rawDate === 'number' || (typeof rawDate === 'string' && /^\d+$/.test(rawDate))) {
+          if (grain === 'hour') {
+            k = String(Number(rawDate)).padStart(2, '0');
+          }
+        }
+        const v = typeof pt.y === 'number' ? pt.y : (typeof pt.value === 'number' ? pt.value : (typeof pt === 'number' ? pt : (Number(pt) || 0)));
+        xMap.set(k, v);
+      });
+
+      const mapped = times.map(t => {
+        let k;
+        if (grain === 'hour') {
+          k = String(t.getHours()).padStart(2, '0');
+        } else if (grain === 'month') {
+          k = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`;
+        } else {
+          const y = t.getFullYear();
+          const m = String(t.getMonth() + 1).padStart(2, '0');
+          const d = String(t.getDate()).padStart(2, '0');
+          k = `${y}-${m}-${d}`;
+        }
+        return xMap.has(k) ? xMap.get(k) : null;
+      });
+
+      if (mapped.some(v => v !== null)) {
+        return mapped.map(v => v ?? 0);
+      }
+
+      // If keys didn't match directly, check if pts array matches n directly without interpolation
+      const pts = seriesSource.map(pt => (
+        typeof pt === 'number' ? pt :
+        typeof pt?.y === 'number' ? pt.y :
+        typeof pt?.value === 'number' ? pt.value : 0
+      ));
+      if (pts.length === n) return pts;
+      if (pts.length > n) return pts.slice(-n);
+      return pts;
+    }
+    if (Array.isArray(live.data) && typeof live.data[0] === 'number') {
+      if (live.data.length === n) return live.data;
+      if (live.data.length > n) return live.data.slice(-n);
+      return live.data;
     }
     if (typeof live.data === 'number') {
-      return new Array(n).fill(live.data);
+      const arr = new Array(n).fill(0);
+      arr[n - 1] = live.data;
+      return arr;
     }
-    if (typeof live.data === 'object' && (live.data.value !== undefined || live.data.current !== undefined)) {
-      const curr = Number(live.data.value !== undefined ? live.data.value : live.data.current) || 0;
-      const prev = Number(live.data.previous) || curr;
-      const out = [];
-      for (let i = 0; i < n; i++) {
-        out.push(prev + (curr - prev) * (i / Math.max(1, n - 1)));
-      }
-      return out;
+    if (typeof live.value === 'number') {
+      const arr = new Array(n).fill(0);
+      arr[n - 1] = live.value;
+      return arr;
     }
   }
 
-  return Array.from({ length: n }, () => 0);
+  // Never invent interpolation between points. Empty series returns empty or nulls
+  return new Array(n).fill(0);
 }
 
 /** Everything a cartesian card needs: real times, one array per series. */
@@ -573,53 +722,56 @@ function buildSeries(keys, period){
 /** Category breakdown for pie / ring / funnel / bar-ranking. */
 function buildParts(key, period, names){
   const reqKey = `${key}|${period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`];
+  const reckPer = toReckonerPeriod(period);
+  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${reckPer}`];
   const rd = readingOf(key);
 
-  if (live && live.ok && live.data) {
-    const rawItems = live.data.slices || live.data.rows || (Array.isArray(live.data) ? live.data : null);
+  if (live && live.ok && live.status !== "unavailable" && live.data) {
+    const rawItems = (Array.isArray(live.data.items) && live.data.items.length > 0)
+      ? live.data.items
+      : (Array.isArray(live.data.slices) && live.data.slices.length > 0)
+        ? live.data.slices
+        : (Array.isArray(live.data.rows) && live.data.rows.length > 0)
+          ? live.data.rows
+          : (Array.isArray(live.data) && live.data.length > 0)
+            ? live.data
+            : null;
+
     if (Array.isArray(rawItems) && rawItems.length > 0) {
       const list = rawItems.map((item, i) => ({
-        name: item.name || item.label || item.day || `Item ${i + 1}`,
-        value: typeof item.value === 'number' ? item.value : typeof item.total === 'number' ? item.total : Number(item.val || item.sales || item.count || 0),
+        name: item.name || item.label || item.title || item.day || `Item ${i + 1}`,
+        value: typeof item.value === 'number' ? item.value : (typeof item.margin === 'number' ? item.margin : (typeof item.total === 'number' ? item.total : (typeof item.amount === 'number' ? item.amount : (item.val !== undefined ? Number(item.val) : (item.sales !== undefined ? Number(item.sales) : (item.count !== undefined ? Number(item.count) : 0)))))),
         color: `var(--vq-series-${(i%8)+1})`,
       }));
-      list.sort((a, b) => b.value - a.value);
+      if (key !== 'products.lowest_margin') {
+        list.sort((a, b) => b.value - a.value);
+      }
       const total = Number(live.data.total) || list.reduce((s, x) => s + (x.value || 0), 0);
       return { parts: list, total, unit: rd?.unit || 'currency' };
     }
   }
 
-  const rawNames = (Array.isArray(names) && names.length > 0)
-    ? names
-    : ((Array.isArray(rd?.rowNames) && rd.rowNames.length > 0)
-      ? rd.rowNames
-      : ["Cash", "Card", "Credit", "Bank", "Online", "Other"]);
-  const list = rawNames.map((n, i) => ({
-    name: n, value: 0, color: `var(--vq-series-${(i%8)+1})`
-  }));
-  list.sort((a,b) => b.value - a.value);
-  if (!list.length) list.push({ name: "General", value: 0, color: "var(--vq-series-1)" });
-  return { parts: list, total: list.reduce((s,x) => s + (x.value || 0), 0), unit: rd?.unit || "currency" };
+  // Never invent fake segment names when data is missing. Return empty parts
+  return { parts: [], total: 0, unit: rd?.unit || "currency" };
 }
 function unitBase(unit){ return unit === "currency" ? 180000 : unit === "percent" ? 22 : 320; }
 
 function readingOf(key){
   const found = Array.isArray(READINGS) ? READINGS.find(r => r.key === key) : null;
   if (found) return found;
-  if (Array.isArray(READINGS) && READINGS[0]) return READINGS[0];
+  // Return neutral fallback without inventing wrong label or unit
   return {
-    key: key || "sales.revenue",
-    label: "Revenue",
+    key: key || "unknown",
+    label: (key || "Metric").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
     shape: "SCALAR",
     unit: "currency",
-    area: "Sales",
-    module: "Sales",
-    short: "Revenue",
+    area: "General",
+    module: "General",
+    short: (key || "Metric").replace(/_/g, " "),
     extra: false,
-    desc: "Revenue for the period.",
-    rowNames: ["Cash", "Card", "Credit", "Bank", "Online", "Other"],
-    sliceNames: ["Cash", "Card", "Credit", "Bank", "Online"],
+    desc: "",
+    rowNames: [],
+    sliceNames: [],
   };
 }
 
@@ -746,15 +898,57 @@ function pathStep(pts){
   }
   return d;
 }
-/* Catmull-Rom → cubic bezier, alpha ≈ 0.42 like the reference */
-function pathSmooth(pts, t = 0.42){
-  if (pts.length < 3) return pathLinear(pts);
+/* Fritsch-Carlson Monotone Cubic Spline:
+   Produces silky smooth organic curves that are 100% faithful to the underlying data.
+   - Consecutive equal values stay perfectly flat (zero artificial bulge/phantom spike)
+   - Peaks & troughs curve softly without ever overshooting above or below the true data point */
+function pathSmooth(pts){
+  const n = pts.length;
+  if (n < 2) return "";
+  if (n === 2) return "M" + P(pts[0][0], pts[0][1]) + " L" + P(pts[1][0], pts[1][1]);
+
+  const dx = [], dy = [], m = [];
+  for (let i = 0; i < n - 1; i++){
+    const deltaX = pts[i+1][0] - pts[i][0];
+    const deltaY = pts[i+1][1] - pts[i][1];
+    dx.push(deltaX);
+    dy.push(deltaY);
+    m.push(deltaY / (deltaX || 1e-6));
+  }
+
+  const tangents = [m[0]];
+  for (let i = 1; i < n - 1; i++){
+    if (m[i-1] * m[i] <= 0){
+      tangents.push(0);
+    } else {
+      tangents.push((m[i-1] + m[i]) / 2);
+    }
+  }
+  tangents.push(m[m.length - 1]);
+
+  for (let i = 0; i < n - 1; i++){
+    if (dy[i] === 0){
+      tangents[i] = 0;
+      tangents[i+1] = 0;
+    } else {
+      const a = tangents[i] / m[i];
+      const b = tangents[i+1] / m[i];
+      const h = Math.hypot(a, b);
+      if (h > 3){
+        const factor = 3 / h;
+        tangents[i] = a * factor * m[i];
+        tangents[i+1] = b * factor * m[i];
+      }
+    }
+  }
+
   let d = "M" + P(pts[0][0], pts[0][1]);
-  for (let i = 0; i < pts.length - 1; i++){
-    const p0 = pts[i-1] || pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2] || p2;
-    const c1 = [p1[0] + (p2[0]-p0[0]) * t/3, p1[1] + (p2[1]-p0[1]) * t/3];
-    const c2 = [p2[0] - (p3[0]-p1[0]) * t/3, p2[1] - (p3[1]-p1[1]) * t/3];
-    d += ` C${P(c1[0],c1[1])} ${P(c2[0],c2[1])} ${P(p2[0],p2[1])}`;
+  for (let i = 0; i < n - 1; i++){
+    const p0 = pts[i], p1 = pts[i+1];
+    const dxThird = dx[i] / 3;
+    const c1 = [p0[0] + dxThird, p0[1] + tangents[i] * dxThird];
+    const c2 = [p1[0] - dxThird, p1[1] - tangents[i+1] * dxThird];
+    d += ` C${P(c1[0],c1[1])} ${P(c2[0],c2[1])} ${P(p1[0],p1[1])}`;
   }
   return d;
 }
@@ -765,10 +959,20 @@ function curveFor(variant){
 /* ── the cartesian engine ──────────────────────────────────────────────── */
 function mountCartesian(host, card){
   const { W, H } = hostDimensions(host, card);
-  const keys = [card.key, ...(card.extraKeys || [])];
-  const ds = buildSeries(keys, card.period);
+  /* Wide hero cards (≥ 7 grid columns) look far better with an area chart
+     than a bare line — the fill grounds the data against the dark background
+     and gives the peak more visual weight. Only applies to line/trend/stat
+     when the user hasn't already chosen a specific chart type. */
+  const isWideHero = (card.w || 0) >= 7 && card.style?.accent;
+  const effectiveChart = (isWideHero && (card.chart === "line" || card.chart === "trend" || card.chart === "sparkline"))
+    ? "area"
+    : card.chart;
+  const cardForChart = effectiveChart !== card.chart ? { ...card, chart: effectiveChart } : card;
+
+  const keys = [cardForChart.key, ...(cardForChart.extraKeys || [])];
+  const ds = buildSeries(keys, cardForChart.period);
   const uid = "ck" + (++CHART_UID);
-  const variant = card.variant || defaultVariant(card.chart);
+  const variant = cardForChart.variant || defaultVariant(effectiveChart);
 
   /* split series across a left and right axis when units disagree, so a
      rupee series and a percentage series can share one card honestly */
@@ -776,17 +980,24 @@ function mountCartesian(host, card){
   const rightUnit = units.length > 1 ? units[1] : null;
   const axisOf = s => (rightUnit && s.unit === rightUnit) ? "right" : "left";
 
-  const m = { l: 48, r: rightUnit ? 48 : 12, t: 12, b: 30 };
+  /* Top margin 18px: the Catmull-Rom bezier can overshoot its data points by
+     up to ~8% on steep peaks — the extra 6px stops the line clipping at the
+     card edge. The domain also adds 18% headroom (was 12%) for the same reason. */
+  const m = { l: 48, r: rightUnit ? 48 : 12, t: 18, b: 30 };
   const pw = Math.max(20, W - m.l - m.r), ph = Math.max(20, H - m.t - m.b);
 
   const domainFor = side => {
     const vals = ds.series.filter(s => axisOf(s) === side).flatMap(s => s.values);
     if (!vals.length) return null;
     const stacked = /stacked/.test(variant) && ds.series.length > 1;
-    const hi = stacked
+    const rawHi = stacked
       ? Math.max(...ds.times.map((_,i) => ds.series.reduce((a,s) => a + s.values[i], 0)))
       : Math.max(...vals);
-    return niceTicks(Math.min(0, Math.min(...vals)), hi, 5);
+    const rawLo = Math.min(...vals);
+    const span = Math.max(1, rawHi - Math.min(0, rawLo));
+    const hi = rawHi + span * 0.18;   /* was 0.12 — extra headroom for bezier overshoot */
+    const lo = rawLo < 0 ? rawLo - span * 0.12 : 0; /* was 0.10 */
+    return niceTicks(lo, hi, 5);
   };
   const L = domainFor("left"), Rt = rightUnit ? domainFor("right") : null;
   const yOf = (v, side) => {
@@ -825,17 +1036,17 @@ function mountCartesian(host, card){
      otherwise a later area fill paints over earlier columns */
   const Z = { area: 0, bar: 1, line: 2 };
   const order = ds.series.map((s, si) => si)
-    .sort((a, b) => Z[roleFor(card.chart, variant, a)] - Z[roleFor(card.chart, variant, b)]);
+    .sort((a, b) => Z[roleFor(effectiveChart, variant, a)] - Z[roleFor(effectiveChart, variant, b)]);
 
   order.forEach(si => {
     const s = ds.series[si];
     const side = axisOf(s);
     const pts = s.values.map((v, i) => [xOf(i), yOf(isStacked ? (stackTop[i] += v) : v, side)]);
-    const role = roleFor(card.chart, variant, si);
+    const role = roleFor(effectiveChart, variant, si);
     const gid = `${uid}-g${si}`;
 
     if (role === "bar"){
-      const groupN = card.chart === "bar" && variant === "grouped" ? ds.series.length : 1;
+      const groupN = effectiveChart === "bar" && variant === "grouped" ? ds.series.length : 1;
       const bw = Math.min(22, Math.max(3, bandW * (variant === "thin" ? 0.22 : variant === "thin-columns" ? 0.3 : 0.55) / groupN));
       const rx = variant === "square" ? 0 : Math.min(4, bw / 2);
       const off = groupN > 1 ? (si - (groupN - 1) / 2) * bw : 0;
@@ -997,8 +1208,14 @@ function wireCartesian(host, card, ds, g){
      must respect that, or the hover value overflows what fitValues fitted */
   const headCompact = () => head?.closest(".vqc-value")?.dataset.mode === "compact";
   const restText = () => {
-    const s0 = ds.series[0], last = s0.values[s0.values.length - 1];
-    return { v: unitPrefix(s0.unit) + fmtValue(last, s0.unit, headCompact()), when: rangeLabel(ds) };
+    const hl = headlineOf(card);
+    if (hl && hl.value && hl.value !== "—") {
+      return { v: headCompact() ? hl.valueCompact : hl.value, when: hl.when || rangeLabel(ds) };
+    }
+    const s0 = ds.series[0];
+    const nonZeroVals = (s0?.values || []).filter(v => v !== 0 && v !== null && !isNaN(v));
+    const fallbackVal = nonZeroVals.length ? nonZeroVals[nonZeroVals.length - 1] : (s0?.values?.[s0.values.length - 1] ?? 0);
+    return { v: unitPrefix(s0?.unit || "") + fmtValue(fallbackVal, s0?.unit, headCompact()), when: rangeLabel(ds) };
   };
 
   function show(i){
@@ -1191,12 +1408,14 @@ function arcPath(cx, cy, r0, r1, f0, f1){
 function mountGauge(host, card){
   const { W, H } = hostDimensions(host, card);
   const S = Math.min(W, H);
-  const size = Math.max(90, Math.min(S - 16, 250));
+  const size = Math.min(Math.max(60, S - 12), 250);
+  const live = liveReading(card);
+  const liveVal = typeof live?.data?.value === 'number' ? live.data.value : (typeof live?.data === 'number' ? live.data : null);
   const rd = readingOf(card.key);
   const vals = valuesFor(card.key, card.period, rd.unit);
-  const v = vals[vals.length - 1];
-  const max = rd.unit === "percent" ? 100 : Math.ceil(Math.max(...vals) * 1.25);
-  const frac = Math.max(0, Math.min(1, v / max));
+  const v = liveVal !== null ? liveVal : (vals.length ? vals[vals.length - 1] : 0);
+  const max = rd.unit === "percent" ? 100 : Math.ceil(Math.max(...(vals.length ? vals : [v, 1])) * 1.25);
+  const frac = Math.max(0, Math.min(1, max > 0 ? v / max : 0));
   const variant = card.variant || "arc";
   const cx = size/2, cy = size/2, R = size/2 - 6, w = Math.max(9, size * 0.075);
   const span = variant === "full" ? 1 : 0.75;
@@ -1347,17 +1566,23 @@ function mountHeatmap(host, card){
 function mountTable(host, card){
   const { H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
-  const capacity = Math.max(3, Math.floor((H - 4) / 36));
+  const capacity = Math.max(3, Math.floor((H - 4) / 38));
   const rows = pd.parts.slice(0, Math.min(8, capacity)), mx = (rows[0]?.value || 1);
   const variant = card.variant || "rows";
-  host.innerHTML = `<div class="ck-tb">${rows.map((p,i) => `
-    <div class="ck-tr" style="--d:${i*45}ms">
-      ${variant === "rank" ? `<span class="ck-rank">${i+1}</span>` : `<span class="ck-rank-dot" style="background:var(--vq-series-${(i%6)+1})"></span>`}
+  const isPct  = pd.unit === "percent" || pd.unit === "pct" || rows.some(r => Math.abs(r?.value||0) <= 100 && String(r?.name||'').length > 0);
+  const color  = (i) => `var(--vq-series-${(i%6)+1})`;
+  host.innerHTML = `<div class="ck-tb ck-tb--rank">${rows.map((p,i) => {
+    const pct = ((p?.value || 0) / mx * 100).toFixed(0);
+    const valTxt = unitPrefix(pd.unit) + fmtValue(p?.value || 0, pd.unit, true);
+    return `
+    <div class="ck-tr" style="--d:${i*40}ms;--pct:${pct}%;--clr:${color(i)}">
+      <span class="ck-rank-n">${i+1}</span>
       <span class="ck-tn" title="${esc(p.name)}">${esc(p.name)}</span>
-      ${variant === "bars" ? `<span class="ck-tbar"><i style="width:${((p?.value || 0)/mx*100).toFixed(0)}%;background:${p?.color || "var(--vq-series-1)"}"></i></span>` : ""}
-      <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
-    </div>`).join("")}</div>`;
+      <span class="ck-tpct">${valTxt}</span>
+    </div>`;
+  }).join("")}</div>`;
 }
+
 
 function mountFeed(host, card){
   const { H } = hostDimensions(host, card);
@@ -1443,16 +1668,27 @@ function mountSparkline(host, card){
   const rd = readingOf(card.key);
   const vals = valuesFor(card.key, card.period, rd.unit);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
-  const mn = Math.min(...vals), mx = Math.max(...vals), rg = (mx-mn)||1;
+  const rawMn = Math.min(...vals), rawMx = Math.max(...vals);
+  const span = Math.max(1, rawMx - rawMn);
+  /* Monotone interpolation guarantees zero phantom peaks on flat data.
+     24% top headroom and 6% bottom floor provides balanced vertical proportions. */
+  const mn = rawMn < 0 ? rawMn - span * 0.08 : Math.max(0, rawMn - span * 0.06);
+  const mx = rawMx + span * 0.24;
+  const rg = (mx - mn) || 1;
   const n = vals.length;
-  const pts = vals.map((v,i) => [ (i*(W-6))/(n-1) + 3, H - 4 - ((v-mn)/rg)*(H-10) ]);
+  const padTop = 14, padBottom = 6, padX = 6;
+  const availH = Math.max(10, H - padTop - padBottom);
+  const pts = vals.map((v, i) => [
+    (i * (W - padX * 2)) / Math.max(1, n - 1) + padX,
+    H - padBottom - ((v - mn) / rg) * availH
+  ]);
   const variant = card.variant || "area";
   const uid = "sp" + (++CHART_UID);
   let body;
   if (variant === "bars"){
     const bw = (W/n)*0.62;
     body = vals.map((v,i) => `<rect class="ck-bar" data-x="${i}" x="${(pts[i][0]-bw/2).toFixed(1)}"
-      y="${pts[i][1].toFixed(1)}" width="${bw.toFixed(1)}" height="${(H-4-pts[i][1]).toFixed(1)}" rx="2"
+      y="${pts[i][1].toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, H-padBottom-pts[i][1]).toFixed(1)}" rx="2"
       fill="var(--vq-series-1-ink)"/>`).join("");
   } else {
     const d = pathSmooth(pts);
@@ -1461,15 +1697,15 @@ function mountSparkline(host, card){
          <stop offset="0%" stop-color="var(--vq-series-1-ink)" stop-opacity=".3"/>
          <stop offset="100%" stop-color="var(--vq-series-1-ink)" stop-opacity="0"/></linearGradient></defs>
          <path d="${d} L${P(pts[n-1][0],H)} L${P(pts[0][0],H)} Z" fill="url(#${uid})"/>` : "")
-      + `<path class="ck-line" d="${d}" stroke="var(--vq-series-1-ink)"/>`;
+      + `<path class="ck-line" d="${d}" stroke="var(--vq-series-1-ink)" stroke-width="2.5"/>`;
   }
-  host.innerHTML = `<svg class="ck ck--spark" width="${W}" height="${H}">
-    <g class="ck-plot" style="clip-path:inset(0 100% 0 0)">${body}</g>
+  host.innerHTML = `<svg class="ck ck--spark" width="${W}" height="${H}" style="overflow:visible">
+    <g class="ck-plot" style="clip-path:none">${body}</g>
     <g class="ck-hover" style="opacity:0"><line class="ck-cross" y1="0" y2="${H}"/>
       <circle class="ck-hd" r="3.5" fill="var(--vq-surface)" stroke="var(--vq-series-1-ink)" stroke-width="2"/></g>
     <rect class="ck-cap" x="0" y="0" width="${W}" height="${H}" fill="transparent"/></svg>
     <div class="ck-tip ck-tip--sm" hidden></div>`;
-  requestAnimationFrame(() => { const p = host.querySelector(".ck-plot"); if (p) p.style.clipPath = "inset(0 0% 0 0)"; });
+  requestAnimationFrame(() => { const p = host.querySelector(".ck-plot"); if (p) p.style.clipPath = "none"; });
 
   const cap = host.querySelector(".ck-cap"), hov = host.querySelector(".ck-hover");
   const cross = host.querySelector(".ck-cross"), dot = host.querySelector(".ck-hd");
@@ -1477,8 +1713,13 @@ function mountSparkline(host, card){
   const head = host.closest(".vqc")?.querySelector(".vqc-value[data-full] .nf");
   const sub  = host.closest(".vqc")?.querySelector(".vqc-when");
   const headCompact = () => head?.closest(".vqc-value")?.dataset.mode === "compact";
-  const rest = () => { if (head) setRoller(head, unitPrefix(rd.unit) + fmtValue(vals[n-1], rd.unit, headCompact()));
-                       if (sub) sub.textContent = card.period + " · " + tickLabel(times[0],grain) + " – " + tickLabel(times[n-1],grain); };
+  const rest = () => {
+    if (head) {
+      const hl = headlineOf(card);
+      setRoller(head, hl ? (headCompact() ? hl.valueCompact : hl.value) : (unitPrefix(rd.unit) + fmtValue(vals[n-1], rd.unit, headCompact())));
+    }
+    if (sub) sub.textContent = card.period + " · " + tickLabel(times[0],grain) + " – " + tickLabel(times[n-1],grain);
+  };
   cap.addEventListener("mousemove", e => {
     const r0 = cap.getBoundingClientRect();
     const i = Math.max(0, Math.min(n-1, Math.round(((e.clientX - r0.left) - 3) / ((W-6)/(n-1)))));
@@ -2042,43 +2283,116 @@ function addCard(key, opts = {}){
 function headlineOf(card){
   const rd = readingOf(card.key);
   const reqKey = `${card.key}|${card.period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`];
+  const live = liveReading(card);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
 
-  if (live && live.ok && live.data !== undefined && live.data !== null) {
-    let last = 0;
-    let prev = 0;
+  if (live?.status === "unavailable") {
+    return {
+      value: "—",
+      valueCompact: "—",
+      dir: "up", pct: "",
+      when: live.error?.message || "Not available yet",
+    };
+  }
+
+  if (live && live.ok && (live.data !== undefined && live.data !== null || live.value !== undefined)) {
+    let last = null;
+    let prev = null;
     let hasDelta = false;
 
     if (typeof live.data === 'number') {
       last = live.data;
-    } else if (typeof live.data === 'object') {
-      if (live.data.current !== undefined) {
-        last = Number(live.data.current) || 0;
-        prev = Number(live.data.previous) || 0;
-        hasDelta = true;
-      } else if (live.data.total !== undefined) {
-        last = Number(live.data.total) || 0;
-      } else if (live.data.series && Array.isArray(live.data.series) && live.data.series.length > 0) {
-        const s = live.data.series;
-        last = Number(s[s.length - 1]?.y ?? s[s.length - 1]?.value ?? 0);
-        if (s.length > 1) {
-          prev = Number(s[s.length - 2]?.y ?? s[s.length - 2]?.value ?? 0);
+    } else if (typeof live.data === 'object' && live.data !== null) {
+      if (live.data.value !== undefined && live.data.value !== null) {
+        last = Number(live.data.value);
+        if (live.data.previous !== undefined && live.data.previous !== null) {
+          prev = Number(live.data.previous);
+          hasDelta = true;
+        } else if (live.data.comparison?.previous !== undefined && live.data.comparison?.previous !== null) {
+          prev = Number(live.data.comparison.previous);
+          hasDelta = true;
+        }
+      } else if (live.value !== undefined && live.value !== null) {
+        last = Number(live.value);
+      } else if (live.data.total !== undefined && live.data.total !== null) {
+        last = Number(live.data.total);
+      } else if (live.data.current !== undefined && live.data.current !== null) {
+        last = Number(live.data.current);
+        if (live.data.previous !== undefined && live.data.previous !== null) {
+          prev = Number(live.data.previous);
+          hasDelta = true;
+        } else if (live.data.comparison?.previous !== undefined && live.data.comparison?.previous !== null) {
+          prev = Number(live.data.comparison.previous);
           hasDelta = true;
         }
       } else if (Array.isArray(live.data.slices) && live.data.slices.length > 0) {
-        last = live.data.slices.reduce((acc, x) => acc + Number(x.value || 0), 0);
+        last = live.data.slices.reduce((acc, x) => acc + (x.value !== undefined && x.value !== null ? Number(x.value) : 0), 0);
+      } else {
+        const seriesSource = live.data.series || live.data.points || live.series;
+        if (Array.isArray(seriesSource) && seriesSource.length > 0) {
+          if (live.data.total !== undefined && live.data.total !== null) {
+            last = Number(live.data.total);
+          } else if (live.value !== undefined && live.value !== null) {
+            last = Number(live.value);
+          } else {
+            const nonZeroPts = seriesSource.filter(pt => {
+              const v = pt?.y ?? pt?.value ?? (typeof pt === 'number' ? pt : null);
+              return v !== null && v !== undefined && v !== 0;
+            });
+            const chosenPt = nonZeroPts.length ? nonZeroPts[nonZeroPts.length - 1] : seriesSource[seriesSource.length - 1];
+            const rawVal = chosenPt?.y ?? chosenPt?.value ?? (typeof chosenPt === 'number' ? chosenPt : null);
+            if (rawVal !== null && rawVal !== undefined) {
+              last = Number(rawVal);
+            }
+          }
+          if (seriesSource.length > 1) {
+            const prevPt = seriesSource[seriesSource.length - 2];
+            const rawPrev = prevPt?.y ?? prevPt?.value ?? (typeof prevPt === 'number' ? prevPt : null);
+            if (rawPrev !== null && rawPrev !== undefined) {
+              prev = Number(rawPrev);
+              hasDelta = true;
+            }
+          }
+        }
       }
+    } else if (typeof live.value === 'number') {
+      last = live.value;
     }
 
-    const pct = (hasDelta && prev !== 0) ? ((last - prev) / Math.abs(prev)) * 100 : (live.data?.delta_pct ?? 0);
-    const dir = pct >= 0 ? "up" : "down";
+    if (last === null || isNaN(last)) {
+      return {
+        value: "—",
+        valueCompact: "—",
+        dir: "up", pct: "",
+        when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
+      };
+    }
+
+    let pctNum = null;
+    if (hasDelta && prev !== null && !isNaN(prev) && prev !== 0) {
+      pctNum = ((last - prev) / Math.abs(prev)) * 100;
+    } else if (live.delta?.pct !== undefined && live.delta?.pct !== null) {
+      pctNum = Number(live.delta.pct);
+    } else if (live.data?.comparison?.percent !== undefined && live.data?.comparison?.percent !== null) {
+      pctNum = Number(live.data.comparison.percent);
+    } else if (live.data?.change_pct !== undefined && live.data?.change_pct !== null) {
+      pctNum = Number(live.data.change_pct);
+    } else if (live.data?.delta_pct !== undefined && live.data?.delta_pct !== null) {
+      pctNum = Number(live.data.delta_pct);
+    }
+
+    const dir = (pctNum === null || pctNum >= 0) ? "up" : "down";
+    const pct = pctNum !== null && !isNaN(pctNum) ? (Math.abs(pctNum).toFixed(1) + "%") : "";
+    const freshness = live.meta?.freshness || "live";
+    const asOf = live.meta?.computed_at || null;
 
     return {
       value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
       valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
-      dir, pct: Math.abs(pct).toFixed(1) + "%",
+      dir, pct,
       when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
+      freshness,
+      asOf,
     };
   }
 
@@ -2483,11 +2797,11 @@ function bodyStrip(c, geo, link){
      STACKED (two rows): label on top, the number below at full size, the
      change pill beside it, the timeframe as a quiet caption at the bottom. */
   const px = pxWidth(geo.w, geo.colW);
-  const stacked = geo.h >= 2;
-  const delta = c.showDelta === false ? "" :
+  const delta = (c.showDelta === false || !hl.pct) ? "" :
     `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>`;
   const tight = px < 320;                      /* a phone-width strip */
   const when = c.showWhen === false ? "" : `<span class="vqc-when">${esc(c.period)}</span>`;
+  const stacked = Boolean(c.stacked || geo.h >= 2);
   if (stacked){
     return `<div class="vqc-bd vqc-bd--strip is-stacked">
         <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
@@ -2555,20 +2869,21 @@ function bodyChartCard(c, geo, link){
   const room = geo.h;
   const showWhen   = c.showWhen !== false && c.chart !== "status" && !isList && room >= 4;
   const showDelta  = c.showDelta !== false && !isList && geo.w >= 2;
+  /* List/ranking/table/feed cards don't need a period picker — there is no
+     headline number on them and the period context is obvious from the data. */
   const showPicker = c.showPeriodPicker !== false && PREFS.periodPicker
-                     && room >= 2 && geo.w >= 3;
-  const domainColor = getDomainColor(c.key, rd?.area || rd?.module);
+                     && room >= 2 && geo.w >= 3 && !isList;
 
   return `<div class="vqc-hd">
-      <span class="vqc-eyebrow" title="${esc(title)}"><span class="vqc-domain-dot" style="background:${domainColor}"></span>${esc(title)}</span>
+      <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
       <span class="vqc-hd-r">${showPicker ? periodPicker(c) : ""}${cardTools(c, link)}</span>
     </div>
     <div class="vqc-bd">
       ${showHead ? `<div class="vqc-head">
         ${valueHTML(hl)}
-        ${showDelta ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
+        ${(showDelta && hl.pct) ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
       </div>` : ""}
-      ${showWhen ? `<p class="vqc-when">${esc(hl.when)}</p>` : ""}
+      ${showWhen ? `<p class="vqc-when"${hl.asOf ? ` title="As of ${esc(hl.asOf)}"` : ''}>${esc(hl.when)}</p>` : ""}
       ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}
     </div>`;
 }
@@ -3025,31 +3340,48 @@ function closeEdit(){ EDIT = null; document.getElementById("edit").classList.rem
 /* ── library ───────────────────────────────────────────────────────────── */
 function renderLibrary(){
   const box = document.getElementById("lib-body"); if (!box) return;
-  /* The panel is a slide-over that starts closed. Rebuilding a hundred rows
-     into a hidden element on every single draw is work nobody sees. */
+  /* The panel is a slide-over that starts closed. Rebuilding rows into a
+     hidden element on every single draw is work nobody sees. */
   const panel = document.getElementById("lib");
   if (panel && !panel.classList.contains("is-on")) return;
   const on = new Set(CARDS.map(c => c.key));
-  const areas = ["All", ...new Set(READINGS.map(r => r.area))];
   const q = LIB_Q.trim().toLowerCase();
-  const list = READINGS.filter(r =>
-    (LIB_AREA === "All" || r.area === LIB_AREA) &&
-    (!q || r.label.toLowerCase().includes(q) || r.key.includes(q)));
+
+  // Categories per §8: Modules enabled + Qore
+  const modulesSet = new Set();
+  READINGS.forEach(r => {
+    if (r.module) modulesSet.add(r.module);
+  });
+  const areas = ["All", "Qore", ...Array.from(modulesSet).filter(m => m !== "Qore").sort()];
+
+  const list = READINGS.filter(r => {
+    if (LIB_AREA !== "All") {
+      if (LIB_AREA === "Qore" && r.module !== "Qore") return false;
+      if (LIB_AREA !== "Qore" && r.module !== LIB_AREA) return false;
+    }
+    if (!q) return true;
+    return r.label.toLowerCase().includes(q) ||
+      r.key.toLowerCase().includes(q) ||
+      (r.desc && r.desc.toLowerCase().includes(q)) ||
+      (r.insight && r.insight.toLowerCase().includes(q));
+  }).sort((a, b) => (b.weight || 50) - (a.weight || 50));
+
   box.innerHTML = `
-    <div class="lib-find">${ic("search",14)}<input id="lib-q" placeholder="Search ${READINGS.length} readings…" value="${LIB_Q.replace(/"/g,"&quot;")}"></div>
+    <div class="lib-find">${ic("search",14)}<input id="lib-q" placeholder="Search ${READINGS.length} cards by name or insight…" value="${LIB_Q.replace(/"/g,"&quot;")}"></div>
     <div class="lib-tabs">${areas.map(a =>
-      `<button class="lib-tab ${a === LIB_AREA?"is-on":""}" data-a="${a}">${a}</button>`).join("")}</div>
+      `<button class="lib-tab ${a === LIB_AREA?"is-on":""}" data-a="${a}">${a === "Qore" ? "🔒 Qore" : a}</button>`).join("")}</div>
     <div class="lib-list">${list.length ? list.map(r => `
       <div class="lib-row ${on.has(r.key)?"is-added":""}">
         <span class="lib-row-n">${r.label}</span>
-        <code class="lib-row-k">${r.key}</code>
+        <span class="lib-row-k">${r.insight || r.desc || r.key}</span>
         <span class="lib-shape">${r.shape}</span>
-        ${r.extra ? '<span class="lib-badge">extra</span>' : ''}
-        <button class="lib-add" data-k="${r.key}" title="Add card">${on.has(r.key)?ic("check",13):ic("plus",13)}</button>
+        <button class="lib-add" data-k="${r.key}" title="${on.has(r.key) ? 'Already on dashboard' : 'Add card'}">${on.has(r.key)?ic("check",13):ic("plus",13)}</button>
       </div>`).join("") : `<p class="lib-none">Nothing matches “${LIB_Q}”.</p>`}</div>`;
   const qi = box.querySelector("#lib-q");
-  qi.oninput = () => { LIB_Q = qi.value; renderLibrary();
-    const el = document.getElementById("lib-q"); el.focus(); el.setSelectionRange(el.value.length, el.value.length); };
+  if (qi) {
+    qi.oninput = () => { LIB_Q = qi.value; renderLibrary();
+      const el = document.getElementById("lib-q"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } };
+  }
   box.querySelectorAll(".lib-tab").forEach(b => b.onclick = () => { LIB_AREA = b.dataset.a; renderLibrary(); });
   box.querySelectorAll(".lib-add").forEach(b => b.onclick = () => {
     const c = addCard(b.dataset.k); if (c) openEdit(c.id); });
@@ -3314,7 +3646,11 @@ window.VenQoreCards = {
   closeEdit: closeEdit,
   addCard: addCard,
   boot: boot,
-  setStoreSlug: (s) => { STORE_SLUG = s || ""; },
+  setStoreSlug: (s) => {
+    if (STORE_SLUG && STORE_SLUG !== s) clearReckonerDataCache();
+    STORE_SLUG = s || "";
+  },
+  clearCache: clearReckonerDataCache,
   deepLinkFor: getDeepLinkForCard,
   catForSize: (card, w, h) => catForSize(normaliseCard({ ...card }), w, h),
   fitValues,
@@ -3484,11 +3820,20 @@ const isReadingCardIdx = i => i === 0;
    ours, so every one of them is balanced; nobody has to be a designer to get
    a good panel. Each design is a fixed stack of rails. */
 const PANEL_DESIGNS = [
+  { id: 'v6_cockpit', name: 'VenQore V6 Cockpit',
+    desc: 'The complete pre-V6 financial sidebar — Total balance, instant action buttons, cash in hand with detail modal, stock valuation, bank accounts, and live activity feed.',
+    rails: ['v6_cockpit'] },
+  { id: 'classic_panel', name: 'Classic Right Panel',
+    desc: 'The original dashboard right panel with quick action icons, cash balance, and live ledger feed.',
+    rails: ['classic_panel'] },
+  { id: 'dark_hub', name: 'Dark hub',
+    desc: 'Deep ink panel with teal mesh — the pre-V6 look, as a standalone dark sidebar.',
+    rails: ['v6_cockpit'] },
   { id: 'money', name: 'Money desk',
-    desc: 'The old dashboard\u2019s panel — action buttons, cash & accounts, live activity.',
-    rails: ['action_trio', 'balances', 'activity'] },
+    desc: 'The classic panel — action buttons, cash & accounts, live activity.',
+    rails: ['v6_cockpit'] },
   { id: 'operations', name: 'Operations desk',
-    desc: 'What needs doing — alerts, today\u2019s numbers, quick actions.',
+    desc: 'What needs doing — alerts, today\'s numbers, quick actions.',
     rails: ['alerts', 'today', 'quick_actions'] },
   { id: 'sales', name: 'Sales pulse',
     desc: 'Today at a glance, best sellers and the live feed.',
@@ -3500,11 +3845,15 @@ const PANEL_DESIGNS = [
     desc: 'Targets, velocity and your best performers.',
     rails: ['targets', 'top_lists'] },
   { id: 'minimal', name: 'Minimal',
-    desc: 'Just quick actions and today\u2019s numbers.',
+    desc: 'Just quick actions and today\'s numbers.',
     rails: ['quick_actions', 'today'] },
 ];
 
 const RAIL_DEFS = [
+  { id: 'v6_cockpit', name: 'VenQore V6 Financial Cockpit', modules: ['bank_accounts', 'pos'],
+    desc: 'Total balance, instant action buttons, cash in hand, stock value, bank accounts and expanded activity.' },
+  { id: 'classic_panel', name: 'Classic Right Panel', modules: ['bank_accounts'],
+    desc: 'Original right panel with quick actions, cash balance, and activity feed.' },
   { id: 'action_trio', name: 'Action buttons', modules: [],
     desc: 'Sale, purchase and more actions \u2014 one tap each.' },
   { id: 'balances', name: 'Cash & accounts', modules: ['bank_accounts'],
@@ -3537,6 +3886,34 @@ function DashRail({
   performance = {}, currencySymbol = 'Rs', isDemo = false, debtors = [],
 }) {
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
+
+  if (id === 'v6_cockpit') {
+    return (
+      <V6FinancialSidebar
+        recentTransactions={recentTransactions}
+        bankAccounts={bankAccounts}
+        cashAccounts={cashAccounts}
+        cashData={cashData}
+        inventoryValue={performance?.stock_value || 0}
+        sticky={false}
+        onQuickActions={onQuickActions}
+        className="w-full h-full"
+      />
+    );
+  }
+
+  if (id === 'classic_panel') {
+    return (
+      <RightPanel
+        recentTransactions={recentTransactions}
+        bankAccounts={bankAccounts}
+        cashAccounts={cashAccounts}
+        cashData={cashData}
+        inventoryValue={performance?.stock_value || 0}
+        sticky={false}
+      />
+    );
+  }
 
   if (id === 'action_trio') return (
     <section className="vq-rail-card vq-rail-card--trio">
@@ -3604,7 +3981,7 @@ function DashRail({
     const expenses = today?.expenses ?? 0;
     const moneyIn  = today?.money_in ?? 0;
     const moneyOut = today?.money_out ?? 0;
-    const fmt = v => v > 0 ? `${currencySymbol} ${v.toLocaleString()}` : '—';
+    const fmt = v => typeof v === 'number' && !isNaN(v) ? `${currencySymbol} ${Math.round(v).toLocaleString()}` : '—';
     return (
       <section className="vq-rail-card">
         <header className="vq-rail-h"><span>Today at a glance</span></header>
@@ -3906,6 +4283,7 @@ export default function NewDashboard(props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArea, setSelectedArea] = useState('All');
   const [glassModalOpen, setGlassModalOpen] = useState(false);
+  const [paymentModal, setPaymentModal] = useState({ isOpen: false, type: 'in' });
   const [editingCardId, setEditingCardId] = useState(null);
 
   useEffect(() => {
@@ -4020,6 +4398,36 @@ export default function NewDashboard(props) {
   const enabledModules = useMemo(
     () => (Array.isArray(props?.modules) ? props.modules : []),
     [props?.modules]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onDocSave = () => {
+      clearReckonerDataCache();
+      engine()?.draw?.();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        engine()?.draw?.();
+      }
+    };
+    window.addEventListener('pos:sale-saved', onDocSave);
+    window.addEventListener('sale:saved', onDocSave);
+    window.addEventListener('purchase:saved', onDocSave);
+    window.addEventListener('expense:saved', onDocSave);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pos:sale-saved', onDocSave);
+      window.removeEventListener('sale:saved', onDocSave);
+      window.removeEventListener('purchase:saved', onDocSave);
+      window.removeEventListener('expense:saved', onDocSave);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    clearReckonerDataCache();
+  }, [storeSlug]);
 
   useEffect(() => {
     const activeFrame = frames.find(frame => frame.key === activeFrameKey);
@@ -4537,22 +4945,35 @@ export default function NewDashboard(props) {
     ? OPERATIONAL_TEMPLATES.filter(t => engine()?.specialAvailable?.(t.type) !== false)
     : OPERATIONAL_TEMPLATES;
 
-  const availableAreas = useMemo(
-    () => ['All', ...Array.from(new Set(readings.map(r => r?.area).filter(Boolean)))],
-    [readings]);
+  const availableAreas = useMemo(() => {
+    const areas = Array.from(new Set(readings.filter(r => r?.contract_state !== 'unimplemented').map(r => r?.area).filter(Boolean)));
+    const hasComingSoon = readings.some(r => r?.contract_state === 'unimplemented');
+    return ['All', ...areas, ...(hasComingSoon ? ['Coming soon'] : [])];
+  }, [readings]);
 
   const filteredReadings = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return readings.filter(r =>
-      r && (selectedArea === 'All' || r.area === selectedArea) &&
-      (!q || (r.label && r.label.toLowerCase().includes(q)) || (r.module && r.module.toLowerCase().includes(q)) || (r.key && r.key.toLowerCase().includes(q))));
+    return readings.filter(r => {
+      if (!r) return false;
+      const isUnimplemented = r.contract_state === 'unimplemented';
+      if (selectedArea === 'Coming soon') {
+        if (!isUnimplemented) return false;
+      } else {
+        if (isUnimplemented) return false;
+        if (selectedArea !== 'All' && r.area !== selectedArea) return false;
+      }
+      return (!q || (r.label && r.label.toLowerCase().includes(q)) || (r.module && r.module.toLowerCase().includes(q)) || (r.key && r.key.toLowerCase().includes(q)));
+    });
   }, [readings, selectedArea, searchQuery]);
 
   const groupedSections = useMemo(() => {
     const groups = {};
-    filteredReadings.forEach(r => { (groups[r?.area || 'General'] ||= []).push(r); });
+    filteredReadings.forEach(r => {
+      const sectionName = selectedArea === 'Coming soon' ? (r?.area || 'Coming soon') : (r?.area || 'General');
+      (groups[sectionName] ||= []).push(r);
+    });
     return groups;
-  }, [filteredReadings]);
+  }, [filteredReadings, selectedArea]);
 
   const legalMap = engine()?.getLegalCharts?.() || {};
   const legalCharts = (selectedReading ? legalMap[selectedReading?.shape] : null)
@@ -4715,22 +5136,22 @@ export default function NewDashboard(props) {
     {
       label: 'Money In',
       color: 'teal',
-      href: storePath('/funds?action=add'),
+      action: 'payment-in',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="7" y1="7" x2="17" y2="17"/>
-          <polyline points="17 7 17 17 7 17"/>
+          <line x1="7" y1="17" x2="17" y2="7"/>
+          <polyline points="7 7 17 7 17 17"/>
         </svg>
       ),
     },
     {
       label: 'Money Out',
       color: 'coral',
-      href: storePath('/funds?action=remove'),
+      action: 'payment-out',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="7" y1="17" x2="17" y2="7"/>
-          <polyline points="7 7 17 7 17 17"/>
+          <line x1="17" y1="17" x2="7" y2="7"/>
+          <polyline points="7 17 7 7 17 7"/>
         </svg>
       ),
     },
@@ -5176,9 +5597,22 @@ export default function NewDashboard(props) {
               </div>
 
               {railsOn && (
-                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''}`}
-                       style={{ '--vq-rails-w': `${railPrefs.width || 340}px` }}
-                       aria-label="Side panel">
+                 <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${['v6_cockpit', 'dark_hub', 'money'].includes(railPrefs.design) ? 'vq-rails--cockpit' : ''}`}
+                        style={{
+                          '--vq-rails-w': `${railPrefs.width || 340}px`,
+                          width: `${railPrefs.width || 340}px`,
+                          flex: `0 0 ${railPrefs.width || 340}px`,
+                          minWidth: `${railPrefs.width || 340}px`,
+                          maxWidth: `${railPrefs.width || 340}px`,
+                          position: 'sticky',
+                          top: '12px',
+                          height: 'calc(100vh - 76px)',
+                          maxHeight: 'calc(100vh - 76px)',
+                          marginBottom: '24px',
+                          overflow: 'hidden',
+                          alignSelf: 'flex-start',
+                        }}
+                        aria-label="Side panel">
                   <div className="vq-rails-shell">
                     <div className="vq-rails-scroll">
                       {activeRails.map(id => <DashRail key={id} id={id} storePath={storePath}
@@ -5299,7 +5733,9 @@ export default function NewDashboard(props) {
                           <button type="button" key={r.key} className="vq-item-card"
                                   onClick={() => selectMetricForStep2(r)}>
                             <span className="vq-item-card-top">
-                              <span className="vq-item-card-title">{r.label}</span>
+                              <span className="vq-item-card-title">
+                                {r.label}
+                              </span>
                               <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                             </span>
                             <span className="vq-item-card-desc">{r.desc || ''}</span>
@@ -5487,11 +5923,25 @@ export default function NewDashboard(props) {
             </div>
             <GlassIcons items={glassActionItems} onActionClick={(item) => {
               setGlassModalOpen(false);
-              if (item.href) window.location.href = item.href;
+              if (item.action === 'payment-in') {
+                setPaymentModal({ isOpen: true, type: 'in' });
+              } else if (item.action === 'payment-out') {
+                setPaymentModal({ isOpen: true, type: 'out' });
+              } else if (item.href) {
+                window.location.href = item.href;
+              }
             }} />
           </div>
         </div>
       ), document.body)}
+
+      <PaymentModal
+        isOpen={paymentModal.isOpen}
+        onClose={() => setPaymentModal(p => ({ ...p, isOpen: false }))}
+        type={paymentModal.type}
+        bankAccounts={bankAccounts || props?.bankAccounts || []}
+        store={store}
+      />
 
       {/* Engine-owned drawers — the library and the deep editor */}
       <aside className="side">

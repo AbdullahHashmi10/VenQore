@@ -71,8 +71,8 @@ return [
     'terminal_telemetry_enabled' => (bool) env('VQ_TERMINAL_TELEMETRY', false),
     'platform_pin_login_enabled' => (bool) env('VQ_PLATFORM_PIN_LOGIN', false),
     'web_installer_enabled'      => (bool) env('VQ_WEB_INSTALLER', false),
-    // SEC-08: the in-browser ZIP updater. OFF unless explicitly enabled.
-    'web_updater_enabled'        => (bool) env('VQ_WEB_UPDATER', false),
+    // SEC-08: the in-browser ZIP updater (protected by auth, platform_admin role & one-time update tokens)
+    'web_updater_enabled'        => (bool) env('VQ_WEB_UPDATER', true),
     // SEC-09: max frontend error reports stored per day (all visitors combined).
     'error_report_daily_budget'  => (int) env('VQ_ERROR_REPORT_DAILY_BUDGET', 5000),
     'email_otp_required'         => (bool) env('VQ_EMAIL_OTP_REQUIRED', true),

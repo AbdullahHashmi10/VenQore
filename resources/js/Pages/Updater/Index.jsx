@@ -169,6 +169,33 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
     }, [phase]);
 
     // ── helpers ────────────────────────────────────────────────
+    const [resettingLock, setResettingLock] = useState(false);
+
+    const handleResetLock = async () => {
+        if (!confirm('Force reset the update lock? This will remove any stale lock or interrupted upload chunks.')) return;
+        setResettingLock(true);
+        try {
+            const res = await axios.post('/api/updater/reset-lock');
+            alert(res.data.message || 'Update lock cleared.');
+            const info = await axios.get('/api/updater/info');
+            setSysInfo(info.data);
+        } catch (err) {
+            alert(err.response?.data?.error || 'Failed to reset lock.');
+        } finally {
+            setResettingLock(false);
+        }
+    };
+
+    const handleResetLockSilent = async () => {
+        try {
+            await axios.post('/api/updater/reset-lock');
+            const info = await axios.get('/api/updater/info');
+            setSysInfo(info.data);
+        } catch (err) {
+            // Non-critical background reset
+        }
+    };
+
     const log = (text, type = 'info') =>
         setLogs(prev => [...prev, { text, type, time: new Date().toLocaleTimeString() }]);
 
@@ -285,11 +312,12 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
         setStepStatus('upload', 'running');
         log(`▶ Starting: ${steps.find(s => s.id === 'upload')?.label}...`);
 
-        const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per chunk
+        const CHUNK_SIZE = sysInfo?.recommended_chunk_bytes || (1.5 * 1024 * 1024);
         const totalChunks = Math.ceil(zipFile.size / CHUNK_SIZE);
         const uploadId = `upd_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-        log(`  📦 File: ${(zipFile.size / 1024 / 1024).toFixed(1)} MB → ${totalChunks} chunks`, 'dim');
+        const chunkMB = (CHUNK_SIZE / 1024 / 1024).toFixed(1);
+        log(`  📦 File: ${(zipFile.size / 1024 / 1024).toFixed(1)} MB → ${totalChunks} chunks (${chunkMB} MB/chunk)`, 'dim');
 
         try {
             for (let i = 0; i < totalChunks; i++) {
@@ -444,12 +472,26 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
 
                                     {/* Update In Progress Warning */}
                                     {sysInfo?.update_in_progress && (
-                                        <div className="bg-rose-500/10 border border-rose-500/40 rounded-xl p-4 mb-6 flex gap-3">
-                                            <AlertTriangle size={18} className="text-rose-400 shrink-0 mt-0.5" />
-                                            <div>
-                                                <p className="text-xs font-bold text-rose-400 mb-1">⚠ Update Already In Progress</p>
-                                                <p className="text-xs text-ink-muted">Another update is currently running on this server. Starting a second update simultaneously WILL corrupt your application. Wait for the current update to finish, or contact your server administrator if it appears stuck.</p>
+                                        <div className="bg-rose-500/10 border border-rose-500/40 rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-4 items-start justify-between">
+                                            <div className="flex gap-3">
+                                                <AlertTriangle size={18} className="text-rose-400 shrink-0 mt-0.5" />
+                                                <div>
+                                                    <p className="text-xs font-bold text-rose-400 mb-1">⚠ Update Lock Active</p>
+                                                    <p className="text-xs text-ink-muted">
+                                                        An update lock is active on this server{sysInfo?.lock_info?.email ? ` by ${sysInfo.lock_info.email}` : ''}{sysInfo?.lock_info?.started_at ? ` (started ${sysInfo.lock_info.started_at})` : ''}.
+                                                        If a prior upload or update failed or was interrupted, you can safely reset this lock to retry.
+                                                    </p>
+                                                </div>
                                             </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleResetLock}
+                                                disabled={resettingLock}
+                                                className="shrink-0 px-3.5 py-2 rounded-lg bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500/50 text-rose-200 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer"
+                                            >
+                                                <RotateCcw size={13} className={resettingLock ? 'spin-slow' : ''} />
+                                                {resettingLock ? 'Resetting...' : 'Reset Stuck Lock'}
+                                            </button>
                                         </div>
                                     )}
 
@@ -790,20 +832,27 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 text-xs text-rose-300">
                                                 <strong className="block mb-1">Error:</strong> {errorMsg}
                                             </div>
-                                            <div className="flex gap-4">
+                                            <div className="flex flex-col sm:flex-row gap-4">
                                                 <button
                                                     id="btn-back-from-error"
-                                                    onClick={() => { setPhase('select'); setZipFile(null); }}
-                                                    className="flex-1 py-3 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted font-bold text-xs uppercase tracking-widest transition-all"
+                                                    onClick={async () => {
+                                                        await handleResetLockSilent();
+                                                        setPhase('select');
+                                                        setZipFile(null);
+                                                    }}
+                                                    className="flex-1 py-3.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
                                                 >
-                                                    Start Over
+                                                    Start Over & Clear Lock
                                                 </button>
                                                 <button
                                                     id="btn-retry-update"
-                                                    onClick={runUpdate}
-                                                    className="flex-[2] py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                                    onClick={async () => {
+                                                        await handleResetLockSilent();
+                                                        runUpdate();
+                                                    }}
+                                                    className="flex-[2] py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(244,63,94,0.3)]"
                                                 >
-                                                    <RotateCcw size={14} /> Retry Update
+                                                    <RotateCcw size={14} /> Reset Lock & Retry Update
                                                 </button>
                                             </div>
                                         </div>

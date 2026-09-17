@@ -350,6 +350,7 @@ export default {
                 tooltip: 'var(--vq-z-tooltip)',
                 toast: 'var(--vq-z-toast)',
                 command: 'var(--vq-z-command)',
+                'command-scrim': 'calc(var(--vq-z-command) - 1)',
             },
 
             /* ───────────────────────────────────────────────────────────────

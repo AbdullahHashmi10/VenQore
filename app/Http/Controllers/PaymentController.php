@@ -163,6 +163,8 @@ class PaymentController extends Controller
                 //
                 // No party = generic cash in/out (owner, misc)
 
+                $bankAccountId = ($method === 'bank' && !empty($validated['bank_account_id'])) ? $validated['bank_account_id'] : null;
+
                 $party = $partyId ? Party::find($partyId) : null;
 
                 if ($party) {
@@ -172,13 +174,13 @@ class PaymentController extends Controller
                         
                         if ($type === 'in') {
                             $lines = [
-                                ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0],
+                                ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0, 'bank_account_id' => $bankAccountId],
                                 ['account_id' => $counterAccount->id,  'debit' => 0,       'credit' => $amount, 'party_id' => $partyId],
                             ];
                         } else {
                             $lines = [
                                 ['account_id' => $counterAccount->id,  'debit' => $amount, 'credit' => 0, 'party_id' => $partyId],
-                                ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount],
+                                ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount, 'bank_account_id' => $bankAccountId],
                             ];
                         }
                     } else { // customer
@@ -187,13 +189,13 @@ class PaymentController extends Controller
                         
                         if ($type === 'in') {
                             $lines = [
-                                ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0],
+                                ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0, 'bank_account_id' => $bankAccountId],
                                 ['account_id' => $counterAccount->id,  'debit' => 0,       'credit' => $amount, 'party_id' => $partyId],
                             ];
                         } else {
                             $lines = [
                                 ['account_id' => $counterAccount->id,  'debit' => $amount, 'credit' => 0, 'party_id' => $partyId],
-                                ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount],
+                                ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount, 'bank_account_id' => $bankAccountId],
                             ];
                         }
                     }
@@ -202,7 +204,7 @@ class PaymentController extends Controller
                         $counterAccount = $accounting->getAccountByCode('4100', 'Service Income', 'income');
                         $description    = 'Payment In — ' . ($validated['description'] ?? $validated['reference'] ?? 'Cash receipt');
                         $lines = [
-                            ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0],
+                            ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0, 'bank_account_id' => $bankAccountId],
                             ['account_id' => $counterAccount->id,  'debit' => 0,       'credit' => $amount],
                         ];
                     } else {
@@ -210,7 +212,7 @@ class PaymentController extends Controller
                         $description    = 'Payment Out — ' . ($validated['description'] ?? $validated['reference'] ?? 'Cash disbursement');
                         $lines = [
                             ['account_id' => $counterAccount->id,  'debit' => $amount, 'credit' => 0],
-                            ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount],
+                            ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount, 'bank_account_id' => $bankAccountId],
                         ];
                     }
                 }
