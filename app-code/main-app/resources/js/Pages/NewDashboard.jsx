@@ -914,10 +914,20 @@ function curveFor(variant){
 /* ── the cartesian engine ──────────────────────────────────────────────── */
 function mountCartesian(host, card){
   const { W, H } = hostDimensions(host, card);
-  const keys = [card.key, ...(card.extraKeys || [])];
-  const ds = buildSeries(keys, card.period);
+  /* Wide hero cards (≥ 7 grid columns) look far better with an area chart
+     than a bare line — the fill grounds the data against the dark background
+     and gives the peak more visual weight. Only applies to line/trend/stat
+     when the user hasn't already chosen a specific chart type. */
+  const isWideHero = (card.w || 0) >= 7 && card.style?.accent;
+  const effectiveChart = (isWideHero && (card.chart === "line" || card.chart === "trend" || card.chart === "sparkline"))
+    ? "area"
+    : card.chart;
+  const cardForChart = effectiveChart !== card.chart ? { ...card, chart: effectiveChart } : card;
+
+  const keys = [cardForChart.key, ...(cardForChart.extraKeys || [])];
+  const ds = buildSeries(keys, cardForChart.period);
   const uid = "ck" + (++CHART_UID);
-  const variant = card.variant || defaultVariant(card.chart);
+  const variant = cardForChart.variant || defaultVariant(effectiveChart);
 
   /* split series across a left and right axis when units disagree, so a
      rupee series and a percentage series can share one card honestly */
@@ -925,7 +935,10 @@ function mountCartesian(host, card){
   const rightUnit = units.length > 1 ? units[1] : null;
   const axisOf = s => (rightUnit && s.unit === rightUnit) ? "right" : "left";
 
-  const m = { l: 48, r: rightUnit ? 48 : 12, t: 12, b: 30 };
+  /* Top margin 18px: the Catmull-Rom bezier can overshoot its data points by
+     up to ~8% on steep peaks — the extra 6px stops the line clipping at the
+     card edge. The domain also adds 18% headroom (was 12%) for the same reason. */
+  const m = { l: 48, r: rightUnit ? 48 : 12, t: 18, b: 30 };
   const pw = Math.max(20, W - m.l - m.r), ph = Math.max(20, H - m.t - m.b);
 
   const domainFor = side => {
@@ -937,8 +950,8 @@ function mountCartesian(host, card){
       : Math.max(...vals);
     const rawLo = Math.min(...vals);
     const span = Math.max(1, rawHi - Math.min(0, rawLo));
-    const hi = rawHi + span * 0.12;
-    const lo = rawLo < 0 ? rawLo - span * 0.10 : 0;
+    const hi = rawHi + span * 0.18;   /* was 0.12 — extra headroom for bezier overshoot */
+    const lo = rawLo < 0 ? rawLo - span * 0.12 : 0; /* was 0.10 */
     return niceTicks(lo, hi, 5);
   };
   const L = domainFor("left"), Rt = rightUnit ? domainFor("right") : null;
@@ -978,17 +991,17 @@ function mountCartesian(host, card){
      otherwise a later area fill paints over earlier columns */
   const Z = { area: 0, bar: 1, line: 2 };
   const order = ds.series.map((s, si) => si)
-    .sort((a, b) => Z[roleFor(card.chart, variant, a)] - Z[roleFor(card.chart, variant, b)]);
+    .sort((a, b) => Z[roleFor(effectiveChart, variant, a)] - Z[roleFor(effectiveChart, variant, b)]);
 
   order.forEach(si => {
     const s = ds.series[si];
     const side = axisOf(s);
     const pts = s.values.map((v, i) => [xOf(i), yOf(isStacked ? (stackTop[i] += v) : v, side)]);
-    const role = roleFor(card.chart, variant, si);
+    const role = roleFor(effectiveChart, variant, si);
     const gid = `${uid}-g${si}`;
 
     if (role === "bar"){
-      const groupN = card.chart === "bar" && variant === "grouped" ? ds.series.length : 1;
+      const groupN = effectiveChart === "bar" && variant === "grouped" ? ds.series.length : 1;
       const bw = Math.min(22, Math.max(3, bandW * (variant === "thin" ? 0.22 : variant === "thin-columns" ? 0.3 : 0.55) / groupN));
       const rx = variant === "square" ? 0 : Math.min(4, bw / 2);
       const off = groupN > 1 ? (si - (groupN - 1) / 2) * bw : 0;
@@ -1508,17 +1521,23 @@ function mountHeatmap(host, card){
 function mountTable(host, card){
   const { H } = hostDimensions(host, card);
   const pd = buildParts(card.key, card.period, readingOf(card.key)?.rowNames);
-  const capacity = Math.max(3, Math.floor((H - 4) / 36));
+  const capacity = Math.max(3, Math.floor((H - 4) / 38));
   const rows = pd.parts.slice(0, Math.min(8, capacity)), mx = (rows[0]?.value || 1);
   const variant = card.variant || "rows";
-  host.innerHTML = `<div class="ck-tb">${rows.map((p,i) => `
-    <div class="ck-tr" style="--d:${i*45}ms">
-      ${variant === "rank" ? `<span class="ck-rank">${i+1}</span>` : `<span class="ck-rank-dot" style="background:var(--vq-series-${(i%6)+1})"></span>`}
+  const isPct  = pd.unit === "percent" || pd.unit === "pct" || rows.some(r => Math.abs(r?.value||0) <= 100 && String(r?.name||'').length > 0);
+  const color  = (i) => `var(--vq-series-${(i%6)+1})`;
+  host.innerHTML = `<div class="ck-tb ck-tb--rank">${rows.map((p,i) => {
+    const pct = ((p?.value || 0) / mx * 100).toFixed(0);
+    const valTxt = unitPrefix(pd.unit) + fmtValue(p?.value || 0, pd.unit, true);
+    return `
+    <div class="ck-tr" style="--d:${i*40}ms;--pct:${pct}%;--clr:${color(i)}">
+      <span class="ck-rank-n">${i+1}</span>
       <span class="ck-tn" title="${esc(p.name)}">${esc(p.name)}</span>
-      ${variant === "bars" ? `<span class="ck-tbar"><i style="width:${((p?.value || 0)/mx*100).toFixed(0)}%;background:${p?.color || "var(--vq-series-1)"}"></i></span>` : ""}
-      <b class="ck-tv">${unitPrefix(pd.unit)}${fmtValue(p?.value || 0, pd.unit, true)}</b>
-    </div>`).join("")}</div>`;
+      <span class="ck-tpct">${valTxt}</span>
+    </div>`;
+  }).join("")}</div>`;
 }
+
 
 function mountFeed(host, card){
   const { H } = hostDimensions(host, card);
@@ -2794,12 +2813,13 @@ function bodyChartCard(c, geo, link){
   const room = geo.h;
   const showWhen   = c.showWhen !== false && c.chart !== "status" && !isList && room >= 4;
   const showDelta  = c.showDelta !== false && !isList && geo.w >= 2;
+  /* List/ranking/table/feed cards don't need a period picker — there is no
+     headline number on them and the period context is obvious from the data. */
   const showPicker = c.showPeriodPicker !== false && PREFS.periodPicker
-                     && room >= 2 && geo.w >= 3;
-  const domainColor = getDomainColor(c.key, rd?.area || rd?.module);
+                     && room >= 2 && geo.w >= 3 && !isList;
 
   return `<div class="vqc-hd">
-      <span class="vqc-eyebrow" title="${esc(title)}"><span class="vqc-domain-dot" style="background:${domainColor}"></span>${esc(title)}</span>
+      <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
       <span class="vqc-hd-r">${showPicker ? periodPicker(c) : ""}${cardTools(c, link)}</span>
     </div>
     <div class="vqc-bd">
@@ -3744,11 +3764,14 @@ const isReadingCardIdx = i => i === 0;
    ours, so every one of them is balanced; nobody has to be a designer to get
    a good panel. Each design is a fixed stack of rails. */
 const PANEL_DESIGNS = [
+  { id: 'dark_hub', name: 'Dark hub',
+    desc: 'Deep ink panel with teal mesh — the pre-V6 look, as a standalone dark sidebar.',
+    rails: ['action_trio', 'balances', 'activity'] },
   { id: 'money', name: 'Money desk',
-    desc: 'The old dashboard\u2019s panel — action buttons, cash & accounts, live activity.',
+    desc: 'The classic panel — action buttons, cash & accounts, live activity.',
     rails: ['action_trio', 'balances', 'activity'] },
   { id: 'operations', name: 'Operations desk',
-    desc: 'What needs doing — alerts, today\u2019s numbers, quick actions.',
+    desc: 'What needs doing — alerts, today\'s numbers, quick actions.',
     rails: ['alerts', 'today', 'quick_actions'] },
   { id: 'sales', name: 'Sales pulse',
     desc: 'Today at a glance, best sellers and the live feed.',
@@ -3760,7 +3783,7 @@ const PANEL_DESIGNS = [
     desc: 'Targets, velocity and your best performers.',
     rails: ['targets', 'top_lists'] },
   { id: 'minimal', name: 'Minimal',
-    desc: 'Just quick actions and today\u2019s numbers.',
+    desc: 'Just quick actions and today\'s numbers.',
     rails: ['quick_actions', 'today'] },
 ];
 
@@ -5479,7 +5502,7 @@ export default function NewDashboard(props) {
               </div>
 
               {railsOn && (
-                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''}`}
+                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${railPrefs.design === 'dark_hub' ? 'vq-rails--dark' : ''}`}
                        style={{ '--vq-rails-w': `${railPrefs.width || 340}px` }}
                        aria-label="Side panel">
                   <div className="vq-rails-shell">

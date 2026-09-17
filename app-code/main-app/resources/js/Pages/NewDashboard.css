@@ -288,7 +288,7 @@
   /* The signature marketing gradient: deep pine → mint → page. */
   --vq-grad-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%); /* @kind color */
   --vq-grad-mint: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%); /* @kind color */
-  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%), radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%), radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%), #0A0B0F;
+  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%), radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%), radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%), #0A0B0F;
   --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%),
                   radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%); /* @kind color */
   --vq-grad-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%); /* @kind color */
@@ -465,9 +465,9 @@ body { margin: 0; background: var(--vq-bg); }
   --vq-on-accent-muted:  rgb(255 255 255 / .80);  /* second tier on accent — 4.66:1 on teal-700 */
   --vq-on-accent-text:   var(--vq-ink-0);
   /* Mesh hero card ground — signature 3-lobe radial mesh from V6 standalone / Vena */
-  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
                     #0A0B0F;
   /* Tracks that ENCODE DATA must clear 3:1 (§11), unlike decorative rules. */
   /* A DATA-BEARING track (inactive bars, a gauge's remainder) must clear 3:1
@@ -948,9 +948,9 @@ body { margin: 0; background: var(--vq-bg); }
 
 /* Dark theme — mesh is unchanged (already dark), keep refined teal border/shadow */
 [data-theme="dark"]{
-  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
                     #0A0B0F;
 }
 [data-theme="dark"] .vqc--accent{
@@ -1440,6 +1440,46 @@ body{
   animation: ckGrow 780ms var(--vq-ease-out) backwards; }
 .ck-fd{ width:8px; height:8px; border-radius: var(--vq-r-full); flex:0 0 auto; }
 
+/* ── Polished ranking list rows ─────────────────────────────────────────── */
+/* Each row has a subtle filled progress bar behind it (CSS only, no extra DOM) */
+.ck-tb--rank { gap: 3px; }
+.ck-tb--rank .ck-tr {
+  position: relative; padding: 7px 10px;
+  border-bottom: 1px solid var(--vq-line-soft);
+  border-radius: var(--vq-r-sm, 6px);
+  overflow: hidden;
+  /* reset the generic gap */
+  gap: var(--vq-space-2);
+}
+.ck-tb--rank .ck-tr::before {
+  content: '';
+  position: absolute; inset: 0 0 0 0;
+  width: var(--pct, 0%);
+  background: var(--clr, var(--vq-series-1));
+  opacity: 0.08;
+  border-radius: var(--vq-r-sm, 6px);
+  transition: width 700ms var(--vq-ease-out);
+  pointer-events: none;
+}
+/* rank number badge */
+.ck-rank-n {
+  flex: 0 0 18px; text-align: center;
+  font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold);
+  font-size: 10px; color: var(--vq-text-3);
+}
+/* percentage / value chip */
+.ck-tpct {
+  flex: 0 0 auto; margin-left: auto;
+  font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-semi);
+  font-size: var(--vq-fs-caption);
+  color: var(--clr, var(--vq-series-1));
+  background: color-mix(in srgb, var(--clr, var(--vq-series-1)) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--clr, var(--vq-series-1)) 30%, transparent);
+  border-radius: var(--vq-r-full);
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
 .ck-hm{ display:flex; flex-direction:column; gap: var(--vq-space-2); height:100%; }
 .ck-hm-x{ display:grid; grid-template-columns:34px repeat(var(--c),1fr); gap:3px; }
 .ck-hm-x b{ font-size: var(--vq-fs-eyebrow); color: var(--vq-chart-label);
@@ -1676,9 +1716,9 @@ body.is-reordering{ user-select:none; }
 :root[data-bg="mesh"] body::before{
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
     #0A0B0F; }
 :root[data-bg="mesh"] .pg-top, :root[data-bg="mesh"] .app{ position:relative; z-index:1; }
 :root[data-bg="mesh"] .pg-top{ background: rgb(10 11 15 / .72); backdrop-filter: blur(14px); }
@@ -3574,9 +3614,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 [data-theme="dark"] .vqc--tone-surface { background: #151d18; border-color: #24332c; color: #edf2ef; }
 
 .vqc--tone-accent {
-  background: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-              radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-              radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+  background: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+              radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+              radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
               #0A0B0F;
   background-color: #0A0B0F;
   border: 1px solid rgba(35, 196, 166, 0.28);
@@ -4064,9 +4104,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
     0 0 0 1px rgba(255, 255, 255, 0.08),
     0 0 70px rgba(35, 196, 166, 0.32);
   background:
-    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
     #0A0B0F;
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
@@ -4261,9 +4301,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 :root[data-bg="mesh"] body::before {
   content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
     #0A0B0F;
 }
 :root[data-bg="mesh"] .vq-scroll-region,
@@ -4521,9 +4561,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    No backdrop-filter — it would blur the lobes that ARE the card identity. */
 :root[data-bg="mesh"] .vqc--accent,
 :root[data-bg="mesh"] .vqc--tone-accent {
-  background: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-              radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-              radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+  background: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+              radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+              radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
               #0A0B0F;
   background-color: #0A0B0F;
   backdrop-filter: none;
@@ -4697,6 +4737,59 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   flex: 0 0 312px; width: 312px; min-width: 0;
   display: flex; flex-direction: column; gap: 24px;
 }
+
+/* ── Dark Hub sidebar variant ────────────────────────────────────────────
+   A distinct dark panel — deep ink (#0D1412) with a soft teal mesh gradient
+   sweep. Cards inside it invert to sit ON the dark ground, not beside it.
+   This is the pre-V6 style the user liked, re-introduced as an opt-in preset. */
+.vq-rails--dark {
+  background:
+    radial-gradient(60% 55% at 20% 10%, rgba(35, 196, 166, 0.20), transparent 65%),
+    radial-gradient(48% 48% at 85% 90%, rgba(7, 107, 94, 0.26), transparent 62%),
+    #0D1412;
+  border-radius: var(--vq-r-lg, 16px);
+  padding: 20px 16px;
+  gap: 20px;
+  /* Teal border to match the hero card aesthetic */
+  border: 1px solid rgba(35, 196, 166, 0.18);
+  box-shadow: 0 12px 40px -6px rgba(0, 0, 0, 0.45), 0 0 0 0 transparent;
+}
+/* inside the dark panel, adjust rail card backgrounds */
+.vq-rails--dark .vq-rail-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(241, 245, 242, 0.90);
+}
+.vq-rails--dark .vq-rail-h { color: rgba(241, 245, 242, 0.60); border-bottom-color: rgba(255,255,255,0.08); }
+.vq-rails--dark .vq-rail-h > span { color: rgba(241, 245, 242, 0.75); }
+.vq-rails--dark .vq-rail-link { color: #59DBC0; }
+.vq-rails--dark .vq-rail-link:hover { color: #7EEBD1; }
+.vq-rails--dark .vq-rail-hero-v { color: #fff; }
+.vq-rails--dark .vq-rail-hero-l, .vq-rails--dark .vq-rail-hero-s { color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-row { border-bottom-color: rgba(255, 255, 255, 0.07); color: rgba(241, 245, 242, 0.85); }
+.vq-rails--dark .vq-rail-row-n { color: rgba(241, 245, 242, 0.80); }
+.vq-rails--dark .vq-rail-row-v { color: rgba(241, 245, 242, 0.90); }
+.vq-rails--dark .vq-rail-row-v.is-in { color: #59DBC0; }
+.vq-rails--dark .vq-rail-row-v.is-out { color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-dot { background: rgba(255, 255, 255, 0.22); }
+.vq-rails--dark .vq-rail-dot.is-in { background: #59DBC0; }
+.vq-rails--dark .vq-rail-dot.is-out { background: rgba(242, 106, 71, 0.80); }
+.vq-rails--dark .vq-rail-total { border-top-color: rgba(255,255,255,0.08); color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-total strong { color: #fff; }
+.vq-rails--dark .vq-rail-mini > span { color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-mini > strong { color: #fff; }
+.vq-rails--dark .vq-rails-title { color: rgba(241, 245, 242, 0.50); }
+.vq-rails--dark .vq-rails-edit {
+  background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: rgba(241,245,242,0.70);
+}
+.vq-rails--dark .vq-rails-edit:hover { background: rgba(255,255,255,0.10); color: #fff; }
+/* action trio on dark panel */
+.vq-rails--dark .vq-trio-btn {
+  background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); color: rgba(241,245,242,0.85);
+}
+.vq-rails--dark .vq-trio-btn:hover { background: rgba(35, 196, 166, 0.14); border-color: rgba(35, 196, 166, 0.35); color: #59DBC0; }
+.vq-rails--dark .vq-trio-btn.is-sale { background: rgba(35, 196, 166, 0.12); color: #59DBC0; }
+.vq-rails--dark .vq-trio-btn.is-purchase { background: rgba(248, 169, 60, 0.10); color: #FBBF24; }
 .vq-rails-head{
   display: flex; align-items: center; justify-content: space-between;
   min-height: 28px;

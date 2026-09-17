@@ -55,9 +55,9 @@
      but never had it copied into this file. The four variants below are the same
      three-lobe recipe rotated onto each island surface's hue, so the panes read
      as one system with their own identity rather than five different designs. */
-  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-                  radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-                  radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+                  radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+                  radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
                   #0A0B0F; /* @kind color */
 
   /* Island pane grounds — same lobes, dialled back so 15px body text keeps its
