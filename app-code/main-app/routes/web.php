@@ -1088,6 +1088,7 @@ Route::prefix('api/updater')
     ->group(function () {
         Route::get('/info', [\App\Http\Controllers\UpdaterController::class, 'info']);
         Route::post('/run', [\App\Http\Controllers\UpdaterController::class, 'run']);
+        Route::post('/reset-lock', [\App\Http\Controllers\UpdaterController::class, 'resetLock']);
     });
 
 Route::get('/dashboard', function() {

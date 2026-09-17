@@ -240,15 +240,41 @@ Write-Host "  [OK] Written AMD_POS_VERSION.txt (v$Version)" -ForegroundColor Gre
 
 # ── Zip ────────────────────────────────────────────────────
 Write-Host ""
-Write-Host "Zipping $releaseDir into $zipFile..." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Zipping $releaseDir into $zipFile with forward-slash paths..." -ForegroundColor Cyan
 
-if (Test-Path ".\zip_fix.ps1") {
-    # Use the linux-compatible zip helper if it exists
-    .\zip_fix.ps1 -SourceDirectory $releaseDir -DestinationFile $zipFile
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+if (Test-Path $zipFile) { Remove-Item -Force $zipFile }
+
+$zip = [System.IO.Compression.ZipFile]::Open($zipFile, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    $sourceFiles = Get-ChildItem -Path $releaseDir -Recurse -File
+    $sourceDirFull = (Resolve-Path $releaseDir).Path.TrimEnd('\', '/')
+    $totalCount = $sourceFiles.Count
+    $counter = 0
+
+    foreach ($file in $sourceFiles) {
+        $counter++
+        $fullPath = $file.FullName
+        $relativePath = $fullPath.Substring($sourceDirFull.Length + 1)
+        $entryName = $relativePath.Replace('\', '/')
+
+        if ($counter % 1000 -eq 0 -or $counter -eq $totalCount) {
+            Write-Host "  [ZIP] Packaged $counter of $totalCount files..." -ForegroundColor Gray
+        }
+
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+            $zip,
+            $fullPath,
+            $entryName,
+            [System.IO.Compression.CompressionLevel]::Optimal
+        ) | Out-Null
+    }
 }
-else {
-    # Fallback: built-in PowerShell compression
-    Compress-Archive -Path "$releaseDir\*" -DestinationPath $zipFile -Force
+finally {
+    $zip.Dispose()
 }
 
 # ── Cleanup temp build dir ─────────────────────────────────
