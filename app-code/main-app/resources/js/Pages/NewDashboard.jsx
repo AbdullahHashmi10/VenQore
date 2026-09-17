@@ -3827,10 +3827,10 @@ const PANEL_DESIGNS = [
     rails: ['classic_panel'] },
   { id: 'dark_hub', name: 'Dark hub',
     desc: 'Deep ink panel with teal mesh — the pre-V6 look, as a standalone dark sidebar.',
-    rails: ['action_trio', 'balances', 'activity'] },
+    rails: ['v6_cockpit'] },
   { id: 'money', name: 'Money desk',
     desc: 'The classic panel — action buttons, cash & accounts, live activity.',
-    rails: ['action_trio', 'balances', 'activity'] },
+    rails: ['v6_cockpit'] },
   { id: 'operations', name: 'Operations desk',
     desc: 'What needs doing — alerts, today\'s numbers, quick actions.',
     rails: ['alerts', 'today', 'quick_actions'] },
@@ -5595,13 +5595,19 @@ export default function NewDashboard(props) {
               </div>
 
               {railsOn && (
-                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${railPrefs.design === 'v6_cockpit' ? 'vq-rails--cockpit' : (railPrefs.design === 'dark_hub' ? 'vq-rails--dark' : '')}`}
+                <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${['v6_cockpit', 'dark_hub', 'money'].includes(railPrefs.design) ? 'vq-rails--cockpit' : ''}`}
                        style={{
                          '--vq-rails-w': `${railPrefs.width || 340}px`,
                          width: `${railPrefs.width || 340}px`,
                          flex: `0 0 ${railPrefs.width || 340}px`,
                          minWidth: `${railPrefs.width || 340}px`,
                          maxWidth: `${railPrefs.width || 340}px`,
+                         position: 'sticky',
+                         top: '16px',
+                         height: 'calc(100vh - 32px)',
+                         maxHeight: 'calc(100vh - 32px)',
+                         overflow: 'hidden',
+                         alignSelf: 'flex-start',
                        }}
                        aria-label="Side panel">
                   <div className="vq-rails-shell">
