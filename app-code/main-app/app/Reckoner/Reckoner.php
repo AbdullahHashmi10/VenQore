@@ -794,12 +794,12 @@ final class Reckoner
             };
 
             return [
-                'has_inventory' => $probe('products', fn () => \App\Models\Product::query()->exists()),
-                'has_parties' => $probe('parties', fn () => \App\Models\Party::query()->exists()),
-                'has_purchases' => $probe('purchases', fn () => \App\Models\Purchase::query()->exists()),
-                'has_sales_orders' => $probe('sales_orders', fn () => \App\Models\SalesOrder::query()->exists()),
+                'has_inventory' => $probe('products', fn () => DB::table('products')->where('tenant_id', $tenant->id)->whereNull('deleted_at')->exists()),
+                'has_parties' => $probe('parties', fn () => DB::table('parties')->where('tenant_id', $tenant->id)->whereNull('deleted_at')->exists()),
+                'has_purchases' => $probe('purchases', fn () => DB::table('purchases')->where('tenant_id', $tenant->id)->whereNull('deleted_at')->exists()),
+                'has_sales_orders' => $probe('sales_orders', fn () => DB::table('sales_orders')->where('tenant_id', $tenant->id)->whereNull('deleted_at')->exists()),
                 'has_manufacturing' => ! empty($features['production'])
-                    && $probe('compositions', fn () => \App\Models\Composition::query()->exists()),
+                    && $probe('compositions', fn () => DB::table('compositions')->where('tenant_id', $tenant->id)->whereNull('deleted_at')->exists()),
                 'has_staff' => $probe(
                     'tenant_users',
                     fn () => \App\Models\TenantUser::withoutGlobalScopes()
@@ -811,7 +811,7 @@ final class Reckoner
                 'has_restaurant' => $probe('occupancies', fn () => DB::table('occupancies')->where('tenant_id', $tenant->id)->exists()),
                 'has_ecommerce' => $probe('ecommerce_channels', fn () => DB::table('ecommerce_channels')->where('tenant_id', $tenant->id)->exists()),
                 'has_fbr' => false,
-                'has_bank_accounts' => $probe('bank_accounts', fn () => \App\Models\BankAccount::query()->exists()),
+                'has_bank_accounts' => $probe('bank_accounts', fn () => DB::table('bank_accounts')->where('tenant_id', $tenant->id)->whereNull('deleted_at')->exists()),
                 'has_production_costs' => false,
             ];
         });

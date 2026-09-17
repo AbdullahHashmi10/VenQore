@@ -307,15 +307,38 @@ final class FinanceSource implements ReckonerSource
             // total_expenses includes COGS in the P&L, this does not.
             $expensesTotal = (float) $pl['total_expenses'] - $cogs;
 
-            $profitSeries = [];
+            $grossProfitSeries = [];
             $revenueSeries = [];
             $cogsSeries = [];
+            $netProfitSeries = [];
+            $expenseSeries = [];
             try {
                 $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), 'daily', $ctx->tenant?->id);
+
+                $cogsId = DB::table('accounts')->where('tenant_id', $ctx->tenant->id)->where('code', '5000')->value('id');
+                $dailyExpenses = DB::table('journal_items as ji')
+                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                    ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                    ->where('ji.tenant_id', $ctx->tenant->id)
+                    ->where('je.tenant_id', $ctx->tenant->id)
+                    ->where('je.is_reversed', 0)
+                    ->whereBetween('je.date', [$period->start->toDateString(), $period->end->toDateString()])
+                    ->where('a.type', 'expense')
+                    ->when($cogsId, fn($q) => $q->where('a.id', '!=', $cogsId))
+                    ->selectRaw("DATE_FORMAT(je.date, '%Y-%m-%d') as day, SUM(ji.debit) - SUM(ji.credit) as val")
+                    ->groupBy('day')
+                    ->pluck('val', 'day')
+                    ->toArray();
+
                 foreach ($profitByPeriod as $d => $m) {
-                    $profitSeries[] = ['x' => (string) $d, 'y' => (float) ($m['profit'] ?? 0.0)];
-                    $revenueSeries[] = ['x' => (string) $d, 'y' => (float) ($m['revenue'] ?? 0.0)];
-                    $cogsSeries[] = ['x' => (string) $d, 'y' => (float) ($m['cogs'] ?? 0.0)];
+                    $dayStr = (string) $d;
+                    $gp = (float) ($m['profit'] ?? 0.0);
+                    $dayExp = (float) ($dailyExpenses[$dayStr] ?? 0.0);
+                    $grossProfitSeries[] = ['x' => $dayStr, 'y' => $gp];
+                    $revenueSeries[] = ['x' => $dayStr, 'y' => (float) ($m['revenue'] ?? 0.0)];
+                    $cogsSeries[] = ['x' => $dayStr, 'y' => (float) ($m['cogs'] ?? 0.0)];
+                    $expenseSeries[] = ['x' => $dayStr, 'y' => $dayExp];
+                    $netProfitSeries[] = ['x' => $dayStr, 'y' => round($gp - $dayExp, 2)];
                 }
             } catch (\Throwable) {}
 
@@ -324,8 +347,8 @@ final class FinanceSource implements ReckonerSource
                 $key = $item['key'];
                 $args = $item['args'] ?? [];
                 $out[$id] = match ($key) {
-                    'finance.net_profit' => !empty($profitSeries) ? ['value' => $netProfit, 'series' => $profitSeries] : $netProfit,
-                    'finance.expenses_total' => (function () use ($expensesTotal, $args, $ctx, $period) {
+                    'finance.net_profit' => !empty($netProfitSeries) ? ['value' => $netProfit, 'series' => $netProfitSeries] : $netProfit,
+                    'finance.expenses_total' => (function () use ($expensesTotal, $args, $ctx, $period, $expenseSeries) {
                         $groupBy = $args['group_by'] ?? 'none';
                         if ($groupBy === 'category') {
                             $cogsId = DB::table('accounts')->where('tenant_id', $ctx->tenant->id)->where('code', '5000')->value('id');
@@ -352,9 +375,9 @@ final class FinanceSource implements ReckonerSource
                                 'total' => (float) array_sum(array_column($rows, 'value')),
                             ];
                         }
-                        return $expensesTotal;
+                        return !empty($expenseSeries) ? ['value' => $expensesTotal, 'series' => $expenseSeries] : $expensesTotal;
                     })(),
-                    'finance.gross_profit' => !empty($profitSeries) ? ['value' => $grossProfit, 'series' => $profitSeries] : $grossProfit,
+                    'finance.gross_profit' => !empty($grossProfitSeries) ? ['value' => $grossProfit, 'series' => $grossProfitSeries] : $grossProfit,
                     'sales.gross_margin_pct' => $revenue > 0 ? round(($grossProfit / $revenue) * 100, 2) : null,
                     'finance.net_margin_pct' => $revenue > 0 ? round(($netProfit / $revenue) * 100, 2) : null,
                     'finance.cogs' => !empty($cogsSeries) ? ['value' => $cogs, 'series' => $cogsSeries] : $cogs,

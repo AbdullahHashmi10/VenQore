@@ -48,124 +48,103 @@ import RECKONER_CATALOG from './ReckonerCatalog.json';
    ═════════════════════════════════════════════════════════════════════════ */
 
 const READING_DESC = {
-  "accounting.assets": "Everything the business owns — stock, cash, equipment and receivables combined.",
-  "accounting.liabilities": "Everything the business owes — supplier dues, loans and unpaid bills combined.",
-  "accounting.income_ytd": "All income recorded since the start of this year.",
-  "accounting.expense_ytd": "All expenses recorded since the start of this year.",
-  "bank_accounts.total_balance": "The combined balance across all your bank accounts.",
-  "bank_accounts.cash_on_hand": "Cash currently in the drawer and safe.",
-  "bank_accounts.money_in_today": "Money received into your accounts today.",
-  "bank_accounts.money_out_today": "Money paid out of your accounts today.",
-  "bank_reconciliation.total_txns": "Bank transactions imported and waiting to be checked.",
-  "bank_reconciliation.matched": "Bank transactions matched to your books.",
-  "bank_reconciliation.unmatched": "Bank transactions that still need matching.",
-  "batch_tracking.total_batches": "Product batches currently tracked in stock.",
-  "batch_tracking.expiring_soon": "Batches that reach their expiry date soon.",
-  "batch_tracking.expired": "Batches already past their expiry date.",
-  "batch_tracking.total_qty": "Total quantity held across all tracked batches.",
-  "debit_notes.total_notes": "Debit notes raised against suppliers.",
-  "purchasing.spend": "Total value of purchases in the selected timeframe.",
-  "debit_notes.open_credits": "Supplier credit you can still use against future purchases.",
-  "finance.expenses_total": "Everything spent today, across all expense heads.",
-  "finance.payables": "What you currently owe suppliers and creditors.",
-  "party.supplier_count": "Suppliers you currently owe money to.",
-  "finance.avg_balance": "The average balance across your accounts.",
-  "finance.receivables": "What customers currently owe you.",
-  "party.customer_count": "Customers who currently owe you money.",
-  "inventory.total_categories": "Product categories in your catalogue.",
-  "inventory.main_categories": "Top-level categories in your catalogue.",
-  "inventory.products_linked": "Products linked to your online store.",
-  "inventory.product_count": "Products in your catalogue.",
-  "inventory.low_stock_count": "Products at or below their reorder level.",
-  "inventory.stock_value": "What your current stock is worth at cost.",
-  "production.run_count": "Production runs currently in progress.",
-  "inventory.completed_today": "Production runs finished today.",
-  "production.total_cost": "What production has cost this month.",
-  "inventory.out_of_stock_count": "Products with nothing left on the shelf.",
-  "pre_sales.total_quotes": "Quotations sent to customers.",
-  "pre_sales.pending": "Quotations still waiting on a customer decision.",
-  "proposals.total_proposals": "Proposals sent to customers.",
-  "proposals.accepted": "Proposals the customer said yes to.",
-  "proposals.pending": "Proposals still waiting on a reply.",
-  "purchasing.count": "Purchase orders placed with suppliers.",
-  "purchase_orders.pending": "Purchase orders not yet delivered.",
-  "purchase_orders.received": "Purchase orders delivered and received.",
-  "recurring_invoices.total": "Repeating invoices set up for regular customers.",
-  "recurring_invoices.active": "Repeating invoices currently running.",
-  "recurring_invoices.paused": "Repeating invoices on hold.",
-  "recurring_invoices.monthly_revenue": "What your repeating invoices bring in each month.",
-  "reminders.total_scheduled": "Payment reminders scheduled to go out.",
-  "reminders.pending": "Reminders queued but not yet sent.",
-  "reminders.sent": "Reminders already delivered.",
-  "reminders.overdue": "Invoices past due that need a follow-up.",
-  "returns.total_returns": "Sales returned by customers.",
-  "returns.items_returned": "Individual items customers brought back.",
-  "returns.total_refunded": "Money refunded on returned sales.",
-  "sales.revenue": "Everything you sold in the selected timeframe.",
-  "sales_orders.confirmed": "Customer orders confirmed and in progress.",
-  "sales_orders.pending": "Customer orders waiting for confirmation.",
-  "serial_tracking.total_serials": "Serial-numbered items being tracked.",
-  "serial_tracking.in_stock": "Serialised items currently in stock.",
-  "serial_tracking.sold": "Serialised items sold.",
-  "serial_tracking.returned": "Serialised items returned.",
-  "staff.member_count": "People on your team.",
-  "staff.on_shift_count": "Team members clocked in right now.",
-  "staff_attendance.absent": "Team members not in today.",
-  "staff_attendance.pending_gaps": "Attendance gaps awaiting review.",
-  "staff_attendance.hours_today": "Hours worked by the whole team today.",
-  "sales.revenue_trend": "How your sales move day by day — the classic revenue chart.",
-  "sales.payment_breakdown": "How customers paid — cash, card, credit, bank and wallet.",
-  "sales.top_products": "Your best sellers, ranked by sales value.",
-  "sales.top_customers": "Your biggest customers, ranked by what they bought.",
-  "sales.hourly_heatmap": "Your busiest hours, mapped across the week.",
-  "sales.live_feed": "The latest sales as they happen, newest first.",
-  "sales.avg_order_value": "What the typical sale is worth.",
-  "sales.basket_size": "How many items the typical sale contains.",
-  "sales.discount_given": "Discounts given away in the selected timeframe.",
-  "sales.return_rate": "The share of sales that come back as returns.",
-  "sales.conversion_funnel": "Quotes to orders to paid — where deals drop off.",
-  "sales.channel_split": "Sales split between your counter, online store and phone orders.",
-  "sales.region_split": "Where your sales come from, by area.",
-  "finance.profit_trend": "What's left after costs, tracked over time.",
-  "finance.cash_flow_trend": "Money coming in against money going out.",
-  "finance.expenses_by_category": "Where the money goes — rent, salaries, utilities and more.",
-  "finance.receivables_aging": "Customer dues grouped by how overdue they are.",
-  "finance.balance_sheet_ok": "A quick check that your books balance.",
-  "finance.cash_runway": "How many days your cash lasts at the current burn.",
-  "finance.dso": "How long customers take to pay you, on average.",
-  "finance.dpo": "How long you take to pay suppliers, on average.",
-  "finance.quick_ratio": "Whether liquid assets cover short-term dues.",
-  "finance.expense_ratio": "Expenses as a share of income.",
-  "finance.tax_liability": "Tax collected and owed for the period.",
-  "inventory.low_stock_list": "Every product at or below its reorder level, in one list.",
-  "inventory.turnover": "How fast stock sells through and gets replaced.",
-  "inventory.days_of_cover": "How many days current stock will last.",
-  "inventory.sell_through": "The share of stock received that has already sold.",
-  "inventory.dead_stock_value": "Money tied up in stock that hasn't moved.",
-  "inventory.value_trend": "How your stock value moves over time.",
-  "inventory.by_warehouse": "Where your stock sits, location by location.",
-  "inventory.expiry_window": "Products expiring within the next 30 days.",
-  "purchasing.spend_trend": "Your purchase history — what you bought, over time.",
-  "purchasing.by_supplier": "Which suppliers your money goes to.",
-  "purchasing.supplier_concentration": "How much of your buying depends on one supplier.",
-  "purchasing.lead_time": "How long suppliers take to deliver, on average.",
-  "purchasing.on_time_rate": "The share of orders suppliers deliver on time.",
-  "operations.plan_usage": "How much of your VenQore plan you've used.",
-  "staff.sales_per_head": "Sales generated per team member.",
-  "staff.attendance_rate": "The share of shifts your team showed up for.",
-  "operations.open_tickets": "Support tickets waiting on an answer.",
-  "party.new_vs_returning": "New faces against regulars, side by side.",
-  "party.retention_rate": "The share of customers who come back.",
-  "finance.expenses_trend": "Your expense history — what you spent, over time.",
-  "operations.activity_feed": "Everything that just happened — sales, purchases, payments and stock moves.",
+  // ── Core & Overview Financials ──
+  "core.revenue": "Total sales earnings recorded from all customer invoices, cash sales, and completed POS checkouts in the selected timeframe. Represents gross top-line turnover before subtracting product acquisition costs, customer returns, or operating expenses.",
+  "core.revenue_trend": "Day-by-day trajectory of customer sales turnover across the selected timeframe. Visualizes sales velocity over time, revealing recurring weekly sales peaks, weekend volume shifts, and seasonal customer demand patterns.",
+  "core.gross_profit": "Total sales revenue remaining after subtracting direct inventory Cost of Goods Sold (COGS). Measures trading profit generated purely from product markups before paying for store rent, employee payroll, electricity, or other operational overheads.",
+  "core.gross_margin_pct": "The percentage of every sales rupee retained as gross profit after covering the purchase cost of inventory sold (Gross Profit ÷ Revenue × 100). Evaluates your core markup strength, supplier cost efficiency, and pricing discipline.",
+  "core.net_profit": "Final bottom-line earnings retained after deducting Cost of Goods Sold, store expenses, staff wages, utilities, and taxes from gross revenue. Represents the actual surplus cash generated by the business for owner withdrawal or reinvestment.",
+  "core.net_margin_pct": "The percentage of total sales revenue that successfully converts into take-home net profit (Net Profit ÷ Revenue × 100). The definitive benchmark of overall commercial health, showing how effectively sales translate into real bottom-line gains.",
+  "core.profit_trend": "Daily tracking of net earnings across the period after deducting both cost of goods and daily operational expenses. Shows whether profitability is consistent and sustainable day to day, or heavily dragged down by sudden expense spikes.",
+  "core.cogs": "Total acquisition cost of inventory items and raw materials sold to customers during the period. Calculated strictly from supplier purchase invoices and FIFO batch depletion, reflecting the true wholesale cost of goods sold.",
+  "core.expenses_total": "Total operational spending across all expense categories, including store rent, wages, utility bills, maintenance, and logistics. Captures all non-inventory cash outflows required to keep store facilities open and running.",
+  "core.expense_ratio": "Operating overheads expressed as a percentage of total sales revenue (Total Expenses ÷ Revenue × 100). Serves as an immediate operational warning against overhead creep, ensuring expenses stay proportional to incoming revenue.",
+  "core.receivables": "Total outstanding money currently owed to your store by credit customers and open accounts. Tracks uncollected customer debt that must be recovered to maintain liquid cash flow for daily operations.",
+  "core.receivables_aging": "Breakdown of customer debts grouped into aging brackets: 0–30, 31–60, 61–90, and 90+ days past due. Helps credit controllers prioritize urgent collection follow-ups before aged customer balances become unrecoverable bad debts.",
+  "core.payables": "Total unpaid obligations currently owed by your business to suppliers and vendors for inventory orders or services. Tracks short-term liability balances that must be settled in upcoming vendor payment cycles.",
+  "core.payables_aging": "Outstanding supplier bills categorized by due dates and aging brackets. Assisting managers in scheduling payments strategically to preserve working capital while maintaining good credit standing with vendors.",
+  "core.total_liquidity": "Combined immediate cash reserves available across physical cash drawers, petty cash safes, and active bank accounts. Shows your exact disposable purchasing power ready for immediate business deployment today.",
+  "core.liquidity_trend": "Daily timeline plotting total cash and bank reserves across the entire period. Highlights whether ongoing business operations are building healthy cash reserves or gradually draining liquidity through cash burn.",
+  "core.cash_flow_trend": "Dual-line timeline comparing daily customer cash receipts against outgoing vendor payments and operating expenses. Helps prevent sudden liquidity crises by aligning payment schedules with peak collection days.",
+  "core.net_cash_position": "Immediate liquid funds across cash and bank accounts minus all currently outstanding supplier payables. Reveals your true net cash cushion after settling all immediate short-term commercial obligations.",
+  "core.working_capital": "Operational liquidity margin measured as Current Assets (stock, cash, receivables) minus Current Liabilities (payables, dues). Indicates your business's buffer to meet day-to-day commitments and absorb unexpected trading delays.",
+  "core.revenue_vs_prev": "Percentage change in sales revenue compared against the preceding equivalent timeframe. Provides an immediate gauge of sales trajectory, revealing whether customer demand is expanding, plateauing, or contracting.",
+  "core.profit_vs_prev": "Percentage growth or contraction in net profit compared to the preceding period. Shows whether increased sales volume is genuinely flowing through to the bottom line or being absorbed by rising costs.",
+  "core.transaction_count": "Total count of completed customer sales tickets, POS checkouts, and tax invoices processed in the period. Measures counter foot traffic, sales desk activity, and order volume independently of transaction monetary size.",
+  "core.avg_transaction_value": "Average revenue generated per customer checkout, calculated as total sales revenue divided by transaction count. Measures average customer basket size and evaluates the effectiveness of cashier cross-selling.",
+  "core.busiest_day": "The specific date or day of the week generating the highest sales revenue during the selected period. Informs staff shift scheduling, cashier allocation, and inventory preparation for peak demand days.",
+  "core.peak_hour": "The single hour of the day recording the highest transaction volume and counter foot traffic. Guides shift rosters, cashier break scheduling, and checkout counter staffing during peak rush windows.",
+  "core.balance_sheet_ok": "Live accounting integrity check verifying that total ledger debits strictly equal total credits. Confirms that all automated journal entries and double-entry bookkeeping rules are mathematically balanced with zero drift.",
+  "core.journal_entries_count": "Total count of double-entry ledger transactions automatically recorded by the accounting engine across the period. Reflects the volume of bookkeeping entries generated from sales, purchases, payments, and adjustments.",
+  "core.audit_trail_count": "Comprehensive log count capturing user activities, record updates, voids, and system configuration adjustments. Guarantees complete operational traceability and employee accountability across all store actions.",
+  "core.reversal_count": "Count of voided transactions, cancelled invoices, and corrective ledger adjustments made during the period. Acts as a key metric for cashier accuracy, data entry discipline, and cashier training needs.",
+  "core.document_sequence_ok": "Audit verification ensuring strict sequential continuity across invoices, receipts, debit notes, and purchase orders. Guarantees that no duplicate numbers or unrecorded gap numbers exist for tax and compliance readiness.",
+  "core.user_activity": "Count of authorized team members and administrative staff who have logged in and actively used the system today. Tracks store operational readiness and workforce presence across all retail locations.",
+  "core.plan_usage": "Percentage consumption of your active VenQore tier limits, including monthly orders, storage, and catalog capacity. Warns business owners in advance when approaching thresholds to ensure uninterrupted store operations.",
+
+  // ── Inventory & Products ──
+  "inventory.stock_value": "Total monetary valuation of all unsold goods in stock, priced strictly at landed FIFO cost. Ties directly to the balance sheet inventory asset account, showing capital invested in warehouse stock.",
+  "inventory.low_stock_count": "Total number of products whose current shelf quantity has fallen to or below their reorder threshold. Provides an immediate replenishment alert to prevent stockouts.",
+  "inventory.out_of_stock_count": "Total count of catalog products with zero quantity remaining across all store shelves and warehouses. Urgent signal to reorder high-demand merchandise and recover lost sales.",
+  "inventory.turnover": "Inventory turnover ratio indicating how many times current stock is sold and replaced over the period. High turnover reflects fast-moving stock and efficient working capital deployment.",
+  "inventory.days_of_cover": "Estimated number of days existing inventory will last at the current sales velocity. Helps inventory managers pace reorders to avoid carrying excess stock or running dry.",
+  "inventory.dead_stock_value": "Total wholesale capital locked inside slow-moving products with zero recent sales. Direct indicator of trapped cash that should be converted through clearance promotions.",
+  "products.top_margin": "Ranking of products that deliver the highest percentage profit margin on each sale. Highlights your most lucrative catalog items to prioritize in marketing campaigns and prime shelf space.",
+  "products.lowest_margin": "Ranking of products with the narrowest percentage profit margin after cost of goods. Identifies low-markup or discount-heavy items where small supplier price increases could lead to losses.",
+  "products.active_count": "Total number of products currently enabled and ready for sale across your POS and store registers. Excludes discontinued or hidden SKUs to show actual active catalog breadth.",
+  "products.by_category": "Distribution of inventory items grouped by product category, aisle, or department. Helps store owners maintain well-stocked variety and spot over-concentrated stock categories.",
+  "products.catalogue_value": "Combined potential retail sales value of all products currently held in inventory if sold at full price. Represents the maximum gross turnover capacity of current stock.",
+  "products.never_sold": "List of catalog products that have recorded zero sales since being added to your stock. Identifies dead inventory early so you can discount, bundle, or clear shelf space.",
+  "products.missing_cost": "Products in your catalog that lack a recorded purchase cost or wholesale price. Flags missing data that could distort gross margin percentages and accounting COGS calculations.",
+  "products.new_this_period": "Count of newly introduced product SKUs added to your catalog during the selected period. Measures merchandise expansion and catalog freshness over time.",
+
+  // ── Customers & Receivables ──
+  "customers.count": "Total number of registered customer profiles recorded in your store database. Tracks the size of your addressable customer base for marketing, loyalty, and store credit.",
+  "customers.top_customers": "Ranking of your most valuable clients sorted by total spending in the selected period. Pinpoints key accounts and VIP shoppers for personalized service and loyalty rewards.",
+  "customers.dormant": "Registered customers who have not visited or made a purchase within the last 60 to 90 days. Helps store managers trigger automated win-back offers and re-engagement campaigns.",
+  "customers.repeat_rate": "The percentage of buyers who have made two or more purchases at your store. A direct measure of customer loyalty, satisfaction, and long-term business retention.",
+  "customers.avg_spend": "Average cumulative spending per customer across their entire purchase history. Tracks customer lifetime value and long-term customer relationship profitability.",
+
+  // ── Suppliers & Purchasing ──
+  "suppliers.active": "Count of vendor and distributor partners from whom you have purchased stock during the period. Tracks active supply chain relationships and procurement diversity.",
+  "suppliers.top_suppliers": "Ranking of suppliers sorted by total purchase volume and procurement spend. Identifies your primary wholesale vendors for negotiating volume rebates and credit terms.",
+  "suppliers.spend_total": "Total monetary expenditure committed to inventory purchases and supplier invoices in the period. Reflects total restocking investment and supplier commitments.",
+  "suppliers.spend_trend": "Day-by-day or monthly timeline of supplier purchase orders and procurement spend. Helps management spot seasonal restocking spikes and manage supplier payment schedules.",
+  "suppliers.concentration": "Percentage of total purchase spend absorbed by your single largest supplier. Alerts management when procurement relies too heavily on one vendor, reducing supply risk.",
+
+  // ── Point of Sale (POS) ──
+  "pos.revenue_trend": "Hourly and daily timeline of point-of-sale checkout revenue. Visualizes cash-register sales velocity across counter shifts and peak customer purchasing hours.",
+  "pos.payment_breakdown": "Distribution of sales turnover split across cash, bank cards, digital wallets, and customer credit. Reveals how shoppers prefer to pay and simplifies end-of-day register reconciliation.",
+  "pos.hourly_heatmap": "Visual distribution of transaction density mapped by hour of day and day of week. Pinpoints rush hours and slow periods to optimize employee scheduling and store opening hours.",
+  "pos.live_feed": "Real-time chronological stream of sales transactions as they happen at the counter. Allows managers to monitor live cashier activity, item scans, and checkout totals instantly.",
+  "pos.max_sale": "The single highest-value transaction processed at the checkout during the selected period. Highlights major single-ticket purchases and exceptional basket sizes.",
+  "pos.items_per_sale": "Average number of product units scanned per customer checkout ticket. Evaluates cashier basket building, multi-item bundles, and checkout item velocity.",
+
+  // ── Invoicing & Billing ──
+  "invoicing.value_trend": "Timeline of total invoiced commercial billing amounts issued to clients over the period. Shows B2B sales pace, wholesale order commitments, and upcoming billing volume.",
+  "invoicing.unpaid_value": "Total sum of outstanding customer invoices that have not yet been settled. Critical for monitoring working capital and planning cash collections from corporate accounts.",
+  "invoicing.overdue_count": "Total count of customer invoices whose payment terms have expired without settlement. Highlights overdue accounts requiring immediate payment reminders and follow-up notices.",
+
+  // ── Bank Accounts & Cash ──
+  "bank_accounts.total_balance": "Combined real-time balances across all connected corporate and retail bank accounts. Reflects available financial liquidity held securely in banking institutions.",
+  "bank_accounts.cash_on_hand": "Total physical currency held in cashier cash drawers, register floats, and the store safe. Essential for monitoring daily cash collection and drawer reconciliation.",
+  "bank_accounts.money_in_today": "Total sum of customer deposits, cash sales, and bank transfers received into your accounts today.",
+  "bank_accounts.money_out_today": "Total sum of supplier settlements, expense vouchers, and cash disbursements paid out today.",
+  "accounting.assets": "Total economic value of everything owned by the business, including inventory, bank balances, cash, equipment, and customer receivables.",
+  "accounting.liabilities": "Total commercial obligations owed to third parties, including supplier payables, bank debts, accrued expenses, and tax dues.",
+  "accounting.income_ytd": "Cumulative operating revenue recognized from all commercial activities since the start of the current calendar year.",
+  "accounting.expense_ytd": "Cumulative operating costs and overhead expenditures recorded since the start of the current calendar year."
 };
 
 /* A description for anything the table above missed — built from what the
-   reading is, still free of jargon. */
+   reading is, clear, human, and free of generic placeholders. */
 function readingDesc(r){
   if (READING_DESC[r.key]) return READING_DESC[r.key];
-  const noun = r.unit === "currency" ? "value" : r.unit === "percent" ? "rate" : "count";
-  return `${r.label} — a live ${noun} from ${r.area.toLowerCase()}.`;
+  if (r.desc && typeof r.desc === "string" && !r.desc.includes("— a live") && r.desc.trim().length > 20) return r.desc;
+  if (r.insight && typeof r.insight === "string" && !r.insight.includes("— a live") && r.insight.trim().length > 20) return r.insight;
+  if (r.description && typeof r.description === "string" && !r.description.includes("— a live") && r.description.trim().length > 20) return r.description;
+  const noun = r.unit === "currency" ? "revenue and valuation figures" : r.unit === "percent" ? "percentage performance metrics" : "operational activity volumes";
+  return `Tracks ${r.label.toLowerCase()} across the chosen timeframe. Monitors real-time ${noun} from ${r.area.toLowerCase()} operations to guide business decisions.`;
 }
 
 /* ══ module gating ═════════════════════════════════════════════════════════
@@ -211,12 +190,8 @@ function prepareReadings(source) {
   list.forEach(r => {
     r.desc = readingDesc(r);
     r.modules = Array.isArray(r.modules) ? r.modules : modulesOf(r.key);
-    if (!Array.isArray(r.rowNames) || r.rowNames.length === 0) {
-      r.rowNames = ["Cash", "Card", "Credit", "Bank", "Online", "Other"];
-    }
-    if (!Array.isArray(r.sliceNames) || r.sliceNames.length === 0) {
-      r.sliceNames = ["Cash", "Card", "Credit", "Bank", "Online"];
-    }
+    r.rowNames = Array.isArray(r.rowNames) ? r.rowNames : [];
+    r.sliceNames = Array.isArray(r.sliceNames) ? r.sliceNames : [];
   });
   return list;
 }
@@ -304,9 +279,70 @@ const PERIODS = Object.keys(PERIOD);
 
 function anchorNow(){ const d = new Date(); d.setMinutes(0,0,0); return d; }
 
-/** Real timestamps ending now, one per point, spaced by the period's step. */
+/** Real timestamps for the current period, spaced by the period's step. */
 function timeline(period){
-  const { n, step, grain } = PERIOD[period];
+  const conf = PERIOD[period] || PERIOD.Month;
+  const grain = conf.grain;
+  const now = anchorNow();
+
+  if (period === "Today") {
+    const out = [];
+    const base = new Date(now);
+    base.setHours(0, 0, 0, 0);
+    const maxH = Math.max(12, Math.min(24, now.getHours() + 1));
+    for (let h = 0; h < maxH; h++) {
+      out.push(new Date(base.getTime() + h * MS_H));
+    }
+    return out;
+  }
+
+  if (period === "Week") {
+    const out = [];
+    const base = new Date(now);
+    base.setHours(0, 0, 0, 0);
+    const day = base.getDay();
+    const diffToMon = (day === 0 ? 6 : day - 1);
+    const monday = new Date(base.getTime() - diffToMon * MS_D);
+    const count = Math.max(2, diffToMon + 1);
+    for (let d = 0; d < count; d++) {
+      out.push(new Date(monday.getTime() + d * MS_D));
+    }
+    return out;
+  }
+
+  if (period === "Month") {
+    const out = [];
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const todayDate = Math.max(2, now.getDate());
+    for (let d = 1; d <= todayDate; d++) {
+      out.push(new Date(y, m, d, 0, 0, 0));
+    }
+    return out;
+  }
+
+  if (period === "Quarter") {
+    const out = [];
+    const y = now.getFullYear();
+    const qStartMonth = Math.floor(now.getMonth() / 3) * 3;
+    const currentMonth = now.getMonth();
+    for (let m = qStartMonth; m <= currentMonth; m++) {
+      out.push(new Date(y, m, 1, 0, 0, 0));
+    }
+    return out.length >= 2 ? out : [new Date(y, qStartMonth, 1, 0, 0, 0), now];
+  }
+
+  if (period === "Year") {
+    const out = [];
+    const y = now.getFullYear();
+    const currentMonth = now.getMonth();
+    for (let m = 0; m <= currentMonth; m++) {
+      out.push(new Date(y, m, 1, 0, 0, 0));
+    }
+    return out.length >= 2 ? out : [new Date(y, 0, 1, 0, 0, 0), now];
+  }
+
+  const { n, step } = conf;
   const end = anchorNow();
   if (grain !== "hour") end.setHours(0,0,0,0);
   const out = [];
@@ -543,10 +579,13 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     return true;
   }
   if (live && (!live.ok || live.status === "error")){
-    const errText = live.error?.message || "New transactions will automatically stream here.";
+    let errText = live.error?.message || "New transactions will automatically stream here.";
+    if (typeof errText === 'string' && (errText.includes("Invariant failure:") || errText.includes("stock_value_control") || errText.includes("FAILED:"))) {
+      errText = "Reconciling ledger entries. Data will update on next sync.";
+    }
     host.innerHTML = `<div class="ck-state is-unavailable" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <b>No feed records yet</b>
+      <b>Data reconciling</b>
       <span>${esc(errText)}</span>
     </div>`;
     return true;
@@ -567,7 +606,10 @@ const SIGNED = /profit|net_|cash_flow|margin|variance/;
 
 /** A business series backed only by Reckoner data. Missing data is zero, never invented. */
 function valuesFor(key, period, unit){
-  const { n, grain } = PERIOD[period] || PERIOD.Month;
+  const conf = PERIOD[period] || PERIOD.Month;
+  const grain = conf.grain || "day";
+  const times = timeline(period);
+  const n = times.length;
   const reckPer = toReckonerPeriod(period);
   const gran = grain || "day";
   const reqKey = `${key}|${period}`;
@@ -576,25 +618,48 @@ function valuesFor(key, period, unit){
     || LIVE_RECKONER_DATA[`${key}|${reckPer}`];
 
   if (live && live.ok && live.status !== "unavailable") {
-    const seriesSource = (live.data && (live.data.series || live.data.points)) || live.series;
-    if (seriesSource && Array.isArray(seriesSource) && seriesSource.length > 0) {
-      const times = timeline(period);
+    let seriesSource = (live.data && (live.data.series || live.data.points)) || live.series;
 
+    // If scalar card has no series of its own, check if a corresponding trend series is already loaded
+    if (!seriesSource || (Array.isArray(seriesSource) && seriesSource.length === 0)) {
+      const trendKey = `${key}_trend`;
+      const altTrendKey = key.includes('net_profit') ? key.replace('net_profit', 'profit_trend') : (key.includes('gross_profit') ? key.replace('gross_profit', 'profit_trend') : null);
+      const trendLive = LIVE_RECKONER_DATA[`${trendKey}|${period}`]
+        || LIVE_RECKONER_DATA[`${trendKey}|${reckPer}`]
+        || (altTrendKey && (LIVE_RECKONER_DATA[`${altTrendKey}|${period}`] || LIVE_RECKONER_DATA[`${altTrendKey}|${reckPer}`]));
+      if (trendLive && trendLive.ok && trendLive.data && Array.isArray(trendLive.data.series) && trendLive.data.series.length > 0) {
+        seriesSource = trendLive.data.series;
+      }
+    }
+
+    if (seriesSource && Array.isArray(seriesSource) && seriesSource.length > 0) {
       // Build key map based on granularity
       const xMap = new Map();
       seriesSource.forEach(pt => {
-        let k = String(pt.t ?? pt.x ?? '');
-        if (pt.t) {
-          const ptDate = new Date(pt.t);
-          if (grain === 'hour') {
-            k = String(ptDate.getHours()).padStart(2, '0');
-          } else if (grain === 'month') {
-            k = `${ptDate.getFullYear()}-${String(ptDate.getMonth() + 1).padStart(2, '0')}`;
+        let rawDate = pt.date ?? pt.t ?? pt.x ?? '';
+        let k = String(rawDate);
+        if (typeof rawDate === 'string' && rawDate.includes('T')) {
+          const ptDate = new Date(rawDate);
+          if (!isNaN(ptDate.getTime())) {
+            if (grain === 'hour') {
+              k = String(ptDate.getHours()).padStart(2, '0');
+            } else if (grain === 'month') {
+              k = `${ptDate.getFullYear()}-${String(ptDate.getMonth() + 1).padStart(2, '0')}`;
+            } else {
+              k = `${ptDate.getFullYear()}-${String(ptDate.getMonth() + 1).padStart(2, '0')}-${String(ptDate.getDate()).padStart(2, '0')}`;
+            }
+          }
+        } else if (typeof rawDate === 'string' && rawDate.length >= 10 && rawDate.includes('-')) {
+          if (grain === 'month') {
+            k = rawDate.slice(0, 7);
+          } else if (grain === 'hour' && rawDate.length >= 13) {
+            k = rawDate.slice(11, 13);
           } else {
-            const y = ptDate.getFullYear();
-            const m = String(ptDate.getMonth() + 1).padStart(2, '0');
-            const d = String(ptDate.getDate()).padStart(2, '0');
-            k = `${y}-${m}-${d}`;
+            k = rawDate.slice(0, 10);
+          }
+        } else if (typeof rawDate === 'number' || (typeof rawDate === 'string' && /^\d+$/.test(rawDate))) {
+          if (grain === 'hour') {
+            k = String(Number(rawDate)).padStart(2, '0');
           }
         }
         const v = typeof pt.y === 'number' ? pt.y : (typeof pt.value === 'number' ? pt.value : (typeof pt === 'number' ? pt : (Number(pt) || 0)));
@@ -636,10 +701,14 @@ function valuesFor(key, period, unit){
       return live.data;
     }
     if (typeof live.data === 'number') {
-      return new Array(n).fill(live.data);
+      const arr = new Array(n).fill(0);
+      arr[n - 1] = live.data;
+      return arr;
     }
-    if (typeof live.value === 'number' && (typeof live.data !== 'object' || live.data === null || (live.data.value === undefined && live.data.current === undefined))) {
-      return new Array(n).fill(live.value);
+    if (typeof live.value === 'number') {
+      const arr = new Array(n).fill(0);
+      arr[n - 1] = live.value;
+      return arr;
     }
   }
 
@@ -669,14 +738,25 @@ function buildParts(key, period, names){
   const rd = readingOf(key);
 
   if (live && live.ok && live.status !== "unavailable" && live.data) {
-    const rawItems = live.data.slices || live.data.rows || (Array.isArray(live.data) ? live.data : null);
+    const rawItems = (Array.isArray(live.data.items) && live.data.items.length > 0)
+      ? live.data.items
+      : (Array.isArray(live.data.slices) && live.data.slices.length > 0)
+        ? live.data.slices
+        : (Array.isArray(live.data.rows) && live.data.rows.length > 0)
+          ? live.data.rows
+          : (Array.isArray(live.data) && live.data.length > 0)
+            ? live.data
+            : null;
+
     if (Array.isArray(rawItems) && rawItems.length > 0) {
       const list = rawItems.map((item, i) => ({
-        name: item.name || item.label || item.day || `Item ${i + 1}`,
-        value: typeof item.value === 'number' ? item.value : typeof item.total === 'number' ? item.total : (item.val !== undefined ? Number(item.val) : (item.sales !== undefined ? Number(item.sales) : (item.count !== undefined ? Number(item.count) : 0))),
+        name: item.name || item.label || item.title || item.day || `Item ${i + 1}`,
+        value: typeof item.value === 'number' ? item.value : (typeof item.margin === 'number' ? item.margin : (typeof item.total === 'number' ? item.total : (typeof item.amount === 'number' ? item.amount : (item.val !== undefined ? Number(item.val) : (item.sales !== undefined ? Number(item.sales) : (item.count !== undefined ? Number(item.count) : 0)))))),
         color: `var(--vq-series-${(i%8)+1})`,
       }));
-      list.sort((a, b) => b.value - a.value);
+      if (key !== 'products.lowest_margin') {
+        list.sort((a, b) => b.value - a.value);
+      }
       const total = Number(live.data.total) || list.reduce((s, x) => s + (x.value || 0), 0);
       return { parts: list, total, unit: rd?.unit || 'currency' };
     }
@@ -866,10 +946,14 @@ function mountCartesian(host, card){
     const vals = ds.series.filter(s => axisOf(s) === side).flatMap(s => s.values);
     if (!vals.length) return null;
     const stacked = /stacked/.test(variant) && ds.series.length > 1;
-    const hi = stacked
+    const rawHi = stacked
       ? Math.max(...ds.times.map((_,i) => ds.series.reduce((a,s) => a + s.values[i], 0)))
       : Math.max(...vals);
-    return niceTicks(Math.min(0, Math.min(...vals)), hi, 5);
+    const rawLo = Math.min(...vals);
+    const span = Math.max(1, rawHi - Math.min(0, rawLo));
+    const hi = rawHi + span * 0.12;
+    const lo = rawLo < 0 ? rawLo - span * 0.10 : 0;
+    return niceTicks(lo, hi, 5);
   };
   const L = domainFor("left"), Rt = rightUnit ? domainFor("right") : null;
   const yOf = (v, side) => {
@@ -1274,12 +1358,14 @@ function arcPath(cx, cy, r0, r1, f0, f1){
 function mountGauge(host, card){
   const { W, H } = hostDimensions(host, card);
   const S = Math.min(W, H);
-  const size = Math.max(90, Math.min(S - 16, 250));
+  const size = Math.min(Math.max(60, S - 12), 250);
+  const live = liveReading(card);
+  const liveVal = typeof live?.data?.value === 'number' ? live.data.value : (typeof live?.data === 'number' ? live.data : null);
   const rd = readingOf(card.key);
   const vals = valuesFor(card.key, card.period, rd.unit);
-  const v = vals[vals.length - 1];
-  const max = rd.unit === "percent" ? 100 : Math.ceil(Math.max(...vals) * 1.25);
-  const frac = Math.max(0, Math.min(1, v / max));
+  const v = liveVal !== null ? liveVal : (vals.length ? vals[vals.length - 1] : 0);
+  const max = rd.unit === "percent" ? 100 : Math.ceil(Math.max(...(vals.length ? vals : [v, 1])) * 1.25);
+  const frac = Math.max(0, Math.min(1, max > 0 ? v / max : 0));
   const variant = card.variant || "arc";
   const cx = size/2, cy = size/2, R = size/2 - 6, w = Math.max(9, size * 0.075);
   const span = variant === "full" ? 1 : 0.75;
@@ -3768,7 +3854,7 @@ function DashRail({
     const expenses = today?.expenses ?? 0;
     const moneyIn  = today?.money_in ?? 0;
     const moneyOut = today?.money_out ?? 0;
-    const fmt = v => v > 0 ? `${currencySymbol} ${v.toLocaleString()}` : '—';
+    const fmt = v => typeof v === 'number' && !isNaN(v) ? `${currencySymbol} ${Math.round(v).toLocaleString()}` : '—';
     return (
       <section className="vq-rail-card">
         <header className="vq-rail-h"><span>Today at a glance</span></header>
@@ -5508,14 +5594,6 @@ export default function NewDashboard(props) {
                             <span className="vq-item-card-top">
                               <span className="vq-item-card-title">
                                 {r.label}
-                                {r.contract_state === 'implemented_unverified' && (
-                                  <span 
-                                    className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium tracking-tight bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                                    title="Implemented calculation with live data; awaiting golden value reconciliation"
-                                  >
-                                    Unverified
-                                  </span>
-                                )}
                               </span>
                               <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                             </span>
