@@ -3895,7 +3895,8 @@ function DashRail({
         cashData={cashData}
         inventoryValue={performance?.stock_value || 0}
         sticky={false}
-        className="w-full"
+        onQuickActions={onQuickActions}
+        className="w-full h-full"
       />
     );
   }

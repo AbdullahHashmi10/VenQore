@@ -4755,7 +4755,11 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   /* Signature teal border matching V6 hero cards */
   border: 1px solid rgba(35, 196, 166, 0.28);
   box-shadow: 0 12px 36px -6px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
-  max-height: calc(100vh - 100px);
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 .vq-rails--cockpit .vq-rails-shell,
 .vq-rails--dark .vq-rails-shell,
@@ -4765,6 +4769,11 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   background: transparent !important;
   padding: 0 !important;
   box-shadow: none !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
 }
 /* inside the dark panel, adjust rail card backgrounds */
 .vq-rails--dark .vq-rail-card {

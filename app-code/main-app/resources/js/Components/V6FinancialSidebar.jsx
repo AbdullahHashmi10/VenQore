@@ -150,6 +150,7 @@ export default function V6FinancialSidebar({
   cashData = null,
   inventoryValue = 0,
   sticky = false,
+  onQuickActions = null,
   className = '',
   props: extraProps = {}
 }) {
@@ -222,7 +223,7 @@ export default function V6FinancialSidebar({
   ];
 
   return (
-    <div className={`w-full flex flex-col gap-2.5 text-white ${className}`}>
+    <div className={`w-full h-full flex flex-col gap-2.5 text-white justify-between ${className}`}>
       <CashDetailModal
         isOpen={isCashModalOpen}
         onClose={() => setIsCashModalOpen(false)}
@@ -239,21 +240,23 @@ export default function V6FinancialSidebar({
         store={store}
       />
 
-      {/* 1. Header: Total Balance */}
-      <div className="flex items-center gap-3 px-1 pt-0.5">
-        <div className="w-10 h-10 rounded-2xl bg-white/[0.06] border border-white/[0.10] flex items-center justify-center text-white shadow-inner shrink-0">
-          <Wallet size={18} className="text-white" strokeWidth={2.2} />
+      {/* 1. Header: Total Balance (Label on left, Big Amount on right) */}
+      <div className="flex items-center justify-between px-1 pt-0.5 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.10] flex items-center justify-center text-white shadow-inner shrink-0">
+            <Wallet size={16} className="text-white" strokeWidth={2.2} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest leading-none">Total Balance</p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest leading-none mb-1">Total Balance</p>
-          <h3 className="text-xl sm:text-[22px] font-black tracking-tight text-white leading-tight truncate">
-            {formatMoney(totalBalance)}
-          </h3>
-        </div>
+        <h3 className="text-xl sm:text-[22px] font-black tracking-tight text-white leading-tight font-mono text-right">
+          {formatMoney(totalBalance)}
+        </h3>
       </div>
 
       {/* 2. Three Circular/Pill Action Buttons: SALE, PURCHASE, ACTIONS */}
-      <div className="relative" ref={menuRef}>
+      <div className="relative shrink-0" ref={menuRef}>
         <div className="grid grid-cols-3 gap-2">
           {/* SALE Button */}
           <button
@@ -279,10 +282,16 @@ export default function V6FinancialSidebar({
             <span className="text-[10px] font-black tracking-wider text-amber-400">PURCHASE</span>
           </button>
 
-          {/* ACTIONS Button */}
+          {/* ACTIONS Button — Opens centralized Quick Actions modal */}
           <button
             type="button"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => {
+              if (onQuickActions) {
+                onQuickActions();
+              } else {
+                setIsMenuOpen(!isMenuOpen);
+              }
+            }}
             className={`bg-teal-500/[0.10] hover:bg-teal-500/[0.20] border border-teal-500/30 hover:border-teal-500/50 text-teal-300 rounded-2xl py-2 px-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 group shadow-sm backdrop-blur-sm ${isMenuOpen ? 'ring-2 ring-teal-500/50 bg-teal-500/25' : ''}`}
           >
             <div className="w-7 h-7 rounded-xl bg-teal-500/20 group-hover:bg-teal-400 group-hover:text-black flex items-center justify-center transition-all duration-200">
@@ -303,93 +312,98 @@ export default function V6FinancialSidebar({
         />
       </div>
 
-      {/* 3. Cash in Hand Card */}
+      {/* 3. Cash in Hand Card (rounded-[20px], Label on left, Number on right) */}
       <button 
         type="button"
         aria-label="View Cash in Hand Details"
         onClick={() => setIsCashModalOpen(true)}
-        className="w-full text-left bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-2xl p-3 transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group"
+        className="w-full text-left bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-[20px] p-3 flex items-center justify-between transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
       >
-        <div className="flex justify-between items-center mb-1">
-          <div className="flex items-center gap-1.5">
-            <Wallet size={14} className="text-emerald-400" strokeWidth={2.2} />
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+            <Wallet size={14} strokeWidth={2.2} />
+          </div>
+          <div>
             <span className="text-xs font-bold text-neutral-200">Cash in Hand</span>
-          </div>
-          <span className="text-[8px] font-extrabold tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 px-1.5 py-0.5 rounded-full uppercase">
-            MAIN
-          </span>
-        </div>
-        <div>
-          <h4 className="text-xl font-black tracking-tight text-white leading-tight">
-            {formatMoney(glBalance)}
-          </h4>
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 mt-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Active
+            <span className="ml-1.5 text-[8px] font-extrabold tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 px-1.5 py-0.5 rounded-full uppercase">
+              MAIN
+            </span>
           </div>
         </div>
+        <span className="text-lg font-black tracking-tight text-white text-right font-mono">
+          {formatMoney(glBalance)}
+        </span>
       </button>
 
-      {/* 4. Stock Value Card */}
+      {/* 4. Stock Value Card (rounded-[20px], Label on left, Number on right) */}
       <button 
         type="button"
         aria-label="View Stock Inventory Details"
         onClick={() => handleNavigate('store.inventory.index')}
-        className="w-full text-left bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-2xl p-3 transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group"
+        className="w-full text-left bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-[20px] p-3 flex items-center justify-between transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
       >
-        <div className="flex justify-between items-center mb-1">
-          <div className="flex items-center gap-1.5">
-            <Box size={14} className="text-teal-400" strokeWidth={2.2} />
-            <span className="text-xs font-bold text-neutral-200">Stock Value</span>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-400 shrink-0">
+            <Box size={14} strokeWidth={2.2} />
           </div>
+          <span className="text-xs font-bold text-neutral-200">Stock Value</span>
         </div>
-        <div>
-          <h4 className="text-xl font-black tracking-tight text-white leading-tight">
-            {formatMoney(stockVal)}
-          </h4>
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-teal-300 mt-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
-            Total Asset Cost
-          </div>
-        </div>
+        <span className="text-lg font-black tracking-tight text-white text-right font-mono">
+          {formatMoney(stockVal)}
+        </span>
       </button>
 
-      {/* 5. Bank Accounts Section */}
-      <div>
-        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest pl-1 mb-1.5">
-          BANK ACCOUNTS
-        </p>
+      {/* 5. Bank Accounts Section (+ Add Bank on header, 2-line layout with big number) */}
+      <div className="shrink-0">
+        <div className="flex items-center justify-between px-1 mb-1.5">
+          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+            BANK ACCOUNTS
+          </p>
+          <button
+            type="button"
+            onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}
+            className="flex items-center gap-1 text-[10px] font-bold text-teal-400 hover:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/25 px-2 py-0.5 rounded-full transition-all"
+          >
+            <Plus size={11} strokeWidth={2.5} />
+            <span>Add Bank</span>
+          </button>
+        </div>
+
         <div className="space-y-1.5">
           {displayBankAccounts.map((acc) => (
             <button
               type="button"
               key={acc.id}
               onClick={() => handleNavigate('store.bank-accounts.index')}
-              className="w-full text-left bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.16] rounded-2xl p-2.5 flex items-center justify-between transition-all duration-200 cursor-pointer group shadow-sm"
+              className="w-full text-left bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.16] rounded-[20px] p-2.5 flex flex-col gap-1 transition-all duration-200 cursor-pointer group shadow-sm"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-                  <Building2 size={15} strokeWidth={2} />
-                </div>
-                <div>
+              {/* Line 1: Bank Name on left, Account last digits on right */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                    <Building2 size={13} strokeWidth={2} />
+                  </div>
                   <p className="text-xs font-bold text-neutral-100 group-hover:text-white transition-colors leading-tight">
                     {acc.bank_name || acc.name}
                   </p>
-                  <p className="text-[10px] text-neutral-400 font-medium">
-                    **** {acc.account_number ? (acc.account_number.length > 4 ? acc.account_number.slice(-4) : acc.account_number) : '....'}
-                  </p>
                 </div>
+                <span className="text-[10px] text-neutral-400 font-medium font-mono">
+                  **** {acc.account_number ? (acc.account_number.length > 4 ? acc.account_number.slice(-4) : acc.account_number) : '....'}
+                </span>
               </div>
-              <span className={`text-xs font-bold tracking-tight ${parseFloat(acc.current_balance || 0) < 0 ? 'text-rose-400' : 'text-white'}`}>
-                {formatMoney(acc.current_balance)}
-              </span>
+              {/* Line 2: Big, prominent numbers displayed properly on the right */}
+              <div className="flex items-center justify-end">
+                <span className={`text-sm font-black tracking-tight font-mono ${parseFloat(acc.current_balance || 0) < 0 ? 'text-rose-400' : 'text-white'}`}>
+                  {formatMoney(acc.current_balance)}
+                </span>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* 6. Activity Card (Matching rounded-2xl glass corners) */}
-      <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-3 shadow-sm flex flex-col">
+      {/* 6. Activity Card (rounded-[20px], flex-1 to fill available vertical space) */}
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-[20px] p-3 shadow-sm flex flex-col flex-1 min-h-[130px] overflow-hidden">
         {/* Header with Legend */}
         <div className="flex justify-between items-center mb-2 shrink-0">
           <h3 className="font-bold text-[10px] text-neutral-300 uppercase tracking-widest">
@@ -406,8 +420,8 @@ export default function V6FinancialSidebar({
         </div>
 
         {/* Activity Items List */}
-        <div className="space-y-1">
-          {displayTransactions.slice(0, 4).map((tx, i) => {
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-0.5">
+          {displayTransactions.map((tx, i) => {
             const isSale = tx.activityType === 'sale' || tx.type?.toLowerCase().includes('sale') || tx.type?.toLowerCase().includes('transaction');
             const isIncoming = tx.amount?.startsWith('+') || isSale;
 
@@ -432,7 +446,7 @@ export default function V6FinancialSidebar({
                     </span>
                   </div>
                 </div>
-                <span className={`text-[11px] font-bold tracking-tight ${isIncoming ? 'text-emerald-400' : 'text-amber-400'}`}>
+                <span className={`text-[11px] font-bold tracking-tight font-mono ${isIncoming ? 'text-emerald-400' : 'text-amber-400'}`}>
                   {tx.amount}
                 </span>
               </div>
