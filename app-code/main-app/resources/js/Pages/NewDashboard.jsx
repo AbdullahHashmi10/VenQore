@@ -40,6 +40,7 @@ const NAV_GROUP_ORDER = ['A','B','C','D','E','F','G'];
 import GlassIcons from '@/Components/ReactBits/GlassIcons';
 import V6FinancialSidebar from '@/Components/V6FinancialSidebar';
 import RightPanel from '@/Components/RightPanel';
+import PaymentModal from '@/Components/PaymentModal';
 import RECKONER_CATALOG from './ReckonerCatalog.json';
 
 /* ══ human copy ════════════════════════════════════════════════════════════
@@ -4282,6 +4283,7 @@ export default function NewDashboard(props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArea, setSelectedArea] = useState('All');
   const [glassModalOpen, setGlassModalOpen] = useState(false);
+  const [paymentModal, setPaymentModal] = useState({ isOpen: false, type: 'in' });
   const [editingCardId, setEditingCardId] = useState(null);
 
   useEffect(() => {
@@ -5134,22 +5136,22 @@ export default function NewDashboard(props) {
     {
       label: 'Money In',
       color: 'teal',
-      href: storePath('/funds?action=add'),
+      action: 'payment-in',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="7" y1="7" x2="17" y2="17"/>
-          <polyline points="17 7 17 17 7 17"/>
+          <line x1="7" y1="17" x2="17" y2="7"/>
+          <polyline points="7 7 17 7 17 17"/>
         </svg>
       ),
     },
     {
       label: 'Money Out',
       color: 'coral',
-      href: storePath('/funds?action=remove'),
+      action: 'payment-out',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="7" y1="17" x2="17" y2="7"/>
-          <polyline points="7 7 17 7 17 17"/>
+          <line x1="17" y1="17" x2="7" y2="7"/>
+          <polyline points="7 17 7 7 17 7"/>
         </svg>
       ),
     },
@@ -5921,11 +5923,25 @@ export default function NewDashboard(props) {
             </div>
             <GlassIcons items={glassActionItems} onActionClick={(item) => {
               setGlassModalOpen(false);
-              if (item.href) window.location.href = item.href;
+              if (item.action === 'payment-in') {
+                setPaymentModal({ isOpen: true, type: 'in' });
+              } else if (item.action === 'payment-out') {
+                setPaymentModal({ isOpen: true, type: 'out' });
+              } else if (item.href) {
+                window.location.href = item.href;
+              }
             }} />
           </div>
         </div>
       ), document.body)}
+
+      <PaymentModal
+        isOpen={paymentModal.isOpen}
+        onClose={() => setPaymentModal(p => ({ ...p, isOpen: false }))}
+        type={paymentModal.type}
+        bankAccounts={bankAccounts || props?.bankAccounts || []}
+        store={store}
+      />
 
       {/* Engine-owned drawers — the library and the deep editor */}
       <aside className="side">
