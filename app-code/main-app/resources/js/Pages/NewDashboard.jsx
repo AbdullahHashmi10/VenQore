@@ -5596,7 +5596,13 @@ export default function NewDashboard(props) {
 
               {railsOn && (
                 <aside className={`vq-rails ${railPrefs.sticky ? 'is-sticky' : ''} ${railPrefs.design === 'v6_cockpit' ? 'vq-rails--cockpit' : (railPrefs.design === 'dark_hub' ? 'vq-rails--dark' : '')}`}
-                       style={{ '--vq-rails-w': `${railPrefs.width || 340}px` }}
+                       style={{
+                         '--vq-rails-w': `${railPrefs.width || 340}px`,
+                         width: `${railPrefs.width || 340}px`,
+                         flex: `0 0 ${railPrefs.width || 340}px`,
+                         minWidth: `${railPrefs.width || 340}px`,
+                         maxWidth: `${railPrefs.width || 340}px`,
+                       }}
                        aria-label="Side panel">
                   <div className="vq-rails-shell">
                     <div className="vq-rails-scroll">

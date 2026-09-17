@@ -177,12 +177,10 @@ export default function V6FinancialSidebar({
   const totalBalance = canViewBalances ? (glBalance + bankBalance) : 204591.69;
 
   const formatMoney = (amount) => {
-    if (store) {
-      return formatCurrency(parseFloat(amount), store);
-    }
-    const sym = 'Rs ';
+    const sym = 'Rs';
     const val = parseFloat(amount) || 0;
-    return `${sym}${val.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formatted = Math.round(val).toLocaleString('en-PK');
+    return `${sym} ${formatted}`;
   };
 
   const handleNavigate = (r, params = {}) => {
@@ -216,10 +214,10 @@ export default function V6FinancialSidebar({
 
   // Fallback demo activity items if none provided
   const displayTransactions = resolvedTransactions && resolvedTransactions.length > 0 ? resolvedTransactions : [
-    { type: 'Purchase', amount: '-Rs 46,500.00', time: '7 hours ago', activityType: 'purchase' },
-    { type: 'Sale', amount: '+Rs 12,100.00', time: '13 hours ago', activityType: 'sale' },
-    { type: 'Sale', amount: '+Rs 7,200.00', time: '15 hours ago', activityType: 'sale' },
-    { type: 'Sale', amount: '+Rs 4,320.00', time: '16 hours ago', activityType: 'sale' },
+    { type: 'Purchase', amount: '-Rs 46,500', time: '7 hours ago', activityType: 'purchase' },
+    { type: 'Sale', amount: '+Rs 12,100', time: '13 hours ago', activityType: 'sale' },
+    { type: 'Sale', amount: '+Rs 7,200', time: '15 hours ago', activityType: 'sale' },
+    { type: 'Sale', amount: '+Rs 4,320', time: '16 hours ago', activityType: 'sale' },
   ];
 
   return (
@@ -240,22 +238,239 @@ export default function V6FinancialSidebar({
         store={store}
       />
 
-      {/* 1. Header: Total Balance (Label on left, Big Amount on right) */}
-      <div className="flex items-center justify-between px-1 pt-0.5 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/[0.10] flex items-center justify-center text-teal-600 dark:text-white shadow-inner shrink-0">
-            <Wallet size={16} strokeWidth={2.2} />
+      {/* 1. Header: Total Balance (Line 1: Icon + Heading; Line 2: Big value with currency on single line) */}
+      <div className="flex flex-col gap-1 px-1 pt-0.5 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-teal-500/10 dark:bg-white/[0.06] border border-teal-500/20 dark:border-white/[0.10] flex items-center justify-center text-teal-600 dark:text-white shadow-inner shrink-0">
+            <Wallet size={14} strokeWidth={2.4} />
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest leading-none">Total Balance</p>
+          <p className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest leading-none">
+            TOTAL BALANCE
+          </p>
+        </div>
+        <div className="flex items-baseline justify-end">
+          <span 
+            className="text-2xl sm:text-[28px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-none whitespace-nowrap"
+            style={{ 
+              fontFamily: 'var(--vq-font-numeric)',
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: '-0.025em',
+              fontWeight: 800,
+            }}
+          >
+            {formatMoney(totalBalance)}
+          </span>
+        </div>
+      </div>
+
+      {/* 2. Three Circular/Pill Action Buttons: SALE, PURCHASE, ACTIONS */}
+      <div className="relative shrink-0" ref={menuRef}>
+        <div className="grid grid-cols-3 gap-2">
+          {/* SALE Button */}
+          <button
+            type="button"
+            onClick={() => handleNavigate('store.sales.invoice.create')}
+            className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 hover:border-emerald-500/40 text-emerald-700 dark:bg-emerald-500/[0.10] dark:hover:bg-emerald-500/[0.20] dark:border-emerald-500/30 dark:hover:border-emerald-500/50 dark:text-emerald-400 rounded-2xl py-2 px-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 group shadow-sm backdrop-blur-sm"
+          >
+            <div className="w-7 h-7 rounded-xl bg-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white dark:group-hover:text-black flex items-center justify-center transition-all duration-200">
+              <ArrowDownLeft size={14} strokeWidth={2.5} />
+            </div>
+            <span className="text-[10px] font-black tracking-wider">SALE</span>
+          </button>
+
+          {/* PURCHASE Button */}
+          <button
+            type="button"
+            onClick={() => handleNavigate('store.purchases.create')}
+            className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 hover:border-amber-500/40 text-amber-700 dark:bg-amber-500/[0.10] dark:hover:bg-amber-500/[0.20] dark:border-amber-500/30 dark:hover:border-amber-500/50 dark:text-amber-400 rounded-2xl py-2 px-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 group shadow-sm backdrop-blur-sm"
+          >
+            <div className="w-7 h-7 rounded-xl bg-amber-500/20 group-hover:bg-amber-500 group-hover:text-white dark:group-hover:text-black flex items-center justify-center transition-all duration-200">
+              <ArrowUpRight size={14} strokeWidth={2.5} />
+            </div>
+            <span className="text-[10px] font-black tracking-wider">PURCHASE</span>
+          </button>
+
+          {/* ACTIONS Button — Opens centralized Quick Actions modal */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onQuickActions) {
+                onQuickActions();
+              } else {
+                setIsMenuOpen(!isMenuOpen);
+              }
+            }}
+            className={`bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/25 hover:border-teal-500/40 text-teal-700 dark:bg-teal-500/[0.10] dark:hover:bg-teal-500/[0.20] dark:border-teal-500/30 dark:hover:border-teal-500/50 dark:text-teal-300 rounded-2xl py-2 px-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 group shadow-sm backdrop-blur-sm ${isMenuOpen ? 'ring-2 ring-teal-500/50 bg-teal-500/25' : ''}`}
+          >
+            <div className="w-7 h-7 rounded-xl bg-teal-500/20 group-hover:bg-teal-500 dark:group-hover:bg-teal-400 group-hover:text-white dark:group-hover:text-black flex items-center justify-center transition-all duration-200">
+              <Plus size={14} strokeWidth={2.5} />
+            </div>
+            <span className="text-[10px] font-black tracking-wider">ACTIONS</span>
+          </button>
+        </div>
+
+        <ActionMenu
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          store={store}
+          onAction={(act) => {
+            if (act === 'payment-in') setPaymentModal({ isOpen: true, type: 'in' });
+            else if (act === 'payment-out') setPaymentModal({ isOpen: true, type: 'out' });
+          }}
+        />
+      </div>
+
+      {/* 3. Cash in Hand Card (rounded-[20px], Label on left, Number on right) */}
+      <button 
+        type="button"
+        aria-label="View Cash in Hand Details"
+        onClick={() => setIsCashModalOpen(true)}
+        className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-3 flex items-center justify-between transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+            <Wallet size={14} strokeWidth={2.2} />
+          </div>
+          <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">Cash in Hand</span>
+        </div>
+        <span 
+          className="text-base sm:text-[18px] font-extrabold tracking-tight text-slate-900 dark:text-white text-right whitespace-nowrap"
+          style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800, letterSpacing: '-0.02em' }}
+        >
+          {formatMoney(glBalance)}
+        </span>
+      </button>
+
+      {/* 4. Stock Value Card (rounded-[20px], Label on left, Number on right) */}
+      <button 
+        type="button"
+        aria-label="View Stock Inventory Details"
+        onClick={() => handleNavigate('store.inventory.index')}
+        className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-3 flex items-center justify-between transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
+            <Box size={14} strokeWidth={2.2} />
+          </div>
+          <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">Stock Value</span>
+        </div>
+        <span 
+          className="text-base sm:text-[18px] font-extrabold tracking-tight text-slate-900 dark:text-white text-right whitespace-nowrap"
+          style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800, letterSpacing: '-0.02em' }}
+        >
+          {formatMoney(stockVal)}
+        </span>
+      </button>
+
+      {/* 5. Bank Accounts Section (+ Add Bank on header, 2-line layout with prominent large number) */}
+      <div className="shrink-0 flex flex-col">
+        <div className="flex items-center justify-between px-1 mb-1.5">
+          <p className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">
+            BANK ACCOUNTS
+          </p>
+          <button
+            type="button"
+            onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}
+            className="flex items-center gap-1 text-[10px] font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/25 px-2.5 py-0.5 rounded-full transition-all"
+          >
+            <Plus size={11} strokeWidth={2.5} />
+            <span>Add Bank</span>
+          </button>
+        </div>
+
+        <div className="space-y-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-0.5">
+          {displayBankAccounts.map((acc) => (
+            <button
+              type="button"
+              key={acc.id}
+              onClick={() => handleNavigate('store.bank-accounts.index')}
+              className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-2.5 flex flex-col gap-1 transition-all duration-200 cursor-pointer group shadow-sm shrink-0"
+            >
+              {/* Line 1: Bank Name on left, Account last digits on right */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                    <Building2 size={13} strokeWidth={2} />
+                  </div>
+                  <p className="text-xs font-bold text-slate-800 group-hover:text-slate-950 dark:text-neutral-100 dark:group-hover:text-white transition-colors leading-tight">
+                    {acc.bank_name || acc.name}
+                  </p>
+                </div>
+                <span 
+                  className="text-[10px] text-slate-500 dark:text-neutral-400 font-medium whitespace-nowrap"
+                  style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums' }}
+                >
+                  **** {acc.account_number ? (acc.account_number.length > 4 ? acc.account_number.slice(-4) : acc.account_number) : '....'}
+                </span>
+              </div>
+              {/* Line 2: Big, prominent numbers displayed properly on the right */}
+              <div className="flex items-center justify-end">
+                <span 
+                  className={`text-base sm:text-[18px] font-extrabold tracking-tight whitespace-nowrap ${parseFloat(acc.current_balance || 0) < 0 ? 'text-rose-500 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}
+                  style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800, letterSpacing: '-0.02em' }}
+                >
+                  {formatMoney(acc.current_balance)}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 6. Activity Card (rounded-[20px], dynamic flex-1 to fill all remaining vertical space) */}
+      <div className="bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-[20px] p-3 shadow-sm flex flex-col flex-1 min-h-[120px] overflow-hidden">
+        {/* Header with Legend */}
+        <div className="flex justify-between items-center mb-2 shrink-0">
+          <h3 className="font-bold text-[10px] text-slate-500 dark:text-neutral-300 uppercase tracking-widest">
+            ACTIVITY
+          </h3>
+          <div className="flex items-center gap-2.5 text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 dark:bg-teal-400"></span>Sale
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>Purchase
+            </span>
           </div>
         </div>
-        <h3 
-          className="text-xl sm:text-[23px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight text-right"
-          style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums' }}
-        >
-          {formatMoney(totalBalance)}
-        </h3>
+
+        {/* Activity Items List */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-1 pr-0.5">
+          {displayTransactions.map((tx, i) => {
+            const isSale = tx.activityType === 'sale' || tx.type?.toLowerCase().includes('sale') || tx.type?.toLowerCase().includes('transaction');
+            const isIncoming = tx.amount?.startsWith('+') || isSale;
+
+            return (
+              <div
+                key={i}
+                className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-black/[0.02] hover:bg-black/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.05] border border-black/[0.03] dark:border-transparent transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${isSale ? 'bg-teal-500/15 text-teal-600 dark:bg-teal-500/20 dark:text-teal-300 border border-teal-500/25 dark:border-teal-500/30' : 'bg-amber-500/15 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-500/25 dark:border-amber-500/30'}`}>
+                    {isIncoming ? <ArrowDownLeft size={11} strokeWidth={2.4} /> : <ArrowUpRight size={11} strokeWidth={2.4} />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span className={`w-1 h-1 rounded-full ${isSale ? 'bg-teal-500 dark:bg-teal-400' : 'bg-amber-500 dark:bg-amber-400'}`}></span>
+                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-slate-950 dark:text-neutral-200 dark:group-hover:text-white transition-colors">
+                        {tx.type || 'Transaction'}
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-slate-500 dark:text-neutral-400 font-medium block pl-2">
+                      {tx.time || 'Recently'}
+                    </span>
+                  </div>
+                </div>
+                <span 
+                  className={`text-xs sm:text-[13px] font-extrabold tracking-tight whitespace-nowrap ${isIncoming ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}
+                  style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800 }}
+                >
+                  {tx.amount}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* 2. Three Circular/Pill Action Buttons: SALE, PURCHASE, ACTIONS */}

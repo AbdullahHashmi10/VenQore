@@ -4734,7 +4734,10 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 .vq-board-zone{ flex: 1 1 auto; min-width: 0; }
 .vq-rails{
-  flex: 0 0 312px; width: 312px; min-width: 0;
+  flex: 0 0 var(--vq-rails-w, 340px);
+  width: var(--vq-rails-w, 340px);
+  min-width: var(--vq-rails-w, 340px);
+  max-width: var(--vq-rails-w, 340px);
   display: flex; flex-direction: column; gap: 24px;
 }
 
