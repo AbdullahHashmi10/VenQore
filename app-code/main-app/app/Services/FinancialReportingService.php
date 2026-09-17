@@ -92,13 +92,6 @@ class FinancialReportingService
         // Revenue for period = credits posted - debits posted in that range.
         $incomeAccounts = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->get();
         if ($incomeAccounts->isEmpty()) {
-            $tenant = \App\Models\Tenant::find($tenantId);
-            if ($tenant) {
-                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
-                $incomeAccounts = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->get();
-            }
-        }
-        if ($incomeAccounts->isEmpty()) {
             throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: no income account is configured.');
         }
         $incomeDetails  = [];
@@ -119,24 +112,28 @@ class FinancialReportingService
             $totalRevenue += $net;
         }
 
-        // ─── COGS: SUM(debits - credits) on Account code 5000 ────────────────
+        // ─── COGS: SUM(debits - credits) on accounts with role = cogs ────────────────
         // COGS is a debit-normal expense account.
         // COGS for period = debits posted - credits posted (reversals) in range.
-        $cogsAccount = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->first();
-        $totalCogs   = 0;
-        $cogsId      = null;
+        $cogsAccounts = Account::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->where('role', 'cogs')->orWhere('code', '5000');
+            })
+            ->get();
+        $cogsIds = $cogsAccounts->pluck('id')->all();
+        $totalCogs = 0.0;
 
-        if ($cogsAccount) {
-            $cogsId    = $cogsAccount->id;
-            $sum       = $sums->get($cogsId);
+        foreach ($cogsAccounts as $cogsAcc) {
+            $sum = $sums->get($cogsAcc->id);
             $cogsDebit = $sum ? (float) $sum->total_debit  : 0.0;
             $cogsCredit = $sum ? (float) $sum->total_credit : 0.0;
-            $totalCogs  = $cogsDebit - $cogsCredit;
+            $totalCogs += ($cogsDebit - $cogsCredit);
         }
 
         // ─── Operating Expenses: all expense accounts EXCEPT COGS ─────────────
         $expenseAccounts   = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'expense')
-            ->when($cogsId, fn($q) => $q->where('id', '!=', $cogsId))
+            ->when(!empty($cogsIds), fn($q) => $q->whereNotIn('id', $cogsIds))
             ->get();
         $expenseDetails    = [];
         $totalOpex         = 0;
@@ -199,25 +196,18 @@ class FinancialReportingService
 
         $incomeIds = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->pluck('id')->all();
         if (empty($incomeIds)) {
-            $tenant = \App\Models\Tenant::find($tenantId);
-            if ($tenant) {
-                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
-                $incomeIds = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('type', 'income')->pluck('id')->all();
-            }
-        }
-        if (empty($incomeIds)) {
             throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: no income account is configured.');
         }
-        $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id');
-        if ($cogsId === null) {
-            $tenant = \App\Models\Tenant::find($tenantId);
-            if ($tenant) {
-                \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
-                $cogsId = Account::withoutGlobalScopes()->where('tenant_id', $tenantId)->where('code', '5000')->value('id');
-            }
-        }
-        if ($cogsId === null) {
-            throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: cost of goods sold account 5000 is missing.');
+        $cogsIds = Account::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->where('role', 'cogs')->orWhere('code', '5000');
+            })
+            ->pluck('id')
+            ->all();
+
+        if (empty($cogsIds)) {
+            throw new \App\Exceptions\MissingFinancialAccountException('Chart of accounts incomplete: cost of goods sold account is missing.');
         }
 
         // je.date is a DATE (no time). Hourly is only meaningful for the same-day "Today" view,
@@ -229,6 +219,7 @@ class FinancialReportingService
         };
 
         $incomePh = implode(',', array_fill(0, count($incomeIds), '?'));
+        $cogsPh   = implode(',', array_fill(0, count($cogsIds), '?'));
 
         $rows = DB::table('journal_items as ji')
             ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
@@ -236,11 +227,14 @@ class FinancialReportingService
             ->where('je.tenant_id', $tenantId)
             ->where('je.is_reversed', 0)
             ->whereBetween('je.date', [$startStr, $endStr])
+            ->where(function ($q) use ($incomeIds, $cogsIds) {
+                $q->whereIn('ji.account_id', array_merge($incomeIds, $cogsIds));
+            })
             ->selectRaw(
                 "$periodExpr as period, "
                 . "SUM(CASE WHEN ji.account_id IN ($incomePh) THEN ji.credit - ji.debit ELSE 0 END) as revenue, "
-                . "SUM(CASE WHEN ji.account_id = ? THEN ji.debit - ji.credit ELSE 0 END) as cogs",
-                array_merge($incomeIds, [$cogsId])
+                . "SUM(CASE WHEN ji.account_id IN ($cogsPh) THEN ji.debit - ji.credit ELSE 0 END) as cogs",
+                array_merge($incomeIds, $cogsIds)
             )
             ->groupBy('period')
             ->get();
@@ -258,44 +252,70 @@ class FinancialReportingService
     /**
      * Get outstanding Receivables — real-time from journal_items.
      *
-     * Account 1200 (Accounts Receivable) is a debit-normal asset account.
-     * Outstanding receivables = SUM(debit) - SUM(credit) on account 1200
+     * Accounts Receivable is a debit-normal asset account (role: ar, code: 1200).
+     * Outstanding receivables = SUM(debit) - SUM(credit) on AR accounts
      * scoped to all entries UP TO AND INCLUDING $asOf date.
      *
      * This is NOT the parties.current_balance column.
      * If a manual journal entry reduces AR, this number reflects it.
      *
-     * @param  string|Carbon  $asOf  Calculate AR balance as of this date
+     * @param  string|Carbon|null  $asOf  Calculate AR balance as of this date
+     * @param  int|string|null     $tenantId
      * @return float
      */
-    public function getReceivables($asOf = null): float
+    public function getReceivables($asOf = null, int|string|null $tenantId = null): float
     {
         $asOf = $asOf ? ($asOf instanceof Carbon ? $asOf->toDateString() : $asOf) : now()->toDateString();
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) return 0.0;
 
-        $ar = Account::where('code', '1200')->first();
-        if (!$ar) return 0.0;
+        $arAccounts = Account::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->where('role', 'ar')->orWhere('code', '1200');
+            })
+            ->get();
+        if ($arAccounts->isEmpty()) return 0.0;
 
-        return (float) $this->netBalance($ar->id, 'asset', asOf: $asOf);
+        $total = 0.0;
+        foreach ($arAccounts as $ar) {
+            $total += (float) $this->netBalance($ar->id, 'asset', asOf: $asOf, tenantId: $tenantId);
+        }
+
+        return $total;
     }
 
     /**
      * Get outstanding Payables — real-time from journal_items.
      *
-     * Account 2000 (Accounts Payable) is a credit-normal liability account.
-     * Outstanding payables = SUM(credit) - SUM(debit) on account 2000
+     * Accounts Payable is a credit-normal liability account (role: ap, code: 2000).
+     * Outstanding payables = SUM(credit) - SUM(debit) on AP accounts
      * scoped to all entries UP TO AND INCLUDING $asOf date.
      *
-     * @param  string|Carbon  $asOf
+     * @param  string|Carbon|null  $asOf
+     * @param  int|string|null     $tenantId
      * @return float
      */
-    public function getPayables($asOf = null): float
+    public function getPayables($asOf = null, int|string|null $tenantId = null): float
     {
         $asOf = $asOf ? ($asOf instanceof Carbon ? $asOf->toDateString() : $asOf) : now()->toDateString();
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) return 0.0;
 
-        $ap = Account::where('code', '2000')->first();
-        if (!$ap) return 0.0;
+        $apAccounts = Account::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->where('role', 'ap')->orWhere('code', '2000');
+            })
+            ->get();
+        if ($apAccounts->isEmpty()) return 0.0;
 
-        return (float) $this->netBalance($ap->id, 'liability', asOf: $asOf);
+        $total = 0.0;
+        foreach ($apAccounts as $ap) {
+            $total += (float) $this->netBalance($ap->id, 'liability', asOf: $asOf, tenantId: $tenantId);
+        }
+
+        return $total;
     }
 
     // ─── Phase 2.2: The Three Core Profit Calculations ───────────────────────
@@ -1391,33 +1411,64 @@ class FinancialReportingService
                 'net_change_in_cash' => 0.0,
             ];
         }
-        // Identify all Cash/Bank accounts (Codes 1000-1099)
-        $cashAccounts = Account::where('tenant_id', $tenantId)
-            ->where('type', 'asset')
-            ->whereBetween('code', ['1000', '1099'])
+        // Unified Liquidity: role in ('cash', 'bank') or code in 1000-1099
+        $cashAccounts = Account::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->whereIn('role', ['cash', 'bank'])
+                  ->orWhere(function ($sub) {
+                      $sub->where('type', 'asset')->whereBetween('code', ['1000', '1099']);
+                  });
+            })
             ->pluck('id')
             ->toArray();
-        // 1. Operating Inflow (Debits to Cash where partner account is Income or Receivable)
-        $inflow = DB::table('journal_items')
+
+        if (empty($cashAccounts)) {
+            return [
+                'operating_inflow'   => 0.0,
+                'operating_outflow'  => 0.0,
+                'net_cash_flow'      => 0.0,
+                'net_change_in_cash' => 0.0,
+            ];
+        }
+
+        // Subquery: Find journal entry IDs where ALL lines belong to cashAccounts (internal transfers to exclude)
+        $internalTransferEntryIds = DB::table('journal_items')
+            ->where('tenant_id', $tenantId)
+            ->groupBy('journal_entry_id')
+            ->havingRaw('COUNT(*) = SUM(CASE WHEN account_id IN (' . implode(',', array_map(fn($id) => "'{$id}'", $cashAccounts)) . ') THEN 1 ELSE 0 END)')
+            ->pluck('journal_entry_id')
+            ->toArray();
+
+        // 1. Operating Inflow (Debits to Cash/Bank, excluding internal transfers)
+        $inflowQuery = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
             ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.is_reversed', 0)
             ->whereIn('journal_items.account_id', $cashAccounts)
             ->where('journal_items.debit', '>', 0)
-            ->whereBetween('journal_entries.date', [$start, $end])
-            ->sum('journal_items.debit');
+            ->whereBetween('journal_entries.date', [$start, $end]);
 
-        // 2. Operating Outflow (Credits to Cash where partner account is Expense or Payable)
-        $outflow = DB::table('journal_items')
+        if (!empty($internalTransferEntryIds)) {
+            $inflowQuery->whereNotIn('journal_items.journal_entry_id', $internalTransferEntryIds);
+        }
+        $inflow = $inflowQuery->sum('journal_items.debit');
+
+        // 2. Operating Outflow (Credits to Cash/Bank, excluding internal transfers)
+        $outflowQuery = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
             ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.is_reversed', 0)
             ->whereIn('journal_items.account_id', $cashAccounts)
             ->where('journal_items.credit', '>', 0)
-            ->whereBetween('journal_entries.date', [$start, $end])
-            ->sum('journal_items.credit');
+            ->whereBetween('journal_entries.date', [$start, $end]);
+
+        if (!empty($internalTransferEntryIds)) {
+            $outflowQuery->whereNotIn('journal_items.journal_entry_id', $internalTransferEntryIds);
+        }
+        $outflow = $outflowQuery->sum('journal_items.credit');
 
         return [
             'operating_inflow'  => (float) $inflow,
@@ -1443,6 +1494,7 @@ class FinancialReportingService
      *       The journal entries reflect the FIFO movements; the GL is the truth.
      *
      * @param  string  $asOf  e.g. '2026-02-20' — defaults to today if not passed
+     * @param  int|string|null $tenantId
      * @return array{
      *   assets:            array{ accounts: array, total: float },
      *   liabilities:       array{ accounts: array, total: float },
@@ -1454,8 +1506,22 @@ class FinancialReportingService
      *   as_of:             string
      * }
      */
-    public function getBalanceSheet(string $asOf): array
+    public function getBalanceSheet(string $asOf, int|string|null $tenantId = null): array
     {
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return [
+                'assets'            => ['label' => 'Assets',      'accounts' => [], 'total' => 0.0],
+                'liabilities'       => ['label' => 'Liabilities',  'accounts' => [], 'total' => 0.0],
+                'equity'            => ['label' => 'Equity',        'accounts' => [], 'total' => 0.0],
+                'total_assets'      => 0.0,
+                'total_liabilities' => 0.0,
+                'total_equity'      => 0.0,
+                'is_balanced'       => true,
+                'as_of'             => $asOf,
+            ];
+        }
+
         // The three permanent sections of a Balance Sheet
         $sections = [
             'asset'     => ['label' => 'Assets',      'accounts' => [], 'total' => 0.0],
@@ -1464,11 +1530,12 @@ class FinancialReportingService
         ];
 
         // Fetch all accounts of these three types — ordered by code for consistent display
-        $allAccounts = Account::whereIn('type', ['asset', 'liability', 'equity'])
+        $allAccounts = Account::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->whereIn('type', ['asset', 'liability', 'equity'])
             ->orderBy('code')
             ->get();
 
-        $tenantId = app('current.tenant')->id;
         $balances = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
@@ -1510,7 +1577,7 @@ class FinancialReportingService
         }
 
         // Add retained earnings (all-time net profit up to $asOf)
-        $plAllTime = $this->getProfitAndLoss('1900-01-01', $asOf);
+        $plAllTime = $this->getProfitAndLoss('1900-01-01', $asOf, $tenantId);
         $retainedEarnings = (float) $plAllTime['net_profit'];
 
         $sections['equity']['accounts'][] = [
@@ -1547,9 +1614,19 @@ class FinancialReportingService
         ];
     }
 
-    public function getTrialBalance(?string $asOf = null): array
+    public function getTrialBalance(?string $asOf = null, int|string|null $tenantId = null): array
     {
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return [
+                'as_of'        => $asOf ?? 'all time',
+                'rows'         => [],
+                'grand_debit'  => 0.0,
+                'grand_credit' => 0.0,
+                'balanced'     => true,
+            ];
+        }
+
         $query = DB::table('accounts as a')
             ->where('a.tenant_id', $tenantId)
             ->leftJoin('journal_items as ji', function($join) use ($tenantId) {
@@ -1611,11 +1688,55 @@ class FinancialReportingService
         ];
     }
 
-    public function getDetailedCashFlow(string $start, string $end): array
+    public function getDetailedCashFlow(string $start, string $end, int|string|null $tenantId = null): array
     {
-        $tenantId = app('current.tenant')->id;
-        $cashAccounts = ['1000', '1010'];
-        $rows = DB::table('journal_items as ji')
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return [
+                'period'             => ['from' => $start, 'to' => $end],
+                'operating'          => [],
+                'investing'          => [],
+                'financing'          => [],
+                'net_operating'      => 0.0,
+                'net_investing'      => 0.0,
+                'net_financing'      => 0.0,
+                'net_change_in_cash' => 0.0,
+            ];
+        }
+
+        $cashAccounts = Account::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->whereIn('role', ['cash', 'bank'])
+                  ->orWhere(function ($sub) {
+                      $sub->where('type', 'asset')->whereBetween('code', ['1000', '1099']);
+                  });
+            })
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($cashAccounts)) {
+            return [
+                'period'             => ['from' => $start, 'to' => $end],
+                'operating'          => [],
+                'investing'          => [],
+                'financing'          => [],
+                'net_operating'      => 0.0,
+                'net_investing'      => 0.0,
+                'net_financing'      => 0.0,
+                'net_change_in_cash' => 0.0,
+            ];
+        }
+
+        // Subquery: Find journal entry IDs where ALL lines belong to cashAccounts (internal transfers to exclude)
+        $internalTransferEntryIds = DB::table('journal_items')
+            ->where('tenant_id', $tenantId)
+            ->groupBy('journal_entry_id')
+            ->havingRaw('COUNT(*) = SUM(CASE WHEN account_id IN (' . implode(',', array_map(fn($id) => "'{$id}'", $cashAccounts)) . ') THEN 1 ELSE 0 END)')
+            ->pluck('journal_entry_id')
+            ->toArray();
+
+        $rowsQuery = DB::table('journal_items as ji')
             ->where('ji.tenant_id', $tenantId)
             ->join('journal_entries as je', function($join) use ($tenantId) {
                 $join->on('ji.journal_entry_id', '=', 'je.id')
@@ -1626,9 +1747,14 @@ class FinancialReportingService
                      ->where('a.tenant_id', $tenantId);
             })
             ->where('je.is_reversed', 0)
-            ->whereIn('a.code', $cashAccounts)
-            ->whereBetween('je.date', [$start, $end])
-            ->selectRaw('
+            ->whereIn('a.id', $cashAccounts)
+            ->whereBetween('je.date', [$start, $end]);
+
+        if (!empty($internalTransferEntryIds)) {
+            $rowsQuery->whereNotIn('ji.journal_entry_id', $internalTransferEntryIds);
+        }
+
+        $rows = $rowsQuery->selectRaw('
                 je.reference_type, je.description, je.date,
                 SUM(ji.debit)  AS cash_in,
                 SUM(ji.credit) AS cash_out
@@ -1673,10 +1799,18 @@ class FinancialReportingService
         ];
     }
 
-    public function getAgedReceivables(?string $asOf = null): AgedReportResult
+    public function getAgedReceivables(?string $asOf = null, int|string|null $tenantId = null): AgedReportResult
     {
         $asOf     = $asOf ?? now()->toDateString();
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return new AgedReportResult([
+                'as_of'   => $asOf, 'rows' => [],
+                'summary' => [],
+                'total'   => 0.0,
+            ]);
+        }
+
         $sales = DB::table('sales as s')
             ->where('s.tenant_id', $tenantId)
             ->join('parties as p', function($join) use ($tenantId) {
@@ -1712,7 +1846,7 @@ class FinancialReportingService
             ];
         }
 
-        // Add credit balances/unallocated advances to match GL 1200
+        // Add credit balances/unallocated advances to match GL role = ar
         $parties = DB::table('parties')
             ->where('tenant_id', $tenantId)
             ->where('type', 'customer')
@@ -1727,7 +1861,9 @@ class FinancialReportingService
                 ->where('je.tenant_id', $tenantId)
                 ->where('a.tenant_id', $tenantId)
                 ->where('ji.party_id', $party->id)
-                ->where('a.code', '1200')
+                ->where(function ($q) {
+                    $q->where('a.role', 'ar')->orWhere('a.code', '1200');
+                })
                 ->where('je.is_reversed', 0)
                 ->where('je.date', '<=', $asOf)
                 ->selectRaw('SUM(ji.debit) - SUM(ji.credit) as bal')
@@ -1754,10 +1890,18 @@ class FinancialReportingService
         ]);
     }
 
-    public function getAgedPayables(?string $asOf = null): AgedReportResult
+    public function getAgedPayables(?string $asOf = null, int|string|null $tenantId = null): AgedReportResult
     {
         $asOf     = $asOf ?? now()->toDateString();
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) {
+            return new AgedReportResult([
+                'as_of'   => $asOf, 'rows' => [],
+                'summary' => [],
+                'total'   => 0.0,
+            ]);
+        }
+
         $purchases = DB::table('purchases as pu')
             ->where('pu.tenant_id', $tenantId)
             ->join('parties as p', function($join) use ($tenantId) {
@@ -1786,7 +1930,7 @@ class FinancialReportingService
             ];
         }
 
-        // Add credit balances/unallocated advances to match GL 2000
+        // Add credit balances/unallocated advances to match GL role = ap
         $parties = DB::table('parties')
             ->where('tenant_id', $tenantId)
             ->where('type', 'supplier')
@@ -1801,7 +1945,9 @@ class FinancialReportingService
                 ->where('je.tenant_id', $tenantId)
                 ->where('a.tenant_id', $tenantId)
                 ->where('ji.party_id', $party->id)
-                ->where('a.code', '2000')
+                ->where(function ($q) {
+                    $q->where('a.role', 'ap')->orWhere('a.code', '2000');
+                })
                 ->where('je.is_reversed', 0)
                 ->where('je.date', '<=', $asOf)
                 ->selectRaw('SUM(ji.credit) - SUM(ji.debit) as bal')
@@ -2030,9 +2176,11 @@ class FinancialReportingService
      *
      * Uses a single aggregated query — not a collection loop.
      */
-    private function sumJournalItems(string $accountId, string $column, string $start, string $end): float
+    private function sumJournalItems(string $accountId, string $column, string $start, string $end, int|string|null $tenantId = null): float
     {
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) return 0.0;
+
         return (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
@@ -2048,9 +2196,11 @@ class FinancialReportingService
      * For asset/expense accounts: debit - credit (debit-normal)
      * For liability/equity/income accounts: credit - debit (credit-normal)
      */
-    private function netBalance(string $accountId, string $accountType, string $asOf): float
+    private function netBalance(string $accountId, string $accountType, string $asOf, int|string|null $tenantId = null): float
     {
-        $tenantId = app('current.tenant')->id;
+        $tenantId = $tenantId ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
+        if (!$tenantId) return 0.0;
+
         $totals = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)

@@ -201,6 +201,7 @@ class AccountingService
                     'journal_entry_id' => $entry->id,
                     'account_id'       => $line['__account_id'],
                     'party_id'         => $line['party_id'] ?? null,
+                    'bank_account_id'  => $line['bank_account_id'] ?? null,
                     'debit'            => $line['debit'],
                     'credit'           => $line['credit'],
                 ]);
@@ -239,6 +240,13 @@ class AccountingService
                             'user_id'        => $entry->user_id]
             );
 
+            \App\Reckoner\Rollup\DirtyDayTracker::mark(
+                $tenantId,
+                'ledger',
+                $entry->date,
+                $data['reference_type'] ?? 'journal_entry'
+            );
+
             return $entry;
         });
     }
@@ -272,10 +280,11 @@ class AccountingService
 
             $reversalLines = $originalLines->map(function($line) use ($tid) {
                 return [
-                    'account_code' => DB::table('accounts')->where('tenant_id', $tid)->where('id', $line->account_id)->value('code'),
-                    'debit'        => $line->credit, // swap
-                    'credit'       => $line->debit,  // swap
-                    'party_id'     => $line->party_id ?? null,
+                    'account_code'    => DB::table('accounts')->where('tenant_id', $tid)->where('id', $line->account_id)->value('code'),
+                    'debit'           => $line->credit, // swap
+                    'credit'          => $line->debit,  // swap
+                    'party_id'        => $line->party_id ?? null,
+                    'bank_account_id' => $line->bank_account_id ?? null,
                 ];
             })->toArray();
 
@@ -323,6 +332,13 @@ class AccountingService
                 modelId:   $journalEntryId,
                 before:    ['is_reversed' => 0],
                 after:     ['is_reversed' => 1, 'reason' => $reason]
+            );
+
+            \App\Reckoner\Rollup\DirtyDayTracker::mark(
+                $tid,
+                'ledger',
+                $original->date,
+                'journal_reversal_original'
             );
 
             return $reversalEntry;
@@ -376,19 +392,92 @@ class AccountingService
     {
         $tenantId = $this->getTenantId();
 
-        return Account::where('tenant_id', $tenantId)
+        $account = Account::where('tenant_id', $tenantId)
             ->where('code', $code)
-            ->first()
-            ?? Account::create([
-                'tenant_id'      => $tenantId,
-                'code'           => $code,
-                'name'           => $defaultName ?? "Account {$code}",
-                'type'           => $type,
-                // $normalBalance overrides the type-derived side for contra
-                // accounts (e.g. 1510 Accumulated Depreciation: asset, credit).
-                'normal_balance' => $normalBalance ?? (in_array($type, ['asset', 'expense']) ? 'debit' : 'credit'),
-                'is_active'      => true,
-            ]);
+            ->first();
+
+        if ($account) {
+            return $account;
+        }
+
+        $role = self::determineAccountRole($code, $type);
+        $isCurrent = self::determineAccountIsCurrent($code, $type, $role);
+
+        return Account::create([
+            'tenant_id'      => $tenantId,
+            'code'           => $code,
+            'name'           => $defaultName ?? "Account {$code}",
+            'type'           => $type,
+            // $normalBalance overrides the type-derived side for contra
+            // accounts (e.g. 1510 Accumulated Depreciation: asset, credit).
+            'normal_balance' => $normalBalance ?? (in_array($type, ['asset', 'expense']) ? 'debit' : 'credit'),
+            'role'           => $role,
+            'is_current'     => $isCurrent,
+            'is_active'      => true,
+        ]);
+    }
+
+    public static function determineAccountRole(string $code, string $type): string
+    {
+        return match ($code) {
+            '1000' => 'cash',
+            '1010' => 'bank',
+            '1100' => 'inventory',
+            '1200' => 'ar',
+            '1205' => 'marketplace_clearing',
+            '1300' => 'prepaid',
+            '1500' => 'fixed_asset',
+            '1510' => 'accumulated_depreciation',
+            '2000' => 'ap',
+            '2050' => 'customer_credit',
+            '2060' => 'customer_advance',
+            '2100' => 'tax_output',
+            '2150' => 'tips',
+            '2200' => 'loan',
+            '2300' => 'tax_input',
+            '3000', '3100', '3999', '7000' => 'equity',
+            '3200' => 'drawings',
+            '4000' => 'sales_revenue',
+            '4100', '4200', '4900' => 'other_income',
+            '5000' => 'cogs',
+            default => match ($type) {
+                'income', 'revenue' => 'other_income',
+                'expense' => ($code === '5000' ? 'cogs' : 'opex'),
+                'asset' => ($code >= '1000' && $code < '1100' ? 'cash' : ($code >= '1500' ? 'fixed_asset' : 'prepaid')),
+                'liability' => ($code >= '2200' ? 'loan' : 'ap'),
+                'equity' => 'equity',
+                default => 'opex',
+            },
+        };
+    }
+
+    public static function determineAccountIsCurrent(string $code, string $type, string $role): bool
+    {
+        if ($role === 'equity' || $type === 'equity') {
+            return false;
+        }
+
+        if (in_array($role, ['fixed_asset', 'accumulated_depreciation', 'loan'], true)) {
+            return false;
+        }
+
+        if ($code >= '1000' && $code <= '1300') {
+            return true;
+        }
+
+        if ($code >= '2000' && $code <= '2150') {
+            return true;
+        }
+
+        if ($code === '2300') {
+            return true;
+        }
+
+        if (in_array($type, ['income', 'expense', 'revenue'], true)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

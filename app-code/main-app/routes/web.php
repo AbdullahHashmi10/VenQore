@@ -2200,6 +2200,8 @@ Route::middleware(['auth', 'throttle:api'])->get(
 Route::middleware(['auth', \App\Http\Middleware\ApiTenantResolver::class, 'throttle:api'])->group(function () {
     Route::get('/api/reckoner/catalogue', [\App\Http\Controllers\Api\ReckonerController::class, 'catalogue'])
         ->name('api.reckoner.catalogue');
+    Route::get('/api/reckoner/measures', [\App\Http\Controllers\Api\ReckonerController::class, 'measures'])
+        ->name('api.reckoner.measures');
     Route::post('/api/reckoner/read', [\App\Http\Controllers\Api\ReckonerController::class, 'read'])
         ->name('api.reckoner.read');
 

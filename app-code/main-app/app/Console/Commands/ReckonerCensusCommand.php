@@ -11,6 +11,9 @@ use App\Reckoner\ReckonerRequest;
 use App\Reckoner\Resolvers\ResolverRegistry;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Tests\Fixtures\ReckonerGoldenStoreFixture;
 
 class ReckonerCensusCommand extends Command
 {
@@ -22,58 +25,6 @@ class ReckonerCensusCommand extends Command
                             {--output= : Optional file path to write markdown output}';
 
     protected $description = 'Audit and census all 349 Reckoner cards for a tenant';
-
-    /**
-     * Hand-computed expected values from Section 8.1 of RECKONER_TRUTH_REBUILD_PLAN.md
-     */
-    private const GOLDEN_EXPECTED = [
-        'core.revenue' => 7700.0,
-        'core.cogs' => 3200.0,
-        'core.gross_profit' => 4500.0,
-        'core.expenses_total' => 4000.0,
-        'core.net_profit' => 500.0,
-        'core.gross_margin_pct' => 58.44,
-        'core.net_margin_pct' => 6.49,
-        'core.expense_ratio' => 51.95,
-        'core.revenue_vs_prev' => 285.0,
-        'core.profit_vs_prev' => -700.0,
-        'core.receivables' => 2500.0,
-        'core.payables' => 3000.0,
-        'core.total_liquidity' => 196200.0,
-        'core.working_capital' => 201700.0,
-        'core.net_cash_position' => 192700.0,
-        'core.journal_entries_count' => 7.0,
-        'core.reversal_count' => 1.0,
-        'inventory.stock_value' => 6500.0,
-        'inventory.units_on_hand' => 20.0,
-        'bank.balances_total' => 48000.0,
-        'bank.money_in' => 53000.0,
-        'bank.money_out' => 5000.0,
-        'payments.received' => 5700.0,
-        'payments.paid' => 11500.0,
-        'payments.net_flow' => -5800.0,
-        'khata.receivable_total' => 2500.0,
-        'khata.payable_total' => 3000.0,
-        'khata.net_position' => -500.0,
-        'khata.collected' => 3000.0,
-        'purchases.unpaid_value' => 3000.0,
-        'purchases.overdue_value' => 3000.0,
-        'purchases.spend' => 2500.0,
-        'purchases.count' => 1.0,
-        'purchases.paid_to_suppliers' => 5000.0,
-        'accounting.assets_total' => 205200.0,
-        'accounting.liabilities_total' => 3500.0,
-        'accounting.equity_total' => 201700.0,
-        'tax.collected' => 500.0,
-        'tax.paid' => 0.0,
-        'tax.net_liability' => 500.0,
-        'customers.owing' => 2500.0,
-        'suppliers.owed_list' => 3000.0,
-        'expenses.count' => 1.0,
-        'expenses.unpaid' => 0.0,
-        'accounting.trial_balance_ok' => 1.0,
-        'core.balance_sheet_ok' => 1.0,
-    ];
 
     public function handle(): int
     {
@@ -95,6 +46,15 @@ class ReckonerCensusCommand extends Command
         // Bind tenant into container
         app()->instance('current.tenant', $tenant);
 
+        if ($tenant->slug === 'golden-store' || str_contains(strtolower($tenant->name), 'golden')) {
+            $hasData = DB::table('sales')->where('tenant_id', $tenant->id)->exists();
+            if (!$hasData) {
+                $this->info("Golden store fixture data not found. Building fixture...");
+                ReckonerGoldenStoreFixture::build($tenant);
+                $this->info("Golden store fixture built successfully.");
+            }
+        }
+
         $user = $tenant->users()->first() ?? User::first();
         if (!$user) {
             $this->error("Error: No user found for tenant '{$tenant->name}' ({$tenant->id}).");
@@ -106,6 +66,9 @@ class ReckonerCensusCommand extends Command
 
         $this->info("Running Reckoner Census on tenant: {$tenant->name} (ID: {$tenant->id}, Slug: {$tenant->slug})");
         $this->info("Window: {$from} to {$to}");
+
+        // Flush Reckoner cache for entire census run
+        Cache::flush();
 
         $cards = CardRegistry::all();
         $totalCards = count($cards);
@@ -125,7 +88,7 @@ class ReckonerCensusCommand extends Command
             $requests = array_map(function ($k) use ($from, $to) {
                 return new ReckonerRequest(
                     key: $k,
-                    period: 'this_month',
+                    period: 'custom',
                     custom: ['from' => $from, 'to' => $to]
                 );
             }, $chunkKeys);
@@ -138,7 +101,11 @@ class ReckonerCensusCommand extends Command
 
                 // Dispatch path
                 $sourceClass = $def['source'] ?? null;
-                if ($sourceClass && class_exists($sourceClass)) {
+                $cardContractState = $card['contract_state'] ?? 'unimplemented';
+                if (in_array($cardContractState, ['verified', 'implemented_unverified'], true)) {
+                    $dispatch = 'MeasureEngine';
+                    $dispatchCounts['MeasureEngine'] = ($dispatchCounts['MeasureEngine'] ?? 0) + 1;
+                } elseif ($sourceClass && class_exists($sourceClass)) {
                     $dispatch = 'Legacy Source';
                     $dispatchCounts['Source']++;
                 } elseif (ResolverRegistry::has($cardKey)) {
@@ -154,7 +121,7 @@ class ReckonerCensusCommand extends Command
                 $contractCounts[$contractState] = ($contractCounts[$contractState] ?? 0) + 1;
 
                 // Find result
-                $req = new ReckonerRequest($cardKey, 'this_month', custom: ['from' => $from, 'to' => $to]);
+                $req = new ReckonerRequest($cardKey, 'custom', custom: ['from' => $from, 'to' => $to]);
                 $compId = $req->getCompositeId();
                 $result = $results[$compId] ?? null;
 
@@ -172,7 +139,7 @@ class ReckonerCensusCommand extends Command
                     }
                 }
 
-                $expected = self::GOLDEN_EXPECTED[$cardKey] ?? null;
+                $expected = ReckonerGoldenStoreFixture::EXPECTED_VALUES[$cardKey] ?? null;
                 $match = '-';
                 if ($expected !== null) {
                     if ($actualValue !== null && abs($actualValue - $expected) < 0.05 && $status === 'ok') {
@@ -231,6 +198,7 @@ class ReckonerCensusCommand extends Command
                 'module_locked' => 'Gated by disabled module',
                 'plan_locked' => 'Gated by subscription plan',
                 'forbidden' => 'Gated by user permissions',
+                'locked' => 'Gated by plan, module, or user permissions',
                 'unavailable' => 'Contract not implemented or data not captured',
                 'error', 'resolver_failed' => 'Resolver threw an error',
                 default => 'Unknown / other',

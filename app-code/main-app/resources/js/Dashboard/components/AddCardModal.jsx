@@ -412,6 +412,14 @@ export default function AddCardModal({ isOpen, onClose, catalogue = [], onSubmit
                                             >
                                                 <span className="vqm-reading-top">
                                                     <span className="vqm-reading-lbl">{entry.label}</span>
+                                                    {entry.contract_state === 'implemented_unverified' && (
+                                                        <span 
+                                                            className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium tracking-tight bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                                            title="Implemented calculation with live data; awaiting golden value reconciliation"
+                                                        >
+                                                            Unverified
+                                                        </span>
+                                                    )}
                                                     {entry.is_new && (
                                                         <span className="vqm-badge-new">
                                                             <Sparkles size={9} aria-hidden="true" /> New

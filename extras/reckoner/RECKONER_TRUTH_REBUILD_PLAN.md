@@ -1,6 +1,6 @@
 # Reckoner Truth Rebuild — diagnosis, verdict on the two audits, and the phased plan
 
-**Prepared:** 16 Sep 2026 · **Repo:** `app-code/main-app` · **Status:** plan only — no application code, data or migrations were changed.
+**Prepared:** 16 Sep 2026 · **Repo:** `app-code/main-app` · **Status:** plan · **Revised 16 Sep 2026 after the Phase 0 review** — owner decisions recorded (§6), card counts corrected (12 older-Source cards, not 9), census and golden-fixture rules tightened (§7.0, §8). Review: `RECKONER_PHASE0_REVIEW.md`.
 **Companion file:** `RECKONER_CARD_CONTRACT_MATRIX.md` — one row per card (349), with what it returns today, the correct unit, the exact target definition, the data tier and whether the data even exists.
 **Supersedes as the implementation handoff:** `RECKONER_349_CARD_REMEDIATION_PLAN.md` (Codex). That document is largely right; this one keeps what is right, corrects what is not, and adds what both audits missed. Keep it for history.
 
@@ -12,7 +12,7 @@ Every claim below was checked by reading the file it cites. Where something coul
 
 **Is the Reckoner getting its data from the ledger?** For 9 of the 349 cards, yes. For everything else, no.
 
-**Are the 349 values available?** No. At most **18 cards** compute a real number at all, and several of those carry defects (wrong period handling, wrong filters). The rest show one of: a permanent "No activity recorded" (201 cards), a row count wearing a money label (57), a hard-coded 0 or a permanent green tick (39 + 14), or a real calculation plotted under the wrong name (9).
+**Are the 349 values available?** No. At most **21 cards** compute a real number at all, and several of those carry defects (wrong period handling, wrong filters). The rest show one of: a permanent "No activity recorded" (198 cards), a row count wearing a money label (57), a hard-coded 0 or a permanent green tick (39 + 14), or a real calculation plotted under the wrong name (9).
 
 **Could the ledger alone supply all 349?** No, and it should not try. The ledger is the authority for money: revenue, cost, profit, cash, bank, receivables, payables, tax, equity. It holds no product, quantity, staff, table, batch, attendance or document-status detail. The right design is the ledger as the **authority and the referee**, with operational data supplying detail and being **reconciled back** to the ledger.
 
@@ -36,14 +36,14 @@ NewDashboard.jsx ─POST /api/reckoner/read (≤24 keys)─► ReckonerControlle
    │                                                        │
    │                          ┌─────────────────────────────┴───────────────────────────┐
    │                          │ definition has 'source'?                                │
-   │                    yes (9 of 349)                                         no (340 of 349)
+   │                    yes (12 of 349)                                        no (337 of 349)
    │                          ▼                                                         ▼
    │            Sources/*Source::resolveBatch()                  ResolverRegistry::resolve($key)
    │            (FinanceSource, InventorySource,                 → one of 349 twelve-line classes
    │             OperationsSource, SalesSource,                  → AbstractCardResolver::compute()
    │             StaffSource) — real queries                       ├─ core.*  → switch (18 real/wrong, 14 fake 0)
    │                                                               └─ others → prefix→table guess
-   │                                                                    ├─ no table  → EMPTY (201)
+   │                                                                    ├─ no table  → EMPTY (198)
    │                                                                    ├─ stat      → COUNT(*) rows (57)
    │                                                                    ├─ trend     → daily count/sum (11)
    │                                                                    └─ breakdown/list/gauge/status
@@ -56,16 +56,18 @@ NewDashboard.jsx ─POST /api/reckoner/read (≤24 keys)─► ReckonerControlle
 
 | What the card does today | Cards | Example |
 |---|---|---|
-| Always "No activity recorded" — no table mapped | **201** | every `khata.*`, `bank.*`, `tax.*`, `accounting.*`, `register.*`, `po.*`, `transfers.*` |
+| Always "No activity recorded" — no table mapped | **198** | every `khata.*`, `bank.*`, `tax.*`, `accounting.*`, `register.*`, `po.*`, `transfers.*` |
 | Shows `COUNT(*)` of a table, whatever the label says | **57** | `purchases.spend` = number of bills; `pos.revenue` = number of sales; `customers.count` includes suppliers |
 | Returns success with 0 / empty rows / always-green | **39** | `pos.payment_breakdown` = 0; `accounting.trial_balance_ok` = always 1 |
 | `core.*` returns success 0 whenever the store has any sale | **14** | `core.receivables_aging`, `core.busiest_day`, `core.balance_sheet_ok` |
 | Real calculation, wrong result or wrong series | **9** | `core.receivables`/`payables`/`total_liquidity` read keys that `getBalanceSheet()` never returns → 0; `core.cash_flow_trend` plots gross profit |
 | Trend with generic daily count/sum; headline = last day | **11** | `purchases.spend_trend` |
 | Real ledger calculation (P&L-based) | **9** | `core.revenue`, `core.cogs`, `core.net_profit`, margins |
-| Real older Source (with the defects noted in the matrix) | **9** | `inventory.stock_value` (correct FIFO), `inventory.low_stock_count` |
+| Real older Source (with the defects noted in the matrix) | **12** | `inventory.stock_value` (correct FIFO), `inventory.low_stock_count`, `tax.collected`, `production.run_count` |
 
-The IDE's "202 unmapped / 115 mapped" is reproducible from `determinePrimaryTable()`. But 9 of those keys never reach that method, because an older definition with a real `source` wins in `ReckonerRegistry::all()` (`ReckonerRegistry.php:1767-1776`). The real split is in the table above.
+> **Correction (Phase 0 review):** the first version of this table said 201 / 9. Three older definitions are written as `array_merge(self::scalar(…))` and were missed by my key scan: `tax.collected`, `production.run_count`, `production.total_cost`. The IDE's census counted 12 older-Source cards, which is right.
+
+The IDE's "202 unmapped / 115 mapped" is reproducible from `determinePrimaryTable()`. But 12 of those keys never reach that method, because an older definition with a real `source` wins in `ReckonerRegistry::all()` (`ReckonerRegistry.php:1767-1776`). The real split is in the table above.
 
 ### 1.3 Root causes, in order of damage
 
@@ -132,7 +134,7 @@ The IDE's "202 unmapped / 115 mapped" is reproducible from `determinePrimaryTabl
 | Accounting/khata/bank/tax cards bypass the ledger | **Right** | No table mapped → `empty` before any query. |
 | 16 streams and `reckoner_daily` do not exist | **Right** | `Streams.php` and `Measures.php` are constant lists; I found no runtime reader in the files I read (Phase 0 re-confirms repo-wide). No migration file in `database/migrations` creates `reckoner_daily`. |
 | 202 cards return empty "with value 0.0" | **Count right, detail wrong** | `empty` serialises `value: null`, not 0. It *becomes* 0 through the cache replay (R7) and the frontend (R8). 9 of the 202/115 never reach the generic resolver. |
-| 115 cards return `COUNT(*)` or hard-coded 0 | **Right in substance** | 57 counts, 11 generic series, 39 fake 0/1, plus 8 that actually use older Sources. |
+| 115 cards return `COUNT(*)` or hard-coded 0 | **Right in substance** | 57 counts, 11 generic series, 39 fake 0/1, plus 8 that actually use older Sources (of the 12 older-Source cards, 8 have a mapped table and 4 do not). |
 | Two disconnected Reckoner systems | **Right** | And the old one is the one that works. |
 | Fix: expand the prefix→table map; pick `SUM/AVG` from `unit`/`topic` | **Wrong — do not do this** | 58 units are wrong (R4); a table does not identify status, type, date or reversal rules; the same table backs count, value, open, overdue and as-of balances. |
 | Wire accounting/bank/khata/tax straight to `journal_items` | **Right direction, incomplete** | Per-bank balances are not in the ledger (all banks share 1010); tax by rate, khata overdue and aging need document data reconciled to the ledger. |
@@ -361,25 +363,26 @@ Phase 9 schedules these as small features. Until each ships, its cards return `u
 
 ---
 
-## 6. Decisions the owner must make before Phase 4 (recommended default in bold)
+## 6. Decisions — recorded 16 Sep 2026
 
-| # | Question | Recommendation |
-|---|---|---|
-| D1 | Does "Revenue" include other income (4100 other, 4200 stock gain, 4900 round-off)? | **Revenue = 4000 sales revenue.** Net profit still uses all income. The P&L card shows "Other income" as its own line. |
-| D2 | When a past sale is voided, does history change? | **Yes — restated**, matching every report today. Stored history recomputes the original date. |
-| D3 | Which clock defines a business day? | **The store's timezone** (`TenantMiddleware::applyStoreClock()`), for every date filter, bucket and "today". |
-| D4 | Are loans current liabilities (net cash position, working capital)? | **No** until a loans register with due dates exists. |
-| D5 | What is a "transaction"? | **Posted business documents**: recognised sales + posted purchases + expenses + payments. Journal entries have their own card. |
-| D6 | "New customer" = first purchase or created in the system? | **First recognised purchase in the window.** |
-| D7 | What separates counter (POS) sales from invoices? | **`sales.source`** (VERIFY values); counter = POS/terminal, invoice = everything else. |
-| D8 | "Average realised price" across mixed products | **Replace with a per-product list**, or restrict to a chosen product. A cross-product average is meaningless. |
-| D9 | What document is a pre-order? | **A sales order flagged as pre-order**, or drop the module's cards until one exists. |
-| D10 | Which low-stock threshold wins? | **`alert_quantity`**, falling back to the store setting; migrate `min_stock_alert` into it and drop it. |
-| D11 | Profit by location without expense locations | **Gross profit by location**, labelled as such. |
-| D12 | Which batch table is the truth? | **`inventory_batches`.** Stop reading `batches`/`product_batches` for cards. |
-| D13 | Which variant stock is the truth? | **`inventory_batches.variant_id`.** |
-| D14 | AI anomalies and forecasts | **Deterministic and explained**: anomaly = a day outside ±3σ of the trailing 8 same weekdays; forecast = seasonal naive with the method stated on the card. No LLM in the number path. |
-| D15 | Who is expected to attend (absent today, attendance rate)? | **Active members with role cashier/manager/staff**, configurable. |
+| # | Question | Decision | By |
+|---|---|---|---|
+| D1 | What is "Revenue"? | **All money the business earns from customers** — goods, services and other trading income: every income account except 4200 *Stock Adjustment Gain* (a count correction, not money from anyone). The card splits it into goods / services / other. Net profit uses all income, with the stock gain as its own P&L line. | Owner |
+| D2 | When a past sale is voided, does history change? | Yes — restated, matching every report. Stored history recomputes the original date. | Default accepted |
+| D3 | Which clock defines a business day? | The store's timezone, for every filter, bucket and "today". | Default accepted |
+| D4 | Loans in working capital / net cash position | **Working capital excludes loans** (they are not "due within a year" until a loans register says which part is). **Net cash position subtracts everything owed, loans included.** | Decided for owner |
+| D5 | What is a "transaction"? | Posted documents: recognised sales + posted purchases + expenses + payments. | Default accepted |
+| D6 | "New customer" | First recognised purchase in the window. | Default accepted |
+| D7 | Counter vs invoice | **They are the same thing — a sale — entered on two screens** (counter for fast checkout, invoice for credit and formal documents). Every revenue card counts both together. `pos.*` cards show sales entered at the counter (`sales.source = 'pos'`); `invoicing.*` show sales entered on the invoice screen (`source = 'manual'`, no marketplace channel); marketplace orders are their own channel. Check `channels_sum_to_sales`: counter + invoice + marketplace = all sales. Return documents (`original_sale_id` not null) are never counted as sales. | Owner |
+| D8 | "Average realised price" | Shown per product as a list. | Default accepted |
+| D9 | Pre-orders | No pre-order flag exists. The 5 `presales.*` cards stay unavailable until `sales_orders.is_preorder` is added and written. | Default accepted |
+| D10 | Low-stock threshold | **`products.min_stock_alert`** — it is what the product form saves (default 5) and what the inventory page and the low-stock email already use (`InventoryController.php:44, 214, 421`; `SendLowStockAlerts.php:59`). `alert_quantity` is read only by the Reckoner's `InventorySource`, which is why the dashboard can disagree with the inventory page. Copy any `alert_quantity` value into an empty `min_stock_alert`, stop reading `alert_quantity`, drop it later. | Decided for owner |
+| D11 | Profit by location | Gross profit by location, labelled as such. | Default accepted |
+| D12 | Batch truth | `inventory_batches`. | Default accepted |
+| D13 | Variant stock truth | `inventory_batches.variant_id`. | Default accepted |
+| D14 | AI anomalies and forecasts | Deterministic and explained; no LLM in the number path. | Default accepted |
+| D15 | Who is expected to attend | Active cashier / manager / staff members, configurable. | Default accepted |
+| D16 | Stock quantity truth (new) | **`inventory_batches.remaining_qty`** — the same source as valuation and the inventory page. `stocks.quantity` is checked against it by `stock_qty_control`; differences are reported, not hidden. | Decided for owner |
 
 ---
 
@@ -390,6 +393,8 @@ Each phase ends with a gate. **No phase starts until the previous gate passes an
 ### 7.0 The census command (built in Phase 0, run at every gate)
 
 `php artisan reckoner:census --tenant=<golden> --from=2026-08-01 --to=2026-08-31 --format=md`
+
+Rules (added after the Phase 0 review): request every card with period **`custom`** and the `from`/`to` window — any other period key ignores `custom` and silently measures the current month. Bypass the Reckoner cache for the whole run. Read expected values from the one fixture class, never a second copy. Map every envelope status, including `locked`.
 
 For all 349 keys prints: dispatch path (measure/source/generic), contract state (`unimplemented / implemented_unverified / verified`), envelope status, value, expected value (from the golden fixture), match yes/no, checks run and their results. Read-only; tenant-scoped; refuses to run without `--tenant`. This is the single number that tells us where we are: **verified-and-matching cards / 349**.
 
@@ -432,6 +437,7 @@ Frontend (`NewDashboard.jsx`):
 Tests:
 13. Replace `TruthGateTest`'s hard-coded 58 with: every emitted card has a `contract_state`; no `unimplemented` card can return `ok` via the API (iterate all 349, assert zero queries and `status = unavailable`).
 14. Frontend unit tests for `valuesFor`, `headlineOf`, `buildParts`: null → "—", no interpolation, Year shows 12 monthly buckets from a monthly series.
+15. *(Added after the Phase 0 review.)* Make `SaleService::post()` write `sales.source` exactly as `SaleController::store()` does (`SaleController.php:368`), and add a test proving both paths produce identical `sales`, `payments` and journal lines for the same input. Counter vs invoice cards (D7) depend on it.
 
 **Gate 1:** census on the golden store shows **0 cards with `status ok` whose contract is `unimplemented`**; the re-pointed cards match the golden values in §8; the browser shows no numeric value for any unavailable card (Playwright screenshot pass on a scale-tier store with all modules on); suite green.
 
@@ -488,7 +494,7 @@ Tests:
 
 1. Rewrite `ReckonerInvariants` so each check computes both sides independently (the referee never calls the function it referees), returns `pass | fail | unavailable` with expected/actual/difference, and unknown names **fail**.
 2. Replace `trend_endpoint_matches_stat` with `trend_sums_to_stat` for flows and `trend_endpoint_matches_stat` only for balances.
-3. Add `bank_subledger_control`, `list_total_matches_stat` (owing lists = AR/AP), `aging_sums_to_total`.
+3. Add `bank_subledger_control`, `list_total_matches_stat` (owing lists = AR/AP), `aging_sums_to_total`, `channels_sum_to_sales` (D7), `stock_qty_control` (D16: batches vs `stocks`), and `returns_tie_to_ledger` (all three return screens together = `sale_return` postings).
 4. Cards carry their checks in the envelope (`checks: [{key, status, difference}]`). Policy: a `fail` on a ledger control turns the card to `status: error, code: books_disagree` with the difference shown to owners; `unavailable` on a check leaves the value visible with a warning badge.
 5. Adversarial tests: corrupt one side at a time (delete a journal line, change a `net_sales`, zero a batch cost, post an unbalanced entry via raw insert), assert the specific check fails; restore, assert it passes.
 6. `php artisan reckoner:probe` nightly: all active tenants × all verified cards × this_month and last_month; writes `reckoner_invariant_runs`; alerts on any `fail` and on `empty` rates that jump.
@@ -540,20 +546,22 @@ Implement §5.4 one row at a time; each row is its own small feature with its ow
 
 ## 8. Golden fixture — the numbers every phase is judged against
 
-Build this store only through the real engines (`SaleService`, `V3\PurchaseService`, `PaymentService`, `AccountingService`, expense and transfer services) — never raw inserts. Store timezone `Asia/Karachi`. Two products: **Widget** (category A) and **Gadget** (category B). Customer **C1** (credit limit 2,000). Suppliers **S1**, **S2**. One cash account, one bank account.
+Build this store **through the same write paths the product's screens use**, as feature-test HTTP requests by the store owner (`actingAs` → the routes behind the counter, invoice, purchase, payment, expense, fund-transfer and void screens), so tenant middleware, `payments` rows, allocations, `sales.source` and journal postings are all exercised. Create the store with `StoreProvisioner` (the single store-creation path), not `Tenant::create`. No hand-written journal entries except the owner's capital injection, and only if no screen exists for it. No `try/catch` around an event — a failed event fails the fixture. It runs **inside the test database (`amd_pos_test`)**, never `venqore_pos`. Expected values live in this fixture class only. Store timezone `Asia/Karachi`. Two products: **Widget** (category A) and **Gadget** (category B), both with a real category. Customer **C1**. Suppliers **S1**, **S2**. One cash account, one bank account.
 
 | Date | Event |
 |---|---|
 | 2026-07-10 | Purchase P1 from S1: 20 Widgets @ 400 = 8,000 on credit, due 2026-08-09 |
 | 2026-07-15 | Owner capital 200,000 into cash |
-| 2026-07-20 | Sale S0, walk-in: 2 Widgets @ 1,000 = 2,000 cash, no tax |
-| 2026-08-01 | Transfer 50,000 cash → bank |
-| 2026-08-03 | Sale S1 to C1: 5 Widgets @ 1,000 = 5,000 + 10% tax 500, credit, due 2026-08-17 |
-| 2026-08-05 | Sale S2, walk-in: 3 Widgets @ 1,000 less 300 discount = 2,700 cash, no tax |
-| 2026-08-10 | Pay S1 5,000 from bank |
-| 2026-08-12 | Rent expense 4,000 cash |
-| 2026-08-20 | C1 pays 3,000 into bank |
-| 2026-08-25 | Sale S3, walk-in: 1 Widget @ 1,000 cash — **voided 2026-08-26** |
+| 2026-07-20 | Sale S0, walk-in at the counter: 2 Widgets @ 1,000 = 2,000 cash, no tax |
+| 2026-08-01 | Transfer 50,000 cash → bank (fund-transfer screen) |
+| 2026-08-02 | C1 credit limit set to 10,000 |
+| 2026-08-03 | Sale S1 to C1 **on the invoice screen**: 5 Widgets @ 1,000 = 5,000 + 10% tax 500, credit, due 2026-08-17 |
+| 2026-08-05 | Sale S2, walk-in **at the counter**: 3 Widgets @ 1,000 less one 300 discount (on the sale, not repeated on the line) = 2,700 cash, no tax |
+| 2026-08-10 | Pay supplier S1 5,000 from bank (payment screen, allocated to purchase P1) |
+| 2026-08-12 | Rent expense 4,000 cash (expense screen) |
+| 2026-08-20 | C1 pays 3,000 into bank (receipt screen, allocated to sale S1) |
+| 2026-08-21 | C1 credit limit lowered to 2,000 (the engine refuses a credit sale over the limit, so the over-limit state is reached the way it happens in real life) |
+| 2026-08-25 | Sale S3, walk-in at the counter: 1 Widget @ 1,000 cash — **voided 2026-08-26** |
 | 2026-08-28 | Purchase P2 from S2: 10 Gadgets @ 250 = 2,500 cash |
 
 ### 8.1 Expected values — window 2026-08-01 → 2026-08-31, comparison July, as of 2026-08-31

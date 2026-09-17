@@ -62,7 +62,11 @@ final class Reckoner
         foreach ($keys as $key) {
             $definition = ReckonerRegistry::find($key);
 
-            if ($definition === null || ($definition['scope'] ?? 'tenant') === 'platform' || ($definition['implemented'] ?? true) === false) {
+            if ($definition === null 
+                || ($definition['scope'] ?? 'tenant') === 'platform' 
+                || ($definition['implemented'] ?? true) === false
+                || ($definition['contract_state'] ?? null) === 'unimplemented'
+            ) {
                 $availability[$key] = false;
 
                 continue;
@@ -150,6 +154,24 @@ final class Reckoner
                 continue;
             }
 
+            // 2b. Contract State Gate — unimplemented readings refuse before cache lookup or query
+            $contractState = $definition['contract_state'] ?? null;
+            $isImplemented = $definition['implemented'] ?? true;
+            if ($contractState === 'unimplemented' || $isImplemented === false) {
+                $matrixStatus = $definition['matrix_status'] ?? 'READY';
+                $code = in_array($matrixStatus, ['FEATURE', 'COLUMN'], true) ? 'data_not_captured' : 'not_built';
+                $reason = ($definition['status_reason'] ?? null)
+                    ?: ($matrixStatus === 'FEATURE'
+                        ? 'Not available yet — feature data is not captured in this version'
+                        : ($matrixStatus === 'COLUMN'
+                            ? 'Not available yet — required tracking column/event is pending migration'
+                            : "Reading '{$key}' is not built yet."));
+
+                $results[$id] = ReckonerResult::unavailable($id, $key, $code, $reason, $definition, null);
+
+                continue;
+            }
+
             // 3. Permission (ANY-of)
             if (! $this->passesPermissions($u, $definition['permissions'] ?? [])) {
                 $results[$id] = ReckonerResult::failure($id, $key, 'forbidden', 'You do not have permission to view this.');
@@ -206,7 +228,11 @@ final class Reckoner
 
             // 6a. Validate period
             $periodKey = $request->period ?: ($definition['default_period'] ?? 'today');
-            if (! in_array($periodKey, $definition['periods'] ?? [], true)) {
+            $allowedPeriods = $definition['periods'] ?? [];
+            $isValidPeriod = in_array($periodKey, $allowedPeriods, true)
+                || ($periodKey === 'custom' && !empty($request->custom));
+
+            if (! $isValidPeriod) {
                 $results[$id] = ReckonerResult::failure($id, $key, 'invalid_period', "Period '{$periodKey}' is not valid for '{$key}'.");
 
                 continue;
@@ -256,18 +282,23 @@ final class Reckoner
             $cacheKey = $this->cacheKey($t?->id, $key, $period, $request->granularity, $request->args);
 
             if ($ttl > 0 && Cache::has($cacheKey)) {
-                $payload = Cache::get($cacheKey);
-                $cached[$id] = ReckonerResult::success(
-                    $id,
-                    $key,
-                    $definition['shape'],
-                    $definition,
-                    $period,
-                    $payload,
-                    ['cached' => true],
-                );
+                $envelope = Cache::get($cacheKey);
+                if (is_array($envelope) && isset($envelope['status']) && $envelope['status'] !== 'error') {
+                    $cachedStatus = $envelope['status'];
+                    $cachedData = $envelope['data'] ?? [];
+                    $cached[$id] = ReckonerResult::fromCache(
+                        id: $id,
+                        key: $key,
+                        definition: $definition,
+                        period: $period,
+                        cachedStatus: $cachedStatus,
+                        cachedData: $cachedData,
+                        meta: $envelope['meta'] ?? [],
+                        checks: $envelope['checks'] ?? [],
+                    );
 
-                continue;
+                    continue;
+                }
             }
 
             // 6c. Derived reading — resolve after all source reads complete.
@@ -287,13 +318,40 @@ final class Reckoner
                 continue;
             }
 
+            // MeasureEngine dispatch for contract cards (§4, §7.4)
+            $cardContract = \App\Reckoner\CardRegistry::get($key);
+            $contractState = $cardContract['contract_state'] ?? 'unimplemented';
+            if ($cardContract && in_array($contractState, ['verified', 'implemented_unverified'], true)) {
+                $ctx = new ReckonerContext($t, $u);
+                $engine = app(\App\Reckoner\Engine\MeasureEngine::class);
+                $engineResults = $engine->resolve([$request], $ctx);
+                if (isset($engineResults[$id])) {
+                    $result = $engineResults[$id];
+                    if ($ttl > 0 && $result->ok && $result->status !== 'error') {
+                        Cache::put($cacheKey, [
+                            'data' => $result->data,
+                            'status' => $result->status,
+                            'meta' => $result->meta,
+                            'checks' => $result->checks,
+                        ], $ttl);
+                    }
+                    $results[$id] = $result;
+                    continue;
+                }
+            }
+
             $sourceClass = $definition['source'] ?? null;
             if (! $sourceClass || ! class_exists($sourceClass)) {
                 if (\App\Reckoner\Resolvers\ResolverRegistry::has($key)) {
                     $ctx = new ReckonerContext($t, $u);
                     $result = \App\Reckoner\Resolvers\ResolverRegistry::resolve($key, $ctx, $period, $request->args ?? []);
-                    if ($ttl > 0 && $result->ok) {
-                        Cache::put($cacheKey, $result->data, $ttl);
+                    if ($ttl > 0 && $result->ok && $result->status !== 'error') {
+                        Cache::put($cacheKey, [
+                            'data' => $result->data,
+                            'status' => $result->status,
+                            'meta' => $result->meta,
+                            'checks' => $result->checks,
+                        ], $ttl);
                     }
                     $results[$id] = $result;
                     continue;
@@ -489,8 +547,16 @@ final class Reckoner
 
             $data = $this->shapeScalarPayload($value, $previous, $item['definition'], $item['period']);
 
+            $isEmpty = ($data['value'] ?? null) === null && empty($data['series']);
+            $status = $isEmpty ? 'empty' : 'ok';
+
             if ($item['ttl'] > 0) {
-                Cache::put($item['cacheKey'], $data, $item['ttl']);
+                Cache::put($item['cacheKey'], [
+                    'data' => $data,
+                    'status' => $status,
+                    'meta' => ['empty' => $isEmpty, 'ttl' => $item['ttl']],
+                    'checks' => [],
+                ], $item['ttl']);
             }
 
             $results[$primaryId] = ReckonerResult::success(
@@ -500,7 +566,7 @@ final class Reckoner
                 $item['definition'],
                 $item['period'],
                 $data,
-                ['cached' => false],
+                ['cached' => false, 'empty' => $isEmpty, 'ttl' => $item['ttl']],
             );
         }
 
@@ -738,7 +804,7 @@ final class Reckoner
                     'tenant_users',
                     fn () => \App\Models\TenantUser::withoutGlobalScopes()
                         ->where('tenant_id', $tenant->id)
-                        ->count() > 1,
+                        ->count() >= 1,
                 ),
                 // Reckoner-only probes (§4.1) — default false until their
                 // Phase 2/4 sources exist to make them meaningful.

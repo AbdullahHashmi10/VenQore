@@ -15,12 +15,12 @@ use Tests\TestCase;
  */
 class ReckonerInvariantsTest extends TestCase
 {
-    public function test_all_16_invariants_defined(): void
+    public function test_all_21_invariants_defined(): void
     {
-        $this->assertCount(16, ReckonerInvariants::INVARIANTS);
+        $this->assertCount(21, ReckonerInvariants::INVARIANTS);
     }
 
-    public function test_all_16_invariants_pass_for_tenant(): void
+    public function test_all_21_invariants_pass_for_tenant(): void
     {
         $tenant = new Tenant();
         $tenant->id = 999999;
@@ -46,7 +46,7 @@ class ReckonerInvariantsTest extends TestCase
             'status' => 'ok',
         ]);
 
-        $this->assertCount(16, $results);
+        $this->assertCount(21, $results);
 
         foreach ($results as $key => $check) {
             $this->assertTrue(

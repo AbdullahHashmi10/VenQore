@@ -33,6 +33,8 @@ final class ReckonerResult implements \JsonSerializable
         public readonly string $status = 'error',
         public readonly array $sources = [],
         public readonly array $checks = [],
+        public readonly ?string $contractState = null,
+        public readonly bool $verified = false,
     ) {
     }
 
@@ -46,6 +48,7 @@ final class ReckonerResult implements \JsonSerializable
         array $meta = [],
     ): self {
         $status = ! empty($meta['stale']) ? 'stale' : (! empty($meta['empty']) ? 'empty' : 'ok');
+        $contractState = $definition['contract_state'] ?? ($meta['contract_state'] ?? null);
 
         return new self(
             key: $key,
@@ -79,14 +82,18 @@ final class ReckonerResult implements \JsonSerializable
             status: $status,
             sources: array_values($definition['streams'] ?? [$definition['source'] ?? '']),
             checks: $meta['checks'] ?? [],
+            contractState: $contractState,
+            verified: $contractState === 'verified',
         );
     }
 
-    public static function failure(string $id, string $key, string $code, string $message): self
+    public static function failure(string $id, string $key, string $code, string $message, array $checks = [], array $meta = []): self
     {
         $status = in_array($code, ['plan_locked', 'module_locked', 'not_applicable'], true)
             ? 'locked'
             : 'error';
+
+        $contractState = $meta['contract_state'] ?? null;
 
         return new self(
             key: $key,
@@ -99,16 +106,125 @@ final class ReckonerResult implements \JsonSerializable
             help: null,
             direction: null,
             data: null,
-            meta: [],
+            meta: $meta,
             drill: null,
             errorCode: $code,
             errorMessage: $message,
             id: $id,
             status: $status,
             sources: [],
-            checks: [],
+            checks: $checks,
+            contractState: $contractState,
+            verified: $contractState === 'verified',
         );
     }
+
+    public static function unavailable(
+        string $id,
+        string $key,
+        string $code,
+        string $message,
+        array $definition = [],
+        ?ReckonerPeriod $period = null,
+    ): self {
+        $shape = null;
+        if (isset($definition['shape'])) {
+            $shape = $definition['shape'] instanceof ReckonerShape
+                ? $definition['shape']
+                : ReckonerShape::tryFrom((string) $definition['shape']);
+        }
+
+        $contractState = $definition['contract_state'] ?? null;
+
+        return new self(
+            key: $key,
+            ok: false,
+            shape: $shape,
+            unit: $definition['unit'] ?? null,
+            precision: $definition['precision'] ?? null,
+            period: $period ? [
+                'key' => $period->key,
+                'label' => $period->label,
+                'from' => $period->start->toDateString(),
+                'to' => $period->end->toDateString(),
+                'compare_label' => $period->compareLabel,
+            ] : null,
+            label: $definition['label'] ?? null,
+            help: $definition['help'] ?? null,
+            direction: $definition['direction'] ?? 'neutral',
+            data: null,
+            meta: ['computed_at' => now()->toIso8601String()],
+            drill: null,
+            errorCode: $code,
+            errorMessage: $message,
+            id: $id,
+            status: 'unavailable',
+            sources: [],
+            checks: [],
+            contractState: $contractState,
+            verified: $contractState === 'verified',
+        );
+    }
+
+    /**
+     * Reconstruct a cached result from a serialised cache envelope.
+     * This is necessary because __construct is private; callers must go
+     * through the factory methods.
+     */
+    public static function fromCache(
+        string $id,
+        string $key,
+        array $definition,
+        ReckonerPeriod $period,
+        string $cachedStatus,
+        mixed $cachedData,
+        array $meta = [],
+        array $checks = [],
+    ): self {
+        $shape = null;
+        if (isset($definition['shape'])) {
+            $shape = $definition['shape'] instanceof ReckonerShape
+                ? $definition['shape']
+                : ReckonerShape::tryFrom((string) $definition['shape']);
+        }
+
+        $contractState = $definition['contract_state'] ?? ($meta['contract_state'] ?? null);
+
+        return new self(
+            key: $key,
+            ok: $cachedStatus === 'ok' || $cachedStatus === 'empty',
+            shape: $shape,
+            unit: $definition['unit'] ?? null,
+            precision: $definition['precision'] ?? null,
+            period: [
+                'key' => $period->key,
+                'label' => $period->label,
+                'from' => $period->start->toDateString(),
+                'to' => $period->end->toDateString(),
+                'compare_label' => $period->compareLabel,
+            ],
+            label: ReckonerLabels::resolve($key, $definition, $cachedData),
+            help: $definition['help'] ?? null,
+            direction: $definition['direction'] ?? 'neutral',
+            data: $cachedData,
+            meta: array_merge($meta, ['cached' => true]),
+            drill: isset($definition['drill_route'])
+                ? ['route' => $definition['drill_route'], 'params' => [
+                    'from' => $period->start->toDateString(),
+                    'to'   => $period->end->toDateString(),
+                ]]
+                : null,
+            errorCode: null,
+            errorMessage: null,
+            id: $id,
+            status: $cachedStatus,
+            sources: array_values($definition['streams'] ?? [$definition['source'] ?? '']),
+            checks: $checks,
+            contractState: $contractState,
+            verified: $contractState === 'verified',
+        );
+    }
+
 
     /** A resolver ran successfully but found no records in the chosen period. */
     public static function empty(
@@ -135,6 +251,8 @@ final class ReckonerResult implements \JsonSerializable
             'key' => $this->key,
             'ok' => $this->ok,
             'status' => $this->status,
+            'contract_state' => $this->contractState,
+            'verified' => $this->verified,
             'shape' => $this->shape?->value,
             'unit' => $this->unit,
             'precision' => $this->precision,
@@ -143,7 +261,10 @@ final class ReckonerResult implements \JsonSerializable
             'help' => $this->help,
             'direction' => $this->direction,
             'data' => $this->data,
-            'meta' => $this->meta,
+            'meta' => array_merge($this->meta, [
+                'contract_state' => $this->contractState,
+                'verified' => $this->verified,
+            ]),
             'drill' => $this->drill,
             // Normalised envelope fields. `data` is retained during the
             // migration so established chart components keep working.
@@ -174,6 +295,14 @@ final class ReckonerResult implements \JsonSerializable
             return $this->jsonSerialize()['value'];
         }
         return null;
+    }
+
+    public function primaryValue(): mixed
+    {
+        if (is_array($this->data)) {
+            return $this->data['value'] ?? ($this->data['current'] ?? ($this->data['total'] ?? null));
+        }
+        return $this->data;
     }
 
     public function toArray(): array

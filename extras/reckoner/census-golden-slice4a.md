@@ -1,0 +1,383 @@
+Running Reckoner Census on tenant: Reckoner Golden Store (ID: 120, Slug: golden-store)
+Window: 2026-08-01 to 2026-08-31
+# Reckoner Baseline Census Report
+
+**Date:** 2026-09-16T19:38:47+00:00
+**Tenant:** `Reckoner Golden Store` (ID: `120`, Slug: `golden-store`, Plan: `scale`)
+**Window:** `2026-08-01` to `2026-08-31`
+
+## 1. Summary Scorecard
+
+| Metric | Count / Status |
+|---|---|
+| **Total registered cards** | **349** |
+| **Verified and matching golden** | **42 / 349** |
+| **Contract State: Unimplemented** | 266 |
+| **Contract State: Implemented Unverified** | 40 |
+| **Contract State: Verified** | 43 |
+| **Dispatch: Generic Resolver** | 256 |
+| **Dispatch: Legacy Source** | 10 |
+| **Dispatch: Unmapped** | 0 |
+
+### Envelope Status Breakdown
+
+| Status | Count | Meaning |
+|---|---|---|
+| `ok` | **80** | Resolver executed and reported success |
+| `unavailable` | **266** | Contract not implemented or data not captured |
+| `empty` | **3** | Resolver executed, reported empty/no data |
+
+## 2. All 349 Cards Census
+
+| # | Key | Module | Shape | Dispatch | Contract | Status | Value Today | Golden Expected | Match |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | `core.revenue` | Qore | stat | MeasureEngine | verified | `ok` | 7,700.00 | 7,700.00 | YES |
+| 2 | `core.revenue_trend` | Qore | trend | MeasureEngine | implemented_unverified | `ok` | 7,700.00 | - | - |
+| 3 | `core.net_profit` | Qore | stat | MeasureEngine | verified | `ok` | 500.00 | 500.00 | YES |
+| 4 | `core.profit_trend` | Qore | trend | MeasureEngine | implemented_unverified | `ok` | 500.00 | - | - |
+| 5 | `core.gross_profit` | Qore | stat | MeasureEngine | verified | `ok` | 4,500.00 | 4,500.00 | YES |
+| 6 | `core.gross_margin_pct` | Qore | gauge | MeasureEngine | verified | `ok` | 58.44 | 58.44 | YES |
+| 7 | `core.net_margin_pct` | Qore | gauge | MeasureEngine | verified | `ok` | 6.49 | 6.49 | YES |
+| 8 | `core.cogs` | Qore | stat | MeasureEngine | verified | `ok` | 3,200.00 | 3,200.00 | YES |
+| 9 | `core.expenses_total` | Qore | stat | MeasureEngine | verified | `ok` | 4,000.00 | 4,000.00 | YES |
+| 10 | `core.expense_ratio` | Qore | gauge | MeasureEngine | verified | `ok` | 51.95 | 51.95 | YES |
+| 11 | `core.receivables` | Qore | stat | MeasureEngine | verified | `ok` | 2,500.00 | 2,500.00 | YES |
+| 12 | `core.receivables_aging` | Qore | breakdown | MeasureEngine | verified | `ok` | 2,500.00 | 2,500.00 | YES |
+| 13 | `core.payables` | Qore | stat | MeasureEngine | verified | `ok` | 3,000.00 | 3,000.00 | YES |
+| 14 | `core.payables_aging` | Qore | breakdown | MeasureEngine | verified | `ok` | 3,000.00 | 3,000.00 | YES |
+| 15 | `core.total_liquidity` | Qore | stat | MeasureEngine | verified | `ok` | 196,200.00 | 196,200.00 | YES |
+| 16 | `core.liquidity_trend` | Qore | trend | MeasureEngine | implemented_unverified | `ok` | 196,200.00 | - | - |
+| 17 | `core.cash_flow_trend` | Qore | trend | MeasureEngine | implemented_unverified | `ok` | -5,800.00 | - | - |
+| 18 | `core.net_cash_position` | Qore | stat | MeasureEngine | verified | `ok` | 192,700.00 | 192,700.00 | YES |
+| 19 | `core.working_capital` | Qore | stat | MeasureEngine | verified | `ok` | 201,700.00 | 201,700.00 | YES |
+| 20 | `core.revenue_vs_prev` | Qore | stat | MeasureEngine | verified | `ok` | 285.00 | 285.00 | YES |
+| 21 | `core.profit_vs_prev` | Qore | stat | MeasureEngine | verified | `ok` | -700.00 | -700.00 | YES |
+| 22 | `core.transaction_count` | Qore | stat | MeasureEngine | implemented_unverified | `ok` | 7.00 | - | - |
+| 23 | `core.avg_transaction_value` | Qore | stat | MeasureEngine | verified | `ok` | 3,850.00 | 3,850.00 | YES |
+| 24 | `core.busiest_day` | Qore | stat | MeasureEngine | implemented_unverified | `ok` | 5,000.00 | - | - |
+| 25 | `core.peak_hour` | Qore | stat | MeasureEngine | implemented_unverified | `ok` | 10.00 | - | - |
+| 26 | `core.balance_sheet_ok` | Qore | status | MeasureEngine | verified | `ok` | 1.00 | 1.00 | YES |
+| 27 | `core.journal_entries_count` | Qore | stat | MeasureEngine | verified | `ok` | 7.00 | 7.00 | YES |
+| 28 | `core.audit_trail_count` | Qore | stat | MeasureEngine | implemented_unverified | `ok` | 0.00 | - | - |
+| 29 | `core.reversal_count` | Qore | stat | MeasureEngine | verified | `ok` | 1.00 | 1.00 | YES |
+| 30 | `core.document_sequence_ok` | Qore | status | MeasureEngine | implemented_unverified | `ok` | 1.00 | - | - |
+| 31 | `core.user_activity` | Qore | stat | MeasureEngine | implemented_unverified | `ok` | 1.00 | - | - |
+| 32 | `core.plan_usage` | Qore | breakdown | MeasureEngine | implemented_unverified | `ok` | 1,400.00 | - | - |
+| 33 | `products.count` | products | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 34 | `products.active_count` | products | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 35 | `products.by_category` | products | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 36 | `products.catalogue_value` | products | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 37 | `products.avg_margin` | products | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 38 | `products.top_margin` | products | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 39 | `products.lowest_margin` | products | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 40 | `products.never_sold` | products | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 41 | `products.missing_cost` | products | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 42 | `products.new_this_period` | products | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 43 | `services.count` | services | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 44 | `services.revenue` | services | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 45 | `services.revenue_trend` | services | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 46 | `services.share_of_revenue` | services | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 47 | `services.top_services` | services | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 48 | `services.avg_ticket` | services | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 49 | `services.jobs_count` | services | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 50 | `customers.count` | customers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 51 | `customers.new` | customers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 52 | `customers.new_trend` | customers | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 53 | `customers.active` | customers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 54 | `customers.dormant` | customers | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 55 | `customers.repeat_rate` | customers | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 56 | `customers.top_customers` | customers | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 57 | `customers.avg_spend` | customers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 58 | `customers.owing` | customers | list | Generic Resolver | unimplemented | `unavailable` | - | 2,500.00 | NO |
+| 59 | `customers.by_area` | customers | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 60 | `suppliers.count` | suppliers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 61 | `suppliers.active` | suppliers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 62 | `suppliers.top_suppliers` | suppliers | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 63 | `suppliers.spend_total` | suppliers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 64 | `suppliers.spend_trend` | suppliers | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 65 | `suppliers.owed_list` | suppliers | list | Generic Resolver | unimplemented | `unavailable` | - | 3,000.00 | NO |
+| 66 | `suppliers.concentration` | suppliers | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 67 | `suppliers.new` | suppliers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 68 | `pos.revenue` | pos | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 69 | `pos.revenue_trend` | pos | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 70 | `pos.sale_count` | pos | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 71 | `pos.avg_ticket` | pos | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 72 | `pos.max_sale` | pos | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 73 | `pos.items_per_sale` | pos | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 74 | `pos.payment_breakdown` | pos | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 75 | `pos.hourly_heatmap` | pos | heatmap | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 76 | `pos.weekday_split` | pos | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 77 | `pos.discount_total` | pos | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 78 | `pos.live_feed` | pos | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 79 | `invoicing.count` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 80 | `invoicing.value` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 81 | `invoicing.value_trend` | invoicing | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 82 | `invoicing.unpaid_value` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 83 | `invoicing.overdue_count` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 84 | `invoicing.overdue_value` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 85 | `invoicing.avg_invoice` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 86 | `invoicing.avg_days_to_pay` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 87 | `invoicing.largest_open` | invoicing | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 88 | `invoicing.draft_count` | invoicing | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 89 | `quotations.count` | quotations | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 90 | `quotations.open_value` | quotations | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 91 | `quotations.win_rate` | quotations | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 92 | `quotations.win_rate_trend` | quotations | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 93 | `quotations.avg_quote` | quotations | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 94 | `quotations.expiring` | quotations | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 95 | `sales_orders.open_count` | sales_orders | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 96 | `sales_orders.open_value` | sales_orders | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 97 | `sales_orders.count` | sales_orders | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 98 | `sales_orders.value_trend` | sales_orders | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 99 | `sales_orders.fulfil_rate` | sales_orders | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 100 | `sales_orders.overdue` | sales_orders | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 101 | `sales_orders.by_customer` | sales_orders | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 102 | `sales_returns.count` | sales_returns | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 103 | `sales_returns.value` | sales_returns | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 104 | `sales_returns.rate` | sales_returns | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 105 | `sales_returns.trend` | sales_returns | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 106 | `sales_returns.top_returned` | sales_returns | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 107 | `sales_returns.by_reason` | sales_returns | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 108 | `recurring.active_count` | recurring_invoices | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 109 | `recurring.monthly_value` | recurring_invoices | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 110 | `recurring.trend` | recurring_invoices | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 111 | `recurring.due_next_7` | recurring_invoices | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 112 | `recurring.share_of_revenue` | recurring_invoices | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 113 | `recurring.churned` | recurring_invoices | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 114 | `proposals.count` | b2b_proposals | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 115 | `proposals.pipeline_value` | b2b_proposals | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 116 | `proposals.win_rate` | b2b_proposals | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 117 | `proposals.avg_value` | b2b_proposals | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 118 | `proposals.stale` | b2b_proposals | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 119 | `proposals.avg_cycle_days` | b2b_proposals | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 120 | `pricing.tier_count` | pricing_tiers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 121 | `pricing.revenue_by_tier` | pricing_tiers | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 122 | `pricing.customers_by_tier` | pricing_tiers | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 123 | `pricing.avg_realised_price` | pricing_tiers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 124 | `pricing.discount_vs_list` | pricing_tiers | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 125 | `park.open_count` | park_recall | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 126 | `park.open_value` | park_recall | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 127 | `park.recalled_count` | park_recall | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 128 | `park.abandoned_count` | park_recall | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 129 | `park.oldest` | park_recall | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 130 | `tables.occupied` | table_service | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 131 | `tables.occupancy_rate` | table_service | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 132 | `tables.kitchen_pending` | table_service | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 133 | `tables.avg_turn_minutes` | table_service | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 134 | `tables.covers` | table_service | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 135 | `tables.avg_cover_value` | table_service | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 136 | `tables.revenue_per_table` | table_service | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 137 | `tables.peak_occupancy` | table_service | heatmap | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 138 | `presales.count` | pre_sales | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 139 | `presales.value` | pre_sales | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 140 | `presales.advance_collected` | pre_sales | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 141 | `presales.pending_delivery` | pre_sales | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 142 | `presales.overdue` | pre_sales | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 143 | `inventory.stock_value` | inventory | stat | MeasureEngine | verified | `empty` | 0.00 | 6,500.00 | NO |
+| 144 | `inventory.stock_value_trend` | inventory | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 145 | `inventory.product_count` | inventory | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 146 | `inventory.units_on_hand` | inventory | stat | Generic Resolver | unimplemented | `unavailable` | - | 20.00 | NO |
+| 147 | `inventory.low_stock_count` | inventory | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 148 | `inventory.low_stock_list` | inventory | list | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 149 | `inventory.out_of_stock_count` | inventory | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 150 | `inventory.dead_stock_value` | inventory | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 151 | `inventory.turnover_ratio` | inventory | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 152 | `inventory.days_of_cover` | inventory | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 153 | `inventory.value_by_category` | inventory | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 154 | `inventory.top_by_value` | inventory | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 155 | `locations.count` | multi_location | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 156 | `locations.revenue_by_location` | multi_location | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 157 | `locations.profit_by_location` | multi_location | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 158 | `locations.stock_by_location` | multi_location | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 159 | `locations.revenue_trend_by_location` | multi_location | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 160 | `locations.stock_imbalance` | multi_location | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 161 | `transfers.pending_count` | stock_transfers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 162 | `transfers.pending_value` | stock_transfers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 163 | `transfers.count` | stock_transfers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 164 | `transfers.avg_transit_days` | stock_transfers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 165 | `transfers.discrepancy_count` | stock_transfers | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 166 | `stocktakes.pending_count` | stock_takes | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 167 | `stocktakes.variance_value` | stock_takes | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 168 | `stocktakes.variance_pct` | stock_takes | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 169 | `stocktakes.last_count_days` | stock_takes | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 170 | `stocktakes.top_variances` | stock_takes | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 171 | `batches.count` | batches_expiry | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 172 | `batches.qty` | batches_expiry | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 173 | `batches.expiring_30` | batches_expiry | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 174 | `batches.expiring_value` | batches_expiry | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 175 | `batches.expired_value` | batches_expiry | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 176 | `batches.expiry_list` | batches_expiry | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 177 | `batches.write_off_trend` | batches_expiry | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 178 | `serials.count` | serials | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 179 | `serials.in_stock` | serials | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 180 | `serials.under_warranty` | serials | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 181 | `serials.warranty_expiring` | serials | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 182 | `serials.returned` | serials | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 183 | `variants.count` | variants | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 184 | `variants.top_variants` | variants | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 185 | `variants.slow_variants` | variants | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 186 | `variants.out_of_stock` | variants | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 187 | `variants.size_colour_mix` | variants | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 188 | `barcodes.coverage_pct` | barcodes_labels | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 189 | `barcodes.missing_count` | barcodes_labels | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 190 | `barcodes.labels_printed` | barcodes_labels | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 191 | `barcodes.scan_share` | barcodes_labels | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 192 | `barcodes.duplicate_count` | barcodes_labels | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 193 | `uom.count` | units_of_measure | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 194 | `uom.conversion_count` | units_of_measure | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 195 | `uom.sales_by_uom` | units_of_measure | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 196 | `uom.missing_conversion` | units_of_measure | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 197 | `uom.bulk_vs_retail` | units_of_measure | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 198 | `purchases.spend` | purchases | stat | Generic Resolver | unimplemented | `unavailable` | - | 2,500.00 | NO |
+| 199 | `purchases.spend_trend` | purchases | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 200 | `purchases.count` | purchases | stat | Generic Resolver | unimplemented | `unavailable` | - | 1.00 | NO |
+| 201 | `purchases.unpaid_value` | purchases | stat | Generic Resolver | unimplemented | `unavailable` | - | 3,000.00 | NO |
+| 202 | `purchases.overdue_value` | purchases | stat | Generic Resolver | unimplemented | `unavailable` | - | 3,000.00 | NO |
+| 203 | `purchases.paid_to_suppliers` | purchases | stat | Generic Resolver | unimplemented | `unavailable` | - | 5,000.00 | NO |
+| 204 | `purchases.by_supplier` | purchases | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 205 | `purchases.by_category` | purchases | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 206 | `purchases.price_increases` | purchases | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 207 | `po.open_count` | purchase_orders | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 208 | `po.open_value` | purchase_orders | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 209 | `po.pending_receipt_value` | purchase_orders | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 210 | `po.overdue_count` | purchase_orders | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 211 | `po.avg_lead_days` | purchase_orders | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 212 | `po.fill_rate` | purchase_orders | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 213 | `purchase_returns.count` | purchase_returns | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 214 | `purchase_returns.value` | purchase_returns | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 215 | `purchase_returns.credit_due` | purchase_returns | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 216 | `purchase_returns.by_supplier` | purchase_returns | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 217 | `purchase_returns.rate` | purchase_returns | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 218 | `landed.total` | landed_cost | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 219 | `landed.pct_of_goods` | landed_cost | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 220 | `landed.by_type` | landed_cost | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 221 | `landed.true_cost_gap` | landed_cost | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 222 | `landed.trend` | landed_cost | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 223 | `cookbook.recipe_count` | cookbook | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 224 | `cookbook.recipe_cost_pct` | cookbook | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 225 | `cookbook.best_margin` | cookbook | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 226 | `cookbook.worst_margin` | cookbook | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 227 | `cookbook.ingredient_cost_trend` | cookbook | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 228 | `cookbook.wastage_value` | cookbook | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 229 | `production.run_count` | production_runs | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 230 | `production.total_cost` | production_runs | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 231 | `production.output_qty` | production_runs | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 232 | `production.cost_per_unit` | production_runs | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 233 | `production.yield_pct` | production_runs | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 234 | `production.wastage_value` | production_runs | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 235 | `production.in_progress` | production_runs | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 236 | `production.output_trend` | production_runs | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 237 | `composite.count` | composite_items | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 238 | `composite.revenue` | composite_items | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 239 | `composite.margin` | composite_items | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 240 | `composite.top_bundles` | composite_items | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 241 | `composite.component_shortage` | composite_items | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 242 | `khata.receivable_total` | khata_credit | stat | MeasureEngine | verified | `ok` | 2,500.00 | 2,500.00 | YES |
+| 243 | `khata.payable_total` | khata_credit | stat | MeasureEngine | verified | `ok` | 3,000.00 | 3,000.00 | YES |
+| 244 | `khata.net_position` | khata_credit | stat | MeasureEngine | verified | `ok` | -500.00 | -500.00 | YES |
+| 245 | `khata.biggest_debtors` | khata_credit | list | MeasureEngine | implemented_unverified | `ok` | 2,500.00 | - | - |
+| 246 | `khata.overdue_total` | khata_credit | stat | MeasureEngine | implemented_unverified | `ok` | 5,500.00 | - | - |
+| 247 | `khata.aging` | khata_credit | breakdown | MeasureEngine | implemented_unverified | `ok` | 2,500.00 | - | - |
+| 248 | `khata.collected` | khata_credit | stat | MeasureEngine | verified | `ok` | 3,000.00 | 3,000.00 | YES |
+| 249 | `khata.collection_trend` | khata_credit | trend | MeasureEngine | implemented_unverified | `ok` | 0.00 | - | - |
+| 250 | `khata.over_limit` | khata_credit | list | MeasureEngine | implemented_unverified | `ok` | 0.00 | - | - |
+| 251 | `payments.received` | payments | stat | MeasureEngine | verified | `ok` | 5,700.00 | 5,700.00 | YES |
+| 252 | `payments.received_trend` | payments | trend | MeasureEngine | implemented_unverified | `ok` | 5,700.00 | - | - |
+| 253 | `payments.paid` | payments | stat | MeasureEngine | verified | `ok` | 11,500.00 | 11,500.00 | YES |
+| 254 | `payments.net_flow` | payments | stat | MeasureEngine | verified | `ok` | -5,800.00 | -5,800.00 | YES |
+| 255 | `payments.by_method` | payments | breakdown | MeasureEngine | implemented_unverified | `ok` | 3,700.00 | - | - |
+| 256 | `payments.cash_vs_digital` | payments | gauge | MeasureEngine | implemented_unverified | `ok` | 100.00 | - | - |
+| 257 | `payments.unallocated` | payments | list | MeasureEngine | implemented_unverified | `empty` | 0.00 | - | - |
+| 258 | `payments.bounced` | payments | stat | MeasureEngine | implemented_unverified | `ok` | 0.00 | - | - |
+| 259 | `expenses.count` | expenses | stat | MeasureEngine | verified | `ok` | 1.00 | 1.00 | YES |
+| 260 | `expenses.trend` | expenses | trend | MeasureEngine | implemented_unverified | `ok` | 4,000.00 | - | - |
+| 261 | `expenses.by_category` | expenses | breakdown | MeasureEngine | verified | `ok` | 4,000.00 | 4,000.00 | YES |
+| 262 | `expenses.top_categories` | expenses | list | MeasureEngine | implemented_unverified | `ok` | 4,000.00 | - | - |
+| 263 | `expenses.unpaid` | expenses | stat | MeasureEngine | verified | `ok` | 0.00 | 0.00 | YES |
+| 264 | `expenses.largest` | expenses | list | MeasureEngine | implemented_unverified | `ok` | 4,000.00 | - | - |
+| 265 | `expenses.recurring_total` | expenses | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 266 | `expenses.per_day` | expenses | stat | MeasureEngine | implemented_unverified | `ok` | 129.03 | - | - |
+| 267 | `expenses.vs_prev` | expenses | stat | MeasureEngine | implemented_unverified | `ok` | 4,000.00 | - | - |
+| 268 | `register.open_count` | cash_register | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 269 | `register.cash_in_drawer` | cash_register | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 270 | `register.cash_sales` | cash_register | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 271 | `register.expected_vs_actual` | cash_register | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 272 | `register.variance_total` | cash_register | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 273 | `register.by_staff` | cash_register | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 274 | `register.shift_count` | cash_register | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 275 | `bank.account_count` | bank_accounts | stat | MeasureEngine | implemented_unverified | `ok` | 1.00 | - | - |
+| 276 | `bank.balances_total` | bank_accounts | stat | MeasureEngine | verified | `ok` | 48,000.00 | 48,000.00 | YES |
+| 277 | `bank.balance_trend` | bank_accounts | trend | MeasureEngine | implemented_unverified | `ok` | 48,000.00 | - | - |
+| 278 | `bank.balance_by_account` | bank_accounts | breakdown | MeasureEngine | implemented_unverified | `ok` | 48,000.00 | - | - |
+| 279 | `bank.top_account` | bank_accounts | stat | MeasureEngine | implemented_unverified | `ok` | 50,000.00 | - | - |
+| 280 | `bank.money_in` | bank_accounts | stat | MeasureEngine | verified | `ok` | 53,000.00 | 53,000.00 | YES |
+| 281 | `bank.money_out` | bank_accounts | stat | MeasureEngine | verified | `ok` | 5,000.00 | 5,000.00 | YES |
+| 282 | `bank.cash_vs_bank` | bank_accounts | breakdown | MeasureEngine | implemented_unverified | `ok` | 196,200.00 | - | - |
+| 283 | `bank.idle_accounts` | bank_accounts | list | MeasureEngine | implemented_unverified | `empty` | 0.00 | - | - |
+| 284 | `recon.unreconciled_count` | bank_reconciliation | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 285 | `recon.unreconciled_value` | bank_reconciliation | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 286 | `recon.matched_pct` | bank_reconciliation | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 287 | `recon.last_recon_days` | bank_reconciliation | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 288 | `recon.difference` | bank_reconciliation | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 289 | `accounting.trial_balance_ok` | accounting_workspace | status | MeasureEngine | verified | `ok` | 1.00 | 1.00 | YES |
+| 290 | `accounting.assets_total` | accounting_workspace | stat | MeasureEngine | verified | `ok` | 205,200.00 | 205,200.00 | YES |
+| 291 | `accounting.liabilities_total` | accounting_workspace | stat | MeasureEngine | verified | `ok` | 3,500.00 | 3,500.00 | YES |
+| 292 | `accounting.equity_total` | accounting_workspace | stat | MeasureEngine | verified | `ok` | 201,700.00 | 201,700.00 | YES |
+| 293 | `accounting.equity_trend` | accounting_workspace | trend | MeasureEngine | implemented_unverified | `ok` | 201,700.00 | - | - |
+| 294 | `accounting.pnl_summary` | accounting_workspace | breakdown | MeasureEngine | implemented_unverified | `ok` | 19,900.00 | - | - |
+| 295 | `accounting.balance_sheet` | accounting_workspace | breakdown | MeasureEngine | implemented_unverified | `ok` | 410,400.00 | - | - |
+| 296 | `accounting.unposted_count` | accounting_workspace | stat | MeasureEngine | implemented_unverified | `ok` | 0.00 | - | - |
+| 297 | `accounting.drawings` | accounting_workspace | stat | MeasureEngine | implemented_unverified | `ok` | 0.00 | - | - |
+| 298 | `tax.collected` | tax_compliance | stat | MeasureEngine | verified | `ok` | 500.00 | 500.00 | YES |
+| 299 | `tax.paid` | tax_compliance | stat | MeasureEngine | verified | `ok` | 0.00 | 0.00 | YES |
+| 300 | `tax.net_liability` | tax_compliance | stat | MeasureEngine | verified | `ok` | 500.00 | 500.00 | YES |
+| 301 | `tax.liability_trend` | tax_compliance | trend | MeasureEngine | implemented_unverified | `ok` | 500.00 | - | - |
+| 302 | `tax.by_rate` | tax_compliance | breakdown | MeasureEngine | verified | `ok` | 500.00 | 500.00 | YES |
+| 303 | `tax.taxable_vs_exempt` | tax_compliance | breakdown | MeasureEngine | implemented_unverified | `ok` | 7,700.00 | - | - |
+| 304 | `tax.filing_due` | tax_compliance | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 305 | `tax.invoices_missing_tax` | tax_compliance | list | MeasureEngine | implemented_unverified | `ok` | 2,700.00 | - | - |
+| 306 | `assets.count` | fixed_assets | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 307 | `assets.gross_value` | fixed_assets | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 308 | `assets.net_book_value` | fixed_assets | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 309 | `assets.depreciation_period` | fixed_assets | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 310 | `assets.by_category` | fixed_assets | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 311 | `assets.warranty_amc_due` | fixed_assets | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 312 | `loans.count` | loans | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 313 | `loans.outstanding_total` | loans | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 314 | `loans.outstanding_trend` | loans | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 315 | `loans.emi_due` | loans | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 316 | `loans.interest_paid` | loans | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 317 | `loans.by_lender` | loans | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 318 | `reports.pnl_shortcut` | reports | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 319 | `reports.sales_shortcut` | reports | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 320 | `reports.stock_shortcut` | reports | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 321 | `reports.saved_count` | reports | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 322 | `reports.most_used` | reports | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 323 | `reports.scheduled_count` | reports | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 324 | `ai.top_insight` | ai_insights | status | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 325 | `ai.alerts_open` | ai_insights | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 326 | `ai.anomalies` | ai_insights | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 327 | `ai.forecast_revenue` | ai_insights | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 328 | `ai.forecast_cash` | ai_insights | trend | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 329 | `ai.reorder_suggestions` | ai_insights | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 330 | `loyalty.member_count` | loyalty_gift | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 331 | `loyalty.new_members` | loyalty_gift | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 332 | `loyalty.member_revenue_share` | loyalty_gift | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 333 | `loyalty.member_avg_spend` | loyalty_gift | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 334 | `loyalty.liability` | loyalty_gift | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 335 | `loyalty.gift_card_balance` | loyalty_gift | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 336 | `marketplace.channel_count` | marketplace_sync | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 337 | `marketplace.revenue_by_channel` | marketplace_sync | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 338 | `marketplace.online_vs_offline` | marketplace_sync | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 339 | `marketplace.sync_errors` | marketplace_sync | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 340 | `marketplace.stock_mismatch` | marketplace_sync | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 341 | `marketplace.channel_margin` | marketplace_sync | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 342 | `staff.member_count` | staff_attendance | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 343 | `staff.on_shift_count` | staff_attendance | stat | Legacy Source | unimplemented | `unavailable` | - | - | - |
+| 344 | `staff.present_today` | staff_attendance | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 345 | `staff.absent_today` | staff_attendance | list | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 346 | `staff.hours_worked` | staff_attendance | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 347 | `staff.attendance_rate` | staff_attendance | gauge | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 348 | `staff.sales_by_staff` | staff_attendance | breakdown | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+| 349 | `staff.revenue_per_staff` | staff_attendance | stat | Generic Resolver | unimplemented | `unavailable` | - | - | - |
+

@@ -10,9 +10,7 @@ use App\Reckoner\ReckonerResult;
 use App\Reckoner\ReckonerShape;
 use App\Services\FinancialReportingService;
 use App\Services\ModuleService;
-use App\Support\SaleStatus;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 abstract class AbstractCardResolver implements CardResolverInterface
@@ -33,7 +31,7 @@ abstract class AbstractCardResolver implements CardResolverInterface
 
         $compositeId = "{$key}|{$period->key}|{$period->start->toDateString()}|{$period->end->toDateString()}";
 
-        // Module gating: Qore cards (module === null) are universal; module cards require enabled module.
+        // Module gating
         if ($card['module'] !== null && !ModuleService::enabled($tenant, $card['module'])) {
             return ReckonerResult::failure(
                 $compositeId,
@@ -41,6 +39,24 @@ abstract class AbstractCardResolver implements CardResolverInterface
                 'module_locked',
                 "Needs the " . ($card['module']) . " module."
             );
+        }
+
+        // Contract state check: refuse unimplemented before query
+        $contractState = $card['contract_state'] ?? 'unimplemented';
+        if ($contractState === 'unimplemented') {
+            $matrixStatus = $card['matrix_status'] ?? 'READY';
+            $code = match ($matrixStatus) {
+                'FEATURE', 'COLUMN' => 'data_not_captured',
+                default => 'not_built',
+            };
+            $reason = ($card['status_reason'] ?? null)
+                ?: ($matrixStatus === 'FEATURE'
+                    ? 'Not available yet — feature data is not captured in this version'
+                    : ($matrixStatus === 'COLUMN'
+                        ? 'Not available yet — required tracking column/event is pending migration'
+                        : "Reading '{$key}' is not built yet."));
+
+            return ReckonerResult::unavailable($compositeId, $key, $code, $reason, $card, $period);
         }
 
         $shape = ReckonerShape::fromCardShape($card['shape'] ?? 'stat');
@@ -66,7 +82,6 @@ abstract class AbstractCardResolver implements CardResolverInterface
         string $id,
         ReckonerShape $shape
     ): ReckonerResult {
-        $tenantId = $ctx->tenant->id;
         $key = static::key();
 
         // 1. Core financial cards delegation
@@ -74,28 +89,16 @@ abstract class AbstractCardResolver implements CardResolverInterface
             return $this->resolveCoreMetric($key, $ctx, $period, $card, $id, $shape);
         }
 
-        // 2. Query table based on streams and module with strict tenant isolation
-        $table = $this->determinePrimaryTable($card);
-
-        if (!$table || !Schema::hasTable($table)) {
-            return ReckonerResult::empty($id, $key, $shape, $card, $period);
-        }
-
-        $query = DB::table($table)->where('tenant_id', $tenantId);
-
-        if (!$query->exists()) {
-            return ReckonerResult::empty($id, $key, $shape, $card, $period);
-        }
-
-        $dateCol = $this->determineDateColumn($table);
-        if ($card['period_aware'] && $dateCol && Schema::hasColumn($table, $dateCol)) {
-            $query->whereBetween($dateCol, [
-                $period->start->toDateString() . ' 00:00:00',
-                $period->end->toDateString() . ' 23:59:59',
-            ]);
-        }
-
-        return $this->formatResultByShape($query, $shape, $card, $period, $id, $dateCol, $table);
+        // Generic fallbacks have been deleted per Phase 1 §7.
+        // Any non-core card reaching here without its own verified compute() override is unavailable.
+        return ReckonerResult::unavailable(
+            $id,
+            $key,
+            'not_built',
+            "Card '{$key}' calculation engine is in progress.",
+            $card,
+            $period
+        );
     }
 
     protected function resolveCoreMetric(
@@ -184,9 +187,9 @@ abstract class AbstractCardResolver implements CardResolverInterface
                     return ReckonerResult::empty($id, $key, $shape, $card, $period);
                 }
                 $ratio = match ($key) {
-                    'core.gross_margin_pct' => (float) ($pl['gross_profit'] ?? 0.0) / $rev * 100,
-                    'core.net_margin_pct' => (float) ($pl['net_profit'] ?? 0.0) / $rev * 100,
-                    'core.expense_ratio' => (float) ($pl['operating_expenses'] ?? 0.0) / $rev * 100,
+                    'core.gross_margin_pct' => ((float) ($pl['gross_profit'] ?? 0.0) / $rev) * 100,
+                    'core.net_margin_pct' => ((float) ($pl['net_profit'] ?? 0.0) / $rev) * 100,
+                    'core.expense_ratio' => ((float) ($pl['operating_expenses'] ?? 0.0) / $rev) * 100,
                     default => 0.0,
                 };
                 return ReckonerResult::success($id, $key, $shape, $card, $period, [
@@ -197,13 +200,22 @@ abstract class AbstractCardResolver implements CardResolverInterface
 
             case 'core.receivables':
             case 'core.payables':
-                if (!$reporting) {
-                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
-                }
-                $bs = $reporting->getBalanceSheet($endDate, $tenantId);
+                $net = function (string $code, string $expression) use ($tenantId) {
+                    return (float) DB::table('journal_items')
+                        ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                        ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+                        ->where('accounts.tenant_id', $tenantId)
+                        ->where('accounts.code', $code)
+                        ->where('journal_entries.tenant_id', $tenantId)
+                        ->where('journal_entries.is_reversed', 0)
+                        ->selectRaw("{$expression} as net")
+                        ->value('net');
+                };
+
                 $val = $key === 'core.receivables'
-                    ? (float) ($bs['assets']['accounts_receivable'] ?? 0.0)
-                    : (float) ($bs['liabilities']['accounts_payable'] ?? 0.0);
+                    ? $net('1200', 'COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0)')
+                    : $net('2000', 'COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0)');
+
                 return ReckonerResult::success($id, $key, $shape, $card, $period, [
                     'value' => $val,
                     'previous' => null,
@@ -213,31 +225,88 @@ abstract class AbstractCardResolver implements CardResolverInterface
             case 'core.total_liquidity':
             case 'core.net_cash_position':
             case 'core.working_capital':
-                if (!$reporting) {
-                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
+                $cashAccounts = DB::table('accounts')
+                    ->where('tenant_id', $tenantId)
+                    ->where('type', 'asset')
+                    ->whereBetween('code', ['1000', '1099'])
+                    ->pluck('id')
+                    ->toArray();
+
+                $val = 0.0;
+                if (!empty($cashAccounts)) {
+                    $totals = DB::table('journal_items as ji')
+                        ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                        ->where('ji.tenant_id', $tenantId)
+                        ->whereIn('ji.account_id', $cashAccounts)
+                        ->where('je.tenant_id', $tenantId)
+                        ->where('je.date', '<=', $endDate)
+                        ->where('je.is_reversed', 0)
+                        ->selectRaw('SUM(ji.debit) as total_debit, SUM(ji.credit) as total_credit')
+                        ->first();
+
+                    $debit = (float) ($totals->total_debit ?? 0.0);
+                    $credit = (float) ($totals->total_credit ?? 0.0);
+                    $val = $debit - $credit;
                 }
-                $bs = $reporting->getBalanceSheet($endDate, $tenantId);
-                $cash = (float) ($bs['assets']['cash_and_bank'] ?? 0.0);
+
                 return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => $cash,
+                    'value' => $val,
                     'previous' => null,
                     'change_pct' => null,
                 ]);
 
+            case 'core.balance_sheet_ok':
+                $diff = (float) DB::table('journal_items')
+                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->where('journal_items.tenant_id', $tenantId)
+                    ->where('journal_entries.tenant_id', $tenantId)
+                    ->where('journal_entries.is_reversed', 0)
+                    ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as diff')
+                    ->value('diff');
+
+                $balanced = abs($diff) < 0.01;
+
+                return ReckonerResult::success($id, $key, $shape, $card, $period, [
+                    'value' => $balanced ? 1 : 0,
+                    'state' => $balanced ? 'balanced' : 'out_of_balance',
+                    'label' => $balanced ? 'Balanced' : 'Out of Balance',
+                    'severity' => $balanced ? 'ok' : 'critical',
+                ]);
+
+            case 'core.receivables_aging':
+            case 'core.payables_aging':
+                $reportResult = $reporting ? ($key === 'core.receivables_aging' ? $reporting->getAgedReceivables() : $reporting->getAgedPayables()) : [];
+                $summary = $reportResult['summary'] ?? [];
+                $total = (float) array_sum($summary);
+                $slices = [];
+                foreach ($summary as $name => $val) {
+                    $slices[] = [
+                        'name' => $name === '90+' ? "Over 90 days" : ($name === '0-30' ? "0-30 Days" : ($name === '31-60' ? "31-60 Days" : "61-90 Days")),
+                        'value' => (float) $val,
+                        'pct' => $total > 0 ? round(($val / $total) * 100, 1) : 0.0,
+                    ];
+                }
+
+                return ReckonerResult::success($id, $key, $shape, $card, $period, [
+                    'value' => $total,
+                    'slices' => $slices,
+                    'segments' => $slices,
+                    'total' => $total,
+                ]);
+
             case 'core.transaction_count':
-                $count = DB::table('sales')->where('tenant_id', $tenantId)
+                $count = (int) DB::table('sales')->where('tenant_id', $tenantId)
                     ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
                     ->count();
+
                 return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => (int) $count,
+                    'value' => $count,
                     'previous' => null,
                     'change_pct' => null,
                 ]);
 
             case 'core.revenue_trend':
             case 'core.profit_trend':
-            case 'core.cash_flow_trend':
-            case 'core.liquidity_trend':
                 if (!$reporting) {
                     return ReckonerResult::empty($id, $key, $shape, $card, $period);
                 }
@@ -247,171 +316,31 @@ abstract class AbstractCardResolver implements CardResolverInterface
                 foreach ($byPeriod as $d => $m) {
                     $series[] = ['x' => (string) $d, 'y' => (float) ($m[$metricField] ?? 0.0)];
                 }
+
                 return ReckonerResult::success($id, $key, $shape, $card, $period, [
                     'value' => !empty($series) ? end($series)['y'] : 0.0,
                     'series' => $series,
                 ]);
 
             default:
-                $hasSales = DB::table('sales')->where('tenant_id', $tenantId)->exists();
-                if (!$hasSales) {
-                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
+                if (($card['contract_state'] ?? '') !== 'unimplemented') {
+                    $engine = app(\App\Reckoner\Engine\MeasureEngine::class);
+                    $req = new \App\Reckoner\ReckonerRequest($key, $period->key);
+                    $res = $engine->resolve([$req], $ctx);
+                    $comp = $req->getCompositeId();
+                    if (isset($res[$comp])) {
+                        return $res[$comp];
+                    }
                 }
-                return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => 0.0,
-                    'previous' => null,
-                    'change_pct' => null,
-                ]);
+
+                return ReckonerResult::unavailable(
+                    $id,
+                    $key,
+                    'not_built',
+                    "Core card '{$key}' calculation is not built yet.",
+                    $card,
+                    $period
+                );
         }
-    }
-
-    protected function formatResultByShape(
-        \Illuminate\Database\Query\Builder $query,
-        ReckonerShape $shape,
-        array $card,
-        ReckonerPeriod $period,
-        string $id,
-        ?string $dateCol,
-        string $table = ''
-    ): ReckonerResult {
-        $key = static::key();
-        $valCol = $this->determineValueColumn($table ?: $this->determinePrimaryTable($card) ?: '');
-
-        switch ($shape) {
-            case ReckonerShape::SERIES:
-                if (!$dateCol) {
-                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
-                }
-                $rows = (clone $query)->selectRaw("DATE({$dateCol}) as d, COUNT(*) as c, COALESCE(SUM({$valCol}), 0) as s")
-                    ->groupBy('d')
-                    ->orderBy('d')
-                    ->get();
-                if ($rows->isEmpty()) {
-                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
-                }
-                $series = $rows->map(fn ($r) => ['x' => $r->d, 'y' => (float) ($card['unit'] === 'currency' ? $r->s : $r->c)])->values()->all();
-                $val = !empty($series) ? end($series)['y'] : 0.0;
-                return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => $val,
-                    'series' => $series,
-                ]);
-
-            case ReckonerShape::BREAKDOWN:
-                return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => 0.0,
-                    'slices' => [],
-                    'segments' => [],
-                ]);
-
-            case ReckonerShape::RANKING:
-            case ReckonerShape::TABLE:
-                return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => 0.0,
-                    'rows' => [],
-                    'truncated' => false,
-                ]);
-
-            case ReckonerShape::GAUGE:
-                return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => 0.0,
-                ]);
-
-            case ReckonerShape::STATUS:
-                return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => 1.0,
-                ]);
-
-            case ReckonerShape::SCALAR:
-            default:
-                $count = (int) (clone $query)->count();
-                if ($count === 0) {
-                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
-                }
-                $series = [];
-                if ($dateCol) {
-                    try {
-                        $dailyRows = (clone $query)->selectRaw("DATE({$dateCol}) as d, COUNT(*) as c, COALESCE(SUM({$valCol}), 0) as s")
-                            ->groupBy('d')
-                            ->orderBy('d')
-                            ->get();
-                        foreach ($dailyRows as $dr) {
-                            $series[] = [
-                                'x' => (string) $dr->d,
-                                'y' => (float) (($card['unit'] ?? '') === 'currency' ? $dr->s : $dr->c)
-                            ];
-                        }
-                    } catch (\Throwable) {}
-                }
-                return ReckonerResult::success($id, $key, $shape, $card, $period, [
-                    'value' => (float) $count,
-                    'previous' => null,
-                    'change_pct' => null,
-                    'series' => $series,
-                ]);
-        }
-    }
-
-    protected function determinePrimaryTable(array $card): ?string
-    {
-        $module = $card['module'] ?? '';
-        $key = $card['key'] ?? '';
-
-        if ($key === 'inventory.stock_value_trend' || $key === 'inventory.stock_value') return 'inventory_batches';
-        if (str_starts_with($key, 'products.')) return 'products';
-        if (str_starts_with($key, 'customers.')) return 'parties';
-        if (str_starts_with($key, 'suppliers.')) return 'parties';
-        if (str_starts_with($key, 'pos.')) return 'sales';
-        if (str_starts_with($key, 'invoicing.')) return 'sales';
-        if (str_starts_with($key, 'quotations.')) return 'quotations';
-        if (str_starts_with($key, 'sales_orders.')) return 'sales_orders';
-        if (str_starts_with($key, 'purchases.')) return 'purchases';
-        if (str_starts_with($key, 'purchase_orders.')) return 'purchase_orders';
-        if (str_starts_with($key, 'expenses.')) return 'expenses';
-        if (str_starts_with($key, 'payments.')) return 'payments';
-        if (str_starts_with($key, 'inventory.')) return 'products';
-        if (str_starts_with($key, 'batches_expiry.')) return 'batches';
-        if (str_starts_with($key, 'stock_transfers.')) return 'stock_transfers';
-        if (str_starts_with($key, 'stock_takes.')) return 'stock_takes';
-        if (str_starts_with($key, 'production_runs.')) return 'production_runs';
-        if (str_starts_with($key, 'staff_attendance.')) return 'tenant_users';
-        if (str_starts_with($key, 'bank_accounts.')) return 'bank_accounts';
-
-        return match ($module) {
-            'products' => 'products',
-            'customers', 'suppliers' => 'parties',
-            'pos', 'invoicing' => 'sales',
-            'purchases' => 'purchases',
-            'expenses' => 'expenses',
-            'payments' => 'payments',
-            'inventory' => 'products',
-            'batches_expiry' => 'batches',
-            'staff_attendance' => 'tenant_users',
-            default => null,
-        };
-    }
-
-    protected function determineDateColumn(string $table): ?string
-    {
-        return match ($table) {
-            'sales' => 'posted_at',
-            'purchases' => 'purchase_date',
-            'expenses' => 'date',
-            'payments' => 'date',
-            default => 'created_at',
-        };
-    }
-
-    protected function determineValueColumn(string $table): string
-    {
-        if ($table === 'inventory_batches') {
-            return 'remaining_qty * unit_cost';
-        }
-        if (Schema::hasColumn($table, 'total')) return 'total';
-        if (Schema::hasColumn($table, 'amount')) return 'amount';
-        if (Schema::hasColumn($table, 'net_sales')) return 'net_sales';
-        if (Schema::hasColumn($table, 'current_balance')) return 'current_balance';
-        if (Schema::hasColumn($table, 'price')) return 'price';
-        if (Schema::hasColumn($table, 'cost_price')) return 'cost_price';
-        return '1';
     }
 }

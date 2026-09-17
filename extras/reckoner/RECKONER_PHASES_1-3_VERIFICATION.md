@@ -1,0 +1,25 @@
+# Phases 1-3 Independent Verification (mid-Phase-4 checkpoint)
+
+You asked me to check the IDE's work while it's still going on Phase 4, before you let it finish. Here's what I found by reading the actual files and running independent checks — not by trusting its self-reports.
+
+## Real and solid
+
+**Migrations (Phase 3):** Both new migrations exist and are correct. `accounts.role` / `accounts.is_current` get added and backfilled for every existing account by a real code-based classification rule; `journal_items.bank_account_id` gets added with a proper index. I checked that `journal_items` actually has `tenant_id` already (added back in April), so the new compound index is valid — no schema bug here.
+
+**`FinancialReportingService` (Phase 3's central claim):** I read the actual `getProfitAndLoss()` and `getBalanceSheet()` methods. Both now take an explicit `$tenantId` parameter — this fixes the single-argument limitation I flagged in the original diagnosis. A tenant with **no chart of accounts** now throws `MissingFinancialAccountException` instead of silently seeding one (I checked this is real, not just claimed — traced it line by line). A tenant with **no tenant context at all** still returns honest zeros, which is correct (there's genuinely nothing to report). `LedgerFoundationGateTest::test_tenant_with_no_chart_writes_zero_rows_and_throws` exercises exactly this and asserts the account count stays at 0 after the failed read — a real regression guard, not a tautology.
+
+**`SaleServiceParityTest` (closes the two-sale-paths risk from my original review):** This test posts the same sale through both `SaleController::store()` (the real screen) and `SaleService::post()` (the engine), then compares the resulting journal lines by account code. I hand-verified the expected numbers myself: 2 items × Rs.100 with 10% tax should produce AR debit 220, revenue credit 200, tax credit 20, COGS debit 80, inventory credit 80 — the test's hardcoded expectations match that exactly, and it asserts the two paths produce byte-identical journal lines. This is exactly the kind of test I said Phase 1 needed.
+
+**`cards.json` structure (Phase 2):** I had a subagent independently load and cross-check the full 349-card catalog against measures.json using Python, not trusting either file's own internal claims. Results: exactly 349 unique cards, all with complete contract blocks (11/11 required sub-keys, zero missing), unit and period_kind vocabularies 100% clean against the allowed lists, all 379 measure references resolve to real entries in the 199-measure library, zero projection-legality violations (no flow-period card references a balance/distinct measure). This part is genuinely solid engineering.
+
+## Found a real, if minor, misleading claim
+
+The Phase 2 report said "Diff between the regenerated markdown and the canonical matrix file: 0 bytes (CLEAN / EXACT MATCH)" in a way that implied a fresh rewrite happened. I checked: **`RECKONER_CARD_CONTRACT_MATRIX.md`'s file-modified timestamp hasn't changed since before Phase 1 even started** — it was never actually written to disk. I found why: the new `CardContractValidatorTest` runs `generate-matrix-markdown.php` in check-only mode (never passes `--write`), so "0 diff" is a real, true claim — it just means the matrix already matches what cards.json would regenerate, not that a rewrite happened. Not a bug, but worded in a way that could mislead you into thinking something changed when it didn't. Worth telling the IDE to be precise about "verified no drift" vs. "rewrote the file" going forward.
+
+## Found something that needs a decision from you
+
+This is the one that actually matters: of the 349 cards, only **13 are genuinely `contract_state: verified`**. But **268 cards carry `contract.status: "READY"`** while simultaneously being `contract_state: "unimplemented"` and carrying the identical boilerplate `status_reason: "Not available yet — calculation contract implementation in progress"`. That's not a bug in the data — it's a real ambiguity in what "READY" is supposed to mean in the contract block (schema/shape defined, vs. actually computing correct numbers). If the IDE's Phase 4 work reads `contract.status === 'READY'` anywhere to decide whether to show a card as live, that would let 268 unimplemented cards leak back into the dashboard as if they were done — which is exactly the original bug this whole rebuild is trying to kill. Worth asking it directly: does anything in Phase 4 branch on `contract.status`, or only on `contract_state`? If the former, that's a real problem to fix before Phase 4 finishes, not after.
+
+## Bottom line
+
+Phases 1-3 hold up under independent verification — the ledger math, the dual-path parity test, and the card catalog structure are all real, not rubber-stamped. The one thing I'd stop and ask the IDE before letting it finish Phase 4: confirm nothing downstream treats `contract.status: READY` as "safe to display" when `contract_state` says `unimplemented`. Everything else looks solid enough to let it keep going.

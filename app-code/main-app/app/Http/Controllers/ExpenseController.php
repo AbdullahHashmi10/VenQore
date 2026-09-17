@@ -608,8 +608,17 @@ class ExpenseController extends Controller
         }
 
         if ($paid > 0.0001) {
-            $lines[] = ['account_id' => $creditAccount->id, 'debit' => 0, 'credit' => $paid,
-                        'description' => 'Paid ' . ($expense->payee ?? '')];
+            $bankAccountId = ($expense->payment_method !== 'cash' && !empty($expense->bank_account_id))
+                ? $expense->bank_account_id
+                : null;
+
+            $lines[] = [
+                'account_id'      => $creditAccount->id,
+                'debit'           => 0,
+                'credit'          => $paid,
+                'bank_account_id' => $bankAccountId,
+                'description'     => 'Paid ' . ($expense->payee ?? '')
+            ];
         }
         if ($unpaid > 0.0001) {
             $lines[] = [

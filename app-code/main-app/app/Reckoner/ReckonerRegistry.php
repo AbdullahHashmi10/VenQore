@@ -4,6 +4,7 @@ namespace App\Reckoner;
 
 use App\Reckoner\Sources\FinanceSource;
 use App\Reckoner\Sources\InventorySource;
+use App\Reckoner\Sources\MeasureEngineSource;
 use App\Reckoner\Sources\OperationsSource;
 use App\Reckoner\Sources\PartySource;
 use App\Reckoner\Sources\PlatformSource;
@@ -58,7 +59,7 @@ final class ReckonerRegistry
         'inventory.low_stock_list' => 'inventory',
         'inventory.out_of_stock_count' => 'inventory',
         'inventory.overstock_count' => 'inventory',
-        'inventory.product_count' => 'products',
+        'inventory.product_count' => 'inventory',
         'batch_tracking.count' => 'batches_expiry',
         'batch_tracking.qty' => 'batches_expiry',
         // Sales / Products
@@ -553,7 +554,7 @@ final class ReckonerRegistry
                 'precision' => 0,
                 'direction' => 'neutral',
                 'signed' => false,
-                'periods' => ReckonerPeriod::KEYS,
+                'periods' => ['live'],
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
@@ -1765,6 +1766,9 @@ final class ReckonerRegistry
         unset($def);
 
         foreach (CardRegistry::all() as $cardKey => $card) {
+            $contractState = $card['contract_state'] ?? 'unimplemented';
+            $isImplemented = $contractState !== 'unimplemented';
+
             if (isset($all[$cardKey])) {
                 $all[$cardKey]['weight'] = $card['weight'] ?? 50;
                 $all[$cardKey]['insight'] = $card['insight'] ?? '';
@@ -1772,6 +1776,18 @@ final class ReckonerRegistry
                 $all[$cardKey]['streams'] = $card['streams'] ?? [];
                 $all[$cardKey]['measures'] = $card['measures'] ?? [];
                 $all[$cardKey]['module'] = $card['module'];
+                $all[$cardKey]['contract_state'] = $contractState;
+                $all[$cardKey]['status_reason'] = $card['status_reason'] ?? null;
+                $all[$cardKey]['implemented'] = $isImplemented;
+                if (!empty($card['permissions'])) {
+                    $all[$cardKey]['permissions'] = $card['permissions'];
+                }
+                if (!empty($card['periods'])) {
+                    $all[$cardKey]['periods'] = $card['periods'];
+                }
+                if (!empty($card['default_period'])) {
+                    $all[$cardKey]['default_period'] = $card['default_period'];
+                }
                 continue;
             }
 
@@ -1790,16 +1806,16 @@ final class ReckonerRegistry
                 'precision' => (int) ($card['precision'] ?? 2),
                 'direction' => 'higher_is_better',
                 'signed' => false,
-                'periods' => ReckonerPeriod::KEYS,
-                'default_period' => ($card['period_aware'] ?? false) ? 'this_month' : 'today',
+                'periods' => !empty($card['periods']) ? $card['periods'] : ReckonerPeriod::KEYS,
+                'default_period' => $card['default_period'] ?? (($card['period_aware'] ?? false) ? 'this_month' : 'today'),
                 'supports_comparison' => true,
                 'supports_series' => true,
                 'series_granularity' => ['daily', 'weekly', 'monthly'],
-                'permissions' => [],
+                'permissions' => !empty($card['permissions']) ? $card['permissions'] : ['reports.summary'],
                 'feature' => null,
                 'capability' => null,
                 'scope' => 'tenant',
-                'source' => null,
+                'source' => MeasureEngineSource::class,
                 'method' => null,
                 'resolver' => $resolverClass,
                 'cache_ttl' => 60,
@@ -1807,7 +1823,9 @@ final class ReckonerRegistry
                 'dimensions' => [],
                 'filters' => [],
                 'additive' => false,
-                'implemented' => true,
+                'implemented' => $isImplemented,
+                'contract_state' => $contractState,
+                'status_reason' => $card['status_reason'] ?? null,
                 'module' => $card['module'],
                 'weight' => (int) ($card['weight'] ?? 50),
                 'insight' => $card['insight'] ?? '',
@@ -1895,14 +1913,21 @@ final class ReckonerRegistry
 
     /**
      * Generate the V6 Dashboard reading catalog from ReckonerRegistry.
-     * Guaranteed that every reading emitted here has a verified calculation implementation.
+     * Guaranteed that every reading emitted here has a declared contract_state.
      */
     public static function v6Catalog(bool $includePlatform = false): array
     {
         $catalog = [];
         foreach (CardRegistry::all() as $key => $card) {
-            $mod = $card['module'] ?? null;
-            $rawModules = $mod ? [$mod] : [];
+            $def = self::find($key);
+            $contractState = $card['contract_state'] ?? ($def['contract_state'] ?? 'unimplemented');
+            $statusReason = $card['status_reason'] ?? ($def['status_reason'] ?? null);
+
+            $mod = $card['module'] ?? ($def['module'] ?? null);
+            $mappedModules = self::MODULE_MAP[$key] ?? null;
+            $rawModules = $mappedModules 
+                ? (is_array($mappedModules) ? $mappedModules : [$mappedModules])
+                : ($mod ? [$mod] : []);
 
             $area = 'Operations';
             if (in_array($mod, ['pos', 'invoicing', 'quotations', 'sales_orders', 'sales_returns', 'pricing_tiers', 'pre_sales'], true)) {
@@ -1937,9 +1962,11 @@ final class ReckonerRegistry
                 'insight' => $card['insight'] ?? '',
                 'weight' => (int) ($card['weight'] ?? 50),
                 'topic' => $card['topic'] ?? null,
-                'periods' => ReckonerPeriod::KEYS,
-                'default_period' => ($card['period_aware'] ?? false) ? 'this_month' : 'today',
+                'periods' => $card['periods'] ?? ReckonerPeriod::KEYS,
+                'default_period' => $card['default_period'] ?? (($card['period_aware'] ?? false) ? 'this_month' : 'today'),
                 'period_aware' => (bool) ($card['period_aware'] ?? false),
+                'contract_state' => $contractState,
+                'status_reason' => $statusReason,
                 'rowNames' => [],
                 'sliceNames' => [],
             ];

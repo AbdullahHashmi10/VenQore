@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { parseMatrixData } from './parse-matrix-data.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -114,9 +115,130 @@ function deduceUnit(key, card) {
   return { unit: 'count', precision: 0 };
 }
 
+// Load parsed matrix rows and measures
+const matrixRows = parseMatrixData();
+const cardMeasuresPath = path.resolve(outDir, 'card_to_measures.json');
+const cardMeasuresMap = fs.existsSync(cardMeasuresPath)
+  ? JSON.parse(fs.readFileSync(cardMeasuresPath, 'utf8'))
+  : {};
+
+const contractStatesPath = path.resolve(outDir, 'card_contract_states.json');
+const contractStates = fs.existsSync(contractStatesPath)
+  ? JSON.parse(fs.readFileSync(contractStatesPath, 'utf8'))
+  : { verified: [], implemented_unverified: [], unimplemented: [] };
+
+const verifiedKeys = new Set(contractStates.verified);
+const implementedUnverifiedKeys = new Set(contractStates.implemented_unverified);
+
+function resolvePermissions(mod, key) {
+  switch (mod) {
+    case 'pos':
+    case 'invoicing':
+    case 'quotations':
+    case 'sales_orders':
+    case 'sales_returns':
+    case 'pricing_tiers':
+    case 'pre_sales':
+      return ['sales.view'];
+    case 'expenses':
+      return ['finance.expenses', 'reports.financial'];
+    case 'payments':
+    case 'cash_register':
+    case 'bank_accounts':
+    case 'bank_reconciliation':
+    case 'accounting_workspace':
+    case 'tax_compliance':
+    case 'loans':
+      return ['finance.balances', 'reports.financial'];
+    case 'inventory':
+    case 'multi_location':
+    case 'stock_transfers':
+    case 'stock_takes':
+    case 'batches_expiry':
+    case 'serials':
+    case 'variants':
+    case 'barcodes_labels':
+    case 'units_of_measure':
+      return ['inventory.view'];
+    case 'purchases':
+    case 'purchase_orders':
+    case 'purchase_returns':
+    case 'landed_cost':
+      return ['purchases.view'];
+    case 'cookbook':
+    case 'production_runs':
+    case 'composite_items':
+      return ['inventory.view'];
+    case 'customers':
+      return ['sales.view'];
+    case 'suppliers':
+      return ['purchases.view'];
+    case 'khata_credit':
+      return ['finance.balances', 'sales.view'];
+    case 'staff_attendance':
+      return ['admin.staff_view'];
+    default:
+      return key.startsWith('core.') ? ['reports.financial', 'reports.summary'] : ['reports.summary'];
+  }
+}
+
 const cards = Object.fromEntries(Object.values(C).map(c => {
-  const { unit, precision } = deduceUnit(c.key, c);
+  const deduced = deduceUnit(c.key, c);
+  const matrixRow = matrixRows[c.key];
+
+  let unit = matrixRow?.correctedUnit || deduced.unit;
+  let precision = (unit === 'currency' || unit === 'ratio' || unit === 'percent') ? 2 : 0;
+
+  const tier = matrixRow?.tier || 'Flow';
+  const matrixStatus = matrixRow?.status || 'READY';
+
+  // Determine contract_state and status_reason
+  let contractState = 'unimplemented';
+  let statusReason = null;
+  if (verifiedKeys.has(c.key)) {
+    contractState = 'verified';
+  } else if (implementedUnverifiedKeys.has(c.key)) {
+    contractState = 'implemented_unverified';
+  } else {
+    if (matrixStatus === 'FEATURE') {
+      statusReason = 'Not available yet — feature data is not captured in this version';
+    } else if (matrixStatus === 'COLUMN') {
+      statusReason = 'Not available yet — required tracking column/event is pending migration';
+    } else {
+      statusReason = 'Not available yet — calculation contract implementation in progress';
+    }
+  }
+
+  // Determine period_kind
+  const periodKind = (tier === 'Flow') ? 'flow' : ((tier === 'Live' || tier === 'Check') ? 'live' : 'as_of');
+
+  // Allowed periods
+  const periods = (tier === 'Live' || tier === 'Ledger balance' || tier === 'Check')
+    ? ['live', 'today', 'as_of', 'this_month']
+    : ['today', 'yesterday', 'this_week', 'this_month', 'last_month', 'this_quarter', 'this_year', 'custom'];
+  const defaultPeriod = (tier === 'Live' || tier === 'Ledger balance' || tier === 'Check')
+    ? 'today'
+    : (c.period ? 'this_month' : 'today');
+
+  const permissions = resolvePermissions(c.module, c.key);
   const streams = streamsOf(c) || [];
+  const cardMeasures = cardMeasuresMap[c.key] || ['gl.sales_revenue'];
+  const checks = matrixRow?.check ? [matrixRow.check] : [];
+
+  const contract = {
+    measures: cardMeasures,
+    projection: c.viz,
+    unit,
+    precision,
+    period_kind: periodKind,
+    dims: [],
+    tier,
+    checks,
+    status: matrixStatus,
+    status_reason: statusReason,
+    definition_version: 1,
+  };
+
   return [c.key, {
     key: c.key,
     title: c.title,
@@ -130,6 +252,22 @@ const cards = Object.fromEntries(Object.values(C).map(c => {
     unit,
     precision,
     streams,
+    contract_state: contractState,
+    status_reason: statusReason,
+    permissions,
+    periods,
+    default_period: defaultPeriod,
+    tier,
+    matrix_status: matrixStatus,
+    matrix: matrixRow ? {
+      num: matrixRow.num,
+      section: matrixRow.section,
+      today: matrixRow.today,
+      unit_col: matrixRow.unitCol,
+      target: matrixRow.target,
+      streams: matrixRow.streamsRaw,
+    } : null,
+    contract,
   }];
 }));
 

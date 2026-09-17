@@ -176,8 +176,8 @@ function readingDesc(r){
    else. An empty enabled-set (no tenant bound, the dev harness) gates
    nothing. A reading matching no rule is always available. */
 function modulesOf(key){
-  if (typeof READINGS !== "undefined" && Array.isArray(READINGS)) {
-    const found = READINGS.find(r => r.key === key);
+  if (typeof window !== "undefined" && Array.isArray(window.READINGS)) {
+    const found = window.READINGS.find(r => r.key === key);
     if (found && Array.isArray(found.modules)) return found.modules;
   }
   const fallback = Array.isArray(RECKONER_CATALOG) ? RECKONER_CATALOG.find(r => r.key === key) : null;
@@ -224,6 +224,17 @@ function prepareReadings(source) {
 // Server-provided facts used by the non-Reckoner hub cards.
 let DASHBOARD_RUNTIME_DATA = {};
 
+/* ── live reckoner integration & cache ─────────────── */
+const LIVE_RECKONER_DATA = {};
+const PENDING_RECKONER_REQUESTS = new Set();
+let RECKONER_FETCH_TIMER = null;
+
+function clearReckonerDataCache() {
+  for (const k of Object.keys(LIVE_RECKONER_DATA)) {
+    delete LIVE_RECKONER_DATA[k];
+  }
+}
+
 function runCardBuilder(opts) {
   /* Inertia remounts this page on every client-side navigation back to it. The
      engine registers document-level listeners, so running it twice would double
@@ -252,6 +263,7 @@ function setEnabledModules(list){
   ENABLED_MODULES = Array.isArray(list) && list.length ? new Set(list) : null;
 }
 function readingAvailable(r){
+  if (r && r.contract_state === 'unimplemented') return false;
   if (!ENABLED_MODULES) return true;
   const mods = r.modules || [];
   if (!mods.length) return true;
@@ -353,10 +365,6 @@ function abbrNum(n){
 function unitPrefix(unit){ return unit === "currency" ? "Rs " : ""; }
 function unitSuffix(unit){ return unit === "percent" ? "%" : ""; }
 
-/* ── live reckoner integration & deterministic fallback ─────────────── */
-const LIVE_RECKONER_DATA = {};
-const PENDING_RECKONER_REQUESTS = new Set();
-let RECKONER_FETCH_TIMER = null;
 
 function toReckonerPeriod(period) {
   const map = {
@@ -372,7 +380,9 @@ function toReckonerPeriod(period) {
 
 function queueLiveReadings(cards, onComplete) {
   if (!cards || !cards.length || typeof window === "undefined" || typeof axios === "undefined") return;
+  const now = Date.now();
   const requests = [];
+
   cards.forEach(c => {
     if (!c || c.type) return;
     const uiPer = c.period || "Month";
@@ -381,12 +391,23 @@ function queueLiveReadings(cards, onComplete) {
     if (rd && rd.periods && Array.isArray(rd.periods) && rd.periods.length > 0 && !rd.periods.includes(reckPer)) {
       reckPer = rd.default_period || rd.periods[0] || "live";
     }
+    const gran = PERIOD[uiPer]?.grain || "day";
+    const compositeId = `${c.key}|${reckPer}|${gran}`;
     const reqKey = `${c.key}|${uiPer}`;
-    const mappedKey = `${c.key}|${reckPer}`;
-    if (!PENDING_RECKONER_REQUESTS.has(reqKey) && !LIVE_RECKONER_DATA[reqKey] && !LIVE_RECKONER_DATA[mappedKey]) {
-      PENDING_RECKONER_REQUESTS.add(reqKey);
-      requests.push({ key: c.key, period: reckPer, reqKey, uiPeriod: uiPer });
+
+    const existing = LIVE_RECKONER_DATA[compositeId] || LIVE_RECKONER_DATA[reqKey];
+    const isExpired = existing && existing._expiresAt && now > existing._expiresAt;
+    if (isExpired) {
+      delete LIVE_RECKONER_DATA[compositeId];
+      delete LIVE_RECKONER_DATA[reqKey];
+      delete LIVE_RECKONER_DATA[`${c.key}|${reckPer}`];
     }
+
+    if (!PENDING_RECKONER_REQUESTS.has(reqKey) && (!existing || isExpired)) {
+      PENDING_RECKONER_REQUESTS.add(reqKey);
+      requests.push({ key: c.key, period: reckPer, granularity: gran, reqKey, uiPeriod: uiPer });
+    }
+
     if (Array.isArray(c.extraKeys)) {
       c.extraKeys.forEach(ek => {
         const ekRd = readingOf(ek);
@@ -394,11 +415,19 @@ function queueLiveReadings(cards, onComplete) {
         if (ekRd && ekRd.periods && Array.isArray(ekRd.periods) && ekRd.periods.length > 0 && !ekRd.periods.includes(ekReckPer)) {
           ekReckPer = ekRd.default_period || ekRd.periods[0] || "live";
         }
+        const ekCompositeId = `${ek}|${ekReckPer}|${gran}`;
         const ekReqKey = `${ek}|${uiPer}`;
-        const ekMappedKey = `${ek}|${ekReckPer}`;
-        if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && !LIVE_RECKONER_DATA[ekReqKey] && !LIVE_RECKONER_DATA[ekMappedKey]) {
+        const ekExisting = LIVE_RECKONER_DATA[ekCompositeId] || LIVE_RECKONER_DATA[ekReqKey];
+        const ekIsExpired = ekExisting && ekExisting._expiresAt && now > ekExisting._expiresAt;
+        if (ekIsExpired) {
+          delete LIVE_RECKONER_DATA[ekCompositeId];
+          delete LIVE_RECKONER_DATA[ekReqKey];
+          delete LIVE_RECKONER_DATA[`${ek}|${ekReckPer}`];
+        }
+
+        if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && (!ekExisting || ekIsExpired)) {
           PENDING_RECKONER_REQUESTS.add(ekReqKey);
-          requests.push({ key: ek, period: ekReckPer, reqKey: ekReqKey, uiPeriod: uiPer });
+          requests.push({ key: ek, period: ekReckPer, granularity: gran, reqKey: ekReqKey, uiPeriod: uiPer });
         }
       });
     }
@@ -416,24 +445,37 @@ function queueLiveReadings(cards, onComplete) {
 
   Promise.allSettled(chunks.map(chunk =>
     axios.post("/api/reckoner/read", {
-      requests: chunk.map(r => ({ key: r.key, period: r.period }))
+      requests: chunk.map(r => ({ key: r.key, period: r.period, granularity: r.granularity }))
     }).then(res => {
       const items = res?.data?.data || [];
+      const receivedAt = Date.now();
       items.forEach((item) => {
         if (item && item.key) {
-          const req = chunk.find(r => r.key === item.key && (r.period === item.period?.key || r.period === item.period))
+          const ttlSec = Number(item.meta?.ttl) || 60;
+          item._expiresAt = receivedAt + ttlSec * 1000;
+
+          // Match by item.id if composite id returned, or key + period
+          const req = chunk.find(r => item.id && item.id.startsWith(r.key + '|' + r.period))
+            || chunk.find(r => r.key === item.key && (r.period === item.period?.key || r.period === item.period))
             || chunk.find(r => r.key === item.key);
+
           const perKey = item.period?.key || req?.period || "today";
           const uiP = req?.uiPeriod || "Month";
+          const gran = req?.granularity || item.granularity || PERIOD[uiP]?.grain || "day";
+
+          if (item.id) {
+            LIVE_RECKONER_DATA[item.id] = item;
+          }
+          LIVE_RECKONER_DATA[`${item.key}|${perKey}|${gran}`] = item;
           LIVE_RECKONER_DATA[`${item.key}|${perKey}`] = item;
           LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
-          LIVE_RECKONER_DATA[`${item.key}|latest`] = item;
         }
       });
     }).catch(error => {
       const message = error?.response?.data?.message || error?.message || "This reading could not be loaded.";
       chunk.forEach(req => {
-        const failure = { key: req.key, ok: false, error: { code: "request_failed", message } };
+        const failure = { key: req.key, ok: false, status: "error", error: { code: "request_failed", message } };
+        LIVE_RECKONER_DATA[`${req.key}|${req.period}|${req.granularity}`] = failure;
         LIVE_RECKONER_DATA[`${req.key}|${req.period}`] = failure;
         LIVE_RECKONER_DATA[`${req.key}|${req.uiPeriod}`] = failure;
       });
@@ -449,11 +491,21 @@ function queueLiveReadings(cards, onComplete) {
   });
 }
 
+
 function liveReading(card){
-  return LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
-    || LIVE_RECKONER_DATA[`${card.key}|${toReckonerPeriod(card.period)}`]
-    || LIVE_RECKONER_DATA[`${card.key}|latest`]
+  const reckPer = toReckonerPeriod(card.period);
+  const gran = PERIOD[card.period]?.grain || "day";
+  const now = Date.now();
+
+  const candidate = LIVE_RECKONER_DATA[`${card.key}|${card.period}`]
+    || LIVE_RECKONER_DATA[`${card.key}|${reckPer}|${gran}`]
+    || LIVE_RECKONER_DATA[`${card.key}|${reckPer}`]
     || null;
+
+  if (candidate && candidate._expiresAt && now > candidate._expiresAt) {
+    return null;
+  }
+  return candidate;
 }
 
 function renderDataState(host, card, emptyMessage = "No data in this period."){
@@ -464,9 +516,16 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
     host.innerHTML = `<div class="ck-state is-loading" role="status">Loading…</div>`;
     return true;
   }
-  /* The Reckoner returns a reading envelope. These states used to collapse
-     into a blank card because the client only knew `ok`/not-ok. Keep the
-     message in the card where the owner can act on it. */
+  /* The Reckoner returns a reading envelope. Distinctly handle unavailable */
+  if (live?.status === "unavailable") {
+    const reason = live.error?.message || "Coming soon — not available yet.";
+    host.innerHTML = `<div class="ck-state is-unavailable" role="status">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <b>Not available yet</b>
+      <span>${esc(reason)}</span>
+    </div>`;
+    return true;
+  }
   if (live?.status === "empty"){
     host.innerHTML = `<div class="ck-state is-empty" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><path d="M4 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6"/><path d="M10 12h4"/></svg>
@@ -509,65 +568,72 @@ const SIGNED = /profit|net_|cash_flow|margin|variance/;
 /** A business series backed only by Reckoner data. Missing data is zero, never invented. */
 function valuesFor(key, period, unit){
   const { n, grain } = PERIOD[period] || PERIOD.Month;
+  const reckPer = toReckonerPeriod(period);
+  const gran = grain || "day";
   const reqKey = `${key}|${period}`;
   const live = LIVE_RECKONER_DATA[reqKey]
-    || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`]
-    || LIVE_RECKONER_DATA[`${key}|latest`];
+    || LIVE_RECKONER_DATA[`${key}|${reckPer}|${gran}`]
+    || LIVE_RECKONER_DATA[`${key}|${reckPer}`];
 
-  if (live && live.ok) {
+  if (live && live.ok && live.status !== "unavailable") {
     const seriesSource = (live.data && (live.data.series || live.data.points)) || live.series;
     if (seriesSource && Array.isArray(seriesSource) && seriesSource.length > 0) {
-      const firstX = String(seriesSource[0]?.x ?? '');
       const times = timeline(period);
 
-      if (firstX.includes('-') || (grain === 'hour' && firstX.length <= 2)) {
-        const xMap = new Map();
-        seriesSource.forEach(pt => {
-          const k = String(pt.x);
-          const v = typeof pt.y === 'number' ? pt.y : (typeof pt.value === 'number' ? pt.value : Number(pt) || 0);
-          xMap.set(k, v);
-        });
-
-        const mapped = times.map(t => {
-          let k;
+      // Build key map based on granularity
+      const xMap = new Map();
+      seriesSource.forEach(pt => {
+        let k = String(pt.t ?? pt.x ?? '');
+        if (pt.t) {
+          const ptDate = new Date(pt.t);
           if (grain === 'hour') {
-            k = String(t.getHours()).padStart(2, '0');
+            k = String(ptDate.getHours()).padStart(2, '0');
           } else if (grain === 'month') {
-            k = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`;
+            k = `${ptDate.getFullYear()}-${String(ptDate.getMonth() + 1).padStart(2, '0')}`;
           } else {
-            const y = t.getFullYear();
-            const m = String(t.getMonth() + 1).padStart(2, '0');
-            const d = String(t.getDate()).padStart(2, '0');
+            const y = ptDate.getFullYear();
+            const m = String(ptDate.getMonth() + 1).padStart(2, '0');
+            const d = String(ptDate.getDate()).padStart(2, '0');
             k = `${y}-${m}-${d}`;
           }
-          return xMap.has(k) ? xMap.get(k) : null;
-        });
-
-        if (mapped.some(v => v !== null)) {
-          return mapped.map(v => v ?? 0);
         }
+        const v = typeof pt.y === 'number' ? pt.y : (typeof pt.value === 'number' ? pt.value : (typeof pt === 'number' ? pt : (Number(pt) || 0)));
+        xMap.set(k, v);
+      });
+
+      const mapped = times.map(t => {
+        let k;
+        if (grain === 'hour') {
+          k = String(t.getHours()).padStart(2, '0');
+        } else if (grain === 'month') {
+          k = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`;
+        } else {
+          const y = t.getFullYear();
+          const m = String(t.getMonth() + 1).padStart(2, '0');
+          const d = String(t.getDate()).padStart(2, '0');
+          k = `${y}-${m}-${d}`;
+        }
+        return xMap.has(k) ? xMap.get(k) : null;
+      });
+
+      if (mapped.some(v => v !== null)) {
+        return mapped.map(v => v ?? 0);
       }
 
+      // If keys didn't match directly, check if pts array matches n directly without interpolation
       const pts = seriesSource.map(pt => (
         typeof pt === 'number' ? pt :
         typeof pt?.y === 'number' ? pt.y :
         typeof pt?.value === 'number' ? pt.value : 0
       ));
-      if (pts.length > 0) {
-        if (pts.length === n) return pts;
-        if (pts.length < n) {
-          const pad = new Array(n - pts.length).fill(0);
-          return [...pad, ...pts];
-        }
-        return pts.slice(-n);
-      }
-      return new Array(n).fill(0);
+      if (pts.length === n) return pts;
+      if (pts.length > n) return pts.slice(-n);
+      return pts;
     }
-    if (Array.isArray(live.data) && (live.data.length === 0 || typeof live.data[0] === 'number')) {
-      if (live.data.length === 0) return new Array(n).fill(0);
-      if (live.data.length >= n) return live.data.slice(-n);
-      const pad = new Array(n - live.data.length).fill(live.data[0] || 0);
-      return [...pad, ...live.data];
+    if (Array.isArray(live.data) && typeof live.data[0] === 'number') {
+      if (live.data.length === n) return live.data;
+      if (live.data.length > n) return live.data.slice(-n);
+      return live.data;
     }
     if (typeof live.data === 'number') {
       return new Array(n).fill(live.data);
@@ -575,22 +641,10 @@ function valuesFor(key, period, unit){
     if (typeof live.value === 'number' && (typeof live.data !== 'object' || live.data === null || (live.data.value === undefined && live.data.current === undefined))) {
       return new Array(n).fill(live.value);
     }
-    if (typeof live.data === 'object' && live.data !== null && (live.data.value !== undefined || live.data.current !== undefined || live.value !== undefined)) {
-      const curr = Number(live.data.value !== undefined ? live.data.value : (live.data.current !== undefined ? live.data.current : live.value)) || 0;
-      const prev = (live.data.previous !== undefined && live.data.previous !== null)
-        ? Number(live.data.previous)
-        : ((live.delta && typeof live.delta.value === 'number')
-          ? (curr - live.delta.value)
-          : curr);
-      const out = [];
-      for (let i = 0; i < n; i++) {
-        out.push(prev + (curr - prev) * (i / Math.max(1, n - 1)));
-      }
-      return out;
-    }
   }
 
-  return Array.from({ length: n }, () => 0);
+  // Never invent interpolation between points. Empty series returns empty or nulls
+  return new Array(n).fill(0);
 }
 
 /** Everything a cartesian card needs: real times, one array per series. */
@@ -610,15 +664,16 @@ function buildSeries(keys, period){
 /** Category breakdown for pie / ring / funnel / bar-ranking. */
 function buildParts(key, period, names){
   const reqKey = `${key}|${period}`;
-  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${toReckonerPeriod(period)}`];
+  const reckPer = toReckonerPeriod(period);
+  const live = LIVE_RECKONER_DATA[reqKey] || LIVE_RECKONER_DATA[`${key}|${reckPer}`];
   const rd = readingOf(key);
 
-  if (live && live.ok && live.data) {
+  if (live && live.ok && live.status !== "unavailable" && live.data) {
     const rawItems = live.data.slices || live.data.rows || (Array.isArray(live.data) ? live.data : null);
     if (Array.isArray(rawItems) && rawItems.length > 0) {
       const list = rawItems.map((item, i) => ({
         name: item.name || item.label || item.day || `Item ${i + 1}`,
-        value: typeof item.value === 'number' ? item.value : typeof item.total === 'number' ? item.total : Number(item.val || item.sales || item.count || 0),
+        value: typeof item.value === 'number' ? item.value : typeof item.total === 'number' ? item.total : (item.val !== undefined ? Number(item.val) : (item.sales !== undefined ? Number(item.sales) : (item.count !== undefined ? Number(item.count) : 0))),
         color: `var(--vq-series-${(i%8)+1})`,
       }));
       list.sort((a, b) => b.value - a.value);
@@ -627,36 +682,27 @@ function buildParts(key, period, names){
     }
   }
 
-  const rawNames = (Array.isArray(names) && names.length > 0)
-    ? names
-    : ((Array.isArray(rd?.rowNames) && rd.rowNames.length > 0)
-      ? rd.rowNames
-      : ["Cash", "Card", "Credit", "Bank", "Online", "Other"]);
-  const list = rawNames.map((n, i) => ({
-    name: n, value: 0, color: `var(--vq-series-${(i%8)+1})`
-  }));
-  list.sort((a,b) => b.value - a.value);
-  if (!list.length) list.push({ name: "General", value: 0, color: "var(--vq-series-1)" });
-  return { parts: list, total: list.reduce((s,x) => s + (x.value || 0), 0), unit: rd?.unit || "currency" };
+  // Never invent fake segment names when data is missing. Return empty parts
+  return { parts: [], total: 0, unit: rd?.unit || "currency" };
 }
 function unitBase(unit){ return unit === "currency" ? 180000 : unit === "percent" ? 22 : 320; }
 
 function readingOf(key){
   const found = Array.isArray(READINGS) ? READINGS.find(r => r.key === key) : null;
   if (found) return found;
-  if (Array.isArray(READINGS) && READINGS[0]) return READINGS[0];
+  // Return neutral fallback without inventing wrong label or unit
   return {
-    key: key || "sales.revenue",
-    label: "Revenue",
+    key: key || "unknown",
+    label: (key || "Metric").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
     shape: "SCALAR",
     unit: "currency",
-    area: "Sales",
-    module: "Sales",
-    short: "Revenue",
+    area: "General",
+    module: "General",
+    short: (key || "Metric").replace(/_/g, " "),
     extra: false,
-    desc: "Revenue for the period.",
-    rowNames: ["Cash", "Card", "Credit", "Bank", "Online", "Other"],
-    sliceNames: ["Cash", "Card", "Credit", "Bank", "Online"],
+    desc: "",
+    rowNames: [],
+    sliceNames: [],
   };
 }
 
@@ -2087,37 +2133,56 @@ function headlineOf(card){
   const live = liveReading(card);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
 
+  if (live?.status === "unavailable") {
+    return {
+      value: "—",
+      valueCompact: "—",
+      dir: "up", pct: "",
+      when: live.error?.message || "Not available yet",
+    };
+  }
+
   if (live && live.ok && (live.data !== undefined && live.data !== null || live.value !== undefined)) {
-    let last = 0;
-    let prev = 0;
+    let last = null;
+    let prev = null;
     let hasDelta = false;
 
     if (typeof live.data === 'number') {
       last = live.data;
     } else if (typeof live.data === 'object' && live.data !== null) {
       if (live.data.value !== undefined && live.data.value !== null) {
-        last = Number(live.data.value) || 0;
+        last = Number(live.data.value);
         if (live.data.previous !== undefined && live.data.previous !== null) {
-          prev = Number(live.data.previous) || 0;
+          prev = Number(live.data.previous);
           hasDelta = true;
         }
       } else if (live.value !== undefined && live.value !== null) {
-        last = Number(live.value) || 0;
+        last = Number(live.value);
       } else if (live.data.total !== undefined && live.data.total !== null) {
-        last = Number(live.data.total) || 0;
+        last = Number(live.data.total);
       } else if (live.data.current !== undefined && live.data.current !== null) {
-        last = Number(live.data.current) || 0;
-        prev = Number(live.data.previous) || 0;
-        hasDelta = true;
+        last = Number(live.data.current);
+        if (live.data.previous !== undefined && live.data.previous !== null) {
+          prev = Number(live.data.previous);
+          hasDelta = true;
+        }
       } else if (Array.isArray(live.data.slices) && live.data.slices.length > 0) {
-        last = live.data.slices.reduce((acc, x) => acc + Number(x.value || 0), 0);
+        last = live.data.slices.reduce((acc, x) => acc + (x.value !== undefined && x.value !== null ? Number(x.value) : 0), 0);
       } else {
         const seriesSource = live.data.series || live.data.points || live.series;
         if (Array.isArray(seriesSource) && seriesSource.length > 0) {
-          last = Number(seriesSource[seriesSource.length - 1]?.y ?? seriesSource[seriesSource.length - 1]?.value ?? 0);
+          const lastPt = seriesSource[seriesSource.length - 1];
+          const rawVal = lastPt?.y ?? lastPt?.value ?? (typeof lastPt === 'number' ? lastPt : null);
+          if (rawVal !== null && rawVal !== undefined) {
+            last = Number(rawVal);
+          }
           if (seriesSource.length > 1) {
-            prev = Number(seriesSource[seriesSource.length - 2]?.y ?? seriesSource[seriesSource.length - 2]?.value ?? 0);
-            hasDelta = true;
+            const prevPt = seriesSource[seriesSource.length - 2];
+            const rawPrev = prevPt?.y ?? prevPt?.value ?? (typeof prevPt === 'number' ? prevPt : null);
+            if (rawPrev !== null && rawPrev !== undefined) {
+              prev = Number(rawPrev);
+              hasDelta = true;
+            }
           }
         }
       }
@@ -2125,8 +2190,17 @@ function headlineOf(card){
       last = live.value;
     }
 
+    if (last === null || isNaN(last)) {
+      return {
+        value: "—",
+        valueCompact: "—",
+        dir: "up", pct: "",
+        when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
+      };
+    }
+
     let pctNum = null;
-    if (hasDelta && prev !== 0) {
+    if (hasDelta && prev !== null && !isNaN(prev) && prev !== 0) {
       pctNum = ((last - prev) / Math.abs(prev)) * 100;
     } else if (live.delta?.pct !== undefined && live.delta?.pct !== null) {
       pctNum = Number(live.delta.pct);
@@ -2137,13 +2211,17 @@ function headlineOf(card){
     }
 
     const dir = (pctNum === null || pctNum >= 0) ? "up" : "down";
-    const pct = pctNum !== null ? (Math.abs(pctNum).toFixed(1) + "%") : "";
+    const pct = pctNum !== null && !isNaN(pctNum) ? (Math.abs(pctNum).toFixed(1) + "%") : "";
+    const freshness = live.meta?.freshness || "live";
+    const asOf = live.meta?.computed_at || null;
 
     return {
       value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
       valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
       dir, pct,
       when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
+      freshness,
+      asOf,
     };
   }
 
@@ -2552,6 +2630,7 @@ function bodyStrip(c, geo, link){
     `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>`;
   const tight = px < 320;                      /* a phone-width strip */
   const when = c.showWhen === false ? "" : `<span class="vqc-when">${esc(c.period)}</span>`;
+  const stacked = Boolean(c.stacked || geo.h >= 2);
   if (stacked){
     return `<div class="vqc-bd vqc-bd--strip is-stacked">
         <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
@@ -2632,7 +2711,7 @@ function bodyChartCard(c, geo, link){
         ${valueHTML(hl)}
         ${(showDelta && hl.pct) ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
       </div>` : ""}
-      ${showWhen ? `<p class="vqc-when">${esc(hl.when)}</p>` : ""}
+      ${showWhen ? `<p class="vqc-when"${hl.asOf ? ` title="As of ${esc(hl.asOf)}"` : ''}>${esc(hl.when)}${hl.freshness === 'mixed' ? ' · updating…' : ''}</p>` : ""}
       ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}
     </div>`;
 }
@@ -3395,7 +3474,11 @@ window.VenQoreCards = {
   closeEdit: closeEdit,
   addCard: addCard,
   boot: boot,
-  setStoreSlug: (s) => { STORE_SLUG = s || ""; },
+  setStoreSlug: (s) => {
+    if (STORE_SLUG && STORE_SLUG !== s) clearReckonerDataCache();
+    STORE_SLUG = s || "";
+  },
+  clearCache: clearReckonerDataCache,
   deepLinkFor: getDeepLinkForCard,
   catForSize: (card, w, h) => catForSize(normaliseCard({ ...card }), w, h),
   fitValues,
@@ -4103,6 +4186,36 @@ export default function NewDashboard(props) {
     [props?.modules]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onDocSave = () => {
+      clearReckonerDataCache();
+      engine()?.draw?.();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        engine()?.draw?.();
+      }
+    };
+    window.addEventListener('pos:sale-saved', onDocSave);
+    window.addEventListener('sale:saved', onDocSave);
+    window.addEventListener('purchase:saved', onDocSave);
+    window.addEventListener('expense:saved', onDocSave);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pos:sale-saved', onDocSave);
+      window.removeEventListener('sale:saved', onDocSave);
+      window.removeEventListener('purchase:saved', onDocSave);
+      window.removeEventListener('expense:saved', onDocSave);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    clearReckonerDataCache();
+  }, [storeSlug]);
+
+  useEffect(() => {
     const activeFrame = frames.find(frame => frame.key === activeFrameKey);
     runCardBuilder({
       storeSlug, modules: enabledModules, readings: readingsProp, layoutLaw: layoutLawProp,
@@ -4618,22 +4731,35 @@ export default function NewDashboard(props) {
     ? OPERATIONAL_TEMPLATES.filter(t => engine()?.specialAvailable?.(t.type) !== false)
     : OPERATIONAL_TEMPLATES;
 
-  const availableAreas = useMemo(
-    () => ['All', ...Array.from(new Set(readings.map(r => r?.area).filter(Boolean)))],
-    [readings]);
+  const availableAreas = useMemo(() => {
+    const areas = Array.from(new Set(readings.filter(r => r?.contract_state !== 'unimplemented').map(r => r?.area).filter(Boolean)));
+    const hasComingSoon = readings.some(r => r?.contract_state === 'unimplemented');
+    return ['All', ...areas, ...(hasComingSoon ? ['Coming soon'] : [])];
+  }, [readings]);
 
   const filteredReadings = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return readings.filter(r =>
-      r && (selectedArea === 'All' || r.area === selectedArea) &&
-      (!q || (r.label && r.label.toLowerCase().includes(q)) || (r.module && r.module.toLowerCase().includes(q)) || (r.key && r.key.toLowerCase().includes(q))));
+    return readings.filter(r => {
+      if (!r) return false;
+      const isUnimplemented = r.contract_state === 'unimplemented';
+      if (selectedArea === 'Coming soon') {
+        if (!isUnimplemented) return false;
+      } else {
+        if (isUnimplemented) return false;
+        if (selectedArea !== 'All' && r.area !== selectedArea) return false;
+      }
+      return (!q || (r.label && r.label.toLowerCase().includes(q)) || (r.module && r.module.toLowerCase().includes(q)) || (r.key && r.key.toLowerCase().includes(q)));
+    });
   }, [readings, selectedArea, searchQuery]);
 
   const groupedSections = useMemo(() => {
     const groups = {};
-    filteredReadings.forEach(r => { (groups[r?.area || 'General'] ||= []).push(r); });
+    filteredReadings.forEach(r => {
+      const sectionName = selectedArea === 'Coming soon' ? (r?.area || 'Coming soon') : (r?.area || 'General');
+      (groups[sectionName] ||= []).push(r);
+    });
     return groups;
-  }, [filteredReadings]);
+  }, [filteredReadings, selectedArea]);
 
   const legalMap = engine()?.getLegalCharts?.() || {};
   const legalCharts = (selectedReading ? legalMap[selectedReading?.shape] : null)
@@ -5380,7 +5506,17 @@ export default function NewDashboard(props) {
                           <button type="button" key={r.key} className="vq-item-card"
                                   onClick={() => selectMetricForStep2(r)}>
                             <span className="vq-item-card-top">
-                              <span className="vq-item-card-title">{r.label}</span>
+                              <span className="vq-item-card-title">
+                                {r.label}
+                                {r.contract_state === 'implemented_unverified' && (
+                                  <span 
+                                    className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium tracking-tight bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                    title="Implemented calculation with live data; awaiting golden value reconciliation"
+                                  >
+                                    Unverified
+                                  </span>
+                                )}
+                              </span>
                               <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                             </span>
                             <span className="vq-item-card-desc">{r.desc || ''}</span>

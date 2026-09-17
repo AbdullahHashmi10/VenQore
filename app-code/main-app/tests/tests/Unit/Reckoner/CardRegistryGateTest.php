@@ -84,7 +84,7 @@ class CardRegistryGateTest extends TestCase
      */
     public function test_gate_units_declared(): void
     {
-        $allowedUnits = ['currency', 'count', 'percent', 'days', 'ratio', 'hours', 'points', 'items'];
+        $allowedUnits = ['currency', 'count', 'percent', 'ratio', 'days', 'hours', 'minutes', 'hour'];
         foreach (CardRegistry::all() as $key => $card) {
             $this->assertArrayHasKey('unit', $card, "Card {$key} must declare 'unit'.");
             $this->assertNotEmpty($card['unit'], "Card {$key} unit must not be empty.");

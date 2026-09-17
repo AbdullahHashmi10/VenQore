@@ -37,6 +37,14 @@ class SupplierPaymentController extends Controller
                     }
                 }
 
+                $bankAccountId = $validated['bank_account_id'] ?? null;
+                if ($validated['payment_method'] === 'bank' && empty($bankAccountId)) {
+                    $firstBank = \App\Models\BankAccount::where('tenant_id', app('current.tenant')->id)
+                        ->where('type', 'bank')
+                        ->first();
+                    $bankAccountId = $firstBank?->id;
+                }
+
                 // B5 Journal:
                 // DR 2000 Accounts Payable  (liability reduces)
                 // CR 1000/1010 Cash or Bank (asset reduces)
@@ -54,9 +62,10 @@ class SupplierPaymentController extends Controller
                         'party_id'     => $validated['supplier_id'],
                     ],
                     [
-                        'account_code' => $paymentAccount,
-                        'debit'        => 0,
-                        'credit'       => $validated['amount'],
+                        'account_code'    => $paymentAccount,
+                        'debit'           => 0,
+                        'credit'          => $validated['amount'],
+                        'bank_account_id' => $validated['payment_method'] === 'bank' ? $bankAccountId : null,
                     ],
                 ]);
 

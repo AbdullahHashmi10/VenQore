@@ -1718,12 +1718,17 @@ class SaleController extends Controller
                 }
                 
                 if ($acc) {
+                    $bankAccountId = in_array($pMethod, ['bank', 'card', 'online', 'upi'])
+                        ? ($p['bank_account_id'] ?? $p['account_id'] ?? null)
+                        : null;
+
                     $journalItems[] = [
-                        'account_id'  => $acc->id, 
-                        'debit'       => $pAmt, 
-                        'credit'      => 0, 
-                        'description' => "Payment ($pMethod) for Sale #{$sale->reference_number}",
-                        'party_id'    => $sale->party_id
+                        'account_id'      => $acc->id, 
+                        'debit'           => $pAmt, 
+                        'credit'          => 0, 
+                        'bank_account_id' => $bankAccountId,
+                        'description'     => "Payment ($pMethod) for Sale #{$sale->reference_number}",
+                        'party_id'        => $sale->party_id
                     ];
                 }
                 $amountPaidCounted += $pAmt;
@@ -1741,12 +1746,17 @@ class SaleController extends Controller
                 }
 
                 if ($acc) {
+                    $bankAccountId = in_array($pMethod, ['bank', 'card', 'online', 'upi'])
+                        ? ($request->bank_account_id ?? $request->payment_account_id ?? null)
+                        : null;
+
                     $journalItems[] = [
-                        'account_id'  => $acc->id, 
-                        'debit'       => $cashDebitAmount, 
-                        'credit'      => 0, 
-                        'description' => "Payment received for Sale #{$sale->reference_number}",
-                        'party_id'    => $sale->party_id
+                        'account_id'      => $acc->id, 
+                        'debit'           => $cashDebitAmount, 
+                        'credit'          => 0, 
+                        'bank_account_id' => $bankAccountId,
+                        'description'     => "Payment received for Sale #{$sale->reference_number}",
+                        'party_id'        => $sale->party_id
                     ];
                 }
                 $amountPaidCounted = $cashDebitAmount;

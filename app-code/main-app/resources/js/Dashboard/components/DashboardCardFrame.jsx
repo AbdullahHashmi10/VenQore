@@ -89,6 +89,8 @@ export default function DashboardCardFrame({
     const accent = Boolean(card?.style?.accent);
     const title = card?.title_override || meta?.label || definition?.label || 'Metric';
     const help = definition?.help || meta?.help || '';
+    const contractState = meta?.contract_state || definition?.contract_state || card?.contract_state;
+    const isUnverified = contractState === 'implemented_unverified';
 
     const unit = meta?.unit || definition?.unit || 'decimal';
     const precision = meta?.precision ?? definition?.precision ?? 0;
@@ -173,7 +175,14 @@ export default function DashboardCardFrame({
                 {tools}
                 <Body loading={loading} error={error} category={category}>
                     <div className="vqc-bd vqc-bd--tile">
-                        <span className="vqc-label" title={title}>{title}</span>
+                        <span className="vqc-label" title={title}>
+                            {title}
+                            {isUnverified && (
+                                <span className="ml-1 inline-flex items-center px-1 py-0.2 rounded text-[8px] font-medium tracking-tight bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" title="Awaiting golden value reconciliation">
+                                    Unverified
+                                </span>
+                            )}
+                        </span>
                         {value}
                         {lockedReportTier && (
                             <Link
@@ -198,7 +207,14 @@ export default function DashboardCardFrame({
                 {tools}
                 <Body loading={loading} error={error} category={category}>
                     <div className="vqc-bd vqc-bd--strip is-inline">
-                        <span className="vqc-eyebrow" title={title}>{title}</span>
+                        <span className="vqc-eyebrow" title={title}>
+                            {title}
+                            {isUnverified && (
+                                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.2 rounded text-[8px] font-medium tracking-tight bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" title="Awaiting golden value reconciliation">
+                                    Unverified
+                                </span>
+                            )}
+                        </span>
                         <span className="vqc-head flex-col items-end">
                             <span className="flex items-center gap-2">
                                 {value}
@@ -227,6 +243,11 @@ export default function DashboardCardFrame({
             <div className="vqc-hd">
                 <span className="vqc-eyebrow" title={definition?.description || title}>
                     {title}
+                    {isUnverified && (
+                        <span className="ml-1.5 inline-flex items-center px-1.5 py-0.2 rounded text-[8px] font-medium tracking-tight bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" title="Awaiting golden value reconciliation">
+                            Unverified
+                        </span>
+                    )}
                 </span>
 
                 <span className="vqc-hd-r">

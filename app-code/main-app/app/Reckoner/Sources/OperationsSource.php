@@ -118,7 +118,7 @@ final class OperationsSource implements ReckonerSource
                 'plan.usage_summary' => (function() use ($ctx, $tenantId) {
                     $tenant = $ctx->tenant;
                     $productCount = \App\Models\Product::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))->count();
-                    $staffCount = \App\Models\User::whereNotIn('role', ['platform_admin'])->count();
+                    $staffCount = \Illuminate\Support\Facades\DB::table('tenant_users')->where('tenant_id', $tenantId)->count();
                     $warehouseCount = \App\Models\Warehouse::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))->count();
 
                     $txCount = \App\Models\Sale::when($tenantId, fn ($q) => $q->where('tenant_id', $tenantId))
