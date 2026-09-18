@@ -3433,7 +3433,7 @@ const POSInterface = ({
                         {hasImage ? (
                             <img src={product.image_url || product.image_path} alt="" loading="lazy" />
                         ) : (
-                            <Package size={36} strokeWidth={1.5} className="opacity-40" />
+                            <Package size={32} strokeWidth={1.5} className="opacity-40" />
                         )}
                         {product.variants && product.variants.length > 0 && (
                             <span className="vq-tile-dot absolute top-2.5 left-2.5" title="Has variants" />
@@ -3542,10 +3542,10 @@ const POSInterface = ({
             if (asLargeCards) {
                 return (
                     <div className="vq-tiles-large p-3">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col" style={{ minHeight: 190 }} aria-hidden="true">
-                                <div className="w-full aspect-square bg-sunken shrink-0 animate-pulse" />
-                                <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col p-2 gap-1.5" style={{ minHeight: 185 }} aria-hidden="true">
+                                <div className="w-[100px] h-[100px] rounded-lg bg-sunken shrink-0 animate-pulse mx-auto" />
+                                <div className="p-1 space-y-2 flex-1 flex flex-col justify-between">
                                     <div className="space-y-1.5">
                                         <div className="h-3 rounded-full bg-sunken animate-pulse" style={{ width: '80%' }} />
                                         <div className="h-2.5 rounded-full bg-sunken animate-pulse" style={{ width: '45%' }} />
@@ -3626,7 +3626,7 @@ const POSInterface = ({
         }
         if (asLargeCards) {
             return (
-                <div className="vq-tiles-large p-3" style={tiles ? { gridTemplateColumns: `repeat(${tiles}, minmax(0, 1fr))` } : undefined}>
+                <div className="vq-tiles-large p-3">
                     {sortedCategoryProducts.map(renderProductLargeTile)}
                 </div>
             );
@@ -3804,7 +3804,7 @@ const POSInterface = ({
         const rows = Math.max(1, cat?.rows || 1);
         const shape = composition?.catalogShape || 'auto';
         const isLarge = shape === 'large_cards';
-        const baseH = isLarge ? 205 : 152;
+        const baseH = isLarge ? 190 : 152;
         const tilesH = rows * baseH + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
         return (
             <section
@@ -3835,7 +3835,7 @@ const POSInterface = ({
     const bandOuterH = () => {
         const rows = Math.max(1, cat?.rows || 1);
         const shape = composition?.catalogShape || 'auto';
-        const baseH = shape === 'large_cards' ? 205 : 152;
+        const baseH = shape === 'large_cards' ? 190 : 152;
         return rows * baseH + (rows - 1) * GUTTER + CAT_STRIP_H;
     };
 

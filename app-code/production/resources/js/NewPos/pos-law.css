@@ -580,17 +580,17 @@
 
 /* --------------------------------------------------------------------------
    SHOWCASE / LARGE VISUAL CARDS (Big Image Card mode)
-   Taller cards with a 1:1 square top photo and clear, prominent typography
+   Taller cards with a 1:1 square top photo (100x100px) and clear, prominent typography
    (larger product name & price) on the lower section.
    -------------------------------------------------------------------------- */
 .vq-tiles-large {
     display: grid;
     gap: var(--vq-gutter, 8px);
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
 }
 
 .vq-tiles-band[data-shape='large_cards'] {
-    grid-auto-columns: minmax(130px, 160px);
+    grid-auto-columns: minmax(116px, 130px);
 }
 
 .vq-tile-large {
@@ -599,12 +599,14 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     text-align: left;
     overflow: hidden;
     cursor: pointer;
-    border-radius: 14px;
+    border-radius: 12px;
     border: 1px solid var(--vq-line, #d3dcd7);
     background: var(--vq-surface, #fff);
+    padding: 7px;
     box-shadow: 0 1px 3px rgb(13 20 18 / .06);
     transition: border-color var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1)),
                 box-shadow var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1)),
@@ -623,16 +625,19 @@
 }
 
 .vq-tile-large-img {
-    width: 100%;
-    aspect-ratio: 1 / 1;
+    width: 100px;
+    height: 100px;
+    align-self: center;
+    border-radius: 8px;
     background: var(--vq-sunken, #e6ece8);
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 1px solid var(--vq-line-soft, #e6ece8);
+    border: 1px solid var(--vq-line-soft, #e6ece8);
     color: var(--vq-text-3, #6b7a73);
+    flex-shrink: 0;
 }
 
 .vq-tile-large-img img {
@@ -647,12 +652,12 @@
 }
 
 .vq-tile-large-body {
-    padding: 10px 10px 12px 10px;
+    padding: 6px 2px 2px 2px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     flex: 1 1 auto;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
 }
 
@@ -666,7 +671,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    font-size: clamp(14px, 1.1vw, 16px);
+    font-size: 13px;
     font-weight: 700;
     line-height: 1.25;
     color: var(--vq-text, #17201b);
@@ -679,11 +684,11 @@
 
 .vq-tile-large-meta {
     display: block;
-    margin-top: 3px;
+    margin-top: 2px;
     font-size: 10px;
     font-weight: 600;
     line-height: 1.2;
-    letter-spacing: .05em;
+    letter-spacing: .04em;
     text-transform: uppercase;
     color: var(--vq-text-3, #6b7a73);
     white-space: nowrap;
@@ -695,21 +700,21 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
-    padding-top: 6px;
+    gap: 4px;
+    padding-top: 5px;
     border-top: 1px solid var(--vq-line-soft, #e6ece8);
     min-width: 0;
 }
 
 .vq-tile-large-price {
-    font-size: clamp(16px, 1.2vw, 19px);
+    font-size: 14.5px;
     font-weight: 800;
     color: var(--vq-accent-text, #076b5e);
     letter-spacing: -.02em;
 }
 
 .vq-tile-large-stock {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
     color: var(--vq-text-3, #6b7a73);
     white-space: nowrap;
