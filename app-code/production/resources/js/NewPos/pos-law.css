@@ -580,17 +580,17 @@
 
 /* --------------------------------------------------------------------------
    SHOWCASE / LARGE VISUAL CARDS (Big Image Card mode)
-   Taller cards with a prominent product image (55-65% top) and clear product
-   details (name, category, stock, and price) on the lower section.
+   Taller cards with a 1:1 square top photo and clear, prominent typography
+   (larger product name & price) on the lower section.
    -------------------------------------------------------------------------- */
 .vq-tiles-large {
     display: grid;
-    gap: var(--vq-gutter, 10px);
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: var(--vq-gutter, 8px);
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 }
 
 .vq-tiles-band[data-shape='large_cards'] {
-    grid-auto-columns: minmax(180px, 220px);
+    grid-auto-columns: minmax(130px, 160px);
 }
 
 .vq-tile-large {
@@ -624,7 +624,7 @@
 
 .vq-tile-large-img {
     width: 100%;
-    height: 140px;
+    aspect-ratio: 1 / 1;
     background: var(--vq-sunken, #e6ece8);
     position: relative;
     overflow: hidden;
@@ -647,7 +647,7 @@
 }
 
 .vq-tile-large-body {
-    padding: 10px 12px;
+    padding: 10px 10px 12px 10px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -666,11 +666,11 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    font-size: var(--vq-t-sm, 13px);
+    font-size: clamp(14px, 1.1vw, 16px);
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.25;
     color: var(--vq-text, #17201b);
-    letter-spacing: -.006em;
+    letter-spacing: -.01em;
 }
 
 .vq-tile-large:hover .vq-tile-large-name {
@@ -702,10 +702,10 @@
 }
 
 .vq-tile-large-price {
-    font-size: var(--vq-t-md, 15px);
+    font-size: clamp(16px, 1.2vw, 19px);
     font-weight: 800;
     color: var(--vq-accent-text, #076b5e);
-    letter-spacing: -.01em;
+    letter-spacing: -.02em;
 }
 
 .vq-tile-large-stock {

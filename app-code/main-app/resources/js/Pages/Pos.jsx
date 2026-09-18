@@ -3543,8 +3543,8 @@ const POSInterface = ({
                 return (
                     <div className="vq-tiles-large p-3">
                         {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col" style={{ minHeight: 220 }} aria-hidden="true">
-                                <div className="w-full h-[140px] bg-sunken shrink-0 animate-pulse" />
+                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col" style={{ minHeight: 190 }} aria-hidden="true">
+                                <div className="w-full aspect-square bg-sunken shrink-0 animate-pulse" />
                                 <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
                                     <div className="space-y-1.5">
                                         <div className="h-3 rounded-full bg-sunken animate-pulse" style={{ width: '80%' }} />
@@ -3804,7 +3804,7 @@ const POSInterface = ({
         const rows = Math.max(1, cat?.rows || 1);
         const shape = composition?.catalogShape || 'auto';
         const isLarge = shape === 'large_cards';
-        const baseH = isLarge ? 220 : 152;
+        const baseH = isLarge ? 205 : 152;
         const tilesH = rows * baseH + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
         return (
             <section
@@ -3835,36 +3835,15 @@ const POSInterface = ({
     const bandOuterH = () => {
         const rows = Math.max(1, cat?.rows || 1);
         const shape = composition?.catalogShape || 'auto';
-        const baseH = shape === 'large_cards' ? 220 : 152;
+        const baseH = shape === 'large_cards' ? 205 : 152;
         return rows * baseH + (rows - 1) * GUTTER + CAT_STRIP_H;
     };
 
     const renderCatalogPane = (fit, tiles) => (
         <section className="vq-pane bg-surface border border-line" data-pane="catalog">
-            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line flex items-center justify-between px-3 py-1.5">
-                <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs">Catalog</span>
-                    <span className="vq-num text-3xs font-bold px-1.5 py-0.5 rounded bg-surface border border-line text-ink-secondary">
-                        {sortedCategoryProducts.length} items
-                    </span>
-                </div>
-                <div className="flex items-center gap-1.5 ml-auto">
-                    <select
-                        value={catalogSort}
-                        onChange={(e) => setCatalogSort(e.target.value)}
-                        className="text-3xs font-bold bg-surface border border-line rounded-md px-2 py-0.5 text-ink focus:outline-none focus:border-brand-500 cursor-pointer"
-                        title="Sort catalog items"
-                        aria-label="Sort catalog items"
-                    >
-                        <option value="top_selling">🔥 Top Selling</option>
-                        <option value="name_asc">🔤 Name (A → Z)</option>
-                        <option value="name_desc">🔤 Name (Z → A)</option>
-                        <option value="price_asc">💵 Price (Low → High)</option>
-                        <option value="price_desc">💵 Price (High → Low)</option>
-                        <option value="stock_desc">📦 Stock (High → Low)</option>
-                        <option value="newest">✨ Newest</option>
-                    </select>
-                </div>
+            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line flex items-center justify-between px-3">
+                <span>Catalog</span>
+                <span className="vq-num ml-auto text-2xs opacity-80 font-bold">{sortedCategoryProducts.length} items</span>
             </header>
             {catalogHostsScan && renderScan()}
             {renderCategoryStrip()}
