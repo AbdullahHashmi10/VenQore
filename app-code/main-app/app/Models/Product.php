@@ -28,6 +28,19 @@ class Product extends Model
         'service_pricing', 'default_duration', 'default_rate', 'requires_visit', 'skill_tag',
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image_path) {
+            return null;
+        }
+        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+            return $this->image_path;
+        }
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path);
+    }
+
     protected static function booted(): void
     {
         static::saved(function (Product $product) {

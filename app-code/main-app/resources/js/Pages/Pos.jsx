@@ -5796,6 +5796,7 @@ const POSInterface = ({
 
             <ProductModal
                 isOpen={showProductModal}
+                mode="create"
                 onClose={() => setShowProductModal(false)}
                 initialName={searchQueryForProduct}
                 onSuccess={(newProduct) => {
