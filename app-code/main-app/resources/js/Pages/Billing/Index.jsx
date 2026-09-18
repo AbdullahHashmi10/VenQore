@@ -1553,34 +1553,6 @@ export default function BillingIndex({
                 </div>
             </Modal>
 
-            {/* ── Trial Credit Modal ────────────────────────────────────────── */}
-            <Modal show={!!pendingCreditSummary} onClose={() => setPendingCheckout(null)} maxWidth="md">
-                {pendingCreditSummary && (
-                    <div className="p-6 bg-neutral-900 border border-neutral-700 rounded-2xl text-white">
-                        <h3 className="text-lg font-bold flex items-center gap-2 mb-2">
-                            <Zap className="text-emerald-400 fill-emerald-400" size={20} />
-                            Keep Your Free Days Credit
-                        </h3>
-                        <p className="text-xs text-neutral-400 mb-4">
-                            You have {pendingCreditSummary.daysRemaining} days remaining on your trial. We apply a {pendingCreditSummary.percent}% credit discount on your first invoice.
-                        </p>
-                        <div className="flex gap-3 justify-end mt-6">
-                            <button
-                                onClick={() => setPendingCheckout(null)}
-                                className="px-4 py-2 rounded-xl bg-neutral-800 text-neutral-300 text-xs font-semibold"
-                            >
-                                Not yet
-                            </button>
-                            <button
-                                onClick={() => startPlanCheckout(pendingCheckout.planKey, pendingCheckout.cycle, pendingCheckout.currency)}
-                                className="px-5 py-2 rounded-xl bg-white text-neutral-950 text-xs font-bold uppercase tracking-wider"
-                            >
-                                Continue to Checkout
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
         </>
     );
 }

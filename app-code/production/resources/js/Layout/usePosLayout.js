@@ -112,7 +112,7 @@ export function normaliseComposition(raw) {
     return {
         catalog: {
             mode,
-            size: isBand ? 0 : (isNum(c.size) ? Math.max(0, Math.min(0.55, c.size)) : base.catalog.size),
+            size: isBand ? 0 : (isNum(c.size) ? Math.max(0, Math.min(0.75, c.size)) : base.catalog.size),
             rows: isNum(c.rows) ? Math.max(1, Math.min(3, Math.round(c.rows))) : 1,
             tiles: isNum(c.tiles) ? Math.max(1, Math.min(12, Math.round(c.tiles))) : null,
         },
@@ -322,7 +322,7 @@ export function usePosLayout({ settings, senior = false, scale = 1, terminal = '
     const dragSplit = useCallback((key, px) => {
         const total = Math.max(1, box.w);
         update(prev => {
-            const share = Math.max(0, Math.min(0.55, px / total));
+            const share = Math.max(0.12, Math.min(0.75, px / total));
             if (key === 'tender') return { ...prev, split: { ...prev.split, tender: share } };
             if (key === 'catalog') return { ...prev, catalog: { ...prev.catalog, size: share } };
             return prev;

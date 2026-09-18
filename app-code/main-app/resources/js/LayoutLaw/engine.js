@@ -299,7 +299,7 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
 
     const allocateColumns = (wantCat, wantFloor, wantTender) => {
         const f = {};
-        if (wantCat) f.catalog = clampN(C_.catalog.size, 0.12, 0.55);
+        if (wantCat) f.catalog = clampN(C_.catalog.size, 0.12, 0.75);
         f.cart = Math.max(0.2, C_.split.cart);
         if (wantTender) f.tender = clampN(C_.split.tender, 0, 0.45);
 
@@ -393,12 +393,8 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
     if (catMode !== 'off' && !catRes) dock.push({ id: 'catalog', label: 'Catalog', rank: 2, shows: 'count' });
     if (floorMode !== 'off' && !floorRes) dock.push({ id: 'floor', label: 'Floor', rank: 2 });
 
-    /* AMENDED, and mirrored in Layout/venqoreLayoutEngine.js: only a TENDER
-       dock is a real layout row. A single narrow Catalog or Floor trigger was
-       costing every pane 72px of height -- including the payment column, which
-       has nothing below it. Secondary triggers live in the Current Order pane's
-       header instead: still in flow, still unable to overlap anything. */
-    const dockNeedsRow = dock.some((d) => d.id === 'tender');
+    const tenderBarInCart = tenderBar && catRes && (catMode === 'left' || catMode === 'right') && regime === 'columns';
+    const dockNeedsRow = dock.some((d) => d.id === 'tender') && !tenderBarInCart;
     let dockH = !dockNeedsRow ? 0 : (dock.some((d) => d.inline) ? T.tender_bar_h : 72);
     let usableH = H - (dockH ? dockH + G : 0);
     const { frac, px } = allocateColumns(

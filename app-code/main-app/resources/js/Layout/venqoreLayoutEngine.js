@@ -3266,7 +3266,7 @@ export function composeTerminal(comp, vw, vh) {
 
   const allocateColumns = (wantCat, wantFloor, wantTender) => {
     const f = {};
-    if (wantCat) f.catalog = clampN(C_.catalog.size, .12, .55);
+    if (wantCat) f.catalog = clampN(C_.catalog.size, .12, .75);
     f.cart = Math.max(.20, C_.split.cart);
     if (wantTender) f.tender = clampN(C_.split.tender, 0, .45);
 
@@ -3363,20 +3363,8 @@ export function composeTerminal(comp, vw, vh) {
   if (catMode !== "off" && !catRes) dock.push({ id: "catalog", label: "Catalog",
                                                 rank: 2, shows: "count" });
   if (floorMode !== "off" && !floorRes) dock.push({ id: "floor", label: "Floor", rank: 2 });
-  /* AMENDED: only a TENDER dock is a real layout row.
-     The law's rule -- "the dock is a real layout row and its height is
-     subtracted before anything else is measured, so it cannot overlap anything
-     by construction" -- exists to stop a Browse-catalog button covering the
-     payment panel. It was implemented as "any dock entry costs every pane 72px
-     of height", and that overshoots: a single narrow Catalog or Floor trigger
-     in the bottom-left was shortening the payment COLUMN, which has nothing
-     below it at all, leaving dead space beside the button and a cut-off panel
-     above it.
-     A secondary trigger is now rendered inside the Current Order pane's own
-     header instead -- still in flow, still incapable of overlapping anything,
-     and costing no height at all. Only the tender dock, which genuinely spans
-     the full width, still reserves a row. */
-  const dockNeedsRow = dock.some(d => d.id === 'tender');
+  const tenderBarInCart = tenderBar && catRes && (catMode === "left" || catMode === "right") && regime === "columns";
+  const dockNeedsRow = dock.some(d => d.id === 'tender') && !tenderBarInCart;
   let dockH = !dockNeedsRow ? 0 : (dock.some(d => d.inline) ? T.tender_bar_h : 72);
   let usableH = H - (dockH ? dockH + G : 0);
   const { frac, px } = allocateColumns(catRes && (catMode === "left" || catMode === "right"),

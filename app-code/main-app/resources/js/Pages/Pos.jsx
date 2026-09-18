@@ -1089,12 +1089,12 @@ const POSInterface = ({
        these the engine stops drawing a column at all, so they are the point
        the handle must stop at. */
     const SPLIT_BOUNDS = {
-        catalog: { min: 0.12, max: 0.55 },
-        tender:  { min: 0.16, max: 0.45 },
+        catalog: { min: 0.15, max: 0.75 },
+        tender:  { min: 0.16, max: 0.50 },
     };
 
     const commitShare = (key, share) => {
-        const b = SPLIT_BOUNDS[key] || { min: 0, max: 0.55 };
+        const b = SPLIT_BOUNDS[key] || { min: 0.15, max: 0.75 };
         const clamped = Math.max(b.min, Math.min(b.max, share));
         updateComposition(prev => (key === 'catalog'
             ? { ...prev, catalog: { ...prev.catalog, size: clamped } }
@@ -1144,7 +1144,7 @@ const POSInterface = ({
     const onSplitKeyDown = (key, edge) => (e) => {
         const grow = edge === 'right' ? 'ArrowLeft' : 'ArrowRight';
         const shrink = edge === 'right' ? 'ArrowRight' : 'ArrowLeft';
-        const b = SPLIT_BOUNDS[key] || { min: 0, max: 0.55 };
+        const b = SPLIT_BOUNDS[key] || { min: 0.15, max: 0.75 };
         const step = e.shiftKey ? 0.05 : 0.01;
         let next = null;
 
@@ -3496,7 +3496,7 @@ const POSInterface = ({
        from — which is why the two are inverted on the way through. */
     const renderSplit = (key, edge, offsetPx) => {
         const live = dragInfo && dragInfo.key === key;
-        const b = SPLIT_BOUNDS[key] || { min: 0, max: 0.55 };
+        const b = SPLIT_BOUNDS[key] || { min: 0.15, max: 0.75 };
         const pct = Math.round(shareOf(key) * 100);
         const name = key === 'catalog' ? 'Catalog' : 'Payment';
         return (
@@ -3991,7 +3991,7 @@ const POSInterface = ({
             {!catalogHostsScan && renderScan()}
             {returnMode && renderReturnBanner()}
 
-            <div ref={cartListRef} className="vq-pane-body vq-cart-lines p-3 space-y-2">
+            <div ref={cartListRef} className="vq-pane-body vq-cart-lines p-3 space-y-2 flex-1 min-h-0 overflow-y-auto">
                 {activeSale.cart.map(renderCartLine)}
                 {activeSale.cart.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
@@ -4021,6 +4021,43 @@ const POSInterface = ({
                     </div>
                 )}
             </div>
+
+            {tenderDock && tenderDock.inline && catIsColumn && resizable && (
+                <footer className="p-3 bg-surface border-t border-line shrink-0">
+                    <div className="vq-tender-bar bg-surface border border-line rounded-[20px] shadow-sm min-w-0 px-4 py-3 flex items-center gap-3">
+                        <div className="min-w-0">
+                            <span className="text-3xs uppercase font-extrabold tracking-wider text-ink-muted block mb-0.5">
+                                {activeSale.cart.length} lines · {cartQty} qty
+                            </span>
+                            <span className="vq-num font-extrabold text-emerald-600 dark:text-emerald-400 block leading-none text-xl sm:text-2xl font-numeric"
+                                  title={money(cartTotal)}>
+                                {money(cartTotal)}
+                            </span>
+                        </div>
+                        <div className="flex-1" />
+                        <button
+                            type="button"
+                            onClick={openTender}
+                            className="h-10 sm:h-11 px-4 sm:px-5 rounded-[14px] bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-ink font-bold text-xs sm:text-sm border border-line transition-all shrink-0 cursor-pointer active:scale-95"
+                            data-primary="0"
+                        >
+                            Details
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCheckoutClick}
+                            disabled={processingPayment || activeSale.cart.length === 0}
+                            className="h-10 sm:h-11 px-6 sm:px-8 rounded-[14px] bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-900/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shrink-0 cursor-pointer active:scale-95"
+                            data-primary="1"
+                        >
+                            {processingPayment
+                                ? <Loader2 size={17} className="animate-spin" />
+                                : printOnComplete ? <Printer size={17} /> : <Check size={17} />}
+                            <span className="vq-clip">{processingPayment ? 'Processing…' : 'Pay'}</span>
+                        </button>
+                    </div>
+                </footer>
+            )}
         </section>
     );
 
@@ -4629,6 +4666,9 @@ const POSInterface = ({
         /* Not `dock.length`: catalog and floor sit in the dock list but
            reserve no height, and an empty dock row still eats a gutter. */
         if (!tenderDock) return null;
+
+        /* If the tender dock is embedded directly in the cart column footer, suppress the full-width bottom dock */
+        if (tenderDock && tenderDock.inline && catIsColumn && resizable) return null;
 
         /* An inline tender bar is not a button that opens something — it IS
            the tender, stacked. The total is printed on the control itself,
