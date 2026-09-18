@@ -1678,8 +1678,9 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
+                    <label htmlFor="pk-cnic-input" className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
                     <input
+                        id="pk-cnic-input"
                         type="text"
                         pattern="^[0-9]{5}-?[0-9]{7}-?[0-9]{1}$"
                         value={cnic}
@@ -1690,8 +1691,9 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                     />
                 </div>
                 <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">Phone Number</label>
+                    <label htmlFor="pk-phone-input" className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">Phone Number</label>
                     <input
+                        id="pk-phone-input"
                         type="text"
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
@@ -1701,8 +1703,9 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                     />
                 </div>
                 <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Front Side Image</label>
+                    <label htmlFor="pk-front-input" className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Front Side Image</label>
                     <input
+                        id="pk-front-input"
                         type="file"
                         accept="image/*"
                         onChange={e => setImageFront(e.target.files[0])}
@@ -1711,8 +1714,9 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                     />
                 </div>
                 <div>
-                    <label className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Back Side Image</label>
+                    <label htmlFor="pk-back-input" className="block text-1xs font-bold text-ink-muted uppercase tracking-wider mb-2">CNIC Back Side Image</label>
                     <input
+                        id="pk-back-input"
                         type="file"
                         accept="image/*"
                         onChange={e => setImageBack(e.target.files[0])}

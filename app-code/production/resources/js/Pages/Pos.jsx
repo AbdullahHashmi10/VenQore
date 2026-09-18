@@ -1961,26 +1961,29 @@ const POSInterface = ({
     const handleCheckoutClick = () => {
         if (activeSale.cart.length === 0) return;
 
-        // If no amount is typed, block checkout and focus the Amount Tendered input
-        const rawTendered = activeSale.cashReceived;
+        let rawTendered = activeSale.cashReceived;
         if (!rawTendered || parseFloat(rawTendered) <= 0) {
-            addToast('Please enter the Amount Tendered first', 'warning');
-            
-            // Highlight and focus input
-            if (cashReceivedInputRef.current) {
-                cashReceivedInputRef.current.focus();
-                cashReceivedInputRef.current.select();
+            if (autoFillCash || !cashReceivedInputRef.current || layout.tender?.mode === 'bar') {
+                rawTendered = cartTotal;
+            } else {
+                addToast('Please enter the Amount Tendered first', 'warning');
                 
-                // Add temporary shake animation class if element is available
-                const container = document.getElementById('tour-pos-paid');
-                if (container) {
-                    container.classList.add('animate-shake', 'ring-2', 'ring-rose-500');
-                    setTimeout(() => {
-                        container.classList.remove('animate-shake', 'ring-2', 'ring-rose-500');
-                    }, 500);
+                // Highlight and focus input
+                if (cashReceivedInputRef.current) {
+                    cashReceivedInputRef.current.focus();
+                    cashReceivedInputRef.current.select();
+                    
+                    // Add temporary shake animation class if element is available
+                    const container = document.getElementById('tour-pos-paid');
+                    if (container) {
+                        container.classList.add('animate-shake', 'ring-2', 'ring-rose-500');
+                        setTimeout(() => {
+                            container.classList.remove('animate-shake', 'ring-2', 'ring-rose-500');
+                        }, 500);
+                    }
                 }
+                return;
             }
-            return;
         }
 
         const tendered = parseFloat(rawTendered);

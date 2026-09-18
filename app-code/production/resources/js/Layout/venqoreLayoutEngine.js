@@ -806,6 +806,27 @@ export const LAW = {
     }
    },
    {
+    "id": "express",
+    "name": "Express Touch",
+    "tagline": "Catalog on the left (50%), cart and fast payment on the right.",
+    "for": "Touchscreen counters, fast retail, bakeries, cafes, and legacy POS migrations.",
+    "why": "Gives the catalog 50% prominence for visual touch selection while keeping the order list and one-tap payment stacked directly on the right.",
+    "comp": {
+     "catalog": {
+      "mode": "left",
+      "size": 0.5,
+      "rows": 1,
+      "tiles": null
+     },
+     "split": {
+      "cart": 1.0,
+      "tender": 0.0
+     },
+     "tender": "bar",
+     "floor": "off"
+    }
+   },
+   {
     "id": "stack",
     "name": "Stack",
     "tagline": "Catalog above, cart below, pay takes the screen.",
