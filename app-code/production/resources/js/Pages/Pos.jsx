@@ -431,6 +431,47 @@ const POSInterface = ({
         return localStorage.getItem('pos_show_top_hardware') === 'true';
     });
 
+    // Catalog Custom Preferences
+    const [catalogSort, setCatalogSortState] = useState(() => {
+        try { return localStorage.getItem('pos_catalog_sort') || 'top_selling'; }
+        catch (_) { return 'top_selling'; }
+    });
+    const setCatalogSort = (v) => {
+        setCatalogSortState(v);
+        try { localStorage.setItem('pos_catalog_sort', v); } catch (_) {}
+    };
+
+    const [showCatalogImages, setShowCatalogImagesState] = useState(() => {
+        try {
+            const v = localStorage.getItem('pos_catalog_show_images');
+            return v === null ? true : v !== 'false';
+        } catch (_) { return true; }
+    });
+    const setShowCatalogImages = (v) => {
+        setShowCatalogImagesState(v);
+        try { localStorage.setItem('pos_catalog_show_images', String(v)); } catch (_) {}
+    };
+
+    const [showCatalogStock, setShowCatalogStockState] = useState(() => {
+        try {
+            const v = localStorage.getItem('pos_catalog_show_stock');
+            return v === null ? true : v !== 'false';
+        } catch (_) { return true; }
+    });
+    const setShowCatalogStock = (v) => {
+        setShowCatalogStockState(v);
+        try { localStorage.setItem('pos_catalog_show_stock', String(v)); } catch (_) {}
+    };
+
+    const [hideOutOfStock, setHideOutOfStockState] = useState(() => {
+        try { return localStorage.getItem('pos_catalog_hide_oos') === 'true'; }
+        catch (_) { return false; }
+    });
+    const setHideOutOfStock = (v) => {
+        setHideOutOfStockState(v);
+        try { localStorage.setItem('pos_catalog_hide_oos', String(v)); } catch (_) {}
+    };
+
     /* ── RANK-3 OPERATIONAL SETTINGS ──────────────────────────────────────
        Five values that the old page read straight out of `settings` (or, in
        two cases, out of localStorage inside the effect that used them) with no
@@ -662,7 +703,8 @@ const POSInterface = ({
         'pos_enable_tax', 'pos_enable_fulfilment', 'pos_enable_free_qty', 'pos_discount_presets',
         'pos_auto_fill_cash', 'pos_auto_print', 'pos_round_off', 'pos_show_margin',
         'pos_ui_scale', 'pos_open_drawer_on_cash', 'pos_show_top_till', 'pos_show_top_hardware',
-        'pos_surface_buttons',
+        'pos_surface_buttons', 'pos_catalog_sort', 'pos_catalog_show_images',
+        'pos_catalog_show_stock', 'pos_catalog_hide_oos',
     ];
 
     const handleResetRegister = () => {
@@ -688,6 +730,10 @@ const POSInterface = ({
                 setEnableFulfilment(false);
                 setEnableFreeQty(false);
                 setDiscountPresets([5, 10, 15, 20]);
+                setCatalogSort('top_selling');
+                setShowCatalogImages(true);
+                setShowCatalogStock(true);
+                setHideOutOfStock(false);
                 setSurfaceButtonsState({ ...DEFAULT_SURFACE });
                 setSettingsOpen(false);
                 addToast('Register reset to defaults', 'success');
@@ -1453,6 +1499,37 @@ const POSInterface = ({
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [categoryProducts, setCategoryProducts] = useState([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+    // Filtered & Sorted Catalog Products (Instant client-side sorting)
+    const sortedCategoryProducts = React.useMemo(() => {
+        let list = Array.isArray(categoryProducts) ? [...categoryProducts] : [];
+        if (hideOutOfStock) {
+            list = list.filter(p => {
+                const isService = p.type === 'service' || p.is_service || p.item_type === 'service';
+                if (isService) return true;
+                return p.stock_quantity === undefined || Number(p.stock_quantity) > 0;
+            });
+        }
+        switch (catalogSort) {
+            case 'name_asc':
+                return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            case 'name_desc':
+                return list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+            case 'price_asc':
+                return list.sort((a, b) => (Number(a.price || a.selling_price || 0)) - (Number(b.price || b.selling_price || 0)));
+            case 'price_desc':
+                return list.sort((a, b) => (Number(b.price || b.selling_price || 0)) - (Number(a.price || a.selling_price || 0)));
+            case 'stock_desc':
+                return list.sort((a, b) => (Number(b.stock_quantity || 0)) - (Number(a.stock_quantity || 0)));
+            case 'stock_asc':
+                return list.sort((a, b) => (Number(a.stock_quantity || 0)) - (Number(b.stock_quantity || 0)));
+            case 'newest':
+                return list.sort((a, b) => (Number(b.id || 0)) - (Number(a.id || 0)));
+            case 'top_selling':
+            default:
+                return list.sort((a, b) => (Number(b.recent_sold || 0)) - (Number(a.recent_sold || 0)));
+        }
+    }, [categoryProducts, catalogSort, hideOutOfStock]);
 
     // Customer search debounce
     useEffect(() => {
@@ -3248,11 +3325,13 @@ const POSInterface = ({
             className="w-full bg-surface rounded-xl border border-line hover:border-brand-500 transition-all shadow-sm text-left flex items-center justify-between p-2.5 gap-3 relative overflow-hidden cursor-pointer group"
         >
             <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-lg bg-sunken flex items-center justify-center overflow-hidden shrink-0 border border-line/60">
-                    {product.image_url || product.image_path
-                        ? <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
-                        : <Package className="text-ink-muted" size={19} />}
-                </div>
+                {showCatalogImages && (
+                    <div className="w-10 h-10 rounded-lg bg-sunken flex items-center justify-center overflow-hidden shrink-0 border border-line/60">
+                        {product.image_url || product.image_path
+                            ? <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
+                            : <Package className="text-ink-muted" size={19} />}
+                    </div>
+                )}
                 <div className="min-w-0 flex-1">
                     <h4 className="vq-clip-2 font-bold text-ink leading-snug text-xs sm:text-sm group-hover:text-brand-600 transition-colors">
                         {product.name}
@@ -3263,20 +3342,22 @@ const POSInterface = ({
                 </div>
             </div>
             <div className="text-right shrink-0 flex items-center gap-3">
-                {(product.type === 'service' || product.is_service || product.item_type === 'service') ? (
-                    <div>
-                        <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Type</span>
-                        <span className="vq-num text-xs font-bold leading-none text-brand-600 dark:text-brand-400">
-                            {tt('Service')}
-                        </span>
-                    </div>
-                ) : (
-                    <div>
-                        <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
-                        <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                            {formatNumber(product.stock_quantity || 0, 0)}
-                        </span>
-                    </div>
+                {showCatalogStock && (
+                    (product.type === 'service' || product.is_service || product.item_type === 'service') ? (
+                        <div>
+                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Type</span>
+                            <span className="vq-num text-xs font-bold leading-none text-brand-600 dark:text-brand-400">
+                                {tt('Service')}
+                            </span>
+                        </div>
+                    ) : (
+                        <div>
+                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
+                            <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                                {formatNumber(product.stock_quantity || 0, 0)}
+                            </span>
+                        </div>
+                    )
                 )}
                 <div>
                     <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Price</span>
@@ -3292,17 +3373,7 @@ const POSInterface = ({
     );
 
     /* ── THE PILL ────────────────────────────────────────────────────────
-       The third shape, and the one a short menu actually wants. A card gives
-       every product a picture and a stock read-out; a row gives it a full line.
-       A menu of twenty-five things needs neither -- it needs all twenty-five
-       ON SCREEN AT ONCE, which is what turns the catalog from something you
-       search into something you point at.
-
-       So a pill is the name, the price, and nothing else, wrapped as many to a
-       row as fit. It keeps the two things the other shapes would not give up:
-       the in-cart count, because a tap with no feedback is how the same coffee
-       gets rung twice, and the out-of-stock state, because selling something
-       that is not there is worse than any layout problem. */
+       The third shape, and the one a short menu actually wants. */
     const renderProductPill = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
@@ -3331,11 +3402,7 @@ const POSInterface = ({
         );
     };
 
-    /* Catalog tiles — the `grid-2up` / `grid-3up` fits and the band. */
-    /* How much of this product is already in the cart. The catalog had no idea
-       the cart existed, so on a catalog-led layout -- where the cart may not
-       even be on screen -- an operator tapping tiles had no feedback at all
-       and no way to tell a double-tap from a missed one. */
+    /* In-cart count map */
     const inCartQty = React.useMemo(() => {
         const m = new Map();
         for (const l of (activeSale.cart || [])) {
@@ -3344,6 +3411,71 @@ const POSInterface = ({
         return m;
     }, [activeSale.cart]);
 
+    /* SHOWCASE / BIG VISUAL CARD — Double height with prominent top photo (~55-65%) */
+    const renderProductLargeTile = (product) => {
+        const inCart = inCartQty.get(product.id) || 0;
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const stock = product.stock_quantity;
+        const out = !isService && stock !== undefined && Number(stock) <= 0;
+        const hasImage = Boolean(product.image_url || product.image_path);
+
+        return (
+            <button
+                key={product.id}
+                type="button"
+                onClick={() => pickProduct(product)}
+                data-incart={inCart > 0 ? '1' : '0'}
+                className="vq-tile-large group"
+                title={product.name}
+            >
+                {showCatalogImages && (
+                    <div className="vq-tile-large-img">
+                        {hasImage ? (
+                            <img src={product.image_url || product.image_path} alt="" loading="lazy" />
+                        ) : (
+                            <Package size={36} strokeWidth={1.5} className="opacity-40" />
+                        )}
+                        {product.variants && product.variants.length > 0 && (
+                            <span className="vq-tile-dot absolute top-2.5 left-2.5" title="Has variants" />
+                        )}
+                        {inCart > 0 && (
+                            <span className="vq-tile-badge vq-num" aria-label={`${inCart} in the current order`}>
+                                {formatNumber(inCart, 0)}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                <div className="vq-tile-large-body">
+                    <div className="vq-tile-large-title-box">
+                        <span className="vq-tile-large-name">{product.name}</span>
+                        <span className="vq-tile-large-meta">
+                            {product.category?.name || product.category_name || product.sku || ''}
+                        </span>
+                    </div>
+
+                    <div className="vq-tile-large-foot">
+                        {showCatalogStock && (
+                            <span className={`vq-tile-large-stock${out ? ' is-out' : ''}`}>
+                                {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
+                            </span>
+                        )}
+                        <span className="vq-num vq-tile-large-price ml-auto">
+                            {money(product.price || product.selling_price || 0)}
+                        </span>
+                    </div>
+                </div>
+
+                {!showCatalogImages && inCart > 0 && (
+                    <span className="vq-tile-badge vq-num" aria-label={`${inCart} in the current order`}>
+                        {formatNumber(inCart, 0)}
+                    </span>
+                )}
+            </button>
+        );
+    };
+
+    /* Standard Compact Catalog Tile */
     const renderProductTile = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
@@ -3355,20 +3487,17 @@ const POSInterface = ({
                 type="button"
                 onClick={() => pickProduct(product)}
                 data-incart={inCart > 0 ? '1' : '0'}
-                /* Type, radius and spacing all come off the V6 ramp now. The old
-                   tile mixed text-xs / text-3xs / rounded-xl / p-3 with hand-picked
-                   min-heights, none of which appear in the token set -- which is
-                   why the catalog read as a different product from the panes
-                   around it. */
                 className="vq-tile group"
                 title={product.name}
             >
                 <span className="vq-tile-top">
-                    <span className="vq-tile-thumb">
-                        {product.image_url || product.image_path
-                            ? <img src={product.image_url || product.image_path} alt="" loading="lazy" />
-                            : <Package size={16} strokeWidth={2} />}
-                    </span>
+                    {showCatalogImages && (
+                        <span className="vq-tile-thumb">
+                            {product.image_url || product.image_path
+                                ? <img src={product.image_url || product.image_path} alt="" loading="lazy" />
+                                : <Package size={16} strokeWidth={2} />}
+                        </span>
+                    )}
                     <span className="vq-tile-id">
                         <span className="vq-tile-name vq-clip-2">{product.name}</span>
                         <span className="vq-tile-meta vq-clip">
@@ -3381,17 +3510,16 @@ const POSInterface = ({
                 </span>
 
                 <span className="vq-tile-foot">
-                    <span className={`vq-tile-stock${out ? ' is-out' : ''}`}>
-                        {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
-                    </span>
-                    <span className="vq-num vq-tile-price">
+                    {showCatalogStock && (
+                        <span className={`vq-tile-stock${out ? ' is-out' : ''}`}>
+                            {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
+                        </span>
+                    )}
+                    <span className="vq-num vq-tile-price ml-auto">
                         {money(product.price || product.selling_price || 0)}
                     </span>
                 </span>
 
-                {/* In the cart, and how many. Sits on the tile rather than in a
-                    corner of the pane, because the question it answers -- "did
-                    that tap land?" -- is asked of THIS tile. */}
                 {inCart > 0 && (
                     <span className="vq-tile-badge vq-num" aria-label={`${inCart} in the current order`}>
                         {formatNumber(inCart, 0)}
@@ -3402,22 +3530,36 @@ const POSInterface = ({
     };
 
     const renderCatalogBody = ({ variant = 'list', tiles = 0 } = {}) => {
-        /* The engine derives a shape from the width it can afford, which is
-           the right default and the wrong answer for a shop with an opinion.
-           A stated preference outranks the derivation in both directions --
-           rows in a wide column, cards in a narrow one. */
         const shape = composition?.catalogShape || 'auto';
         const asPills = shape === 'pills';
-        const asTiles = shape === 'cards' ? true
+        const asLargeCards = shape === 'large_cards';
+        const asTiles = (shape === 'cards' || asLargeCards) ? true
             : (shape === 'rows' || asPills) ? false
             : (variant !== 'list' || tiles > 0);
         const cols = tiles || (variant === 'grid-3up' ? 3 : 2);
 
         if (isLoadingProducts) {
-            /* A skeleton shaped like the real grid/list, not a spinner --
-               the catalog appears to already be "there", just not filled
-               in yet, which reads faster than a centered spinner even when
-               the actual wait time is identical. */
+            if (asLargeCards) {
+                return (
+                    <div className="vq-tiles-large p-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col" style={{ minHeight: 220 }} aria-hidden="true">
+                                <div className="w-full h-[140px] bg-sunken shrink-0 animate-pulse" />
+                                <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
+                                    <div className="space-y-1.5">
+                                        <div className="h-3 rounded-full bg-sunken animate-pulse" style={{ width: '80%' }} />
+                                        <div className="h-2.5 rounded-full bg-sunken animate-pulse" style={{ width: '45%' }} />
+                                    </div>
+                                    <div className="flex items-center justify-between pt-1 border-t border-line/50">
+                                        <div className="h-2.5 w-10 rounded-full bg-sunken animate-pulse" />
+                                        <div className="h-4 w-12 rounded-md bg-sunken animate-pulse" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
             if (asTiles) {
                 return (
                     <div className="vq-tiles p-3" style={{ '--vq-tiles': cols }}>
@@ -3454,7 +3596,7 @@ const POSInterface = ({
                 </div>
             );
         }
-        if (selectedCategory && categoryProducts.length === 0) {
+        if (selectedCategory && sortedCategoryProducts.length === 0) {
             return (
                 <div className="py-16 text-center">
                     <Archive className="mx-auto text-ink-muted opacity-40 mb-4" size={44} />
@@ -3462,7 +3604,7 @@ const POSInterface = ({
                 </div>
             );
         }
-        if (!selectedCategory && categoryProducts.length === 0) {
+        if (!selectedCategory && sortedCategoryProducts.length === 0) {
             return (
                 <div className="py-16 flex flex-col items-center justify-center text-ink-muted gap-4 opacity-60">
                     <div className="w-16 h-16 rounded-lg bg-sunken flex items-center justify-center">
@@ -3478,20 +3620,27 @@ const POSInterface = ({
         if (asPills) {
             return (
                 <div className="vq-pills p-3">
-                    {(Array.isArray(categoryProducts) ? categoryProducts : []).map(renderProductPill)}
+                    {sortedCategoryProducts.map(renderProductPill)}
+                </div>
+            );
+        }
+        if (asLargeCards) {
+            return (
+                <div className="vq-tiles-large p-3" style={tiles ? { gridTemplateColumns: `repeat(${tiles}, minmax(0, 1fr))` } : undefined}>
+                    {sortedCategoryProducts.map(renderProductLargeTile)}
                 </div>
             );
         }
         if (asTiles) {
             return (
                 <div className="vq-tiles p-3" style={{ '--vq-tiles': cols }}>
-                    {(Array.isArray(categoryProducts) ? categoryProducts : []).map(renderProductTile)}
+                    {sortedCategoryProducts.map(renderProductTile)}
                 </div>
             );
         }
         return (
             <div className="p-3 space-y-2">
-                {(Array.isArray(categoryProducts) ? categoryProducts : []).map(renderProductRow)}
+                {sortedCategoryProducts.map(renderProductRow)}
             </div>
         );
     };
@@ -3653,7 +3802,10 @@ const POSInterface = ({
 
     const renderCatalogBand = () => {
         const rows = Math.max(1, cat?.rows || 1);
-        const tilesH = rows * 152 + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
+        const shape = composition?.catalogShape || 'auto';
+        const isLarge = shape === 'large_cards';
+        const baseH = isLarge ? 220 : 152;
+        const tilesH = rows * baseH + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
         return (
             <section
                 className="vq-pane vq-catband bg-surface border border-line shrink-0"
@@ -3663,11 +3815,15 @@ const POSInterface = ({
                 {renderCategoryStrip()}
                 <div className="vq-pane-body">
                     <div
-                        className={(composition?.catalogShape === 'pills') ? 'vq-pills-band' : 'vq-tiles-band'}
+                        className={(shape === 'pills') ? 'vq-pills-band' : 'vq-tiles-band'}
                         data-rows={rows}
+                        data-shape={shape}
                     >
-                        {(Array.isArray(categoryProducts) ? categoryProducts : [])
-                            .map(composition?.catalogShape === 'pills' ? renderProductPill : renderProductTile)}
+                        {sortedCategoryProducts.map(
+                            shape === 'pills' ? renderProductPill :
+                            isLarge ? renderProductLargeTile :
+                            renderProductTile
+                        )}
                     </div>
                 </div>
             </section>
@@ -3678,14 +3834,37 @@ const POSInterface = ({
        One number, derived the same way the band derives it. */
     const bandOuterH = () => {
         const rows = Math.max(1, cat?.rows || 1);
-        return rows * 152 + (rows - 1) * GUTTER + CAT_STRIP_H;
+        const shape = composition?.catalogShape || 'auto';
+        const baseH = shape === 'large_cards' ? 220 : 152;
+        return rows * baseH + (rows - 1) * GUTTER + CAT_STRIP_H;
     };
 
     const renderCatalogPane = (fit, tiles) => (
         <section className="vq-pane bg-surface border border-line" data-pane="catalog">
-            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
-                <span>Catalog</span>
-                <span className="vq-num ml-auto text-2xs opacity-80 font-bold">{categoryProducts.length} items</span>
+            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line flex items-center justify-between px-3 py-1.5">
+                <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs">Catalog</span>
+                    <span className="vq-num text-3xs font-bold px-1.5 py-0.5 rounded bg-surface border border-line text-ink-secondary">
+                        {sortedCategoryProducts.length} items
+                    </span>
+                </div>
+                <div className="flex items-center gap-1.5 ml-auto">
+                    <select
+                        value={catalogSort}
+                        onChange={(e) => setCatalogSort(e.target.value)}
+                        className="text-3xs font-bold bg-surface border border-line rounded-md px-2 py-0.5 text-ink focus:outline-none focus:border-brand-500 cursor-pointer"
+                        title="Sort catalog items"
+                        aria-label="Sort catalog items"
+                    >
+                        <option value="top_selling">🔥 Top Selling</option>
+                        <option value="name_asc">🔤 Name (A → Z)</option>
+                        <option value="name_desc">🔤 Name (Z → A)</option>
+                        <option value="price_asc">💵 Price (Low → High)</option>
+                        <option value="price_desc">💵 Price (High → Low)</option>
+                        <option value="stock_desc">📦 Stock (High → Low)</option>
+                        <option value="newest">✨ Newest</option>
+                    </select>
+                </div>
             </header>
             {catalogHostsScan && renderScan()}
             {renderCategoryStrip()}
@@ -6148,6 +6327,14 @@ const POSInterface = ({
                     setShowRail={v => { setShowRail(v); try { localStorage.setItem('pos_show_rail', JSON.stringify(v)); } catch (_) {} }}
                     uiScale={uiScale}
                     setUiScale={setUiScale}
+                    catalogSort={catalogSort}
+                    setCatalogSort={setCatalogSort}
+                    showCatalogImages={showCatalogImages}
+                    setShowCatalogImages={setShowCatalogImages}
+                    showCatalogStock={showCatalogStock}
+                    setShowCatalogStock={setShowCatalogStock}
+                    hideOutOfStock={hideOutOfStock}
+                    setHideOutOfStock={setHideOutOfStock}
 
                     enableTax={enableTax}
                     setEnableTax={v => { setEnableTax(v); try { localStorage.setItem('pos_enable_tax', String(v)); } catch (_) {} }}

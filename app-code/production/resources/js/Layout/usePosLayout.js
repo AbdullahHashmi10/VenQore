@@ -143,7 +143,7 @@ export function normaliseComposition(raw) {
            that has an opinion: a grocer reading long names wants rows at every
            width, a cafe pointing at pictures wants cards even in a narrow
            column. 'auto' keeps the derivation. */
-        catalogShape: ['auto', 'cards', 'rows', 'pills'].includes(raw.catalogShape) ? raw.catalogShape : 'auto',
+        catalogShape: ['auto', 'large_cards', 'cards', 'rows', 'pills'].includes(raw.catalogShape) ? raw.catalogShape : 'auto',
         floor: floorModes.includes(raw.floor) ? raw.floor : base.floor,
     };
 }

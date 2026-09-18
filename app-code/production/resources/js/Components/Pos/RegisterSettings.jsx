@@ -321,10 +321,14 @@ export default function RegisterSettings({
     surface = DEFAULT_SURFACE,
     setSurface,
 
-    /* display */
+    /* display & catalog */
     seniorMode, setSeniorMode,
     showRail, setShowRail,
     uiScale, setUiScale,
+    catalogSort, setCatalogSort,
+    showCatalogImages, setShowCatalogImages,
+    showCatalogStock, setShowCatalogStock,
+    hideOutOfStock, setHideOutOfStock,
 
     /* selling */
     enableTax, setEnableTax,
@@ -663,15 +667,11 @@ export default function RegisterSettings({
                                     />
                                 </Field>
 
-                                {/* CARDS OR ROWS. The engine picks a shape from the fit it
-                                    can afford, which is right for a shop that has not
-                                    thought about it and wrong for one that has: a grocer
-                                    reading 40-character names wants rows at every width,
-                                    a cafe pointing at pictures wants cards even in a
-                                    narrow column. Auto keeps the derivation. */}
+                                {/* CARDS, BIG CARDS, ROWS, PILLS. The engine picks a shape from the fit it
+                                    can afford, or follows the shop's explicit preference. */}
                                 <Field
-                                    title="Catalog items"
-                                    hint="Auto lets the width decide. Cards show the picture, price and stock. Rows fit about twice as many and give the name its full length. Pills fit the most by far — name and price only — which is the right shape for a menu you point at rather than search."
+                                    title="Catalog item shape"
+                                    hint="Auto lets width decide. Big Cards feature a large top product photo with info below. Compact Cards show small thumbnail + info. Rows fit twice as many. Pills fit the most by far."
                                     stacked
                                 >
                                     <Segmented
@@ -679,13 +679,71 @@ export default function RegisterSettings({
                                         value={comp.catalogShape || 'auto'}
                                         onChange={v => onUpdateComposition?.(prev => ({ ...prev, catalogShape: v }))}
                                         options={[
-                                            { value: 'auto',  label: 'Auto' },
-                                            { value: 'cards', label: 'Cards' },
-                                            { value: 'rows',  label: 'Rows' },
-                                            { value: 'pills', label: 'Pills' },
+                                            { value: 'auto',        label: 'Auto' },
+                                            { value: 'large_cards', label: 'Big Cards' },
+                                            { value: 'cards',       label: 'Compact' },
+                                            { value: 'rows',        label: 'Rows' },
+                                            { value: 'pills',       label: 'Pills' },
                                         ]}
                                     />
                                 </Field>
+
+                                {catResident && (
+                                    <>
+                                        <Field
+                                            title="Default catalog sort"
+                                            hint="How items in 'All Items' and categories are ordered by default."
+                                            stacked
+                                        >
+                                            <Segmented
+                                                label="Catalog sorting"
+                                                value={catalogSort || 'top_selling'}
+                                                onChange={v => setCatalogSort?.(v)}
+                                                options={[
+                                                    { value: 'top_selling', label: 'Top Selling' },
+                                                    { value: 'name_asc',    label: 'A → Z' },
+                                                    { value: 'price_asc',   label: 'Price ↑' },
+                                                    { value: 'price_desc',  label: 'Price ↓' },
+                                                    { value: 'stock_desc',  label: 'Stock' },
+                                                    { value: 'newest',      label: 'Newest' },
+                                                ]}
+                                            />
+                                        </Field>
+
+                                        <Field
+                                            title="Show product pictures"
+                                            hint="Displays product images on cards and rows. Turn off for text-only fast scanning."
+                                        >
+                                            <Toggle
+                                                checked={showCatalogImages !== false}
+                                                onChange={v => setShowCatalogImages?.(v)}
+                                                label="Show product pictures"
+                                            />
+                                        </Field>
+
+                                        <Field
+                                            title="Show remaining stock badge"
+                                            hint="Shows remaining stock count (e.g. '12 left') on product tiles."
+                                        >
+                                            <Toggle
+                                                checked={showCatalogStock !== false}
+                                                onChange={v => setShowCatalogStock?.(v)}
+                                                label="Show remaining stock badge"
+                                            />
+                                        </Field>
+
+                                        <Field
+                                            title="Hide out-of-stock products"
+                                            hint="Hides items with zero available stock from the catalog view."
+                                        >
+                                            <Toggle
+                                                checked={!!hideOutOfStock}
+                                                onChange={v => setHideOutOfStock?.(v)}
+                                                label="Hide out-of-stock products"
+                                            />
+                                        </Field>
+                                    </>
+                                )}
                             </section>
 
                             {/* ── COLUMN WIDTHS ──
