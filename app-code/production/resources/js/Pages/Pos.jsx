@@ -3433,7 +3433,7 @@ const POSInterface = ({
                         {hasImage ? (
                             <img src={product.image_url || product.image_path} alt="" loading="lazy" />
                         ) : (
-                            <Package size={44} strokeWidth={1.5} className="opacity-40" />
+                            <Package size={40} strokeWidth={1.5} className="opacity-40" />
                         )}
                         {product.variants && product.variants.length > 0 && (
                             <span className="vq-tile-dot absolute top-2.5 left-2.5" title="Has variants" />
@@ -3543,16 +3543,16 @@ const POSInterface = ({
                 return (
                     <div className="vq-tiles-large p-3">
                         {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col p-2 gap-2" style={{ minHeight: 285 }} aria-hidden="true">
-                                <div className="w-[200px] h-[200px] max-w-full aspect-square rounded-lg bg-sunken shrink-0 animate-pulse mx-auto" />
+                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col p-2 gap-1.5" style={{ minHeight: 255 }} aria-hidden="true">
+                                <div className="w-[170px] h-[170px] max-w-full aspect-square rounded-lg bg-sunken shrink-0 animate-pulse mx-auto" />
                                 <div className="p-1 space-y-2 flex-1 flex flex-col justify-between">
                                     <div className="space-y-1.5">
                                         <div className="h-3.5 rounded-full bg-sunken animate-pulse" style={{ width: '80%' }} />
                                         <div className="h-2.5 rounded-full bg-sunken animate-pulse" style={{ width: '45%' }} />
                                     </div>
-                                    <div className="flex items-center justify-between pt-2 border-t border-line/50">
+                                    <div className="flex items-center justify-between pt-1.5 border-t border-line/50">
                                         <div className="h-3 w-10 rounded-full bg-sunken animate-pulse" />
-                                        <div className="h-5 w-14 rounded-md bg-sunken animate-pulse" />
+                                        <div className="h-4.5 w-14 rounded-md bg-sunken animate-pulse" />
                                     </div>
                                 </div>
                             </div>
@@ -3804,7 +3804,7 @@ const POSInterface = ({
         const rows = Math.max(1, cat?.rows || 1);
         const shape = composition?.catalogShape || 'auto';
         const isLarge = shape === 'large_cards';
-        const baseH = isLarge ? 290 : 152;
+        const baseH = isLarge ? 255 : 152;
         const tilesH = rows * baseH + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
         return (
             <section
@@ -3835,7 +3835,7 @@ const POSInterface = ({
     const bandOuterH = () => {
         const rows = Math.max(1, cat?.rows || 1);
         const shape = composition?.catalogShape || 'auto';
-        const baseH = shape === 'large_cards' ? 290 : 152;
+        const baseH = shape === 'large_cards' ? 255 : 152;
         return rows * baseH + (rows - 1) * GUTTER + CAT_STRIP_H;
     };
 
