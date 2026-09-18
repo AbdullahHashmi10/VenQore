@@ -3266,9 +3266,10 @@ export function composeTerminal(comp, vw, vh) {
 
   const allocateColumns = (wantCat, wantFloor, wantTender) => {
     const f = {};
-    if (wantCat) f.catalog = clampN(C_.catalog.size, .12, .75);
-    f.cart = Math.max(.20, C_.split.cart);
+    if (wantCat) f.catalog = clampN(C_.catalog.size, 0.12, 0.75);
     if (wantTender) f.tender = clampN(C_.split.tender, 0, .45);
+    const assigned = (f.catalog || 0) + (f.tender || 0);
+    f.cart = Math.max(.15, 1 - assigned);
 
     const tracks = Object.keys(f).length + (wantFloor ? 1 : 0);
     const pool = avail - G * Math.max(0, tracks - 1);

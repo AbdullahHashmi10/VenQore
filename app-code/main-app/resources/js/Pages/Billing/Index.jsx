@@ -157,17 +157,17 @@ function UsageMeterCard({ icon: Icon, label, used, limit, suffix = '', helper = 
     const isWarning = !isUnlimited && pct >= 75 && pct < 90;
 
     const barColor = isCritical ? 'bg-rose-500' : isWarning ? 'bg-amber-500' : 'bg-[#0BAA8F]';
-    const textColor = isCritical ? 'text-rose-400' : isWarning ? 'text-amber-400' : 'text-white';
+    const textColor = isCritical ? 'text-rose-600 dark:text-rose-400' : isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-ink';
 
     return (
-        <div className="p-5 rounded-2xl bg-neutral-900/50 border border-white/[0.06] hover:border-white/[0.12] transition-all flex flex-col justify-between">
+        <div className="p-5 rounded-2xl bg-surface border border-line shadow-sm hover:border-line-strong hover:shadow-md transition-all flex flex-col justify-between">
             <div>
                 <div className="flex items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/[0.04] text-neutral-300">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-surface-raised text-ink-secondary border border-line">
                             <Icon size={16} />
                         </div>
-                        <span className="text-xs font-semibold text-neutral-300">{label}</span>
+                        <span className="text-xs font-semibold text-ink-secondary">{label}</span>
                     </div>
                     {isCritical && <AlertTriangle size={14} className="text-rose-500 shrink-0" />}
                 </div>
@@ -176,38 +176,38 @@ function UsageMeterCard({ icon: Icon, label, used, limit, suffix = '', helper = 
                     {isUnlimited ? (
                         <span className="flex items-center gap-1.5">
                             {usedNum.toLocaleString()}
-                            <span className="text-xs text-neutral-500 font-sans font-medium">/ ∞</span>
+                            <span className="text-xs text-ink-muted font-sans font-medium">/ ∞</span>
                         </span>
                     ) : (
                         <span>
                             {usedNum.toLocaleString()}
-                            <span className="text-xs text-neutral-500 font-sans font-medium"> / {limitNum.toLocaleString()}{suffix}</span>
+                            <span className="text-xs text-ink-muted font-sans font-medium"> / {limitNum.toLocaleString()}{suffix}</span>
                         </span>
                     )}
                 </div>
             </div>
 
-            <div className="mt-3 pt-3 border-t border-white/[0.04]">
+            <div className="mt-3 pt-3 border-t border-line">
                 {isUnlimited ? (
                     <div className="flex items-center justify-between text-2xs font-semibold">
-                        <span className="text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                        <span className="text-[#0BAA8F] uppercase tracking-wider flex items-center gap-1">
                             <CheckCircle2 size={11} /> Uncapped Capacity
                         </span>
-                        {helper && <span className="text-neutral-400">{helper}</span>}
+                        {helper && <span className="text-ink-muted">{helper}</span>}
                     </div>
                 ) : (
                     <>
-                        <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden mb-1.5">
+                        <div className="h-2 bg-surface-raised border border-line rounded-full overflow-hidden mb-1.5">
                             <div
                                 style={{ width: `${pct}%` }}
                                 className={`h-full rounded-full transition-all duration-500 ${barColor}`}
                             />
                         </div>
                         <div className="flex items-center justify-between text-2xs">
-                            <span className={`font-semibold uppercase tracking-wider ${isCritical ? 'text-rose-400 font-bold' : isWarning ? 'text-amber-400' : 'text-neutral-400'}`}>
+                            <span className={`font-semibold uppercase tracking-wider ${isCritical ? 'text-rose-600 dark:text-rose-400 font-bold' : isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-ink-muted'}`}>
                                 {pct}% utilized
                             </span>
-                            {helper && <span className="text-neutral-400 text-3xs">{helper}</span>}
+                            {helper && <span className="text-ink-muted text-3xs">{helper}</span>}
                         </div>
                     </>
                 )}
@@ -219,9 +219,9 @@ function UsageMeterCard({ icon: Icon, label, used, limit, suffix = '', helper = 
 // ── V6 Plan Card ─────────────────────────────────────────────────────────────
 function PlanCardV6({
     planKey,
-    planConfig,
+    _planConfig,
     isCurrent,
-    storeSlug,
+    _storeSlug,
     tenant,
     onSelectPlan,
     onCheckout,
@@ -229,7 +229,6 @@ function PlanCardV6({
     billingCycle = 'monthly',
     currencyDisplay = 'USD'
 }) {
-    const tt = useTermText();
     const meta = PLAN_META[planKey] || { label: planKey, priceDisplay: '—', color: '#0BAA8F', Icon: Shield, perks: [] };
     const { Icon } = meta;
     const isLtd = planKey.startsWith('ltd');
@@ -246,32 +245,32 @@ function PlanCardV6({
 
     return (
         <div
-            className={`relative p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+            className={`relative p-6 sm:p-7 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
                 isCurrent
-                    ? 'bg-[#0BAA8F]/[0.04] border-[#0BAA8F]/40 shadow-[0_0_35px_rgba(11,170,143,0.08)]'
+                    ? 'bg-surface border-2 border-[#0BAA8F] shadow-lg ring-2 ring-[#0BAA8F]/20'
                     : meta.featured
-                    ? 'bg-gradient-to-b from-purple-950/20 to-neutral-950 border-purple-500/30 hover:border-purple-500/50'
-                    : 'bg-neutral-900/40 border-white/[0.06] hover:bg-neutral-900/70 hover:border-white/[0.12]'
+                    ? 'bg-surface border-2 border-[#8B5CF6] dark:border-[#A78BFA] shadow-lg ring-2 ring-purple-500/20'
+                    : 'bg-surface border border-line shadow-sm hover:border-line-strong hover:shadow-md'
             }`}
         >
             {/* Badges */}
             <div className="flex items-center justify-between gap-2 mb-4">
                 {isCurrent ? (
-                    <span className="px-2.5 py-1 rounded-full text-3xs font-bold tracking-widest text-neutral-950 bg-[#0BAA8F]">
-                        CURRENT PLAN
+                    <span className="px-3 py-1 rounded-full text-3xs font-bold tracking-widest text-white bg-[#0BAA8F] shadow-sm flex items-center gap-1">
+                        <CheckCircle2 size={11} /> CURRENT PLAN
                     </span>
                 ) : meta.tag ? (
                     <span className={`px-2.5 py-1 rounded-full text-3xs font-bold tracking-widest uppercase ${
                         meta.featured
-                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                            : 'bg-white/[0.05] text-neutral-300 border border-white/[0.08]'
+                            ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700/50'
+                            : 'bg-surface-raised text-ink-muted border border-line'
                     }`}>
                         {meta.tag}
                     </span>
                 ) : <span />}
 
                 {isAnnual && annualRate && (
-                    <span className="px-2 py-0.5 rounded-full text-3xs font-bold tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="px-2 py-0.5 rounded-full text-3xs font-bold tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800">
                         2 MOS FREE
                     </span>
                 )}
@@ -281,30 +280,30 @@ function PlanCardV6({
                 {/* Header */}
                 <div className="flex items-center gap-3.5 mb-4">
                     <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-line"
                         style={{ background: meta.color + '18', color: meta.color }}
                     >
                         <Icon size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-lg text-white leading-tight">{meta.label}</h3>
-                        <p className="text-2xs text-neutral-400 mt-0.5 line-clamp-1">{meta.desc}</p>
+                        <h3 className="font-bold text-xl text-ink leading-tight">{meta.label}</h3>
+                        <p className="text-2xs text-ink-muted mt-0.5 line-clamp-1">{meta.desc}</p>
                     </div>
                 </div>
 
                 {/* Price Display */}
-                <div className="py-4 my-2 border-y border-white/[0.06]">
+                <div className="py-4 my-2 border-y border-line">
                     <div className="flex items-baseline gap-1.5 font-mono">
-                        <span className="text-3xl font-bold text-white">
+                        <span className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight font-mono">
                             ${isAnnual && annualRate ? effectiveMonthly : monthlyRate}
                         </span>
-                        <span className="text-xs text-neutral-400 font-sans font-medium">
+                        <span className="text-xs text-ink-muted font-sans font-medium">
                             {monthlyRate === 0 ? '/forever' : '/month'}
                         </span>
                     </div>
                     {isAnnual && annualRate > 0 && (
-                        <div className="text-2xs text-neutral-400 font-medium mt-1">
-                            Billed annually as ${annualRate}/year
+                        <div className="text-2xs text-ink-muted font-medium mt-1">
+                            Billed annually as <span className="font-semibold text-ink">${annualRate}/year</span>
                         </div>
                     )}
                 </div>
@@ -312,32 +311,32 @@ function PlanCardV6({
                 {/* Features List */}
                 <div className="space-y-2.5 my-6 text-xs">
                     {(meta.perks || []).map((perk, idx) => (
-                        <div key={idx} className="flex items-start gap-2.5 text-neutral-300">
-                            <Check size={14} className="text-[#0BAA8F] shrink-0 mt-0.5" />
-                            <span className="leading-snug text-2xs">{perk}</span>
+                        <div key={idx} className="flex items-start gap-2.5 text-ink-secondary">
+                            <Check size={15} className="text-[#0BAA8F] shrink-0 mt-0.5" />
+                            <span className="leading-snug text-xs">{perk}</span>
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* Action CTA Button */}
-            <div className="pt-4 border-t border-white/[0.06] mt-auto">
+            <div className="pt-4 border-t border-line mt-auto">
                 {isCurrent ? (
                     (tenant?.status === 'trial' || tenant?.status === 'suspended') ? (
                         <button
                             onClick={() => onCheckout?.(planKey, isAnnual ? 'annual' : 'monthly', currencyDisplay)}
                             disabled={isCheckingOut}
-                            className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 bg-[#0BAA8F] hover:bg-[#0BAA8F]/90 text-neutral-950 shadow-lg transition-all active:scale-98"
+                            className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 bg-[#0BAA8F] hover:bg-[#09927D] text-white shadow-md transition-all active:scale-98"
                         >
                             {isCheckingOut ? <Loader2 size={15} className="animate-spin" /> : <>Activate Subscription <ArrowRight size={14} /></>}
                         </button>
                     ) : (
-                        <div className="text-center py-3 text-xs font-bold text-[#0BAA8F] uppercase tracking-widest bg-[#0BAA8F]/10 border border-[#0BAA8F]/20 rounded-xl flex items-center justify-center gap-2">
-                            <CheckCircle2 size={14} /> Active Plan
+                        <div className="text-center py-3 text-xs font-bold text-[#0BAA8F] uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-center justify-center gap-2">
+                            <CheckCircle2 size={15} /> Active Plan
                         </div>
                     )
                 ) : isLtd ? (
-                    <div className="text-center py-3 text-xs font-bold text-neutral-400 uppercase tracking-widest bg-white/5 rounded-xl">
+                    <div className="text-center py-3 text-xs font-bold text-ink-muted uppercase tracking-widest bg-surface-raised border border-line rounded-xl">
                         Lifetime Supporter
                     </div>
                 ) : (
@@ -345,8 +344,8 @@ function PlanCardV6({
                         onClick={() => onSelectPlan(planKey)}
                         className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-98 ${
                             thisIdx > currentIdx
-                                ? 'bg-white text-neutral-950 hover:bg-neutral-200 shadow-md'
-                                : 'bg-white/[0.04] border border-white/[0.1] hover:bg-white/[0.08] text-neutral-300'
+                                ? 'bg-[#0BAA8F] hover:bg-[#09927D] text-white shadow-md hover:shadow-lg'
+                                : 'bg-surface-raised hover:bg-surface border border-line hover:border-line-strong text-ink font-semibold'
                         }`}
                     >
                         <span>{thisIdx > currentIdx ? `Upgrade to ${meta.label}` : `Select ${meta.label}`}</span>
@@ -704,10 +703,10 @@ export default function BillingIndex({
                 )}
 
                 {/* ── Active Plan Hero Card ─────────────────────────────────── */}
-                <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-neutral-900/80 to-neutral-950 border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div className="flex items-center gap-5 relative z-10">
                         <div
-                            className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg shrink-0 border"
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm shrink-0 border border-line"
                             style={{
                                 background: currentMeta.color + '15',
                                 borderColor: currentMeta.color + '30',
@@ -719,12 +718,12 @@ export default function BillingIndex({
                         <div>
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="text-3xs font-bold uppercase tracking-widest text-[#0BAA8F]">Active Subscription</span>
-                                <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-white/[0.05] text-neutral-300 border border-white/[0.08]">
+                                <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-surface-raised text-ink-secondary border border-line">
                                     {currentPlanKey}
                                 </span>
                             </div>
-                            <div className="text-2xl font-bold text-white tracking-tight">{currentMeta.label}</div>
-                            <div className="text-xs text-neutral-400 mt-1">
+                            <div className="text-2xl font-bold text-ink tracking-tight">{currentMeta.label}</div>
+                            <div className="text-xs text-ink-muted mt-1">
                                 {isViewOnly ? `View-Only Mode (${viewOnlyDaysLeft} days remaining)`
                                     : tenant?.status === 'suspended' ? 'Trial Expired / Suspended'
                                     : isTrial ? (trialDaysLeft !== null
@@ -736,8 +735,8 @@ export default function BillingIndex({
                             </div>
 
                             {isTrial && trialCreditFor(billingCycle) && (
-                                <div className="text-2xs font-semibold text-emerald-400 mt-2 flex items-center gap-1.5">
-                                    <Zap size={12} className="fill-emerald-400" />
+                                <div className="text-2xs font-semibold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1.5">
+                                    <Zap size={12} className="fill-emerald-500 text-emerald-500" />
                                     <span>Pay early and unused days become a {trialCreditFor(billingCycle).percent}% credit on your first invoice.</span>
                                 </div>
                             )}
@@ -750,9 +749,9 @@ export default function BillingIndex({
                             <button
                                 disabled={checkoutBusy === currentPlanKey}
                                 onClick={() => handlePlanCheckout(currentPlanKey, billingCycle, currencyDisplay)}
-                                className="px-6 py-3 rounded-xl bg-[#0BAA8F] hover:bg-[#0BAA8F]/90 disabled:opacity-60 text-neutral-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all active:scale-98"
+                                className="px-6 py-3 rounded-xl bg-[#0BAA8F] hover:bg-[#09927D] disabled:opacity-60 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-md transition-all active:scale-98"
                             >
-                                <Zap size={14} className="fill-neutral-950" />
+                                <Zap size={14} className="fill-white" />
                                 <span>{checkoutBusy === currentPlanKey ? 'Opening…' : 'Pay Now'}</span>
                             </button>
                         )}
@@ -760,7 +759,7 @@ export default function BillingIndex({
                         {/* Direct Link to Native Apps */}
                         <Link
                             href={route('store.apps', { store_slug: storeSlug })}
-                            className="px-5 py-3 rounded-xl bg-white/[0.04] border border-white/[0.1] hover:bg-white/[0.08] text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
+                            className="px-5 py-3 rounded-xl bg-surface-raised hover:bg-surface border border-line hover:border-line-strong text-ink font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-sm"
                         >
                             <Monitor size={14} className="text-[#0BAA8F]" />
                             <span>Download Apps</span>
@@ -772,7 +771,7 @@ export default function BillingIndex({
                                 href={history.subscription.update_card_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-neutral-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
+                                className="px-4 py-3 rounded-xl bg-surface-raised hover:bg-surface border border-line hover:border-line-strong text-ink font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
                             >
                                 <CreditCard size={14} /> <span>Update Card</span>
                             </a>
@@ -782,7 +781,7 @@ export default function BillingIndex({
                         {confirmedPaying && !isLtd && !isViewOnly && !history?.subscription?.is_cancelled && (
                             <button
                                 onClick={() => setCancelOpen(true)}
-                                className="px-3.5 py-3 text-neutral-400 hover:text-rose-400 text-xs font-semibold transition-colors"
+                                className="px-3.5 py-3 text-ink-muted hover:text-rose-500 text-xs font-semibold transition-colors"
                             >
                                 Cancel
                             </button>
@@ -792,7 +791,7 @@ export default function BillingIndex({
                             <button
                                 onClick={submitResumeSubscription}
                                 disabled={resumeBusy}
-                                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
+                                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-sm"
                             >
                                 <RefreshCw size={14} className={resumeBusy ? 'animate-spin' : ''} />
                                 <span>Resume</span>
@@ -804,7 +803,7 @@ export default function BillingIndex({
                             onClick={() => runSubscriptionSync()}
                             disabled={isSyncing}
                             title="Re-check status with Lemon Squeezy"
-                            className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-neutral-400 hover:text-white transition-all"
+                            className="p-3 rounded-xl bg-surface-raised hover:bg-surface border border-line hover:border-line-strong text-ink-muted hover:text-ink transition-all"
                         >
                             <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
                         </button>
@@ -812,7 +811,7 @@ export default function BillingIndex({
                 </div>
 
                 {/* ── 4 Streamlined Tabs Navigation ─────────────────────────── */}
-                <div className="flex border-b border-white/[0.08] overflow-x-auto gap-2">
+                <div className="flex border-b border-line overflow-x-auto gap-2">
                     {[
                         { id: 'subscription', label: 'Subscription & Plans', icon: Receipt },
                         { id: 'usage', label: 'Resource Usage & Limits', icon: BarChart2 },
@@ -827,8 +826,8 @@ export default function BillingIndex({
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-all whitespace-nowrap ${
                                     isActive
-                                        ? 'border-[#0BAA8F] text-white bg-white/[0.02]'
-                                        : 'border-transparent text-neutral-400 hover:text-neutral-200'
+                                        ? 'border-[#0BAA8F] text-[#0BAA8F] bg-[#0BAA8F]/5'
+                                        : 'border-transparent text-ink-muted hover:text-ink hover:border-line'
                                 }`}
                             >
                                 <TabIcon size={15} />
@@ -843,21 +842,21 @@ export default function BillingIndex({
                     <div className="space-y-10 animate-fadeIn">
 
                         {/* Apps Download Promo Callout */}
-                        <div className="p-6 rounded-2xl bg-gradient-to-r from-[#0BAA8F]/15 via-neutral-900 to-neutral-950 border border-[#0BAA8F]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="p-6 rounded-2xl bg-surface border border-[#0BAA8F]/30 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-[#0BAA8F]/15 border border-[#0BAA8F]/30 flex items-center justify-center text-[#0BAA8F] shrink-0">
+                                <div className="w-12 h-12 rounded-xl bg-[#0BAA8F]/10 border border-[#0BAA8F]/25 flex items-center justify-center text-[#0BAA8F] shrink-0">
                                     <Monitor size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-white">Need Raw Hardware Receipt Printing &amp; Peripherals?</h4>
-                                    <p className="text-xs text-neutral-400 mt-0.5">
-                                        Download <span className="text-white font-semibold">VenQore Station for Windows</span> for raw ESC/POS printing, cash drawers, and scales.
+                                    <h4 className="text-sm font-bold text-ink">Need Raw Hardware Receipt Printing &amp; Peripherals?</h4>
+                                    <p className="text-xs text-ink-muted mt-0.5">
+                                        Download <span className="text-ink font-semibold">VenQore Station for Windows</span> for raw ESC/POS printing, cash drawers, and scales.
                                     </p>
                                 </div>
                             </div>
                             <Link
                                 href={route('store.apps', { store_slug: storeSlug })}
-                                className="px-5 py-2.5 rounded-xl bg-[#0BAA8F] hover:bg-[#0BAA8F]/90 text-neutral-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 self-start sm:self-auto"
+                                className="px-5 py-2.5 rounded-xl bg-[#0BAA8F] hover:bg-[#09927D] text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 self-start sm:self-auto shadow-sm"
                             >
                                 <span>Download Apps</span>
                                 <ArrowRight size={14} />
@@ -866,14 +865,14 @@ export default function BillingIndex({
 
                         {/* Billing Cycle Toggle */}
                         <div className="flex flex-col items-center justify-center gap-3">
-                            <div className="text-2xs font-bold text-neutral-400 uppercase tracking-widest">Select Billing Term</div>
-                            <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
+                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Select Billing Term</div>
+                            <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-surface-raised border border-line shadow-inner">
                                 <button
                                     onClick={() => setBillingCycle('monthly')}
                                     className={`px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                                         billingCycle === 'monthly'
-                                            ? 'bg-white text-neutral-950 shadow-md'
-                                            : 'text-neutral-400 hover:text-white'
+                                            ? 'bg-surface text-ink shadow-sm border border-line'
+                                            : 'text-ink-muted hover:text-ink'
                                     }`}
                                 >
                                     Monthly
@@ -882,12 +881,12 @@ export default function BillingIndex({
                                     onClick={() => setBillingCycle('annual')}
                                     className={`px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
                                         billingCycle === 'annual'
-                                            ? 'bg-emerald-500 text-neutral-950 shadow-md'
-                                            : 'text-neutral-400 hover:text-white'
+                                            ? 'bg-[#0BAA8F] text-white shadow-sm'
+                                            : 'text-ink-muted hover:text-ink'
                                     }`}
                                 >
                                     <span>Annual</span>
-                                    <span className="text-3xs px-1.5 py-0.5 rounded-full font-bold bg-black/20 text-neutral-950">
+                                    <span className="text-3xs px-1.5 py-0.5 rounded-full font-bold bg-black/15 text-white">
                                         SAVE ~17%
                                     </span>
                                 </button>
@@ -900,9 +899,9 @@ export default function BillingIndex({
                                 <PlanCardV6
                                     key={planKey}
                                     planKey={planKey}
-                                    planConfig={plans?.find(p => p.slug === planKey)?.limits || {}}
+                                    _planConfig={plans?.find(p => p.slug === planKey)?.limits || {}}
                                     isCurrent={planKey === currentPlanKey}
-                                    storeSlug={storeSlug}
+                                    _storeSlug={storeSlug}
                                     tenant={tenant}
                                     onSelectPlan={handleSelectPlan}
                                     onCheckout={handlePlanCheckout}
@@ -914,53 +913,53 @@ export default function BillingIndex({
                         </div>
 
                         {/* V6 Universal Guarantees: "Nothing Important is Withheld" */}
-                        <div className="p-8 rounded-2xl bg-neutral-950/60 border border-white/[0.06]">
+                        <div className="p-8 rounded-2xl bg-surface border border-line shadow-sm">
                             <div className="text-2xs font-bold text-[#0BAA8F] uppercase tracking-widest mb-1">
                                 In Every Plan, At Every Price
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-6">Nothing Important is Withheld.</h3>
+                            <h3 className="text-xl font-bold text-ink mb-6">Nothing Important is Withheld.</h3>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-xs text-neutral-300">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-xs text-ink-secondary">
                                 <div className="flex items-start gap-3">
                                     <CheckCircle2 size={18} className="text-[#0BAA8F] shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="font-semibold text-white">The Complete Double-Entry Ledger</div>
-                                        <p className="text-2xs text-neutral-400 mt-0.5">Automated balanced journal entries, chart of accounts, and fiscal compliance.</p>
+                                        <div className="font-semibold text-ink">The Complete Double-Entry Ledger</div>
+                                        <p className="text-2xs text-ink-muted mt-0.5">Automated balanced journal entries, chart of accounts, and fiscal compliance.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <CheckCircle2 size={18} className="text-[#0BAA8F] shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="font-semibold text-white">All 43 Financial &amp; Tax Reports</div>
-                                        <p className="text-2xs text-neutral-400 mt-0.5">P&amp;L, Balance Sheet, Cash Flow, Party Statements, and Tax breakdowns included.</p>
+                                        <div className="font-semibold text-ink">All 43 Financial &amp; Tax Reports</div>
+                                        <p className="text-2xs text-ink-muted mt-0.5">P&amp;L, Balance Sheet, Cash Flow, Party Statements, and Tax breakdowns included.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <CheckCircle2 size={18} className="text-[#0BAA8F] shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="font-semibold text-white">Unlimited Transactions on Paid Plans</div>
-                                        <p className="text-2xs text-neutral-400 mt-0.5">Process thousands of daily till orders without artificial per-transaction fees.</p>
+                                        <div className="font-semibold text-ink">Unlimited Transactions on Paid Plans</div>
+                                        <p className="text-2xs text-ink-muted mt-0.5">Process thousands of daily till orders without artificial per-transaction fees.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <CheckCircle2 size={18} className="text-[#0BAA8F] shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="font-semibold text-white">Offline POS Mode</div>
-                                        <p className="text-2xs text-neutral-400 mt-0.5">Keep ringing up sales even during internet drops; orders sync automatically when restored.</p>
+                                        <div className="font-semibold text-ink">Offline POS Mode</div>
+                                        <p className="text-2xs text-ink-muted mt-0.5">Keep ringing up sales even during internet drops; orders sync automatically when restored.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <CheckCircle2 size={18} className="text-[#0BAA8F] shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="font-semibold text-white">Full Data Ownership &amp; Export</div>
-                                        <p className="text-2xs text-neutral-400 mt-0.5">Export all customers, products, and ledger postings anytime in open CSV/JSON formats.</p>
+                                        <div className="font-semibold text-ink">Full Data Ownership &amp; Export</div>
+                                        <p className="text-2xs text-ink-muted mt-0.5">Export all customers, products, and ledger postings anytime in open CSV/JSON formats.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <CheckCircle2 size={18} className="text-[#0BAA8F] shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="font-semibold text-white">Zero Implementation or Consultant Fees</div>
-                                        <p className="text-2xs text-neutral-400 mt-0.5">Priced like software, not a months-long consulting project. Ready in 4 minutes.</p>
+                                        <div className="font-semibold text-ink">Zero Implementation or Consultant Fees</div>
+                                        <p className="text-2xs text-ink-muted mt-0.5">Priced like software, not a months-long consulting project. Ready in 4 minutes.</p>
                                     </div>
                                 </div>
                             </div>

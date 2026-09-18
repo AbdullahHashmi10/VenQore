@@ -1118,7 +1118,6 @@ const POSInterface = ({
         const total = Math.max(1, rect.width);
         setDragging(key);
         host.setAttribute('data-resizing', '1');
-        try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
 
         const onMove = (ev) => {
             const px = edge === 'right' ? rect.right - ev.clientX : ev.clientX - rect.left;
