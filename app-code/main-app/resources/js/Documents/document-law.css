@@ -154,6 +154,8 @@ html.dark .vqdoc::before {
     color: var(--vq-text);
     cursor: pointer;
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transition: background var(--vq-dur-1) var(--vq-ease-out),
                 border-color var(--vq-dur-1) var(--vq-ease-out),
                 color var(--vq-dur-1) var(--vq-ease-out),
@@ -1195,14 +1197,25 @@ select.vqdoc-in { width: auto; min-width: calc(140px * var(--d-scale)); height: 
 .vqdoc-callout[data-tone='over']  { background: var(--vq-warning-bg); border-color: var(--vq-warning-line); color: var(--vq-warning); }
 
 .vqdoc-actions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--d-s2);
     padding: var(--d-s4) var(--d-s5) var(--d-s5);
     border-top: 1px solid var(--vq-line-soft);
     align-items: center;
 }
-.vqdoc-actions .vqdoc-btn.pri { height: var(--d-h-lg); }
+.vqdoc-actions .vqdoc-btn,
+.vqdoc-actions .vqdoc-icon {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.vqdoc-actions .vqdoc-btn.pri {
+    height: var(--d-h-lg);
+    flex: 1 0 100%;
+}
+.vqdoc-actions .vqdoc-btn.danger {
+    flex: 0 0 auto;
+}
 
 /* ==========================================================================
    6. THE DOCK — floats over the document, never reserves an empty row
