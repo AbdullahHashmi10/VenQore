@@ -68,7 +68,7 @@ final class FinanceSource implements ReckonerSource
             }
 
             if ($key === 'inventory.stock_value') {
-                $out[$id] = (float) $this->reporting->getInventoryValue();
+                $out[$id] = (float) $this->reporting->getInventoryValue($ctx->tenant?->id);
 
                 continue;
             }
@@ -82,8 +82,12 @@ final class FinanceSource implements ReckonerSource
             if ($key === 'finance.total_liquidity') {
                 $cashAccounts = \Illuminate\Support\Facades\DB::table('accounts')
                     ->where('tenant_id', $ctx->tenant->id)
-                    ->where('type', 'asset')
-                    ->whereBetween('code', ['1000', '1099'])
+                    ->where(function ($q) {
+                        $q->whereIn('role', ['cash', 'bank'])
+                          ->orWhere(function ($sub) {
+                              $sub->where('type', 'asset')->whereBetween('code', ['1000', '1099']);
+                          });
+                    })
                     ->pluck('id')
                     ->toArray();
 
@@ -178,11 +182,14 @@ final class FinanceSource implements ReckonerSource
             }
 
             if ($key === 'finance.receivables_aging') {
-                $reportResult = $this->reporting->getAgedReceivables();
+                $reportResult = $this->reporting->getAgedReceivables(tenantId: $ctx->tenant->id);
                 $summary = $reportResult['summary'] ?? [];
                 $total = (float) array_sum($summary);
                 if ($total <= 0) {
-                    $out[$id] = null;
+                    $out[$id] = [
+                        'slices' => [],
+                        'total' => 0.0,
+                    ];
                     continue;
                 }
 
@@ -205,8 +212,12 @@ final class FinanceSource implements ReckonerSource
             if ($key === 'finance.cash_flow_trend') {
                 $cashAccounts = DB::table('accounts')
                     ->where('tenant_id', $ctx->tenant->id)
-                    ->where('type', 'asset')
-                    ->whereBetween('code', ['1000', '1099'])
+                    ->where(function ($q) {
+                        $q->whereIn('role', ['cash', 'bank'])
+                          ->orWhere(function ($sub) {
+                              $sub->where('type', 'asset')->whereBetween('code', ['1000', '1099']);
+                          });
+                    })
                     ->pluck('id')
                     ->toArray();
 
@@ -220,6 +231,14 @@ final class FinanceSource implements ReckonerSource
                     continue;
                 }
 
+                // Subquery: Find journal entry IDs where ALL lines belong to cashAccounts (internal transfers to exclude)
+                $internalTransferEntryIds = DB::table('journal_items')
+                    ->where('tenant_id', $ctx->tenant->id)
+                    ->groupBy('journal_entry_id')
+                    ->havingRaw('COUNT(*) = SUM(CASE WHEN account_id IN (' . implode(',', array_map(fn($id) => "'{$id}'", $cashAccounts)) . ') THEN 1 ELSE 0 END)')
+                    ->pluck('journal_entry_id')
+                    ->toArray();
+
                 $granularity = match($period->key) {
                     'this_year', 'last_year', 'last_12_months' => 'monthly',
                     default => 'daily',
@@ -230,14 +249,19 @@ final class FinanceSource implements ReckonerSource
                     default   => "DATE_FORMAT(je.date, '%Y-%m-%d')",
                 };
 
-                $cashFlowRows = DB::table('journal_items as ji')
+                $cashFlowQuery = DB::table('journal_items as ji')
                     ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
                     ->where('ji.tenant_id', $ctx->tenant->id)
                     ->where('je.tenant_id', $ctx->tenant->id)
                     ->where('je.is_reversed', 0)
                     ->whereBetween('je.date', [$period->start->toDateString(), $period->end->toDateString()])
-                    ->whereIn('ji.account_id', $cashAccounts)
-                    ->selectRaw(
+                    ->whereIn('ji.account_id', $cashAccounts);
+
+                if (!empty($internalTransferEntryIds)) {
+                    $cashFlowQuery->whereNotIn('ji.journal_entry_id', $internalTransferEntryIds);
+                }
+
+                $cashFlowRows = $cashFlowQuery->selectRaw(
                         "{$periodExpr} as period, "
                         . "SUM(CASE WHEN ji.debit > 0 THEN ji.debit ELSE 0 END) as money_in, "
                         . "SUM(CASE WHEN ji.credit > 0 THEN ji.credit ELSE 0 END) as money_out"
@@ -283,13 +307,48 @@ final class FinanceSource implements ReckonerSource
             // total_expenses includes COGS in the P&L, this does not.
             $expensesTotal = (float) $pl['total_expenses'] - $cogs;
 
+            $grossProfitSeries = [];
+            $revenueSeries = [];
+            $cogsSeries = [];
+            $netProfitSeries = [];
+            $expenseSeries = [];
+            try {
+                $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), 'daily', $ctx->tenant?->id);
+
+                $cogsId = DB::table('accounts')->where('tenant_id', $ctx->tenant->id)->where('code', '5000')->value('id');
+                $dailyExpenses = DB::table('journal_items as ji')
+                    ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                    ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                    ->where('ji.tenant_id', $ctx->tenant->id)
+                    ->where('je.tenant_id', $ctx->tenant->id)
+                    ->where('je.is_reversed', 0)
+                    ->whereBetween('je.date', [$period->start->toDateString(), $period->end->toDateString()])
+                    ->where('a.type', 'expense')
+                    ->when($cogsId, fn($q) => $q->where('a.id', '!=', $cogsId))
+                    ->selectRaw("DATE_FORMAT(je.date, '%Y-%m-%d') as day, SUM(ji.debit) - SUM(ji.credit) as val")
+                    ->groupBy('day')
+                    ->pluck('val', 'day')
+                    ->toArray();
+
+                foreach ($profitByPeriod as $d => $m) {
+                    $dayStr = (string) $d;
+                    $gp = (float) ($m['profit'] ?? 0.0);
+                    $dayExp = (float) ($dailyExpenses[$dayStr] ?? 0.0);
+                    $grossProfitSeries[] = ['x' => $dayStr, 'y' => $gp];
+                    $revenueSeries[] = ['x' => $dayStr, 'y' => (float) ($m['revenue'] ?? 0.0)];
+                    $cogsSeries[] = ['x' => $dayStr, 'y' => (float) ($m['cogs'] ?? 0.0)];
+                    $expenseSeries[] = ['x' => $dayStr, 'y' => $dayExp];
+                    $netProfitSeries[] = ['x' => $dayStr, 'y' => round($gp - $dayExp, 2)];
+                }
+            } catch (\Throwable) {}
+
             foreach ($window['items'] as $item) {
                 $id = $item['id'];
                 $key = $item['key'];
                 $args = $item['args'] ?? [];
                 $out[$id] = match ($key) {
-                    'finance.net_profit' => $netProfit,
-                    'finance.expenses_total' => (function () use ($expensesTotal, $args, $ctx, $period) {
+                    'finance.net_profit' => !empty($netProfitSeries) ? ['value' => $netProfit, 'series' => $netProfitSeries] : $netProfit,
+                    'finance.expenses_total' => (function () use ($expensesTotal, $args, $ctx, $period, $expenseSeries) {
                         $groupBy = $args['group_by'] ?? 'none';
                         if ($groupBy === 'category') {
                             $cogsId = DB::table('accounts')->where('tenant_id', $ctx->tenant->id)->where('code', '5000')->value('id');
@@ -316,12 +375,12 @@ final class FinanceSource implements ReckonerSource
                                 'total' => (float) array_sum(array_column($rows, 'value')),
                             ];
                         }
-                        return $expensesTotal;
+                        return !empty($expenseSeries) ? ['value' => $expensesTotal, 'series' => $expenseSeries] : $expensesTotal;
                     })(),
-                    'finance.gross_profit' => $grossProfit,
+                    'finance.gross_profit' => !empty($grossProfitSeries) ? ['value' => $grossProfit, 'series' => $grossProfitSeries] : $grossProfit,
                     'sales.gross_margin_pct' => $revenue > 0 ? round(($grossProfit / $revenue) * 100, 2) : null,
                     'finance.net_margin_pct' => $revenue > 0 ? round(($netProfit / $revenue) * 100, 2) : null,
-                    'finance.cogs' => $cogs,
+                    'finance.cogs' => !empty($cogsSeries) ? ['value' => $cogs, 'series' => $cogsSeries] : $cogs,
                     default => null,
                 };
             }
@@ -340,14 +399,16 @@ final class FinanceSource implements ReckonerSource
     {
         $tenantId = $ctx->tenant->id;
 
-        $net = function (string $code, string $expression) use ($tenantId) {
+        $net = function (string $role, string $code, string $expression) use ($tenantId) {
             $accountExists = DB::table('accounts')
                 ->where('tenant_id', $tenantId)
-                ->where('code', $code)
+                ->where(function ($q) use ($role, $code) {
+                    $q->where('role', $role)->orWhere('code', $code);
+                })
                 ->exists();
             if (! $accountExists) {
                 throw new \App\Exceptions\MissingFinancialAccountException(
-                    "Chart of accounts incomplete: account {$code} is missing."
+                    "Chart of accounts incomplete: account {$role} ({$code}) is missing."
                 );
             }
 
@@ -355,7 +416,9 @@ final class FinanceSource implements ReckonerSource
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
                 ->where('accounts.tenant_id', $tenantId)
-                ->where('accounts.code', $code)
+                ->where(function ($q) use ($role, $code) {
+                    $q->where('accounts.role', $role)->orWhere('accounts.code', $code);
+                })
                 ->where('journal_entries.tenant_id', $tenantId)
                 ->where('journal_entries.is_reversed', 0)
                 ->selectRaw("{$expression} as net")
@@ -363,8 +426,8 @@ final class FinanceSource implements ReckonerSource
         };
 
         return [
-            'receivables' => $net('1200', 'COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0)'),
-            'payables' => $net('2000', 'COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0)'),
+            'receivables' => $net('ar', '1200', 'COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0)'),
+            'payables' => $net('ap', '2000', 'COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0)'),
         ];
     }
 

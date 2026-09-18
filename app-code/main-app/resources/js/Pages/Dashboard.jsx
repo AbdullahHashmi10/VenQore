@@ -98,7 +98,7 @@ export default function Dashboard({
  const healthStatus = netProfitData.status || (netProfitVal >= 0 ? 'Good' : 'Needs Attention');
 
  return (
-        <OneGlanceLayout activeMenu="Dashboard">
+        <>
             <Head title="Dashboard" />
 
             <style>{`
@@ -598,6 +598,8 @@ export default function Dashboard({
             {!store?.is_demo && !store?.onboarding_completed && store?.onboarding_step === 'dashboard_tour' && (
                 <DashboardTourGuide store={store} />
             )}
-        </OneGlanceLayout>
+        </>
     );
 }
+
+Dashboard.layout = (page) => <OneGlanceLayout activeMenu="Dashboard">{page}</OneGlanceLayout>;

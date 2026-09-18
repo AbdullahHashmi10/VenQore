@@ -363,14 +363,75 @@ export default function PurchaseForm({
                 );
             }}
 
-            extraRows={({ d, money }) => {
+            extraRows={({ d, money, totals }) => {
                 const landed = (d.extras || []).reduce((s, x) => s + num(x.amount), 0);
-                return landed > 0 ? (
-                    <div className="vqdoc-sum-row">
-                        <span className="k">Landed costs</span>
-                        <span className="v">{money(landed)}</span>
-                    </div>
-                ) : null;
+                if (landed <= 0) return null;
+                const combined = round2(totals.grandTotal + landed);
+                return (
+                    <>
+                        <div className="vqdoc-sum-row">
+                            <span className="k">Landed costs (transport/clearing)</span>
+                            <span className="v">{money(landed)}</span>
+                        </div>
+                        <div className="vqdoc-sum-row strong" style={{ borderTop: '1px dashed var(--vq-line-strong)', paddingTop: 'var(--d-s2)', marginTop: 'var(--d-s1)' }}>
+                            <span className="k" style={{ color: 'var(--vq-text)', fontWeight: 'var(--vq-fw-semi)' }}>Full consignment cost</span>
+                            <span className="v" style={{ fontWeight: 'var(--vq-fw-bold)', color: 'var(--vq-text)' }}>{money(combined)}</span>
+                        </div>
+                    </>
+                );
+            }}
+
+            quickSettles={({ d, totals, patchSettle, money }) => {
+                const landed = (d.extras || []).reduce((s, x) => s + num(x.amount), 0);
+                const vendorTotal = totals.grandTotal;
+                const fullTotal = landed > 0 ? round2(vendorTotal + landed) : vendorTotal;
+                const currentPaid = num(d.amountPaid);
+
+                if (landed > 0) {
+                    return [
+                        {
+                            key: 'full',
+                            label: 'Full',
+                            hint: `Pay full total (${money(fullTotal)})`,
+                            active: Math.abs(currentPaid - fullTotal) < 0.005 && fullTotal > 0,
+                            disabled: fullTotal <= 0,
+                            onClick: () => patchSettle({ amountPaid: fullTotal }),
+                        },
+                        {
+                            key: 'vendor',
+                            label: 'Vendor only',
+                            hint: `Pay vendor bill only (${money(vendorTotal)})`,
+                            active: Math.abs(currentPaid - vendorTotal) < 0.005 && vendorTotal > 0,
+                            disabled: vendorTotal <= 0,
+                            onClick: () => patchSettle({ amountPaid: vendorTotal }),
+                        },
+                        {
+                            key: 'transport',
+                            label: 'Transport',
+                            hint: `Pay transport / landed costs only (${money(landed)})`,
+                            active: Math.abs(currentPaid - landed) < 0.005 && landed > 0,
+                            disabled: landed <= 0,
+                            onClick: () => patchSettle({ amountPaid: landed }),
+                        },
+                    ];
+                }
+
+                return [
+                    {
+                        key: 'exact',
+                        label: 'Exact',
+                        hint: `Settled in full (${money(vendorTotal)})`,
+                        active: Math.abs(currentPaid - vendorTotal) < 0.005 && vendorTotal > 0,
+                        disabled: vendorTotal <= 0,
+                        onClick: () => patchSettle({ amountPaid: vendorTotal }),
+                    },
+                    {
+                        key: 'transport',
+                        label: '+ Transport',
+                        hint: 'Add transport / freight landed cost',
+                        onClick: () => setShowLanded(true),
+                    },
+                ];
             }}
 
             extraSheets={({ d, patch, items, money }) => {

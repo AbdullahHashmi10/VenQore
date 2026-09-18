@@ -44,11 +44,14 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        // Scope Inertia SSR: enable SSR ONLY for public marketing routes, keep tenant app 100% client-side SPA
+        // Scope Inertia SSR: enable SSR ONLY for public marketing routes when SSR is enabled and bundle exists
         $isMarketingRoute = $request->routeIs('welcome', 'marketing.*', 'blog.*', 'demo.*', 'terms', 'privacy', 'refund-policy', 'register', 'legacy.*')
             || $request->is('/', 'features', 'features/*', 'pricing', 'about', 'contact', 'roadmap', 'solutions', 'solutions/*', 'compare', 'compare/*', 'blog', 'blog/*', 'demo', 'terms', 'privacy', 'refund-policy', 'register', 'subscribe', 'vensynq', 'smartcapture', 'digital-products', 'partners', 'partners/*', 'docs', 'docs/*', 'legacy/*');
 
-        config(['inertia.ssr.enabled' => $isMarketingRoute]);
+        $ssrAllowed = (bool) config('inertia.ssr.enabled_for_marketing', false)
+            && file_exists(base_path('bootstrap/ssr/ssr.js'));
+
+        config(['inertia.ssr.enabled' => $isMarketingRoute && $ssrAllowed]);
 
         // Skip heavy DB queries for installer/updater API routes
         if ($request->is('api/installer/*') || $request->is('api/updater/*')) {
@@ -68,10 +71,12 @@ class HandleInertiaRequests extends Middleware
 
         $shared = [
             ...parent::share($request),
-            'ziggy' => fn () => [
-                ...(new \Tighten\Ziggy\Ziggy)->toArray(),
-                'location' => $request->url(),
-            ],
+            'ziggy' => fn () => ($isMarketingRoute && config('inertia.ssr.enabled'))
+                ? [
+                    ...(new \Tighten\Ziggy\Ziggy)->toArray(),
+                    'location' => $request->url(),
+                ]
+                : ['location' => $request->url()],
             'auth' => [
                 'user' => $user ? array_merge(
                     $user->only(['id', 'name', 'email', 'email_verified_at', 'is_platform_admin', 'last_store_id']),
@@ -204,11 +209,14 @@ class HandleInertiaRequests extends Middleware
                 : [],
             'planFeatures' => function () {
                 $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-                return $tenant
-                    ? collect(array_unique(array_values(\App\Support\ReportPlanMap::REQUIRED_PLAN_FEATURES)))
-                        ->mapWithKeys(fn ($key) => [$key => \App\Services\PlanGate::check($key, $tenant)])
-                        ->all()
-                    : [];
+                if (!$tenant) return [];
+                $allFeatures = \App\Services\PlanRepository::featuresFor($tenant);
+                $required = array_unique(array_values(\App\Support\ReportPlanMap::REQUIRED_PLAN_FEATURES));
+                $result = [];
+                foreach ($required as $key) {
+                    $result[$key] = $allFeatures[$key] ?? \App\Services\PlanGate::check($key, $tenant);
+                }
+                return $result;
             },
             'nav' => fn () => app()->bound('current.tenant')
                 ? \App\Support\ModuleNavBuilder::build(app('current.tenant'), $request->user())
@@ -216,7 +224,7 @@ class HandleInertiaRequests extends Middleware
             'mobile_nav' => fn () => app()->bound('current.tenant')
                 ? \App\Support\MobileNav::resolveForTenant(app('current.tenant'), $request->user())
                 : [],
-            'terms' => fn () => app()->bound('current.tenant')
+            'terms' => fn () => (app()->bound('current.tenant') && $this->hasTable('tenant_terminology'))
                 ? \App\Support\Terms::forTenant(app('current.tenant')->id)
                 : \App\Support\Terms::fallbacks(),
             'plan' => (function () {
@@ -297,27 +305,24 @@ class HandleInertiaRequests extends Middleware
             // so bootstrap.js re-syncs axios from this prop after every visit.
             'csrf_token' => fn () => $request->hasSession() ? csrf_token() : null,
             'turnstile_site_key' => config('services.cloudflare.turnstile_site_key', ''),
-            'terms' => (function () use ($dbReady) {
-                if (!$dbReady || !$this->hasTable('tenant_terminology')) return [];
-                try {
-                    $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-                    $tenantId = $tenant?->id ?? null;
-                    return $tenantId ? \App\Support\Terms::forTenant($tenantId) : [];
-                } catch (\Throwable) {
-                    return [];
-                }
-            })(),
         ];
 
         return $shared;
     }
+
+    private static ?bool $dbReadyMemo = null;
+    private static array $tableExistsMemo = [];
 
     /**
      * Check if database connection and essential tables exist.
      */
     private function isDatabaseReady(): bool
     {
-        return \Illuminate\Support\Facades\Cache::remember('schema_db_ready', 60, function () {
+        if (self::$dbReadyMemo !== null) {
+            return self::$dbReadyMemo;
+        }
+
+        return self::$dbReadyMemo = \Illuminate\Support\Facades\Cache::remember('schema_db_ready', 60, function () {
             try {
                 return Schema::hasTable('users');
             } catch (\Exception $e) {
@@ -331,7 +336,11 @@ class HandleInertiaRequests extends Middleware
      */
     private function hasTable(string $table): bool
     {
-        return \Illuminate\Support\Facades\Cache::remember("schema_table_exists:{$table}", 3600, function () use ($table) {
+        if (isset(self::$tableExistsMemo[$table])) {
+            return self::$tableExistsMemo[$table];
+        }
+
+        return self::$tableExistsMemo[$table] = \Illuminate\Support\Facades\Cache::remember("schema_table_exists:{$table}", 3600, function () use ($table) {
             try {
                 return Schema::hasTable($table);
             } catch (\Exception $e) {

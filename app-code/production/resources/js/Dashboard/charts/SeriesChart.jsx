@@ -135,7 +135,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
         aspectRatio: 'auto',
         ...motion,
     };
-    const plotMargin = { top: 8, right: 8, bottom: realDates ? 24 : 6, left: 34 };
+    const plotMargin = { top: 18, right: 8, bottom: realDates ? 24 : 6, left: 34 };
 
     /* ── Bars — categorical, banded ───────────────────────────────────── */
     if (chartType === 'bar') {

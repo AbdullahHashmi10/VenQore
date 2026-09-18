@@ -288,7 +288,7 @@
   /* The signature marketing gradient: deep pine → mint → page. */
   --vq-grad-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%); /* @kind color */
   --vq-grad-mint: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%); /* @kind color */
-  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%), radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%), radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%), #0A0B0F;
+  --vq-grad-mesh: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%), radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%), radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%), #0A0B0F;
   --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%),
                   radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%); /* @kind color */
   --vq-grad-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%); /* @kind color */
@@ -464,9 +464,11 @@ body { margin: 0; background: var(--vq-bg); }
   --vq-on-accent-wash:   rgb(0 0 0 / .26);   /* delta pill on accent — dark, not bright */
   --vq-on-accent-muted:  rgb(255 255 255 / .80);  /* second tier on accent — 4.66:1 on teal-700 */
   --vq-on-accent-text:   var(--vq-ink-0);
-  /* Deep enough that white clears 4.5:1 at 11px (teal-700 = 6.34:1), and a
-     gradient rather than a slab so dark is a re-render, not an inversion. */
-  --vq-accent-card: linear-gradient(135deg, var(--vq-teal-700) 0%, var(--vq-teal-900) 100%);
+  /* Mesh hero card ground — signature 3-lobe radial mesh from V6 standalone / Vena */
+  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
+                    #0A0B0F;
   /* Tracks that ENCODE DATA must clear 3:1 (§11), unlike decorative rules. */
   /* A DATA-BEARING track (inactive bars, a gauge's remainder) must clear 3:1
      against the card face. ink-400 measures 2.94 — just under — so this is the
@@ -544,19 +546,41 @@ body { margin: 0; background: var(--vq-bg); }
   border-radius: var(--vq-r-sm);
 }
 
-/* The one filled card. M1: exactly one per grid, and it is the headline. */
+/* The one filled card. M1: exactly one per grid, and it is the headline.
+   Mesh ground from V6 standalone with Vena AiIsland visual consistency. */
 .vqc--accent{
   background: var(--vq-accent-card);
+  background-color: #0A0B0F;
   --vq-r-edge: transparent;
-  border-color: transparent;
-  color: var(--vq-on-accent-text);
-  box-shadow: var(--vq-glow-accent);
+  border: 1px solid rgba(35, 196, 166, 0.28);
+  color: var(--vq-on-accent-text, #FFFFFF);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
+  --chart-1: #59DBC0;
+  --chart-2: #8FD9F5;
+  --chart-3: #FFD56B;
+  --chart-line-primary: #59DBC0;
+  --chart-line-secondary: #8FD9F5;
+  --chart-grid: rgba(255, 255, 255, 0.09);
+  --chart-label: rgba(241, 245, 242, 0.74);
+  --chart-foreground: #FFFFFF;
+  --chart-foreground-muted: rgba(241, 245, 242, 0.70);
+  --vq-series-1-ink: #59DBC0;
+  --chart-track: rgba(255, 255, 255, 0.12);
+  --chart-track-data: rgba(255, 255, 255, 0.40);
+  --chart-indicator-color: #59DBC0;
+  --chart-crosshair: rgba(255, 255, 255, 0.25);
+  --chart-tooltip-background: #111815;
+  --chart-tooltip-foreground: #FFFFFF;
+  --chart-tooltip-muted: rgba(241, 245, 242, 0.70);
 }
-.vqc--accent:hover{ box-shadow: var(--vq-glow-accent-strong); border-color: transparent; }
-.vqc--accent .vqc-eyebrow,
+.vqc--accent:hover{
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.60), 0 0 28px -2px rgba(11, 170, 143, 0.32);
+  border-color: rgba(89, 219, 192, 0.55);
+}
+.vqc--accent .vqc-eyebrow{ color: #59DBC0; font-weight: 600; letter-spacing: 0.08em; }
 .vqc--accent .vqc-unit,
-.vqc--accent .vqc-ctx{ color: var(--vq-on-accent-muted); }
-.vqc--accent .vqc-value{ color: var(--vq-on-accent-text); }
+.vqc--accent .vqc-ctx{ color: rgba(241, 245, 242, 0.76); }
+.vqc--accent .vqc-value{ color: #FFFFFF; }
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 .vqc-hd{
@@ -586,6 +610,7 @@ body { margin: 0; background: var(--vq-bg); }
 }
 
 /* ── Empty, Loading & Unavailable States ────────────────────────────────── */
+.vqc:has(.ck-state) .vqc-head { display: none; }
 .ck-state{
   display: flex;
   flex-direction: column;
@@ -678,7 +703,10 @@ body { margin: 0; background: var(--vq-bg); }
 .vqc-delta--down{ color: var(--vq-danger-ink);  background: var(--vq-danger-bg); }
 .vqc-delta--flat{ color: var(--vq-text-3);       background: var(--vq-sunken); }
 .vqc-delta svg{ width: 10px; height: 10px; flex-shrink: 0; }
-.vqc--accent .vqc-delta{ background: var(--vq-on-accent-wash); color: var(--vq-on-accent-text); }
+.vqc--accent .vqc-delta{ background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: rgba(241,245,242,0.85); }
+.vqc--accent .vqc-delta--up{ background: rgba(35,196,166,0.18); border: 1px solid rgba(35,196,166,0.35); color: #59DBC0; }
+.vqc--accent .vqc-delta--down{ background: rgba(242,106,71,0.18); border: 1px solid rgba(242,106,71,0.35); color: #FFB3AC; }
+.vqc--accent .vqc-delta--flat{ background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: rgba(241,245,242,0.85); }
 /* context sentence is never tinted (M3) */
 .vqc-ctx{
   font-size: var(--vq-fs-caption);
@@ -918,17 +946,21 @@ body { margin: 0; background: var(--vq-bg); }
 .vqx-tick:first-child{ transform:none; }
 .vqx-tick:last-child{ transform:translateX(-100%); }
 
-/* Dark: different gradient geometry + an accent edge + the strong bloom, so the
-   headline card separates from the near-black surface without the fill getting
-   so light that white text drops under 4.5:1. */
+/* Dark theme — mesh is unchanged (already dark), keep refined teal border/shadow */
 [data-theme="dark"]{
-  --vq-accent-card: linear-gradient(118deg, var(--vq-teal-700) 0%, var(--vq-teal-950) 100%);
+  --vq-accent-card: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+                    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+                    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
+                    #0A0B0F;
 }
 [data-theme="dark"] .vqc--accent{
-  border-color: var(--vq-teal-600);
-  box-shadow: var(--vq-glow-accent-strong);
+  border-color: rgba(35, 196, 166, 0.35);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.60), 0 0 24px -2px rgba(11, 170, 143, 0.24);
 }
-[data-theme="dark"] .vqc--accent:hover{ border-color: var(--vq-teal-500); }
+[data-theme="dark"] .vqc--accent:hover{
+  border-color: rgba(89, 219, 192, 0.60);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.70), 0 0 32px -2px rgba(11, 170, 143, 0.36);
+}
 
 /* Header: the action button was optically 6px below the eyebrow's cap centre. */
 .vqc-hd{ align-items: center; min-height: 26px; }
@@ -1099,9 +1131,9 @@ body{
   .vq-grid{ --vq-cols: 8; }
   .vq-w9,.vq-w10,.vq-w11,.vq-w12{ grid-column: span 8; }
 }
-@media (max-width: 700px){
+@media (max-width: 599px){
   .vq-grid{ --vq-cols: 4; }
-  .vq-w4,.vq-w5,.vq-w6,.vq-w8,.vq-w12{ grid-column: span 4; }
+  .vq-w4,.vq-w5,.vq-w6,.vq-w7,.vq-w8,.vq-w9,.vq-w10,.vq-w11,.vq-w12{ grid-column: span 4; }
   .pg{ padding: var(--vq-space-8) var(--vq-space-4) var(--vq-space-16); }
   .pg-top{ padding: var(--vq-space-3) var(--vq-space-4); }
 }
@@ -1327,9 +1359,9 @@ body{
 .ck-centre{ position:absolute; inset:0; display:flex; flex-direction:column;
   align-items:center; justify-content:center; pointer-events:none; text-align:center; padding:12%; }
 .ck-centre-v{ font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold);
-  font-size: clamp(1rem, 22cqw, 1.7rem); color: var(--vq-text); line-height:1; }
+  font-size: clamp(0.75rem, 20cqw, 1.7rem); color: var(--vq-text); line-height:1; }
 .ck-dial{ container-type:inline-size; }
-.ck-centre-k{ font-size: var(--vq-fs-caption); color: var(--vq-text-2);
+.ck-centre-k{ font-size: clamp(0.55rem, 11cqw, var(--vq-fs-caption)); color: var(--vq-text-2);
   margin-top:3px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ck-notch{ stroke: var(--vq-chart-track-data); stroke-width:3; stroke-linecap:round;
   animation: ckFade 420ms var(--vq-ease-out) backwards; animation-delay: var(--d,0ms); }
@@ -1408,6 +1440,46 @@ body{
   animation: ckGrow 780ms var(--vq-ease-out) backwards; }
 .ck-fd{ width:8px; height:8px; border-radius: var(--vq-r-full); flex:0 0 auto; }
 
+/* ── Polished ranking list rows ─────────────────────────────────────────── */
+/* Each row has a subtle filled progress bar behind it (CSS only, no extra DOM) */
+.ck-tb--rank { gap: 3px; }
+.ck-tb--rank .ck-tr {
+  position: relative; padding: 7px 10px;
+  border-bottom: 1px solid var(--vq-line-soft);
+  border-radius: var(--vq-r-sm, 6px);
+  overflow: hidden;
+  /* reset the generic gap */
+  gap: var(--vq-space-2);
+}
+.ck-tb--rank .ck-tr::before {
+  content: '';
+  position: absolute; inset: 0 0 0 0;
+  width: var(--pct, 0%);
+  background: var(--clr, var(--vq-series-1));
+  opacity: 0.08;
+  border-radius: var(--vq-r-sm, 6px);
+  transition: width 700ms var(--vq-ease-out);
+  pointer-events: none;
+}
+/* rank number badge */
+.ck-rank-n {
+  flex: 0 0 18px; text-align: center;
+  font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-bold);
+  font-size: 10px; color: var(--vq-text-3);
+}
+/* percentage / value chip */
+.ck-tpct {
+  flex: 0 0 auto; margin-left: auto;
+  font-family: var(--vq-font-numeric); font-weight: var(--vq-fw-semi);
+  font-size: var(--vq-fs-caption);
+  color: var(--clr, var(--vq-series-1));
+  background: color-mix(in srgb, var(--clr, var(--vq-series-1)) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--clr, var(--vq-series-1)) 30%, transparent);
+  border-radius: var(--vq-r-full);
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
 .ck-hm{ display:flex; flex-direction:column; gap: var(--vq-space-2); height:100%; }
 .ck-hm-x{ display:grid; grid-template-columns:34px repeat(var(--c),1fr); gap:3px; }
 .ck-hm-x b{ font-size: var(--vq-fs-eyebrow); color: var(--vq-chart-label);
@@ -1453,7 +1525,7 @@ body.is-reordering{ user-select:none; }
 .vqc-head{ display:flex; align-items:baseline; gap: var(--vq-space-3); flex-wrap:wrap; }
 .vqc-when{ font-size: var(--vq-fs-caption); color: var(--vq-text-2);
   margin: 2px 0 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.vqc--accent .vqc-when{ color: var(--vq-on-accent-text); opacity:.85; }
+.vqc--accent .vqc-when{ color: rgba(241, 245, 242, 0.76); opacity: 1; }
 .vqc-value--xs{ font-size: var(--vq-fs-h3); }
 .vqc-bd--tile{ display:flex; flex-direction:column; justify-content:center; gap:1px; }
 .vqc-bd--strip{ display:flex; flex-direction:column; justify-content:center; gap:1px; }
@@ -1464,7 +1536,7 @@ body.is-reordering{ user-select:none; }
 .vqc--c1, .vqc--c2{ position:relative; }
 .vqc-act.vqc-del{ background: var(--vq-danger-bg); color: var(--vq-danger-ink); }
 .vqc-act.vqc-grip{ cursor:grab; }
-.vqc--accent .vqc-act{ background: var(--vq-on-accent-quiet); color: var(--vq-on-accent-text); }
+.vqc--accent .vqc-act{ background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; }
 .vqc-leg{ display:flex; flex-wrap:wrap; gap: var(--vq-space-2) var(--vq-space-4);
   margin-top: var(--vq-space-3); flex-shrink:0; }
 .vqc-leg-i{ display:inline-flex; align-items:center; gap: var(--vq-space-2);
@@ -1644,9 +1716,9 @@ body.is-reordering{ user-select:none; }
 :root[data-bg="mesh"] body::before{
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
     #0A0B0F; }
 :root[data-bg="mesh"] .pg-top, :root[data-bg="mesh"] .app{ position:relative; z-index:1; }
 :root[data-bg="mesh"] .pg-top{ background: rgb(10 11 15 / .72); backdrop-filter: blur(14px); }
@@ -1656,7 +1728,16 @@ body.is-reordering{ user-select:none; }
 :root[data-bg="mesh"] #edit.is-on{
   background: rgb(16 20 26 / .82); backdrop-filter: blur(18px) saturate(1.1);
   border-color: rgb(139 200 210 / .16); }
-:root[data-bg="mesh"] .vqc--accent{ background: var(--vq-accent); backdrop-filter:none; }
+/* On the mesh page ground the accent hero card keeps its full mesh background —
+   it lifts off the page, not into it. The backdrop-filter would blur the lobes
+   behind it, which destroys the texture that is the whole point. */
+:root[data-bg="mesh"] .vqc--accent{
+  background: var(--vq-accent-card);
+  background-color: #0A0B0F;
+  border-color: rgba(35, 196, 166, 0.35);
+  backdrop-filter: none;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.55), 0 0 24px -2px rgba(11, 170, 143, 0.22);
+}
 :root[data-bg="mesh"] .ck-tip{ background: rgb(16 20 26 / .95); backdrop-filter: blur(12px);
   border-color: rgb(139 200 210 / .22); }
 /* the card BODY is part of the card — never its own lighter box */
@@ -1720,8 +1801,8 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   border-radius: var(--vq-r-full); padding:3px var(--vq-space-2) 3px var(--vq-space-3);
   cursor:pointer; transition: border-color var(--vq-dur-2) var(--vq-ease-out); }
 .vqc-per-b:hover{ border-color: var(--vq-line-strong); color: var(--vq-text); }
-.vqc--accent .vqc-per-b{ background: var(--vq-on-accent-quiet);
-  border-color: transparent; color: var(--vq-on-accent-text); }
+.vqc--accent .vqc-per-b{ background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14); color: #fff; }
 .vqc-per-m{ position:absolute; top:calc(100% + 5px); right:0; z-index:20;
   display:flex; flex-direction:column; min-width:104px;
   background: var(--vq-surface); border:1px solid var(--vq-line);
@@ -3257,62 +3338,19 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vqc--glared { animation: none !important; }
 .vqc--glared:hover .vqc-glare { display: none !important; animation: none !important; }
 .vqc--starred { border-color: inherit !important; }
-.vqc-star { display: none !important; }
-
-/* The star border is a rotating conic ring behind the card, masked to the
-   1.5px the frame does not cover — so it never eats interior width. */
-.vqc--starred { border-color: transparent !important; }
-.vqc-star {
-  position: absolute; inset: -1.5px; border-radius: inherit;
-  pointer-events: none; overflow: hidden;
-}
-.vqc-star::before {
-  content: ''; position: absolute; left: 50%; top: 50%;
-  width: 210%; aspect-ratio: 1; translate: -50% -50%;
-  background: conic-gradient(from 0deg,
-    transparent 0deg, var(--vq-teal-400, #23c4a6) 40deg,
-    var(--vq-teal-200, #93ebd6) 70deg, transparent 130deg,
-    transparent 180deg, var(--vq-teal-500, #0baa8f) 220deg,
-    var(--vq-sky-400, #8fd9f5) 250deg, transparent 310deg);
-  animation: vqStarSpin 4.5s linear infinite;
-}
-/* The ring sits behind the card's content but above its background, so it has
-   to be masked back down to the 1.5px the frame does not cover. `inherit` does
-   not work here — a pseudo-element inherits from .vqc-star, which is
-   transparent, and the whole card turned into a spinning green swirl. The mask
-   restates each tone's own ground instead. */
+.vqc-star,
+.vqc-star::before,
 .vqc-star::after {
-  content: ''; position: absolute; inset: 1.5px;
-  border-radius: inherit; background: var(--vq-surface);
+  display: none !important;
+  content: none !important;
+  animation: none !important;
 }
-.vqc--tone-ink .vqc-star::after { background: #0d1412; }
-.vqc--tone-accent .vqc-star::after {
-  background: linear-gradient(135deg, var(--vq-teal-700) 0%, var(--vq-teal-900) 100%);
+.vqc--accent::before,
+.vqc--accent::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
 }
-.vqc--tone-mesh .vqc-star::after {
-  background:
-    radial-gradient(at 100% 0%, rgb(11 170 143 / .20) 0, transparent 62%),
-    radial-gradient(at 0% 100%, rgb(43 165 209 / .18) 0, transparent 62%),
-    var(--vq-surface);
-}
-[data-theme="dark"] .vqc-star::after { background: #151d18; }
-[data-theme="dark"] .vqc--tone-ink .vqc-star::after { background: #0d1412; }
-[data-theme="dark"] .vqc--tone-mesh .vqc-star::after {
-  background:
-    radial-gradient(at 100% 0%, rgb(11 170 143 / .3) 0, transparent 62%),
-    radial-gradient(at 0% 100%, rgb(43 165 209 / .24) 0, transparent 62%),
-    #111815;
-}
-:root[data-bg="mesh"] .vqc--tone-surface .vqc-star::after { background: #141a18; }
-:root[data-bg="mesh"] .vqc--tone-mesh .vqc-star::after { background: #141a18; }
-@keyframes vqStarSpin { to { rotate: 360deg } }
-@media (prefers-reduced-motion: reduce) { .vqc-star::before { animation: none } }
-/* The ring paints behind the card's own content. `isolation:isolate` on .vqc
-   keeps a negative z-index inside the card, so this goes above the card's
-   background and below everything it draws — without having to make every
-   other child positioned, which is what previously knocked the resize handle
-   out of its corner. */
-.vqc-star { z-index: -1; }
 
 /* ── 3. Size-aware interiors ───────────────────────────────────────────── */
 /* A one-row card has room for one line. A two-row card gains the caption. Four
@@ -3576,9 +3614,14 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 [data-theme="dark"] .vqc--tone-surface { background: #151d18; border-color: #24332c; color: #edf2ef; }
 
 .vqc--tone-accent {
-  background: linear-gradient(135deg, var(--vq-teal-700, #076b5e) 0%, var(--vq-teal-900, #04302b) 100%);
-  border: 1px solid transparent; color: #fff;
-  box-shadow: 0 10px 28px rgb(7 107 94 / .28);
+  background: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+              radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+              radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
+              #0A0B0F;
+  background-color: #0A0B0F;
+  border: 1px solid rgba(35, 196, 166, 0.28);
+  color: #fff;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
 }
 .vqc--tone-ink {
   background: #0d1412; border: 1px solid #1f2b25; color: #edf2ef;
@@ -3997,8 +4040,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   background: var(--vq-teal-50, #e6fbf5); color: var(--vq-teal-700, #076b5e);
 }
 .vq-item-card-desc {
-  font: 500 var(--vq-fs-eyebrow)/1.45 var(--vq-font-sans); color: var(--vq-text-2);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font: 500 var(--vq-fs-eyebrow)/1.5 var(--vq-font-sans); color: var(--vq-text-2);
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+  white-space: normal; word-break: break-word;
 }
 .vq-item-card-foot { display: flex; align-items: center; gap: 8px; min-width: 0; margin-top: auto; }
 .vq-item-shape-tag {
@@ -4060,9 +4104,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
     0 0 0 1px rgba(255, 255, 255, 0.08),
     0 0 70px rgba(35, 196, 166, 0.32);
   background:
-    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
     #0A0B0F;
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
@@ -4257,9 +4301,9 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 :root[data-bg="mesh"] body::before {
   content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.55), transparent 68%),
-    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.62), transparent 66%),
-    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.22), transparent 70%),
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
     #0A0B0F;
 }
 :root[data-bg="mesh"] .vq-scroll-region,
@@ -4316,7 +4360,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
    contrast check, a printed page — resolves against whatever is behind the
    card instead of the card. Each gradient tone therefore also states the solid
    colour it sits on. */
-.vqc--tone-accent { background-color: var(--vq-teal-800, #0a5049); }
+.vqc--tone-accent { background-color: #0A0B0F; }
 .vqc--tone-mesh   { background-color: var(--vq-surface, #fff); }
 [data-theme="dark"] .vqc--tone-mesh { background-color: #111815; }
 :root[data-bg="mesh"] .vqc--tone-mesh { background-color: #141a18; }
@@ -4513,16 +4557,18 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 .vq-grid > .vqc { height: 100%; }
 
 /* ── 17. The accent card on the mesh ground ────────────────────────────────
-   An earlier rule flattened the accent card to `--vq-accent` (teal-500) under
-   [data-bg="mesh"]. White text on teal-500 measures 2.2:1 — the card became
-   unreadable on exactly one of the three page backgrounds. The accent tone
-   keeps its own gradient on every ground; that is what a tone is for. */
+   Both .vqc--accent and .vqc--tone-accent keep the full-saturation V6 mesh.
+   No backdrop-filter — it would blur the lobes that ARE the card identity. */
 :root[data-bg="mesh"] .vqc--accent,
 :root[data-bg="mesh"] .vqc--tone-accent {
-  background: linear-gradient(135deg, var(--vq-teal-700) 0%, var(--vq-teal-900) 100%);
-  background-color: var(--vq-teal-800);
+  background: radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+              radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+              radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
+              #0A0B0F;
+  background-color: #0A0B0F;
   backdrop-filter: none;
-  border-color: var(--vq-teal-600);
+  border-color: rgba(35, 196, 166, 0.35);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.55), 0 0 24px -2px rgba(11, 170, 143, 0.22);
 }
 
 /* ── 18. Label and hint polish ─────────────────────────────────────────── */
@@ -4688,9 +4734,104 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 .vq-board-zone{ flex: 1 1 auto; min-width: 0; }
 .vq-rails{
-  flex: 0 0 312px; width: 312px; min-width: 0;
+  flex: 0 0 var(--vq-rails-w, 340px);
+  width: var(--vq-rails-w, 340px);
+  min-width: var(--vq-rails-w, 340px);
+  max-width: var(--vq-rails-w, 340px);
   display: flex; flex-direction: column; gap: 24px;
 }
+
+/* ── Dark Hub sidebar variant ────────────────────────────────────────────
+   A distinct dark panel — deep ink (#0D1412) with a soft teal mesh gradient
+   sweep. Cards inside it invert to sit ON the dark ground, not beside it.
+   This is the pre-V6 style the user liked, re-introduced as an opt-in preset. */
+.vq-rails--cockpit {
+  background:
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.14), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.10), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.08), transparent 70%),
+    #FFFFFF;
+  border-radius: var(--vq-r-xl, 24px);
+  padding: 16px 14px;
+  gap: 12px;
+  border: 1px solid rgba(11, 170, 143, 0.22);
+  box-shadow: 0 10px 30px -4px rgba(11, 170, 143, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.04);
+  position: sticky !important;
+  top: 12px !important;
+  align-self: flex-start !important;
+  height: calc(100vh - 76px) !important;
+  max-height: calc(100vh - 76px) !important;
+  margin-bottom: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+:root[data-theme="dark"] .vq-rails--cockpit,
+html.dark .vq-rails--cockpit,
+.vq-dark .vq-rails--cockpit,
+.vq-rails--dark {
+  background:
+    radial-gradient(50% 60% at 18% 12%, rgba(35, 196, 166, 0.38), transparent 68%),
+    radial-gradient(46% 52% at 82% 78%, rgba(7, 107, 94, 0.44), transparent 66%),
+    radial-gradient(38% 40% at 60% 25%, rgba(93, 165, 176, 0.16), transparent 70%),
+    #0A0B0F;
+  border: 1px solid rgba(35, 196, 166, 0.28);
+  box-shadow: 0 12px 36px -6px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
+}
+.vq-rails--cockpit .vq-rails-shell,
+.vq-rails--dark .vq-rails-shell,
+.vq-rails--cockpit .vq-rails-scroll,
+.vq-rails--dark .vq-rails-scroll {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+/* inside the dark panel, adjust rail card backgrounds */
+.vq-rails--dark .vq-rail-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(241, 245, 242, 0.90);
+}
+.vq-rails--dark .vq-rail-h { color: rgba(241, 245, 242, 0.60); border-bottom-color: rgba(255,255,255,0.08); }
+.vq-rails--dark .vq-rail-h > span { color: rgba(241, 245, 242, 0.75); }
+.vq-rails--dark .vq-rail-link { color: #59DBC0; }
+.vq-rails--dark .vq-rail-link:hover { color: #7EEBD1; }
+.vq-rails--dark .vq-rail-hero-v { color: #fff; }
+.vq-rails--dark .vq-rail-hero-l, .vq-rails--dark .vq-rail-hero-s { color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-row { border-bottom-color: rgba(255, 255, 255, 0.07); color: rgba(241, 245, 242, 0.85); }
+.vq-rails--dark .vq-rail-row-n { color: rgba(241, 245, 242, 0.80); }
+.vq-rails--dark .vq-rail-row-v { color: rgba(241, 245, 242, 0.90); }
+.vq-rails--dark .vq-rail-row-v.is-in { color: #59DBC0; }
+.vq-rails--dark .vq-rail-row-v.is-out { color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-dot { background: rgba(255, 255, 255, 0.22); }
+.vq-rails--dark .vq-rail-dot.is-in { background: #59DBC0; }
+.vq-rails--dark .vq-rail-dot.is-out { background: rgba(242, 106, 71, 0.80); }
+.vq-rails--dark .vq-rail-total { border-top-color: rgba(255,255,255,0.08); color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-total strong { color: #fff; }
+.vq-rails--dark .vq-rail-mini > span { color: rgba(241, 245, 242, 0.60); }
+.vq-rails--dark .vq-rail-mini > strong { color: #fff; }
+.vq-rails--dark .vq-rails-title { color: rgba(241, 245, 242, 0.50); }
+.vq-rails--dark .vq-rails-edit {
+  background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: rgba(241,245,242,0.70);
+}
+.vq-rails--dark .vq-rails-edit:hover { background: rgba(255,255,255,0.10); color: #fff; }
+/* action trio on dark panel */
+.vq-rails--dark .vq-trio-btn {
+  background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); color: rgba(241,245,242,0.85);
+}
+.vq-rails--dark .vq-trio-btn:hover { background: rgba(35, 196, 166, 0.14); border-color: rgba(35, 196, 166, 0.35); color: #59DBC0; }
+.vq-rails--dark .vq-trio-btn.is-sale { background: rgba(35, 196, 166, 0.12); color: #59DBC0; }
+.vq-rails--dark .vq-trio-btn.is-purchase { background: rgba(248, 169, 60, 0.10); color: #FBBF24; }
 .vq-rails-head{
   display: flex; align-items: center; justify-content: space-between;
   min-height: 28px;
@@ -4951,7 +5092,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 
 /* ── sticky side panel: stays pinned, parallel to top card, 24px above bottom ── */
-.vq-rails{
+.vq-rails:not(.vq-rails--cockpit){
   flex: 0 0 var(--vq-rails-w, 340px);
   width: var(--vq-rails-w, 340px);
   min-width: 0;
@@ -4964,7 +5105,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   display: flex;
   flex-direction: column;
 }
-.vq-rails-shell{
+.vq-rails:not(.vq-rails--cockpit) .vq-rails-shell{
   height: auto !important;
   max-height: none !important;
   flex: 0 0 auto;

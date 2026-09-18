@@ -102,7 +102,7 @@ abstract class VenQoreTestCase extends TestCase
     ): Tenant {
         $name = fake()->company();
 
-        return Tenant::factory()->create([
+        $tenant = Tenant::factory()->create([
             'name'            => $name,
             'slug'            => $slug ?? \Illuminate\Support\Str::slug($name) . '-' . \Illuminate\Support\Str::random(4),
             'plan'            => $plan,
@@ -110,6 +110,10 @@ abstract class VenQoreTestCase extends TestCase
             'trial_ends_at'   => $status === 'trial' ? now()->addDays(14) : null,
             'setup_completed' => true,   // skip setup wizard in tests
         ]);
+
+        \Database\Seeders\TenantDefaultSeeder::seedFor($tenant);
+
+        return $tenant;
     }
 
     /**

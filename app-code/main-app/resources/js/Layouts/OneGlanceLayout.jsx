@@ -1035,6 +1035,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  route: store ? 'store.billing' : null,
  routeParams: store ? { store_slug: store.slug } : {} }] : []),
 
+ { name: 'Apps', icon: Monitor, subs: [],
+ route: store ? 'store.apps' : null,
+ routeParams: store ? { store_slug: store.slug } : {} },
+
  { name: 'Agent Inbox', icon: MessageSquare, subs: [],
  route: store ? 'store.admin.chatbot.inbox' : null,
  routeParams: store ? { store_slug: store.slug } : {} },
@@ -1048,6 +1052,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const MENU_PERMISSIONS = {
  'Home': [],
  'Dashboard': [],
+ 'Apps': [],
  'Administration': ['admin.settings_manage', 'users.manage'],
  'Settings': ['admin.settings_manage'],
  'AI Scan': ['pos', 'sales', 'purchases'],

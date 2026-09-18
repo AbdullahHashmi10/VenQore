@@ -14,11 +14,12 @@ import SmoothCaretInput from '@/Components/SmoothCaretInput';
 import useDictation from '@/Components/Island/useDictation';
 import { buildSuggestionFeed } from '@/Components/Island/suggestions';
 import { searchRegistry } from '@/Data/AppRegistry';
-import SmartCapturePanel from '@/Components/SmartCapturePanel';
-import ChatWidget from '@/Components/ChatWidget';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import { useTheme } from '@/Contexts/ThemeContext';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
+
+const SmartCapturePanel = React.lazy(() => import('@/Components/SmartCapturePanel'));
+const ChatWidget = React.lazy(() => import('@/Components/ChatWidget'));
 
 const STORAGE_RECENT_QUERIES = 'venqore_island_recent_queries';
 const STORAGE_SOUND_ENABLED = 'venqore_island_sound_enabled';
@@ -463,7 +464,11 @@ export default function AiIsland({
 
   useEffect(() => {
     fetchNotifications();
-    const i = setInterval(fetchNotifications, 35000);
+    const i = setInterval(() => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+        fetchNotifications();
+      }
+    }, 35000);
     return () => clearInterval(i);
   }, [fetchNotifications]);
 
@@ -472,11 +477,12 @@ export default function AiIsland({
       if (e.detail && !isUserTransacting() && mode !== 'open') raiseAlert(e.detail);
     };
     const onSync = (e) => {
-      if (mode !== 'rest') return;
-      setActivity(e.detail?.activity || 'sync');
-      setWorkingLabel(e.detail?.label || 'Syncing with Reckoner');
-      setMode('working');
-      setTimeout(() => { setMode('rest'); setActivity('idle'); }, e.detail?.duration || 2500);
+      if (e.detail && !isUserTransacting()) raiseAlert({
+        id: 'sync-complete',
+        title: 'Sync Complete',
+        message: e.detail.message || 'All channels in sync.',
+        severity: 'info',
+      });
     };
     window.addEventListener('venqore-island-alert', onAlert);
     window.addEventListener('venqore-island-sync', onSync);
@@ -523,7 +529,11 @@ export default function AiIsland({
 
   useEffect(() => {
     if (mode !== 'rest') return;
-    const i = setInterval(() => setTickerIndex(p => (p + 1) % ambient.length), 6500);
+    const i = setInterval(() => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+        setTickerIndex(p => (p + 1) % ambient.length);
+      }
+    }, 6500);
     return () => clearInterval(i);
   }, [ambient.length, mode]);
 
@@ -1137,7 +1147,9 @@ export default function AiIsland({
                       <motion.div key="chat" variants={contentVariants} initial="initial" animate="animate" exit="exit" className="h-full">
                         <PaneShell tab="chat" orbState="listening" paused={orbPaused} flush>
                           <div className="h-full min-h-0 overflow-hidden bg-transparent">
-                            <ChatWidget embedded />
+                            <React.Suspense fallback={<div className="h-full grid place-items-center text-xs opacity-50">Loading Support...</div>}>
+                              <ChatWidget embedded />
+                            </React.Suspense>
                           </div>
                         </PaneShell>
                       </motion.div>
@@ -1307,12 +1319,14 @@ export default function AiIsland({
                         <PaneShell tab="capture" orbState="shaping" paused={orbPaused} flush>
                           {canUseSmartCapture ? (
                             <div className="h-full min-h-0 overflow-hidden bg-transparent">
-                              <SmartCapturePanel
-                                embedded
-                                isOpen
-                                initialTab={captureTab}
-                                onClose={() => setTab('ask')}
-                              />
+                              <React.Suspense fallback={<div className="h-full grid place-items-center text-xs opacity-50">Loading Smart Capture...</div>}>
+                                <SmartCapturePanel
+                                  embedded
+                                  isOpen
+                                  initialTab={captureTab}
+                                  onClose={() => setTab('ask')}
+                                />
+                              </React.Suspense>
                             </div>
                           ) : (
                             <div className="h-full grid place-items-center text-center px-6">

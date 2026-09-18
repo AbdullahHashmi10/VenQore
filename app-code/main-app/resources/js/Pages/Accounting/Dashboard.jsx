@@ -29,7 +29,7 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
     );
 
     return (
-        <OneGlanceLayout title="Accounting Dashboard" activeMenu="Money">
+        <>
             <Head title="Accounting Dashboard" />
 
             <div className="space-y-6">
@@ -149,6 +149,8 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
                     </MidnightNebula>
                 </div>
             </div>
-        </OneGlanceLayout>
+        </>
     );
 }
+
+AccountingDashboard.layout = (page) => <OneGlanceLayout title="Accounting Dashboard" activeMenu="Money">{page}</OneGlanceLayout>;

@@ -453,6 +453,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
         Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
         Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
+        // Dedicated Native Applications & Downloads Hub
+        Route::get('/apps',            [\App\Http\Controllers\AppsController::class, 'index'])->name('apps');
         // Live payment history from Lemon Squeezy. Lazy-loaded by the Payment
         // History tab so the billing page never blocks on an external API.
         Route::get('/billing/payment-history', [\App\Http\Controllers\BillingController::class, 'paymentHistory'])->name('billing.payment-history');

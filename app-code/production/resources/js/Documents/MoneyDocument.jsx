@@ -78,6 +78,7 @@ export default function MoneyDocument({
     extraTools,
     extraActions,
     extraRows,            /* extra rows in the totals column                  */
+    quickSettles,         /* (bag) => array of quick settlement options       */
     extraSheets,
     priceOf,              /* which price a picked product opens at            */
     lockItems = false,    /* lines come from a source document, not a search  */
@@ -578,6 +579,7 @@ export default function MoneyDocument({
                         prevBalance: partyBal.net,
                         balanceKnown: partyBal.known,
                         extraRows: slot(extraRows),
+                        quickSettles: slot(quickSettles),
                         actions: (
                             <div className="vqdoc-actions">
                                 {!locked && (

@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Log;
 
 class PlanRepository
 {
+    private static array $limitsMemo = [];
+    private static array $overrideMemo = [];
+    private static array $featuresMemo = [];
+
     /**
      * Normalize plan slug variations.
      */
@@ -37,7 +41,7 @@ class PlanRepository
         $planSlug = self::normalizePlanSlug($planSlug);
         $ttl = 3600;
 
-        return Cache::remember("plan_limits:{$planSlug}", $ttl, function () use ($planSlug) {
+        return self::$limitsMemo[$planSlug] ??= Cache::remember("plan_limits:{$planSlug}", $ttl, function () use ($planSlug) {
             /** @var \App\Models\Plan|null $plan */
             $plan = Plan::with('limits')->where('slug', $planSlug)->first();
 
@@ -111,7 +115,7 @@ class PlanRepository
         $cacheKey = "tenant_override:{$tenantId}:{$key}";
         $ttl      = 300;
 
-        $override = Cache::remember($cacheKey, $ttl, function () use ($tenantId, $key) {
+        $override = self::$overrideMemo["{$tenantId}:{$key}"] ??= Cache::remember($cacheKey, $ttl, function () use ($tenantId, $key) {
             $row = TenantPlanOverride::withoutTenantScope()
                 ->where('tenant_id', $tenantId)
                 ->where('override_key', $key)
@@ -152,7 +156,11 @@ class PlanRepository
         }
 
         // 4. Unknown / unseeded feature key: log warning and fail closed
-        Log::warning("Unknown or unseeded plan limit key queried: '{$key}' for plan '{$normSlug}'. Denying access (fail-closed).");
+        static $loggedWarnings = [];
+        if (!isset($loggedWarnings["{$normSlug}:{$key}"])) {
+            $loggedWarnings["{$normSlug}:{$key}"] = true;
+            Log::warning("Unknown or unseeded plan limit key queried: '{$key}' for plan '{$normSlug}'. Denying access (fail-closed).");
+        }
         return false;
     }
 
@@ -162,6 +170,7 @@ class PlanRepository
     public static function invalidatePlanCache(string $planSlug): void
     {
         $norm = self::normalizePlanSlug($planSlug);
+        unset(self::$limitsMemo[$norm], self::$limitsMemo[$planSlug]);
         Cache::forget("plan_limits:{$norm}");
         Cache::forget("all_canonical_feature_keys");
     }
@@ -174,6 +183,13 @@ class PlanRepository
         $tenantId = $tenantOrId instanceof Tenant ? (int) $tenantOrId->id : (int) $tenantOrId;
         if (!$tenantId) {
             return;
+        }
+
+        unset(self::$featuresMemo[$tenantId]);
+        foreach (array_keys(self::$overrideMemo) as $k) {
+            if (str_starts_with($k, "{$tenantId}:")) {
+                unset(self::$overrideMemo[$k]);
+            }
         }
 
         try {
@@ -243,7 +259,7 @@ class PlanRepository
     public static function featuresFor(Tenant $tenant): array
     {
         $cacheKey = "tenant_features_map:{$tenant->id}";
-        return Cache::remember($cacheKey, 300, function () use ($tenant) {
+        return self::$featuresMemo[$tenant->id] ??= Cache::remember($cacheKey, 300, function () use ($tenant) {
             $planSlug = $tenant->plan === 'ltd' && method_exists($tenant, 'effectivePlan')
                 ? $tenant->effectivePlan()
                 : ($tenant->plan ?? 'starter');

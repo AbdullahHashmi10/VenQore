@@ -4,6 +4,7 @@ namespace App\Reckoner;
 
 use App\Reckoner\Sources\FinanceSource;
 use App\Reckoner\Sources\InventorySource;
+use App\Reckoner\Sources\MeasureEngineSource;
 use App\Reckoner\Sources\OperationsSource;
 use App\Reckoner\Sources\PartySource;
 use App\Reckoner\Sources\PlatformSource;
@@ -58,7 +59,7 @@ final class ReckonerRegistry
         'inventory.low_stock_list' => 'inventory',
         'inventory.out_of_stock_count' => 'inventory',
         'inventory.overstock_count' => 'inventory',
-        'inventory.product_count' => 'products',
+        'inventory.product_count' => 'inventory',
         'batch_tracking.count' => 'batches_expiry',
         'batch_tracking.qty' => 'batches_expiry',
         // Sales / Products
@@ -460,11 +461,11 @@ final class ReckonerRegistry
                 'precision' => 2,
                 'direction' => 'neutral',
                 'signed' => false,
-                'periods' => ['as_of', 'live'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'live',
-                'supports_comparison' => false,
-                'supports_series' => false,
-                'series_granularity' => [],
+                'supports_comparison' => true,
+                'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly'],
                 'permissions' => ['finance.balances', 'reports.financial'],
                 'feature' => null,
                 'capability' => 'has_parties',
@@ -491,11 +492,11 @@ final class ReckonerRegistry
                 'precision' => 2,
                 'direction' => 'neutral',
                 'signed' => false,
-                'periods' => ['as_of', 'live'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'live',
-                'supports_comparison' => false,
-                'supports_series' => false,
-                'series_granularity' => [],
+                'supports_comparison' => true,
+                'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly'],
                 'permissions' => ['finance.balances', 'reports.financial'],
                 'feature' => null,
                 'capability' => 'has_parties',
@@ -521,11 +522,11 @@ final class ReckonerRegistry
                 'precision' => 2,
                 'direction' => 'higher_is_better',
                 'signed' => true,
-                'periods' => ['as_of', 'live'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'live',
-                'supports_comparison' => false,
-                'supports_series' => false,
-                'series_granularity' => [],
+                'supports_comparison' => true,
+                'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly'],
                 'permissions' => ['finance.balances'],
                 'feature' => null,
                 'capability' => null,
@@ -585,11 +586,11 @@ final class ReckonerRegistry
                 'precision' => 2,
                 'direction' => 'neutral',
                 'signed' => false,
-                'periods' => ['as_of', 'live'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'live',
-                'supports_comparison' => false,
-                'supports_series' => false,
-                'series_granularity' => [],
+                'supports_comparison' => true,
+                'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly'],
                 'permissions' => ['inventory.view', 'reports.stock'],
                 'feature' => null,
                 'capability' => 'has_inventory',
@@ -742,7 +743,7 @@ final class ReckonerRegistry
                 capability: 'has_parties',
                 source: PartySource::class,
                 method: 'customerCount',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'parties.index',
             ),
@@ -759,7 +760,7 @@ final class ReckonerRegistry
                 capability: 'has_parties',
                 source: PartySource::class,
                 method: 'supplierCount',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'parties.index',
             ),
@@ -793,7 +794,7 @@ final class ReckonerRegistry
                 capability: 'has_parties',
                 source: PartySource::class,
                 method: 'dormantCustomers',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'parties.index',
             ),
@@ -846,7 +847,7 @@ final class ReckonerRegistry
                 capability: 'has_staff',
                 source: StaffSource::class,
                 method: 'onShiftCount',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'staff.index',
             ),
@@ -863,7 +864,7 @@ final class ReckonerRegistry
                 capability: 'has_staff',
                 source: StaffSource::class,
                 method: 'memberCount',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'staff.index',
             ),
@@ -882,7 +883,7 @@ final class ReckonerRegistry
                 capability: 'has_sales_orders',
                 source: OperationsSource::class,
                 method: 'openSalesOrders',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'sales-orders.index',
             ),
@@ -899,7 +900,7 @@ final class ReckonerRegistry
                 capability: 'has_inventory',
                 source: OperationsSource::class,
                 method: 'pendingStockTakes',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'stock-takes.index',
             ),
@@ -916,7 +917,7 @@ final class ReckonerRegistry
                 capability: 'has_inventory',
                 source: OperationsSource::class,
                 method: 'pendingStockTransfers',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'stock-transfers.index',
             ),
@@ -952,7 +953,7 @@ final class ReckonerRegistry
                 capability: 'has_restaurant',
                 source: RestaurantSource::class,
                 method: 'tablesOccupied',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'restaurant.dashboard',
             ),
@@ -969,7 +970,7 @@ final class ReckonerRegistry
                 capability: 'has_restaurant',
                 source: RestaurantSource::class,
                 method: 'kitchenOrdersPending',
-                periods: ['live'],
+                periods: ReckonerPeriod::KEYS,
                 defaultPeriod: 'live',
                 drillRoute: 'restaurant.dashboard',
             ),
@@ -1026,7 +1027,7 @@ final class ReckonerRegistry
                 'precision' => 2,
                 'direction' => 'higher_is_better',
                 'signed' => false,
-                'periods' => ['this_month', 'last_month', 'this_year', 'last_year'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'this_month',
                 'supports_comparison' => true,
                 'supports_series' => true,
@@ -1056,7 +1057,7 @@ final class ReckonerRegistry
                 'precision' => 2,
                 'direction' => 'higher_is_better',
                 'signed' => true,
-                'periods' => ['this_month', 'last_month', 'this_year', 'last_year'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'this_month',
                 'supports_comparison' => true,
                 'supports_series' => true,
@@ -1208,7 +1209,7 @@ final class ReckonerRegistry
                 'precision' => 0,
                 'direction' => 'lower_is_better',
                 'signed' => false,
-                'periods' => ['live'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
@@ -1238,7 +1239,7 @@ final class ReckonerRegistry
                 'precision' => 2,
                 'direction' => 'lower_is_better',
                 'signed' => false,
-                'periods' => ['live'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
@@ -1328,7 +1329,7 @@ final class ReckonerRegistry
                 'precision' => 0,
                 'direction' => 'neutral',
                 'signed' => false,
-                'periods' => ['live'],
+                'periods' => ReckonerPeriod::KEYS,
                 'default_period' => 'live',
                 'supports_comparison' => false,
                 'supports_series' => false,
@@ -1457,7 +1458,7 @@ final class ReckonerRegistry
                 'precision'           => 0,
                 'direction'           => 'higher_is_better',
                 'signed'              => false,
-                'periods'             => ['live'],
+                'periods'             => ReckonerPeriod::KEYS,
                 'default_period'      => 'live',
                 'supports_comparison' => false,
                 'supports_series'     => false,
@@ -1489,7 +1490,7 @@ final class ReckonerRegistry
                 'precision'           => 2,
                 'direction'           => 'higher_is_better',
                 'signed'              => false,
-                'periods'             => ['live'],
+                'periods'             => ReckonerPeriod::KEYS,
                 'default_period'      => 'live',
                 'supports_comparison' => false,
                 'supports_series'     => false,
@@ -1519,7 +1520,7 @@ final class ReckonerRegistry
                 'precision'           => 0,
                 'direction'           => 'neutral',
                 'signed'              => false,
-                'periods'             => ['live'],
+                'periods'             => ReckonerPeriod::KEYS,
                 'default_period'      => 'live',
                 'supports_comparison' => false,
                 'supports_series'     => false,
@@ -1551,7 +1552,7 @@ final class ReckonerRegistry
                 'precision'           => 2,
                 'direction'           => 'higher_is_better',
                 'signed'              => false,
-                'periods'             => ['live'],
+                'periods'             => ReckonerPeriod::KEYS,
                 'default_period'      => 'live',
                 'supports_comparison' => false,
                 'supports_series'     => false,
@@ -1764,6 +1765,77 @@ final class ReckonerRegistry
         }
         unset($def);
 
+        foreach (CardRegistry::all() as $cardKey => $card) {
+            $contractState = $card['contract_state'] ?? 'unimplemented';
+            $isImplemented = $contractState !== 'unimplemented';
+
+            if (isset($all[$cardKey])) {
+                $all[$cardKey]['weight'] = $card['weight'] ?? 50;
+                $all[$cardKey]['insight'] = $card['insight'] ?? '';
+                $all[$cardKey]['topic'] = $card['topic'] ?? null;
+                $all[$cardKey]['streams'] = $card['streams'] ?? [];
+                $all[$cardKey]['measures'] = $card['measures'] ?? [];
+                $all[$cardKey]['module'] = $card['module'];
+                $all[$cardKey]['contract_state'] = $contractState;
+                $all[$cardKey]['status_reason'] = $card['status_reason'] ?? null;
+                $all[$cardKey]['implemented'] = $isImplemented;
+                if (!empty($card['permissions'])) {
+                    $all[$cardKey]['permissions'] = $card['permissions'];
+                }
+                if (!empty($card['periods'])) {
+                    $all[$cardKey]['periods'] = $card['periods'];
+                }
+                if (!empty($card['default_period'])) {
+                    $all[$cardKey]['default_period'] = $card['default_period'];
+                }
+                continue;
+            }
+
+            $shape = ReckonerShape::fromCardShape($card['shape'] ?? 'stat');
+            $resolverClass = \App\Reckoner\Resolvers\ResolverRegistry::classForKey($cardKey);
+
+            $all[$cardKey] = [
+                'key' => $cardKey,
+                'domain' => $card['module'] ?? 'core',
+                'label' => $card['title'],
+                'generic' => $card['title'],
+                'description' => $card['insight'] ?: $card['title'],
+                'help' => $card['insight'] ?? '',
+                'shape' => $shape,
+                'unit' => $card['unit'] ?? 'currency',
+                'precision' => (int) ($card['precision'] ?? 2),
+                'direction' => 'higher_is_better',
+                'signed' => false,
+                'periods' => !empty($card['periods']) ? $card['periods'] : ReckonerPeriod::KEYS,
+                'default_period' => $card['default_period'] ?? (($card['period_aware'] ?? false) ? 'this_month' : 'today'),
+                'supports_comparison' => true,
+                'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly'],
+                'permissions' => !empty($card['permissions']) ? $card['permissions'] : ['reports.summary'],
+                'feature' => null,
+                'capability' => null,
+                'scope' => 'tenant',
+                'source' => MeasureEngineSource::class,
+                'method' => null,
+                'resolver' => $resolverClass,
+                'cache_ttl' => 60,
+                'drill_route' => null,
+                'dimensions' => [],
+                'filters' => [],
+                'additive' => false,
+                'implemented' => $isImplemented,
+                'contract_state' => $contractState,
+                'status_reason' => $card['status_reason'] ?? null,
+                'module' => $card['module'],
+                'weight' => (int) ($card['weight'] ?? 50),
+                'insight' => $card['insight'] ?? '',
+                'topic' => $card['topic'] ?? null,
+                'streams' => (array) ($card['streams'] ?? []),
+                'measures' => (array) ($card['measures'] ?? []),
+                'is_new' => false,
+            ];
+        }
+
         return self::$cache = $all;
     }
 
@@ -1841,40 +1913,60 @@ final class ReckonerRegistry
 
     /**
      * Generate the V6 Dashboard reading catalog from ReckonerRegistry.
-     * Guaranteed that every reading emitted here has a verified calculation implementation.
+     * Guaranteed that every reading emitted here has a declared contract_state.
      */
     public static function v6Catalog(bool $includePlatform = false): array
     {
         $catalog = [];
-        foreach (self::all() as $key => $def) {
-            if (!$includePlatform && ($def['scope'] ?? 'tenant') === 'platform') {
-                continue;
+        foreach (CardRegistry::all() as $key => $card) {
+            $def = self::find($key);
+            $contractState = $card['contract_state'] ?? ($def['contract_state'] ?? 'unimplemented');
+            $statusReason = $card['status_reason'] ?? ($def['status_reason'] ?? null);
+
+            $mod = $card['module'] ?? ($def['module'] ?? null);
+            $mappedModules = self::MODULE_MAP[$key] ?? null;
+            $rawModules = $mappedModules 
+                ? (is_array($mappedModules) ? $mappedModules : [$mappedModules])
+                : ($mod ? [$mod] : []);
+
+            $area = 'Operations';
+            if (in_array($mod, ['pos', 'invoicing', 'quotations', 'sales_orders', 'sales_returns', 'pricing_tiers', 'pre_sales'], true)) {
+                $area = 'Sales';
+            } elseif (in_array($mod, ['expenses', 'payments', 'cash_register', 'bank_accounts', 'bank_reconciliation', 'accounting_workspace', 'tax_compliance', 'loans'], true)) {
+                $area = 'Finance';
+            } elseif (in_array($mod, ['inventory', 'multi_location', 'stock_transfers', 'stock_takes', 'batches_expiry', 'serials', 'variants', 'barcodes_labels', 'units_of_measure'], true)) {
+                $area = 'Inventory';
+            } elseif (in_array($mod, ['purchases', 'purchase_orders', 'purchase_returns', 'landed_cost'], true)) {
+                $area = 'Purchasing';
+            } elseif (in_array($mod, ['cookbook', 'production_runs', 'composite_items'], true)) {
+                $area = 'Production';
+            } elseif (in_array($mod, ['customers', 'suppliers', 'khata_credit'], true)) {
+                $area = 'Customers';
+            } elseif (!$mod) {
+                $area = 'Overview';
             }
 
-            $domain = $def['domain'] ?? 'operations';
-            $area = match ($domain) {
-                'sales' => 'Sales',
-                'finance', 'tax' => 'Finance',
-                'inventory', 'production' => 'Inventory',
-                'purchasing' => 'Purchasing',
-                default => 'Operations',
-            };
-
-            $module = $def['module'] ?? self::MODULE_MAP[$key] ?? ucfirst($domain);
-            if (is_array($module)) {
-                $module = ucfirst($module[0] ?? $domain);
-            }
-
+            $shapeName = $card['shape'] ?? $card['viz'] ?? 'stat';
             $catalog[] = [
                 'key' => $key,
-                'label' => $def['label'],
-                'shape' => strtoupper($def['shape']->value),
-                'unit' => $def['unit'],
+                'label' => $card['title'],
+                'shape' => strtoupper($shapeName),
+                'unit' => $card['unit'] ?? 'currency',
+                'precision' => (int) ($card['precision'] ?? 2),
                 'area' => $area,
-                'module' => is_string($module) ? ucfirst($module) : ucfirst($domain),
-                'short' => $def['generic'] ?? $def['label'],
-                'extra' => in_array($key, self::NEW_KEYS, true),
-                'desc' => $def['description'] ?? '',
+                'module' => $mod ? ucwords(str_replace('_', ' ', $mod)) : 'Qore',
+                'modules' => $rawModules,
+                'short' => $card['title'],
+                'extra' => false,
+                'desc' => $card['insight'] ?? '',
+                'insight' => $card['insight'] ?? '',
+                'weight' => (int) ($card['weight'] ?? 50),
+                'topic' => $card['topic'] ?? null,
+                'periods' => $card['periods'] ?? ReckonerPeriod::KEYS,
+                'default_period' => $card['default_period'] ?? (($card['period_aware'] ?? false) ? 'this_month' : 'today'),
+                'period_aware' => (bool) ($card['period_aware'] ?? false),
+                'contract_state' => $contractState,
+                'status_reason' => $statusReason,
                 'rowNames' => [],
                 'sliceNames' => [],
             ];

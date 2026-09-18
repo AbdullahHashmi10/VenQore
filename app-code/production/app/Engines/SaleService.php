@@ -267,11 +267,13 @@ class SaleService
                 // B1 — cash or bank
                 $cashAccount    = $data['payment_method'] === 'bank' ? '1010' : '1000';
                 $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
+                $bankAccountId  = ($data['payment_method'] === 'bank') ? ($data['bank_account_id'] ?? null) : null;
 
                 $journalLines[] = [
-                    'account_code' => $cashAccount,
-                    'debit'        => $amountReceived,
-                    'credit'       => 0,
+                    'account_code'    => $cashAccount,
+                    'debit'           => $amountReceived,
+                    'credit'          => 0,
+                    'bank_account_id' => $bankAccountId,
                 ];
 
                 if (round($amountReceived, 2) < round($invoiceTotal, 2)) {
@@ -324,6 +326,7 @@ class SaleService
                 'tenant_id'            => $tenantId,  // WOUND 2 FIX — explicit tenant stamp
                 'client_sale_id'       => $data['client_sale_id'] ?? null,
                 'reference_number'     => $invoiceNumber,
+                'source'               => ($data['source'] ?? null) === 'pos' ? 'pos' : 'manual',
                 'party_id'             => $data['customer_id'],
                 'warehouse_id'         => $data['warehouse_id'],
                 'subtotal'             => $subtotalGross,

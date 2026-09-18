@@ -586,15 +586,20 @@ class FundController extends Controller
             if ($request->to_type === 'bank') $journalRef = $request->to_bank_id;
             elseif ($request->from_type === 'bank') $journalRef = $request->from_bank_id;
 
+            $toBankId = $request->to_type === 'bank' ? $toAccountId : null;
+            $fromBankId = $request->from_type === 'bank' ? $fromAccountId : null;
+
             app(\App\Engines\AccountingService::class)->createEntry([
                 'date'     => now()->toDateString(),
                 'reference_type' => 'fund_transfer',
                 'reference'   => $journalRef,
                 'description'    => "Transfer: {$fromName} → {$toName}",
                 'party_id'       => null,
+                'source_type'    => 'fund_transaction',
+                'source_id'      => $fundTx->id,
             ], [
-                ['account_id' => $toAcct->id,   'debit' => $amount, 'credit' => 0],
-                ['account_id' => $fromAcct->id, 'debit' => 0, 'credit' => $amount],
+                ['account_id' => $toAcct->id,   'debit' => $amount, 'credit' => 0, 'bank_account_id' => $toBankId],
+                ['account_id' => $fromAcct->id, 'debit' => 0, 'credit' => $amount, 'bank_account_id' => $fromBankId],
             ]);
 
             DB::commit();

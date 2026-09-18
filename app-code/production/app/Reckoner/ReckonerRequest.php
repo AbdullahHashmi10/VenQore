@@ -23,6 +23,7 @@ final class ReckonerRequest
         if ($this->custom) {
             $periodStr .= '_' . md5(json_encode($this->custom));
         }
-        return "{$this->key}|{$periodStr}|{$argsHash}";
+        $gran = $this->granularity ? "|{$this->granularity}" : '';
+        return "{$this->key}|{$periodStr}{$gran}|{$argsHash}";
     }
 }

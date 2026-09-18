@@ -64,16 +64,23 @@ class UpdaterController extends Controller
 
         $currentVersion = $this->getCurrentVersion();
 
-        $history = \App\Models\PlatformAuditLog::with('user')
-            ->where('action', 'system.updated')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn($log) => [
-                'version'    => $log->payload['version'] ?? 'unknown',
-                'updated_at' => $log->created_at->toIso8601String(),
-                'by'         => $log->user?->name ?? 'System',
-            ])
-            ->toArray();
+        $history = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('platform_audit_logs')) {
+                $history = \App\Models\PlatformAuditLog::with('user')
+                    ->where('action', 'system.updated')
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(fn($log) => [
+                        'version'    => $log->payload['version'] ?? 'unknown',
+                        'updated_at' => $log->created_at->toIso8601String(),
+                        'by'         => $log->user?->name ?? 'System',
+                    ])
+                    ->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Updater: could not fetch version history: ' . $e->getMessage());
+        }
 
         return inertia('Updater/Index', [
             'currentVersion' => $currentVersion,
@@ -96,7 +103,7 @@ class UpdaterController extends Controller
                     $pendingMigrations[] = $name;
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::warning('Could not fetch pending migrations: ' . $e->getMessage());
         }
 
@@ -114,20 +121,66 @@ class UpdaterController extends Controller
             $phpPostMaxMB
         );
 
+        // Calculate a safe chunk size in bytes (between 512KB and 2MB, never exceeding 75% of upload limits)
+        $effectiveLimitBytes = min(
+            $phpUploadBytes > 0 ? $phpUploadBytes : 10 * 1024 * 1024,
+            $phpPostBytes > 0 ? $phpPostBytes : 10 * 1024 * 1024
+        );
+        $recommendedChunkBytes = min(2 * 1024 * 1024, max(512 * 1024, (int) ($effectiveLimitBytes * 0.75)));
+
+        // Read lock information if currently locked
+        $lockInfo = null;
+        if (File::exists($this->lockPath())) {
+            $rawLock = @json_decode(File::get($this->lockPath()), true);
+            if (is_array($rawLock)) {
+                $lockTime = File::lastModified($this->lockPath());
+                $rawLock['age_minutes'] = round((time() - $lockTime) / 60);
+                $lockInfo = $rawLock;
+            }
+        }
+
         return response()->json([
-            'current_version'    => $this->getCurrentVersion(),
-            'php_version'        => PHP_VERSION,
-            'pending_migrations' => count($pendingMigrations),
-            'pending_list'       => $pendingMigrations,
-            'storage_writable'   => is_writable(storage_path()),
-            'base_writable'      => is_writable(base_path()),
-            'zip_extension'      => (extension_loaded('zip') || class_exists('PclZip') || file_exists(base_path('vendor/pclzip/pclzip/pclzip.lib.php'))),
-            'disk_free_mb'       => round(disk_free_space(base_path()) / 1024 / 1024),
-            'update_in_progress' => File::exists($this->lockPath()),
-            'max_zip_mb'         => $effectiveMaxMB,
-            'php_upload_max_mb'  => $phpUploadMaxMB,
-            'php_post_max_mb'    => $phpPostMaxMB,
-            'app_max_mb'         => round(self::MAX_ZIP_SIZE_BYTES / 1024 / 1024),
+            'current_version'         => $this->getCurrentVersion(),
+            'php_version'             => PHP_VERSION,
+            'pending_migrations'      => count($pendingMigrations),
+            'pending_list'            => $pendingMigrations,
+            'storage_writable'        => is_writable(storage_path()),
+            'base_writable'           => is_writable(base_path()),
+            'zip_extension'           => (extension_loaded('zip') || class_exists('PclZip') || file_exists(base_path('vendor/pclzip/pclzip/pclzip.lib.php'))),
+            'disk_free_mb'            => round(disk_free_space(base_path()) / 1024 / 1024),
+            'update_in_progress'      => File::exists($this->lockPath()),
+            'lock_info'               => $lockInfo,
+            'max_zip_mb'              => $effectiveMaxMB,
+            'php_upload_max_mb'       => $phpUploadMaxMB,
+            'php_post_max_mb'         => $phpPostMaxMB,
+            'app_max_mb'              => round(self::MAX_ZIP_SIZE_BYTES / 1024 / 1024),
+            'recommended_chunk_bytes' => $recommendedChunkBytes,
+        ]);
+    }
+
+    /**
+     * Clear any stuck update lock on demand (called by Platform Admin from UI).
+     */
+    public function resetLock()
+    {
+        $this->safeDisableMaintenanceMode();
+        $this->releaseLock();
+
+        // Also clean up any abandoned chunk directories
+        $chunksDir = storage_path('app/update_chunks');
+        if (File::isDirectory($chunksDir)) {
+            try {
+                File::deleteDirectory($chunksDir);
+            } catch (\Throwable $e) {
+                // Non-critical
+            }
+        }
+
+        Log::info('Updater: Update lock and temporary chunks forcibly reset by ' . (Auth::user()?->email ?? 'unknown'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Update lock has been reset. The updater is ready for a new package.',
         ]);
     }
 
@@ -137,8 +190,8 @@ class UpdaterController extends Controller
     public function run(Request $request)
     {
         set_time_limit(0);
-        ini_set('max_execution_time', '0');
-        ini_set('memory_limit', '-1');
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '-1');
 
         $step = $request->input('step');
 
@@ -161,16 +214,14 @@ class UpdaterController extends Controller
                 case 'version':
                     return $this->handleVersionBump($request);
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Updater failed at step [{$step}]: " . $e->getMessage() . "\n" . $e->getTraceAsString());
 
             // Bring app back UP if we put it in maintenance mode
             $this->safeDisableMaintenanceMode();
 
-            // Release lock on failure so admin can retry
-            if ($step !== 'upload') {
-                $this->releaseLock();
-            }
+            // Always release lock on step failure so admin can retry without needing SSH
+            $this->releaseLock();
 
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -195,15 +246,21 @@ class UpdaterController extends Controller
 
         // ── First chunk: lock & validate ──────────────────────────
         if ($chunkIndex === 0) {
-            // Prevent concurrent updates
+            // Prevent concurrent updates — auto-clear abandoned or stale locks
             if (File::exists($this->lockPath())) {
                 $lockTime = File::lastModified($this->lockPath());
                 $ageMinutes = round((time() - $lockTime) / 60);
-                if ($ageMinutes < self::LOCK_MAX_AGE_MINUTES) {
-                    throw new Exception("An update is already in progress (started {$ageMinutes} minute(s) ago). Please wait.");
+
+                $existingLock = @json_decode(File::get($this->lockPath()), true);
+                $isOldUpload = is_array($existingLock) && (($existingLock['step'] ?? '') === 'uploading_chunks');
+
+                // If previous attempt was an interrupted upload, or older than 5 minutes, auto-clear
+                if ($isOldUpload || $ageMinutes >= 5 || $ageMinutes >= self::LOCK_MAX_AGE_MINUTES) {
+                    File::delete($this->lockPath());
+                    Log::info("Updater: Cleared prior/abandoned update lock ({$ageMinutes} minutes old).");
+                } else {
+                    throw new Exception("An active update is currently in progress (started {$ageMinutes} minute(s) ago). If this is stuck, click 'Force Unlock' to reset it.");
                 }
-                File::delete($this->lockPath());
-                Log::info("Updater: Cleared stale update lock ({$ageMinutes} minutes old).");
             }
 
             // Clean up any leftover chunks from a previous failed attempt
@@ -244,27 +301,40 @@ class UpdaterController extends Controller
         if (File::exists($expectedTotalChunksFile)) {
             $expectedTotalChunks = (int) trim(File::get($expectedTotalChunksFile));
             if ($expectedTotalChunks > 0 && $expectedTotalChunks !== $totalChunks) {
+                File::deleteDirectory($chunkDir);
                 throw new Exception(
-                    "Chunk count mismatch for upload {$uploadId}: this attempt expected {$expectedTotalChunks} chunks " .
-                    "but received a request for {$totalChunks}. This usually means a previous upload attempt with the " .
-                    "same upload_id is still present. Please retry the upload from the start."
+                    "Upload interrupted: expected {$expectedTotalChunks} chunks but received {$totalChunks}. Please retry the upload from the start."
                 );
             }
         }
 
         // ── Receive this chunk ────────────────────────────────────
         if (!$request->hasFile('chunk')) {
-            throw new Exception("Chunk {$chunkIndex} was not received. Upload may have been interrupted.");
+            throw new Exception("Chunk {$chunkIndex} was not received. Upload may have exceeded server post_max_size or upload_max_filesize.");
         }
 
         $chunkFile = $request->file('chunk');
         if ($chunkFile->getError() !== UPLOAD_ERR_OK) {
-            throw new Exception("Chunk {$chunkIndex} upload error (code: " . $chunkFile->getError() . ").");
+            $errCode = $chunkFile->getError();
+            $errMsg = match ($errCode) {
+                UPLOAD_ERR_INI_SIZE => "Chunk {$chunkIndex} exceeds server upload_max_filesize limit.",
+                UPLOAD_ERR_FORM_SIZE => "Chunk {$chunkIndex} exceeds form MAX_FILE_SIZE directive.",
+                UPLOAD_ERR_PARTIAL => "Chunk {$chunkIndex} was only partially uploaded.",
+                UPLOAD_ERR_NO_FILE => "No chunk was received by server.",
+                UPLOAD_ERR_NO_TMP_DIR => "Missing temporary upload directory on server.",
+                UPLOAD_ERR_CANT_WRITE => "Failed to write uploaded chunk to disk.",
+                default => "Chunk {$chunkIndex} upload error (code: {$errCode}).",
+            };
+            throw new Exception($errMsg);
         }
 
         // Save chunk with zero-padded index for correct ordering
         if (!File::isDirectory($chunkDir)) {
             File::makeDirectory($chunkDir, 0755, true);
+        }
+        $targetChunkPath = $chunkDir . '/' . sprintf('chunk_%05d', $chunkIndex);
+        if (File::exists($targetChunkPath)) {
+            @unlink($targetChunkPath);
         }
         $chunkFile->move($chunkDir, sprintf('chunk_%05d', $chunkIndex));
 
@@ -393,7 +463,8 @@ class UpdaterController extends Controller
         $hasArtisan  = false;
         $hasComposer = false;
         for ($i = 0; $i < $fileCount; $i++) {
-            $name     = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
+            $rawName  = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
+            $name     = str_replace('\\', '/', $rawName);
             $basename = basename($name);
             $depth    = substr_count($name, '/');
 
@@ -448,14 +519,7 @@ class UpdaterController extends Controller
             'storage/installed',             // Install lock flag
             'storage/app_version.txt',       // Updated by Step 5, not from ZIP
             'storage/update.lock',           // Our own lock file
-            'storage/demo-snapshots/',       // Golden Master demo snapshot — regenerated
-                                              // weekly by demo:snapshot (see routes/console.php),
-                                              // NOT shipped inside update packages. Previously
-                                              // unprotected: an update ZIP built without this
-                                              // directory would leave whatever was on disk alone
-                                              // (fine), but one built WITH a stale/placeholder
-                                              // copy would silently clobber the live server's
-                                              // real Golden Master snapshot on every update.
+            'storage/demo-snapshots/',       // Golden Master demo snapshot
 
             // ── Framework structure (sessions, cache scaffolding) ───
             'storage/framework/sessions/',   // Active user sessions — destroying = logout all users
@@ -487,52 +551,55 @@ class UpdaterController extends Controller
         }
 
         for ($i = 0; $i < $fileCount; $i++) {
-            // Keep the update lock "fresh" while extraction is genuinely
-            // still in progress — a large package (14,000+ files) can take
-            // longer than LOCK_MAX_AGE_MINUTES to extract, and without this
-            // the lock would look abandoned partway through, letting
-            // PreventAccessDuringUpdate start allowing ordinary traffic
-            // through mid-overwrite (see LOCK_MAX_AGE_MINUTES doc comment).
             if ($i % 500 === 0) {
                 $this->touchLock();
             }
 
-            $entryName = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
+            $rawEntry = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
 
-            // Skip directory entries
-            if (substr($entryName, -1) === '/') {
+            // ── 1. NORMALIZE PATH SEPARATORS IMMEDIATELY ──────────
+            $entryName = str_replace('\\', '/', $rawEntry);
+
+            // ── 2. SKIP DIRECTORY ENTRIES (handles both / and \) ──
+            if (str_ends_with($entryName, '/')) {
                 continue;
             }
 
-            // ── Normalise path separators ──────────────────────────
-            $entryName = str_replace('\\', '/', $entryName);
-
-            // ── Strip leading single root folder if present ────────
+            // ── 3. STRIP ROOT WRAPPER FOLDER IF PRESENT ───────────
             $cleanedName = $entryName;
             if ($rootFolder !== '' && str_starts_with($entryName, $rootFolder)) {
                 $cleanedName = substr($entryName, strlen($rootFolder));
             }
 
-            // ── SKIP DANGEROUS FILE TYPES ──────────────────────────
-            // Certain files should NEVER be in an update package
+            // ── 4. SKIP OS METADATA & DANGEROUS FILES ─────────────
             $basename = strtolower(basename($cleanedName));
-            if (in_array($basename, ['.env', '.env.local', '.env.production'])) {
-                Log::warning("UPDATER: Blocked attempt to overwrite .env file from ZIP entry [{$entryName}]");
+            if (
+                str_starts_with($cleanedName, '__MACOSX/') ||
+                str_contains($cleanedName, '/__MACOSX/') ||
+                $basename === '.ds_store' ||
+                $basename === 'thumbs.db'
+            ) {
                 $skipped++;
                 continue;
             }
 
-            // ── PATH TRAVERSAL protection ──────────────────────────
+            if (in_array($basename, ['.env', '.env.local', '.env.production'])) {
+                Log::warning("UPDATER: Blocked attempt to overwrite .env file from ZIP entry [{$rawEntry}]");
+                $skipped++;
+                continue;
+            }
+
+            // ── 5. PATH TRAVERSAL PROTECTION ──────────────────────
             $realTarget = $this->safeResolvePath($basePath, $cleanedName);
 
             if ($realTarget === null) {
-                Log::critical("UPDATER: Path traversal attempt blocked! Entry: [{$entryName}] resolved outside base_path.");
+                Log::critical("UPDATER: Path traversal attempt blocked! Entry: [{$rawEntry}] resolved outside base_path.");
                 $blocked++;
                 continue;
             }
 
-            // ── Protected path check ───────────────────────────────
-            $normalised = str_replace('\\', '/', $cleanedName);
+            // ── 6. PROTECTED PATH CHECK ───────────────────────────
+            $normalised = $cleanedName;
             $isProtected = false;
             foreach ($protectedPrefixes as $protected) {
                 if ($normalised === $protected || str_starts_with($normalised, $protected)) {
@@ -546,7 +613,7 @@ class UpdaterController extends Controller
                 continue;
             }
 
-            // ── Write file ─────────────────────────────────────────
+            // ── 7. WRITE FILE SAFELY ──────────────────────────────
             $targetDir = dirname($realTarget);
 
             try {
@@ -569,70 +636,26 @@ class UpdaterController extends Controller
                     File::put($realTarget, $content);
                     $updated++;
                 } else {
-                    Log::warning("UPDATER: Could not read content from ZIP index {$i} (entry: {$entryName}).");
+                    Log::warning("UPDATER: Could not read content from ZIP index {$i} (entry: {$rawEntry}).");
                     $errors++;
                 }
-            } catch (Exception $e) {
-                // Log but don't crash — try to finish the rest
+            } catch (\Throwable $e) {
                 Log::warning("UPDATER: Failed to write [{$cleanedName}]: " . $e->getMessage());
                 $errors++;
             }
         }
 
         $zip->close();
-
-        // Cleanup the uploaded zip
         File::delete($zipPath);
 
-        // ── LOG the results ────────────────────────────────────────
         Log::info("Updater extract: {$updated} files updated, {$skipped} protected, {$blocked} blocked, {$errors} errors.");
         if ($blocked > 0) {
             Log::critical("UPDATER: {$blocked} path traversal attempt(s) were blocked during extraction.");
         }
 
-        // ── Re-create storage symlink in case public/ was overwritten ──
-        try {
-            Artisan::call('storage:link');
-        } catch (Exception $e) {
-            Log::warning("Updater: Could not recreate storage symlink: " . $e->getMessage());
-        }
-
-        // ── Rebuild Composer autoloader so new PHP classes are found ──
-        // Without this, any new Models/Controllers/Services added in the
-        // update ZIP would cause "Class not found" fatal errors.
-        try {
-            $composerPath = base_path('vendor/autoload.php');
-            if (File::exists($composerPath)) {
-                // Use Artisan if available (faster)
-                if (class_exists('Composer\\Autoload\\ClassLoader')) {
-                    Artisan::call('package:discover');
-                }
-                // Force autoloader regeneration by clearing the classmap cache
-                $classmapFile = base_path('vendor/composer/autoload_classmap.php');
-                if (File::exists($classmapFile)) {
-                    // Artisan optimize will rebuild this
-                    Log::info('Updater: Autoloader will be rebuilt in cache step.');
-                }
-            }
-        } catch (Exception $e) {
-            Log::warning('Updater: Autoloader refresh failed: ' . $e->getMessage());
-        }
-
-        $message = "Extraction complete. {$updated} files updated, {$skipped} protected files preserved.";
-        if ($blocked > 0) {
-            $message .= " ⚠ {$blocked} malicious path(s) were blocked.";
-        }
-        if ($errors > 0) {
-            $message .= " ⚠ {$errors} file(s) had write errors (check server logs).";
-        }
-
-        // ── CRITICAL: Clear bootstrap cache & OPcache immediately ───────
-        // After 14,000+ new PHP files land on disk, the old
-        // bootstrap/cache/*.php (config, routes, services) is stale.
-        // If we leave it, the NEXT HTTP request (cache step) loads
-        // NEW code against OLD cached config, which can break Auth and
-        // cause the session role check to fail with a 403 error.
-        // We nuke it here so the cache step boots with a clean slate.
+        // ── 8. CRITICAL: CLEAR BOOTSTRAP CACHE & OPCACHE FIRST ────────
+        // MUST happen immediately BEFORE running any Artisan commands,
+        // so Laravel does not boot stale cached config against new files!
         $bootstrapCacheDir = base_path('bootstrap/cache');
         $nuked = [];
         foreach (glob($bootstrapCacheDir . '/*.php') as $cacheFile) {
@@ -646,21 +669,37 @@ class UpdaterController extends Controller
             Log::info('Updater extract: Pre-cleared stale bootstrap cache: ' . implode(', ', $nuked));
         }
 
-        // Reset OPcache so PHP serves new files, not old bytecode
         if (function_exists('opcache_reset')) {
-            opcache_reset();
+            @opcache_reset();
+        }
+
+        // ── 9. NOW RE-CREATE STORAGE SYMLINK & DISCOVER PACKAGES ──────
+        try {
+            Artisan::call('storage:link');
+        } catch (\Throwable $e) {
+            Log::warning("Updater: Could not recreate storage symlink: " . $e->getMessage());
+        }
+
+        try {
+            $composerPath = base_path('vendor/autoload.php');
+            if (File::exists($composerPath) && class_exists('Composer\\Autoload\\ClassLoader')) {
+                Artisan::call('package:discover');
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Updater: package:discover failed: ' . $e->getMessage());
+        }
+
+        $message = "Extraction complete. {$updated} files updated, {$skipped} protected files preserved.";
+        if ($blocked > 0) {
+            $message .= " ⚠ {$blocked} malicious path(s) were blocked.";
+        }
+        if ($errors > 0) {
+            $message .= " ⚠ {$errors} file(s) had write errors (check server logs).";
         }
 
         // ── Validate the frontend build manifest survived extraction ──
-        // Update packages are expected to ship a pre-built public/build
-        // (Vite manifest + compiled assets) — this Updater does not run a
-        // frontend build itself. If a package is assembled without that
-        // directory, or extraction somehow drops it, Inertia can silently
-        // fail to resolve JS/CSS assets and every page white-screens. Fail
-        // loudly here (before cache-clear/version-bump) instead of letting
-        // that surface later as an unexplained blank app.
         $manifestPath = base_path('public/build/manifest.json');
-        $viteManifestPath = base_path('public/build/.vite/manifest.json'); // Vite 5+ location
+        $viteManifestPath = base_path('public/build/.vite/manifest.json');
         if (!File::exists($manifestPath) && !File::exists($viteManifestPath)) {
             Log::critical('Updater: public/build manifest is missing after extraction — frontend assets will not resolve.');
             throw new Exception(
@@ -989,39 +1028,63 @@ class UpdaterController extends Controller
             return null;
         }
 
-        // Reject obviously dangerous patterns
+        // Reject obviously dangerous traversal patterns
         if (str_contains($relativePath, '..')) {
             return null;
         }
 
-        // Reject absolute paths hidden in entry names
-        if (preg_match('/^[A-Za-z]:/', $relativePath) || str_starts_with($relativePath, '/')) {
+        // Reject drive letters, UNC paths, and leading slashes
+        if (preg_match('/^[A-Za-z]:/', $relativePath) ||
+            str_starts_with($relativePath, '/') ||
+            str_starts_with($relativePath, '\\') ||
+            str_starts_with($relativePath, '//') ||
+            str_starts_with($relativePath, '\\\\')) {
             return null;
         }
 
-        $target = $basePath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        // Normalize base path and target
+        $normalizedBase = rtrim(str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $basePath), DIRECTORY_SEPARATOR);
+        $normalizedRel  = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, ltrim($relativePath, '/\\'));
+        $target         = $normalizedBase . DIRECTORY_SEPARATOR . $normalizedRel;
 
-        // For files that don't exist yet, check the parent directory
-        $checkPath = $target;
-        if (!file_exists($checkPath)) {
-            $checkPath = dirname($checkPath);
-        }
+        $isWindows = (DIRECTORY_SEPARATOR === '\\');
+        $prefix = $normalizedBase . DIRECTORY_SEPARATOR;
 
-        // Ensure the resolved path is still inside base_path
-        $resolvedCheck = realpath($checkPath);
-        if ($resolvedCheck === false) {
-            // Parent dir doesn't exist yet — safe to create
-            // But do a string-based check as fallback
-            $normalized = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $target);
-            $base       = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $basePath);
-            if (!str_starts_with($normalized, $base . DIRECTORY_SEPARATOR)) {
+        // Prefix check (case-insensitive on Windows)
+        if ($isWindows) {
+            if (stripos($target, $prefix) !== 0) {
                 return null;
             }
-            return $target;
+        } else {
+            if (!str_starts_with($target, $prefix)) {
+                return null;
+            }
         }
 
-        if (!str_starts_with($resolvedCheck, $basePath)) {
-            return null;
+        // Check nearest existing ancestor directory against realpath to block symlink escapes
+        $checkDir = dirname($target);
+        while (!file_exists($checkDir) && $checkDir !== $normalizedBase && strlen($checkDir) > strlen($normalizedBase)) {
+            $parent = dirname($checkDir);
+            if ($parent === $checkDir) {
+                break;
+            }
+            $checkDir = $parent;
+        }
+
+        if (file_exists($checkDir)) {
+            $realCheck = realpath($checkDir);
+            $realBase  = realpath($normalizedBase) ?: $normalizedBase;
+            if ($realCheck !== false) {
+                if ($isWindows) {
+                    if (stripos($realCheck, $realBase) !== 0) {
+                        return null;
+                    }
+                } else {
+                    if (!str_starts_with($realCheck, $realBase)) {
+                        return null;
+                    }
+                }
+            }
         }
 
         return $target;

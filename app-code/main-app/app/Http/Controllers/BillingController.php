@@ -46,14 +46,33 @@ class BillingController extends Controller
         }
 
         // Live usage counts — compared against plan limits in the UI
-        $staffCount    = \App\Models\TenantUser::where('tenant_id', $tenant->id)
-            ->where('status', 'active')
+        $fullSeatsCount = $tenant->fullSeatsCount();
+        $cashierCount   = $tenant->memberships()
+            ->where('role', 'cashier')
+            ->whereIn('status', ['active', 'invited'])
             ->count();
-        $productCount  = \App\Models\Product::count(); // scoped by HasTenant
+        $productCount   = \App\Models\Product::count(); // scoped by HasTenant
         try {
             $locationCount = \App\Models\Warehouse::count();
         } catch (\Throwable) {
             $locationCount = 1;
+        }
+        try {
+            $registerCount = \App\Models\Register::count();
+        } catch (\Throwable) {
+            $registerCount = 0;
+        }
+        try {
+            $transactionsCount = \App\Models\Sale::where('created_at', '>=', now()->startOfMonth())->count();
+        } catch (\Throwable) {
+            $transactionsCount = 0;
+        }
+        try {
+            $serviceJobsCount = class_exists(\App\Models\ServiceJob::class)
+                ? \App\Models\ServiceJob::where('created_at', '>=', now()->startOfMonth())->count()
+                : 0;
+        } catch (\Throwable) {
+            $serviceJobsCount = 0;
         }
 
         $geoService = new \App\Services\GeoPricingService();
@@ -67,6 +86,7 @@ class BillingController extends Controller
             ->where('is_active', true)
             ->where('is_visible', true)
             ->whereIn('type', ['subscription', 'trial'])
+            ->whereNotIn('slug', ['counter', 'growth', 'business'])
             ->orderBy('sort_order')
             ->get()
             ->map(function (Plan $plan) use ($country, $rate) {
@@ -242,13 +262,25 @@ class BillingController extends Controller
             ],
             'plans' => $availablePlans,
             'usage' => [
-                'staff_count'    => $staffCount,
-                'staff_limit'    => $tenant->getLimit('staff_limit'),
-                'product_count'  => $productCount,
-                'sku_limit'      => $tenant->getLimit('sku_limit'),
-                'location_count' => $locationCount,
-                'locations'      => $tenant->getLimit('locations'),
-                'transactions'   => $tenant->getLimit('transactions_per_month'),
+                'staff_count'          => $fullSeatsCount,
+                'staff_limit'          => $tenant->getLimit('staff_limit'),
+                'cashier_count'        => $cashierCount,
+                'till_logins_limit'    => $tenant->getLimit('till_logins'),
+                'product_count'        => $productCount,
+                'sku_limit'            => $tenant->getLimit('sku_limit'),
+                'location_count'       => $locationCount,
+                'locations'            => $tenant->getLimit('locations') ?? $tenant->getLimit('location_limit'),
+                'register_count'       => $registerCount,
+                'registers_limit'      => $tenant->getLimit('registers'),
+                'transactions_count'   => $transactionsCount,
+                'transactions_limit'   => $tenant->getLimit('transactions_per_month'),
+                'service_jobs_count'   => $serviceJobsCount,
+                'service_jobs_limit'   => $tenant->getLimit('service_jobs_per_month'),
+                'visible_history_days' => $tenant->visibleHistoryDays(),
+                'ai_credits_used'      => (int) ($tenant->ai_credits_used ?? $tenant->plan_limits['ai_credits_used'] ?? 0),
+                'ai_credits_limit'     => $tenant->getLimit('ai_credits_monthly') ?? 100,
+                'ai_pages_used'        => (int) ($tenant->ai_pages_used ?? $tenant->plan_limits['ai_pages_used'] ?? 0),
+                'ai_scans_limit'       => $tenant->getLimit('ai_scans_monthly') ?? 10,
             ],
             'feature_status' => $featureStatus,
             'pricing' => config('pricing'),

@@ -138,15 +138,16 @@ export default function IslandShell({
 
   const island = (
     <>
-      {/* Scrim — z is owner minus one, per DESIGN-RULES §3 */}
+      {/* Scrim — z is owner minus one, per DESIGN-RULES §3 and V6 Design System */}
       <motion.div
         aria-hidden
         initial={false}
         animate={{ opacity: isOpen ? 1 : 0 }}
         transition={{ duration: DUR.d3, ease: EASE_OUT }}
         onClick={onScrimClick}
-        className="fixed inset-0 z-modal-scrim"
+        className="fixed inset-0 z-command-scrim"
         style={{
+          zIndex: 'calc(var(--vq-z-command, 1000) - 1)',
           background: 'rgb(13 20 18 / .40)',
           backdropFilter: 'blur(10px) saturate(120%)',
           WebkitBackdropFilter: 'blur(10px) saturate(120%)',
@@ -155,8 +156,9 @@ export default function IslandShell({
       />
 
       <div
-        className="fixed z-toast"
+        className="fixed z-command"
         style={{
+          zIndex: 'var(--vq-z-command, 1000)',
           left: anchor.cx,
           top: anchor.top,
           transform: 'translateX(-50%)',

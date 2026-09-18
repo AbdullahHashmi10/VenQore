@@ -256,8 +256,11 @@ class ModuleService
         return $dependents;
     }
 
+    private static array $memo = [];
+
     public static function invalidate(int $tenantId): void
     {
+        unset(self::$memo[$tenantId]);
         Cache::forget("tenant_modules:{$tenantId}");
     }
 
@@ -266,7 +269,7 @@ class ModuleService
     /** module_key => bool, or [] when the tenant has no configuration at all. */
     private static function allFor(Tenant $tenant): array
     {
-        return Cache::remember("tenant_modules:{$tenant->id}", self::TTL, function () use ($tenant) {
+        return self::$memo[$tenant->id] ??= Cache::remember("tenant_modules:{$tenant->id}", self::TTL, function () use ($tenant) {
             // A genuinely un-migrated table is the only case the safety rail covers.
             // Any other database failure must surface, not silently enable everything.
             if (!Schema::hasTable('tenant_modules')) {

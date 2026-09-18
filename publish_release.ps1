@@ -133,6 +133,7 @@ Set-Content -Path (Join-Path $distDir ".gitignore") -Value $releaseGitIgnore
 
 # Cleanup unwanted files from release
 $unwantedPatterns = @(
+    "hot",
     "*.zip",
     "*.tgz",
     "*.sqlite*",
@@ -155,6 +156,12 @@ foreach ($pattern in $unwantedPatterns) {
     Get-ChildItem -Path $distDir -Filter $pattern -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
         Remove-Item -Recurse -Force $_.FullName -ErrorAction SilentlyContinue
     }
+}
+
+# Explicitly ensure public/hot is removed
+$distHot = Join-Path $distDir "public\hot"
+if (Test-Path $distHot) {
+    Remove-Item -Force $distHot -ErrorAction SilentlyContinue
 }
 
 # 3. Create Clean Git Commit

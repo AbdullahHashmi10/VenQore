@@ -2274,6 +2274,12 @@ function addCard(key, opts = {}){
   /* the card decides its own smallest honest size — never the caller */
   c.cat = opts.cat && fitsFor(c, opts.cat).length ? opts.cat : fitCat(c);
   clampFit(c, opts.fit);
+  const cols = boardCols();
+  const [w, h] = sizeOf(c, cols);
+  const spot = freeSpot(c, 0, 0, w, h, cols);
+  c.gx = spot.x;
+  c.gy = spot.y;
+  markFrameDirty();
   CARDS.push(c);
   draw();
   return c;
@@ -2614,12 +2620,11 @@ function cardFrame(c, opts){
      container query, so an interior can thin out at 2 rows and fill out at 6. */
   const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
   const is12 = (opts.cols || 12) >= 12;
-  const pinned = ((frameSlot && is12)
-    || (Number.isInteger(c.gx) && Number.isInteger(c.gy) && is12));
+  const pinned = is12 && ((frameSlot != null) || (Number.isInteger(c.gx) && Number.isInteger(c.gy)));
   const colSpan = (frameSlot && is12) ? Number(frameSlot.w) : w;
   const rowSpan = (frameSlot && is12) ? Number(frameSlot.h) : h;
-  const colStart = (frameSlot ? Number(frameSlot.x) : c.gx) + 1;
-  const rowStart = (frameSlot ? Number(frameSlot.y) : c.gy) + 1;
+  const colStart = ((frameSlot && is12) ? Number(frameSlot.x) : (Number.isInteger(c.gx) ? c.gx : 0)) + 1;
+  const rowStart = ((frameSlot && is12) ? Number(frameSlot.y) : (Number.isInteger(c.gy) ? c.gy : 0)) + 1;
   const place = pinned
     ? `grid-column:${colStart} / span ${colSpan};grid-row:${rowStart} / span ${rowSpan};`
     : "";
@@ -2936,39 +2941,53 @@ const HOST_RO = typeof ResizeObserver === "undefined" ? null : new ResizeObserve
   }
 });
 
-function ensureAllSlotsFilled(){
-  if (!FRAME_SLOTS || !FRAME_SLOTS.length) return;
-  const occupiedSlots = new Set(CARDS.map(c => Number(c.frameSlot)).filter(Number.isFinite));
-  const usedKeys = new Set(CARDS.map(c => c.key).filter(Boolean));
+function resolveCollisions(cards, cols){
+  if (!Array.isArray(cards) || !cards.length) return;
+  if (cols >= 12){
+    const occupied = [];
+    const usedSlots = new Set();
+    cards.forEach(c => {
+      const slotNum = Number(c.frameSlot);
+      const slot = (Number.isFinite(slotNum) && !usedSlots.has(slotNum))
+        ? FRAME_SLOTS.find(s => Number(s.slot) === slotNum)
+        : null;
 
-  FRAME_SLOTS.forEach(slot => {
-    const slotNum = Number(slot.slot);
-    if (!occupiedSlots.has(slotNum)) {
-      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
-        || READINGS.find(r => readingAvailable(r))
-        || READINGS[0];
-      if (availReading) {
-        usedKeys.add(availReading.key);
-        const fitIndex = (FITS[slot.category] || []).findIndex(fit => fit[2] === slot.fit);
-        CARDS.push(normaliseCard({
-          id: newId(),
-          key: availReading.key,
-          chart: legalFor(availReading.key)[0] || "stat",
-          period: "Month",
-          frameSlot: slotNum,
-          gx: Number(slot.x),
-          gy: Number(slot.y),
-          w: Number(slot.w),
-          h: Number(slot.h),
-          cat: slot.category,
-          fit: fitIndex < 0 ? (DEFAULT_FIT[slot.category] || 0) : fitIndex,
-          variant: "spark",
-          accent: slotNum === 1,
-        }));
-        occupiedSlots.add(slotNum);
+      if (slot) {
+        usedSlots.add(slotNum);
       }
-    }
-  });
+
+      let [w, h] = slot ? [Number(slot.w), Number(slot.h)] : sizeOf(c, cols);
+      let x = slot ? Number(slot.x) : (Number.isInteger(c.gx) ? c.gx : null);
+      let y = slot ? Number(slot.y) : (Number.isInteger(c.gy) ? c.gy : null);
+
+      const collides = (xx, yy) => occupied.some(o =>
+        xx < o.x + o.w && o.x < xx + w && yy < o.y + o.h && o.y < yy + h
+      );
+
+      if (x === null || y === null || collides(x, y)) {
+        let testY = y != null ? y : 0;
+        let testX = x != null ? Math.max(0, Math.min(cols - w, x)) : 0;
+        while (collides(testX, testY)) {
+          testX++;
+          if (testX + w > cols) {
+            testX = 0;
+            testY++;
+          }
+        }
+        x = testX;
+        y = testY;
+        c.gx = x;
+        c.gy = y;
+        if (slot && (x !== Number(slot.x) || y !== Number(slot.y))) {
+          delete c.frameSlot;
+        }
+      } else {
+        c.gx = x;
+        c.gy = y;
+      }
+      occupied.push({ x, y, w, h });
+    });
+  }
 }
 
 function draw(){
@@ -2977,9 +2996,16 @@ function draw(){
   const cols = boardCols(board);
   COL_W = boardColW(board);
   LAST_COLS = cols;
-  if (cols >= 12 && FRAME_SLOTS && FRAME_SLOTS.length) {
-    ensureAllSlotsFilled();
-  }
+
+  const seenIds = new Set();
+  CARDS = CARDS.filter(c => {
+    if (!c || !c.id) return false;
+    if (seenIds.has(c.id)) return false;
+    seenIds.add(c.id);
+    return true;
+  });
+  resolveCollisions(CARDS, cols);
+
   HOST_RO?.disconnect();
   const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("");
   board.innerHTML = cardsHtml
@@ -3109,6 +3135,12 @@ function wireResize(el, c){
     hint.className = "vqc-size-hint"; el.appendChild(hint);
     let lastW = 0, lastH = 0;
 
+    const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
+    const is12 = cols >= 12;
+    const pinned = is12 && ((frameSlot != null) || (Number.isInteger(c.gx) && Number.isInteger(c.gy)));
+    const colStart = ((frameSlot && is12) ? Number(frameSlot.x) : (Number.isInteger(c.gx) ? c.gx : 0)) + 1;
+    const rowStart = ((frameSlot && is12) ? Number(frameSlot.y) : (Number.isInteger(c.gy) ? c.gy : 0)) + 1;
+
     const move = ev => {
       let w = Math.round((ev.clientX - start.left + GRID.gutter) / pitchX);
       let h = Math.round((ev.clientY - start.top + GRID.gutter) / pitchY);
@@ -3131,6 +3163,13 @@ function wireResize(el, c){
         .replace(/vqc--fit-\d+/, "vqc--fit-" + c.fit);
       el.style.setProperty("--vqw", w); el.style.setProperty("--vqh", h);
       el.dataset.w = w; el.dataset.h = h;
+      if (pinned) {
+        el.style.gridColumn = `${colStart} / span ${w}`;
+        el.style.gridRow = `${rowStart} / span ${h}`;
+      } else {
+        el.style.gridColumn = `span ${w}`;
+        el.style.gridRow = `span ${h}`;
+      }
       const fitName = (T[cat][c.fit] || [])[2];
       hint.textContent = `${w} × ${h}${fitName ? " · " + fitName : ""}`;
       const host = el.querySelector(".vqc-host"); if (host) mountChart(host, c);
@@ -3160,15 +3199,27 @@ function wireResize(el, c){
    the board stacks in card order instead, so a phone never inherits a
    desktop arrangement it has no room for. */
 function pinnedOthers(self, cols){
-  return CARDS.filter(o => o !== self && Number.isInteger(o.gx) && Number.isInteger(o.gy))
-    .map(o => { const [w, h] = sizeOf(o, cols); return { x: o.gx, y: o.gy, w, h }; });
+  return CARDS.filter(o => o !== self).map(o => {
+    const slot = FRAME_SLOTS.find(s => Number(s.slot) === Number(o.frameSlot));
+    const ox = (slot && (cols || 12) >= 12) ? Number(slot.x) : (Number.isInteger(o.gx) ? o.gx : null);
+    const oy = (slot && (cols || 12) >= 12) ? Number(slot.y) : (Number.isInteger(o.gy) ? o.gy : null);
+    const [ow, oh] = (slot && (cols || 12) >= 12) ? [Number(slot.w), Number(slot.h)] : sizeOf(o, cols);
+    if (ox === null || oy === null) return null;
+    return { x: ox, y: oy, w: ow, h: oh };
+  }).filter(Boolean);
 }
 function freeSpot(self, gx, gy, w, h, cols){
   const others = pinnedOthers(self, cols);
-  const x = Math.max(0, Math.min(cols - w, gx));
-  let y = Math.max(0, gy);
-  const hits = (yy) => others.some(o => x < o.x + o.w && o.x < x + w && yy < o.y + o.h && o.y < yy + h);
-  while (hits(y)) y++;
+  let x = Math.max(0, Math.min((cols || 12) - w, Number.isInteger(gx) ? gx : 0));
+  let y = Math.max(0, Number.isInteger(gy) ? gy : 0);
+  const hits = (yy, xx) => others.some(o => xx < o.x + o.w && o.x < xx + w && yy < o.y + o.h && o.y < yy + h);
+  while (hits(y, x)) {
+    x++;
+    if (x + w > (cols || 12)) {
+      x = 0;
+      y++;
+    }
+  }
   return { x, y };
 }
 function beginMove(e0, el, c){
@@ -3414,8 +3465,8 @@ function serverCard(c){
     fit,
     w,
     h,
-    x: Number.isInteger(c.gx) ? c.gx : 0,
-    y: Number.isInteger(c.gy) ? c.gy : 0,
+    x: Number.isInteger(c.gx) ? c.gx : null,
+    y: Number.isInteger(c.gy) ? c.gy : null,
     frame_slot: Number.isFinite(Number(c.frameSlot)) ? Number(c.frameSlot) : null,
     style: { variant: c.variant, accent: !!c.accent },
   };

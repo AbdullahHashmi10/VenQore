@@ -63,7 +63,24 @@ final class SalesSource implements ReckonerSource
             foreach ($data['items'] as $item) {
                 switch ($item['key']) {
                     case 'sales.revenue':
-                        $out[$item['id']] = $revenue;
+                        $granularity = match($period->key) {
+                            'this_year', 'last_year', 'last_12_months' => 'monthly',
+                            default => 'daily',
+                        };
+                        $profitByPeriod = $this->reporting->getProfitByPeriod($period->start->toDateString(), $period->end->toDateString(), $granularity, $ctx->tenant?->id);
+                        $revSeries = [];
+                        foreach ($profitByPeriod as $date => $metrics) {
+                            $revSeries[] = [
+                                'x' => (string) $date,
+                                'y' => (float) ($metrics['revenue'] ?? 0.0)
+                            ];
+                        }
+                        usort($revSeries, fn($a, $b) => strcmp($a['x'], $b['x']));
+                        $out[$item['id']] = !empty($revSeries) ? [
+                            'value' => $revenue,
+                            'series' => $revSeries,
+                            'granularity' => $granularity
+                        ] : $revenue;
                         break;
                     case 'sales.revenue_trend':
                         $granularity = match($period->key) {

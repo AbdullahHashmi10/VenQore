@@ -51,13 +51,15 @@ class Terms
         return self::$fallbacks[$key][$type] ?? ucfirst($key);
     }
 
+    private static array $memo = [];
+
     public static function forTenant(?int $tenantId): array
     {
         if (!$tenantId) {
             return self::$fallbacks;
         }
 
-        return Cache::remember("tenant_terms:{$tenantId}", 300, function () use ($tenantId) {
+        return self::$memo[$tenantId] ??= Cache::remember("tenant_terms:{$tenantId}", 300, function () use ($tenantId) {
             $custom = DB::table('tenant_terminology')
                 ->where('tenant_id', $tenantId)
                 ->get()
@@ -85,6 +87,7 @@ class Terms
      */
     public static function invalidateCache(int $tenantId): void
     {
+        unset(self::$memo[$tenantId]);
         Cache::forget("tenant_terms:{$tenantId}");
     }
 }

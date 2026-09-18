@@ -147,4 +147,28 @@ class ReckonerResultTest extends TestCase
         $result = $this->makeSuccessResult(['value' => 5.0]);
         $this->assertSame($result->toArray(), $result->jsonSerialize());
     }
+
+    public function test_success_exposes_contract_state_and_verified(): void
+    {
+        $verifiedResult = $this->makeSuccessResult(['value' => 100.0], [
+            'contract_state' => 'verified',
+        ]);
+        $verifiedArr = $verifiedResult->toArray();
+
+        $this->assertSame('verified', $verifiedArr['contract_state']);
+        $this->assertTrue($verifiedArr['verified']);
+        $this->assertSame('verified', $verifiedArr['meta']['contract_state']);
+        $this->assertTrue($verifiedArr['meta']['verified']);
+
+        $unverifiedResult = $this->makeSuccessResult(['value' => 200.0], [
+            'contract_state' => 'implemented_unverified',
+        ]);
+        $unverifiedArr = $unverifiedResult->toArray();
+
+        $this->assertSame('implemented_unverified', $unverifiedArr['contract_state']);
+        $this->assertFalse($unverifiedArr['verified']);
+        $this->assertSame('implemented_unverified', $unverifiedArr['meta']['contract_state']);
+        $this->assertFalse($unverifiedArr['meta']['verified']);
+    }
 }
+
