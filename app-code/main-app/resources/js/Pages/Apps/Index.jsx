@@ -59,18 +59,18 @@ export default function AppsIndex({ tenant, apps }) {
             <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
 
                 {/* ── Page Header ───────────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-white/[0.06]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-line">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-widest bg-[#0BAA8F]/15 text-[#0BAA8F] border border-[#0BAA8F]/30">
                                 Native Ecosystem
                             </span>
-                            <span className="text-2xs text-neutral-400 font-medium">Desktop &amp; Mobile Clients</span>
+                            <span className="text-2xs text-ink-muted font-medium">Desktop &amp; Mobile Clients</span>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink flex items-center gap-3">
                             <span>VenQore Everywhere</span>
                         </h1>
-                        <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                        <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-2xl leading-relaxed">
                             Run high-speed hardware till registers on Windows, or manage your stock anywhere with the upcoming mobile companion.
                         </p>
                     </div>
@@ -78,13 +78,13 @@ export default function AppsIndex({ tenant, apps }) {
                     <div className="flex items-center gap-3">
                         <Link
                             href={route('store.billing', { store_slug: storeSlug })}
-                            className="px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-neutral-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all"
+                            className="px-4 py-2.5 rounded-xl bg-surface-raised hover:bg-surface border border-line hover:border-line-strong text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
                         >
                             Billing &amp; Plans
                         </Link>
                         <Link
                             href={route('store.dashboard', { store_slug: storeSlug })}
-                            className="px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-neutral-300 hover:text-white text-xs font-bold uppercase tracking-wider transition-all"
+                            className="px-4 py-2.5 rounded-xl bg-surface-raised hover:bg-surface border border-line hover:border-line-strong text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
                         >
                             Dashboard
                         </Link>
@@ -95,7 +95,7 @@ export default function AppsIndex({ tenant, apps }) {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                     {/* ── Card 1: VenQore Station for Windows (LIVE) ─────────────── */}
-                    <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-neutral-900/90 to-neutral-950 border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                    <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm hover:border-line-strong hover:shadow-md relative overflow-hidden flex flex-col justify-between transition-all">
                         {/* Ambient glow accent */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-[#0BAA8F]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
@@ -107,19 +107,19 @@ export default function AppsIndex({ tenant, apps }) {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h2 className="text-lg font-bold text-white tracking-tight">VenQore Station</h2>
-                                            <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                            <h2 className="text-lg font-bold text-ink tracking-tight">VenQore Station</h2>
+                                            <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                                                 Official Build
                                             </span>
                                         </div>
-                                        <div className="text-xs text-neutral-400 mt-0.5">
+                                        <div className="text-xs text-ink-muted mt-0.5">
                                             For Windows 10 / 11 (64-bit) · v{windowsApp.version}
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <p className="text-xs text-neutral-300 leading-relaxed mb-6">
+                            <p className="text-xs text-ink-secondary leading-relaxed mb-6">
                                 The official native desktop application for checkout terminals. It serves as an ultra-fast local hardware bridge that bypasses browser sandboxing to control thermal receipt printers, automatic cash drawer kicks, barcode scanners, and weighing scales.
                             </p>
 
@@ -135,8 +135,8 @@ export default function AppsIndex({ tenant, apps }) {
                                     <div key={idx} className="flex items-start gap-3 text-xs">
                                         <CheckCircle2 size={16} className="text-[#0BAA8F] shrink-0 mt-0.5" />
                                         <div>
-                                            <span className="font-semibold text-white">{item.title}</span>
-                                            <span className="text-neutral-400 block text-2xs mt-0.5">{item.desc}</span>
+                                            <span className="font-semibold text-ink">{item.title}</span>
+                                            <span className="text-ink-muted block text-2xs mt-0.5">{item.desc}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -144,16 +144,16 @@ export default function AppsIndex({ tenant, apps }) {
                         </div>
 
                         {/* Download CTA & Meta */}
-                        <div className="relative z-10 pt-6 border-t border-white/[0.06]">
+                        <div className="relative z-10 pt-6 border-t border-line">
                             <a
                                 href={windowsApp.installer_url}
                                 download
-                                className="w-full py-4 px-6 rounded-xl bg-[#0BAA8F] hover:bg-[#0BAA8F]/90 text-neutral-950 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-[#0BAA8F]/25 active:scale-98"
+                                className="w-full py-4 px-6 rounded-xl bg-[#0BAA8F] hover:bg-[#09927D] text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-md active:scale-98"
                             >
                                 <Download size={16} />
                                 <span>Download Station Setup (.exe)</span>
                             </a>
-                            <div className="flex items-center justify-between text-3xs text-neutral-400 mt-3 px-1">
+                            <div className="flex items-center justify-between text-3xs text-ink-muted mt-3 px-1">
                                 <span>Installer size: ~{windowsApp.file_size}</span>
                                 <span>Requirements: {windowsApp.min_os}</span>
                             </div>
@@ -161,31 +161,31 @@ export default function AppsIndex({ tenant, apps }) {
                     </div>
 
                     {/* ── Card 2: VenQore Mobile (COMING SOON) ───────────────────── */}
-                    <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-neutral-900/90 to-neutral-950 border border-white/[0.08] shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                    <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm hover:border-line-strong hover:shadow-md relative overflow-hidden flex flex-col justify-between transition-all">
                         {/* Ambient glow accent */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
                         <div className="relative z-10">
                             <div className="flex items-start justify-between gap-4 mb-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                                    <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 shadow-inner">
                                         <Smartphone size={30} />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h2 className="text-lg font-bold text-white tracking-tight">VenQore Mobile</h2>
-                                            <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                            <h2 className="text-lg font-bold text-ink tracking-tight">VenQore Mobile</h2>
+                                            <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse">
                                                 Coming Soon
                                             </span>
                                         </div>
-                                        <div className="text-xs text-neutral-400 mt-0.5">
+                                        <div className="text-xs text-ink-muted mt-0.5">
                                             Android (Google Play) &amp; iOS (App Store)
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <p className="text-xs text-neutral-300 leading-relaxed mb-6">
+                            <p className="text-xs text-ink-secondary leading-relaxed mb-6">
                                 Take VenQore with you onto the sales floor or warehouse aisles. VenQore Mobile is our dedicated companion app built for rapid barcode auditing, queue-busting mobile checkout, and real-time manager alerts.
                             </p>
 
@@ -199,10 +199,10 @@ export default function AppsIndex({ tenant, apps }) {
                                     { title: 'Offline Order Queuing', desc: 'Continue logging sales even when walking through poor connectivity warehouse zones.' },
                                 ].map((item, idx) => (
                                     <div key={idx} className="flex items-start gap-3 text-xs">
-                                        <Sparkles size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                                        <Sparkles size={16} className="text-amber-500 shrink-0 mt-0.5" />
                                         <div>
-                                            <span className="font-semibold text-white">{item.title}</span>
-                                            <span className="text-neutral-400 block text-2xs mt-0.5">{item.desc}</span>
+                                            <span className="font-semibold text-ink">{item.title}</span>
+                                            <span className="text-ink-muted block text-2xs mt-0.5">{item.desc}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -210,18 +210,18 @@ export default function AppsIndex({ tenant, apps }) {
                         </div>
 
                         {/* Early Access Notification Signup */}
-                        <div className="relative z-10 pt-6 border-t border-white/[0.06]">
-                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                                <div className="text-xs font-bold text-white mb-1 flex items-center gap-1.5">
-                                    <Bell size={14} className="text-amber-400" />
+                        <div className="relative z-10 pt-6 border-t border-line">
+                            <div className="p-4 rounded-xl bg-surface-raised border border-line">
+                                <div className="text-xs font-bold text-ink mb-1 flex items-center gap-1.5">
+                                    <Bell size={14} className="text-amber-500" />
                                     <span>Get Notified on Launch</span>
                                 </div>
-                                <p className="text-2xs text-neutral-400 mb-3">
+                                <p className="text-2xs text-ink-muted mb-3">
                                     Join the early access beta testing pool to get mobile app builds first.
                                 </p>
 
                                 {subscribed ? (
-                                    <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                                    <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
                                         <Check size={16} />
                                         <span>You're on the early access list! We'll notify you on release.</span>
                                     </div>
@@ -233,7 +233,7 @@ export default function AppsIndex({ tenant, apps }) {
                                             onChange={(e) => setNotifyEmail(e.target.value)}
                                             placeholder="Enter your email address"
                                             required
-                                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.1] text-xs text-white placeholder-neutral-500 outline-none focus:border-amber-400 transition-colors"
+                                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-surface border border-line text-xs text-ink placeholder:text-ink-muted outline-none focus:border-amber-500 transition-colors"
                                         />
                                         <button
                                             type="submit"
@@ -245,7 +245,7 @@ export default function AppsIndex({ tenant, apps }) {
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-between text-3xs text-neutral-400 mt-3 px-1">
+                            <div className="flex items-center justify-between text-3xs text-ink-muted mt-3 px-1">
                                 <span>Platform availability: Android 10+ &amp; iOS 16+</span>
                                 <span>Target Beta: {mobileApp.target_date}</span>
                             </div>
@@ -254,24 +254,24 @@ export default function AppsIndex({ tenant, apps }) {
                 </div>
 
                 {/* ── 4-Step Quick Pairing & Setup Guide ───────────────────────── */}
-                <div className="p-6 sm:p-8 rounded-2xl bg-neutral-950/60 border border-white/[0.06]">
+                <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div>
                             <div className="text-2xs font-bold text-[#0BAA8F] uppercase tracking-widest mb-1">
                                 Setup Instructions
                             </div>
-                            <h3 className="text-base font-bold text-white">
+                            <h3 className="text-base font-bold text-ink">
                                 How to Pair VenQore Station with Your Store
                             </h3>
                         </div>
 
                         {/* Store Slug Chip with Quick Copy */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                            <span className="text-2xs text-neutral-400">Your Store Slug:</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-raised border border-line">
+                            <span className="text-2xs text-ink-muted">Your Store Slug:</span>
                             <code className="text-xs font-mono font-bold text-[#0BAA8F]">{storeSlug}</code>
                             <button
                                 onClick={copySlug}
-                                className="text-3xs font-bold text-white hover:text-[#0BAA8F] underline ml-1"
+                                className="text-3xs font-bold text-ink hover:text-[#0BAA8F] underline ml-1"
                             >
                                 {copiedSlug ? 'Copied!' : 'Copy'}
                             </button>
@@ -301,13 +301,13 @@ export default function AppsIndex({ tenant, apps }) {
                                 desc: 'Click Hardware Settings (Gear icon) to set your receipt printer (58mm/80mm), COM scale, and cash drawer.'
                             },
                         ].map((guide) => (
-                            <div key={guide.step} className="p-5 rounded-xl bg-white/[0.01] border border-white/[0.05] flex flex-col justify-between">
+                            <div key={guide.step} className="p-5 rounded-xl bg-surface-raised border border-line flex flex-col justify-between">
                                 <div>
                                     <div className="w-7 h-7 rounded-lg bg-[#0BAA8F]/15 border border-[#0BAA8F]/30 flex items-center justify-center text-[#0BAA8F] font-bold text-xs mb-3">
                                         {guide.step}
                                     </div>
-                                    <h4 className="text-xs font-bold text-white mb-1.5">{guide.title}</h4>
-                                    <p className="text-2xs text-neutral-400 leading-relaxed">{guide.desc}</p>
+                                    <h4 className="text-xs font-bold text-ink mb-1.5">{guide.title}</h4>
+                                    <p className="text-2xs text-ink-muted leading-relaxed">{guide.desc}</p>
                                 </div>
                             </div>
                         ))}
@@ -315,26 +315,26 @@ export default function AppsIndex({ tenant, apps }) {
                 </div>
 
                 {/* ── Hardware Compatibility Reference ────────────────────────── */}
-                <div className="p-6 rounded-2xl bg-white/[0.01] border border-white/[0.04]">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                <div className="p-6 rounded-2xl bg-surface border border-line shadow-sm">
+                    <h4 className="text-xs font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
                         <Printer size={16} className="text-[#0BAA8F]" />
                         <span>Certified Hardware Compatibility</span>
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs text-neutral-400">
-                        <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                            <div className="font-bold text-neutral-200 mb-1">Thermal Receipt Printers</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs text-ink-muted">
+                        <div className="p-3.5 rounded-xl bg-surface-raised border border-line">
+                            <div className="font-bold text-ink mb-1">Thermal Receipt Printers</div>
                             <p className="text-2xs leading-relaxed">Epson TM-T88/T20, Star Micronics TSP100/650, Xprinter, Rongta, Sunmi desktop USB/LAN.</p>
                         </div>
-                        <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                            <div className="font-bold text-neutral-200 mb-1">Barcode Scanners</div>
+                        <div className="p-3.5 rounded-xl bg-surface-raised border border-line">
+                            <div className="font-bold text-ink mb-1">Barcode Scanners</div>
                             <p className="text-2xs leading-relaxed">Zebra, Honeywell Voyager, Datalogic, Generic USB HID &amp; RS-232 serial scanners (1D &amp; 2D QR).</p>
                         </div>
-                        <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                            <div className="font-bold text-neutral-200 mb-1">Electronic Weigh Scales</div>
+                        <div className="p-3.5 rounded-xl bg-surface-raised border border-line">
+                            <div className="font-bold text-ink mb-1">Electronic Weigh Scales</div>
                             <p className="text-2xs leading-relaxed">CAS PD-II, Mettler Toledo Ariva, Torrey, Avery Berkel via RS-232 COM port protocol.</p>
                         </div>
-                        <div className="p-3.5 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                            <div className="font-bold text-neutral-200 mb-1">Cash Drawers</div>
+                        <div className="p-3.5 rounded-xl bg-surface-raised border border-line">
+                            <div className="font-bold text-ink mb-1">Cash Drawers</div>
                             <p className="text-2xs leading-relaxed">Standard 12V/24V heavy-duty cash drawers connected via RJ11 cable to receipt printer.</p>
                         </div>
                     </div>

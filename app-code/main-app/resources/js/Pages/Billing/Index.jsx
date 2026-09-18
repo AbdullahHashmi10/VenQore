@@ -971,14 +971,14 @@ export default function BillingIndex({
                 {/* ── TAB 2: RESOURCE USAGE & LIMITS ────────────────────────── */}
                 {activeTab === 'usage' && (
                     <div className="space-y-8 animate-fadeIn">
-                        <div className="p-6 rounded-2xl bg-neutral-900/40 border border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="p-6 rounded-2xl bg-surface border border-line shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                                <h3 className="text-base font-bold text-white">Live Store Resource Usage</h3>
-                                <p className="text-xs text-neutral-400 mt-0.5">
-                                    Real-time tracking of active database records and monthly operational metrics under your <span className="text-white font-semibold capitalize">{currentPlanKey}</span> tier.
+                                <h3 className="text-base font-bold text-ink">Live Store Resource Usage</h3>
+                                <p className="text-xs text-ink-muted mt-0.5">
+                                    Real-time tracking of active database records and monthly operational metrics under your <span className="text-ink font-semibold capitalize">{currentPlanKey}</span> tier.
                                 </p>
                             </div>
-                            <div className="text-2xs text-neutral-400">
+                            <div className="text-2xs text-ink-muted">
                                 Evaluated live against active tenant records
                             </div>
                         </div>
@@ -1073,41 +1073,41 @@ export default function BillingIndex({
                     <div className="space-y-8 animate-fadeIn">
 
                         {/* AI Engine Add-on Hub */}
-                        <div className="p-6 sm:p-8 rounded-2xl bg-neutral-900/40 border border-white/[0.06]">
+                        <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm">
                             <div className="flex items-center gap-3 mb-2">
                                 <Cpu className="text-[#0BAA8F]" size={24} />
-                                <h3 className="text-lg font-bold text-white">AI Engine &amp; SmartCapture Add-ons</h3>
+                                <h3 className="text-lg font-bold text-ink">AI Engine &amp; SmartCapture Add-ons</h3>
                             </div>
-                            <p className="text-xs text-neutral-400 leading-relaxed mb-6 max-w-2xl">
+                            <p className="text-xs text-ink-muted leading-relaxed mb-6 max-w-2xl">
                                 Expand your document scanning quota or connect your own LLM credentials to power SmartCapture and assistant features.
                             </p>
 
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* BYOK */}
-                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-all flex flex-col justify-between">
+                                <div className="p-6 rounded-2xl bg-surface-raised border border-line hover:border-line-strong transition-all flex flex-col justify-between shadow-sm">
                                     <div>
                                         <div className="flex justify-between items-start mb-3">
-                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                                                 Bring Your Own Key
                                             </span>
-                                            <span className="text-lg font-bold font-mono text-white">$19 <span className="text-2xs font-sans text-neutral-400 font-normal">once</span></span>
+                                            <span className="text-lg font-bold font-mono text-ink">$19 <span className="text-2xs font-sans text-ink-muted font-normal">once</span></span>
                                         </div>
-                                        <h4 className="text-sm font-bold text-white mb-1.5">Lifetime BYOK License</h4>
-                                        <p className="text-2xs text-neutral-400 leading-relaxed">
+                                        <h4 className="text-sm font-bold text-ink mb-1.5">Lifetime BYOK License</h4>
+                                        <p className="text-2xs text-ink-muted leading-relaxed">
                                             Bypass platform scanning fees forever. Plug in your own Gemini, Claude, OpenAI, or DeepSeek API key and pay zero per-page fees.
                                         </p>
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                                    <div className="mt-6 pt-4 border-t border-line">
                                         {tenant?.ai_status === 'byok' ? (
-                                            <div className="w-full py-2.5 text-center text-xs font-bold uppercase text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                                            <div className="w-full py-2.5 text-center text-xs font-bold uppercase text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl">
                                                 BYOK Active
                                             </div>
                                         ) : (
                                             <button
                                                 onClick={() => handlePurchaseAddon('ai_byok')}
                                                 disabled={isPurchasingAddon !== null}
-                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm font-bold"
                                             >
                                                 {isPurchasingAddon === 'ai_byok' ? 'Opening…' : 'Unlock BYOK ($19)'}
                                             </button>
@@ -1116,25 +1116,25 @@ export default function BillingIndex({
                                 </div>
 
                                 {/* 1000 Credits Top-up */}
-                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-all flex flex-col justify-between">
+                                <div className="p-6 rounded-2xl bg-surface-raised border border-line hover:border-line-strong transition-all flex flex-col justify-between shadow-sm">
                                     <div>
                                         <div className="flex justify-between items-start mb-3">
                                             <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-[#0BAA8F]/15 text-[#0BAA8F] border border-[#0BAA8F]/30">
                                                 Top-up Pack
                                             </span>
-                                            <span className="text-lg font-bold font-mono text-white">$10 <span className="text-2xs font-sans text-neutral-400 font-normal">once</span></span>
+                                            <span className="text-lg font-bold font-mono text-ink">$10 <span className="text-2xs font-sans text-ink-muted font-normal">once</span></span>
                                         </div>
-                                        <h4 className="text-sm font-bold text-white mb-1.5">1,000 AI Credits Top-Up</h4>
-                                        <p className="text-2xs text-neutral-400 leading-relaxed">
+                                        <h4 className="text-sm font-bold text-ink mb-1.5">1,000 AI Credits Top-Up</h4>
+                                        <p className="text-2xs text-ink-muted leading-relaxed">
                                             Instantly add 1,000 credits (~100 document scans or 500 AI queries) to your store balance without changing your monthly tier.
                                         </p>
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                                    <div className="mt-6 pt-4 border-t border-line">
                                         <button
                                             onClick={() => handlePurchaseAddon('ai_topup')}
                                             disabled={isPurchasingAddon !== null}
-                                            className="w-full py-2.5 bg-[#0BAA8F] hover:bg-[#0BAA8F]/90 text-neutral-950 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+                                            className="w-full py-2.5 bg-[#0BAA8F] hover:bg-[#09927D] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm"
                                         >
                                             {isPurchasingAddon === 'ai_topup' ? 'Opening…' : 'Add 1,000 Credits ($10)'}
                                         </button>
@@ -1142,16 +1142,16 @@ export default function BillingIndex({
                                 </div>
 
                                 {/* Managed Monthly Subscriptions */}
-                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-all flex flex-col justify-between">
+                                <div className="p-6 rounded-2xl bg-surface-raised border border-line hover:border-line-strong transition-all flex flex-col justify-between shadow-sm">
                                     <div>
                                         <div className="flex justify-between items-start mb-3">
-                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                                            <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
                                                 Managed API
                                             </span>
-                                            <span className="text-lg font-bold font-mono text-white">$15–$39 <span className="text-2xs font-sans text-neutral-400 font-normal">/mo</span></span>
+                                            <span className="text-lg font-bold font-mono text-ink">$15–$39 <span className="text-2xs font-sans text-ink-muted font-normal">/mo</span></span>
                                         </div>
-                                        <h4 className="text-sm font-bold text-white mb-1.5">Managed AI Subscriptions</h4>
-                                        <p className="text-2xs text-neutral-400 leading-relaxed mb-4">
+                                        <h4 className="text-sm font-bold text-ink mb-1.5">Managed AI Subscriptions</h4>
+                                        <p className="text-2xs text-ink-muted leading-relaxed mb-4">
                                             High-volume monthly allowances with zero configuration:
                                         </p>
 
@@ -1160,9 +1160,9 @@ export default function BillingIndex({
                                                 <button
                                                     key={key}
                                                     onClick={() => handlePurchaseAddon(`ai_${key}`)}
-                                                    className="w-full p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:border-[#0BAA8F]/40 flex items-center justify-between text-xs transition-all"
+                                                    className="w-full p-2.5 rounded-xl bg-surface border border-line hover:border-[#0BAA8F]/40 flex items-center justify-between text-xs transition-all shadow-2xs"
                                                 >
-                                                    <span className="font-semibold text-white">{tier.label}</span>
+                                                    <span className="font-semibold text-ink">{tier.label}</span>
                                                     <span className="text-[#0BAA8F] font-mono font-bold">${tier.price_monthly}/mo</span>
                                                 </button>
                                             ))}
@@ -1173,35 +1173,35 @@ export default function BillingIndex({
                         </div>
 
                         {/* Marketplace & Platform Channel Syncs */}
-                        <div className="p-6 sm:p-8 rounded-2xl bg-neutral-900/40 border border-white/[0.06]">
+                        <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm">
                             <div className="flex items-center gap-3 mb-2">
                                 <Globe2 className="text-[#0BAA8F]" size={24} />
-                                <h3 className="text-lg font-bold text-white">Platform Channel Sync</h3>
+                                <h3 className="text-lg font-bold text-ink">Platform Channel Sync</h3>
                             </div>
-                            <p className="text-xs text-neutral-400 leading-relaxed mb-6 max-w-2xl">
+                            <p className="text-xs text-ink-muted leading-relaxed mb-6 max-w-2xl">
                                 2-way real-time stock, pricing, and order synchronization between your VenQore till and your e-commerce channels.
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-col justify-between">
+                                <div className="p-6 rounded-2xl bg-surface-raised border border-line flex flex-col justify-between shadow-sm">
                                     <div>
                                         <div className="flex justify-between items-center mb-2">
-                                            <h4 className="text-sm font-bold text-white">WooCommerce Channel Sync</h4>
-                                            <span className="text-sm font-mono font-bold text-white">$19/mo</span>
+                                            <h4 className="text-sm font-bold text-ink">WooCommerce Channel Sync</h4>
+                                            <span className="text-sm font-mono font-bold text-ink">$19/mo</span>
                                         </div>
-                                        <p className="text-2xs text-neutral-400 leading-relaxed">
+                                        <p className="text-2xs text-ink-muted leading-relaxed">
                                             Instant webhook-driven stock decrementing on online sales, automatic catalog pushing, and web order fulfillment directly from POS.
                                         </p>
                                     </div>
-                                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                                    <div className="mt-6 pt-4 border-t border-line">
                                         {tenant?.sync_channels && tenant.sync_channels.includes('woocommerce') ? (
-                                            <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                                            <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                                                 <CheckCircle2 size={14} /> Active &amp; Synchronizing
                                             </div>
                                         ) : (
                                             <button
                                                 onClick={() => handlePurchaseAddon('sync_woocommerce')}
-                                                className="px-5 py-2.5 bg-[#0BAA8F] hover:bg-[#0BAA8F]/90 text-neutral-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all"
+                                                className="px-5 py-2.5 bg-[#0BAA8F] hover:bg-[#09927D] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm"
                                             >
                                                 Connect WooCommerce ($19/mo)
                                             </button>
@@ -1209,25 +1209,25 @@ export default function BillingIndex({
                                     </div>
                                 </div>
 
-                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-col justify-between">
+                                <div className="p-6 rounded-2xl bg-surface-raised border border-line flex flex-col justify-between shadow-sm">
                                     <div>
                                         <div className="flex justify-between items-center mb-2">
-                                            <h4 className="text-sm font-bold text-white">Amazon SP-API Channel Sync</h4>
-                                            <span className="text-sm font-mono font-bold text-white">$19/mo</span>
+                                            <h4 className="text-sm font-bold text-ink">Amazon SP-API Channel Sync</h4>
+                                            <span className="text-sm font-mono font-bold text-ink">$19/mo</span>
                                         </div>
-                                        <p className="text-2xs text-neutral-400 leading-relaxed">
+                                        <p className="text-2xs text-ink-muted leading-relaxed">
                                             2-way inventory sync with Amazon Seller Central for FBM orders and FBA replenishment tracking.
                                         </p>
                                     </div>
-                                    <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                                    <div className="mt-6 pt-4 border-t border-line">
                                         {tenant?.sync_channels && tenant.sync_channels.includes('amazon') ? (
-                                            <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                                            <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                                                 <CheckCircle2 size={14} /> Active &amp; Synchronizing
                                             </div>
                                         ) : (
                                             <button
                                                 onClick={() => handlePurchaseAddon('sync_amazon')}
-                                                className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all"
+                                                className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm"
                                             >
                                                 Connect Amazon SP-API ($19/mo)
                                             </button>
@@ -1238,12 +1238,12 @@ export default function BillingIndex({
                         </div>
 
                         {/* Professional Catalog Upload Service */}
-                        <div className="p-6 sm:p-8 rounded-2xl bg-neutral-900/40 border border-white/[0.06]">
+                        <div className="p-6 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm">
                             <div className="flex items-center gap-3 mb-2">
                                 <Calendar className="text-[#0BAA8F]" size={24} />
-                                <h3 className="text-lg font-bold text-white">Professional Catalog Onboarding Service</h3>
+                                <h3 className="text-lg font-bold text-ink">Professional Catalog Onboarding Service</h3>
                             </div>
-                            <p className="text-xs text-neutral-400 leading-relaxed mb-6 max-w-2xl">
+                            <p className="text-xs text-ink-muted leading-relaxed mb-6 max-w-2xl">
                                 Let our catalog engineering team clean, structure, and import your existing inventory databases, supplier spreadsheets, or paper invoices into VenQore.
                             </p>
 
@@ -1256,73 +1256,73 @@ export default function BillingIndex({
                                         onClick={() => setSelectedService(key)}
                                         className={`text-left p-5 rounded-2xl border transition-all flex flex-col justify-between ${
                                             selectedService === key
-                                                ? 'bg-[#0BAA8F]/10 border-[#0BAA8F]/60 shadow-[0_0_20px_rgba(11,170,143,0.08)]'
-                                                : 'bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04]'
+                                                ? 'bg-[#0BAA8F]/10 border-[#0BAA8F] shadow-sm'
+                                                : 'bg-surface-raised border-line hover:border-line-strong'
                                         }`}
                                     >
                                         <div>
-                                            <div className="text-white font-bold text-sm">{tier.name}</div>
-                                            <div className="text-2xs text-neutral-400 mt-1 leading-relaxed">{tier.desc}</div>
+                                            <div className="text-ink font-bold text-sm">{tier.name}</div>
+                                            <div className="text-2xs text-ink-muted mt-1 leading-relaxed">{tier.desc}</div>
                                         </div>
-                                        <div className="flex justify-between items-baseline mt-4 pt-3 border-t border-white/[0.04] w-full">
+                                        <div className="flex justify-between items-baseline mt-4 pt-3 border-t border-line w-full">
                                             <span className="text-2xs text-[#0BAA8F] font-semibold">{tier.sla}</span>
-                                            <span className="text-white font-mono font-bold text-sm">${tier.priceUSD.toFixed(2)}/item</span>
+                                            <span className="text-ink font-mono font-bold text-sm">${tier.priceUSD.toFixed(2)}/item</span>
                                         </div>
                                     </button>
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/[0.06]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-line">
                                 <div className="space-y-4">
                                     <div>
-                                        <label htmlFor="calc-products-input" className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">Number of Products to Import</label>
+                                        <label htmlFor="calc-products-input" className="block text-xs font-bold text-ink-secondary uppercase tracking-wider mb-2">Number of Products to Import</label>
                                         <input
                                             id="calc-products-input"
                                             type="number"
                                             placeholder="e.g. 500"
                                             value={calcProducts}
                                             onChange={(e) => setCalcProducts(e.target.value)}
-                                            className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-neutral-950 text-white text-sm outline-none focus:border-[#0BAA8F] transition-colors font-mono"
+                                            className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink text-sm outline-none focus:border-[#0BAA8F] transition-colors font-mono shadow-inner"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="calc-variants-input" className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">Average Variants Per Product</label>
+                                        <label htmlFor="calc-variants-input" className="block text-xs font-bold text-ink-secondary uppercase tracking-wider mb-2">Average Variants Per Product</label>
                                         <input
                                             id="calc-variants-input"
                                             type="number"
                                             placeholder="First 5 variants included (e.g. 6)"
                                             value={calcVariants}
                                             onChange={(e) => setCalcVariants(e.target.value)}
-                                            className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-neutral-950 text-white text-sm outline-none focus:border-[#0BAA8F] transition-colors font-mono"
+                                            className="w-full px-4 py-3 rounded-xl border border-line bg-surface text-ink text-sm outline-none focus:border-[#0BAA8F] transition-colors font-mono shadow-inner"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-col justify-between">
-                                    <div className="space-y-2 text-xs text-neutral-400">
+                                <div className="p-6 rounded-2xl bg-surface-raised border border-line flex flex-col justify-between shadow-sm">
+                                    <div className="space-y-2 text-xs text-ink-muted">
                                         <div className="flex justify-between">
                                             <span>Tier Base Rate:</span>
-                                            <span className="font-mono text-white font-bold">${serviceTier.priceUSD.toFixed(2)} / product</span>
+                                            <span className="font-mono text-ink font-bold">${serviceTier.priceUSD.toFixed(2)} / product</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>Surcharge for Extra Variants:</span>
-                                            <span className="font-mono text-white font-bold">+${(extraBlocks * serviceTier.extraUSD).toFixed(2)}</span>
+                                            <span className="font-mono text-ink font-bold">+${(extraBlocks * serviceTier.extraUSD).toFixed(2)}</span>
                                         </div>
-                                        <div className="flex justify-between pt-2 border-t border-white/[0.04] text-neutral-200">
+                                        <div className="flex justify-between pt-2 border-t border-line text-ink">
                                             <span>Calculated Rate:</span>
                                             <span className="font-mono text-[#0BAA8F] font-bold">${usdPricePerProduct.toFixed(2)} / item</span>
                                         </div>
                                     </div>
 
-                                    <div className="pt-4 border-t border-white/[0.06] flex justify-between items-center mt-4">
+                                    <div className="pt-4 border-t border-line flex justify-between items-center mt-4">
                                         <div>
-                                            <div className="text-3xs font-bold uppercase text-neutral-400">Total Setup Estimate</div>
-                                            <div className="text-2xl font-bold font-mono text-white">${usdTotalSetupCost.toFixed(2)}</div>
+                                            <div className="text-3xs font-bold uppercase text-ink-muted">Total Setup Estimate</div>
+                                            <div className="text-2xl font-bold font-mono text-ink">${usdTotalSetupCost.toFixed(2)}</div>
                                         </div>
                                         <button
                                             onClick={handleOrderSetupService}
                                             disabled={calcProductsNum === 0 || isOrderingService}
-                                            className="px-6 py-3 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-40 text-neutral-950 font-bold text-xs uppercase tracking-wider transition-all"
+                                            className="px-6 py-3 rounded-xl bg-[#0BAA8F] hover:bg-[#09927D] disabled:opacity-40 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md"
                                         >
                                             {isOrderingService ? 'Redirecting…' : 'Order Service'}
                                         </button>
@@ -1340,13 +1340,13 @@ export default function BillingIndex({
                         {historyLoading && !history && (
                             <div className="space-y-3">
                                 {[0, 1, 2].map(i => (
-                                    <div key={i} className="h-16 rounded-2xl bg-white/[0.02] border border-white/[0.05] animate-pulse" />
+                                    <div key={i} className="h-16 rounded-2xl bg-surface-raised border border-line animate-pulse" />
                                 ))}
                             </div>
                         )}
 
                         {historyError && (
-                            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs font-bold text-rose-400 flex items-center gap-2">
+                            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
                                 <AlertTriangle size={15} /> {historyError}
                             </div>
                         )}
@@ -1355,46 +1355,46 @@ export default function BillingIndex({
                             <>
                                 {history.subscription && (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div className="p-5 rounded-2xl bg-neutral-900/40 border border-white/[0.06]">
-                                            <div className="text-2xs font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <div className="p-5 rounded-2xl bg-surface border border-line shadow-sm">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <BadgeCheck size={13} className="text-[#0BAA8F]" /> Status
                                             </div>
-                                            <div className="text-lg font-bold text-white capitalize">
+                                            <div className="text-lg font-bold text-ink capitalize">
                                                 {history.subscription.status_formatted || history.subscription.status || '—'}
                                             </div>
                                             {history.subscription.is_cancelled && (
-                                                <div className="text-2xs font-semibold text-amber-400 mt-1">
+                                                <div className="text-2xs font-semibold text-amber-600 dark:text-amber-400 mt-1">
                                                     Cancelled — paid access remains active
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="p-5 rounded-2xl bg-neutral-900/40 border border-white/[0.06]">
-                                            <div className="text-2xs font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <div className="p-5 rounded-2xl bg-surface border border-line shadow-sm">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Clock size={13} className="text-[#0BAA8F]" /> {history.subscription.is_cancelled ? 'Access Ends' : 'Next Renewal'}
                                             </div>
-                                            <div className="text-lg font-bold text-white font-mono">
+                                            <div className="text-lg font-bold text-ink font-mono">
                                                 {fmtDay(history.subscription.expires_at)}
                                             </div>
                                         </div>
 
-                                        <div className="p-5 rounded-2xl bg-neutral-900/40 border border-white/[0.06]">
-                                            <div className="text-2xs font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <div className="p-5 rounded-2xl bg-surface border border-line shadow-sm">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <CreditCard size={13} className="text-[#0BAA8F]" /> Payment Method
                                             </div>
-                                            <div className="text-lg font-bold text-white">
+                                            <div className="text-lg font-bold text-ink">
                                                 {history.subscription.card || 'Not on file'}
                                             </div>
                                         </div>
 
-                                        <div className="p-5 rounded-2xl bg-neutral-900/40 border border-white/[0.06]">
-                                            <div className="text-2xs font-bold text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <div className="p-5 rounded-2xl bg-surface border border-line shadow-sm">
+                                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                                 <Receipt size={13} className="text-[#0BAA8F]" /> Total Paid
                                             </div>
-                                            <div className="text-lg font-bold text-white font-mono">
+                                            <div className="text-lg font-bold text-ink font-mono">
                                                 {history.lifetime_usd || '$0.00'}
                                             </div>
-                                            <div className="text-2xs text-neutral-400 mt-0.5">
+                                            <div className="text-2xs text-ink-muted mt-0.5">
                                                 {history.invoice_count} {history.invoice_count === 1 ? 'receipt' : 'receipts'}
                                             </div>
                                         </div>
@@ -1403,11 +1403,11 @@ export default function BillingIndex({
 
                                 {/* Invoices Table */}
                                 {history.invoices && history.invoices.length > 0 ? (
-                                    <div className="rounded-2xl bg-neutral-900/40 border border-white/[0.06] overflow-hidden">
+                                    <div className="rounded-2xl bg-surface border border-line shadow-sm overflow-hidden">
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left">
                                                 <thead>
-                                                    <tr className="border-b border-white/[0.06] text-2xs font-bold text-neutral-400 uppercase tracking-wider">
+                                                    <tr className="border-b border-line bg-surface-raised text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                                         <th className="px-5 py-3.5">Paid On</th>
                                                         <th className="px-5 py-3.5">Period Covered</th>
                                                         <th className="px-5 py-3.5">Amount</th>
@@ -1415,21 +1415,21 @@ export default function BillingIndex({
                                                         <th className="px-5 py-3.5 text-right">Invoice</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-white/[0.04] text-xs">
+                                                <tbody className="divide-y divide-line text-xs">
                                                     {history.invoices.map((inv) => (
-                                                        <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
+                                                        <tr key={inv.id} className="hover:bg-surface-raised/50 transition-colors">
                                                             <td className="px-5 py-4 whitespace-nowrap">
-                                                                <div className="font-bold text-white">{fmtDay(inv.paid_at)}</div>
-                                                                <div className="text-2xs text-neutral-400 capitalize">{inv.billing_reason || 'Payment'}</div>
+                                                                <div className="font-bold text-ink">{fmtDay(inv.paid_at)}</div>
+                                                                <div className="text-2xs text-ink-muted capitalize">{inv.billing_reason || 'Payment'}</div>
                                                             </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap text-neutral-300">
+                                                            <td className="px-5 py-4 whitespace-nowrap text-ink-secondary">
                                                                 {inv.period_end ? `${fmtDay(inv.period_start)} → ${fmtDay(inv.period_end)}` : fmtDay(inv.period_start)}
                                                             </td>
-                                                            <td className="px-5 py-4 whitespace-nowrap font-mono font-bold text-white">
+                                                            <td className="px-5 py-4 whitespace-nowrap font-mono font-bold text-ink">
                                                                 {inv.total}
                                                             </td>
                                                             <td className="px-5 py-4 whitespace-nowrap">
-                                                                <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                                <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
                                                                     {inv.status}
                                                                 </span>
                                                             </td>
@@ -1439,7 +1439,7 @@ export default function BillingIndex({
                                                                         href={inv.invoice_url}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.08] text-neutral-300 hover:text-white text-2xs font-bold transition-all"
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-line hover:border-line-strong text-ink-secondary hover:text-ink text-2xs font-bold transition-all shadow-2xs"
                                                                     >
                                                                         <FileText size={12} />
                                                                         <span>PDF</span>
@@ -1453,9 +1453,9 @@ export default function BillingIndex({
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="p-8 rounded-2xl bg-neutral-900/40 border border-white/[0.06] text-center">
-                                        <Receipt size={28} className="mx-auto text-neutral-500 mb-2" />
-                                        <p className="text-xs font-semibold text-neutral-400">No payment records found.</p>
+                                    <div className="p-8 rounded-2xl bg-surface border border-line shadow-sm text-center">
+                                        <Receipt size={28} className="mx-auto text-ink-muted mb-2" />
+                                        <p className="text-xs font-semibold text-ink-muted">No payment records found.</p>
                                     </div>
                                 )}
                             </>
@@ -1476,40 +1476,40 @@ export default function BillingIndex({
 
             {/* ── Change Plan Confirmation Modal ────────────────────────────── */}
             <Modal show={isChangeModalOpen} onClose={() => setIsChangeModalOpen(false)} maxWidth="md">
-                <div className="relative overflow-hidden bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 text-white">
-                    <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-4">
+                <div className="relative overflow-hidden bg-surface border border-line rounded-2xl shadow-2xl p-6 text-ink">
+                    <h3 className="text-lg font-bold tracking-tight flex items-center gap-2 mb-4 text-ink">
                         <Sparkles className="text-[#0BAA8F]" size={20} />
                         Confirm Plan Selection
                     </h3>
 
                     <div className="space-y-4 mb-6">
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-surface-raised border border-line">
                             <div className="text-center flex-1">
-                                <div className="text-3xs text-neutral-400 font-bold uppercase">Current</div>
-                                <div className="text-sm font-bold capitalize text-neutral-200 mt-0.5">{currentPlanKey}</div>
+                                <div className="text-3xs text-ink-muted font-bold uppercase">Current</div>
+                                <div className="text-sm font-bold capitalize text-ink mt-0.5">{currentPlanKey}</div>
                             </div>
-                            <ArrowRight className="text-neutral-500" size={16} />
+                            <ArrowRight className="text-ink-muted" size={16} />
                             <div className="text-center flex-1">
                                 <div className="text-3xs text-[#0BAA8F] font-bold uppercase">New Plan</div>
                                 <div className="text-sm font-bold capitalize text-[#0BAA8F] mt-0.5">{selectedPlan}</div>
                             </div>
                         </div>
 
-                        <p className="text-xs text-neutral-300 leading-relaxed">
-                            Switching to <span className="font-bold text-white capitalize">{selectedPlan}</span> will update your resource limits immediately. Any prorated difference will be applied according to your billing cycle.
+                        <p className="text-xs text-ink-muted leading-relaxed">
+                            Switching to <span className="font-bold text-ink capitalize">{selectedPlan}</span> will update your resource limits immediately. Any prorated difference will be applied according to your billing cycle.
                         </p>
                     </div>
 
                     <div className="flex gap-3 justify-end">
                         <button
                             onClick={() => setIsChangeModalOpen(false)}
-                            className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs transition-colors"
+                            className="px-4 py-2.5 rounded-xl bg-surface-raised hover:bg-surface border border-line text-ink font-semibold text-xs transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleConfirmPlanChange}
-                            className="px-5 py-2.5 rounded-xl bg-[#0BAA8F] hover:bg-[#0BAA8F]/90 text-neutral-950 font-bold text-xs uppercase tracking-wider transition-all"
+                            className="px-5 py-2.5 rounded-xl bg-[#0BAA8F] hover:bg-[#09927D] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
                         >
                             Confirm Change
                         </button>
@@ -1519,32 +1519,32 @@ export default function BillingIndex({
 
             {/* ── Cancel Subscription Modal ─────────────────────────────────── */}
             <Modal show={cancelOpen} onClose={() => setCancelOpen(false)} maxWidth="md">
-                <div className="p-8 bg-neutral-950 text-white rounded-2xl border border-neutral-800">
+                <div className="p-8 bg-surface text-ink rounded-2xl border border-line shadow-2xl">
                     <div className="flex items-center gap-3 mb-5">
-                        <div className="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                        <div className="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
                             <AlertTriangle size={20} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold">Cancel Subscription?</h3>
-                            <p className="text-2xs font-bold text-neutral-400 uppercase tracking-wider">{currentMeta.label}</p>
+                            <h3 className="text-lg font-bold text-ink">Cancel Subscription?</h3>
+                            <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{currentMeta.label}</p>
                         </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 mb-4 text-xs text-emerald-300">
+                    <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/20 mb-4 text-xs text-emerald-800 dark:text-emerald-300">
                         <span className="font-bold">You retain full access until {paidUntilLabel || 'the end of your paid billing period'}.</span> No immediate lockout and no further renewals will be charged.
                     </div>
 
                     <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 mt-6">
                         <button
                             onClick={() => setCancelOpen(false)}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-neutral-300 font-bold text-xs uppercase tracking-wider"
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-surface-raised hover:bg-surface border border-line text-ink font-bold text-xs uppercase tracking-wider"
                         >
                             Keep Subscription
                         </button>
                         <button
                             onClick={submitCancelSubscription}
                             disabled={cancelBusy}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-60 text-white font-bold text-xs uppercase tracking-wider"
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-60 text-white font-bold text-xs uppercase tracking-wider shadow-sm"
                         >
                             {cancelBusy ? 'Cancelling…' : 'Yes, Cancel'}
                         </button>
@@ -1624,11 +1624,11 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
     }
 
     return (
-        <div className="p-6 rounded-2xl bg-neutral-900 border border-white/[0.04] mb-8">
+        <div className="p-6 rounded-2xl bg-surface border border-line shadow-sm mb-8">
             <div className="flex gap-3 items-start mb-4">
-                <BadgeCheck className="text-brand-400 shrink-0 mt-0.5" size={20} />
+                <BadgeCheck className="text-[#0BAA8F] shrink-0 mt-0.5" size={20} />
                 <div>
-                    <h4 className="font-bold text-sm text-white uppercase tracking-wide">Verify Identity for Regional Pricing</h4>
+                    <h4 className="font-bold text-sm text-ink uppercase tracking-wide">Verify Identity for Regional Pricing</h4>
                     <p className="text-xs text-ink-muted mt-1">
                         Pakistani stores qualify for special regional pricing (in PKR). Submit your CNIC and contact details below to unlock PKR checkouts. Limit of 1 store per CNIC.
                     </p>
@@ -1636,13 +1636,13 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
             </div>
 
             {pk_verification?.status === 'rejected' && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-4 text-xs">
+                <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 mb-4 text-xs">
                     <strong>Rejection Reason:</strong> {pk_verification.rejection_reason}
                 </div>
             )}
 
             {msg && (
-                <div className={`p-4 rounded-xl mb-4 text-xs ${msg.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                <div className={`p-4 rounded-xl mb-4 text-xs ${msg.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400'}`}>
                     {msg.text}
                 </div>
             )}
@@ -1658,7 +1658,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                         onChange={e => setCnic(e.target.value)}
                         placeholder="e.g. 42101-1234567-1"
                         required
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-brand-500 transition-colors"
+                        className="w-full px-4 py-2.5 rounded-xl bg-surface-raised border border-line text-ink text-xs outline-none focus:border-[#0BAA8F] transition-colors"
                     />
                 </div>
                 <div>
@@ -1670,7 +1670,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                         onChange={e => setPhone(e.target.value)}
                         placeholder="e.g. +92 300 1234567"
                         required
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/[0.08] text-white text-xs outline-none focus:border-brand-500 transition-colors"
+                        className="w-full px-4 py-2.5 rounded-xl bg-surface-raised border border-line text-ink text-xs outline-none focus:border-[#0BAA8F] transition-colors"
                     />
                 </div>
                 <div>
@@ -1681,7 +1681,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                         accept="image/*"
                         onChange={e => setImageFront(e.target.files[0])}
                         required
-                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border file:border-line file:text-1xs file:font-bold file:uppercase file:bg-surface-raised file:text-ink file:cursor-pointer hover:file:bg-surface"
                     />
                 </div>
                 <div>
@@ -1692,14 +1692,14 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
                         accept="image/*"
                         onChange={e => setImageBack(e.target.files[0])}
                         required
-                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-1xs file:font-bold file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                        className="w-full text-xs text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border file:border-line file:text-1xs file:font-bold file:uppercase file:bg-surface-raised file:text-ink file:cursor-pointer hover:file:bg-surface"
                     />
                 </div>
                 <div className="md:col-span-2 mt-2">
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
+                        className="px-6 py-2.5 bg-[#0BAA8F] hover:bg-[#09927D] disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
                     >
                         {loading ? 'Submitting...' : 'Submit Documents'}
                     </button>

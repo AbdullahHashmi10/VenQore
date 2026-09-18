@@ -695,8 +695,8 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 14px;                       /* the HIT area, not the mark */
-    z-index: 6;
+    width: 20px;                       /* the HIT area, not the mark */
+    z-index: 25;
     cursor: col-resize;
     display: flex;
     align-items: center;
@@ -708,6 +708,7 @@
     padding: 0;
     color: var(--vq-ink-400, #8b9a93);
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 /* The mark. Short and quiet at rest so it reads as an edge rather than a

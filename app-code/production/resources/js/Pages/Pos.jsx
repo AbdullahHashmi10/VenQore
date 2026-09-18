@@ -1120,7 +1120,9 @@ const POSInterface = ({
         host.setAttribute('data-resizing', '1');
 
         const onMove = (ev) => {
-            const px = edge === 'right' ? rect.right - ev.clientX : ev.clientX - rect.left;
+            const clientX = ev.touches && ev.touches.length ? ev.touches[0].clientX : ev.clientX;
+            if (clientX === undefined) return;
+            const px = edge === 'right' ? rect.right - clientX : clientX - rect.left;
             const wanted = px / total;
             const { clamped, atFloor } = commitShare(key, wanted);
             setDragInfo({ key, px: Math.round(clamped * total), pct: Math.round(clamped * 100), atFloor });
@@ -1130,11 +1132,19 @@ const POSInterface = ({
             setDragInfo(null);
             host.removeAttribute('data-resizing');
             window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('touchmove', onMove);
             window.removeEventListener('pointerup', onUp);
+            window.removeEventListener('mouseup', onUp);
+            window.removeEventListener('touchend', onUp);
             window.removeEventListener('pointercancel', onUp);
         };
         window.addEventListener('pointermove', onMove);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, { passive: false });
         window.addEventListener('pointerup', onUp);
+        window.addEventListener('mouseup', onUp);
+        window.addEventListener('touchend', onUp);
         window.addEventListener('pointercancel', onUp);
     };
 
@@ -3512,10 +3522,12 @@ const POSInterface = ({
                 data-dragging={dragging === key ? '1' : '0'}
                 data-atfloor={live && dragInfo.atFloor ? '1' : '0'}
                 onPointerDown={startSplitDrag(key, edge)}
+                onMouseDown={startSplitDrag(key, edge)}
+                onTouchStart={startSplitDrag(key, edge)}
                 onKeyDown={onSplitKeyDown(key, edge)}
                 onDoubleClick={resetSplit(key)}
                 title={`Drag, or focus and use \u2190 \u2192. Double-click to reset. Stops at this pane's floor.`}
-                style={{ [edge]: `${offsetPx - 7}px` }}
+                style={{ [edge]: `${offsetPx - 10}px` }}
             >
                 {live && (
                     <span className="vq-split-readout" aria-hidden="true">

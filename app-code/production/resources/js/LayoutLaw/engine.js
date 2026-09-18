@@ -260,7 +260,8 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
     const CART_MIN = F.cart_line_min;
     const TENDER_MIN = F.tender_min;
     const CAT_LIST = F.catalog_list;
-    const RESIDENT_MIN = LAW.pos.catalogResidentMinAvail;
+    const needForCatCol = CAT_LIST + G + CART_MIN + (tenderMode === 'column' ? TENDER_MIN + G : 0);
+    const RESIDENT_MIN = Math.min(LAW.pos.catalogResidentMinAvail || 1062, needForCatCol);
 
     /* ---- REGIME ---- */
     const twoColMin = CART_MIN + TENDER_MIN + G;
