@@ -53,6 +53,13 @@ class Slice4dOperationsGateTest extends TestCase
         } else {
             $this->user = User::where('email', 'golden-owner@venqore.com')->first();
         }
+
+        if ($this->user && $this->tenant) {
+            $this->user->current_tenant_id = $this->tenant->id;
+            $this->user->getActiveMembership($this->tenant->id);
+            // Prime permissions attribute in memory
+            $this->user->getPermissionsAttribute();
+        }
     }
 
     /**
