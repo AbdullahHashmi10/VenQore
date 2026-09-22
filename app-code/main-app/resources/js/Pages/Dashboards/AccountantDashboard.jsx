@@ -167,25 +167,37 @@ export default function AccountantDashboard({
                             Receivables Aging
                         </div>
                         <div style={{ fontSize: 12, color: 'rgb(var(--vq-slate-500))', marginBottom: 20 }}>Who owes and how overdue</div>
-                        {[
-                            { bucket: '0–30 days', amount: fmt(rx.total - rx.overdue_30 - rx.overdue_60 - rx.overdue_90 - rx.overdue_90plus), pct: rx.total > 0 ? Math.max(5,((rx.total - rx.overdue_30)/rx.total)*100) : 0, color: 'rgb(var(--vq-emerald-500))' },
-                            { bucket: '31–60 days', amount: fmt(rx.overdue_30), pct: rx.total > 0 ? (rx.overdue_30/rx.total)*100 : 0, color: 'rgb(var(--vq-amber-500))' },
-                            { bucket: '61–90 days', amount: fmt(rx.overdue_60), pct: rx.total > 0 ? (rx.overdue_60/rx.total)*100 : 0, color: '#f97316' },
-                            { bucket: '90+ days',   amount: fmt(rx.overdue_90plus ?? 0), pct: rx.total > 0 ? ((rx.overdue_90plus ?? 0)/rx.total)*100 : 0, color: 'rgb(var(--vq-red-500))' },
-                        ].map(r => <AgingRow key={r.bucket} {...r} />)}
+                        {rx.available === false || rx.overdue_30 == null ? (
+                            <div style={{ padding: '24px 0', textAlign: 'center', color: 'rgb(var(--vq-slate-400))', fontSize: 13, fontWeight: 600 }}>
+                                Aging unavailable
+                            </div>
+                        ) : (
+                            [
+                                { bucket: '0–30 days', amount: fmt(rx.total - rx.overdue_30 - rx.overdue_60 - rx.overdue_90 - rx.overdue_90plus), pct: rx.total > 0 ? Math.max(5,((rx.total - rx.overdue_30)/rx.total)*100) : 0, color: 'rgb(var(--vq-emerald-500))' },
+                                { bucket: '31–60 days', amount: fmt(rx.overdue_30), pct: rx.total > 0 ? (rx.overdue_30/rx.total)*100 : 0, color: 'rgb(var(--vq-amber-500))' },
+                                { bucket: '61–90 days', amount: fmt(rx.overdue_60), pct: rx.total > 0 ? (rx.overdue_60/rx.total)*100 : 0, color: '#f97316' },
+                                { bucket: '90+ days',   amount: fmt(rx.overdue_90plus ?? 0), pct: rx.total > 0 ? ((rx.overdue_90plus ?? 0)/rx.total)*100 : 0, color: 'rgb(var(--vq-red-500))' },
+                            ].map(r => <AgingRow key={r.bucket} {...r} />)
+                        )}
 
                         <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgb(var(--vq-slate-100))' }}>
                             <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-main,rgb(var(--vq-slate-900)))', marginBottom: 8 }}>Payables — Due Soon</div>
-                            {[
-                                { label: 'Due in 7 days',  value: fmt(py.due_7),  color: 'rgb(var(--vq-amber-500))' },
-                                { label: 'Due in 30 days', value: fmt(py.due_30), color: 'rgb(var(--vq-indigo-500))' },
-                                { label: 'Overdue',        value: fmt(py.overdue), color: 'rgb(var(--vq-red-500))' },
-                            ].map(p => (
-                                <div key={p.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgb(var(--vq-slate-50))', fontSize: 13 }}>
-                                    <span style={{ color: 'rgb(var(--vq-slate-500))', fontWeight: 500 }}>{p.label}</span>
-                                    <span style={{ fontWeight: 700, color: p.color }}>{p.value}</span>
+                            {py.available === false || py.due_7 == null ? (
+                                <div style={{ padding: '12px 0', textAlign: 'center', color: 'rgb(var(--vq-slate-400))', fontSize: 13, fontWeight: 600 }}>
+                                    Aging unavailable
                                 </div>
-                            ))}
+                            ) : (
+                                [
+                                    { label: 'Due in 7 days',  value: fmt(py.due_7),  color: 'rgb(var(--vq-amber-500))' },
+                                    { label: 'Due in 30 days', value: fmt(py.due_30), color: 'rgb(var(--vq-indigo-500))' },
+                                    { label: 'Overdue',        value: fmt(py.overdue), color: 'rgb(var(--vq-red-500))' },
+                                ].map(p => (
+                                    <div key={p.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgb(var(--vq-slate-50))', fontSize: 13 }}>
+                                        <span style={{ color: 'rgb(var(--vq-slate-500))', fontWeight: 500 }}>{p.label}</span>
+                                        <span style={{ fontWeight: 700, color: p.color }}>{p.value}</span>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

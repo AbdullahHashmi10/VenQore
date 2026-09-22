@@ -3,6 +3,7 @@
 namespace App\Engines;
 
 use App\Exceptions\BelowCostSaleException;
+use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -73,7 +74,9 @@ class SaleService
      */
     public function post(array $data): object
     {
-        // Idempotency check (S-048 / Offline Sync)
+        $idempotencyKey = $data['idempotency_key'] ?? $data['client_sale_id'] ?? null;
+
+        // Idempotency pre-check (S-048 / Offline Sync / L038)
         if (!empty($data['client_sale_id'])) {
             $existing = DB::table('sales')
                 ->where('tenant_id', $this->tenantId)
@@ -83,8 +86,18 @@ class SaleService
                 return Sale::find($existing->id);
             }
         }
+        if (!empty($data['idempotency_key'])) {
+            $existing = DB::table('sales')
+                ->where('tenant_id', $this->tenantId)
+                ->where('idempotency_key', $data['idempotency_key'])
+                ->first();
+            if ($existing) {
+                return Sale::find($existing->id);
+            }
+        }
 
-        return DB::transaction(function () use ($data) {
+        try {
+            return DB::transaction(function () use ($data) {
             $data['customer_id']    = $data['customer_id'] ?? $data['party_id'] ?? null;
             $data['payment_method'] = $data['payment_method'] ?? 'cash';
             $data['warehouse_id']   = $data['warehouse_id'] ?? DB::table('warehouses')->where('tenant_id', $this->tenantId)->value('id');
@@ -392,6 +405,7 @@ class SaleService
                 'tenant_id'            => $tenantId,  // WOUND 2 FIX — explicit tenant stamp
                 'register_shift_id'    => $shiftId,
                 'client_sale_id'       => $data['client_sale_id'] ?? null,
+                'idempotency_key'      => $data['idempotency_key'] ?? $data['client_sale_id'] ?? null,
                 'reference_number'     => $invoiceNumber,
                 'source'               => ($data['source'] ?? null) === 'pos' ? 'pos' : 'manual',
                 'party_id'             => $data['customer_id'],
@@ -560,6 +574,20 @@ class SaleService
             return DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->first();
 
         });
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Concurrent race condition handling:
+            // Catch ONLY the database unique-constraint violation for sales_tenant_idempotency_unique
+            if ($idempotencyKey && str_contains($e->getMessage(), 'sales_tenant_idempotency_unique')) {
+                $existing = DB::table('sales')
+                    ->where('tenant_id', $this->tenantId)
+                    ->where('idempotency_key', $idempotencyKey)
+                    ->first();
+                if ($existing) {
+                    return Sale::find($existing->id);
+                }
+            }
+            throw $e;
+        }
     }
 
     /**

@@ -172,18 +172,14 @@ class AiController extends Controller
     private function checkAuthPermission($permission)
     {
         $user = auth()->user();
-        if (!$user)
+        if (!$user) {
             throw new \Exception("Unauthorized");
-        if ($user->isPlatformAdmin() || $user->hasPermission($permission))
-            return;
-
-        $perms = $user->permissions ?? [];
-        if (!is_array($perms))
-            $perms = [];
-
-        if (!in_array($permission, $perms)) {
-            throw new \Exception("Access Denied: You need the '{$permission}' permission to perform this action.");
         }
+        if ($user->isPlatformAdmin() || $user->hasPermission($permission)) {
+            return;
+        }
+
+        throw new \Exception("Access Denied: You need the '{$permission}' permission to perform this action.");
     }
 
     // ==========================================

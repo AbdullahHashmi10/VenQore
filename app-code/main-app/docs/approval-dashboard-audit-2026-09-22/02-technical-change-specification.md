@@ -34,6 +34,16 @@ Create additive migrations under `database/migrations/` with unused timestamps d
 
 Policies can use a child `approval_policy_reviewers` table for user/group/location eligibility instead of embedding unqueryable membership JSON. Retain historical reviewer definitions in the policy snapshot. Never cascade-delete financial or review history when a member leaves; preserve actor identifiers and a non-sensitive display snapshot as appropriate.
 
+Add an approval-mode migration to `tenant_users`: `transaction_approval_mode` with `inherit`, `required`, and `direct` (default `inherit`), plus `transaction_approval_changed_by` and `transaction_approval_changed_at`. The effective decision order for the four supported document types is:
+
+1. If store approval is disabled, post normally subject to existing permissions.
+2. If strict owner separation is disabled and the member is owner, direct post and audit the exemption.
+3. `required` always enters review; `direct` posts directly if the actor still has the underlying create/post permission; `inherit` uses the store/role policy.
+4. Amount/type/channel rules may make an otherwise direct transaction require review, but cannot grant a transaction permission the employee lacks.
+5. POS checkout eligibility is evaluated independently from this administrative setting.
+
+Only an authorized owner/admin can change another member's mode. Never accept the mode from a transaction request, never allow self-service changes, and record every change. The staff invite/create/edit interface should present a simple **Require approval for this employee** control, with an advanced inherit option. Invitations must persist the intended mode through acceptance.
+
 ### States and transitions
 
 | Current | Action | Next | Checks |
@@ -66,6 +76,8 @@ No separately committed “approved but not posted” state is required for the 
 | `app/Http/Resources/ApprovalDocumentResource.php` | Field-level masking, allowed_actions, preview, events, attachment metadata |
 | `app/Jobs/DeliverTransactionOutbox.php`, `app/Notifications/ApprovalStatusChanged.php` | Idempotent after-commit notifications; links reauthorize at read time |
 | `config/approvals.php` | Built-in reason codes, allowlisted types/operations, default policy recommendations |
+
+The policy resolver must consume the current tenant's enabled setting, strict-owner setting, the active membership's `transaction_approval_mode`, the underlying transaction permission, amount/type rules, and server-verified channel. Return a typed decision containing the matched policy/version and reason. Persist that decision in the audit trail for both reviewed and direct-post paths.
 
 ### Adapter contract
 
@@ -106,7 +118,7 @@ This boundary must be introduced with complete call-site tests: simply adding a 
 |---|---|
 | `app/Http/Controllers/PaymentController.php` | Extract standalone receipt/payment command service; submit/review before payment table or journal writes; preserve form response compatibility |
 | `app/Http/Controllers/V3/CustomerPaymentController.php`, `V3/SupplierPaymentController.php` | Reuse typed payment adapters; allocate only inside approved posting; revalidate invoice balances on approval |
-| `app/Http/Controllers/SaleController.php`, `V3/SaleController.php`, `app/Engines/SaleService.php` | Distinguish administrative invoice command from eligible POS command; intercept before product/stock/payment effects; preserve restaurant service-charge/tip/shift work already in progress |
+| `app/Http/Controllers/SaleController.php`, `V3/SaleController.php`, `app/Engines/SaleService.php`, `app/Observers/SaleObserver.php` | Distinguish administrative invoice command from eligible POS command; intercept before product/stock/payment effects; prove observer conditions cannot post an approval revision; preserve restaurant service-charge/tip/shift work already in progress |
 | `app/Http/Requests/V3/StoreSaleRequest.php`, `app/Support/ManagerApproval.php`, `PosSaleApprovalGuard.php` | Preserve existing discount/below-cost authorization as an independent control; general review does not automatically replace a special manager PIN decision |
 | `app/Http/Controllers/V3/PurchaseController.php`, `app/Engines/PurchaseService.php` | Keep receipt workflow and review workflow separate; guard create/update/receive/void where policy requires; approved purchase order is not an approved received bill |
 | `app/Http/Controllers/ExpenseController.php`, `V3/ExpenseController.php` | Extract journal logic into reusable adapter-backed application service; gate update/reversal as well as create |
@@ -118,7 +130,7 @@ This boundary must be introduced with complete call-site tests: simply adding a 
 | `routes/web.php`, `routes/api.php` | Register review/settings endpoints inside authenticated active-tenant groups; permission + object policy enforcement; CSRF for web; scoped token access for API |
 | `app/Engines/AccountingService.php`, `PaymentService.php`, `AuditService.php` | Carry trusted author/reviewer/posting identity; preserve transaction integrity and idempotency; audit accurate actors |
 
-First implementation task: produce a checked route/action/command matrix using all `createEntry`, `SaleService::post`, `PurchaseService` and reversal call sites, including jobs/CLI. The above are observed principal paths and integration families, not a claim that every raw financial write in the repository has been exhaustively inspected. Release approval mode only for types whose complete paths have been proven covered.
+First implementation task: produce a checked route/action/command matrix using all `createEntry`, `SaleService::post`, `PurchaseService` and reversal call sites, including observers, jobs, CLI, sync and imports. The independent review counted 44 files and 81 `createEntry()` call sites; recount and save the current result rather than assuming that number remains exact. The above are observed principal paths and integration families, not exhaustive coverage. Release approval mode only for types whose complete paths have been proven covered.
 
 ## 5. HTTP and UI contracts
 
@@ -140,7 +152,7 @@ Recommended store-scoped routes, following existing naming prefixes:
 
 JSON submit result: `{ status: "pending", approval_id, revision_id, reference, next_action }`. Immediate and reviewed posting results: `{ status: "posted", document_type, document_id, reference }`. Return 409 for stale revision/idempotency mismatch, 422 for validation, 403 for an authenticated denied action, 404 for concealed cross-tenant objects. Inertia forms redirect with equivalent flash state. Never issue “payment posted” or print a final posted receipt for a pending result.
 
-Create `resources/js/Pages/Approvals/Index.jsx`, `Show.jsx`, `resources/js/Pages/Settings/ApprovalPolicies.jsx`, and `resources/js/Components/Approvals/{StatusBadge,ReviewActions,ReturnDialog,RevisionHistory}.jsx`. Reuse existing design-system components and original document editors; do not build a second generic JSON editor for staff.
+Create `resources/js/Pages/Approvals/Index.jsx`, `Show.jsx`, `resources/js/Pages/Settings/ApprovalPolicies.jsx`, and `resources/js/Components/Approvals/{StatusBadge,ReviewActions,ReturnDialog,RevisionHistory}.jsx`. Add the employee approval control to the existing staff invitation and staff edit UI, using the existing permission-management experience rather than a separate user system. Reuse existing design-system components and original document editors; do not build a second generic JSON editor for staff.
 
 Update `resources/js/Pages/NewInvoice.jsx`, relevant `Payments/*` and expense/purchase/sales forms, and `resources/js/Domain/invoice/useInvoiceForm.js` where applicable. Resolve each editor's actual submit action before changes. Load returned revision values into the appropriate original editor with a visible feedback panel; resubmit goes to the approval lifecycle rather than creating an unrelated posted document. Disable reviewer editing. Preserve unsaved edits and accessible keyboard/focus/error behavior.
 
@@ -163,6 +175,8 @@ Review grant is constrained by policy type/amount/location/assignment; it is not
 Define permission override mode explicitly (`inherit` versus `custom`) in `tenant_users`, rather than guessing intent from `[]`. Migrate historical `[]` conservatively as inherit when intent is unknown, report affected memberships, and require explicit custom-empty to deny all going forward. Add `permissions_version` for revocation/cache invalidation. Update the staff permission save endpoint and `resources/js/Pages/Store/Staff/Index.jsx` to send the mode and validated known grant keys. Preserve last-owner recovery rules without giving restricted admins unconditional bypass.
 
 ## 7. V6 access contract and data scope
+
+Before changing presets, test the resolved pipeline `ReckonerRegistry → checkAvailability → FrameFiller → DashboardSanitizer` for every configured role. The independent review found 24 preset keys absent from `cards.json`, but several older keys also exist directly in `ReckonerRegistry` and `FrameFiller` can use secondary candidates. Absence from `cards.json` alone does not prove a dead card or an empty resolved dashboard. Record which configured keys are truly unresolved and which roles actually receive zero cards; then rewrite only the broken presets against canonical keys. Add a test that configured preset keys resolve through the effective registry, plus a non-empty/safe seeded-layout test for each supported role. Log invalid configuration keys instead of silently losing them.
 
 Create `app/Services/Dashboard/CardAccessPolicy.php` and `DashboardPresenter.php`, plus `config/dashboard_access.php` with an explicit entry for every card key. The generated inventory at the end of this file is the exact baseline. Unknown/new keys default to denied until their access contract is registered.
 

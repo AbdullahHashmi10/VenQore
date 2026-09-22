@@ -40,12 +40,6 @@ class CheckPermissions
             return $next($request);
         }
 
-        // ── Resolve custom permissions via getPermissionsAttribute() ────────
-        // This unified getter automatically respects:
-        //  1. Custom granular checkbox overrides saved in the tenant_users pivot
-        //  2. config/permissions.php default role map as a fallback
-        $userPerms = $user->permissions;
-
         // If no required permissions specified, allow basic authenticated access
         if (empty($permissions)) {
             return $next($request);
@@ -53,7 +47,7 @@ class CheckPermissions
 
         // ── Check if user holds at least one of the required granular keys ───
         foreach ($permissions as $permission) {
-            if (in_array($permission, $userPerms)) {
+            if ($user->hasPermission($permission)) {
                 return $next($request);
             }
         }

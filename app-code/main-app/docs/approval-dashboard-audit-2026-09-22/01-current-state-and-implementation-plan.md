@@ -4,7 +4,7 @@ Date: 22 September 2026. Status: audit and proposed implementation, not implemen
 
 ## Decision to make
 
-Build a maker–checker workflow for administrative transactions and use the V6 dashboard for every store role. Keep ordinary POS checkout immediate. Make access depend on effective permissions and data scope, not merely on the dashboard a role happens to receive.
+Build a maker–checker workflow for administrative transactions and use the V6 dashboard for every store role. Keep ordinary POS checkout immediate. Make access depend on effective permissions and data scope, not merely on the dashboard a role happens to receive. Approval is configurable at store and employee-membership level: an owner can require review for one employee while allowing another to post the supported transactions directly.
 
 This document explains the current position, product behavior, delivery phases and acceptance criteria. [02-technical-change-specification.md](02-technical-change-specification.md) is the engineering handoff, including a complete inventory of the 349 existing cards. [03-existing-bugs-and-repair-plan.md](03-existing-bugs-and-repair-plan.md) covers existing defects separately.
 
@@ -36,7 +36,7 @@ The registry includes examples of overly broad intended visibility: stock valuat
 
 ## Proposed user workflow
 
-1. An employee prepares a document using the existing editor and saves a draft or submits it.
+1. An employee prepares a document using the existing editor and saves a draft or submits it. The server resolves the store policy and that employee's explicit approval mode (`inherit`, `required`, or `direct`).
 2. The server decides whether this document requires review using store policy, document type, amount, operation and the employee's effective permissions.
 3. A submission receives a pending reference and an immutable revision. It does not create a posted journal, allocate a payment, change stock, accrue loyalty, submit a tax invoice, or send a final receipt.
 4. An eligible reviewer opens a read-only financial preview, supporting attachments and the change history.
@@ -50,7 +50,9 @@ For already posted records, use an approved amendment, reversal or refund reques
 
 ### Which operations need approval?
 
-The following is the recommended policy when a store enables administrative approvals. Activation is explicit and audited, so existing stores do not abruptly lose their present workflows. Owner/administrator roles are not an automatic exception to separation of duties for transactions explicitly requiring review. A separately granted direct-post permission may exempt eligible operations under policy; that decision is recorded as an exemption, not a self-approval.
+The following is the recommended policy when a store enables administrative approvals. Activation is explicit and audited, so existing stores do not abruptly lose their present workflows. The default for this market is owner direct posting. Administrators and employees follow their membership approval mode and store policy. A stricter store setting can require independent review for owners. A direct-post decision is recorded as an audited exemption, not a self-approval.
+
+When inviting or editing a staff member, authorized owners/admins see **Require approval for this employee**. Its simple UI maps to an explicit membership mode: `required` when enabled and `direct` when disabled; an advanced `inherit store default` choice avoids copying policy to every employee. This setting applies only to the supported administrative document types and never weakens unrelated permissions, amount limits, special discount/PIN controls, refund rules, or tenant isolation. Employees cannot change their own mode.
 
 | Operation | Recommended behavior | Financial/operational effect before approval |
 |---|---|---|
@@ -115,16 +117,15 @@ New cards should fill real gaps: my pending/returned submissions; assigned revie
 
 | Phase | Deliverable | Exit condition |
 |---|---|---|
-| 0. Baseline | Record working tree, route-to-engine map, permission contract, policy defaults, all-card inventory | Every in-scope write path has a named integration owner; no code from other work overwritten |
-| 1. Existing defects | Repairs in document 03, shared permission resolver, empty-override migration strategy | Negative permission/tenant tests and corrected totals/aging pass |
-| 2. Workflow foundation | Pending documents, immutable revisions, audit events, policies, typed adapters, command/posting boundary | Pending state has zero financial footprint; transitions, duplicate/retry and concurrency tests pass |
-| 3. Financial integrations | Receipts/payments, expenses/journals/funds, admin invoices/purchases and corrections; specialized financial paths | No covered HTTP, sync, job or import can bypass approval policy; POS remains immediate |
-| 4. Review experience | Inbox, detail preview, return reasons/notes, original-editor correction, notifications and custody status | Employee → reviewer → employee → reviewer end-to-end path passes |
-| 5. Card access | Explicit per-card contract, scoped queries/cache, unified catalogue, field filtering, export/action enforcement | Full catalogue policy tests and scope-crossing tests pass |
-| 6. V6 adoption | All role presets and missing operational cards, template/lock migration, legacy URL handling | All 18 roles and custom overrides use V6; no sensitive legacy props are sent |
-| 7. Pilot and rollout | Opt-in pilot, reconciliation report, performance checks, release/rollback runbook | Pending/posting counts reconcile and duplicate effects remain zero under fault tests |
+| 0. Immediate repair | Remove all three normalization writes from `PaymentController::index()` and prove payment list GET is read-only | Two-tenant regression passes; no historical repair is attempted automatically |
+| 1. Live security repairs | B02, B05, B04 and B07; hide fabricated aging until real | Sensitive props, cashier scope and permission/membership tests pass |
+| 2. Demoable approval release | Foundation, UI and adapters for customer receipt, supplier payment, administrative invoice and expense only; employee approval-mode control | Complete return/correct/resubmit/approve flow works; pending has zero financial footprint; POS remains immediate |
+| 3. V6 role work | Verify actual resolved preset output, repair keys proven invalid, add approval/shift cards, and scope Reckoner caches before personal cards | Tested non-empty safe presets for supported roles; no cross-user cache reuse |
+| 4. Card access | Explicit contracts for all 349 cards and any additions | Full catalogue policy and isolation tests pass |
+| 5. Deferred hardening | Permission override mode, real aging and shared DashboardPolicy | Ambiguities and legacy placeholders removed safely |
+| 6. Broader approval coverage | Remaining adapters and a complete posting-boundary program based on the full call-site inventory | Every enabled type is covered through all HTTP, observer, job, sync and import paths |
 
-Phases 2–4 and 5–6 are independent feature streams after phase 1 but must meet at review dashboard cards. This is a multi-milestone financial workflow change, not a dashboard-only patch. Estimate delivery after the route inventory and adapter count are finalized; this audit does not invent a calendar promise.
+Stop and demonstrate after phase 2. The wider posting surface is substantially larger than the first audit's principal-path table; the independent review reported 44 files and 81 `createEntry()` call sites. Recount that against the current tree before estimating broader coverage. Phase 2 must cover every entry point for its four types, but must not attempt a risky all-at-once rewrite of unrelated posting paths.
 
 ## Acceptance scenarios
 
@@ -143,7 +144,7 @@ Phases 2–4 and 5–6 are independent feature streams after phase 1 but must me
 
 ## Rollout and unresolved product choices
 
-Recommended initial release uses one required reviewer per rule, no self-approval, configurable amount thresholds, and audited direct-post exemptions. Multi-stage approval can be a later extension; do not advertise it as implemented in the first release. Role hierarchy alone is not an approval policy.
+Recommended initial release uses one required reviewer per rule, no self-approval for employees who require review, configurable amount thresholds, membership approval modes, and audited direct-post exemptions. Owners post directly by default; a store can enable strict owner separation. Multi-stage approval can be a later extension; do not advertise it as implemented in the first release. Role hierarchy alone is not an approval policy.
 
 Before activation, a store chooses which document types require review, eligible reviewers and amount limits, backup reviewer handling, physical-cash custody process and acceptable pending age. If no independent eligible reviewer exists, show the configuration error and retain submissions pending; do not auto-post. Owner-only stores can keep approval mode disabled or use explicitly permitted direct posting.
 

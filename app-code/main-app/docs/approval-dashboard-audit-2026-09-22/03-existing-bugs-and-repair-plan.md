@@ -4,7 +4,7 @@ Date: 22 September 2026. Source audit only; fixes and regression tests below hav
 
 These defects are separate from the missing approval feature. Priority P1 means fix before pilot because it affects data integrity, sensitive data or authorization. P2 means material correctness/access behavior requiring repair. “Confirmed” means the problematic code path is present, not that an exploit was demonstrated against a running deployment.
 
-## B01 — Payments list rewrites dates across tenants (P1, confirmed)
+## B01 — Payments list rewrites dates across tenants (P0, confirmed dangerous code path)
 
 **Evidence:** `app/Http/Controllers/PaymentController.php:60`, inside `index()`:
 
@@ -15,7 +15,7 @@ WHERE sale_id IS NOT NULL AND date != DATE(created_at)
 
 The raw statement has no tenant predicate and executes during a normal non-JSON list request. Eloquent tenant scopes do not apply to raw SQL. It can replace legitimate accounting/payment dates with creation dates in every tenant. Type-normalization updates also run in this read endpoint, although their Eloquent scope must be distinguished from the unscoped raw statement.
 
-**Repair:** remove all normalization writes from the list action. If legacy repair is genuinely required, implement a separate dry-run-first tenant-scoped command with backup/audit, an explicit row selection and evidence of incorrect dates. Do not run that repair automatically on deployment. Do not assume `created_at` is the correct transaction date. Investigate historical changes using backups/audit evidence; the source audit cannot reconstruct lost dates.
+**Repair:** remove all three normalization writes from the list action immediately. Do not replace them with scoped writes. If legacy repair is genuinely required, implement a separate dry-run-first tenant-scoped command with backup/audit, an explicit row selection and evidence of incorrect dates. Do not run that repair automatically on deployment. Do not assume `created_at` is the correct transaction date. Investigate historical changes using backups/audit evidence; the source audit cannot reconstruct lost dates. The code is production-dangerous; whether it ran in a particular deployment and the damage extent require deployment/database evidence.
 
 **Regression:** create two tenants with legitimate backdated payments; GET the list as tenant A and assert neither tenant's dates/types change. GET and JSON list results remain read-only. Test any separate repair command's tenant selection and dry-run mode.
 
@@ -49,7 +49,7 @@ The raw statement has no tenant predicate and executes during a normal non-JSON 
 
 **Regression:** owner, restricted admin, custom role, platform admin and removed member through route middleware, Reckoner catalogue/read, layout publish and approval actions. Identical grant questions must produce identical answers.
 
-## B05 — Cashier session metrics actually total the entire store (P2, confirmed)
+## B05 — Cashier session metrics actually total the entire store (P1, confirmed)
 
 **Evidence:** `app/Http/Controllers/DashboardController.php:58` and `:62` filter by tenant, posted status and today, without an employee, register or shift filter. The adjacent comment describes sales created by this user, and the response calls this a session total.
 
@@ -83,6 +83,46 @@ The raw statement has no tenant predicate and executes during a normal non-JSON 
 
 **Regression:** cashier can open own and cashier template, cannot guess another role's private template ID; publisher behavior explicit; cross-tenant always denied; permitted template still strips cards whose grants were revoked.
 
+## N1 — Role preset namespace mismatch requires runtime-resolution verification (P1 for V6 work)
+
+**Evidence:** the independent review found 24 of 31 configured preset keys absent from `resources/data/reckoner/cards.json`, and `DashboardSanitizer` silently drops unavailable keys. However, `ReckonerRegistry` also defines several legacy keys directly (including `sales.revenue` and `finance.net_profit`), and `FrameFiller` constructs secondary candidates from all available registry keys. Therefore “absent from cards.json” does not by itself prove the preset is dead or that a role resolves to zero cards.
+
+**Repair:** run a deterministic application-level test for every configured role through the complete registry/availability/frame/sanitizer pipeline. List truly unresolved keys, rewrite those presets to canonical supported keys, warn on invalid configuration, and assert each supported role receives a non-empty, permission-safe layout. Do not retain sensitive cards merely to avoid an empty layout.
+
+## N2 — Card catalogue hard-asserts exactly 349 entries (P2, confirmed)
+
+**Evidence:** `app/Reckoner/CardRegistry.php::validateCatalog()` throws unless count equals 349. New approval/shift cards will break registry loading.
+
+**Repair:** preserve a versioned original-key parity fixture, then validate uniqueness and contract completeness for the expanded live catalogue. Update golden/catalogue tests in the same change; do not merely bump a magic number.
+
+## N3 — SaleObserver is an approval-bypass integration risk (P2, confirmed call path)
+
+**Evidence:** `app/Observers/SaleObserver.php` is registered by `AppServiceProvider` and calls `AccountingService::createEntry()` when a created sale has posted status. A controller-only approval guard cannot control an independent model event.
+
+**Repair:** before adding the administrative-invoice adapter, trace every path that creates a posted Sale and decide which component owns posting. Pending revisions must not create Sale rows. Test that approval drafts/revisions create zero sales/journals, and that final approval produces exactly one journal even with the observer active. Move posting ownership or require trusted posting context if duplicate/bypass behavior exists.
+
+## B09 — Sale Idempotency Tenant-Isolation Defect (P0, confirmed defect)
+
+**Evidence:** `app/Http/Controllers/SaleController.php:94` and `:646` performed global, unscoped lookups for idempotency keys:
+```php
+$existingSale = Sale::where('idempotency_key', $idempotencyKey)->first();
+```
+The query omitted `tenant_id` scoping before and during transaction conflict handling.
+
+**Impact:** If Tenant A posted a sale with a client-provided idempotency key (or common sequence), a subsequent submission by Tenant B using the same key would return Tenant A's `sale_id` and `reference_number` with an `idempotent: true` response. This leaked cross-tenant identifiers and prevented Tenant B's sale from being posted.
+
+**Repair:**
+1. Explicitly resolve `$currentTenant` before executing idempotency lookups.
+2. Query strictly by compound key `(tenant_id, idempotency_key)` using `Sale::where('tenant_id', $tenantId)->where('idempotency_key', $idempotencyKey)`.
+3. Handle concurrent submission races via the compound unique database index `sales_tenant_idempotency_unique` (`(tenant_id, idempotency_key)`).
+4. Update `app/Engines/SaleService.php` and `app/Http/Requests/V3/StoreSaleRequest.php` to enforce identical tenant-scoped idempotency across all sale flows.
+
+**Regression:** Verified in `tests/tests/Feature/Batch1RegressionTest.php`:
+- Same tenant + same key returns original sale (`test_sale_idempotency_same_tenant_returns_original_sale`).
+- Different tenants with identical keys create independent sales (`test_sale_idempotency_different_tenants_independent`).
+- User cannot receive another tenant's sale ID or reference (`test_user_cannot_receive_other_tenant_sale_via_idempotency`).
+- V3 SaleService idempotency is strictly tenant-scoped (`test_v3_sale_service_idempotency_is_tenant_scoped`).
+
 ## Follow-up risks, not separately proven incidents
 
 - `PaymentController::store()` uses unscoped `exists:parties,id` and `exists:bank_accounts,id`. Some downstream model/engine checks may reject foreign references; trace those before claiming exploitable cross-tenant posting. Replace with tenant-constrained Rule::exists and assert no writes on foreign IDs regardless of downstream defenses.
@@ -92,6 +132,6 @@ The raw statement has no tenant predicate and executes during a normal non-JSON 
 
 ## Repair order and verification limits
 
-First stop B01's read-triggered mutation and B02's unnecessary sensitive props. Then unify membership/permission resolution (B03/B04/B07) before implementing approval rights. Repair B05/B06 while migrating role dashboards; repair B08 with shared dashboard policies. Each repair should have its own failing regression test before the fix, then pass against MySQL using the canonical test configuration.
+First stop B01's read-triggered mutation and fix B09 tenant-isolation defect. Then fix B02, B05, B04 and B07 before implementing approval rights. Hide fabricated B06 output immediately, while the real aging engine can remain deferred. Treat B03 and B08 as later schema/policy work. Verify N1 before rewriting presets; address N2 before adding cards; prove N3 safe before the administrative-invoice adapter. Each repair should have its own failing regression test before the fix, then pass against MySQL using the canonical test configuration.
 
 No database corruption extent, affected user count or deployment exploitability was measured in this audit. Preserve backups and logs if investigating historical B01 effects. Do not describe these repair plans as completed fixes or this source audit as a full-system security certification.

@@ -83,6 +83,9 @@ class SaleController extends Controller
             'register_id'           => 'nullable|string|max:100',
         ]);
 
+        $currentTenant = app()->bound('current.tenant') ? app('current.tenant') : auth()->user()?->tenant;
+        $tenantId      = $currentTenant?->id ?? auth()->user()?->tenant_id;
+
         // ── L038: Idempotency protection ────────────────────────────────────
         // A network retry or double-click on the primary online sale endpoint
         // must NOT double-post revenue and inventory. Callers may supply an
@@ -90,8 +93,8 @@ class SaleController extends Controller
         // `idempotency_key` field. If a sale with that key already exists for
         // this tenant, return it instead of creating a duplicate.
         $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
-        if ($idempotencyKey) {
-            $existingSale = Sale::where('idempotency_key', $idempotencyKey)->first();
+        if ($idempotencyKey && $tenantId) {
+            $existingSale = Sale::where('tenant_id', $tenantId)->where('idempotency_key', $idempotencyKey)->first();
             if ($existingSale) {
                 return response()->json([
                     'success'    => true,
@@ -106,7 +109,6 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
 
-            $currentTenant = app()->bound('current.tenant') ? app('current.tenant') : auth()->user()?->tenant;
             $items = $request->items;
 
             // Resolve ad-hoc service / labour lines (where product_id is null or empty)
@@ -358,6 +360,9 @@ class SaleController extends Controller
             $tendered = $request->filled('amount_paid')
                 ? (float) $request->amount_paid
                 : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
+            $changeReturn = $request->filled('change_return')
+                ? (float) $request->change_return
+                : max(0.0, round($tendered - $invoiceTotal, 2));
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
             $shiftId = $request->input('register_shift_id');
             if (!$shiftId) {
@@ -640,7 +645,8 @@ class SaleController extends Controller
             // a concurrent identical request already created the sale. Return it
             // instead of surfacing a duplicate-key error.
             if ($idempotencyKey && str_contains($e->getMessage(), 'sales_tenant_idempotency_unique')) {
-                $existingSale = Sale::where('idempotency_key', $idempotencyKey)->first();
+                $tenantId = $currentTenant?->id ?? auth()->user()?->tenant_id;
+                $existingSale = $tenantId ? Sale::where('tenant_id', $tenantId)->where('idempotency_key', $idempotencyKey)->first() : null;
                 if ($existingSale) {
                     return response()->json([
                         'success'    => true,

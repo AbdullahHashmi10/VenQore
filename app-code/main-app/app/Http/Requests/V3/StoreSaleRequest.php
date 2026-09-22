@@ -45,6 +45,7 @@ class StoreSaleRequest extends FormRequest
 
             // Idempotency
             'client_sale_id'       => ['nullable', 'string', 'max:36'],
+            'idempotency_key'      => ['nullable', 'string', 'max:100'],
         ];
     }
 

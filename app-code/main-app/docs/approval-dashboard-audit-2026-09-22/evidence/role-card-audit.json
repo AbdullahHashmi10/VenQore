@@ -1,0 +1,436 @@
+{
+    "environment": "testing",
+    "database": "amd_pos_test",
+    "total_registry_keys": 397,
+    "total_card_defs": 349,
+    "roles": {
+        "owner": {
+            "role": "owner",
+            "actual_dashboard_component": "NewDashboard",
+            "route": "/dashboard",
+            "is_legacy_view": false,
+            "configured_preset_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "sales.top_products",
+                "inventory.low_stock_count",
+                "finance.expenses_total"
+            ],
+            "configured_preset_keys_count": 9,
+            "runtime_resolved_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "sales.top_products",
+                "inventory.low_stock_count",
+                "finance.expenses_total"
+            ],
+            "runtime_resolved_keys_count": 9,
+            "unknown_sanitized_keys": [],
+            "unknown_sanitized_keys_count": 0,
+            "permission_rejected_keys": [],
+            "permission_rejected_keys_count": 0,
+            "availability_rejected_keys": [
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.top_products",
+                "inventory.low_stock_count"
+            ],
+            "availability_rejected_keys_count": 4,
+            "final_v6_eligible_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "finance.expenses_total"
+            ],
+            "final_v6_eligible_keys_count": 5,
+            "actual_legacy_props": [
+                "readings",
+                "layoutLaw",
+                "frames",
+                "dashboardId",
+                "activeFrame",
+                "frameDirty",
+                "revenue",
+                "performance",
+                "outstanding",
+                "netProfit",
+                "salesData",
+                "topSellingItems",
+                "lowStockItems",
+                "recentPurchases",
+                "recentTransactions",
+                "plSummary",
+                "bankAccounts",
+                "cashAccounts",
+                "cashData",
+                "inventoryValue",
+                "charityStats",
+                "debtors"
+            ],
+            "actual_legacy_props_count": 22
+        },
+        "admin": {
+            "role": "admin",
+            "actual_dashboard_component": "NewDashboard",
+            "route": "/dashboard",
+            "is_legacy_view": false,
+            "configured_preset_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "sales.top_products",
+                "inventory.low_stock_count",
+                "finance.expenses_total"
+            ],
+            "configured_preset_keys_count": 9,
+            "runtime_resolved_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "sales.top_products",
+                "inventory.low_stock_count",
+                "finance.expenses_total"
+            ],
+            "runtime_resolved_keys_count": 9,
+            "unknown_sanitized_keys": [],
+            "unknown_sanitized_keys_count": 0,
+            "permission_rejected_keys": [],
+            "permission_rejected_keys_count": 0,
+            "availability_rejected_keys": [
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.top_products",
+                "inventory.low_stock_count"
+            ],
+            "availability_rejected_keys_count": 4,
+            "final_v6_eligible_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "finance.expenses_total"
+            ],
+            "final_v6_eligible_keys_count": 5,
+            "actual_legacy_props": [
+                "readings",
+                "layoutLaw",
+                "frames",
+                "dashboardId",
+                "activeFrame",
+                "frameDirty",
+                "revenue",
+                "performance",
+                "outstanding",
+                "netProfit",
+                "salesData",
+                "topSellingItems",
+                "lowStockItems",
+                "recentPurchases",
+                "recentTransactions",
+                "plSummary",
+                "bankAccounts",
+                "cashAccounts",
+                "cashData",
+                "inventoryValue",
+                "charityStats",
+                "debtors"
+            ],
+            "actual_legacy_props_count": 22
+        },
+        "manager": {
+            "role": "manager",
+            "actual_dashboard_component": "NewDashboard",
+            "route": "/dashboard",
+            "is_legacy_view": false,
+            "configured_preset_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "sales.top_products",
+                "inventory.low_stock_count",
+                "finance.expenses_total"
+            ],
+            "configured_preset_keys_count": 9,
+            "runtime_resolved_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "finance.receivables",
+                "inventory.stock_value",
+                "sales.revenue_trend",
+                "sales.payment_breakdown",
+                "sales.top_products",
+                "inventory.low_stock_count",
+                "finance.expenses_total"
+            ],
+            "runtime_resolved_keys_count": 9,
+            "unknown_sanitized_keys": [],
+            "unknown_sanitized_keys_count": 0,
+            "permission_rejected_keys": [
+                "finance.net_profit",
+                "finance.receivables",
+                "finance.expenses_total"
+            ],
+            "permission_rejected_keys_count": 3,
+            "availability_rejected_keys": [
+                "inventory.stock_value",
+                "sales.top_products",
+                "inventory.low_stock_count"
+            ],
+            "availability_rejected_keys_count": 3,
+            "final_v6_eligible_keys": [
+                "sales.revenue",
+                "sales.revenue_trend",
+                "sales.payment_breakdown"
+            ],
+            "final_v6_eligible_keys_count": 3,
+            "actual_legacy_props": [
+                "readings",
+                "layoutLaw",
+                "frames",
+                "dashboardId",
+                "activeFrame",
+                "frameDirty",
+                "revenue",
+                "performance",
+                "outstanding",
+                "netProfit",
+                "salesData",
+                "topSellingItems",
+                "lowStockItems",
+                "recentPurchases",
+                "recentTransactions",
+                "plSummary",
+                "bankAccounts",
+                "cashAccounts",
+                "cashData",
+                "inventoryValue",
+                "charityStats",
+                "debtors"
+            ],
+            "actual_legacy_props_count": 22
+        },
+        "accountant": {
+            "role": "accountant",
+            "actual_dashboard_component": "Dashboards/AccountantDashboard",
+            "route": "/dashboard",
+            "is_legacy_view": true,
+            "configured_preset_keys": [
+                "finance.net_profit",
+                "finance.total_liquidity",
+                "finance.receivables",
+                "finance.payables",
+                "finance.profit_trend",
+                "finance.expenses_by_category",
+                "finance.receivables_aging",
+                "finance.balance_sheet_ok",
+                "finance.expenses_total"
+            ],
+            "configured_preset_keys_count": 9,
+            "runtime_resolved_keys": [
+                "finance.net_profit",
+                "finance.total_liquidity",
+                "finance.receivables",
+                "finance.payables",
+                "finance.profit_trend",
+                "finance.expenses_by_category",
+                "finance.receivables_aging",
+                "finance.balance_sheet_ok",
+                "finance.expenses_total"
+            ],
+            "runtime_resolved_keys_count": 9,
+            "unknown_sanitized_keys": [],
+            "unknown_sanitized_keys_count": 0,
+            "permission_rejected_keys": [],
+            "permission_rejected_keys_count": 0,
+            "availability_rejected_keys": [
+                "finance.receivables",
+                "finance.payables",
+                "finance.receivables_aging"
+            ],
+            "availability_rejected_keys_count": 3,
+            "final_v6_eligible_keys": [
+                "finance.net_profit",
+                "finance.total_liquidity",
+                "finance.profit_trend",
+                "finance.expenses_by_category",
+                "finance.balance_sheet_ok",
+                "finance.expenses_total"
+            ],
+            "final_v6_eligible_keys_count": 6,
+            "actual_legacy_props": [
+                "cashPosition",
+                "receivables",
+                "payables",
+                "plSummary",
+                "plChartData",
+                "bankAccounts",
+                "cashAccounts",
+                "recentJournalEntries",
+                "pendingJournalCount"
+            ],
+            "actual_legacy_props_count": 9
+        },
+        "purchasing_officer": {
+            "role": "purchasing_officer",
+            "actual_dashboard_component": "Dashboards/PurchasingDashboard",
+            "route": "/dashboard",
+            "is_legacy_view": true,
+            "configured_preset_keys": [
+                "purchasing.spend",
+                "purchasing.count",
+                "finance.payables",
+                "finance.paid_to_suppliers",
+                "inventory.low_stock_list",
+                "inventory.low_stock_count",
+                "party.supplier_count"
+            ],
+            "configured_preset_keys_count": 7,
+            "runtime_resolved_keys": [
+                "purchasing.spend",
+                "purchasing.count",
+                "finance.payables",
+                "finance.paid_to_suppliers",
+                "inventory.low_stock_list",
+                "inventory.low_stock_count",
+                "party.supplier_count"
+            ],
+            "runtime_resolved_keys_count": 7,
+            "unknown_sanitized_keys": [],
+            "unknown_sanitized_keys_count": 0,
+            "permission_rejected_keys": [
+                "finance.payables"
+            ],
+            "permission_rejected_keys_count": 1,
+            "availability_rejected_keys": [
+                "purchasing.spend",
+                "purchasing.count",
+                "finance.paid_to_suppliers",
+                "inventory.low_stock_list",
+                "inventory.low_stock_count",
+                "party.supplier_count"
+            ],
+            "availability_rejected_keys_count": 6,
+            "final_v6_eligible_keys": [],
+            "final_v6_eligible_keys_count": 0,
+            "actual_legacy_props": [
+                "openPurchaseOrders",
+                "pendingDeliveriesCount",
+                "reorderAlerts",
+                "supplierPayables",
+                "monthlySpend",
+                "recentOrders"
+            ],
+            "actual_legacy_props_count": 6
+        },
+        "viewer": {
+            "role": "viewer",
+            "actual_dashboard_component": "Dashboards/ViewerDashboard",
+            "route": "/dashboard",
+            "is_legacy_view": true,
+            "configured_preset_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "inventory.stock_value",
+                "party.customer_count",
+                "sales.revenue_trend",
+                "sales.top_products"
+            ],
+            "configured_preset_keys_count": 6,
+            "runtime_resolved_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "inventory.stock_value",
+                "party.customer_count",
+                "sales.revenue_trend",
+                "sales.top_products"
+            ],
+            "runtime_resolved_keys_count": 6,
+            "unknown_sanitized_keys": [],
+            "unknown_sanitized_keys_count": 0,
+            "permission_rejected_keys": [],
+            "permission_rejected_keys_count": 0,
+            "availability_rejected_keys": [
+                "inventory.stock_value",
+                "party.customer_count",
+                "sales.top_products"
+            ],
+            "availability_rejected_keys_count": 3,
+            "final_v6_eligible_keys": [
+                "sales.revenue",
+                "finance.net_profit",
+                "sales.revenue_trend"
+            ],
+            "final_v6_eligible_keys_count": 3,
+            "actual_legacy_props": [
+                "plSummary",
+                "inventoryValue"
+            ],
+            "actual_legacy_props_count": 2
+        },
+        "cashier": {
+            "role": "cashier",
+            "actual_dashboard_component": "Dashboards/CashierDashboard",
+            "route": "/dashboard",
+            "is_legacy_view": true,
+            "configured_preset_keys": [
+                "sales.revenue",
+                "sales.gross_margin_pct",
+                "staff.on_shift_count",
+                "party.customer_count",
+                "sales.live_feed",
+                "sales.payment_breakdown",
+                "sales.top_products"
+            ],
+            "configured_preset_keys_count": 7,
+            "runtime_resolved_keys": [
+                "sales.revenue",
+                "sales.gross_margin_pct",
+                "staff.on_shift_count",
+                "party.customer_count",
+                "sales.live_feed",
+                "sales.payment_breakdown",
+                "sales.top_products"
+            ],
+            "runtime_resolved_keys_count": 7,
+            "unknown_sanitized_keys": [],
+            "unknown_sanitized_keys_count": 0,
+            "permission_rejected_keys": [
+                "sales.revenue",
+                "sales.gross_margin_pct",
+                "staff.on_shift_count",
+                "party.customer_count",
+                "sales.live_feed",
+                "sales.payment_breakdown",
+                "sales.top_products"
+            ],
+            "permission_rejected_keys_count": 7,
+            "availability_rejected_keys": [],
+            "availability_rejected_keys_count": 0,
+            "final_v6_eligible_keys": [],
+            "final_v6_eligible_keys_count": 0,
+            "actual_legacy_props": [
+                "session",
+                "attendance"
+            ],
+            "actual_legacy_props_count": 2
+        }
+    }
+}

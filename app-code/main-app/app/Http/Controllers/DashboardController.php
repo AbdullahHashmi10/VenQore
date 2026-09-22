@@ -53,23 +53,39 @@ class DashboardController extends Controller
         $storeId = $membership?->tenant_id ?? app('current.tenant')?->id;
         abort_unless($storeId, 403, 'Tenant context not resolved.');
 
-        // Session totals for today (sales created by this user today)
+        $tz = app('current.tenant')?->timezone ?: config('app.timezone', 'UTC');
+        $todayStart = Carbon::now($tz)->startOfDay();
+        $todayEnd   = Carbon::now($tz)->endOfDay();
+
+        // Check if cashier has an open register shift
+        $openShift = \App\Models\RegisterShift::where('tenant_id', $storeId)
+            ->where('status', 'open')
+            ->where('opened_by', $user->id)
+            ->latest('id')
+            ->first();
+
+        if ($openShift) {
+            $salesQuery = \App\Models\Sale::where('status', 'posted')
+                ->where('tenant_id', $storeId)
+                ->where('register_shift_id', $openShift->id);
+        } else {
+            // Scope to own sales created by this cashier today in store timezone
+            $salesQuery = \App\Models\Sale::where('status', 'posted')
+                ->where('tenant_id', $storeId)
+                ->where('user_id', $user->id)
+                ->whereBetween('posted_at', [$todayStart, $todayEnd]);
+        }
+
         $session = [
-            'transaction_count' => \App\Models\Sale::where('status', 'posted')
-                ->where('tenant_id', $storeId)
-                ->whereDate('posted_at', today())
-                ->count(),
-            'session_total' => \App\Models\Sale::where('status', 'posted')
-                ->where('tenant_id', $storeId)
-                ->whereDate('posted_at', today())
-                ->sum('net_sales'),
+            'transaction_count' => (int) (clone $salesQuery)->count(),
+            'session_total'     => (float) (clone $salesQuery)->sum('net_sales'),
         ];
 
         // Attendance — find today's clock-in (from staff_attendances if table exists)
         $attendance = null;
         try {
             $attendance = \App\Models\StaffAttendance::where('user_id', $user->id)
-                ->whereDate('date', today())
+                ->whereDate('date', Carbon::now($tz)->toDateString())
                 ->first(['clock_in', 'clock_out']);
             if ($attendance) {
                 $attendance = ['clock_in_time' => $attendance->clock_in, 'is_working' => !$attendance->clock_out];
@@ -122,19 +138,21 @@ class DashboardController extends Controller
         $cashAccounts = \App\Models\BankAccount::where('account_type', 'cash')
             ->get()->map(fn($a) => ['name' => $a->bank_name ?? 'Cash', 'current_balance' => $a->v3Balance()]);
 
-        // Simple aging — real receivables from outstanding + overdue fractions
+        // Aging — honest unavailable state (B06)
         $receivables = [
             'total'          => $outstanding['receivables'],
-            'overdue_30'     => round($outstanding['receivables'] * 0.3, 2),
-            'overdue_60'     => round($outstanding['receivables'] * 0.15, 2),
-            'overdue_90'     => round($outstanding['receivables'] * 0.05, 2),
-            'overdue_90plus' => round($outstanding['receivables'] * 0.02, 2),
+            'overdue_30'     => null,
+            'overdue_60'     => null,
+            'overdue_90'     => null,
+            'overdue_90plus' => null,
+            'available'      => false,
         ];
         $payables = [
-            'total'   => $outstanding['payables'],
-            'due_7'   => round($outstanding['payables'] * 0.2, 2),
-            'due_30'  => round($outstanding['payables'] * 0.5, 2),
-            'overdue' => round($outstanding['payables'] * 0.1, 2),
+            'total'     => $outstanding['payables'],
+            'due_7'     => null,
+            'due_30'    => null,
+            'overdue'   => null,
+            'available' => false,
         ];
 
         return Inertia::render('Dashboards/AccountantDashboard', [
@@ -146,7 +164,7 @@ class DashboardController extends Controller
             'bankAccounts'         => $bankAccounts,
             'cashAccounts'         => $cashAccounts,
             'recentJournalEntries' => $recentEntries,
-            'pendingJournalCount'  => 0,
+            'pendingJournalCount'  => null,
         ]);
     }
 
@@ -238,27 +256,31 @@ class DashboardController extends Controller
         // which is the single source of truth for all role-based access control.
         $membership    = app()->bound('current.membership') ? app('current.membership') : null;
 
-        $canSeeSales     = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
-        $canSeeFinance   = $user->hasPermission('finance.transactions') || $user->hasPermission('finance.balances');
-        $canSeeReports   = $user->hasPermission('reports.summary') || $user->hasPermission('reports.financial') || $user->hasPermission('reports.stock') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.audit');
-        $canSeeInventory = $user->hasPermission('inventory.view');
+        $canSeeSales           = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
+        $canSeeFinancials      = $user->hasPermission('reports.financial');
+        $canSeeBalances        = $user->hasPermission('finance.balances');
+        $canSeeTransactions    = $user->hasPermission('finance.transactions');
+        $canSeeDebtors         = $canSeeTransactions || $canSeeBalances || $canSeeFinancials;
+        $canSeeContacts        = $user->hasPermission('parties.contact_view') || $user->hasPermission('admin.settings_manage');
+        $canSeeCharity         = $canSeeFinancials || $user->hasPermission('finance.expenses') || $canSeeTransactions;
+        $canSeeInventory       = $user->hasPermission('inventory.view');
+        $canSeeInventoryValue  = $user->hasPermission('reports.stock') || $canSeeFinancials || $canSeeBalances;
+        $canSeeReports         = $user->hasPermission('reports.summary') || $canSeeFinancials || $user->hasPermission('reports.stock') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.audit');
 
         // Performance Stats
         $performance = [];
         if ($canSeeSales) {
             $performance = [
-                'Today' => $this->getSalesStats($now->copy()->startOfDay(), $now->copy()->endOfDay()),
-                'Month' => $this->getSalesStats($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
-                'Year' => $this->getSalesStats($now->copy()->startOfYear(), $now->copy()->endOfYear()),
-                'All Time' => $this->getSalesStats(null, null),
+                'Today'    => $this->getSalesStats($now->copy()->startOfDay(), $now->copy()->endOfDay(), $canSeeFinancials),
+                'Month'    => $this->getSalesStats($now->copy()->startOfMonth(), $now->copy()->endOfMonth(), $canSeeFinancials),
+                'Year'     => $this->getSalesStats($now->copy()->startOfYear(), $now->copy()->endOfYear(), $canSeeFinancials),
+                'All Time' => $this->getSalesStats(null, null, $canSeeFinancials),
             ];
         }
 
         // Outstanding Stats (Receivables/Payables)
-        // Tries ledger first; if ledger is empty (historical import), falls back to
-        // direct party balance sums from the operational tables.
-        $outstanding = [];
-        if ($canSeeFinance) {
+        $outstanding = null;
+        if ($canSeeDebtors) {
             $outstanding = [
                 'Today'    => $this->getOutstanding(),
                 'Month'    => $this->getOutstanding(),
@@ -267,12 +289,9 @@ class DashboardController extends Controller
             ];
         }
 
-        // Net Profit Stats
-        // Uses direct table calculations (net_sales - COGS - expenses).
-        // The double-entry ledger would be more accurate but was never backfilled
-        // for historical Vyapar imports. This gives correct operational figures.
-        $netProfit = [];
-        if ($canSeeFinance) {
+        // Net Profit Stats — strictly gated by reports.financial (not finance.balances)
+        $netProfit = null;
+        if ($canSeeFinancials) {
             $netProfit = [
                 'Today'    => $this->getNetProfit($now->copy()->startOfDay(), $now->copy()->endOfDay()),
                 'Month'    => $this->getNetProfit($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
@@ -281,14 +300,10 @@ class DashboardController extends Controller
             ];
         }
 
-        // Chart Data
-        $salesData = $canSeeSales ? $this->getChartData() : [];
+        // Chart Data — profit values omitted/nulled if unauthorized
+        $salesData = $canSeeSales ? $this->getChartData($canSeeFinancials) : [];
 
-        // Top Selling Items — Step 7 (CALCULATION_LOGIC.md § 2.7)
-        // RULE: revenue column = SUM(net_amount), NOT SUM(subtotal) (gross, before discount)
-        // RULE: gross_profit   = net_revenue - FIFO COGS from sale_item_batches
-        // RULE: margin_pct     = (gross_profit / net_revenue) × 100 — never stored, always dynamic
-        // Period: current month. Sorted by net_revenue descending.
+        // Top Selling Items
         $topSellingItems = collect([]);
         if ($canSeeSales || $canSeeReports) {
             $currencySym = $tenant?->currency_symbol ?? 'Rs';
@@ -299,19 +314,19 @@ class DashboardController extends Controller
                 )
                 ->sortByDesc('net_revenue')
                 ->take(8)
-                ->map(function ($item) use ($currencySym) {
+                ->map(function ($item) use ($currencySym, $canSeeFinancials) {
                     return [
                         'id'           => $item['product_id'],
                         'name'         => $item['name'],
                         'sku'          => $item['sku'],
                         'sold'         => (int) $item['quantity'],
                         'net_revenue'  => $item['net_revenue'],
-                        'gross_profit' => $item['gross_profit'],
-                        'margin_pct'   => $item['margin_pct'],
+                        'gross_profit' => $canSeeFinancials ? $item['gross_profit'] : null,
+                        'margin_pct'   => $canSeeFinancials ? $item['margin_pct'] : null,
                         // Formatted for display
                         'revenue'      => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['net_revenue']),
-                        'profit'       => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['gross_profit']),
-                        'margin'       => $item['margin_pct'] . '%',
+                        'profit'       => $canSeeFinancials ? ($currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['gross_profit'])) : null,
+                        'margin'       => $canSeeFinancials ? ($item['margin_pct'] . '%') : null,
                         'image'        => '📦',
                     ];
                 })
@@ -325,16 +340,17 @@ class DashboardController extends Controller
         $tenantId = app('current.tenant')->id;
         $glCash = Account::where('code', '1000')->first();
         
-        if ($canSeeFinance || $canSeeSales) {
+        // Strictly require finance.transactions for general ledger transactions
+        if ($canSeeTransactions) {
             $recentTransactions = $this->getRecentTransactions($currencySym);
         }
 
         // P&L Summary
-        $plSummary = [];
-        if ($canSeeReports || $canSeeFinance) {
+        $plSummary = null;
+        if ($canSeeFinancials) {
             $plSummary = [
                 'Today' => $this->getPLSummary($now->copy()->startOfDay(), $now->copy()->endOfDay()),
-                'Week' => $this->getPLSummary($now->copy()->startOfWeek(), $now->copy()->endOfWeek()),
+                'Week'  => $this->getPLSummary($now->copy()->startOfWeek(), $now->copy()->endOfWeek()),
                 'Month' => $this->getPLSummary($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
             ];
         }
@@ -407,7 +423,7 @@ class DashboardController extends Controller
         $cashData = null;
         $cashBalance = 0.0;
 
-        if ($user->hasPermission('finance.balances')) {
+        if ($canSeeBalances) {
             $bankAccounts = BankAccount::whereNotIn('account_type', ['cash'])
                 ->whereNotIn('type', ['cash'])
                 ->get()
@@ -462,55 +478,38 @@ class DashboardController extends Controller
                     ];
                 }
             } // End if($glCash)
-    } // End if($canSeeFinance)
+        } // End if($canSeeBalances)
 
-    // Inventory Value — Phase 2.2
-    $inventoryValue = 0;
-    if ($canSeeInventory || $canSeeFinance) {
-        $inventoryValue = (new FinancialReportingService())->getInventoryValue();
-    }
+        // Inventory Value — Phase 2.2
+        $inventoryValue = $canSeeInventoryValue
+            ? (new FinancialReportingService())->getInventoryValue()
+            : null;
 
-    \Illuminate\Support\Facades\Log::info('DASHBOARD_DEBUG', [
-        'cash_balance' => $cashBalance,
-        'bank_sum'     => collect($bankAccounts)->sum('current_balance'),
-        'user_id'      => auth()->id(),
-    ]);
+        $charityStats = [
+            'today'          => $canSeeCharity ? (float) \App\Models\Expense::whereDate('date', \Carbon\Carbon::today())->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount') : null,
+            'month'          => $canSeeCharity ? (float) \App\Models\Expense::whereMonth('date', \Carbon\Carbon::now()->month)->whereYear('date', \Carbon\Carbon::now()->year)->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount') : null,
+            'default_amount' => (float)(\App\Models\Setting::where('key', 'charity_default_amount')->value('value') ?? 10),
+            'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
+        ];
 
-    $charityToday = (float) \App\Models\Expense::whereDate('date', \Carbon\Carbon::today())
-        ->whereHas('expenseCategory', function ($q) {
-            $q->where('name', 'Charity/Donations');
-        })
-        ->sum('amount');
-
-    $charityMonth = (float) \App\Models\Expense::whereMonth('date', \Carbon\Carbon::now()->month)
-        ->whereYear('date', \Carbon\Carbon::now()->year)
-        ->whereHas('expenseCategory', function ($q) {
-            $q->where('name', 'Charity/Donations');
-        })
-        ->sum('amount');
-
-    $charityStats = [
-        'today'          => $charityToday,
-        'month'          => $charityMonth,
-        'default_amount' => (float)(\App\Models\Setting::where('key', 'charity_default_amount')->value('value') ?? 10),
-        'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
-    ];
-
-    $debtors = \App\Models\Party::where('tenant_id', $tenantId)
-        ->where('type', 'customer')
-        ->where('current_balance', '>', 0)
-        ->orderByDesc('current_balance')
-        ->take(5)
-        ->get(['id', 'name', 'phone', 'current_balance'])
-        ->map(function ($p) use ($currencySym) {
-            return [
-                'id'      => $p->id,
-                'name'    => $p->name,
-                'phone'   => $p->phone,
-                'amount'  => (float) $p->current_balance,
-                'balance' => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float) $p->current_balance),
-            ];
-        });
+        $debtors = collect([]);
+        if ($canSeeDebtors) {
+            $debtors = \App\Models\Party::where('tenant_id', $tenantId)
+                ->where('type', 'customer')
+                ->where('current_balance', '>', 0)
+                ->orderByDesc('current_balance')
+                ->take(5)
+                ->get(['id', 'name', 'phone', 'current_balance'])
+                ->map(function ($p) use ($currencySym, $canSeeContacts) {
+                    return [
+                        'id'      => $p->id,
+                        'name'    => $p->name,
+                        'phone'   => $canSeeContacts ? $p->phone : null,
+                        'amount'  => (float) $p->current_balance,
+                        'balance' => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float) $p->current_balance),
+                    ];
+                });
+        }
 
     return Inertia::render('NewDashboard', [
         'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
@@ -555,35 +554,41 @@ class DashboardController extends Controller
         // would be circular; instead we inline the one additional prop NewDashboard needs.
         $tz  = $now->timezone->getName();
 
-        $canSeeSales     = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
-        $canSeeFinance   = $user->hasPermission('finance.transactions') || $user->hasPermission('finance.balances');
-        $canSeeInventory = $user->hasPermission('inventory.view');
-        $canSeeReports   = $user->hasPermission('reports.summary');
-        $tenant          = app('current.tenant');
-        $currencySym     = $tenant?->currency_symbol ?? 'Rs';
+        $canSeeSales           = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
+        $canSeeFinancials      = $user->hasPermission('reports.financial');
+        $canSeeBalances        = $user->hasPermission('finance.balances');
+        $canSeeTransactions    = $user->hasPermission('finance.transactions');
+        $canSeeDebtors         = $canSeeTransactions || $canSeeBalances || $canSeeFinancials;
+        $canSeeContacts        = $user->hasPermission('parties.contact_view') || $user->hasPermission('admin.settings_manage');
+        $canSeeCharity         = $canSeeFinancials || $user->hasPermission('finance.expenses') || $canSeeTransactions;
+        $canSeeInventory       = $user->hasPermission('inventory.view');
+        $canSeeInventoryValue  = $user->hasPermission('reports.stock') || $canSeeFinancials || $canSeeBalances;
+        $canSeeReports         = $user->hasPermission('reports.summary') || $canSeeFinancials || $user->hasPermission('reports.stock') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.audit');
+        $tenant                = app('current.tenant');
+        $currencySym           = $tenant?->currency_symbol ?? 'Rs';
 
         $performance = $canSeeSales ? [
-            'Today'    => $this->getSalesStats($now->copy()->startOfDay(), $now->copy()->endOfDay()),
-            'Month'    => $this->getSalesStats($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
-            'Year'     => $this->getSalesStats($now->copy()->startOfYear(), $now->copy()->endOfYear()),
-            'All Time' => $this->getSalesStats(null, null),
-        ] : [];
+            'Today'    => $this->getSalesStats($now->copy()->startOfDay(), $now->copy()->endOfDay(), $canSeeFinancials),
+            'Month'    => $this->getSalesStats($now->copy()->startOfMonth(), $now->copy()->endOfMonth(), $canSeeFinancials),
+            'Year'     => $this->getSalesStats($now->copy()->startOfYear(), $now->copy()->endOfYear(), $canSeeFinancials),
+            'All Time' => $this->getSalesStats(null, null, $canSeeFinancials),
+        ] : null;
 
-        $outstanding = $canSeeFinance ? [
+        $outstanding = $canSeeDebtors ? [
             'Today'    => $this->getOutstanding(),
             'Month'    => $this->getOutstanding(),
             'Year'     => $this->getOutstanding(),
             'All Time' => $this->getOutstanding(),
-        ] : [];
+        ] : null;
 
-        $netProfit = $canSeeFinance ? [
+        $netProfit = $canSeeFinancials ? [
             'Today'    => $this->getNetProfit($now->copy()->startOfDay(), $now->copy()->endOfDay()),
             'Month'    => $this->getNetProfit($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
             'Year'     => $this->getNetProfit($now->copy()->startOfYear(), $now->copy()->endOfYear()),
             'All Time' => $this->getNetProfit(null, null),
-        ] : [];
+        ] : null;
 
-        $salesData       = $canSeeSales ? $this->getChartData() : [];
+        $salesData       = $canSeeSales ? $this->getChartData($canSeeFinancials) : [];
         $topSellingItems = collect([]);
         if ($canSeeSales || $canSeeReports) {
             $topSellingItems = (new \App\Services\FinancialReportingService())
@@ -598,11 +603,11 @@ class DashboardController extends Controller
                     'sku'          => $item['sku'],
                     'sold'         => (int) $item['quantity'],
                     'net_revenue'  => $item['net_revenue'],
-                    'gross_profit' => $item['gross_profit'],
-                    'margin_pct'   => $item['margin_pct'],
+                    'gross_profit' => $canSeeFinancials ? $item['gross_profit'] : null,
+                    'margin_pct'   => $canSeeFinancials ? $item['margin_pct'] : null,
                     'revenue'      => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['net_revenue']),
-                    'profit'       => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['gross_profit']),
-                    'margin'       => $item['margin_pct'] . '%',
+                    'profit'       => $canSeeFinancials ? ($currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['gross_profit'])) : null,
+                    'margin'       => $canSeeFinancials ? ($item['margin_pct'] . '%') : null,
                     'image'        => '📦',
                 ])->values();
         }
@@ -626,7 +631,7 @@ class DashboardController extends Controller
         $glCash   = \App\Models\Account::where('code', '1000')->first();
         $recentTransactions = collect([]);
 
-        if ($canSeeFinance) {
+        if ($canSeeBalances) {
             $bankAccounts = \App\Models\BankAccount::whereNotIn('account_type', ['cash'])
                 ->whereNotIn('type', ['cash'])->get()
                 ->map(fn($a) => tap($a, fn($a) => $a->current_balance = $a->v3Balance()));
@@ -667,39 +672,41 @@ class DashboardController extends Controller
                     'transactions' => $cashTx,
                 ];
             }
+        }
 
+        if ($canSeeTransactions) {
             $recentTransactions = $this->getRecentTransactions($currencySym);
         }
 
-        $inventoryValue = ($canSeeInventory || $canSeeFinance)
+        $inventoryValue = ($canSeeInventoryValue)
             ? (new \App\Services\FinancialReportingService())->getInventoryValue()
-            : 0;
+            : null;
 
         $charityStats = [
-            'today'          => (float) \App\Models\Expense::whereDate('date', \Carbon\Carbon::today())
-                ->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount'),
-            'month'          => (float) \App\Models\Expense::whereMonth('date', \Carbon\Carbon::now()->month)
-                ->whereYear('date', \Carbon\Carbon::now()->year)
-                ->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount'),
+            'today'          => $canSeeCharity ? (float) \App\Models\Expense::whereDate('date', \Carbon\Carbon::today())->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount') : null,
+            'month'          => $canSeeCharity ? (float) \App\Models\Expense::whereMonth('date', \Carbon\Carbon::now()->month)->whereYear('date', \Carbon\Carbon::now()->year)->whereHas('expenseCategory', fn($q) => $q->where('name', 'Charity/Donations'))->sum('amount') : null,
             'default_amount' => (float)(\App\Models\Setting::where('key', 'charity_default_amount')->value('value') ?? 10),
             'enabled'        => \App\Models\Setting::where('key', 'charity_enabled')->value('value') === '1',
         ];
 
-        $debtors = \App\Models\Party::where('tenant_id', $tenantId)
-            ->where('type', 'customer')
-            ->where('current_balance', '>', 0)
-            ->orderByDesc('current_balance')
-            ->take(5)
-            ->get(['id', 'name', 'phone', 'current_balance'])
-            ->map(function ($p) use ($currencySym) {
-                return [
-                    'id'      => $p->id,
-                    'name'    => $p->name,
-                    'phone'   => $p->phone,
-                    'amount'  => (float) $p->current_balance,
-                    'balance' => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float) $p->current_balance),
-                ];
-            });
+        $debtors = collect([]);
+        if ($canSeeDebtors) {
+            $debtors = \App\Models\Party::where('tenant_id', $tenantId)
+                ->where('type', 'customer')
+                ->where('current_balance', '>', 0)
+                ->orderByDesc('current_balance')
+                ->take(5)
+                ->get(['id', 'name', 'phone', 'current_balance'])
+                ->map(function ($p) use ($currencySym, $canSeeContacts) {
+                    return [
+                        'id'      => $p->id,
+                        'name'    => $p->name,
+                        'phone'   => $canSeeContacts ? $p->phone : null,
+                        'amount'  => (float) $p->current_balance,
+                        'balance' => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float) $p->current_balance),
+                    ];
+                });
+        }
 
         return Inertia::render('NewDashboard', [
             'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
@@ -720,7 +727,7 @@ class DashboardController extends Controller
             'charityStats'       => $charityStats,
             'debtors'            => $debtors,
         ]);
-}
+    }
 
     public function home()
     {
@@ -795,16 +802,31 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function getSalesStats($start, $end)
+    private function getSalesStats($start, $end, bool $canSeeFinancials = true)
     {
         $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
         $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
+        if (!$canSeeFinancials) {
+            $sales = (float) \App\Models\Sale::where('tenant_id', app('current.tenant')->id)
+                ->where('status', 'posted')
+                ->whereBetween('posted_at', [$startStr . ' 00:00:00', $endStr . ' 23:59:59'])
+                ->sum('net_sales');
+
+            return [
+                'sales'        => $sales,
+                'gross_profit' => null,
+                'cogs'         => null,
+                'expenses'     => null,
+                'money_in'     => null,
+                'money_out'    => null,
+            ];
+        }
+
         $reportingSvc = app(\App\Services\FinancialReportingService::class);
         $pl = $reportingSvc->getProfitAndLoss($startStr, $endStr);
-        $cashFlow = $reportingSvc->getCashFlowReport($startStr, $endStr);
-
         $sales = (float) ($pl['revenue'] ?? 0.0);
+        $cashFlow = $reportingSvc->getCashFlowReport($startStr, $endStr);
         $cogs = (float) ($pl['cogs'] ?? 0.0);
         $grossProfit = (float) ($pl['gross_profit'] ?? ($sales - $cogs));
         $expenses = (float) ($pl['operating_expenses'] ?? ($pl['total_expenses'] ?? 0.0));
@@ -920,8 +942,83 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getChartData()
+    private function getChartData(bool $canSeeFinancials = true)
     {
+        $tenantId = app('current.tenant')?->id;
+        $tz = app('current.tenant')?->timezone ?: config('app.timezone', 'UTC');
+
+        if (!$canSeeFinancials) {
+            // Sales-only path: avoids full P&L / COGS calculations for unauthorized roles
+            $todayStart = Carbon::today($tz)->startOfDay();
+            $todayEnd   = Carbon::today($tz)->endOfDay();
+
+            $todayMap = DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('status', 'posted')
+                ->whereBetween('posted_at', [$todayStart, $todayEnd])
+                ->selectRaw("DATE_FORMAT(posted_at, '%H') as h, SUM(net_sales) as revenue")
+                ->groupBy('h')
+                ->pluck('revenue', 'h')
+                ->all();
+
+            $today = [];
+            for ($i = 0; $i < 24; $i++) {
+                $h = str_pad($i, 2, '0', STR_PAD_LEFT);
+                $today[] = [
+                    'name'   => "$h:00",
+                    'sales'  => (float) ($todayMap[$h] ?? 0.0),
+                    'profit' => null,
+                ];
+            }
+
+            $monthStart = Carbon::now($tz)->startOfMonth();
+            $monthToday = Carbon::now($tz);
+            $monthMap = DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('status', 'posted')
+                ->whereBetween('posted_at', [$monthStart->copy()->startOfDay(), $monthToday->copy()->endOfDay()])
+                ->selectRaw("DATE_FORMAT(posted_at, '%Y-%m-%d') as d, SUM(net_sales) as revenue")
+                ->groupBy('d')
+                ->pluck('revenue', 'd')
+                ->all();
+
+            $month = [];
+            $daysElapsed = $monthStart->diffInDays($monthToday);
+            for ($i = $daysElapsed; $i >= 0; $i--) {
+                $date = $monthToday->copy()->subDays($i);
+                $dKey = $date->format('Y-m-d');
+                $month[] = [
+                    'name'   => $date->format('d M'),
+                    'sales'  => (float) ($monthMap[$dKey] ?? 0.0),
+                    'profit' => null,
+                ];
+            }
+
+            $yearStart = Carbon::now($tz)->subMonths(11)->startOfMonth();
+            $yearEnd   = Carbon::now($tz)->endOfMonth();
+            $yearMap = DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('status', 'posted')
+                ->whereBetween('posted_at', [$yearStart, $yearEnd])
+                ->selectRaw("DATE_FORMAT(posted_at, '%Y-%m') as m, SUM(net_sales) as revenue")
+                ->groupBy('m')
+                ->pluck('revenue', 'm')
+                ->all();
+
+            $year = [];
+            for ($i = 11; $i >= 0; $i--) {
+                $date = Carbon::now($tz)->subMonths($i);
+                $mKey = $date->format('Y-m');
+                $year[] = [
+                    'name'   => $date->format('M'),
+                    'sales'  => (float) ($yearMap[$mKey] ?? 0.0),
+                    'profit' => null,
+                ];
+            }
+
+            return ['Today' => $today, 'Month' => $month, 'Year' => $year];
+        }
+
         $frs = app(\App\Services\FinancialReportingService::class);
 
         // Today (hourly)
@@ -930,22 +1027,27 @@ class DashboardController extends Controller
         for ($i = 0; $i < 24; $i++) {
             $h = str_pad($i, 2, '0', STR_PAD_LEFT);
             $row = $todayMap[$h] ?? null;
-            $today[] = ['name' => "$h:00", 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
+            $today[] = [
+                'name'   => "$h:00",
+                'sales'  => (float) ($row['revenue'] ?? 0),
+                'profit' => (float) ($row['profit'] ?? 0),
+            ];
         }
 
-        // Month (daily, current calendar month: 1st through today).
-        // CLAUDE.md "Date & Time Period Naming Conventions": "Month" must be the
-        // current calendar month, not a rolling window — must match getSalesStats()
-        // in this same controller, which already uses startOfMonth()/endOfMonth().
+        // Month (daily, current calendar month: 1st through today)
         $monthStart = Carbon::now()->startOfMonth();
         $monthToday = Carbon::now();
         $monthMap = $frs->getProfitByPeriod($monthStart->copy()->startOfDay(), $monthToday->copy()->endOfDay(), 'daily');
         $month = [];
-        $daysElapsed = $monthStart->diffInDays($monthToday); // 0-indexed offset of today within the month
+        $daysElapsed = $monthStart->diffInDays($monthToday);
         for ($i = $daysElapsed; $i >= 0; $i--) {
             $date = $monthToday->copy()->subDays($i);
             $row = $monthMap[$date->format('Y-m-d')] ?? null;
-            $month[] = ['name' => $date->format('d M'), 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
+            $month[] = [
+                'name'   => $date->format('d M'),
+                'sales'  => (float) ($row['revenue'] ?? 0),
+                'profit' => (float) ($row['profit'] ?? 0),
+            ];
         }
 
         // Year (monthly, last 12 months)
@@ -954,7 +1056,11 @@ class DashboardController extends Controller
         for ($i = 11; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
             $row = $yearMap[$date->format('Y-m')] ?? null;
-            $year[] = ['name' => $date->format('M'), 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
+            $year[] = [
+                'name'   => $date->format('M'),
+                'sales'  => (float) ($row['revenue'] ?? 0),
+                'profit' => (float) ($row['profit'] ?? 0),
+            ];
         }
 
         return ['Today' => $today, 'Month' => $month, 'Year' => $year];

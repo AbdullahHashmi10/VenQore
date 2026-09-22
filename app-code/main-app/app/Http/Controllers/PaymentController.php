@@ -54,11 +54,6 @@ class PaymentController extends Controller
 
         $today = Carbon::today();
 
-        // Normalise legacy type values in DB (one-time safe)
-        Payment::where('type', 'received')->update(['type' => 'in']);
-        Payment::where('type', 'sent')->update(['type' => 'out']);
-        DB::statement('UPDATE payments SET date = DATE(created_at) WHERE sale_id IS NOT NULL AND date != DATE(created_at)');
-
         $stats = [
             'today_in'  => Payment::where('type', 'in')->whereDate('date', $today)->sum('amount'),
             'today_out' => Payment::where('type', 'out')->whereDate('date', $today)->sum('amount'),
