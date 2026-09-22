@@ -31,6 +31,7 @@ class TenantUser extends Model
         'invited_at',
         'joined_at',
         'permissions',
+        'permission_override_mode',
         'security_pin',
     ];
 

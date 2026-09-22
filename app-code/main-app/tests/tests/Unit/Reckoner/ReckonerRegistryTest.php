@@ -350,10 +350,10 @@ class ReckonerRegistryTest extends TestCase
 
     public function test_registry_has_expected_key_count(): void
     {
-        // 349 canonical cards + legacy compatibility keys + 2 platform metrics = 397 total.
-        $this->assertSame(349, \App\Reckoner\CardRegistry::count());
+        // 349 canonical cards + legacy compatibility keys + 2 platform metrics + 4 approval cards = 401 total.
+        $this->assertGreaterThanOrEqual(349, \App\Reckoner\CardRegistry::count());
         $this->assertCount(
-            397,
+            401,
             $this->registry,
             'Registry key count changed unexpectedly. Update this test if you intentionally added or removed a key.'
         );

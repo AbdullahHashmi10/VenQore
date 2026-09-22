@@ -298,15 +298,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $boundTenantId = app()->bound('current.tenant') ? app('current.tenant')?->id : null;
 
-        if ($this->membershipResolved) {
-            if ($boundTenantId === null || ($this->resolvedMembership && (string)$this->resolvedMembership->tenant_id === (string)$boundTenantId)) {
-                return $this->resolvedMembership;
-            }
-            $this->membershipResolved = false;
-            $this->resolvedMembership = null;
-        }
-
-        // 1. If container already has active membership for this user and tenant, use it directly (0 queries)
+        // 1. If container already has active membership for this user and tenant, use it directly (0 queries, always fresh)
         if (app()->bound('current.membership')) {
             $membership = app('current.membership');
             if ($membership && (string)$membership->user_id === (string)$this->id && ($boundTenantId === null || (string)$membership->tenant_id === (string)$boundTenantId) && $membership->status === 'active') {
@@ -314,6 +306,14 @@ class User extends Authenticatable implements MustVerifyEmail
                 $this->membershipResolved = true;
                 return $membership;
             }
+        }
+
+        if ($this->membershipResolved) {
+            if ($boundTenantId === null || ($this->resolvedMembership && (string)$this->resolvedMembership->tenant_id === (string)$boundTenantId)) {
+                return $this->resolvedMembership;
+            }
+            $this->membershipResolved = false;
+            $this->resolvedMembership = null;
         }
 
         // 2. If we are in a tenant context, query/match the membership for this specific tenant ONLY.
@@ -470,12 +470,18 @@ class User extends Authenticatable implements MustVerifyEmail
                 return config('permissions.owner', ['*']);
             }
 
-            // 1. Use custom per-user permissions set by admin (non-empty array stored in pivot)
+            // 1. If explicitly set to 'inherit', force canonical role permissions
+            if ($membership->permission_override_mode === 'inherit') {
+                $role = $membership->role ?? 'viewer';
+                return config('permissions.' . $role, []);
+            }
+
+            // 2. If custom permissions are stored on the pivot (explicit 'custom' mode or non-empty permissions array)
             if (!empty($membership->permissions) && is_array($membership->permissions)) {
                 return $membership->permissions;
             }
 
-            // 2. Delegate to config/permissions.php — the CANONICAL permission map
+            // 3. Delegate to config/permissions.php — the CANONICAL permission map (default inherited mode)
             $role = $membership->role ?? 'viewer';
             return config('permissions.' . $role, []);
         }
