@@ -424,7 +424,7 @@ class SaleService
                 'posted_at'            => $data['sale_date'] ?? now(),
                 // The seller is whoever rang the sale up; a manager approval (S-011/S-044)
                 // is recorded on journal_entries.approved_by, not here.
-                'user_id'              => auth()->id() ?? $data['approved_by'] ?? 1, // added for legacy
+                'user_id'              => $data['user_id'] ?? auth()->id() ?? $data['approved_by'] ?? DB::table('tenant_users')->where('tenant_id', $tenantId)->value('user_id') ?? DB::table('users')->value('id'),
                 'created_at'           => $data['sale_date'] ?? now(),
                 'updated_at'           => now(),
             ]);

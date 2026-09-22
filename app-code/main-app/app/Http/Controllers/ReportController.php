@@ -2533,4 +2533,12 @@ class ReportController extends Controller
             'reasons' => $reasons,
         ]);
     }
+
+    public function analytics(Request $request)
+    {
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        return Inertia::render('Reports/GraphAnalytics', [
+            'store' => $tenant,
+        ]);
+    }
 }

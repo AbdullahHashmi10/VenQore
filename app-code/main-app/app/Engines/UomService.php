@@ -44,7 +44,8 @@ class UomService
         $product = DB::table('products')->where('tenant_id', $tid)->where('id', $productId)->first();
 
         // If selling in base UOM — no conversion needed
-        if ($product && strtoupper($saleUom) === strtoupper($product->base_unit ?? 'PCS')) {
+        $baseUnit = (!empty($product->base_unit)) ? $product->base_unit : ((!empty($product->unit)) ? $product->unit : 'PCS');
+        if ($product && strtoupper($saleUom) === strtoupper($baseUnit)) {
             return $saleQty;
         }
 

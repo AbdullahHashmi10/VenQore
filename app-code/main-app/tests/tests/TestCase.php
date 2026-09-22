@@ -62,6 +62,13 @@ abstract class TestCase extends BaseTestCase
                     'feature_batches' => false,
                     'feature_manufacturing' => false,
                     'business_type' => null,
+                    'ai_status' => 'none',
+                    'ai_pages_used' => 0,
+                    'ai_pages_limit' => null,
+                    'ai_queries_used' => 0,
+                    'ai_queries_limit' => null,
+                    'ai_descriptions_balance' => null,
+                    'ai_period_started_at' => null,
                 ], $attributes));
                 $this->exists = true;
             }

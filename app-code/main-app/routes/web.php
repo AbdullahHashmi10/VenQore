@@ -1860,7 +1860,18 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
     Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(['permission:sales.create,pos.checkout', \App\Http\Middleware\EnforceTransactionLimit::class])->name('sales.store');
-    // S-011 / S-044: owners/admins/managers who can approve a POS sale (POS approval modal). Before /sales/{sale}.
+    // Dedicated Trusted POS Route (Server-verified shift boundary)
+    Route::post('/pos/sales', [\App\Http\Controllers\PosSaleController::class, 'store'])->middleware(['permission:pos.checkout,sales.create', \App\Http\Middleware\EnforceTransactionLimit::class])->name('pos.sales.store');
+
+    // Approval Workflow Routes
+    Route::get('/approvals/inbox', [\App\Http\Controllers\ApprovalDocumentController::class, 'inbox'])->name('approvals.inbox');
+    Route::get('/approvals/my-submissions', [\App\Http\Controllers\ApprovalDocumentController::class, 'mySubmissions'])->name('approvals.my-submissions');
+    Route::get('/approvals/{id}', [\App\Http\Controllers\ApprovalDocumentController::class, 'show'])->name('approvals.show');
+    Route::post('/approvals/{id}/approve', [\App\Http\Controllers\ApprovalDocumentController::class, 'approve'])->name('approvals.approve');
+    Route::post('/approvals/{id}/reject', [\App\Http\Controllers\ApprovalDocumentController::class, 'reject'])->name('approvals.reject');
+    Route::post('/approvals/{id}/return', [\App\Http\Controllers\ApprovalDocumentController::class, 'returnDocument'])->name('approvals.return');
+    Route::post('/approvals/{id}/resubmit', [\App\Http\Controllers\ApprovalDocumentController::class, 'resubmit'])->name('approvals.resubmit');
+
     Route::get('/sales/approvers', [\App\Http\Controllers\SaleController::class, 'approvers'])->middleware('permission:sales.create,pos.checkout')->name('sales.approvers');
     Route::get('/attendance/status', [\App\Http\Controllers\AttendanceController::class, 'status'])->name('attendance.status');
     Route::post('/attendance/check-in', [\App\Http\Controllers\AttendanceController::class, 'checkIn'])->name('attendance.check-in');

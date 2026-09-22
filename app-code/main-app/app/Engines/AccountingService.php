@@ -183,7 +183,7 @@ class AccountingService
                 'approved_by'      => $data['approved_by']      ?? null,
                 'idempotency_key'  => $data['idempotency_key']  ?? null,
                 'party_id'         => $data['party_id']         ?? null,
-                'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? 1,
+                'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? DB::table('tenant_users')->where('tenant_id', $tenantId)->value('user_id') ?? DB::table('users')->value('id'),
                 'is_reversed'      => $data['is_reversed']      ?? 0,
                 'reversed_by'      => $data['reversed_by']      ?? null,
                 'is_reversal'      => $data['is_reversal']      ?? false,
