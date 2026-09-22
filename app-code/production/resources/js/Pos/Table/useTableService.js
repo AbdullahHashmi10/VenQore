@@ -160,6 +160,7 @@ export function useTableService({
     const [zone, setZone] = useState('all');
     const [selectedId, setSelectedId] = useState(null);
     const [busy, setBusy] = useState(false);
+    const [loaded, setLoaded] = useState(initialPositions.length > 0);
     const [, setTick] = useState(0);
 
     /* A poll must never overwrite a change that has not landed yet. One flag,
@@ -200,6 +201,8 @@ export function useTableService({
             /* A failed poll is not worth a toast. The next one is 15s away and
                the operator has lost nothing -- saying so on every dropped
                packet is how a status line becomes noise nobody reads. */
+        } finally {
+            setLoaded(true);
         }
     }, [enabled, r, applyState]);
 
@@ -376,7 +379,15 @@ export function useTableService({
         post('store.tables.merge', { from_occupancy: fromOccupancy, into_occupancy: intoOccupancy },
             'Those tables could not be merged.'), [post]);
 
+    const select = useCallback((id) => {
+        if (id === null) {
+            clearTimeout(saveTimer.current);
+        }
+        setSelectedId(id);
+    }, []);
+
     const closeTable = useCallback(async (occupancyId, force = false) => {
+        clearTimeout(saveTimer.current);
         const data = await post('store.tables.close', { occupancy_id: occupancyId, force },
             'That table could not be closed.');
         if (data) setSelectedId(null);
@@ -418,6 +429,7 @@ export function useTableService({
        forgiving: the sale is already posted, so a table left showing as open
        is a nuisance to be reported, never a reason to fail a completed sale. */
     const markSettled = useCallback(async (occupancyId, saleId, partId = null) => {
+        clearTimeout(saveTimer.current);
         try {
             const { data } = await axios.post(r('store.tables.settled'), {
                 occupancy_id: occupancyId,
@@ -436,8 +448,9 @@ export function useTableService({
 
     return {
         enabled,
+        loaded,
         positions, tickets, visible, zones, tabs, zone, setZone, kitchen, counts, lanes,
-        selected, selectedId, select: setSelectedId,
+        selected, selectedId, select,
         busy,
         refresh,
         openTable, openLane, dropCheck, prime, pushOrder, flushOrder, sendToKitchen,

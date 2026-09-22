@@ -92,6 +92,12 @@ export function applyTerms(text, map) {
 }
 
 export function useTermText() {
-    const map = usePage().props.terms ?? {};
+    let map = {};
+    try {
+        const page = usePage();
+        map = page?.props?.terms ?? {};
+    } catch (_) {
+        map = {};
+    }
     return (text) => applyTerms(text, map);
 }

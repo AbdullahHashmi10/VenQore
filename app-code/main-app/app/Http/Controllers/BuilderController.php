@@ -43,9 +43,23 @@ class BuilderController extends Controller
     {
         $tenant = app('current.tenant');
         $enabled = ModuleService::allEnabled($tenant);
+        $businessType = strtolower((string) ($tenant->business_type ?? ''));
+
+        $businesses = \App\Reckoner\CardRegistry::businesses();
+        $presets = \App\Reckoner\CardRegistry::presets();
+        $businessInfo = $businesses[$businessType] ?? null;
+        $presetKey = $businessInfo['preset'] ?? \App\Support\BusinessTypes::presetFor($businessType) ?? $businessType;
+        $presetInfo = $presets[$presetKey] ?? null;
+
+        $businessLabel = $businessInfo['label'] ?? $presetInfo['name'] ?? ($businessType ? ucfirst(str_replace('_', ' ', $businessType)) : 'General Business');
+        $recommendedModules = (array) ($businessInfo['modules'] ?? $presetInfo['modules'] ?? []);
+        $sector = $businessInfo['sector'] ?? $presetInfo['sector'] ?? 'Retail & Services';
 
         $modules = collect(config('modules', []))
-            ->map(function (array $m, string $key) use ($enabled) {
+            ->map(function (array $m, string $key) use ($enabled, $recommendedModules) {
+                $cards = (array) ($m['cards'] ?? []);
+                $cardsCount = count(\App\Reckoner\CardRegistry::moduleCards($key)) ?: count($cards);
+
                 return [
                     'key'          => $key,
                     'label'        => $m['label'] ?? ucfirst(str_replace('_', ' ', $key)),
@@ -56,16 +70,24 @@ class BuilderController extends Controller
                     'requires'     => $m['requires'] ?? [],
                     'requires_one' => $m['requires_one'] ?? [],
                     'enhances'     => $m['enhances'] ?? [],
+                    'opens'        => $m['opens'] ?? '',
+                    'aliases'      => $m['aliases'] ?? [],
+                    'cards_count'  => $cardsCount,
+                    'recommended'  => in_array($key, $recommendedModules, true),
                 ];
             })
             ->filter(fn ($m) => $m['status'] === 'live')   // never offer beta/building here — same rule ApplyConfigurationService's validator enforces
             ->values();
 
         return Inertia::render('Builder/Index', [
-            'builderModules' => $modules,
-            'groupLabels'    => ['A' => 'Catalog', 'B' => 'Sell', 'C' => 'Stock', 'D' => 'Buy', 'E' => 'Make', 'F' => 'Money', 'G' => 'Grow'],
-            'highlight'      => $request->query('add'),
-            'businessType'   => $tenant->business_type,
+            'builderModules'     => $modules,
+            'groupLabels'        => ['A' => 'Catalog', 'B' => 'Sell', 'C' => 'Stock', 'D' => 'Buy', 'E' => 'Make', 'F' => 'Money', 'G' => 'Grow'],
+            'highlight'          => $request->query('add'),
+            'businessType'       => $businessType,
+            'businessLabel'      => $businessLabel,
+            'businessSector'     => $sector,
+            'businessPreset'     => $presetKey,
+            'recommendedModules' => $recommendedModules,
         ]);
     }
 

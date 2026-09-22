@@ -83,6 +83,7 @@ import ActivityHubModal from '@/Components/ActivityHubModal';
 import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
 import { useTermText } from '@/lib/terms';
 import BottomNavBar from '@/Components/BottomNavBar';
+import KitchenPrinterAlertModal from '@/Components/Pos/KitchenPrinterAlertModal';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
  const {
@@ -460,12 +461,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  return [
  { label: 'Business Dashboard', href: 'store.dashboard', icon: <LayoutDashboard size={14} /> },
  { label: 'Point of Sale (POS)', href: 'store.pos', icon: <Monitor size={14} /> },
- /* Table service is a separate screen, and it only appears for a
+ /* Table service is NOT a separate screen any more -- it is the
+				   register wearing its Table preset. This entry survives as a
+				   shortcut that opens the POS straight onto the floor (the route
+				   redirects to /pos?view=floor). It still only appears for a
+				   business that runs tables: a counter-only shop seeing a Tables
  business that runs one. A counter-only shop seeing a Tables
  entry it can never use is the kind of noise that makes people
  stop reading a menu. */
  ...(['tables', 'both'].includes(serviceMode)
- ? [{ label: tt('Tables'), href: 'store.tables.index', icon: <Armchair size={14} /> }]
+ ? [{ label: 'Floor', href: 'store.tables.index', icon: <Armchair size={14} /> }]
  : []),
  { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
  { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
@@ -646,7 +651,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		icon: ShoppingCart,
 		// PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
 		subs: userRole === 'cashier' ? [] : [
-			{ group: 'Transactions', items: ['Orders', 'Tables', 'Floor Plan', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
+			{ group: 'Transactions', items: ['Orders', 'Floor', 'Floor Plan', 'Kitchen', 'Dispatch', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
 			{ group: 'Post-Sale', items: ['Returns History', 'Invoice Reminders', 'Recurring Invoices'] },
 			{ group: 'Config', items: ['E-Invoicing'] }
 		],
@@ -721,16 +726,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  routeParams: store ? { store_slug: store.slug } : {}
  },
  store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage', 'users.manage', 'audit')) ? {
- name: 'Administration',
- icon: ShieldCheck,
- subs: [
- { group: 'Executive', items: ['Executive Dashboard'] },
- { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
- { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
- { group: 'AI Support', items: ['Agent Inbox'] }
- ],
- route: store ? 'store.admin.dashboard' : null,
- routeParams: store ? { store_slug: store.slug } : {}
+  name: 'Administration',
+  icon: ShieldCheck,
+  subs: [
+  { group: 'Executive', items: ['Executive Dashboard'] },
+  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
+  { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] }
+  ],
+  route: store ? 'store.admin.dashboard' : null,
+  routeParams: store ? { store_slug: store.slug } : {}
  } : null,
  store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage')) ? {
  name: 'Settings',
@@ -753,8 +757,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	// When all sub-items in a top-level group are gone, the entire group hides.
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
-		'Tables': 'pos',
+		'Floor': 'pos',
 		'Floor Plan': 'pos',
+		'Kitchen': 'pos',
+		'Dispatch': 'pos',
 		'Service Jobs': 'services',
 		'Dispatch Calendar': 'services',
 		'Tools & Equipment': 'services',
@@ -851,8 +857,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 	const SUBITEM_ROUTES = {
 		'Orders': ['store.sales-orders.index', 'store.sales.index'],
-		'Tables': ['store.tables.index', 'store.tables.plan'],
+		/* `store.tables.index` redirects into the register now, so it is
+		   never the current route and matching on it left this entry
+		   permanently unhighlighted. The floor IS the POS, so it matches
+		   the POS. */
+		'Floor': ['store.pos', 'store.tables.index', 'store.tables.plan'],
 		'Floor Plan': ['store.tables.plan', 'store.tables.index'],
+		'Kitchen': ['store.restaurant.kitchen', 'restaurant.kitchen'],
+		'Dispatch': ['store.restaurant.dispatch', 'restaurant.dispatch'],
 		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
 		'Dispatch Calendar': ['store.service-jobs.calendar'],
 		'Tools & Equipment': ['store.tools.index'],
@@ -907,6 +919,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const subitemModuleVisible = (item) => {
 		const label = typeof item === 'string' ? item : item?.label;
 		if (!label) return true;
+
+		// Kitchen and Dispatch are visible ONLY when prepares_orders is active ('1')
+		if (label === 'Kitchen' || label === 'Dispatch') {
+			if (String(settings?.prepares_orders) !== '1') {
+				return false;
+			}
+		}
 
 		// 1. Module key check against enabledModuleSet
 		const owner = SUBITEM_MODULE[label];
@@ -1038,14 +1057,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  { name: 'Apps', icon: Monitor, subs: [],
  route: store ? 'store.apps' : null,
  routeParams: store ? { store_slug: store.slug } : {} },
-
- { name: 'Agent Inbox', icon: MessageSquare, subs: [],
- route: store ? 'store.admin.chatbot.inbox' : null,
- routeParams: store ? { store_slug: store.slug } : {} },
-
- { name: 'Chatbot Settings', icon: Sparkles, subs: [],
- route: store ? 'store.admin.chatbot.settings' : null,
- routeParams: store ? { store_slug: store.slug } : {} },
  ];
 
  // RBAC Permission Map
@@ -1070,8 +1081,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'Insights': ['reports'],
  'Activity Log': ['audit'],
  'Recycle Bin': ['settings'],
- 'Agent Inbox': ['settings'],
- 'Chatbot Settings': ['settings'],
  // 'Settings': ['settings'], // Removed
  // 'System': ['settings', 'audit'], // Removed
  'Overview': [],
@@ -2161,6 +2170,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 				{/* Global Toast Notifications */}
  <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
+
+ 				{/* Loud Kitchen Printer Alerts */}
+ 				<KitchenPrinterAlertModal />
 
  {/* Global Style Injections for Mobile FABs Drawer */}
  <style>{`

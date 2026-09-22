@@ -22,11 +22,13 @@
    this screen answers is not "what happened" but "where should I walk".
    ========================================================================== */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-    Users, Clock, CircleDot, Plus, ShoppingBag, Bike, AlertTriangle, Phone,
+    Users, Clock, CircleDot, Plus, ShoppingBag, Bike, AlertTriangle, Phone, Calendar,
 } from 'lucide-react';
 import { STATES, alertAge } from './useTableService';
+import { DeliveryChip, isLate } from './Delivery';
+import ReservationModal from './ReservationModal';
 import { useTermText } from '@/lib/terms';
 
 /* Minutes since something happened, said the way a person says it. A waiter
@@ -138,6 +140,11 @@ function TableCard({ p, selected, onPick, money, variant, now }) {
 /* ── A LANE TICKET ───────────────────────────────────────────────────── */
 function TicketCard({ t, selected, onPick, money, variant, now }) {
     const alert = alertAge(t, now);
+    /* A delivery past its promised time is an alert in exactly the same sense
+       as a table that has been waiting to pay — something a human has to do
+       something about. It reads through the same `data-alert` channel rather
+       than a second red of its own. */
+    const lateRun = isLate(t.delivery);
     const due = Number(t.order_total) || 0;
     const unsent = Number(t.unsent) || 0;
     const Icon = LANE_ICON[t.order_type] || ShoppingBag;
@@ -150,9 +157,10 @@ function TicketCard({ t, selected, onPick, money, variant, now }) {
             data-tone={toneOf(t)}
             data-selected={selected ? '1' : '0'}
             data-variant={variant}
-            data-alert={alert ? '1' : '0'}
+            data-alert={(alert || lateRun) ? '1' : '0'}
             aria-pressed={selected}
-            aria-label={`${t.order_type} ${t.code}${due ? `, ${money(due)} due` : ''}`}
+            aria-label={`${t.order_type} ${t.code}${due ? `, ${money(due)} due` : ''}${
+                t.delivery ? `, ${t.delivery.status}${lateRun ? ', past its promised time' : ''}` : ''}`}
         >
             <span className="vqt-table-code vqt-ticket-code">
                 <Icon size={12} aria-hidden="true" />
@@ -176,6 +184,17 @@ function TicketCard({ t, selected, onPick, money, variant, now }) {
                     a driver walking back to ask. */}
                 {t.order_type === 'delivery' && t.address && (
                     <span className="vqt-ticket-addr vq-clip">{t.address}</span>
+                )}
+                {/* Where it has GOT to, and for how long. A dispatch screen
+                    showing status without duration is decoration: "on the way"
+                    is not information, "on the way for 35 minutes" is. */}
+                {t.delivery && (
+                    <span className="vqt-ticket-run">
+                        <DeliveryChip delivery={t.delivery} compact={variant === 'list'} />
+                        {t.delivery.rider && (
+                            <span className="vqt-ticket-rider vq-clip">{t.delivery.rider}</span>
+                        )}
+                    </span>
                 )}
             </span>
 
@@ -210,11 +229,13 @@ export default function FloorPane({
     /* 'map' | 'list' — the engine's decision, never this component's */
     variant = 'map',
     embedded = false,
+    storeSlug = null,
     /* Passed in rather than read here so every card in one paint agrees on
        what time it is, and so a parent tick re-sorts the whole floor at once. */
     now = Date.now(),
 }) {
     const tt = useTermText();
+    const [showReservations, setShowReservations] = useState(false);
     const ordered = useMemo(() => {
         /* SORT ORDER IS THE FEATURE.
 
@@ -246,7 +267,7 @@ export default function FloorPane({
             data-pane="floor"
         >
             {!embedded && (
-                <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
+                <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line" style={{ display: 'flex', alignItems: 'center' }}>
                     <Users size={15} className="text-brand-500 dark:text-brand-400" />
                     <span>Floor</span>
                     {counts?.alerts > 0 && (
@@ -255,6 +276,31 @@ export default function FloorPane({
                             {counts.alerts}
                         </span>
                     )}
+
+                    <button
+                        type="button"
+                        onClick={() => setShowReservations(true)}
+                        className="vqt-icon-btn"
+                        style={{
+                            marginLeft: '8px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: 'rgba(59,130,246,0.1)',
+                            color: '#2563eb',
+                            border: '1px solid rgba(59,130,246,0.2)',
+                            cursor: 'pointer',
+                        }}
+                        title="View reservations and waitlist"
+                    >
+                        <Calendar size={12} />
+                        <span>Bookings</span>
+                    </button>
+
                     <span className="vq-num ml-auto text-2xs opacity-80 font-bold">
                         {counts ? `${counts.open} open · ${counts.free} free` : ''}
                     </span>
@@ -353,6 +399,15 @@ export default function FloorPane({
                     )}
                 </footer>
             )}
+
+            {showReservations && (
+                <ReservationModal
+                    storeSlug={storeSlug}
+                    positions={positions}
+                    onClose={() => setShowReservations(false)}
+                />
+            )}
         </section>
     );
 }
+

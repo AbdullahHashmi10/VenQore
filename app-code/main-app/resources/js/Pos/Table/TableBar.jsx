@@ -19,6 +19,7 @@ import {
     X, Check, Minus, Plus, ChevronLeft, Utensils, ShoppingBag, Bike,
 } from 'lucide-react';
 import { ORDER_TYPES } from './useTableService';
+import { AddressPicker, DeliveryFields } from './Delivery';
 import { useTermText } from '@/lib/terms';
 
 const TYPE_ICON = { dine_in: Utensils, takeaway: ShoppingBag, delivery: Bike };
@@ -119,28 +120,87 @@ export function SeatDialog({ position, onCancel, onConfirm, busy }) {
    address or the driver walks back to ask. Both are optional -- a queue at
    lunchtime does not stop for data entry, and the ticket number alone is a
    perfectly good name. So nothing here is required, and Enter submits. */
-export function NewTicketDialog({ orderType, onCancel, onConfirm, busy }) {
-    const [customerName, setCustomerName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [address, setAddress] = useState('');
+/* ── Opening a bag or a run ──────────────────────────────────────────────
+   A takeaway needs a name to call across a counter. A delivery needs an
+   address somebody can find in the dark, an instruction for the door, a fare,
+   a rider and a promise about when — so the two are the same dialog with very
+   different bodies, and the delivery body is the shared one from Delivery.jsx
+   so that opening a ticket and editing one can never ask different questions.
+
+   NOTHING IS REQUIRED EXCEPT AN ADDRESS ON A DELIVERY.
+   A ticket gets a number either way, and a counter mid-rush must be able to
+   take the order first and chase the details after. But a delivery with no
+   address is a bag nobody can deliver, so that one field is held. */
+export function NewTicketDialog({ orderType, onCancel, onConfirm, busy, storeSlug }) {
     const isDelivery = orderType === 'delivery';
     const Icon = isDelivery ? Bike : ShoppingBag;
 
-    const submit = () => onConfirm({
-        customerName: customerName.trim() || null,
-        phone: phone.trim() || null,
-        address: address.trim() || null,
+    const [v, setV] = useState({
+        customerName: '',
+        phone: '',
+        address: '',
+        deliveryNote: '',
+        deliveryFee: '',
+        etaMinutes: isDelivery ? '30' : '',
+        rider: '',
+        riderId: null,
+        paymentMethod: 'cash',
+        partyId: null,
+        saveToCustomer: false,
     });
+    const set = (k, val) => setV(f => ({ ...f, [k]: val }));
+    const [touched, setTouched] = useState(false);
+
+    const addressMissing = isDelivery && v.address.trim() === '';
+
+    /* Picking a known customer fills three fields at once and remembers WHICH
+       customer, so the address written back later lands on the right record
+       rather than creating a second one with the same phone number. */
+    const pick = (m) => setV(f => ({
+        ...f,
+        customerName: m.name || f.customerName,
+        phone: m.phone || f.phone,
+        address: m.address || f.address,
+        partyId: m.party_id ?? null,
+        saveToCustomer: false,
+    }));
+
+    const submit = () => {
+        setTouched(true);
+        if (addressMissing) return;
+        onConfirm({
+            customerName: v.customerName.trim() || null,
+            phone: v.phone.trim() || null,
+            address: v.address.trim() || null,
+            partyId: v.partyId,
+            deliveryNote: isDelivery ? (v.deliveryNote.trim() || null) : null,
+            deliveryFee: isDelivery && v.deliveryFee !== '' ? Number(v.deliveryFee) : null,
+            rider: isDelivery ? (v.rider.trim() || null) : null,
+            rider_id: isDelivery ? (v.riderId || null) : null,
+            payment_method: isDelivery ? (v.paymentMethod || 'cash') : null,
+            etaMinutes: isDelivery && v.etaMinutes !== '' ? Number(v.etaMinutes) : null,
+            saveToCustomer: Boolean(isDelivery && v.partyId && v.saveToCustomer),
+        });
+    };
 
     return (
         <div className="vqt-modal-scrim" onMouseDown={onCancel}>
             <div
-                className="vqt-modal bg-surface border border-line"
+                className={`vqt-modal bg-surface border border-line${isDelivery ? ' vqt-modal-wide' : ''}`}
                 role="dialog"
                 aria-modal="true"
                 aria-label={`New ${isDelivery ? 'delivery' : 'takeaway'} ticket`}
                 onMouseDown={e => e.stopPropagation()}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
+                /* Enter submits from a single-line field only. On a delivery
+                   the address and the instructions are textareas, where Enter
+                   is a new line and stealing it loses the second line of an
+                   address. */
+                onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        submit();
+                    }
+                }}
             >
                 <header className="vqt-modal-h">
                     <Icon size={16} className="text-brand-600" aria-hidden="true" />
@@ -153,19 +213,22 @@ export function NewTicketDialog({ orderType, onCancel, onConfirm, busy }) {
                 </header>
 
                 <p className="vqt-modal-note">
-                    All optional. The ticket gets a number either way — a name just makes
-                    it easier to call out.
+                    {isDelivery
+                        ? 'The ticket gets a number either way. The address is the one thing it cannot go out without.'
+                        : 'All optional. The ticket gets a number either way — a name just makes it easier to call out.'}
                 </p>
 
                 <div className="vqt-modal-b">
+                    {isDelivery && <AddressPicker storeSlug={storeSlug} onPick={pick} />}
+
                     <label className="vqt-field vqt-field-stacked">
                         <span className="vqt-field-l">Name</span>
                         <input
                             className="vqt-input"
-                            value={customerName}
-                            onChange={e => setCustomerName(e.target.value)}
-                            placeholder="Who is collecting"
-                            autoFocus
+                            value={v.customerName}
+                            onChange={e => set('customerName', e.target.value)}
+                            placeholder={isDelivery ? 'Who it is going to' : 'Who is collecting'}
+                            autoFocus={!isDelivery}
                         />
                     </label>
 
@@ -173,30 +236,47 @@ export function NewTicketDialog({ orderType, onCancel, onConfirm, busy }) {
                         <span className="vqt-field-l">Phone</span>
                         <input
                             className="vqt-input vq-num"
-                            value={phone}
-                            onChange={e => setPhone(e.target.value)}
-                            placeholder="Optional"
+                            value={v.phone}
+                            onChange={e => set('phone', e.target.value)}
+                            placeholder={isDelivery ? 'For the rider' : 'Optional'}
                             inputMode="tel"
                         />
                     </label>
 
                     {isDelivery && (
-                        <label className="vqt-field vqt-field-stacked">
-                            <span className="vqt-field-l">Address</span>
-                            <textarea
-                                className="vqt-input vqt-textarea"
-                                value={address}
-                                onChange={e => setAddress(e.target.value)}
-                                placeholder="Where it is going"
-                                rows={2}
-                            />
-                        </label>
+                        <>
+                            <DeliveryFields v={v} set={set} storeSlug={storeSlug} />
+
+                            {touched && addressMissing && (
+                                <p className="vqt-modal-err" role="alert">
+                                    A delivery needs an address.
+                                </p>
+                            )}
+
+                            {v.partyId && v.address.trim() !== '' && (
+                                <label className="vqt-field vqt-field-inline">
+                                    <input
+                                        type="checkbox"
+                                        checked={v.saveToCustomer}
+                                        onChange={e => set('saveToCustomer', e.target.checked)}
+                                    />
+                                    <span className="vqt-field-l">
+                                        Save this address to the customer record
+                                    </span>
+                                </label>
+                            )}
+                        </>
                     )}
                 </div>
 
                 <footer className="vqt-modal-f">
                     <button type="button" className="vqt-btn" onClick={onCancel}>Cancel</button>
-                    <button type="button" className="vqt-btn vqt-btn-go" disabled={busy} onClick={submit}>
+                    <button
+                        type="button"
+                        className="vqt-btn vqt-btn-go"
+                        disabled={busy}
+                        onClick={submit}
+                    >
                         <Check size={16} />
                         Open ticket
                     </button>

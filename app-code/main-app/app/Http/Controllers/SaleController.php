@@ -79,6 +79,8 @@ class SaleController extends Controller
             // is checked and dropped; it is never stored or logged.
             'approved_by'           => 'nullable|string|max:64',
             'approval_pin'          => 'nullable|string|max:20',
+            'register_shift_id'     => 'nullable',
+            'register_id'           => 'nullable|string|max:100',
         ]);
 
         // ── L038: Idempotency protection ────────────────────────────────────
@@ -357,12 +359,26 @@ class SaleController extends Controller
                 ? (float) $request->amount_paid
                 : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
-            $changeReturn = (!$addToLedger && $tendered > $invoiceTotal) ? ($tendered - $invoiceTotal) : 0;
+            $shiftId = $request->input('register_shift_id');
+            if (!$shiftId) {
+                $shiftId = \App\Models\RegisterShift::where('tenant_id', app('current.tenant')->id)
+                    ->where('status', 'open')
+                    ->where(function ($q) use ($request) {
+                        if ($request->filled('register_id')) {
+                            $q->where('register_id', $request->register_id);
+                        } else {
+                            $q->where('opened_by', Auth::id());
+                        }
+                    })
+                    ->latest('id')
+                    ->value('id');
+            }
 
-            $sale = Sale::withoutEvents(function () use ($request, $subtotalGross, $totalTax, $globalDiscount, $invoiceTotal, $totalItemDiscounts, $netSales, $deliveryCharge, $extraCharge, $serviceCharge, $tipAmount, $tendered, $changeReturn, $roundOff) {
+            $sale = Sale::withoutEvents(function () use ($request, $subtotalGross, $totalTax, $globalDiscount, $invoiceTotal, $totalItemDiscounts, $netSales, $deliveryCharge, $extraCharge, $serviceCharge, $tipAmount, $tendered, $changeReturn, $roundOff, $shiftId) {
                 return Sale::create([
                     'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
                     'tenant_id'            => app('current.tenant')->id,
+                    'register_shift_id'    => $shiftId,
                     'reference_number'     => \App\Services\SequenceService::generateTransactionNumber('SAL'),
                     'idempotency_key'      => $request->header('Idempotency-Key') ?: $request->input('idempotency_key'),
                     'source'               => $request->source === 'pos' ? 'pos' : 'manual',

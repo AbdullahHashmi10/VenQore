@@ -216,7 +216,13 @@ class TableServiceController extends Controller
             'party_id'                  => 'nullable|integer',
         ]);
 
-        $occ = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json([
+                'message' => 'Table session is closed.',
+                'closed'  => true,
+            ], 200);
+        }
         $session = $occ->session_data ?? [];
 
         // Settled rows are taken from the stored session, never from the request:
@@ -380,7 +386,10 @@ class TableServiceController extends Controller
             'force'        => 'nullable|boolean',
         ]);
 
-        $occ = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json($this->floorState($tenant->id));
+        }
 
         // The guard is about money that would be LOST, so it asks the same
         // helper everything else asks: what is still owed. A table whose lines
@@ -562,7 +571,14 @@ class TableServiceController extends Controller
             'part_id'      => 'nullable',
         ]);
 
-        $occ     = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json([
+                'ok'              => true,
+                'closed'          => true,
+                'remaining_total' => 0.0,
+            ]);
+        }
         $session = $occ->session_data ?? [];
         $pending = $session['pending_settle'] ?? null;
         $partId  = isset($data['part_id']) ? (string) $data['part_id'] : null;
@@ -1326,7 +1342,13 @@ class TableServiceController extends Controller
 
     private function ownedOccupancy(int $tenantId, int $id): Occupancy
     {
-        return Occupancy::where('tenant_id', $tenantId)->whereNull('closed_at')->findOrFail($id);
+        $occ = Occupancy::where('tenant_id', $tenantId)->whereNull('closed_at')->find($id);
+        if (!$occ) {
+            abort(response()->json([
+                'message' => "Table or occupancy session #{$id} is no longer active or does not exist.",
+            ], 404));
+        }
+        return $occ;
     }
 
     /**

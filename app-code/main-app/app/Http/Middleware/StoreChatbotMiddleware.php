@@ -15,29 +15,10 @@ class StoreChatbotMiddleware
             abort(403, 'Unauthorized.');
         }
 
-        if ($user->isPlatformStaff()) {
+        if ($user->isPlatformStaff() || $user->isPlatformAdmin()) {
             return $next($request);
         }
 
-        $tenant = app('current.tenant');
-        if ($tenant) {
-            $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
-                ->where('user_id', $user->id)
-                ->where('status', 'active')
-                ->first();
-
-            if ($membership) {
-                // Strictly require owner or admin membership status for any write modifications
-                if ($request->isMethod('POST') || $request->isMethod('PUT') || $request->isMethod('PATCH') || $request->isMethod('DELETE')) {
-                    if (!in_array($membership->role, ['owner', 'admin'])) {
-                        abort(403, 'Unauthorized. Only store owners or administrators can modify chatbot settings.');
-                    }
-                }
-
-                return $next($request);
-            }
-        }
-
-        abort(403, 'Unauthorized.');
+        abort(403, 'Unauthorized. The chatbot agent console is reserved strictly for Platform Administrators and Support Staff.');
     }
 }

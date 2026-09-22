@@ -340,14 +340,29 @@
     display: grid;
     grid-auto-flow: column;
     grid-template-rows: repeat(var(--vq-band-rows, 1), minmax(0, 1fr));
-    grid-auto-columns: minmax(150px, 200px);
+    grid-auto-columns: minmax(158px, 188px);
     gap: 10px;
     overflow-x: auto;
     overflow-y: hidden;
     padding: 10px;
+    /* The last tile used to be sliced flat by the container edge with nothing
+       to say there was more to the right — the same failure §10 already fixes
+       for the cart, where cashiers were missing lines at the fold. The end
+       padding lets the final tile clear the edge; the mask turns the slice
+       into a fade that reads as "continues". */
+    padding-inline-end: 20px;
     min-height: 0;
     scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 10px;
+    scroll-behavior: smooth;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12px,
+                                        #000 calc(100% - 20px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 12px,
+                                        #000 calc(100% - 20px), transparent 100%);
 }
+.vq-tiles-band > *,
+.vq-pills-band > * { scroll-snap-align: start; }
 .vq-tiles-band[data-rows='2'] { --vq-band-rows: 2; }
 .vq-tiles-band[data-rows='3'] { --vq-band-rows: 3; }
 
@@ -385,8 +400,16 @@
     overflow-x: auto;
     overflow-y: hidden;
     padding: 10px;
+    padding-inline-end: 20px;
     min-height: 0;
     scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 10px;
+    scroll-behavior: smooth;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12px,
+                                        #000 calc(100% - 20px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 12px,
+                                        #000 calc(100% - 20px), transparent 100%);
 }
 .vq-pills-band[data-rows='2'] { --vq-band-rows: 2; }
 .vq-pills-band[data-rows='3'] { --vq-band-rows: 3; }
@@ -459,7 +482,10 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    /* Was `space-between`, which left a hole in the middle of a short-named
+       tile — "Roasted Almonds 500g" and "Basmati Rice Super Kernel 5kg" were
+       different shapes. The reserved two-line name owns the slack instead. */
+    justify-content: flex-start;
     gap: 8px;
     padding: 12px;
     text-align: left;
@@ -474,11 +500,17 @@
                 transform var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1));
 }
 
+/* Under vertical pressure the NAME gives up lines; the foot never does.
+   Without these the flex box shrinks whichever child it likes and the clip
+   takes the price — the one number on a tile that cannot be guessed. */
 .vq-tile-top {
     display: flex;
     align-items: flex-start;
     gap: 8px;
     min-width: 0;
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .vq-tile-thumb {
@@ -498,6 +530,18 @@
 
 .vq-tile-id { min-width: 0; flex: 1 1 auto; display: block; }
 
+/* THE CLAMP HERE WAS INERT, AND THAT IS WHAT WAS CUTTING THE NAMES.
+   `.vq-clip-2` (§ above) sets `display: -webkit-box` so `-webkit-line-clamp`
+   can bite. This rule re-declared `display: block` at EQUAL specificity and
+   LATER in the file, so source order silently won and the clamp never applied:
+   every product name ran to three or four lines, ate the tile's whole row, and
+   pushed the stock/price foot into the `overflow: hidden` above.
+
+   The clamp is rebuilt on a normal block with max-height rather than restoring
+   -webkit-box, because a -webkit-box ignores floats — and the float below is
+   what keeps the in-cart chip off the first line. The soft fade replaces an
+   ellipsis: at 12px it says "there is more name" without spending three
+   character cells saying it. */
 .vq-tile-name {
     display: block;
     font-size: var(--vq-t-sm);
@@ -505,6 +549,31 @@
     line-height: 1.3;
     color: var(--vq-text, #17201b);
     letter-spacing: -.006em;
+
+    max-height: calc(2 * 1.3em);
+    /* RESERVED, not merely allowed: a row whose feet sit at four different
+       heights reads as broken alignment, and the eye scans a price COLUMN. */
+    min-height: calc(2 * 1.3em);
+    overflow: hidden;
+    /* Word boundaries first. `anywhere` would break mid-word on a narrow
+       tile — "Chargin / g" — which is the other half of what looked cut. */
+    overflow-wrap: break-word;
+    word-break: normal;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(2 * 1.3em - 6px), transparent);
+            mask-image: linear-gradient(to bottom, #000 calc(2 * 1.3em - 6px), transparent);
+}
+
+/* The in-cart chip is absolutely positioned into the tile's top-right corner,
+   which is exactly where the first line of the name ends — "Fast Charging"
+   rendered as "Fast Chargin" with the g underneath the chip. This shim
+   reserves that corner on the FIRST LINE ONLY, so line two keeps the full
+   width. Padding would have cost both lines, and on a 160px tile that is the
+   difference between a readable name and an abbreviation. */
+.vq-tile[data-incart='1'] .vq-tile-name::before {
+    content: '';
+    float: right;
+    width: 26px;
+    height: 1.3em;
 }
 .vq-tile:hover .vq-tile-name { color: var(--vq-accent-text, #076b5e); }
 
@@ -533,6 +602,7 @@
     padding-top: 8px;
     border-top: 1px solid var(--vq-line-soft, #e6ece8);
     min-width: 0;
+    flex: 0 0 auto;
 }
 
 .vq-tile-stock {

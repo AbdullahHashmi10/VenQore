@@ -301,6 +301,11 @@ export default function RegisterSettings({
     /* geometry */
     presets = [],
     presetId,
+    /* Whether the business ALREADY runs table service. The Table preset is
+       shown either way — picking it is what turns it on — so this only
+       decides the wording under the grid. */
+    tablesAvailable = false,
+    canManageStore = false,
     composition,
     layout,
     onApplyPreset,
@@ -309,6 +314,7 @@ export default function RegisterSettings({
 
     /* store-wide */
     serviceMode = 'counter', setServiceMode,
+    preparesOrders = false, setPreparesOrders,
     serviceCharge = 0, setServiceCharge,
     onOpenFloorPlan,
 
@@ -514,11 +520,22 @@ export default function RegisterSettings({
                             <section className="space-y-2.5">
                                 <Eyebrow>Start from</Eyebrow>
                                 <p className="text-2xs text-ink-muted leading-relaxed">
-                                    Six starting points, not six fixed layouts. Pick the closest one,
+                                    Starting points, not fixed layouts. Pick the closest one,
                                     then change anything below — you are still inside the law.
                                 </p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {presets.filter(p => (p.terminal || 'counter') === terminal).map(p => {
+                                    {presets
+                                        /* EVERY PRESET, ALWAYS — INCLUDING TABLE.
+                                           It used to be filtered by the terminal you happened
+                                           to be on, so the Table card was reachable only from
+                                           the page that had already applied it. Then it was
+                                           filtered by `service_mode`, which hid it from every
+                                           shop that had not already found and flipped a store
+                                           setting somewhere else. Both are the same mistake:
+                                           the register had a floor and no way to ask for one.
+                                           It is a shape like the other seven, and choosing it
+                                           is what turns table service on. */
+                                        .map(p => {
                                         const active = presetId === p.id;
                                         return (
                                             <button
@@ -534,6 +551,13 @@ export default function RegisterSettings({
                                             >
                                                 <span className="flex items-center gap-1.5">
                                                     <span className="text-xs font-bold text-ink">{p.name}</span>
+                                                    {p.terminal === 'table' && (
+                                                        <span className="text-4xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded
+                                                                         bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300
+                                                                         border border-brand-200/70 dark:border-brand-900/60 shrink-0">
+                                                            Floor
+                                                        </span>
+                                                    )}
                                                     {active && <Check size={13} className="text-brand-600 dark:text-brand-400 shrink-0" />}
                                                 </span>
                                                 <span className="mt-1 block text-3xs text-ink-muted leading-snug line-clamp-2">
@@ -543,6 +567,15 @@ export default function RegisterSettings({
                                         );
                                     })}
                                 </div>
+                                <p className="text-2xs text-ink-muted leading-relaxed">
+                                    <b className="text-ink-secondary">Table</b> turns this register into the floor —
+                                    tables, tickets, splitting and transfers — without leaving the page or
+                                    losing what is in the cart. Switch back any time; each shape remembers
+                                    its own widths.
+                                    {!tablesAvailable && (canManageStore
+                                        ? ' Picking it also turns table service on for the store, alongside counter service.'
+                                        : ' Table service is a store-wide setting — an owner or manager has to turn it on.')}
+                                </p>
                             </section>
 
                             <section className="space-y-2.5">
@@ -996,7 +1029,20 @@ export default function RegisterSettings({
                     {tab === 'service' && (
                         <section className="space-y-2.5">
                             <Eyebrow>How this business serves</Eyebrow>
-                            <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch]">
+
+                            <Field
+                                title={tt('This shop prepares orders before handing them over')}
+                                hint={tt('Turns on kitchen tickets. A restaurant, café or bakery wants this; a shop that sells what is already on the shelf does not.')}
+                            >
+                                <Toggle
+                                    checked={Boolean(preparesOrders)}
+                                    onChange={setPreparesOrders}
+                                    label={tt('Kitchen preparation')}
+                                    tone="brand"
+                                />
+                            </Field>
+
+                            <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch] pt-1">
                                 {tt('This is the one switch that changes what the register IS, rather than how it looks. A counter till sells to whoever is standing there. A table service register makes the TABLE the unit of work — the floor becomes the pane the shift starts from, an order belongs to a table rather than to a queue, and Hold disappears, because a table already is a held sale.')}
                             </p>
 

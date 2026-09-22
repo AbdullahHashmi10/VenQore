@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WorkOrder;
 use App\Models\Position;
 use App\Models\Occupancy;
+use App\Models\Setting;
 use App\Engines\OccupancyEngine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -38,18 +39,8 @@ class RestaurantDashboardController extends Controller
      */
     public function index(Request $request): Response
     {
+        $this->ensureRestaurantEnabled();
         $tenant = app('current.tenant');
-
-        /* NO DEMO SEED HERE.
-           This used to write five positions on first view — two of them carrying
-           open occupancies worth 45.50 and 82.00 — into the tenant's LIVE data.
-           Not a fixture: real rows, in the real floor, that the real floor screen
-           then showed as two occupied tables owing money nobody had ordered, and
-           that a real owner had to delete by hand. A demo belongs in a seeder a
-           human runs, never in a GET.
-
-           The floor is seeded in exactly one place now — TableServiceController::
-           seedIfEmpty(), which creates EMPTY tables and nothing else. */
 
         $positions = Position::with('activeOccupancy')
             ->where('tenant_id', $tenant->id)
@@ -73,13 +64,10 @@ class RestaurantDashboardController extends Controller
 
     /**
      * Kitchen Display System (KDS) order queue view.
-     *
-     * NO DEMO TICKET HERE either. Opening this page used to write a Margherita
-     * Pizza and two Iced Lattes into the tenant's real ticket queue, which a
-     * kitchen then had to bump before it could see its actual orders.
      */
     public function kitchen(Request $request): Response
     {
+        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
 
         return Inertia::render('Restaurant/Kitchen', [
@@ -90,16 +78,16 @@ class RestaurantDashboardController extends Controller
 
     /**
      * The same queue as JSON, for polling.
-     *
-     * The page renders from a prop on first paint and from this on every poll,
-     * so the two MUST agree on the shape — which is why both go through
-     * ticketShape() rather than one of them handing back raw models.
      */
     public function kitchenState(Request $request): JsonResponse
     {
+        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
 
-        return response()->json(['orders' => $this->kitchenQueue($tenant->id)]);
+        return response()->json([
+            'orders'         => $this->kitchenQueue($tenant->id),
+            'eighty_six_ids' => json_decode(Setting::where('key', 'pos_86_products')->value('value') ?? '[]', true) ?: [],
+        ]);
     }
 
     /**
@@ -111,6 +99,7 @@ class RestaurantDashboardController extends Controller
      */
     public function bump(Request $request, $id): JsonResponse
     {
+        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
         $order  = WorkOrder::where('tenant_id', $tenant->id)->findOrFail($id);
 
@@ -139,6 +128,7 @@ class RestaurantDashboardController extends Controller
      */
     public function recall(Request $request, $id): JsonResponse
     {
+        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
         $order  = WorkOrder::where('tenant_id', $tenant->id)->findOrFail($id);
 
@@ -200,6 +190,7 @@ class RestaurantDashboardController extends Controller
      */
     public function updateOrderStatus(Request $request, $id): JsonResponse|RedirectResponse
     {
+        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
         $request->validate([
             'status' => 'required|string|in:pending,preparing,ready,served,cancelled',
@@ -302,8 +293,18 @@ class RestaurantDashboardController extends Controller
 
     private function kitchenQueue(int $tenantId): array
     {
+        $cutoff = now()->subHours(4);
+
         return WorkOrder::where('tenant_id', $tenantId)
+            ->where(function ($q) use ($cutoff) {
+                $q->whereIn('status', ['pending', 'preparing', 'ready'])
+                  ->orWhere(function ($q2) use ($cutoff) {
+                      $q2->where('status', 'served')
+                         ->where('fired_at', '>=', $cutoff);
+                  });
+            })
             ->orderBy('id', 'desc')
+            ->limit(200)
             ->get()
             ->map(fn (WorkOrder $o) => $this->ticketShape($o))
             ->values()->all();
@@ -323,6 +324,7 @@ class RestaurantDashboardController extends Controller
         return [
             'id'                => $order->id,
             'kind'              => $order->kind,
+            'order_type'        => $order->order_type ?? 'dine_in',
             'order_number'      => $order->order_number,
             'table_number'      => $order->position_code,
             'position_code'     => $order->position_code,
@@ -340,6 +342,136 @@ class RestaurantDashboardController extends Controller
             'bumped_at'         => $order->bumped_at?->toIso8601String(),
             'created_at'        => $order->created_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Kitchen Performance Analytics (T4.1 / R26).
+     *
+     * Computes real preparation times by station and hour of day from
+     * fired_at and bumped_at timestamps.
+     */
+    public function kitchenPerformance(Request $request): JsonResponse
+    {
+        $this->ensurePreparesOrders();
+        $tenant = app('current.tenant');
+        $days   = (int) $request->query('days', 7);
+        $since  = now()->subDays($days)->startOfDay();
+
+        $completed = WorkOrder::where('tenant_id', $tenant->id)
+            ->where('status', 'served')
+            ->whereNotNull('fired_at')
+            ->whereNotNull('bumped_at')
+            ->where('fired_at', '>=', $since)
+            ->get();
+
+        $stationStats = [];
+        $hourlyStats  = array_fill(0, 24, ['count' => 0, 'total_mins' => 0]);
+        $totalMinutes = 0;
+        $onTimeCount  = 0;
+
+        foreach ($completed as $wo) {
+            $mins = max(1, (int) $wo->fired_at->diffInMinutes($wo->bumped_at));
+            $st   = $wo->station ?: 'kitchen';
+
+            if (!isset($stationStats[$st])) {
+                $stationStats[$st] = ['station' => $st, 'count' => 0, 'total_mins' => 0];
+            }
+            $stationStats[$st]['count']++;
+            $stationStats[$st]['total_mins'] += $mins;
+
+            $hour = (int) $wo->fired_at->format('H');
+            $hourlyStats[$hour]['count']++;
+            $hourlyStats[$hour]['total_mins'] += $mins;
+
+            $totalMinutes += $mins;
+            if ($mins <= 15) $onTimeCount++;
+        }
+
+        $count = $completed->count();
+        $avgMinutes = $count > 0 ? round($totalMinutes / $count, 1) : 0;
+        $onTimePct  = $count > 0 ? round(($onTimeCount / $count) * 100, 1) : 100;
+
+        $byStation = array_map(function ($s) {
+            return [
+                'station'    => $s['station'],
+                'count'      => $s['count'],
+                'avg_mins'   => $s['count'] > 0 ? round($s['total_mins'] / $s['count'], 1) : 0,
+            ];
+        }, array_values($stationStats));
+
+        $byHour = [];
+        foreach ($hourlyStats as $h => $d) {
+            if ($d['count'] > 0) {
+                $byHour[] = [
+                    'hour'       => $h,
+                    'hour_label' => sprintf('%02d:00', $h),
+                    'count'      => $d['count'],
+                    'avg_mins'   => round($d['total_mins'] / $d['count'], 1),
+                ];
+            }
+        }
+
+        return response()->json([
+            'total_tickets' => $count,
+            'avg_cook_time' => $avgMinutes,
+            'on_time_pct'   => $onTimePct,
+            'by_station'    => $byStation,
+            'by_hour'       => $byHour,
+        ]);
+    }
+
+    /**
+     * Gratuities & Tips Distribution Report (T4.3 / R24).
+     *
+     * Separates staff gratuities (liability) from house service charge (revenue).
+     */
+    public function tipsReport(Request $request): JsonResponse
+    {
+        $this->ensureRestaurantEnabled();
+        $tenant = app('current.tenant');
+        $days   = (int) $request->query('days', 30);
+        $since  = now()->subDays($days)->startOfDay();
+
+        $sales = \App\Models\Sale::with('user')
+            ->where('tenant_id', $tenant->id)
+            ->where(function ($q) {
+                $q->where('tip_amount', '>', 0)
+                  ->orWhere('service_charge', '>', 0);
+            })
+            ->where('created_at', '>=', $since)
+            ->get();
+
+        $byStaff = [];
+        $totalTips = 0.0;
+        $totalServiceCharge = 0.0;
+
+        foreach ($sales as $sale) {
+            $staffId   = $sale->user_id ?? 'unassigned';
+            $staffName = $sale->user ? $sale->user->name : 'Unassigned';
+            $tip       = (float) ($sale->tip_amount ?? 0);
+            $sc        = (float) ($sale->service_charge ?? 0);
+
+            if (!isset($byStaff[$staffId])) {
+                $byStaff[$staffId] = [
+                    'staff_id'       => $staffId,
+                    'staff_name'     => $staffName,
+                    'tips_collected' => 0.0,
+                    'sales_count'    => 0,
+                ];
+            }
+
+            $byStaff[$staffId]['tips_collected'] += $tip;
+            $byStaff[$staffId]['sales_count']++;
+            $totalTips += $tip;
+            $totalServiceCharge += $sc;
+        }
+
+        return response()->json([
+            'period_days'          => $days,
+            'total_tips_collected' => round($totalTips, 2),
+            'total_service_charge' => round($totalServiceCharge, 2),
+            'by_staff'             => array_values($byStaff),
+        ]);
     }
 
     /**
@@ -371,4 +503,40 @@ class RestaurantDashboardController extends Controller
             'tenant_id'    => $pos->tenant_id,
         ];
     }
+
+    /**
+     * Abort 404 if the store does not have kitchen order preparation enabled.
+     */
+    private function ensurePreparesOrders(): void
+    {
+        $tenant = app('current.tenant');
+        $preparesOrders = Setting::where('tenant_id', $tenant->id)
+            ->where('key', 'prepares_orders')
+            ->value('value');
+
+        if ((string) $preparesOrders !== '1') {
+            abort(404, 'Page not found.');
+        }
+    }
+
+    /**
+     * Abort 404 if the store is not configured for restaurant / hospitality operations.
+     */
+    private function ensureRestaurantEnabled(): void
+    {
+        $tenant = app('current.tenant');
+        $preparesOrders = Setting::where('tenant_id', $tenant->id)
+            ->where('key', 'prepares_orders')
+            ->value('value');
+        $serviceMode = Setting::where('tenant_id', $tenant->id)
+            ->where('key', 'pos_service_mode')
+            ->value('value');
+
+        $isRestaurant = ((string) $preparesOrders === '1') || in_array($serviceMode, ['tables', 'both'], true);
+
+        if (!$isRestaurant) {
+            abort(404, 'Page not found.');
+        }
+    }
 }
+

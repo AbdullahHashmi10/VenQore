@@ -142,6 +142,11 @@ class Sale extends Model
         return $this->hasMany(SaleItem::class);
     }
 
+    public function registerShift()
+    {
+        return $this->belongsTo(RegisterShift::class, 'register_shift_id');
+    }
+
     public function journalEntries()
     {
         return $this->hasMany(JournalEntry::class, 'reference', 'id')->where('reference_type', 'sale');

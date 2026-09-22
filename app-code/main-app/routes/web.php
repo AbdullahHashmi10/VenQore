@@ -453,11 +453,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
         Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
         Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
-        // Dedicated Native Applications & Downloads Hub
-        Route::get('/apps',            [\App\Http\Controllers\AppsController::class, 'index'])->name('apps');
         // Live payment history from Lemon Squeezy. Lazy-loaded by the Payment
         // History tab so the billing page never blocks on an external API.
         Route::get('/billing/payment-history', [\App\Http\Controllers\BillingController::class, 'paymentHistory'])->name('billing.payment-history');
+        Route::get('/apps', function () { return \Inertia\Inertia::render('Apps/Index'); })->name('apps');
         Route::get('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
         Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->middleware(['permission:admin.data_recovery', 'throttle:5,1'])->name('backup.import');
         Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->middleware('permission:admin.billing_store')->name('billing.cancel-trial');
@@ -510,10 +509,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
         // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
         Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
-        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->name('restaurant.kitchen');
+        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->middleware('permission:pos.checkout')->name('restaurant.kitchen');
         // The same queue as JSON. A pass screen is left open all service, so it
         // polls rather than reloading an Inertia page every few seconds.
-        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->name('restaurant.kitchen.state');
+        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->middleware('permission:pos.checkout')->name('restaurant.kitchen.state');
         Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.table.status');
 
         // Occupancy API endpoints
@@ -525,6 +524,32 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // forward, one back — which is the whole vocabulary of a kitchen screen.
         Route::post('/restaurant/order/{id}/bump',   [\App\Http\Controllers\RestaurantDashboardController::class, 'bump'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.bump');
         Route::post('/restaurant/order/{id}/recall', [\App\Http\Controllers\RestaurantDashboardController::class, 'recall'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.recall');
+
+        // ── Dispatch & Rider Management (Phase 3) ─────────────────────────
+        Route::get('/restaurant/dispatch', [\App\Http\Controllers\DispatchController::class, 'index'])->middleware('permission:pos.checkout')->name('restaurant.dispatch');
+        Route::get('/restaurant/dispatch/state', [\App\Http\Controllers\DispatchController::class, 'state'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.state');
+        Route::get('/restaurant/dispatch/rider-cashup', [\App\Http\Controllers\DispatchController::class, 'riderCashUp'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.rider-cashup');
+        Route::post('/restaurant/dispatch/cash-up', [\App\Http\Controllers\DispatchController::class, 'markHandedIn'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.cash-up');
+
+        Route::get('/riders', [\App\Http\Controllers\RiderController::class, 'list'])->middleware('permission:pos.checkout')->name('riders.list');
+        Route::post('/riders/{id}/toggle-rider', [\App\Http\Controllers\RiderController::class, 'toggleRider'])->middleware('permission:admin.settings_manage')->name('riders.toggle');
+
+        // ── Phase 4: Reservations & Restaurant Analytics ───────────────────
+        Route::get('/restaurant/reports/kitchen-performance', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenPerformance'])->middleware('permission:pos.checkout')->name('restaurant.reports.kitchen-performance');
+        Route::get('/restaurant/reports/tips', [\App\Http\Controllers\RestaurantDashboardController::class, 'tipsReport'])->middleware('permission:pos.checkout')->name('restaurant.reports.tips');
+
+        Route::get('/reservations',               [\App\Http\Controllers\ReservationController::class, 'list'])->middleware('permission:pos.checkout')->name('reservations.list');
+        Route::post('/reservations',              [\App\Http\Controllers\ReservationController::class, 'store'])->middleware('permission:pos.checkout')->name('reservations.store');
+        Route::post('/reservations/{id}/seat',    [\App\Http\Controllers\ReservationController::class, 'seat'])->middleware('permission:pos.checkout')->name('reservations.seat');
+        Route::post('/reservations/{id}/cancel',  [\App\Http\Controllers\ReservationController::class, 'cancel'])->middleware('permission:pos.checkout')->name('reservations.cancel');
+
+        // ── Register Shifts, Cash Drawer & Z-Reports (R20) ─────────────────
+        Route::get('/shifts/current',             [\App\Http\Controllers\RegisterShiftController::class, 'current'])->middleware('permission:pos.checkout')->name('shifts.current');
+        Route::post('/shifts/open',               [\App\Http\Controllers\RegisterShiftController::class, 'open'])->middleware('permission:pos.checkout')->name('shifts.open');
+        Route::post('/shifts/movement',           [\App\Http\Controllers\RegisterShiftController::class, 'movement'])->middleware('permission:pos.checkout')->name('shifts.movement');
+        Route::post('/shifts/close',              [\App\Http\Controllers\RegisterShiftController::class, 'close'])->middleware('permission:pos.checkout')->name('shifts.close');
+        Route::get('/shifts/{id}/z-report',       [\App\Http\Controllers\RegisterShiftController::class, 'zReport'])->middleware('permission:pos.checkout')->name('shifts.z-report');
+        Route::get('/shifts/history',             [\App\Http\Controllers\RegisterShiftController::class, 'history'])->middleware('permission:pos.checkout')->name('shifts.history');
 
         // Trial expired landing (within store context)
         Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
@@ -1248,6 +1273,16 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/settled',    [\App\Http\Controllers\TableServiceController::class, 'settled'])->name('settled');
         Route::post('/service-mode', [\App\Http\Controllers\TableServiceController::class, 'setServiceMode'])
             ->middleware('permission:admin.settings_manage')->name('service-mode');
+        Route::post('/prepares-orders', [\App\Http\Controllers\TableServiceController::class, 'setPreparesOrders'])
+            ->middleware('permission:admin.settings_manage')->name('prepares-orders');
+        Route::post('/kitchen/counter-fire', [\App\Http\Controllers\TableServiceController::class, 'fireCounter'])
+            ->middleware('permission:pos.checkout')->name('kitchen.counter-fire');
+        Route::post('/kitchen/reprint', [\App\Http\Controllers\TableServiceController::class, 'reprintKOT'])
+            ->middleware('permission:pos.checkout')->name('kitchen.reprint');
+        Route::post('/kitchen/course-fire', [\App\Http\Controllers\TableServiceController::class, 'fireCourse'])
+            ->middleware('permission:pos.checkout')->name('kitchen.course-fire');
+        Route::post('/kitchen/86', [\App\Http\Controllers\TableServiceController::class, 'toggle86'])
+            ->middleware('permission:pos.checkout')->name('kitchen.86');
         // Store-wide, same as service-mode and gated the same way: what the house
         // charges is not a per-till decision.
         Route::post('/service-charge', [\App\Http\Controllers\TableServiceController::class, 'setServiceCharge'])
@@ -1258,6 +1293,18 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
            and no place, and giving it a fake table would put phantom seats on
            the floor plan and break every covers number on it. */
         Route::post('/lane/open', [\App\Http\Controllers\TableServiceController::class, 'laneOpen'])->name('lane.open');
+
+        /* A delivery is the only ticket whose state keeps moving after the
+           kitchen is done with it -- assigned, on the road, at the door. One
+           endpoint for all of it, because a dispatcher sets rider, status and
+           ETA in a single gesture and five round trips from a phone on a bad
+           connection is five chances to half-update a ticket. */
+        Route::post('/delivery',    [\App\Http\Controllers\TableServiceController::class, 'deliveryUpdate'])->name('delivery');
+
+        /* Addresses this shop has already delivered to. Read-only, capped, and
+           it only answers a query the operator has already typed two
+           characters of -- an aid at the counter, never a directory. */
+        Route::get('/address-book', [\App\Http\Controllers\TableServiceController::class, 'addressBook'])->name('address-book');
 
         /* "The bill is printed and they have not paid yet." A stamp, not a
            status: the escalation state on the floor is derived from it. */
@@ -2394,6 +2441,9 @@ Route::get('/error/{code}', function ($code) {
 
 // [SECURITY] /debug-error removed — exposed full laravel.log to anyone with the
 // hardcoded key committed to source. Use SSH or `tail storage/logs/laravel.log`.
+
+// ── Customer Delivery Tracking (Public, Tokenised) ─────────────────────────
+Route::get('/track/{token}', [\App\Http\Controllers\TrackingController::class, 'show'])->name('tracking.show');
 
 // ── FALLBACK: 404 for any URL not matched above ────────────────────────────
 // This is the last line of defense. Every URL that doesn't match a route

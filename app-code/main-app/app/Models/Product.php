@@ -26,6 +26,7 @@ class Product extends Model
         'is_manufactured', 'is_expiry_tracked', 'has_variants', 'track_serial',
         'description', 'short_description', 'image_path', 'woocommerce_id', 'created_via', 'supplier_sku',
         'service_pricing', 'default_duration', 'default_rate', 'requires_visit', 'skill_tag',
+        'kitchen_station',
     ];
 
     protected $appends = ['image_url'];

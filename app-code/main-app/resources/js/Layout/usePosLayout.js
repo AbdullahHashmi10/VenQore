@@ -202,6 +202,24 @@ export function usePosLayout({ settings, senior = false, scale = 1, terminal = '
     }));
     const [comp, setComp] = useState(() => loadComposition(settings, terminal));
 
+    /* THE TERMINAL CAN CHANGE WHILE THE REGISTER IS OPEN.
+       It used to be fixed for the life of the page — /pos was a counter and
+       /tables was a floor — so reading the stored composition once, in the
+       initialiser above, was enough. Now the Table preset switches it in
+       place, and each terminal keeps its OWN remembered widths under its own
+       storage key. Without this the counter's composition would follow the
+       operator onto the floor and then be saved back over the floor's.
+
+       Skips the first run: the initialiser has already loaded the right one,
+       and re-loading here would throw away a composition restored from the
+       server on the very first frame. */
+    const lastTerminal = useRef(terminal);
+    useEffect(() => {
+        if (lastTerminal.current === terminal) return;
+        lastTerminal.current = terminal;
+        setComp(loadComposition(settings, terminal));
+    }, [terminal, settings]);
+
     useEffect(() => {
         const el = ref.current;
         if (!el || typeof ResizeObserver === 'undefined') return undefined;

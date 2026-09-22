@@ -2990,6 +2990,21 @@ function resolveCollisions(cards, cols){
   }
 }
 
+function renderEmptySlot(slot){
+  const x = Number(slot.x) + 1;
+  const y = Number(slot.y) + 1;
+  const w = Number(slot.w);
+  const h = Number(slot.h);
+  return `<div class="vqc vqc--empty-slot" data-slot="${slot.slot}"
+    style="grid-column:${x} / span ${w}; grid-row:${y} / span ${h}; --vqw:${w}; --vqh:${h}; min-height:calc(${h} * (var(--vq-unit, 64px) + var(--vq-gap, 16px)) - var(--vq-gap, 16px)); display:flex; align-items:center; justify-content:center; border-radius:var(--vq-radius-card, 16px); border:1.5px dashed var(--vq-line, rgba(255,255,255,0.14)); background:var(--vq-surface-subtle, rgba(255,255,255,0.02)); transition:all 0.2s ease;">
+    <button type="button" class="vqc-empty-btn" data-slot="${slot.slot}"
+      style="background:none; border:none; font-size:13px; font-weight:600; color:var(--vq-muted, #8b949e); cursor:pointer; display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px; transition:all 0.15s ease;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Add a card
+    </button>
+  </div>`;
+}
+
 function draw(){
   const board = document.getElementById("board");
   if (!board) return;
@@ -3006,14 +3021,40 @@ function draw(){
   });
   resolveCollisions(CARDS, cols);
 
+  let emptySlotsHtml = "";
+  if (cols >= 12 && Array.isArray(FRAME_SLOTS) && FRAME_SLOTS.length > 0 && !FRAME_DIRTY) {
+    const occupiedSlots = new Set();
+    CARDS.forEach(c => {
+      const s = Number(c.frameSlot);
+      if (Number.isFinite(s)) occupiedSlots.add(s);
+    });
+    const emptySlots = FRAME_SLOTS.filter(s => !occupiedSlots.has(Number(s.slot)));
+    emptySlotsHtml = emptySlots.map(renderEmptySlot).join("");
+  }
+
   HOST_RO?.disconnect();
-  const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("");
+  const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("") + emptySlotsHtml;
   board.innerHTML = cardsHtml
     || `<p class="board-empty">No cards yet — open <strong>Add card</strong> and pick what you want to see.</p>`;
   const count = document.getElementById("count");
   if (count) count.textContent = CARDS.length;
 
-  board.querySelectorAll(".vqc").forEach(el => {
+  board.querySelectorAll(".vqc--empty-slot").forEach(el => {
+    const slotNum = Number(el.dataset.slot);
+    const slot = FRAME_SLOTS.find(s => Number(s.slot) === slotNum);
+    el.addEventListener("click", e => {
+      e.stopPropagation();
+      if (typeof window !== "undefined" && window._vqOpenAddCardForSlot) {
+        window._vqOpenAddCardForSlot(slot);
+      } else if (typeof window !== "undefined" && window._vqAddCard) {
+        window._vqAddCard(0);
+      } else {
+        openPicker(0);
+      }
+    });
+  });
+
+  board.querySelectorAll(".vqc:not(.vqc--empty-slot)").forEach(el => {
     const c = cardOf(el.dataset.id); if (!c) return;
     const host = el.querySelector(".vqc-host");
     if (host){ mountChart(host, c); HOST_RO?.observe(host); }
@@ -3498,9 +3539,7 @@ function setFrame(frameKey, slots){
     let matched = oldCards.find(c => !usedKeys.has(c.key) && c.cat === slot.category);
     if (!matched) matched = oldCards.find(c => !usedKeys.has(c.key));
     if (!matched) {
-      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
-        || READINGS.find(r => readingAvailable(r))
-        || READINGS[0];
+      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r));
       if (availReading) {
         matched = {
           id: newId(),
@@ -4329,6 +4368,7 @@ export default function NewDashboard(props) {
   /* ── the add-card wizard ─────────────────────────────────────────────── */
   const [framePickerModalOpen, setFramePickerModalOpen] = useState(false);
   const [stepperModalOpen, setStepperModalOpen] = useState(false);
+  const [targetSlot, setTargetSlot] = useState(null);
   const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0 readings · 1 hubs · 2 shortcuts
   const [step, setStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -4847,8 +4887,26 @@ export default function NewDashboard(props) {
   };
   const openPicker = (catIndex = 0) => {
     setFamily(catIndex);
+    setTargetSlot(null);
     setStepperModalOpen(true);
   };
+  const openPickerForSlot = useCallback((slot) => {
+    setTargetSlot(slot || null);
+    if (slot) {
+      setFamily(0);
+      setDraftCat(slot.category || 'C3');
+      setDraftW(slot.w || 4);
+      setDraftH(slot.h || 3);
+      setStepperModalOpen(true);
+    } else {
+      openPicker(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    window._vqOpenAddCardForSlot = openPickerForSlot;
+    return () => { window._vqOpenAddCardForSlot = null; };
+  }, [openPickerForSlot]);
   const launchCategoryModal = openPicker;
 
   const seatDraftOn = (card) => {
@@ -4974,6 +5032,14 @@ export default function NewDashboard(props) {
   const handleAddCardConfirm = () => {
     const e = engine(); if (!e || !draftCard) return;
     const card = { ...draftCard };
+    if (targetSlot) {
+      card.frameSlot = Number(targetSlot.slot);
+      card.gx = Number(targetSlot.x);
+      card.gy = Number(targetSlot.y);
+      card.w = Number(targetSlot.w);
+      card.h = Number(targetSlot.h);
+      card.cat = targetSlot.category || card.cat;
+    }
     if (editingCardId) {
       delete card.id;
       e.updateCard(editingCardId, card);
@@ -4983,6 +5049,7 @@ export default function NewDashboard(props) {
     }
     setStepperModalOpen(false);
     setEditingCardId(null);
+    setTargetSlot(null);
     setStep(1);
   };
 

@@ -42,6 +42,10 @@ class AgentChatController extends Controller
             $tenant = $membership?->tenant;
         }
 
+        if (! $tenant && auth()->check() && (auth()->user()->isPlatformAdmin() || auth()->user()->isPlatformStaff())) {
+            $tenant = \App\Models\Tenant::first();
+        }
+
         abort_unless($tenant, 400, 'No store context.');
 
         $staff = \App\Models\TenantUser::where('tenant_id', $tenant->id)
