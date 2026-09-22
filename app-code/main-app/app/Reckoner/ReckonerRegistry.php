@@ -2,6 +2,7 @@
 
 namespace App\Reckoner;
 
+use App\Reckoner\Sources\ApprovalSource;
 use App\Reckoner\Sources\FinanceSource;
 use App\Reckoner\Sources\InventorySource;
 use App\Reckoner\Sources\MeasureEngineSource;
@@ -174,6 +175,95 @@ final class ReckonerRegistry
         }
 
         $all = [
+
+            /* ── Approvals & Policy Controls ─────────────────────────── */
+            'approval.my_pending' => [
+                'key'                 => 'approval.my_pending',
+                'domain'              => 'approval',
+                'label'               => 'My Pending Submissions',
+                'generic'             => 'Pending Approvals',
+                'description'         => 'Transactions submitted by you that are awaiting manager review and approval.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'count',
+                'precision'           => 0,
+                'direction'           => 'neutral',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'today',
+                'supports_comparison' => false,
+                'permissions'         => ['pos.checkout', 'pos.open_session', 'sales.create', 'expenses.create'],
+                'scope'               => 'personal',
+                'source'              => ApprovalSource::class,
+                'method'              => 'my_pending',
+                'cache_ttl'           => 15,
+                'drill_route'         => 'store.approvals.my-submissions',
+            ],
+
+            'approval.my_returned' => [
+                'key'                 => 'approval.my_returned',
+                'domain'              => 'approval',
+                'label'               => 'My Returned Submissions',
+                'generic'             => 'Returned Approvals',
+                'description'         => 'Transactions returned by a manager with feedback or instructions requiring your correction.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'count',
+                'precision'           => 0,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'today',
+                'supports_comparison' => false,
+                'permissions'         => ['pos.checkout', 'pos.open_session', 'sales.create', 'expenses.create'],
+                'scope'               => 'personal',
+                'source'              => ApprovalSource::class,
+                'method'              => 'my_returned',
+                'cache_ttl'           => 15,
+                'drill_route'         => 'store.approvals.my-submissions',
+            ],
+
+            'approval.awaiting_review' => [
+                'key'                 => 'approval.awaiting_review',
+                'domain'              => 'approval',
+                'label'               => 'Awaiting My Review',
+                'generic'             => 'Review Queue',
+                'description'         => 'Pending transactions awaiting your review, return, or approval.',
+                'shape'               => ReckonerShape::SCALAR,
+                'unit'                => 'count',
+                'precision'           => 0,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'today',
+                'supports_comparison' => false,
+                'permissions'         => ['approvals.review', 'admin.dashboard', 'reports.summary', 'reports.financial'],
+                'scope'               => 'store',
+                'source'              => ApprovalSource::class,
+                'method'              => 'awaiting_review',
+                'cache_ttl'           => 15,
+                'drill_route'         => 'store.approvals.inbox',
+            ],
+
+            'approval.pending_aging' => [
+                'key'                 => 'approval.pending_aging',
+                'domain'              => 'approval',
+                'label'               => 'Approval Queue Aging',
+                'generic'             => 'Approval Aging',
+                'description'         => 'Aging breakdown of pending transactions by submission time (<24h, 24-48h, >48h).',
+                'shape'               => ReckonerShape::BREAKDOWN,
+                'unit'                => 'count',
+                'precision'           => 0,
+                'direction'           => 'lower_is_better',
+                'signed'              => false,
+                'periods'             => ReckonerPeriod::KEYS,
+                'default_period'      => 'today',
+                'supports_comparison' => false,
+                'permissions'         => ['approvals.review', 'admin.dashboard', 'reports.summary', 'reports.financial'],
+                'scope'               => 'store',
+                'source'              => ApprovalSource::class,
+                'method'              => 'pending_aging',
+                'cache_ttl'           => 30,
+                'drill_route'         => 'store.approvals.inbox',
+            ],
 
             /* ── Sales ────────────────────────────────────────────────── */
             'sales.revenue' => [

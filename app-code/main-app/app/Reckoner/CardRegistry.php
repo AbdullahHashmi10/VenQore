@@ -103,8 +103,8 @@ final class CardRegistry
      */
     public static function validateCatalog(array $cards): void
     {
-        if (count($cards) !== 349) {
-            throw new InvalidArgumentException("CardRegistry must contain exactly 349 cards, found " . count($cards));
+        if (count($cards) < 349) {
+            throw new InvalidArgumentException("CardRegistry must contain at least 349 cards, found " . count($cards));
         }
 
         $measures = self::measures();

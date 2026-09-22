@@ -296,8 +296,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getActiveMembership(): ?TenantUser
     {
+        $boundTenantId = app()->bound('current.tenant') ? app('current.tenant')?->id : null;
+
         if ($this->membershipResolved) {
-            $boundTenantId = app()->bound('current.tenant') ? app('current.tenant')?->id : null;
             if ($boundTenantId === null || ($this->resolvedMembership && (string)$this->resolvedMembership->tenant_id === (string)$boundTenantId)) {
                 return $this->resolvedMembership;
             }
@@ -305,7 +306,17 @@ class User extends Authenticatable implements MustVerifyEmail
             $this->resolvedMembership = null;
         }
 
-        // 1. If we are in a tenant context, query/match the membership for this specific tenant ONLY.
+        // 1. If container already has active membership for this user and tenant, use it directly (0 queries)
+        if (app()->bound('current.membership')) {
+            $membership = app('current.membership');
+            if ($membership && (string)$membership->user_id === (string)$this->id && ($boundTenantId === null || (string)$membership->tenant_id === (string)$boundTenantId) && $membership->status === 'active') {
+                $this->resolvedMembership = $membership;
+                $this->membershipResolved = true;
+                return $membership;
+            }
+        }
+
+        // 2. If we are in a tenant context, query/match the membership for this specific tenant ONLY.
         // B07: Never fall back to another store or mutate last_store_id during authorization.
         if (app()->bound('current.tenant') && app('current.tenant')) {
             $tenant = app('current.tenant');
