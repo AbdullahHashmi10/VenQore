@@ -787,6 +787,7 @@ class AdminController extends Controller
             $request->validate([
                 'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
                 'display_name'     => 'nullable|string|max:50',
+                'transaction_approval_mode' => 'nullable|in:inherit,required,direct',
                 'custom_role_name' => 'nullable|string|max:30',
                 'status'           => 'nullable|in:active,suspended',
                 'permissions'  => 'nullable|array',
@@ -818,6 +819,7 @@ class AdminController extends Controller
                 ->firstOrFail();
 
             $isOwner = $myMembership->role === 'owner';
+            $isAdmin = in_array($myMembership->role, ['owner', 'admin'], true);
 
             // Non-owners (admins) cannot promote users to owner, franchise_admin, or admin
             if (!$isOwner && $request->has('role')) {
@@ -829,6 +831,17 @@ class AdminController extends Controller
 
             $updateData = $request->only(['role', 'custom_role_name', 'display_name', 'status']);
             \Log::info('updateMember data: ' . json_encode($updateData));
+
+            if ($request->has('transaction_approval_mode')) {
+                abort_unless($isAdmin, 403, 'Only store owners and admins can modify employee transaction approval modes.');
+                // Employees cannot change their own approval mode
+                if ($member->user_id === Auth::id() && !$isOwner) {
+                    abort(403, 'Employees cannot change their own approval mode.');
+                }
+                $updateData['transaction_approval_mode'] = $request->input('transaction_approval_mode');
+                $updateData['approval_mode_changed_by'] = Auth::id();
+                $updateData['approval_mode_changed_at'] = now();
+            }
             
             if ($request->has('permissions')) {
                 $permissions = $request->input('permissions') ?? [];
