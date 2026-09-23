@@ -53,13 +53,13 @@ class RoleCardAuditTest extends VenQoreTestCase
         $this->assertCount(349, $allCardsJson, 'cards.json must define 349 card definitions.');
 
         $roles = [
-            'owner'              => ['route' => '/dashboard', 'expected_component' => 'NewDashboard', 'expected_legacy_props' => []],
-            'admin'              => ['route' => '/dashboard', 'expected_component' => 'NewDashboard', 'expected_legacy_props' => []],
-            'manager'            => ['route' => '/dashboard', 'expected_component' => 'NewDashboard', 'expected_legacy_props' => []],
-            'accountant'         => ['route' => '/dashboard', 'expected_component' => 'Dashboards/AccountantDashboard', 'expected_legacy_props' => ['cashPosition', 'receivables', 'payables', 'plSummary', 'plChartData', 'bankAccounts', 'cashAccounts', 'recentJournalEntries', 'pendingJournalCount']],
-            'purchasing_officer' => ['route' => '/dashboard', 'expected_component' => 'Dashboards/PurchasingDashboard', 'expected_legacy_props' => ['openPurchaseOrders', 'pendingDeliveriesCount', 'reorderAlerts', 'supplierPayables', 'monthlySpend', 'recentOrders']],
-            'viewer'             => ['route' => '/dashboard', 'expected_component' => 'Dashboards/ViewerDashboard', 'expected_legacy_props' => ['plSummary', 'inventoryValue']],
-            'cashier'            => ['route' => '/dashboard', 'expected_component' => 'Dashboards/CashierDashboard', 'expected_legacy_props' => ['session', 'attendance']],
+            'owner'              => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
+            'admin'              => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
+            'manager'            => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
+            'accountant'         => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
+            'purchasing_officer' => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
+            'viewer'             => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
+            'cashier'            => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
         ];
 
         $rolesPool = config('dashboard_pool.roles', []);
@@ -94,21 +94,14 @@ class RoleCardAuditTest extends VenQoreTestCase
             $user = $this->createTenantUser($roleTenant, $roleName);
             $this->actingAsTenantUserModel($user, $roleTenant);
 
-            // 1. Real HTTP request to /dashboard verifying resolved Inertia component
+            // 1. Real HTTP request to /dashboard verifying resolved Inertia component is NewDashboard
             $response = $this->get($this->storeUrl($roleTenant, '/dashboard'));
             $response->assertStatus(200);
             $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => 
-                $page->component($roleMeta['expected_component'])
+                $page->component('NewDashboard')
+                    ->has('readings')
+                    ->has('layoutLaw')
             );
-
-            // Verify legacy props if applicable
-            if (!empty($roleMeta['expected_legacy_props'])) {
-                $response->assertInertia(function (\Inertia\Testing\AssertableInertia $page) use ($roleMeta) {
-                    foreach ($roleMeta['expected_legacy_props'] as $propKey) {
-                        $page->has($propKey);
-                    }
-                });
-            }
 
             // 2. Evaluated arrays and exact matching count invariants
             $configuredPool = $rolesPool[$roleName] ?? $businessDefaultPool;

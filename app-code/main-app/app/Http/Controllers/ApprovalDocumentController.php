@@ -318,6 +318,12 @@ class ApprovalDocumentController extends Controller
             return response()->json(['message' => 'The version field is required.', 'errors' => ['version' => ['The version field is required.']]], 422);
         }
 
+        $payload = $request->input('payload', []);
+        $amount = $request->input('amount') ?? ($payload['amount'] ?? ($payload['grand_total'] ?? null));
+        if ($amount !== null && !$request->has('amount')) {
+            $request->merge(['amount' => $amount]);
+        }
+
         $request->validate([
             'payload' => 'required|array',
             'amount'  => 'required|numeric|min:0.01',

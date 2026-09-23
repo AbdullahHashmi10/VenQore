@@ -24,7 +24,7 @@ class CustomerReceiptApprovalAdapter implements ApprovalAdapterInterface
 
     public function validatePayload(array $payload, Tenant $tenant, User $maker): array
     {
-        $customerId = $payload['customer_id'] ?? null;
+        $customerId = $payload['customer_id'] ?? ($payload['party_id'] ?? null);
         if (!$customerId || !Party::where('tenant_id', $tenant->id)->where('id', $customerId)->exists()) {
             throw ValidationException::withMessages(['customer_id' => 'Invalid or cross-tenant customer selected.']);
         }
@@ -40,9 +40,6 @@ class CustomerReceiptApprovalAdapter implements ApprovalAdapterInterface
         }
 
         $allocations = (array)($payload['allocations'] ?? []);
-        if (empty($allocations)) {
-            throw ValidationException::withMessages(['allocations' => 'At least one invoice allocation is required.']);
-        }
 
         $allocTotal = 0.0;
         foreach ($allocations as $i => $alloc) {

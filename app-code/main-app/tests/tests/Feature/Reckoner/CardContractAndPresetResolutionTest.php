@@ -97,8 +97,8 @@ class CardContractAndPresetResolutionTest extends VenQoreTestCase
 
         // Accountant must have core financial cards
         $this->assertContains('core.revenue', $presets['accountant']);
-        $this->assertContains('accounting.trial_balance_ok', $presets['accountant']);
-        $this->assertContains('accounting.balance_sheet', $presets['accountant']);
+        $this->assertContains('core.balance_sheet_ok', $presets['accountant']);
+        $this->assertContains('core.net_profit', $presets['accountant']);
     }
 
     public function test_restricted_role_cannot_query_forbidden_card_api(): void

@@ -163,6 +163,17 @@ class Batch1RegressionTest extends VenQoreTestCase
             'total_amount' => 1500.00,
         ]);
 
+        \App\Models\JournalEntry::create([
+            'tenant_id'      => $tenant->id,
+            'user_id'        => $cashier->id,
+            'reference_type' => 'sale',
+            'reference_id'   => $sale->id,
+            'entry_number'   => 'JE-TEST-001',
+            'date'           => Carbon::now('UTC')->toDateString(),
+            'notes'          => 'Test sale entry',
+            'is_reversed'    => 0,
+        ]);
+
         // 1. Access /new-dashboard as cashier
         $this->actingAsTenantUserModel($cashier, $tenant);
         $responseNew = $this->get($this->storeUrl($tenant, '/new-dashboard'));
@@ -187,8 +198,8 @@ class Batch1RegressionTest extends VenQoreTestCase
             ->where('topSellingItems.0.profit', null)
         );
 
-        // 2. Access /dashboard as cashier -> routed to Dashboards/CashierDashboard
-        $responseCashierDash = $this->get($this->storeUrl($tenant, '/dashboard'));
+        // 2. Access /dashboard-v1 as cashier -> routed to Dashboards/CashierDashboard
+        $responseCashierDash = $this->get($this->storeUrl($tenant, '/dashboard-v1'));
         $responseCashierDash->assertStatus(200);
         $responseCashierDash->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Dashboards/CashierDashboard')
@@ -320,7 +331,7 @@ class Batch1RegressionTest extends VenQoreTestCase
 
         // Assert Cashier A sees ONLY Shift A (1 transaction, 150.00)
         $this->actingAsTenantUserModel($cashierA, $tenantA);
-        $responseA = $this->get($this->storeUrl($tenantA, '/dashboard'));
+        $responseA = $this->get($this->storeUrl($tenantA, '/dashboard-v1'));
         $responseA->assertStatus(200);
         $responseA->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Dashboards/CashierDashboard')
@@ -330,7 +341,7 @@ class Batch1RegressionTest extends VenQoreTestCase
 
         // Assert Cashier B sees ONLY Shift B (2 transactions, 400.00)
         $this->actingAsTenantUserModel($cashierB, $tenantA);
-        $responseB = $this->get($this->storeUrl($tenantA, '/dashboard'));
+        $responseB = $this->get($this->storeUrl($tenantA, '/dashboard-v1'));
         $responseB->assertStatus(200);
         $responseB->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Dashboards/CashierDashboard')
@@ -351,7 +362,7 @@ class Batch1RegressionTest extends VenQoreTestCase
         ]);
 
         $this->actingAsTenantUserModel($cashierC, $tenantA);
-        $responseC = $this->get($this->storeUrl($tenantA, '/dashboard'));
+        $responseC = $this->get($this->storeUrl($tenantA, '/dashboard-v1'));
         $responseC->assertStatus(200);
         $responseC->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Dashboards/CashierDashboard')
@@ -414,7 +425,7 @@ class Batch1RegressionTest extends VenQoreTestCase
         $accountant = $this->createTenantUser($tenant, 'accountant');
 
         $this->actingAsTenantUserModel($accountant, $tenant);
-        $response = $this->get($this->storeUrl($tenant, '/dashboard'));
+        $response = $this->get($this->storeUrl($tenant, '/dashboard-v1'));
         $response->assertStatus(200);
 
         $response->assertInertia(fn (AssertableInertia $page) => $page

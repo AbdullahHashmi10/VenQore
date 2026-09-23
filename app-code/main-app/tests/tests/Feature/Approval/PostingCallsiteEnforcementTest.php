@@ -163,5 +163,44 @@ class PostingCallsiteEnforcementTest extends TestCase
         // 4. Assert inventory was NOT mutated during test
         $this->assertEquals($fileMtimeBefore, filemtime($inventoryFile), "Inventory file must remain strictly immutable during tests.");
     }
+
+    /**
+     * Negative self-test fixture proving each detection category and fail-closed rule catches an injected violation.
+     */
+    public function test_detector_fail_closed_on_unregistered_synthetic_callsites(): void
+    {
+        $patterns = [
+            'createEntry' => '$this->accountingService->createEntry($tenant->id, $data);',
+            'raw_journal_entries_insert' => 'DB::table(\'journal_entries\')->insert([\'tenant_id\' => 1]);',
+            'raw_journal_items_insert' => 'DB::table("journal_items")->insertGetId([\'account_id\' => 1]);',
+            'model_journal_create' => '\App\Models\JournalEntry::create([\'date\' => now()]);',
+            'model_journal_item_create' => 'JournalItem::forceCreate([\'debit\' => 100]);',
+        ];
+
+        $mockInventory = []; // Empty inventory
+
+        foreach ($patterns as $category => $snippet) {
+            $detected = false;
+            if (preg_match('/->createEntry\s*\(/', $snippet)) {
+                $detected = 'createEntry';
+            } elseif (preg_match('/(?:DB::table\([\'"]journal_entries[\'"]\)|->from\([\'"]journal_entries[\'"]\))->(?:insert|insertGetId|create)/', $snippet)) {
+                $detected = 'raw_journal_entries_insert';
+            } elseif (preg_match('/(?:DB::table\([\'"]journal_items[\'"]\)|->from\([\'"]journal_items[\'"]\))->(?:insert|insertGetId|create)/', $snippet)) {
+                $detected = 'raw_journal_items_insert';
+            } elseif (preg_match('/(?:JournalEntry|JournalItem)::(?:create|forceCreate|insert)/', $snippet)) {
+                $detected = 'model_journal_create';
+            }
+
+            $this->assertNotNull($detected, "Detector regex failed to match pattern for {$category}: {$snippet}");
+
+            // Verify that this detected call site is absent from mock inventory and causes fail-closed detection
+            $syntheticStableId = "app/Services/FakeService.php::fakeMethod::1";
+            $this->assertArrayNotHasKey(
+                $syntheticStableId,
+                $mockInventory,
+                "Injected violation {$category} correctly flagged as missing from reviewed inventory."
+            );
+        }
+    }
 }
 

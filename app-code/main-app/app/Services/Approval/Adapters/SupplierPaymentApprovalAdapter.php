@@ -24,7 +24,7 @@ class SupplierPaymentApprovalAdapter implements ApprovalAdapterInterface
 
     public function validatePayload(array $payload, Tenant $tenant, User $maker): array
     {
-        $supplierId = $payload['supplier_id'] ?? null;
+        $supplierId = $payload['supplier_id'] ?? ($payload['party_id'] ?? null);
         if (!$supplierId || !Party::where('tenant_id', $tenant->id)->where('id', $supplierId)->exists()) {
             throw ValidationException::withMessages(['supplier_id' => 'Invalid or cross-tenant supplier selected.']);
         }

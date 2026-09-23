@@ -20,18 +20,22 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // [V3 SWAP DAY 1] autoHealStockIntegrity() and autoHealTimestamps() removed from
-        // page-load path. They were writing directly to inventory_batches, stocks, and
-        // products on every request — a critical data-corruption risk. They must be
-        // re-implemented as one-shot Artisan commands and run only under explicit control.
-
         $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
         $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
         $user = auth()->user();
 
-        // ── Role Router (V1 Tier 2 — per Master Plan) ─────────────────────────
-        // Resolve role from the current store membership (set by TenantMiddleware).
-        // Falls back to null so existing users on the old schema still work.
+        return $this->fullDashboardExperimental($now, $user);
+    }
+
+    /**
+     * Legacy V1 escape hatch route for backward compatibility.
+     */
+    public function legacyIndex()
+    {
+        $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
+        $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
+        $user = auth()->user();
+
         $membership = app()->bound('current.membership') ? app('current.membership') : null;
         $storeRole  = $membership?->role;
 
@@ -511,7 +515,7 @@ class DashboardController extends Controller
                 });
         }
 
-    return Inertia::render('NewDashboard', [
+        return Inertia::render('Dashboard', [
         'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
         'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
         ...$this->dashboardFrameProps($tenant, $user),

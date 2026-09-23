@@ -57,9 +57,6 @@ class RuntimeRoleDashboardMatrixTest extends VenQoreTestCase
 
     public function test_real_dashboard_http_route_renders_for_all_roles(): void
     {
-        $tenant = $this->createTenant('dash-http-store', 'ltd_3');
-        $this->seedTenantDefaults($tenant);
-
         $rolesToTest = [
             'owner',
             'admin',
@@ -74,56 +71,73 @@ class RuntimeRoleDashboardMatrixTest extends VenQoreTestCase
         ];
 
         foreach ($rolesToTest as $role) {
-            $user = User::factory()->create([
-                'email' => "user_{$role}@dash-matrix.test",
-            ]);
+            $tenant = $this->createTenant("dash-{$role}-" . uniqid(), 'ltd_3');
+            $tenant->update(['timezone' => 'UTC', 'setup_completed' => true]);
+            $this->seedTenantDefaults($tenant);
 
-            DB::table('tenant_users')->insert([
-                'tenant_id' => $tenant->id,
-                'user_id'   => $user->id,
-                'role'      => $role,
-                'created_at'=> now(),
-                'updated_at'=> now(),
-            ]);
+            $user = $this->createTenantUser($tenant, $role);
+            $this->actingAsTenantUserModel($user, $tenant);
 
-            $this->actingAs($user);
-            app()->instance('current.tenant', $tenant);
+            $response = $this->get($this->storeUrl($tenant, '/dashboard'));
+            $response->assertStatus(200);
+            $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) =>
+                $page->component('NewDashboard')
+                    ->has('readings')
+                    ->has('layoutLaw')
+            );
+        }
+    }
 
-            $response = $this->get("/s/{$tenant->slug}/dashboard");
-            $this->assertTrue(
-                in_array($response->status(), [200, 302]),
-                "Dashboard returned status {$response->status()} for role '{$role}'"
+    public function test_legacy_dashboard_v1_route_renders_expected_components(): void
+    {
+        $legacyMap = [
+            'cashier'            => 'Dashboards/CashierDashboard',
+            'accountant'         => 'Dashboards/AccountantDashboard',
+            'purchasing_officer' => 'Dashboards/PurchasingDashboard',
+            'viewer'             => 'Dashboards/ViewerDashboard',
+            'owner'              => 'Dashboard',
+        ];
+
+        foreach ($legacyMap as $role => $expectedComponent) {
+            $tenant = $this->createTenant("dash-leg-{$role}-" . uniqid(), 'ltd_3');
+            $tenant->update(['timezone' => 'UTC', 'setup_completed' => true]);
+            $this->seedTenantDefaults($tenant);
+
+            $user = $this->createTenantUser($tenant, $role);
+            $this->actingAsTenantUserModel($user, $tenant);
+
+            $response = $this->get($this->storeUrl($tenant, '/dashboard-v1'));
+            $response->assertStatus(200);
+            $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) =>
+                $page->component($expectedComponent)
             );
         }
     }
 
     public function test_forbidden_financial_cards_are_rejected_for_unauthorized_roles(): void
     {
-        $tenant = $this->createTenant('dash-security-store', 'ltd_3');
+        $tenant = $this->createTenant('dash-sec-' . uniqid(), 'ltd_3');
+        $tenant->update(['timezone' => 'UTC', 'setup_completed' => true]);
         $this->seedTenantDefaults($tenant);
 
         // Cashier role should NOT have permission for financial cards
-        $cashierUser = User::factory()->create([
-            'email' => 'cashier_security@dash-matrix.test',
+        $cashierUser = $this->createTenantUser($tenant, 'cashier');
+        $this->actingAsTenantUserModel($cashierUser, $tenant);
+
+        // 1. Check catalogue endpoint: net_profit must be omitted
+        $catResponse = $this->getJson('/api/reckoner/catalogue');
+        $catResponse->assertStatus(200);
+        $keys = array_column($catResponse->json('data'), 'key');
+        $this->assertNotContains('core.net_profit', $keys, 'Cashier must not see core.net_profit in catalogue');
+
+        // 2. Check batch read endpoint: net_profit must return forbidden error
+        $readResponse = $this->postJson('/api/reckoner/read', [
+            'requests' => [
+                ['key' => 'core.net_profit', 'period' => 'today'],
+            ],
         ]);
-
-        DB::table('tenant_users')->insert([
-            'tenant_id' => $tenant->id,
-            'user_id'   => $cashierUser->id,
-            'role'      => 'cashier',
-            'created_at'=> now(),
-            'updated_at'=> now(),
-        ]);
-
-        $this->actingAs($cashierUser);
-        app()->instance('current.tenant', $tenant);
-
-        // Attempt to request net_profit card reading
-        $response = $this->getJson("/s/{$tenant->slug}/api/reckoner/reading/core.net_profit");
-        // Should be 403 Forbidden or 404
-        $this->assertTrue(
-            in_array($response->status(), [403, 404]),
-            "Cashier was improperly allowed to read core.net_profit! Status: {$response->status()}"
-        );
+        $readResponse->assertStatus(200);
+        $item = $readResponse->json('data.0');
+        $this->assertEquals('forbidden', $item['error']['code'] ?? ($item['error_code'] ?? null), 'Cashier reading of core.net_profit must fail with forbidden');
     }
 }

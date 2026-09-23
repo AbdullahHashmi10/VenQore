@@ -24,7 +24,7 @@ const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0;
  * payee's account, which is why the payee is a party here and not a line of
  * free text.
  */
-export default function CreateExpense({ categories = [] }) {
+export default function CreateExpense({ categories = [], approval_correction = null }) {
     const { store } = usePage().props;
     const { showAlert } = useAlert();
     const fileRef = useRef(null);
@@ -38,20 +38,49 @@ export default function CreateExpense({ categories = [] }) {
 
     const blankCost = () => ({ id: uid(), category_id: '', desc: '', amount: 0 });
 
-    const seed = useCallback(() => ({
-        id: uid(),
-        party: null,
-        reference: '',
-        date: today(),
-        notes: '',
-        discount: 0,
-        tax: 0,
-        paymentMethod: 'cash',
-        amountPaid: 0,
-        paymentAccountId: null,
-        paymentAccountKey: null,
-        items: [blankCost()],
-    }), []);
+    const seed = useCallback(() => {
+        if (approval_correction?.payload) {
+            const p = approval_correction.payload;
+            return {
+                id: uid(),
+                party: p.party || (p.payee ? { name: p.payee, id: p.party_id } : null),
+                reference: p.reference || '',
+                date: p.date || today(),
+                notes: p.description || p.notes || '',
+                discount: p.discount || 0,
+                tax: p.tax || p.tax_amount || 0,
+                paymentMethod: p.payment_method || 'cash',
+                amountPaid: p.amount_paid || p.amount || 0,
+                paymentAccountId: p.bank_account_id || null,
+                paymentAccountKey: null,
+                items: p.items?.length ? p.items.map(it => ({
+                    id: uid(),
+                    category_id: it.expense_category_id || it.category_id || p.expense_category_id || '',
+                    desc: it.description || it.desc || p.description || '',
+                    amount: it.amount || p.amount || 0,
+                })) : [{
+                    id: uid(),
+                    category_id: p.expense_category_id || '',
+                    desc: p.description || '',
+                    amount: p.amount || 0,
+                }],
+            };
+        }
+        return {
+            id: uid(),
+            party: null,
+            reference: '',
+            date: today(),
+            notes: '',
+            discount: 0,
+            tax: 0,
+            paymentMethod: 'cash',
+            amountPaid: 0,
+            paymentAccountId: null,
+            paymentAccountKey: null,
+            items: [blankCost()],
+        };
+    }, [approval_correction]);
 
     /* Adding a category without leaving the voucher — the one genuinely good
        idea in the modal this replaces. */
@@ -76,9 +105,43 @@ export default function CreateExpense({ categories = [] }) {
             seed={seed}
             categories={cats}
             transport="axios"
-            saveLabel="Record the expense"
+            saveLabel={approval_correction ? "Resubmit Corrected Expense" : "Record the expense"}
+            notice={approval_correction ? (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4 text-amber-900 dark:text-amber-200">
+                    <div className="flex items-center gap-2 font-bold text-sm">
+                        <span>⚠️ Correction Mode — Returned for Correction (Revision #{approval_correction.version})</span>
+                    </div>
+                    {approval_correction.return_notes && (
+                        <p className="text-xs mt-1 text-ink"><strong>Reviewer Notes:</strong> {approval_correction.return_notes}</p>
+                    )}
+                    {approval_correction.return_reason_codes?.length > 0 && (
+                        <div className="flex gap-1.5 mt-2 flex-wrap">
+                            {approval_correction.return_reason_codes.map((code, idx) => (
+                                <span key={idx} className="text-2xs bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded font-mono">
+                                    {code}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : null}
             settleDefault={(d, totals) => (d.paymentMethod === 'cash' ? totals.grandTotal : 0)}
-            url={() => route('store.expenses.store', { store_slug: store?.slug })}
+            url={() => approval_correction ? approval_correction.resubmit_url : route('store.expenses.store', { store_slug: store?.slug })}
+            buildPayload={({ payload }) => {
+                if (approval_correction) {
+                    return {
+                        payload: payload,
+                        expected_version: approval_correction.expected_version,
+                        notes: 'Resubmitted with corrections'
+                    };
+                }
+                return payload;
+            }}
+            onSaved={() => {
+                if (approval_correction) {
+                    router.visit(route('store.approvals.show', { store_slug: store?.slug || window.location.pathname.split('/')[2], id: approval_correction.document_id }));
+                }
+            }}
             validate={({ d, items }) => {
                 /* A cheque has to be drawn on something, and the expense
                    endpoint records a bank account or the till — nothing in

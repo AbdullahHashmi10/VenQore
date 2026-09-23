@@ -1189,7 +1189,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/builder/modify', [\App\Http\Controllers\BuilderController::class, 'modify'])->middleware('permission:admin.settings_manage')->name('builder.modify');
 
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
-    Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
+    Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'legacyIndex'])->name('dashboard-v1');
 
     // ── New Experience — HIDDEN 2026-08-09, not removed ─────────────────────
     // See Appearance::NEW_EXPERIENCE_ENABLED. Every controller behind these
@@ -1927,8 +1927,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // so the user always finalises it here.
     Route::get('/sales/invoice/create', function (\Illuminate\Http\Request $request) {
         return Inertia::render('Sales/CreateInvoice', [
-            'aiPrefill' => app(\App\Services\SmartCapture\PrefillService::class)
+            'aiPrefill'           => app(\App\Services\SmartCapture\PrefillService::class)
                 ->pull($request->query('ai_prefill')),
+            'approval_correction' => app(\App\Services\Approval\ApprovalCorrectionResolver::class)
+                ->resolveForEdit($request, 'sales_invoice'),
         ]);
     })->name('sales.invoice.create');
 

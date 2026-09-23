@@ -42,4 +42,11 @@ class SaleFactory extends Factory
             'posted_at'            => now(),
         ];
     }
+
+    public function create($attributes = [], ?\Illuminate\Database\Eloquent\Model $parent = null)
+    {
+        return \App\Services\CanonicalPostingScope::run(function () use ($attributes, $parent) {
+            return parent::create($attributes, $parent);
+        });
+    }
 }

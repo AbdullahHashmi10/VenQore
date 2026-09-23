@@ -188,13 +188,14 @@ class ExpenseController extends Controller
             'stats' => $stats,
             'bankAccounts' => $bankAccounts,
             'cashBalance' => $cashBalance,
-            'serviceJobs' => $serviceJobs,
-            'filters' => $request->only(['search', 'filter', 'from_date', 'to_date'])
+            'serviceJobs'         => $serviceJobs,
+            'filters'             => $request->only(['search', 'filter', 'from_date', 'to_date']),
+            'approval_correction' => app(\App\Services\Approval\ApprovalCorrectionResolver::class)->resolveForEdit($request, 'operating_expense'),
         ]);
     }
 
     /** The full-page voucher. The modal on the list page still posts to store(). */
-    public function create()
+    public function create(Request $request)
     {
         $tenantId = app('current.tenant')->id;
         $serviceJobs = \App\Models\ServiceJob::where('tenant_id', $tenantId)
@@ -202,11 +203,13 @@ class ExpenseController extends Controller
             ->select('id', 'number', 'title')
             ->orderBy('number', 'desc')
             ->get();
+        $correction = app(\App\Services\Approval\ApprovalCorrectionResolver::class)->resolveForEdit($request, 'operating_expense');
 
         return Inertia::render('Expenses/Create', [
-            'categories'   => ExpenseCategory::orderBy('name')->get(),
-            'bankAccounts' => BankAccount::all(),
-            'serviceJobs'  => $serviceJobs,
+            'categories'          => ExpenseCategory::orderBy('name')->get(),
+            'bankAccounts'        => BankAccount::all(),
+            'serviceJobs'         => $serviceJobs,
+            'approval_correction' => $correction,
         ]);
     }
 

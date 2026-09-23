@@ -71,20 +71,26 @@ class PaymentController extends Controller
     public function createIn(Request $request)
     {
         $selectedPartyId = $request->query('party_id');
+        $correction = app(\App\Services\Approval\ApprovalCorrectionResolver::class)->resolveForEdit($request, 'customer_receipt');
+
         return Inertia::render('Payments/In', [
-            'parties'      => Party::orderBy('name')->get(),
-            'bankAccounts' => BankAccount::orderBy('name')->get(),
-            'selected_party_id' => $selectedPartyId,
+            'parties'             => Party::orderBy('name')->get(),
+            'bankAccounts'        => BankAccount::orderBy('name')->get(),
+            'selected_party_id'   => $selectedPartyId,
+            'approval_correction' => $correction,
         ]);
     }
 
     public function createOut(Request $request)
     {
         $selectedPartyId = $request->query('party_id');
+        $correction = app(\App\Services\Approval\ApprovalCorrectionResolver::class)->resolveForEdit($request, 'supplier_payment');
+
         return Inertia::render('Payments/Out', [
-            'parties'      => Party::orderBy('name')->get(),
-            'bankAccounts' => BankAccount::orderBy('name')->get(),
-            'selected_party_id' => $selectedPartyId,
+            'parties'             => Party::orderBy('name')->get(),
+            'bankAccounts'        => BankAccount::orderBy('name')->get(),
+            'selected_party_id'   => $selectedPartyId,
+            'approval_correction' => $correction,
         ]);
     }
 

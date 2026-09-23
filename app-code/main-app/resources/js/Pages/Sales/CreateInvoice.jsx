@@ -56,7 +56,7 @@ const lsJson = (k, f) => { try { const v = localStorage.getItem(k); return v ===
  * server, the settlement rule, the account picker, the ledger view of the
  * customer. What is left here is what makes a sale a sale.
  */
-export default function CreateInvoice({ sale, aiPrefill }) {
+export default function CreateInvoice({ sale, aiPrefill, approval_correction = null }) {
     const { store, settings } = usePage().props;
     const { showAlert } = useAlert();
     const isEdit = !!sale?.id;
@@ -135,6 +135,33 @@ export default function CreateInvoice({ sale, aiPrefill }) {
 
     /* A screen with no document on it is a screen with nothing to do. */
     useEffect(() => {
+        if (approval_correction?.payload) {
+            const p = approval_correction.payload;
+            ws.addInvoice({
+                customer: p.customer || (p.party_id ? { id: p.party_id, name: p.customer_name || '' } : null),
+                date: p.date || today(),
+                reference: p.reference || '',
+                notes: p.notes || '',
+                discount: num(p.discount),
+                tax: num(p.tax || p.tax_amount),
+                paymentMethod: p.payment_method || (settings?.cash_sale_default === '1' ? 'cash' : 'credit'),
+                amountPaid: num(p.amount_paid),
+                items: (p.items || []).map(it => ({
+                    id: uid(),
+                    product: it.product || { id: it.product_id, name: it.name || it.product_name, sale_price: it.price || it.rate },
+                    quantity: num(it.quantity || 1),
+                    freeQuantity: num(it.freeQuantity || 0),
+                    price: num(it.price || it.rate || 0),
+                    discount: num(it.discount || 0),
+                    discountType: it.discountType || 'fixed',
+                })),
+                delivery_charge: num(p.delivery_charge || 0),
+                extra_charge_value: num(p.extra_charge_value || 0),
+                extra_charge_label: p.extra_charge_label || 'Extra',
+            });
+            return;
+        }
+
         if (isEdit || current) return;
         ws.addInvoice({
             tax: num(settings?.default_tax_rate),
@@ -143,7 +170,7 @@ export default function CreateInvoice({ sale, aiPrefill }) {
             extra_charge_value: applyDefaults() && showExtra ? num(defExtraValue) : 0,
             extra_charge_label: defExtraLabel,
         });
-    }, [isEdit, current]);
+    }, [isEdit, current, approval_correction]);
 
     /* Turning the several-charges switch off must not leave the money behind:
        the editor disappears but the arithmetic reads the array, so the total
@@ -320,7 +347,7 @@ export default function CreateInvoice({ sale, aiPrefill }) {
                    leaves the drawer when the operator starts the next one. */
                 closeOnSave={false}
                 transport="axios"
-                saveLabel={isEdit ? 'Update the sale' : 'Complete the sale'}
+                saveLabel={approval_correction ? "Resubmit Corrected Invoice" : (isEdit ? 'Update the sale' : 'Complete the sale')}
                 /* The counter setting decides. A shop that turned auto-fill off
                    did so because their operators take part payments, and
                    pre-filling the whole bill is how one gets recorded as
@@ -333,16 +360,35 @@ export default function CreateInvoice({ sale, aiPrefill }) {
                 /* Two switches in the settings sheet that otherwise changed
                    nothing on the screen. */
                 chargeVisible={{ delivery: showDelivery, extra: showExtra && !multiExtras }}
-                notice={aiNotice ? (
+                notice={approval_correction ? (
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4 text-amber-900 dark:text-amber-200">
+                        <div className="flex items-center gap-2 font-bold text-sm">
+                            <span>⚠️ Correction Mode — Returned for Correction (Revision #{approval_correction.version})</span>
+                        </div>
+                        {approval_correction.return_notes && (
+                            <p className="text-xs mt-1 text-ink"><strong>Reviewer Notes:</strong> {approval_correction.return_notes}</p>
+                        )}
+                        {approval_correction.return_reason_codes?.length > 0 && (
+                            <div className="flex gap-1.5 mt-2 flex-wrap">
+                                {approval_correction.return_reason_codes.map((code, idx) => (
+                                    <span key={idx} className="text-2xs bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded font-mono">
+                                        {code}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ) : (aiNotice ? (
                     <div className="vqdoc-note" data-tone="warn">
                         <span className="eyebrow">Read from a scan</span>
                         <span>{aiNotice}</span>
                     </div>
-                ) : null}
-                url={({ d }) => (isEdit
-                    ? route('store.sales.update', { store_slug: store?.slug, sale: d.id })
-                    : route('store.sales.store', { store_slug: store?.slug }))}
-
+                ) : null)}
+                url={({ d }) => (approval_correction
+                    ? approval_correction.resubmit_url
+                    : (isEdit
+                        ? route('store.sales.update', { store_slug: store?.slug, sale: d.id })
+                        : route('store.sales.store', { store_slug: store?.slug })))}
                 /* ── what a sale will not let you do ─────────────────────── */
                 validate={({ d, items }) => {
                     if (shouldStopNegativeStock(settings)) {
@@ -390,7 +436,7 @@ export default function CreateInvoice({ sale, aiPrefill }) {
                     /* One key per tab, replaced after a save. A double-click or
                        a retried request cannot post the same sale twice. */
                     if (!idemRef.current[d.id]) idemRef.current[d.id] = uid();
-                    return {
+                    const base = {
                         customer_id: d.party?.id || null,
                         payment_method: d.paymentMethod,
                         notes: d.notes || null,
@@ -405,9 +451,22 @@ export default function CreateInvoice({ sale, aiPrefill }) {
                         source: 'manual',
                         ...(isEdit ? {} : { idempotency_key: idemRef.current[d.id] }),
                     };
+
+                    if (approval_correction) {
+                        return {
+                            payload: base,
+                            expected_version: approval_correction.expected_version,
+                            notes: 'Resubmitted with corrections',
+                        };
+                    }
+                    return base;
                 }}
 
                 onSaved={(res, d, opts) => {
+                    if (approval_correction) {
+                        router.visit(route('store.approvals.show', { store_slug: store?.slug || window.location.pathname.split('/')[2], id: approval_correction.document_id }));
+                        return;
+                    }
                     localStorage.setItem('amd_product_latest_change', String(Date.now()));
                     const savedId = isEdit ? d.id : res?.data?.sale_id;
                     if (savedId) savedIds.current[d.id] = savedId;

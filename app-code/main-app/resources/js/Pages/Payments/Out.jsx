@@ -190,7 +190,7 @@ const METHODS = [
     { value: 'upi', label: 'UPI/JazzCash', icon: Smartphone },
 ];
 
-export default function PaymentOut({ parties = [], bankAccounts = [], selected_party_id = null }) {
+export default function PaymentOut({ parties = [], bankAccounts = [], selected_party_id = null, approval_correction = null }) {
     const {
         store
     } = usePage().props;
@@ -216,13 +216,31 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
     };
 
     useEffect(() => {
-        if (selected_party_id) {
+        if (approval_correction?.payload) {
+            const p = approval_correction.payload;
+            setFormData(prev => ({
+                ...prev,
+                date: p.date || prev.date,
+                party_id: p.party_id || prev.party_id,
+                amount: p.amount || prev.amount,
+                payment_method: p.payment_method || prev.payment_method,
+                bank_account_id: p.bank_account_id || prev.bank_account_id,
+                reference: p.reference || prev.reference,
+                description: p.description || p.notes || prev.description,
+            }));
+            if (p.party_id) {
+                const party = parties.find(pt => String(pt.id) === String(p.party_id));
+                if (party) {
+                    setSelectedParty(party);
+                }
+            }
+        } else if (selected_party_id) {
             const party = parties.find(p => String(p.id) === String(selected_party_id));
             if (party) {
                 handlePartySelect(party);
             }
         }
-    }, [selected_party_id, parties]);
+    }, [selected_party_id, parties, approval_correction]);
 
     const handlePartyClear = () => {
         setSelectedParty(null);
@@ -234,9 +252,19 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
         setLoading(true);
         setErrors({});
         try {
-            await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'out' });
-            setSuccess(true);
-            setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+            if (approval_correction) {
+                await axios.post(approval_correction.resubmit_url, {
+                    payload: { ...formData, type: 'out' },
+                    expected_version: approval_correction.expected_version,
+                    notes: 'Resubmitted with corrections'
+                });
+                setSuccess(true);
+                setTimeout(() => router.visit(route('store.approvals.show', { store_slug: store?.slug || window.location.pathname.split('/')[2], id: approval_correction.document_id })), 1200);
+            } else {
+                await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'out' });
+                setSuccess(true);
+                setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+            }
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
@@ -249,8 +277,8 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
     };
 
     return (
-        <OneGlanceLayout title="Payment Out">
-            <Head title="Record Payment Out" />
+        <OneGlanceLayout title={approval_correction ? "Correct Payment Out Approval" : "Payment Out"}>
+            <Head title={approval_correction ? "Correct Payment Out" : "Record Payment Out"} />
 
             <div className="h-full flex flex-col items-center justify-center overflow-auto py-6 px-4">
 
@@ -261,6 +289,26 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
 
                     <div className="relative bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden">
 
+                        {approval_correction && (
+                            <div className="bg-amber-500/10 border-b border-amber-500/30 p-4 text-amber-900 dark:text-amber-200">
+                                <div className="flex items-center gap-2 font-bold text-sm">
+                                    <span>⚠️ Correction Mode — Returned for Correction (Revision #{approval_correction.version})</span>
+                                </div>
+                                {approval_correction.return_notes && (
+                                    <p className="text-xs mt-1 text-ink"><strong>Reviewer Notes:</strong> {approval_correction.return_notes}</p>
+                                )}
+                                {approval_correction.return_reason_codes?.length > 0 && (
+                                    <div className="flex gap-1.5 mt-2 flex-wrap">
+                                        {approval_correction.return_reason_codes.map((code, idx) => (
+                                            <span key={idx} className="text-2xs bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded font-mono">
+                                                {code}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Header Band */}
                         <div className="relative bg-gradient-to-r from-rose-600 to-red-600 px-6 py-5 overflow-hidden">
                             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -270,8 +318,8 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                     <ArrowUpCircle size={22} className="text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-bold text-white tracking-tight">Record Payment Out</h1>
-                                    <p className="text-rose-100 text-sm">Money paid out to a contact</p>
+                                    <h1 className="text-xl font-bold text-white tracking-tight">{approval_correction ? 'Resubmit Payment' : 'Record Payment Out'}</h1>
+                                    <p className="text-rose-100 text-sm">{approval_correction ? 'Update returned details and resubmit' : 'Money paid out to a contact'}</p>
                                 </div>
                             </div>
                         </div>
