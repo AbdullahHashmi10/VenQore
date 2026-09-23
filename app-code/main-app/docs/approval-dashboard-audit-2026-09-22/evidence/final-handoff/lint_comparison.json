@@ -1,0 +1,25 @@
+{
+  "baseline_total": 2218,
+  "current_total": 2220,
+  "net_delta": 2,
+  "removed_count": 1,
+  "added_count": 0,
+  "added_in_touched_files_count": 0,
+  "added_diagnostics": [],
+  "removed_diagnostics": [
+    {
+      "file": "resources/js/Pages/Sales/CreateInvoice.jsx",
+      "rule": "react-hooks(exhaustive-deps)",
+      "line": 140,
+      "message": "React Hook useEffect has missing dependencies: 'settings.default_tax_rate', 'settings.cash_sale_default', 'showDelivery', 'defExtraLabel', 'defDelivery', 'ws', 'showExtra', and 'defExtraValue'",
+      "severity": "error",
+      "id": "resources/js/Pages/Sales/CreateInvoice.jsx:react-hooks(exhaustive-deps):React Hook useEffect has missing dependencies: 'settings.default_tax_rate', 'settings.cash_sale_default', 'showDelivery', 'defExtraLabel', 'defDelivery', 'ws', 'showExtra', and 'defExtraValue'"
+    }
+  ],
+  "added_in_touched_files": [],
+  "touched_files_evaluated": [
+    "resources/js/Pages/Approvals/Show.jsx",
+    "resources/js/Pages/Expenses/Create.jsx",
+    "resources/js/Pages/Sales/CreateInvoice.jsx"
+  ]
+}

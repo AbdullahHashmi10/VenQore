@@ -1,0 +1,11 @@
+{
+  "shard": "shard_11b_reckoner_l8",
+  "file_count_baseline": 1,
+  "file_count_current": 1,
+  "baseline_files": [
+    "tests/tests/Feature/Reckoner/Laws/L8RegistryContractTest.php"
+  ],
+  "current_files": [
+    "tests/tests/Feature/Reckoner/Laws/L8RegistryContractTest.php"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "shard": "shard_09_modules_11_21",
+  "label": "Baseline",
+  "file_count": 16,
+  "files": [
+    "tests/tests/Feature/Module11/BillingTest.php",
+    "tests/tests/Feature/Module12/ReportsTest.php",
+    "tests/tests/Feature/Module13/DashboardTest.php",
+    "tests/tests/Feature/Module14/AiEngineTest.php",
+    "tests/tests/Feature/Module15/PartiesLedgerTest.php",
+    "tests/tests/Feature/Module16/StaffAttendanceTest.php",
+    "tests/tests/Feature/Module17/SettingsTest.php",
+    "tests/tests/Feature/Module18/OfflineDrmTest.php",
+    "tests/tests/Feature/Module19/MarketplaceClearingT17Test.php",
+    "tests/tests/Feature/Module19/RealTimeNotificationTest.php",
+    "tests/tests/Feature/Module19/VenSynQIntegrationT16Test.php",
+    "tests/tests/Feature/Module19/VenSynQTest.php",
+    "tests/tests/Feature/Module20/FinancialExtensionTest.php",
+    "tests/tests/Feature/Module20/SuperAdminTest.php",
+    "tests/tests/Feature/Module21/RealWorkflowIntegrationTest.php",
+    "tests/tests/Feature/Monetization/AiAndSyncEntitlementTest.php"
+  ],
+  "duration_seconds": 50.03,
+  "exit_code": 2,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 155 testcases (13 failed/errors)",
+  "testcase_count": 155,
+  "failure_count": 13,
+  "start_time": "2026-09-23T18:04:06.731080",
+  "end_time": "2026-09-23T18:04:56.756361"
+}

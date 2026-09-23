@@ -1,0 +1,509 @@
+{
+  "status": "REGRESSION_FAIL",
+  "methodology": "console-to-console comparison: FAILED lines extracted from both console logs (ANSI-stripped, UTF-16LE-decoded). current_junit.xml was corrupted by parallel Pest worker race-write and cannot be parsed as XML.",
+  "baseline_summary": {
+    "failed": 96,
+    "passed": 6146,
+    "total": 6242,
+    "assertions": 94328,
+    "duration": "1014.15s"
+  },
+  "current_summary": {
+    "failed": 88,
+    "passed": 6252,
+    "total": 6340,
+    "assertions": 98709,
+    "duration": "1235.37s"
+  },
+  "regression_count": 0,
+  "pre_existing_count": 65,
+  "new_tests_failed_count": 23,
+  "fixed_count": 8,
+  "regressions": [],
+  "new_tests_failed": [
+    {
+      "identity": "Tests.Feature.Billing.SubscriptionCancelTest::the controller blocks a non-owner even when the perm\u2026",
+      "class": "Tests.Feature.Billing.SubscriptionCancelTest",
+      "test": "the controller blocks a non-owner even when the perm\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Chat.ChatInactivityAndAnonymousTest::claiming a session is completely anonymous (no\u2026",
+      "class": "Tests.Feature.Chat.ChatInactivityAndAnonymousTest",
+      "test": "claiming a session is completely anonymous (no\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Hardening.LedgerAtomicityTest::unbalanced lines leave no journal rows",
+      "class": "Tests.Feature.Hardening.LedgerAtomicityTest",
+      "test": "unbalanced lines leave no journal rows"
+    },
+    {
+      "identity": "Tests.Feature.Hardening.SalesReturnAccountingTest::split tender sale returned in two ste\u2026  QueryException",
+      "class": "Tests.Feature.Hardening.SalesReturnAccountingTest",
+      "test": "split tender sale returned in two ste\u2026  QueryException"
+    },
+    {
+      "identity": "Tests.Feature.Hardening.V3IdScopingTest::a foreign store id is refused and nothing is wr\u2026  QueryException",
+      "class": "Tests.Feature.Hardening.V3IdScopingTest",
+      "test": "a foreign store id is refused and nothing is wr\u2026  QueryException"
+    },
+    {
+      "identity": "Tests.Feature.Hardening.V3IdScopingTest::a foreign store id is refused and nothing is\u2026  DeadlockException",
+      "class": "Tests.Feature.Hardening.V3IdScopingTest",
+      "test": "a foreign store id is refused and nothing is\u2026  DeadlockException"
+    },
+    {
+      "identity": "Tests.Feature.Module01.AuthAndTenancyTest::regular user cannot access venqore routes",
+      "class": "Tests.Feature.Module01.AuthAndTenancyTest",
+      "test": "regular user cannot access venqore routes"
+    },
+    {
+      "identity": "Tests.Feature.Module01.AuthAndTenancyTest::guest cannot access venqore routes",
+      "class": "Tests.Feature.Module01.AuthAndTenancyTest",
+      "test": "guest cannot access venqore routes"
+    },
+    {
+      "identity": "Tests.Feature.Module02.StoreCreationAndProvisioningTest::store creation seeds default data",
+      "class": "Tests.Feature.Module02.StoreCreationAndProvisioningTest",
+      "test": "store creation seeds default data"
+    },
+    {
+      "identity": "Tests.Feature.Module06.SalesEcosystemTest::sales_orders_stock_hold_and_conversion_to_sale",
+      "class": "Tests.Feature.Module06.SalesEcosystemTest",
+      "test": "sales_orders_stock_hold_and_conversion_to_sale"
+    },
+    {
+      "identity": "Tests.Feature.Module13.DashboardTest::attributes revenue and COGS to posted_at date\u2026  HttpException",
+      "class": "Tests.Feature.Module13.DashboardTest",
+      "test": "attributes revenue and COGS to posted_at date\u2026  HttpException"
+    },
+    {
+      "identity": "Tests.Feature.Module13.DashboardTest::computes dashboard net profit and P&L summar\u2026  ErrorException",
+      "class": "Tests.Feature.Module13.DashboardTest",
+      "test": "computes dashboard net profit and P&L summar\u2026  ErrorException"
+    },
+    {
+      "identity": "Tests.Feature.Module13.DashboardTest::scopes all cashier dashboard widgets and sess\u2026  HttpException",
+      "class": "Tests.Feature.Module13.DashboardTest",
+      "test": "scopes all cashier dashboard widgets and sess\u2026  HttpException"
+    },
+    {
+      "identity": "Tests.Feature.Module13.DashboardTest::handles zero activity onboarding state without throwing unha\u2026",
+      "class": "Tests.Feature.Module13.DashboardTest",
+      "test": "handles zero activity onboarding state without throwing unha\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Module17.SettingsTest::prevents platform admin settings cache from bleeding into glo\u2026",
+      "class": "Tests.Feature.Module17.SettingsTest",
+      "test": "prevents platform admin settings cache from bleeding into glo\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Module17.SettingsTest::restricts chatbot settings updates to store owner or administ\u2026",
+      "class": "Tests.Feature.Module17.SettingsTest",
+      "test": "restricts chatbot settings updates to store owner or administ\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Module17.SettingsTest::enforces tenant bounds when settings are updated globally or\u2026",
+      "class": "Tests.Feature.Module17.SettingsTest",
+      "test": "enforces tenant bounds when settings are updated globally or\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Module17.SettingsTest::resolves the settings panel without redirecting to the hub",
+      "class": "Tests.Feature.Module17.SettingsTest",
+      "test": "resolves the settings panel without redirecting to the hub"
+    },
+    {
+      "identity": "Tests.Feature.Module20.SuperAdminTest::non_admin_cannot_access_platform_dashboard",
+      "class": "Tests.Feature.Module20.SuperAdminTest",
+      "test": "non_admin_cannot_access_platform_dashboard"
+    },
+    {
+      "identity": "Tests.Feature.Monetization.AiAndSyncEntitlementTest::vensynq returns 403 when enabled but the tena\u2026",
+      "class": "Tests.Feature.Monetization.AiAndSyncEntitlementTest",
+      "test": "vensynq returns 403 when enabled but the tena\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Monetization.AiAndSyncEntitlementTest::vensynq is reachable once the override is gra\u2026",
+      "class": "Tests.Feature.Monetization.AiAndSyncEntitlementTest",
+      "test": "vensynq is reachable once the override is gra\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Monetization.AiAndSyncEntitlementTest::connecting a disabled marketplace is refused",
+      "class": "Tests.Feature.Monetization.AiAndSyncEntitlementTest",
+      "test": "connecting a disabled marketplace is refused"
+    },
+    {
+      "identity": "Tests.Feature.Monetization.AiAndSyncEntitlementTest::smart capture routes 404 when the platform sw\u2026",
+      "class": "Tests.Feature.Monetization.AiAndSyncEntitlementTest",
+      "test": "smart capture routes 404 when the platform sw\u2026"
+    }
+  ],
+  "pre_existing": [
+    {
+      "identity": "Tests.Feature.BlogPostEngineTest::blog index page renders successfully with ssr",
+      "class": "Tests.Feature.BlogPostEngineTest",
+      "test": "blog index page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.BlogPostEngineTest::blog show page renders successfully with dynamic seo and ssr",
+      "class": "Tests.Feature.BlogPostEngineTest",
+      "test": "blog show page renders successfully with dynamic seo and ssr"
+    },
+    {
+      "identity": "Tests.Feature.ComparePagesTest::compare hub page renders successfully with ssr",
+      "class": "Tests.Feature.ComparePagesTest",
+      "test": "compare hub page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.ComparePagesTest::compare square page renders successfully with ssr",
+      "class": "Tests.Feature.ComparePagesTest",
+      "test": "compare square page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.ComparePagesTest::compare vyapar page renders successfully with ssr",
+      "class": "Tests.Feature.ComparePagesTest",
+      "test": "compare vyapar page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.Core.PlanTruthFailClosedTest::unseeded feature key is locked not unlocked",
+      "class": "Tests.Feature.Core.PlanTruthFailClosedTest",
+      "test": "unseeded feature key is locked not unlocked"
+    },
+    {
+      "identity": "Tests.Feature.Core.RegistryDriftTest::every live test file is registered",
+      "class": "Tests.Feature.Core.RegistryDriftTest",
+      "test": "every live test file is registered"
+    },
+    {
+      "identity": "Tests.Feature.Core.RegistryDriftTest::phpunit method total matches filesystem",
+      "class": "Tests.Feature.Core.RegistryDriftTest",
+      "test": "phpunit method total matches filesystem"
+    },
+    {
+      "identity": "Tests.Feature.DocumentationHubTest::docs show loads specific markdown document",
+      "class": "Tests.Feature.DocumentationHubTest",
+      "test": "docs show loads specific markdown document"
+    },
+    {
+      "identity": "Tests.Feature.FeaturePagesTest::features hub page renders successfully with ssr",
+      "class": "Tests.Feature.FeaturePagesTest",
+      "test": "features hub page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.FeaturePagesTest::features accounting page renders successfully with ssr",
+      "class": "Tests.Feature.FeaturePagesTest",
+      "test": "features accounting page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.FeaturePagesTest::features inventory management page renders successfully with ssr",
+      "class": "Tests.Feature.FeaturePagesTest",
+      "test": "features inventory management page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.FeaturePagesTest::features offline pos page renders successfully with ssr",
+      "class": "Tests.Feature.FeaturePagesTest",
+      "test": "features offline pos page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.FeaturePagesTest::features point of sale page renders successfully with ssr",
+      "class": "Tests.Feature.FeaturePagesTest",
+      "test": "features point of sale page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.FeaturePagesTest::features growth engine page renders successfully with ssr",
+      "class": "Tests.Feature.FeaturePagesTest",
+      "test": "features growth engine page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.FrontendSyntaxIntegrityTest::frontend codebase has no eslint errors",
+      "class": "Tests.Feature.FrontendSyntaxIntegrityTest",
+      "test": "frontend codebase has no eslint errors"
+    },
+    {
+      "identity": "Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest::unclaimed terminal can still be claimed on first c\u2026",
+      "class": "Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest",
+      "test": "unclaimed terminal can still be claimed on first c\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Guardrails.MassAssignmentGuardTest::no new stale fillable entry",
+      "class": "Tests.Feature.Guardrails.MassAssignmentGuardTest",
+      "test": "no new stale fillable entry"
+    },
+    {
+      "identity": "Tests.Feature.Guardrails.PermissionBypassGuardTest::no new state changing route is missing permission mi\u2026",
+      "class": "Tests.Feature.Guardrails.PermissionBypassGuardTest",
+      "test": "no new state changing route is missing permission mi\u2026"
+    },
+    {
+      "identity": "Tests.Feature.MarketingSsrTest::marketing routes have ssr enabled",
+      "class": "Tests.Feature.MarketingSsrTest",
+      "test": "marketing routes have ssr enabled"
+    },
+    {
+      "identity": "Tests.Feature.Module.ModuleRegistryIntegrityTest::every page path exists on disk",
+      "class": "Tests.Feature.Module.ModuleRegistryIntegrityTest",
+      "test": "every page path exists on disk"
+    },
+    {
+      "identity": "Tests.Feature.Module.ReportPlanMapIntegrityTest::every feature key in report plan map exists in all plan\u2026",
+      "class": "Tests.Feature.Module.ReportPlanMapIntegrityTest",
+      "test": "every feature key in report plan map exists in all plan\u2026"
+    },
+    {
+      "identity": "Tests.Feature.PartnersPageTest::partners page renders successfully with ssr",
+      "class": "Tests.Feature.PartnersPageTest",
+      "test": "partners page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.Phase3FeatureGatesTest::it shares plan features and limits in inertia props",
+      "class": "Tests.Feature.Phase3FeatureGatesTest",
+      "test": "it shares plan features and limits in inertia props"
+    },
+    {
+      "identity": "Tests.Feature.Phase4PricingLiveTest::it shares pricing config in inertia props",
+      "class": "Tests.Feature.Phase4PricingLiveTest",
+      "test": "it shares pricing config in inertia props"
+    },
+    {
+      "identity": "Tests.Feature.Phase9OptionalFeaturesTest::restaurant dashboard and kitchen status updates",
+      "class": "Tests.Feature.Phase9OptionalFeaturesTest",
+      "test": "restaurant dashboard and kitchen status updates"
+    },
+    {
+      "identity": "Tests.Feature.PlanGatingAndLimitsTest::warehouse observer blocks exceeding location limit",
+      "class": "Tests.Feature.PlanGatingAndLimitsTest",
+      "test": "warehouse observer blocks exceeding location limit"
+    },
+    {
+      "identity": "Tests.Feature.PlanGatingAndLimitsTest::register observer blocks exceeding register limit",
+      "class": "Tests.Feature.PlanGatingAndLimitsTest",
+      "test": "register observer blocks exceeding register limit"
+    },
+    {
+      "identity": "Tests.Feature.PlanGatingAndLimitsTest::tenant user observer blocks exceeding staff seat limit on full se\u2026",
+      "class": "Tests.Feature.PlanGatingAndLimitsTest",
+      "test": "tenant user observer blocks exceeding staff seat limit on full se\u2026"
+    },
+    {
+      "identity": "Tests.Feature.PlanGatingAndLimitsTest::solo history scope filters old records while db ke\u2026  HttpException",
+      "class": "Tests.Feature.PlanGatingAndLimitsTest",
+      "test": "solo history scope filters old records while db ke\u2026  HttpException"
+    },
+    {
+      "identity": "Tests.Feature.PlanGatingAndLimitsTest::ltd plans have unlimited transactions and correct fences",
+      "class": "Tests.Feature.PlanGatingAndLimitsTest",
+      "test": "ltd plans have unlimited transactions and correct fences"
+    },
+    {
+      "identity": "Tests.Feature.PlanGatingAndLimitsTest::history reappears instantly upon upgrade from solo",
+      "class": "Tests.Feature.PlanGatingAndLimitsTest",
+      "test": "history reappears instantly upon upgrade from solo"
+    },
+    {
+      "identity": "Tests.Feature.Plan.ReportingTiersTest::3 balance integrity all time vs detail window",
+      "class": "Tests.Feature.Plan.ReportingTiersTest",
+      "test": "3 balance integrity all time vs detail window"
+    },
+    {
+      "identity": "Tests.Feature.Plan.ReportingTiersTest::4 nothing deleted older records preserved",
+      "class": "Tests.Feature.Plan.ReportingTiersTest",
+      "test": "4 nothing deleted older records preserved"
+    },
+    {
+      "identity": "Tests.Feature.Plan.ReportingTiersTest::5 upgrading solo to starter exposes full history",
+      "class": "Tests.Feature.Plan.ReportingTiersTest",
+      "test": "5 upgrading solo to starter exposes full history"
+    },
+    {
+      "identity": "Tests.Feature.Plan.ReportingTiersTest::6 card row caps on solo",
+      "class": "Tests.Feature.Plan.ReportingTiersTest",
+      "test": "6 card row caps on solo"
+    },
+    {
+      "identity": "Tests.Feature.Plan.ReportingTiersTest::8 individual invoice older than 30 days still open\u2026  HttpException",
+      "class": "Tests.Feature.Plan.ReportingTiersTest",
+      "test": "8 individual invoice older than 30 days still open\u2026  HttpException"
+    },
+    {
+      "identity": "Tests.Feature.PrelaunchP0VerificationTest::r06 disabled module reckoner readings are unavailable",
+      "class": "Tests.Feature.PrelaunchP0VerificationTest",
+      "test": "r06 disabled module reckoner readings are unavailable"
+    },
+    {
+      "identity": "Tests.Feature.ProductDeletionTest::cannot delete product with transaction history",
+      "class": "Tests.Feature.ProductDeletionTest",
+      "test": "cannot delete product with transaction history"
+    },
+    {
+      "identity": "Tests.Feature.Production.LegacyPosCogsPinningTest::pos003 cogs is from fifo not fabricated",
+      "class": "Tests.Feature.Production.LegacyPosCogsPinningTest",
+      "test": "pos003 cogs is from fifo not fabricated"
+    },
+    {
+      "identity": "Tests.Feature.PurchasesImportTest::can import purchase rows with correct columns",
+      "class": "Tests.Feature.PurchasesImportTest",
+      "test": "can import purchase rows with correct columns"
+    },
+    {
+      "identity": "Tests.Feature.RegressionFixesTest::sale stats exclude returned sales",
+      "class": "Tests.Feature.RegressionFixesTest",
+      "test": "sale stats exclude returned sales"
+    },
+    {
+      "identity": "Tests.Feature.Reports.CrossTenantReportLeakTest::sale aging journal\u2026",
+      "class": "Tests.Feature.Reports.CrossTenantReportLeakTest",
+      "test": "sale aging journal\u2026"
+    },
+    {
+      "identity": "Tests.Feature.RoadmapTest::roadmap page enables inertia ssr",
+      "class": "Tests.Feature.RoadmapTest",
+      "test": "roadmap page enables inertia ssr"
+    },
+    {
+      "identity": "Tests.Feature.Security.PreLaunchSecurityTest::sec08 web updater is closed by default",
+      "class": "Tests.Feature.Security.PreLaunchSecurityTest",
+      "test": "sec08 web updater is closed by default"
+    },
+    {
+      "identity": "Tests.Feature.Security.RouteGapSweepTest::store settings never leak\u2026",
+      "class": "Tests.Feature.Security.RouteGapSweepTest",
+      "test": "store settings never leak\u2026"
+    },
+    {
+      "identity": "Tests.Feature.SmartFulfillmentTest::smart fulfillment creates jit purchase draft with cor\u2026  HttpException",
+      "class": "Tests.Feature.SmartFulfillmentTest",
+      "test": "smart fulfillment creates jit purchase draft with cor\u2026  HttpException"
+    },
+    {
+      "identity": "Tests.Feature.Smoke.InertiaPageRenderTest::cashier can render cashier dashboard",
+      "class": "Tests.Feature.Smoke.InertiaPageRenderTest",
+      "test": "cashier can render cashier dashboard"
+    },
+    {
+      "identity": "Tests.Feature.SolutionsPagesTest::solutions hub page renders successfully with ssr",
+      "class": "Tests.Feature.SolutionsPagesTest",
+      "test": "solutions hub page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.SolutionsPagesTest::solutions pharmacy page renders successfully with ssr",
+      "class": "Tests.Feature.SolutionsPagesTest",
+      "test": "solutions pharmacy page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.SolutionsPagesTest::solutions electronics store page renders successfully with ssr",
+      "class": "Tests.Feature.SolutionsPagesTest",
+      "test": "solutions electronics store page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.SolutionsPagesTest::solutions grocery page renders successfully with ssr",
+      "class": "Tests.Feature.SolutionsPagesTest",
+      "test": "solutions grocery page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.SolutionsPagesTest::solutions wholesale page renders successfully with ssr",
+      "class": "Tests.Feature.SolutionsPagesTest",
+      "test": "solutions wholesale page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.SolutionsPagesTest::solutions clothing page renders successfully with ssr",
+      "class": "Tests.Feature.SolutionsPagesTest",
+      "test": "solutions clothing page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.SolutionsPagesTest::solutions multi store page renders successfully with ssr",
+      "class": "Tests.Feature.SolutionsPagesTest",
+      "test": "solutions multi store page renders successfully with ssr"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::heartbeat can register new terminal and scope to tenant",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "heartbeat can register new terminal and scope to tenant"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::heartbeat returns existing terminal id and requires secret",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "heartbeat returns existing terminal id and requires secret"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::a pairing code pairs only one device",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "a pairing code pairs only one device"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::terminal activities logging",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "terminal activities logging"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::terminal screenshot upload decryption and security",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "terminal screenshot upload decryption and security"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::tenant isolation on screenshot viewing",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "tenant isolation on screenshot viewing"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::screenshots stored in the old format still open",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "screenshots stored in the old format still open"
+    },
+    {
+      "identity": "Tests.Feature.TerminalAppIntegrationTest::terminal screenshot upload security boundaries",
+      "class": "Tests.Feature.TerminalAppIntegrationTest",
+      "test": "terminal screenshot upload security boundaries"
+    },
+    {
+      "identity": "Tests.Feature.V11PlanGatingAndEntitlementsTest::observers block exceeding quantity caps",
+      "class": "Tests.Feature.V11PlanGatingAndEntitlementsTest",
+      "test": "observers block exceeding quantity caps"
+    },
+    {
+      "identity": "Tests.Routes.FullRouteSweepTest::every laravel route is present in the generated ziggy file",
+      "class": "Tests.Routes.FullRouteSweepTest",
+      "test": "every laravel route is present in the generated ziggy file"
+    }
+  ],
+  "fixed": [
+    {
+      "identity": "Tests.Unit.Reckoner.ReckonerRegistryTest::registry has expected key count",
+      "class": "Tests.Unit.Reckoner.ReckonerRegistryTest",
+      "test": "registry has expected key count"
+    },
+    {
+      "identity": "Tests.Feature.Hardening.PosApprovalGuardTest::below cost is refused with wrong pin non manager or other\u2026",
+      "class": "Tests.Feature.Hardening.PosApprovalGuardTest",
+      "test": "below cost is refused with wrong pin non manager or other\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Money.FractionalQtyAdjacentTest::b7 a stock transfer p\u2026  UniqueConstraintViolationException",
+      "class": "Tests.Feature.Money.FractionalQtyAdjacentTest",
+      "test": "b7 a stock transfer p\u2026  UniqueConstraintViolationException"
+    },
+    {
+      "identity": "Tests.Feature.Money.ReportReconciliationTest::daily sales reconciles to direct db aggrega\u2026  HttpException",
+      "class": "Tests.Feature.Money.ReportReconciliationTest",
+      "test": "daily sales reconciles to direct db aggrega\u2026  HttpException"
+    },
+    {
+      "identity": "Tests.Feature.Reckoner.AssistantParityTest::assistant tools agree with reckoner readings",
+      "class": "Tests.Feature.Reckoner.AssistantParityTest",
+      "test": "assistant tools agree with reckoner readings"
+    },
+    {
+      "identity": "Tests.Feature.Reckoner.Laws.L1TenantIsolationTest::all tenant readings are isolated from\u2026",
+      "class": "Tests.Feature.Reckoner.Laws.L1TenantIsolationTest",
+      "test": "all tenant readings are isolated from\u2026"
+    },
+    {
+      "identity": "Tests.Feature.Reckoner.Slice4dOperationsGateTest::slice4d unimplemented cards stay unavailable",
+      "class": "Tests.Feature.Reckoner.Slice4dOperationsGateTest",
+      "test": "slice4d unimplemented cards stay unavailable"
+    },
+    {
+      "identity": "Tests.Routes.FullRouteSweepTest::no route namespace exists without a declared sweep story",
+      "class": "Tests.Routes.FullRouteSweepTest",
+      "test": "no route namespace exists without a declared sweep story"
+    }
+  ]
+}

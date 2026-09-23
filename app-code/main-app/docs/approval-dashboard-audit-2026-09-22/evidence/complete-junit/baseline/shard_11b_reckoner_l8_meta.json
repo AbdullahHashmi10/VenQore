@@ -1,0 +1,16 @@
+{
+  "shard": "shard_11b_reckoner_l8",
+  "label": "Baseline",
+  "file_count": 1,
+  "files": [
+    "tests/tests/Feature/Reckoner/Laws/L8RegistryContractTest.php"
+  ],
+  "duration_seconds": 237.75,
+  "exit_code": 0,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 4011 testcases (0 failed/errors)",
+  "testcase_count": 4011,
+  "failure_count": 0,
+  "start_time": "2026-09-23T18:12:13.396818",
+  "end_time": "2026-09-23T18:16:11.148414"
+}

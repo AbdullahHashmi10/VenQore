@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="79" assertions="253" errors="0" failures="14" skipped="0" time="133.222258">
+    <testsuite name="Tests\Feature\ActivityLogTest" file="Activity Log (Tests\Feature\ActivityLog)" tests="1" assertions="13" errors="0" failures="0" skipped="0" time="84.354763">
+      <testcase name="Model activity logging records full audit details" file="Activity Log (Tests\Feature\ActivityLog)::Model activity logging records full audit details" class="Tests\Feature\ActivityLogTest" classname="Tests.Feature.ActivityLogTest" assertions="13" time="84.354763">
+        <system-out>﻿﻿﻿﻿﻿﻿﻿﻿</system-out>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\BlogPostEngineTest" file="Blog Post Engine (Tests\Feature\BlogPostEngine)" tests="7" assertions="17" errors="0" failures="2" skipped="0" time="0.868198">
+      <testcase name="Blog index page renders successfully with ssr" file="Blog Post Engine (Tests\Feature\BlogPostEngine)::Blog index page renders successfully with ssr" class="Tests\Feature\BlogPostEngineTest" classname="Tests.Feature.BlogPostEngineTest" assertions="2" time="0.286167">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Blog index page renders successfully with ssrExpected Inertia SSR to be enabled for /blog
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\BlogPostEngineTest.php:57</failure>
+      </testcase>
+      <testcase name="Blog show page renders successfully with dynamic seo and ssr" file="Blog Post Engine (Tests\Feature\BlogPostEngine)::Blog show page renders successfully with dynamic seo and ssr" class="Tests\Feature\BlogPostEngineTest" classname="Tests.Feature.BlogPostEngineTest" assertions="2" time="0.115918">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Blog show page renders successfully with dynamic seo and ssrExpected Inertia SSR to be enabled for /blog/venqore-launches-offline-pos
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\BlogPostEngineTest.php:74</failure>
+      </testcase>
+      <testcase name="Unknown blog slug returns 404" file="Blog Post Engine (Tests\Feature\BlogPostEngine)::Unknown blog slug returns 404" class="Tests\Feature\BlogPostEngineTest" classname="Tests.Feature.BlogPostEngineTest" assertions="1" time="0.063570"/>
+      <testcase name="Unpublished posts are not publicly reachable" file="Blog Post Engine (Tests\Feature\BlogPostEngine)::Unpublished posts are not publicly reachable" class="Tests\Feature\BlogPostEngineTest" classname="Tests.Feature.BlogPostEngineTest" assertions="2" time="0.068589"/>
+      <testcase name="Sitemap xml dynamically includes blog posts from database" file="Blog Post Engine (Tests\Feature\BlogPostEngine)::Sitemap xml dynamically includes blog posts from database" class="Tests\Feature\BlogPostEngineTest" classname="Tests.Feature.BlogPostEngineTest" assertions="2" time="0.078877"/>
+      <testcase name="Superadmin can create update and delete blog posts" file="Blog Post Engine (Tests\Feature\BlogPostEngine)::Superadmin can create update and delete blog posts" class="Tests\Feature\BlogPostEngineTest" classname="Tests.Feature.BlogPostEngineTest" assertions="6" time="0.106797"/>
+      <testcase name="Blog show page includes blogposting json ld schema" file="Blog Post Engine (Tests\Feature\BlogPostEngine)::Blog show page includes blogposting json ld schema" class="Tests\Feature\BlogPostEngineTest" classname="Tests.Feature.BlogPostEngineTest" assertions="2" time="0.148280"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\ComparePagesTest" file="Compare Pages (Tests\Feature\ComparePages)" tests="5" assertions="12" errors="0" failures="3" skipped="0" time="0.524573">
+      <testcase name="Compare hub page renders successfully with ssr" file="Compare Pages (Tests\Feature\ComparePages)::Compare hub page renders successfully with ssr" class="Tests\Feature\ComparePagesTest" classname="Tests.Feature.ComparePagesTest" assertions="2" time="0.119212">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Compare hub page renders successfully with ssrExpected Inertia SSR to be enabled for /compare
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\ComparePagesTest.php:16</failure>
+      </testcase>
+      <testcase name="Compare square page renders successfully with ssr" file="Compare Pages (Tests\Feature\ComparePages)::Compare square page renders successfully with ssr" class="Tests\Feature\ComparePagesTest" classname="Tests.Feature.ComparePagesTest" assertions="2" time="0.134805">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Compare square page renders successfully with ssrExpected Inertia SSR to be enabled for /compare/venqore-vs-square
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\ComparePagesTest.php:26</failure>
+      </testcase>
+      <testcase name="Compare vyapar page renders successfully with ssr" file="Compare Pages (Tests\Feature\ComparePages)::Compare vyapar page renders successfully with ssr" class="Tests\Feature\ComparePagesTest" classname="Tests.Feature.ComparePagesTest" assertions="2" time="0.122069">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Compare vyapar page renders successfully with ssrExpected Inertia SSR to be enabled for /compare/venqore-vs-vyapar
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\ComparePagesTest.php:37</failure>
+      </testcase>
+      <testcase name="Compare sub sitemap is referenced by the sitemap index" file="Compare Pages (Tests\Feature\ComparePages)::Compare sub sitemap is referenced by the sitemap index" class="Tests\Feature\ComparePagesTest" classname="Tests.Feature.ComparePagesTest" assertions="2" time="0.075656"/>
+      <testcase name="Compare pages are included in the compare sub sitemap" file="Compare Pages (Tests\Feature\ComparePages)::Compare pages are included in the compare sub sitemap" class="Tests\Feature\ComparePagesTest" classname="Tests.Feature.ComparePagesTest" assertions="4" time="0.072831"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\CrawlHygieneTest" file="Crawl Hygiene (Tests\Feature\CrawlHygiene)" tests="2" assertions="14" errors="0" failures="0" skipped="0" time="0.912486">
+      <testcase name="Internal and auth routes have noindex header" file="Crawl Hygiene (Tests\Feature\CrawlHygiene)::Internal and auth routes have noindex header" class="Tests\Feature\CrawlHygieneTest" classname="Tests.Feature.CrawlHygieneTest" assertions="8" time="0.333397"/>
+      <testcase name="Marketing routes do not have noindex header" file="Crawl Hygiene (Tests\Feature\CrawlHygiene)::Marketing routes do not have noindex header" class="Tests\Feature\CrawlHygieneTest" classname="Tests.Feature.CrawlHygieneTest" assertions="6" time="0.579089"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\DebitNoteTest" file="Debit Note (Tests\Feature\DebitNote)" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.414547">
+      <testcase name="Can create approved debit note and record stock movement" file="Debit Note (Tests\Feature\DebitNote)::Can create approved debit note and record stock movement" class="Tests\Feature\DebitNoteTest" classname="Tests.Feature.DebitNoteTest" assertions="5" time="0.414547"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\DocumentConversionTest" file="Document Conversion (Tests\Feature\DocumentConversion)" tests="8" assertions="36" errors="0" failures="0" skipped="0" time="3.418403">
+      <testcase name="Pre sale conversion to invoice success" file="Document Conversion (Tests\Feature\DocumentConversion)::Pre sale conversion to invoice success" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="11" time="0.473940"/>
+      <testcase name="Proposal conversion to presale success" file="Document Conversion (Tests\Feature\DocumentConversion)::Proposal conversion to presale success" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="3" time="0.450813"/>
+      <testcase name="Purchase order receive success" file="Document Conversion (Tests\Feature\DocumentConversion)::Purchase order receive success" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="3" time="0.408562"/>
+      <testcase name="Proposal re conversion syncs instead of duplicate" file="Document Conversion (Tests\Feature\DocumentConversion)::Proposal re conversion syncs instead of duplicate" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="8" time="0.425385"/>
+      <testcase name="Presale to sale quantity reserved resets to zero" file="Document Conversion (Tests\Feature\DocumentConversion)::Presale to sale quantity reserved resets to zero" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="3" time="0.446401"/>
+      <testcase name="Completed presale cannot be converted again" file="Document Conversion (Tests\Feature\DocumentConversion)::Completed presale cannot be converted again" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="2" time="0.374096"/>
+      <testcase name="Received purchase order rejects edit" file="Document Conversion (Tests\Feature\DocumentConversion)::Received purchase order rejects edit" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="2" time="0.429146"/>
+      <testcase name="Presale conversion flashes print sale id" file="Document Conversion (Tests\Feature\DocumentConversion)::Presale conversion flashes print sale id" class="Tests\Feature\DocumentConversionTest" classname="Tests.Feature.DocumentConversionTest" assertions="4" time="0.410059"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\DocumentationHubTest" file="Documentation Hub (Tests\Feature\DocumentationHub)" tests="5" assertions="33" errors="0" failures="1" skipped="0" time="0.491152">
+      <testcase name="Docs routes are registered and accessible" file="Documentation Hub (Tests\Feature\DocumentationHub)::Docs routes are registered and accessible" class="Tests\Feature\DocumentationHubTest" classname="Tests.Feature.DocumentationHubTest" assertions="2" time="0.055241"/>
+      <testcase name="Docs index loads getting started by default" file="Documentation Hub (Tests\Feature\DocumentationHub)::Docs index loads getting started by default" class="Tests\Feature\DocumentationHubTest" classname="Tests.Feature.DocumentationHubTest" assertions="13" time="0.137789"/>
+      <testcase name="Docs show loads specific markdown document" file="Documentation Hub (Tests\Feature\DocumentationHub)::Docs show loads specific markdown document" class="Tests\Feature\DocumentationHubTest" classname="Tests.Feature.DocumentationHubTest" assertions="2" time="0.119583">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Docs show loads specific markdown documentExpected Inertia SSR to be enabled for /docs/store-setup
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\DocumentationHubTest.php:39</failure>
+      </testcase>
+      <testcase name="Docs search filters qas correctly" file="Documentation Hub (Tests\Feature\DocumentationHub)::Docs search filters qas correctly" class="Tests\Feature\DocumentationHubTest" classname="Tests.Feature.DocumentationHubTest" assertions="15" time="0.117500"/>
+      <testcase name="Invalid doc slug aborts with 404" file="Documentation Hub (Tests\Feature\DocumentationHub)::Invalid doc slug aborts with 404" class="Tests\Feature\DocumentationHubTest" classname="Tests.Feature.DocumentationHubTest" assertions="1" time="0.061039"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\FeaturePagesTest" file="Feature Pages (Tests\Feature\FeaturePages)" tests="8" assertions="15" errors="0" failures="6" skipped="0" time="0.859688">
+      <testcase name="Features hub page renders successfully with ssr" file="Feature Pages (Tests\Feature\FeaturePages)::Features hub page renders successfully with ssr" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="2" time="0.132148">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Features hub page renders successfully with ssrExpected Inertia SSR to be enabled for /features
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\FeaturePagesTest.php:33</failure>
+      </testcase>
+      <testcase name="Features accounting page renders successfully with ssr" file="Feature Pages (Tests\Feature\FeaturePages)::Features accounting page renders successfully with ssr" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="2" time="0.114194">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Features accounting page renders successfully with ssrExpected Inertia SSR to be enabled for /features/accounting
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\FeaturePagesTest.php:97
+at tests\tests\Feature\FeaturePagesTest.php:42</failure>
+      </testcase>
+      <testcase name="Features inventory management page renders successfully with ssr" file="Feature Pages (Tests\Feature\FeaturePages)::Features inventory management page renders successfully with ssr" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="2" time="0.113585">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Features inventory management page renders successfully with ssrExpected Inertia SSR to be enabled for /features/inventory-management
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\FeaturePagesTest.php:97
+at tests\tests\Feature\FeaturePagesTest.php:48</failure>
+      </testcase>
+      <testcase name="Features offline pos page renders successfully with ssr" file="Feature Pages (Tests\Feature\FeaturePages)::Features offline pos page renders successfully with ssr" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="2" time="0.127137">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Features offline pos page renders successfully with ssrExpected Inertia SSR to be enabled for /features/offline-pos
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\FeaturePagesTest.php:97
+at tests\tests\Feature\FeaturePagesTest.php:54</failure>
+      </testcase>
+      <testcase name="Features point of sale page renders successfully with ssr" file="Feature Pages (Tests\Feature\FeaturePages)::Features point of sale page renders successfully with ssr" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="2" time="0.118749">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Features point of sale page renders successfully with ssrExpected Inertia SSR to be enabled for /features/point-of-sale
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\FeaturePagesTest.php:97
+at tests\tests\Feature\FeaturePagesTest.php:60</failure>
+      </testcase>
+      <testcase name="Features growth engine page renders successfully with ssr" file="Feature Pages (Tests\Feature\FeaturePages)::Features growth engine page renders successfully with ssr" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="2" time="0.119819">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Features growth engine page renders successfully with ssrExpected Inertia SSR to be enabled for /features/growth-engine
+Failed asserting that false is true.&#13;
+at tests\tests\Feature\FeaturePagesTest.php:97
+at tests\tests\Feature\FeaturePagesTest.php:71</failure>
+      </testcase>
+      <testcase name="Unknown feature slug returns 404" file="Feature Pages (Tests\Feature\FeaturePages)::Unknown feature slug returns 404" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="1" time="0.059398"/>
+      <testcase name="Features pages are included in sitemap" file="Feature Pages (Tests\Feature\FeaturePages)::Features pages are included in sitemap" class="Tests\Feature\FeaturePagesTest" classname="Tests.Feature.FeaturePagesTest" assertions="2" time="0.074657"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\FrontendSyntaxIntegrityTest" file="Frontend Syntax Integrity (Tests\Feature\FrontendSyntaxIntegrity)" tests="1" assertions="1" errors="0" failures="1" skipped="0" time="1.082108">
+      <testcase name="Frontend codebase has no eslint errors" file="Frontend Syntax Integrity (Tests\Feature\FrontendSyntaxIntegrity)::Frontend codebase has no eslint errors" class="Tests\Feature\FrontendSyntaxIntegrityTest" classname="Tests.Feature.FrontendSyntaxIntegrityTest" assertions="1" time="1.082108">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Frontend codebase has no eslint errorsESLint discovered unresolved reference or syntax errors in the React codebase:
+
+
+
+Oops! Something went wrong! :(
+
+ESLint: 8.57.1
+
+Failed to read JSON file at E:\AMD POS\AMD POS\app-code\main-app\scratch\eslint-undef-only.json:
+
+Cannot read config file: E:\AMD POS\AMD POS\app-code\main-app\scratch\eslint-undef-only.json
+Error: ENOENT: no such file or directory, open 'E:\AMD POS\AMD POS\app-code\main-app\scratch\eslint-undef-only.json'
+
+
+Failed asserting that 2 matches expected 0.&#13;
+at tests\tests\Feature\FrontendSyntaxIntegrityTest.php:22</failure>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\GoldenAuditTestsTest" file="Golden Audit Tests (Tests\Feature\GoldenAuditTests)" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="27.965130">
+      <testcase name="Ledger truth audit" file="Golden Audit Tests (Tests\Feature\GoldenAuditTests)::Ledger truth audit" class="Tests\Feature\GoldenAuditTestsTest" classname="Tests.Feature.GoldenAuditTestsTest" assertions="2" time="27.538507"/>
+      <testcase name="Data integrity audit" file="Golden Audit Tests (Tests\Feature\GoldenAuditTests)::Data integrity audit" class="Tests\Feature\GoldenAuditTestsTest" classname="Tests.Feature.GoldenAuditTestsTest" assertions="1" time="0.426623"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\ImportMappingTest" file="Import Mapping (Tests\Feature\ImportMapping)" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.356056">
+      <testcase name="Redirect uses store admin data with store slug on failed expired file" file="Import Mapping (Tests\Feature\ImportMapping)::Redirect uses store admin data with store slug on failed expired file" class="Tests\Feature\ImportMappingTest" classname="Tests.Feature.ImportMappingTest" assertions="3" time="0.356056"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\InvoiceFooterViralLoopTest" file="Invoice Footer Viral Loop (Tests\Feature\InvoiceFooterViralLoop)" tests="4" assertions="10" errors="0" failures="0" skipped="0" time="0.220627">
+      <testcase name="Receipt html invoice view contains powered by venqore link with utm" file="Invoice Footer Viral Loop (Tests\Feature\InvoiceFooterViralLoop)::Receipt html invoice view contains powered by venqore link with utm" class="Tests\Feature\InvoiceFooterViralLoopTest" classname="Tests.Feature.InvoiceFooterViralLoopTest" assertions="3" time="0.059765"/>
+      <testcase name="Pdf receipt export view contains powered by venqore link with utm" file="Invoice Footer Viral Loop (Tests\Feature\InvoiceFooterViralLoop)::Pdf receipt export view contains powered by venqore link with utm" class="Tests\Feature\InvoiceFooterViralLoopTest" classname="Tests.Feature.InvoiceFooterViralLoopTest" assertions="3" time="0.052520"/>
+      <testcase name="Tools pdf invoice export view contains powered by venqore link with utm" file="Invoice Footer Viral Loop (Tests\Feature\InvoiceFooterViralLoop)::Tools pdf invoice export view contains powered by venqore link with utm" class="Tests\Feature\InvoiceFooterViralLoopTest" classname="Tests.Feature.InvoiceFooterViralLoopTest" assertions="3" time="0.055337"/>
+      <testcase name="Every customer facing export template carries the viral footer" file="Invoice Footer Viral Loop (Tests\Feature\InvoiceFooterViralLoop)::Every customer facing export template carries the viral footer" class="Tests\Feature\InvoiceFooterViralLoopTest" classname="Tests.Feature.InvoiceFooterViralLoopTest" assertions="1" time="0.053004"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\LayoutAndAdminUsersRegressionTest" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)" tests="10" assertions="23" errors="0" failures="0" skipped="0" time="3.820229">
+      <testcase name="Header clock and subscription expiration banner rules" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Header clock and subscription expiration banner rules" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="2" time="0.855308"/>
+      <testcase name="Update member via admin controller" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Update member via admin controller" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="6" time="0.331834"/>
+      <testcase name="Cannot update owner role" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Cannot update owner role" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="1" time="0.321822"/>
+      <testcase name="Update member validation error returns 422" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Update member validation error returns 422" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="1" time="0.329270"/>
+      <testcase name="Remove member via admin controller" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Remove member via admin controller" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="3" time="0.340518"/>
+      <testcase name="Cannot remove owner member" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Cannot remove owner member" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="1" time="0.310336"/>
+      <testcase name="Attendance and staff redirects" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Attendance and staff redirects" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="4" time="0.340045"/>
+      <testcase name="Admin cannot promote user to admin or owner" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Admin cannot promote user to admin or owner" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="2" time="0.331050"/>
+      <testcase name="Admin cannot edit or suspend another admin or owner" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Admin cannot edit or suspend another admin or owner" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="2" time="0.342159"/>
+      <testcase name="Wildcard permission cannot bypass gating" file="Layout And Admin Users Regression (Tests\Feature\LayoutAndAdminUsersRegression)::Wildcard permission cannot bypass gating" class="Tests\Feature\LayoutAndAdminUsersRegressionTest" classname="Tests.Feature.LayoutAndAdminUsersRegressionTest" assertions="1" time="0.317888"/>
+    </testsuite>
+    <testsuite name="Tests\tests\Feature\LedgerAccountingIntegrationTest" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php" tests="14" assertions="25" errors="0" failures="0" skipped="0" time="6.185762">
+      <testcase name="customer payment in routes to 1200" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::customer payment in routes to 1200" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="2" time="0.492947"/>
+      <testcase name="customer payment out routes to 1200" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::customer payment out routes to 1200" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="2" time="0.441299"/>
+      <testcase name="supplier payment out routes to 2000" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::supplier payment out routes to 2000" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="2" time="0.457452"/>
+      <testcase name="supplier payment in routes to 2000" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::supplier payment in routes to 2000" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="2" time="0.442217"/>
+      <testcase name="payment without party fails validation" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::payment without party fails validation" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="2" time="0.416700"/>
+      <testcase name="multitenant ledger isolation" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::multitenant ledger isolation" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="3" time="0.733360"/>
+      <testcase name="total receivables widget matches ledger" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::total receivables widget matches ledger" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="1" time="0.562627"/>
+      <testcase name="total payables widget matches ledger" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::total payables widget matches ledger" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="1" time="0.501558"/>
+      <testcase name="payables widget prevent negative netting" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::payables widget prevent negative netting" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="1" time="0.563729"/>
+      <testcase name="payment reversal restores balance to the penny" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::payment reversal restores balance to the penny" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="3" time="0.490163"/>
+      <testcase name="cashier pos split payment updates khata" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::cashier pos split payment updates khata" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="1" time="0.209535"/>
+      <testcase name="multi currency decimal precision reconciliation" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::multi currency decimal precision reconciliation" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="2" time="0.457661"/>
+      <testcase name="zero value ledger lines are skipped safely" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::zero value ledger lines are skipped safely" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="2" time="0.196783"/>
+      <testcase name="four decimal precision formatting support" file="tests\tests\Feature\LedgerAccountingIntegrationTest.php::four decimal precision formatting support" class="Tests\tests\Feature\LedgerAccountingIntegrationTest" classname="Tests.tests.Feature.LedgerAccountingIntegrationTest" assertions="1" time="0.219732"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\LegacyAdminPasscodeTest" file="Legacy Admin Passcode (Tests\Feature\LegacyAdminPasscode)" tests="3" assertions="17" errors="0" failures="0" skipped="0" time="1.133065">
+      <testcase name="Store user creates membership and sets hashed pos pin" file="Legacy Admin Passcode (Tests\Feature\LegacyAdminPasscode)::Store user creates membership and sets hashed pos pin" class="Tests\Feature\LegacyAdminPasscodeTest" classname="Tests.Feature.LegacyAdminPasscodeTest" assertions="9" time="0.384603"/>
+      <testcase name="Update user modifies membership and hashes pos pin" file="Legacy Admin Passcode (Tests\Feature\LegacyAdminPasscode)::Update user modifies membership and hashes pos pin" class="Tests\Feature\LegacyAdminPasscodeTest" classname="Tests.Feature.LegacyAdminPasscodeTest" assertions="6" time="0.368891"/>
+      <testcase name="Store user validates passcode uniqueness within same store" file="Legacy Admin Passcode (Tests\Feature\LegacyAdminPasscode)::Store user validates passcode uniqueness within same store" class="Tests\Feature\LegacyAdminPasscodeTest" classname="Tests.Feature.LegacyAdminPasscodeTest" assertions="2" time="0.379570"/>
+    </testsuite>
+    <testsuite name="Tests\Performance\SnapshotPerformanceTest" file="Snapshot Performance (Tests\Performance\SnapshotPerformance)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.064496">
+      <testcase name="Party snapshot rebuild completes under 2ms" file="Snapshot Performance (Tests\Performance\SnapshotPerformance)::Party snapshot rebuild completes under 2ms" class="Tests\Performance\SnapshotPerformanceTest" classname="Tests.Performance.SnapshotPerformanceTest" assertions="1" time="0.064496"/>
+    </testsuite>
+    <testsuite name="Tests\Routes\FullRouteSweepTest" file="Full Route Sweep (Tests\Routes\FullRouteSweep)" tests="6" assertions="25" errors="0" failures="1" skipped="0" time="0.550976">
+      <testcase name="Every ziggy route still exists in the laravel registry" file="Full Route Sweep (Tests\Routes\FullRouteSweep)::Every ziggy route still exists in the laravel registry" class="Tests\Routes\FullRouteSweepTest" classname="Tests.Routes.FullRouteSweepTest" assertions="6" time="0.071440"/>
+      <testcase name="Every laravel route is present in the generated ziggy file" file="Full Route Sweep (Tests\Routes\FullRouteSweep)::Every laravel route is present in the generated ziggy file" class="Tests\Routes\FullRouteSweepTest" classname="Tests.Routes.FullRouteSweepTest" assertions="6" time="0.077745">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Every laravel route is present in the generated ziggy fileRoutes exist in Laravel but are missing from resources/js/ziggy.js.
+Calling route('&lt;name&gt;') for any of these throws the Ziggy
+"route is not in the route list" error in the browser.
+Fix: php artisan ziggy:generate  (then rebuild the frontend)
+
+Missing entries:
+  - platform.store.feature-flag  [POST VenQore/stores/{tenant}/feature-flags]
+  - store.v3.reports.aged-payables  [GET|HEAD s/{store_slug}/v3/reports/aged-payables]
+  - store.v3.reports.aged-receivables  [GET|HEAD s/{store_slug}/v3/reports/aged-receivables]
+  - store.v3.reports.balance-sheet  [GET|HEAD s/{store_slug}/v3/reports/balance-sheet]
+  - store.v3.reports.cash-flow  [GET|HEAD s/{store_slug}/v3/reports/cash-flow]
+  - store.v3.reports.cogs  [GET|HEAD s/{store_slug}/v3/reports/cogs]
+  - store.v3.reports.export  [GET|HEAD s/{store_slug}/v3/reports/export]
+  - store.v3.reports.gross-profit  [GET|HEAD s/{store_slug}/v3/reports/gross-profit]
+  - store.v3.reports.inventory-movement  [GET|HEAD s/{store_slug}/v3/reports/inventory-movement]
+  - store.v3.reports.inventory-valuation  [GET|HEAD s/{store_slug}/v3/reports/inventory-valuation]
+  - store.v3.reports.party-ledger  [GET|HEAD s/{store_slug}/v3/reports/party-ledger/{partyId}]
+  - store.v3.reports.profit-loss  [GET|HEAD s/{store_slug}/v3/reports/profit-loss]
+  - store.v3.reports.purchases  [GET|HEAD s/{store_slug}/v3/reports/purchases]
+  - store.v3.reports.sales  [GET|HEAD s/{store_slug}/v3/reports/sales]
+  - store.v3.reports.tax  [GET|HEAD s/{store_slug}/v3/reports/tax]
+  - store.v3.reports.trial-balance  [GET|HEAD s/{store_slug}/v3/reports/trial-balance]
+
+Failed asserting that two arrays are identical.&#13;
+at tests\tests\Routes\FullRouteSweepTest.php:179</failure>
+      </testcase>
+      <testcase name="Every rendered inertia page component exists" file="Full Route Sweep (Tests\Routes\FullRouteSweep)::Every rendered inertia page component exists" class="Tests\Routes\FullRouteSweepTest" classname="Tests.Routes.FullRouteSweepTest" assertions="2" time="0.208129"/>
+      <testcase name="Every route action resolves to an existing controller method" file="Full Route Sweep (Tests\Routes\FullRouteSweep)::Every route action resolves to an existing controller method" class="Tests\Routes\FullRouteSweepTest" classname="Tests.Routes.FullRouteSweepTest" assertions="1" time="0.074058"/>
+      <testcase name="No route namespace exists without a declared sweep story" file="Full Route Sweep (Tests\Routes\FullRouteSweep)::No route namespace exists without a declared sweep story" class="Tests\Routes\FullRouteSweepTest" classname="Tests.Routes.FullRouteSweepTest" assertions="1" time="0.057249"/>
+      <testcase name="Route coverage census is recorded and has not shrunk" file="Full Route Sweep (Tests\Routes\FullRouteSweep)::Route coverage census is recorded and has not shrunk" class="Tests\Routes\FullRouteSweepTest" classname="Tests.Routes.FullRouteSweepTest" assertions="9" time="0.062356"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

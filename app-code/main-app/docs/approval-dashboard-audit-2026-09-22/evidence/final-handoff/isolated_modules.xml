@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="E:\AMD POS\AMD POS\app-code\main-app\phpunit.xml" tests="43" assertions="158" errors="6" failures="5" skipped="0" time="27.456025">
+    <testsuite name="Feature" tests="43" assertions="158" errors="6" failures="5" skipped="0" time="27.456025">
+      <testsuite name="Tests\tests\Feature\Module01\AuthAndTenancyTest" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php" tests="13" assertions="37" errors="0" failures="2" skipped="0" time="7.800955">
+        <testcase name="user can login with correct credentials plus the emailed code" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::user can login with correct credentials plus the emailed code" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="3" time="0.530813"/>
+        <testcase name="user cannot login with wrong credentials" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::user cannot login with wrong credentials" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="1" time="0.093901"/>
+        <testcase name="tenant a cannot see tenant b products" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::tenant a cannot see tenant b products" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="2" time="1.088403"/>
+        <testcase name="tenant a cannot see tenant b sales" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::tenant a cannot see tenant b sales" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="2" time="1.021708"/>
+        <testcase name="tenant a cannot see tenant b parties" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::tenant a cannot see tenant b parties" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="2" time="0.488082"/>
+        <testcase name="suspended tenant gets StoreSuspended page" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::suspended tenant gets StoreSuspended page" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="10" time="0.760528"/>
+        <testcase name="cashier cannot access admin expenses route" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::cashier cannot access admin expenses route" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="1" time="0.440991"/>
+        <testcase name="superadmin can access venqore routes" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::superadmin can access venqore routes" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="1" time="0.259452"/>
+        <testcase name="regular user cannot access venqore routes" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::regular user cannot access venqore routes" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="1" time="0.875885">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">regular user cannot access venqore routesExpected response status code [404] but received 302.
+Failed asserting that 302 is identical to 404.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at tests\tests\Feature\Module01\AuthAndTenancyTest.php:159</failure>
+        </testcase>
+        <testcase name="guest cannot access venqore routes" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::guest cannot access venqore routes" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="1" time="0.122815">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">guest cannot access venqore routesExpected response status code [404] but received 302.
+Failed asserting that 302 is identical to 404.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at tests\tests\Feature\Module01\AuthAndTenancyTest.php:165</failure>
+        </testcase>
+        <testcase name="user can log in via POS PIN with valid credentials" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::user can log in via POS PIN with valid credentials" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="5" time="0.885027"/>
+        <testcase name="user cannot log in via POS PIN with invalid credentials" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::user cannot log in via POS PIN with invalid credentials" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="3" time="0.452786"/>
+        <testcase name="session switching regenerates session id and clears store specific session keys" file="tests\tests\Feature\Module01\AuthAndTenancyTest.php::session switching regenerates session id and clears store specific session keys" class="Tests\tests\Feature\Module01\AuthAndTenancyTest" classname="Tests.tests.Feature.Module01.AuthAndTenancyTest" assertions="5" time="0.780565"/>
+      </testsuite>
+      <testsuite name="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php" tests="14" assertions="54" errors="0" failures="1" skipped="0" time="6.141265">
+        <testcase name="owner can create store successfully" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::owner can create store successfully" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="10" time="0.686226"/>
+        <testcase name="store creation seeds default data" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::store creation seeds default data" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="3" time="0.651130">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">store creation seeds default dataFailed asserting that 10 matches expected 9.&#13;
+at tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php:94</failure>
+        </testcase>
+        <testcase name="ltd tier1 blocked after 1 store" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::ltd tier1 blocked after 1 store" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="4" time="0.333693"/>
+        <testcase name="ltd tier2 blocked after 2 stores" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::ltd tier2 blocked after 2 stores" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="4" time="0.438794"/>
+        <testcase name="ltd tier3 blocked after 5 stores" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::ltd tier3 blocked after 5 stores" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="4" time="0.662442"/>
+        <testcase name="store creation does not fail when woocommerce env not set" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::store creation does not fail when woocommerce env not set" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="3" time="0.511363"/>
+        <testcase name="duplicate store name or slug is rejected" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::duplicate store name or slug is rejected" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="3" time="0.129941"/>
+        <testcase name="reserved subdomain is safely sanitized" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::reserved subdomain is safely sanitized" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="5" time="0.341988"/>
+        <testcase name="does not create partial store" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::does not create partial store" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="2" time="0.224840"/>
+        <testcase name="woocommerce webhook isolation regression" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::woocommerce webhook isolation regression" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="1" time="0.186476"/>
+        <testcase name="woocommerce webhook requires a valid signature" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::woocommerce webhook requires a valid signature" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="3" time="0.359559"/>
+        <testcase name="store creation has double submit prevention via cache lock" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::store creation has double submit prevention via cache lock" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="6" time="0.364437"/>
+        <testcase name="onboarding setup completion has double submit lock" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::onboarding setup completion has double submit lock" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="4" time="0.771287"/>
+        <testcase name="process webhook job binds tenant context in queue" file="tests\tests\Feature\Module02\StoreCreationAndProvisioningTest.php::process webhook job binds tenant context in queue" class="Tests\tests\Feature\Module02\StoreCreationAndProvisioningTest" classname="Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest" assertions="2" time="0.479088"/>
+      </testsuite>
+      <testsuite name="Tests\tests\Feature\Module06\SalesEcosystemTest" file="tests\tests\Feature\Module06\SalesEcosystemTest.php" tests="8" assertions="52" errors="0" failures="1" skipped="0" time="7.884697">
+        <testcase name="posted_invoice_returns_403_on_edit_attempt" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::posted_invoice_returns_403_on_edit_attempt" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="2" time="0.840845"/>
+        <testcase name="proposal_to_sale_conversion_transfers_fields_and_no_duplicate_journals" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::proposal_to_sale_conversion_transfers_fields_and_no_duplicate_journals" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="10" time="1.023483"/>
+        <testcase name="v3_quotation_to_sales_order_conversion" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::v3_quotation_to_sales_order_conversion" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="4" time="1.012738"/>
+        <testcase name="sales_orders_stock_hold_and_conversion_to_sale" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::sales_orders_stock_hold_and_conversion_to_sale" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="7" time="0.967191">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">sales_orders_stock_hold_and_conversion_to_saleFailed asserting that '10.0000' matches expected 2.&#13;
+at tests\tests\Feature\Module06\SalesEcosystemTest.php:229</failure>
+        </testcase>
+        <testcase name="recurring invoice generation creates a correct new invoice with line items" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::recurring invoice generation creates a correct new invoice with line items" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="5" time="1.118613"/>
+        <testcase name="duplicate conversion prevention via status guards and locks" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::duplicate conversion prevention via status guards and locks" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="7" time="1.153018"/>
+        <testcase name="sales conversion mapping retains discounts tax and net sales" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::sales conversion mapping retains discounts tax and net sales" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="13" time="0.824498"/>
+        <testcase name="sales order completion and cancellation releases inventory" file="tests\tests\Feature\Module06\SalesEcosystemTest.php::sales order completion and cancellation releases inventory" class="Tests\tests\Feature\Module06\SalesEcosystemTest" classname="Tests.tests.Feature.Module06.SalesEcosystemTest" assertions="4" time="0.944310"/>
+      </testsuite>
+      <testsuite name="Tests\tests\Feature\Module13\DashboardTest" file="tests\tests\Feature\Module13\DashboardTest.php" tests="6" assertions="12" errors="3" failures="1" skipped="0" time="4.747545">
+        <testcase name="todays_revenue_widget_returns_net_sales_not_gross" file="tests\tests\Feature\Module13\DashboardTest.php::todays_revenue_widget_returns_net_sales_not_gross" class="Tests\tests\Feature\Module13\DashboardTest" classname="Tests.tests.Feature.Module13.DashboardTest" assertions="5" time="1.043870"/>
+        <testcase name="attributes revenue and COGS to posted_at date range instead of created_at date range" file="tests\tests\Feature\Module13\DashboardTest.php::attributes revenue and COGS to posted_at date range instead of created_at date range" class="Tests\tests\Feature\Module13\DashboardTest" classname="Tests.tests.Feature.Module13.DashboardTest" assertions="0" time="0.686878">
+          <error type="Symfony\Component\HttpKernel\Exception\HttpException">attributes revenue and COGS to posted_at date range instead of created_at date rangeSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at tests\tests\Feature\Module13\DashboardTest.php:96</error>
+        </testcase>
+        <testcase name="computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement" file="tests\tests\Feature\Module13\DashboardTest.php::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement" class="Tests\tests\Feature\Module13\DashboardTest" classname="Tests.tests.Feature.Module13.DashboardTest" assertions="0" time="0.097765">
+          <error type="Illuminate\Database\QueryException">computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movementIlluminate\Database\QueryException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_current_0d33d5b0, SQL: insert into `accounts` (`tenant_id`, `code`, `id`, `name`, `type`, `balance`, `normal_balance`, `role`, `is_current`, `is_active`, `created_at`, `updated_at`) values (1004740, 1010, 7a88b4da-9556-4140-b5e1-54deed42c383, Bank Account, asset, 0, debit, bank, 1, 1, 2026-06-15 12:00:00, 2026-06-15 12:00:00))&#13;
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:42
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4121
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4273
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:114
+at tests\tests\Feature\Module13\DashboardTest.php:133
+Caused by
+PDOException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction
+
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:42
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4121
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4273
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:114
+at tests\tests\Feature\Module13\DashboardTest.php:133</error>
+        </testcase>
+        <testcase name="scopes all cashier dashboard widgets and session stats strictly to the current tenant" file="tests\tests\Feature\Module13\DashboardTest.php::scopes all cashier dashboard widgets and session stats strictly to the current tenant" class="Tests\tests\Feature\Module13\DashboardTest" classname="Tests.tests.Feature.Module13.DashboardTest" assertions="0" time="0.754792">
+          <error type="Symfony\Component\HttpKernel\Exception\HttpException">scopes all cashier dashboard widgets and session stats strictly to the current tenantSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at tests\tests\Feature\Module13\DashboardTest.php:185</error>
+        </testcase>
+        <testcase name="handles zero activity onboarding state without throwing unhandled exceptions" file="tests\tests\Feature\Module13\DashboardTest.php::handles zero activity onboarding state without throwing unhandled exceptions" class="Tests\tests\Feature\Module13\DashboardTest" classname="Tests.tests.Feature.Module13.DashboardTest" assertions="6" time="1.206692">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">handles zero activity onboarding state without throwing unhandled exceptionsFailed asserting that Array &amp;0 [
+    'balance' =&gt; 0.0,
+    'transactions' =&gt; Array &amp;1 [],
+] is null.&#13;
+at tests\tests\Feature\Module13\DashboardTest.php:226</failure>
+        </testcase>
+        <testcase name="restricts V3 dashboard endpoint to users without financial permissions" file="tests\tests\Feature\Module13\DashboardTest.php::restricts V3 dashboard endpoint to users without financial permissions" class="Tests\tests\Feature\Module13\DashboardTest" classname="Tests.tests.Feature.Module13.DashboardTest" assertions="1" time="0.957547"/>
+      </testsuite>
+      <testsuite name="Tests\tests\Feature\Module20\FinancialExtensionTest" file="tests\tests\Feature\Module20\FinancialExtensionTest.php" tests="2" assertions="3" errors="2" failures="0" skipped="0" time="0.881563">
+        <testcase name="store credit cannot be double spent and query uses atomic lock" file="tests\tests\Feature\Module20\FinancialExtensionTest.php::store credit cannot be double spent and query uses atomic lock" class="Tests\tests\Feature\Module20\FinancialExtensionTest" classname="Tests.tests.Feature.Module20.FinancialExtensionTest" assertions="3" time="0.881563"/>
+        <testcase name="loyalty points cannot be double spent and query uses atomic lock" file="tests\tests\Feature\Module20\FinancialExtensionTest.php::loyalty points cannot be double spent and query uses atomic lock" class="Tests\tests\Feature\Module20\FinancialExtensionTest" classname="Tests.tests.Feature.Module20.FinancialExtensionTest" assertions="0" time="0.000000">
+          <error type="Illuminate\Database\QueryException">loyalty points cannot be double spent and query uses atomic lockIlluminate\Database\QueryException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_current_0d33d5b0, SQL: update `accounts` set `id` = 3c15c032-0aa4-4a19-a0f7-686787edea15, `name` = Cash in Hand, `type` = asset, `balance` = 0, `normal_balance` = debit, `role` = cash, `is_current` = 1, `is_active` = 1, `created_at` = 2026-09-23 11:36:04, `updated_at` = 2026-09-23 11:36:04 where (`tenant_id` = 1004751 and `code` = 1000) limit 1)&#13;
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:609
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:597
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:549
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4234
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4280
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:263
+at tests\tests\Feature\Module20\FinancialExtensionTest.php:17
+Caused by
+PDOException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction
+
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:609
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:597
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:549
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4234
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4280
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:263
+at tests\tests\Feature\Module20\FinancialExtensionTest.php:17</error>
+        </testcase>
+      </testsuite>
+      <testsuite name="Tests\tests\Feature\Module20\SuperAdminTest" file="tests\tests\Feature\Module20\SuperAdminTest.php" tests="0" assertions="0" errors="1" failures="0" skipped="0" time="0.000000"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="61" assertions="18018" errors="2" failures="0" skipped="0" time="9.959014">
+    <testsuite name="Tests\Feature\Reckoner\AssistantParityTest" file="Assistant Parity (Tests\Feature\Reckoner\AssistantParity)" tests="1" assertions="0" errors="1" failures="0" skipped="0" time="0.460900">
+      <testcase name="Assistant tools agree with reckoner readings" file="Assistant Parity (Tests\Feature\Reckoner\AssistantParity)::Assistant tools agree with reckoner readings" class="Tests\Feature\Reckoner\AssistantParityTest" classname="Tests.Feature.Reckoner.AssistantParityTest" assertions="0" time="0.460900">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">Assistant tools agree with reckoner readingsSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Reckoner\AssistantParityTest.php:75</error>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\ReckonerConsistencyTest" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)" tests="11" assertions="24" errors="0" failures="0" skipped="0" time="2.138889">
+      <testcase name="Signed metric renders loss label when negative" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Signed metric renders loss label when negative" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="2" time="0.397514"/>
+      <testcase name="Reckoner labels swaps to loss side directly" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Reckoner labels swaps to loss side directly" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="3" time="0.056709"/>
+      <testcase name="Gross profit and loss label swap" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Gross profit and loss label swap" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="2" time="0.085314"/>
+      <testcase name="Unsigned metric never swaps label" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Unsigned metric never swaps label" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="1" time="0.065360"/>
+      <testcase name="Low stock excludes out of stock" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Low stock excludes out of stock" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="5" time="0.352327"/>
+      <testcase name="Overstock off by default is not applicable" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Overstock off by default is not applicable" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="2" time="0.260040"/>
+      <testcase name="Production cost is not applicable not zero with no runs" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Production cost is not applicable not zero with no runs" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="1" time="0.417884"/>
+      <testcase name="Expenses total excludes cogs" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Expenses total excludes cogs" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="2" time="0.264964"/>
+      <testcase name="Purchasing spend and paid to suppliers are separately named" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Purchasing spend and paid to suppliers are separately named" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="3" time="0.058040"/>
+      <testcase name="Balance sheet ok is a status shape not a number" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Balance sheet ok is a status shape not a number" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="1" time="0.052728"/>
+      <testcase name="Platform mrr is not reachable from a tenant" file="Reckoner Consistency (Tests\Feature\Reckoner\ReckonerConsistency)::Platform mrr is not reachable from a tenant" class="Tests\Feature\Reckoner\ReckonerConsistencyTest" classname="Tests.Feature.Reckoner.ReckonerConsistencyTest" assertions="2" time="0.128009"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\ReckonerGateTest" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)" tests="8" assertions="15" errors="0" failures="0" skipped="0" time="1.728008">
+      <testcase name="Unknown key returns not found" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::Unknown key returns not found" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="2" time="0.136165"/>
+      <testcase name="Platform scoped metric is not found not forbidden" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::Platform scoped metric is not found not forbidden" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="1" time="0.132203"/>
+      <testcase name="Permission gate blocks a user without any matching permission" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::Permission gate blocks a user without any matching permission" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="3" time="0.140718"/>
+      <testcase name="Capability gate returns not applicable when business lacks the capability" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::Capability gate returns not applicable when business lacks the capability" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="2" time="0.257035"/>
+      <testcase name="Invalid period for a metric is rejected" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::Invalid period for a metric is rejected" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="2" time="0.255993"/>
+      <testcase name="A gate failure executes zero queries" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::A gate failure executes zero queries" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="1" time="0.128424"/>
+      <testcase name="Owner can read sales revenue" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::Owner can read sales revenue" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="2" time="0.272240"/>
+      <testcase name="Batch caps at twenty four requests" file="Reckoner Gate (Tests\Feature\Reckoner\ReckonerGate)::Batch caps at twenty four requests" class="Tests\Feature\Reckoner\ReckonerGateTest" classname="Tests.Feature.Reckoner.ReckonerGateTest" assertions="2" time="0.405229"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\ReckonerPeriodTest" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)" tests="13" assertions="60" errors="0" failures="0" skipped="0" time="1.865550">
+      <testcase name="All eighteen period keys resolve without error" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::All eighteen period keys resolve without error" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="36" time="0.154796"/>
+      <testcase name="Periods resolve in tenant timezone" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Periods resolve in tenant timezone" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="2" time="0.166169"/>
+      <testcase name="Periods fall back to app timezone without tenant" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Periods fall back to app timezone without tenant" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="1" time="0.087634"/>
+      <testcase name="This year runs calendar january to now" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::This year runs calendar january to now" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="2" time="0.165686"/>
+      <testcase name="This quarter is a calendar quarter" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::This quarter is a calendar quarter" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="2" time="0.143040"/>
+      <testcase name="Last quarter compares to the quarter before" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Last quarter compares to the quarter before" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="2" time="0.156319"/>
+      <testcase name="Last year is the full previous calendar year" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Last year is the full previous calendar year" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="4" time="0.160891"/>
+      <testcase name="All time starts in 1900" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::All time starts in 1900" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="2" time="0.148117"/>
+      <testcase name="Custom period requires from and to" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Custom period requires from and to" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="1" time="0.156515"/>
+      <testcase name="Custom period uses equal length preceding comparison window" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Custom period uses equal length preceding comparison window" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="3" time="0.126485"/>
+      <testcase name="Leap day last year resolves cleanly" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Leap day last year resolves cleanly" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="2" time="0.131673"/>
+      <testcase name="Dst spring forward does not break today" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Dst spring forward does not break today" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="2" time="0.130090"/>
+      <testcase name="Unknown period key throws" file="Reckoner Period (Tests\Feature\Reckoner\ReckonerPeriod)::Unknown period key throws" class="Tests\Feature\Reckoner\ReckonerPeriodTest" classname="Tests.Feature.Reckoner.ReckonerPeriodTest" assertions="1" time="0.138136"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\ReckonerRegistryTest" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)" tests="15" assertions="17867" errors="0" failures="0" skipped="0" time="0.883416">
+      <testcase name="Registry is not empty" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Registry is not empty" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="1" time="0.065435"/>
+      <testcase name="Every definition has every required field" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Every definition has every required field" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="9618" time="0.058576"/>
+      <testcase name="No duplicate keys" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::No duplicate keys" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="1" time="0.058216"/>
+      <testcase name="Key field matches array key" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Key field matches array key" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="401" time="0.057417"/>
+      <testcase name="Every metric has a generic label and help text" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Every metric has a generic label and help text" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="802" time="0.060590"/>
+      <testcase name="Every shape is a valid reckoner shape" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Every shape is a valid reckoner shape" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="401" time="0.052807"/>
+      <testcase name="Every scope is tenant or platform" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Every scope is tenant or platform" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="401" time="0.058423"/>
+      <testcase name="Every source class exists and implements reckoner source" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Every source class exists and implements reckoner source" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="796" time="0.056633"/>
+      <testcase name="Every source declares support for the metrics that reference it" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Every source declares support for the metrics that reference it" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="398" time="0.067074"/>
+      <testcase name="Every period in a metrics list is a real period key" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Every period in a metrics list is a real period key" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="3039" time="0.057726"/>
+      <testcase name="Default period is in the metrics own periods list" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Default period is in the metrics own periods list" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="401" time="0.058695"/>
+      <testcase name="Cache ttl is a non negative integer" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Cache ttl is a non negative integer" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="1203" time="0.056542"/>
+      <testcase name="Direction is a known value" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Direction is a known value" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="401" time="0.058667"/>
+      <testcase name="Find returns null for unknown key" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Find returns null for unknown key" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="2" time="0.059090"/>
+      <testcase name="Find returns the definition for a known key" file="Reckoner Registry (Tests\Feature\Reckoner\ReckonerRegistry)::Find returns the definition for a known key" class="Tests\Feature\Reckoner\ReckonerRegistryTest" classname="Tests.Feature.Reckoner.ReckonerRegistryTest" assertions="2" time="0.057524"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\ReckonerSettingsTest" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)" tests="8" assertions="30" errors="0" failures="0" skipped="0" time="0.956857">
+      <testcase name="Defaults apply when nothing is set" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Defaults apply when nothing is set" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="4" time="0.169253"/>
+      <testcase name="Set then get round trips" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Set then get round trips" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="1" time="0.138800"/>
+      <testcase name="Overstock mode can be turned on" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Overstock mode can be turned on" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="1" time="0.131482"/>
+      <testcase name="Dormant days defaults to generic without business type" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Dormant days defaults to generic without business type" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="1" time="0.133451"/>
+      <testcase name="Dormant days uses business type default once set" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Dormant days uses business type default once set" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="1" time="0.133225"/>
+      <testcase name="Dormant days owner override beats business type default" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Dormant days owner override beats business type default" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="1" time="0.127295"/>
+      <testcase name="Every business type has a documented default" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Every business type has a documented default" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="20" time="0.063373"/>
+      <testcase name="Unknown business type falls back to generic" file="Reckoner Settings (Tests\Feature\Reckoner\ReckonerSettings)::Unknown business type falls back to generic" class="Tests\Feature\Reckoner\ReckonerSettingsTest" classname="Tests.Feature.Reckoner.ReckonerSettingsTest" assertions="1" time="0.059978"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\SaleServiceParityTest" file="Sale Service Parity (Tests\Feature\Reckoner\SaleServiceParity)" tests="2" assertions="20" errors="0" failures="0" skipped="0" time="1.281504">
+      <testcase name="It writes sales source identically across both paths" file="Sale Service Parity (Tests\Feature\Reckoner\SaleServiceParity)::It writes sales source identically across both paths" class="Tests\Feature\Reckoner\SaleServiceParityTest" classname="Tests.Feature.Reckoner.SaleServiceParityTest" assertions="10" time="0.724790"/>
+      <testcase name="It produces identical journal lines for identical sale inputs" file="Sale Service Parity (Tests\Feature\Reckoner\SaleServiceParity)::It produces identical journal lines for identical sale inputs" class="Tests\Feature\Reckoner\SaleServiceParityTest" classname="Tests.Feature.Reckoner.SaleServiceParityTest" assertions="10" time="0.556714"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reports\CrossTenantReportLeakTest" file="Cross Tenant Report Leak (Tests\Feature\Reports\CrossTenantReportLeak)" tests="3" assertions="2" errors="1" failures="0" skipped="0" time="0.643890">
+      <testcase name="Point in time inventory details does not leak across tenants" file="Cross Tenant Report Leak (Tests\Feature\Reports\CrossTenantReportLeak)::Point in time inventory details does not leak across tenants" class="Tests\Feature\Reports\CrossTenantReportLeakTest" classname="Tests.Feature.Reports.CrossTenantReportLeakTest" assertions="1" time="0.234179"/>
+      <testcase name="Get point in time inventory does not leak products or movements across tenants" file="Cross Tenant Report Leak (Tests\Feature\Reports\CrossTenantReportLeak)::Get point in time inventory does not leak products or movements across tenants" class="Tests\Feature\Reports\CrossTenantReportLeakTest" classname="Tests.Feature.Reports.CrossTenantReportLeakTest" assertions="1" time="0.205157"/>
+      <testcase name="Sale aging journal queries are tenant scoped" file="Cross Tenant Report Leak (Tests\Feature\Reports\CrossTenantReportLeak)::Sale aging journal queries are tenant scoped" class="Tests\Feature\Reports\CrossTenantReportLeakTest" classname="Tests.Feature.Reports.CrossTenantReportLeakTest" assertions="0" time="0.204555">
+        <error type="Illuminate\Database\UniqueConstraintViolationException">Sale aging journal queries are tenant scopedIlluminate\Database\UniqueConstraintViolationException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '1001373-1200' for key 'accounts_tenant_id_code_unique' (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_baseline_sharded, SQL: insert into `accounts` (`tenant_id`, `code`, `name`, `type`, `id`, `updated_at`, `created_at`) values (1001373, 1200, Accounts Receivable, asset, 01a0ce65-2d38-727c-b47c-5fb17699c23b, 2026-09-23 13:12:12, 2026-09-23 13:12:12))&#13;
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:42
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4121
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2237
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1412
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Reports\CrossTenantReportLeakTest.php:136
+Caused by
+PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '1001373-1200' for key 'accounts_tenant_id_code_unique'
+
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:42
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4121
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2237
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1412
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Reports\CrossTenantReportLeakTest.php:136</error>
+      </testcase>
+    </testsuite>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,1631 @@
+{
+  "generated_at": "2026-09-23T09:14:32.696Z",
+  "baseline_commit": "10988c43",
+  "baseline_error_count": 2218,
+  "current_error_count": 2220,
+  "net_change": 2,
+  "new_errors_introduced": 0,
+  "new_errors_list": [],
+  "rules_summary": {
+    "jsx-a11y(click-events-have-key-events)": 248,
+    "jsx-a11y(no-static-element-interactions)": 248,
+    "jsx-a11y(no-noninteractive-element-interactions)": 19,
+    "jsx-a11y(prefer-tag-over-role)": 115,
+    "react(set-state-in-effect)": 207,
+    "unicorn(no-new-array)": 10,
+    "react(purity)": 21,
+    "jsx-a11y(label-has-associated-control)": 481,
+    "jsx-a11y(no-autofocus)": 51,
+    "unicorn(no-useless-spread)": 4,
+    "react-hooks(exhaustive-deps)": 238,
+    "jsx-a11y(control-has-associated-label)": 278,
+    "react(immutability)": 69,
+    "react(refs)": 79,
+    "react(static-components)": 69,
+    "jsx-a11y(no-noninteractive-element-to-interactive-role)": 26,
+    "jsx-a11y(anchor-is-valid)": 3,
+    "react(preserve-manual-memoization)": 19,
+    "jsx-a11y(media-has-caption)": 3,
+    "unicorn(no-useless-fallback-in-spread)": 20,
+    "unicorn(prefer-string-starts-ends-with)": 1,
+    "jsx-a11y(aria-activedescendant-has-tabindex)": 1,
+    "jsx-a11y(interactive-supports-focus)": 2,
+    "eslint(no-ex-assign)": 1,
+    "eslint(no-constant-binary-expression)": 2,
+    "jsx-a11y(anchor-has-content)": 1,
+    "eslint(no-misleading-character-class)": 1,
+    "react(jsx-no-undef)": 2,
+    "react(globals)": 1
+  },
+  "files_with_violations_count": 397,
+  "files_summary": [
+    {
+      "file": "resources/js/Pages/NewDashboard.jsx",
+      "error_count": 84
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Pricing.jsx",
+      "error_count": 68
+    },
+    {
+      "file": "resources/js/Pages/Pos.jsx",
+      "error_count": 61
+    },
+    {
+      "file": "resources/js/Components/ProductModal.jsx",
+      "error_count": 58
+    },
+    {
+      "file": "resources/js/Components/Sales/SalesMasterUI.jsx",
+      "error_count": 42
+    },
+    {
+      "file": "resources/js/Pages/Expenses/ExpensesList.jsx",
+      "error_count": 39
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Onboarding.jsx",
+      "error_count": 35
+    },
+    {
+      "file": "resources/js/Pages/Sales/CreatePreSale.jsx",
+      "error_count": 35
+    },
+    {
+      "file": "resources/js/Pages/Dashboard.jsx",
+      "error_count": 29
+    },
+    {
+      "file": "resources/js/Pages/Dashboards/ClassicDashboardView.jsx",
+      "error_count": 29
+    },
+    {
+      "file": "resources/js/Pages/SalesOrders/PreSales.jsx",
+      "error_count": 29
+    },
+    {
+      "file": "resources/js/Pages/Installer/Index.jsx",
+      "error_count": 28
+    },
+    {
+      "file": "resources/js/Components/SmartCapturePanel.jsx",
+      "error_count": 27
+    },
+    {
+      "file": "resources/js/Pages/Parties/PartiesList.jsx",
+      "error_count": 26
+    },
+    {
+      "file": "resources/js/Pages/Sales/SalesHistory.jsx",
+      "error_count": 21
+    },
+    {
+      "file": "resources/js/Documents/MoneyDocument.jsx",
+      "error_count": 19
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/InventoryHealth.jsx",
+      "error_count": 18
+    },
+    {
+      "file": "resources/js/Pages/Services/ServiceCalendar.jsx",
+      "error_count": 18
+    },
+    {
+      "file": "resources/js/Pages/StockOperations.jsx",
+      "error_count": 18
+    },
+    {
+      "file": "resources/js/Pages/Next/Dashboard.jsx",
+      "error_count": 18
+    },
+    {
+      "file": "resources/js/Pages/Funds/FundManagement.jsx",
+      "error_count": 17
+    },
+    {
+      "file": "resources/js/Components/PrintPreview.jsx",
+      "error_count": 17
+    },
+    {
+      "file": "resources/js/Pages/Admin/Users.jsx",
+      "error_count": 16
+    },
+    {
+      "file": "resources/js/Pages/Settings/SettingsPanel.jsx",
+      "error_count": 16
+    },
+    {
+      "file": "resources/js/Pages/TermsOfService.jsx",
+      "error_count": 16
+    },
+    {
+      "file": "resources/js/Layouts/OneGlanceLayout.jsx",
+      "error_count": 16
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/SmartCapture.jsx",
+      "error_count": 16
+    },
+    {
+      "file": "resources/js/Pages/SetupWizard.jsx",
+      "error_count": 15
+    },
+    {
+      "file": "resources/js/Pages/Admin/AgentInbox.jsx",
+      "error_count": 15
+    },
+    {
+      "file": "resources/js/Pages/DebitNotes/DebitNotes.jsx",
+      "error_count": 15
+    },
+    {
+      "file": "resources/js/Pages/Purchases/PurchasesList.jsx",
+      "error_count": 14
+    },
+    {
+      "file": "resources/js/Pages/Cookbook/Create.jsx",
+      "error_count": 14
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Contact.jsx",
+      "error_count": 14
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/DigitalHub/Index.jsx",
+      "error_count": 14
+    },
+    {
+      "file": "resources/js/NewPos/sheets.jsx",
+      "error_count": 14
+    },
+    {
+      "file": "resources/js/Pages/Proposals/ProposalsList.jsx",
+      "error_count": 14
+    },
+    {
+      "file": "resources/js/Components/PaymentModal.jsx",
+      "error_count": 13
+    },
+    {
+      "file": "resources/js/Pages/Services/Tools.jsx",
+      "error_count": 13
+    },
+    {
+      "file": "resources/js/Components/RightPanel.jsx",
+      "error_count": 13
+    },
+    {
+      "file": "resources/js/Pages/Profile/Edit.jsx",
+      "error_count": 13
+    },
+    {
+      "file": "resources/js/Pages/Returns/ReturnsHistory.jsx",
+      "error_count": 12
+    },
+    {
+      "file": "resources/js/Pages/Sales/Customers/CustomersList.jsx",
+      "error_count": 12
+    },
+    {
+      "file": "resources/js/Pages/Admin/Settings.jsx",
+      "error_count": 12
+    },
+    {
+      "file": "resources/js/Pages/Suppliers/SuppliersList.jsx",
+      "error_count": 12
+    },
+    {
+      "file": "resources/js/Pages/PurchaseOrders/PurchaseOrdersList.jsx",
+      "error_count": 12
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/MarginCalculator.jsx",
+      "error_count": 12
+    },
+    {
+      "file": "resources/js/Pages/Sales/MasterSales.jsx",
+      "error_count": 11
+    },
+    {
+      "file": "resources/js/Components/ChatWidget.jsx",
+      "error_count": 11
+    },
+    {
+      "file": "resources/js/Pages/Inventory/InventoryList.jsx",
+      "error_count": 11
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/SkuGenerator.jsx",
+      "error_count": 11
+    },
+    {
+      "file": "resources/js/Pages/Platform/BlogPosts/Index.jsx",
+      "error_count": 10
+    },
+    {
+      "file": "resources/js/Pos/Table/TableBar.jsx",
+      "error_count": 10
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/FoodCostCalculator.jsx",
+      "error_count": 10
+    },
+    {
+      "file": "resources/js/Pages/Store/Staff/Index.jsx",
+      "error_count": 10
+    },
+    {
+      "file": "resources/js/Components/BusinessSettingsSection.jsx",
+      "error_count": 10
+    },
+    {
+      "file": "resources/js/Pages/Payments/Out.jsx",
+      "error_count": 10
+    },
+    {
+      "file": "resources/js/Pages/Payments/In.jsx",
+      "error_count": 10
+    },
+    {
+      "file": "resources/js/Components/SystemSettingsSection.jsx",
+      "error_count": 9
+    },
+    {
+      "file": "resources/js/Components/StoreSwitcherModal.jsx",
+      "error_count": 9
+    },
+    {
+      "file": "resources/js/Pages/Restaurant/Kitchen.jsx",
+      "error_count": 9
+    },
+    {
+      "file": "resources/js/Pages/Updater/Index.jsx",
+      "error_count": 9
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/CashDrawer.jsx",
+      "error_count": 9
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/QrMenu.jsx",
+      "error_count": 9
+    },
+    {
+      "file": "resources/js/Dashboard/components/DashboardCardEditor.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Components/Charts/live-y-axis.tsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Layouts/PlatformLayout.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/AccessGrants/Index.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Pos/Table/Delivery.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/LayoutLaw/ui.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Barcode.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/QrCode.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Pages/Platform/Views.jsx",
+      "error_count": 8
+    },
+    {
+      "file": "resources/js/Pages/Builder/Index.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Components/Pos/PaymentModal.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/NewInvoice/sheets.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Components/DataTable.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Components/PasscodeModal.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Pages/Manufacturing/Rules.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Domain/invoice/useInvoiceForm.js",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Documents/VqSelect.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Pages/Restaurant/Dispatch.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Pages/Transactions/TransactionsList.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Pages/GrowthEngine/GrowthDashboard.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Components/AiSettingsSection.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Shared/EditableText.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Components/GeneralSettingsSection.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Components/PremiumSelect.jsx",
+      "error_count": 7
+    },
+    {
+      "file": "resources/js/Pages/Redeem.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/Charts/radar-grid.tsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/ElevatedPinModal.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/SmartCombobox.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Contexts/AttendanceContext.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/AppSumo/Index.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Tenants/OverrideDetail.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/Pos/RegisterSettings.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/BatchTracking/BatchTracking.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/_superseded/onboarding/Welcome.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/Dropdown.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/ReactBits/Folder.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/Reports/MasterReport.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/ProductTourGuide.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Platform/ui.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/Workspace/BuildWorkspace.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Documents/DocumentShell.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/Inventory/Variants/VariantsList.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/Admin/DataManagement.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/Inventory/Production/ProductionRuns.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/Inventory/Categories.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/Landing/BusinessPickerModal.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/NewPos.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Plans/Index.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/PosRoiCalculator.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/PaymentFeeCalculator.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/AiAssistantModal.jsx",
+      "error_count": 6
+    },
+    {
+      "file": "resources/js/Components/Workspace/AddCardSheet.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Pages/Reminders/Create.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Components/WelcomeTourModal.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Pos/Table/ReservationModal.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Pages/Services/ServiceJobDetail.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Documents/useDocumentChrome.js",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Pages/Marketing/DigitalProducts.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Pages/Admin/DataMapping.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Components/Charts/sunburst-chart.tsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Pages/Inventory/StockLevels.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Components/Charts/tooltip/tooltip-box.tsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Documents/DocumentLines.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Components/SecurityPinModal.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Shared/EmailGate.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Components/FloatingAiBubble.jsx",
+      "error_count": 5
+    },
+    {
+      "file": "resources/js/Components/DualStatCard.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/RecurringInvoices/RecurringInvoices.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/Builder/ConversationalDiscovery.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/Charts/live-x-axis.tsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/Charts/live-line-chart.tsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/AsyncProductCombobox.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Sales/Dashboard.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Marketing/KnownIssues.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/CommandPalette.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/Charts/use-animated-y-domains.ts",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/_superseded/onboarding/AiDiscovery.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/BankAccounts/Transactions.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/Charts/use-chart-phase-orchestrator.ts",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/BankAccounts/BankAccountsList.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Utils/AMDStation.js",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/PlanNotificationBell.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/Charts/heatmap/heatmap-separator.tsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pos/Table/SplitSheet.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pos/Table/ModifierSheet.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/StaffAttendance/StaffAttendance.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/V3/Products/PriceTiers.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/V3/Products/Edit.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/V3/Products/Create.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Store/Join.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/WooCommerce/ConnectionSetup.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/CreditNote.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Reports/Sales.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/Charts/tooltip/chart-tooltip.tsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/TableService/FloorBuilder.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Inventory/Dashboard.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Accounting/Dashboard.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Services/CreateServiceJob.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/NewPos/SetupWizardModal.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/StockCountSheet.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Shared/FeatureDemos.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/MoneyModuleTabs.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Reports/OwnersDailyPulse.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/StockTake/StockTake.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/ImportTourGuide.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Quote.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/ActivityHubModal.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/FormModal.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Pages/StockTransfers/StockTransfers.jsx",
+      "error_count": 4
+    },
+    {
+      "file": "resources/js/Components/TaxSettingsSection.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/ds/feedback/Modal.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Users.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Tenants/Overrides.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/PosTourGuide.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Admin/VenaTickets.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Marketing/PartnerSupport.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Returns/Create.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Platforms/Index.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Site/SiteHeader.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Pos/OpenShiftModal.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Utils/GlobalDialogOverride.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Pos/CashMovementModal.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Inventory/Attributes/AttributesList.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Hub/Index.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/y-axis.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/x-axis.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/SerialTracking/SerialTracking.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/use-highlight-segment.ts",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Domain/pos/useCart.js",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pos/Table/QuickFloorSetup.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/bar-y-axis.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/bar-x-axis.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/PurchaseTourGuide.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/heatmap/heatmap-x-axis.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/PurchaseModuleTabs.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Reminders/InvoiceReminders.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/bar-chart.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Documents/documentTypes.js",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Labels/LabelPrinter.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Coupons/Index.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/tooltip/date-ticker.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Documents/DocumentSettings.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/WooCommerce/Connections.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Documents/DocumentQuickRow.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/BarcodeLabelSheet.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/heatmap/heatmap-y-axis.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Finance/Receivables.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/SellModuleTabs.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Finance/Payables.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Layouts/GlobalProviderLayout.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/VenSynQ/Components/SyncHealthPanel.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Reports/ProfitLoss.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/OmniSearch.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/Reports/BillWiseProfit.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/PrintSettingsSection.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Landing/HeroPrompt.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Pages/DebitNotes/Show.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/Charts/highlight-segment.tsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/AsyncPartyCombobox.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/ContactsModuleTabs.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/InvoiceTourGuide.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/GlobalOnboardingWidget.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/AiIsland.jsx",
+      "error_count": 3
+    },
+    {
+      "file": "resources/js/Components/ThinkingOrbs/theme.ts",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/FilterPanel.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/ExpenseTourGuide.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Reports/CustomerInsights.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/VersionChecker.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/Transactions/TransactionMasterUI.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/TodaysOpportunities.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Dashboard/components/DashboardBuilderSheet.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Dashboard/components/CardPeriodPicker.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/ds/data/StatCard.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Contexts/AppearanceContext.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/Charts/path-stroke-utils.ts",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Stores.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Newsletter.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/StatCard.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Health/Contacts.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/_superseded/onboarding/PresetPicker.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Sales/CreateInvoice.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/NewInvoice/settings.js",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/theme/themes/_kit.js",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/ds/data/ActivityRow.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/Pos/ApprovalPinModal.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/Health/Errors.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pos/Table/useTableService.js",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/ReactBits/Stepper.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Hooks/useOfflineSync.js",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/OpportunityIntelligencePanel.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/QuickPartyModal.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Documents/useDocumentDrafts.js",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Auth/VerifyCode.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Admin/Logs.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Sales/Show.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Auth/Login.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Auth/StaffLogin.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Invoice.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Admin/ExecutiveDashboard.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Blueprint.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Reports/TaxRateReport.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Settings/ChatbotSettings.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Reports/SupplierInsights.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Admin/Database.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Admin/Backups.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Documents/DocumentScan.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/NewPos/settings.js",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/NewPos/LayoutPickerModal.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Reports/ItemWiseProfit.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Reports/PointInTimeInventory.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/V3/Warehouses/Edit.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/V3/Warehouses/Create.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/Charts/heatmap/heatmap-chart.tsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/LockedFeature.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/V3/Products/UomConversions.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/EInvoicing/EInvoicing.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Shared/ToolsSidebar.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/CharityButton.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/CookieConsent.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Shared/Select.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/ConnectionGuard.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Payments/PaymentsList.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/InputModal.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Receipt.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/PackingSlip.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/PurchaseOrder.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Pages/Dashboards/AccountantDashboard.jsx",
+      "error_count": 2
+    },
+    {
+      "file": "resources/js/Components/ThinkingOrbs/ThinkingOrb.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/ThinkingOrbs/engine/lattice.ts",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/UpgradeModal.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/ring-chart.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/RecycleBin.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Toggle.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Toast.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/ds/feedback/Toast.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/SuperAdmin/HealthWidget.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/CategoryProfitability.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Builder/PromptTextarea.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/pie-chart.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/pie-center-shell.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Dashboard/components/AddCardModal.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Workspace/WidgetLibrary.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/SuperAdmin/DemoStoreTab.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/SubscriptionExpiryBanner.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/StockModuleTabs.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/NewInvoice/zones.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Pos/RegisterPreview.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/_superseded/onboarding/Building.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/use-animated-series-path.ts",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Pos/CloseShiftModal.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/NewInvoice/SettingsDrawer.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Pos/CashDrawerCountSheet.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/heatmap/heatmap-utils.ts",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/theme/runtime.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/theme/build/from-v6-tokens.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/theme/appearance.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/DemoBanner.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/StockTransfers/Create.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Hooks/useTransactionEngine.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/use-mount-progress.ts",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/DashboardTourGuide.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/use-enter-complete.ts",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Blog/Show.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Hooks/useGlobalShortcuts.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/OnboardingTour.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/OnboardingDriver.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/About.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Services/ServiceJobs.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/choropleth/choropleth-chart.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/chart-loading-label.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Documents/usePartyBalance.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Auth/TwoFactorVerify.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pos/Table/FloorPane.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/QoreCore3D.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/PwaInstallPrompt.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Help/Index.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Docs/Show.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Auth/Register.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Auth/ForgotPassword.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Auth/ConfirmPassword.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/SuperAdmin/NewsletterHub/Index.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Auth/AcceptInvite.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/LabelSheet.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Auth/TwoFactorSetup.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Staff/Hub.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Auth/ResetPassword.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Dashboard/utils/reckonerCardHelpers.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Dashboard/useTerminal.js",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Dashboard/components/NumberRoller.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Restaurant/Dashboard.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/Transactions.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/LandingPage.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Store/CreateOrJoin.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/StockSummaryByCategory.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/sunburst-breadcrumb.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/CashDrawerCountSheet.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/SaleOrders.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/SaleOrderItems.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/SaleAging.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/ReportsHub.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Accounting/ChartOfAccounts.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Funds/CashHistory.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/VenSynQ.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/NewInvoice.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/VenSynQ/Dashboard.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Shared/MarketingLayout.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/NewPos/ApprovalSheet.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/VenSynQ/Components/AmazonSetupWizard.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/GraphAnalytics.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/PartyStatement.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/scatter-chart-shell.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/sankey/sankey-link.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/OfflineLockScreen.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/sankey/sankey-chart.tsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/ds/feedback/Alert.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/DiscountReport.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/MovementHistory.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Expenses/Create.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Errors/TrialExpired.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Error.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Demo/Landing.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/StockTake/Create.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Parties/Ledger.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Reports/DayBook.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/OnlineStore/OnlineStore.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Payments/Show.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Auth/index.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Components/Charts/heatmap/use-delayed-tooltip-data.ts",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/Shared/ToolShell.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/PurchaseOrders/Show.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/PriceTag.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Platform/Overview.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/Marketing/Tools/ProductCsvCleaner.jsx",
+      "error_count": 1
+    },
+    {
+      "file": "resources/js/Pages/PlatformOwner/Login.jsx",
+      "error_count": 1
+    }
+  ]
+}

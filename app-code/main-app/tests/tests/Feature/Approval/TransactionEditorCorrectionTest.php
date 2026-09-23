@@ -382,4 +382,72 @@ class TransactionEditorCorrectionTest extends VenQoreTestCase
         $response = $this->get($this->storeUrl($tenant, "/expenses/create?edit_approval={$doc->id}"));
         $response->assertStatus(422);
     }
+
+    public function test_strict_original_maker_ownership_blocks_owner_reviewer_and_platform_admin(): void
+    {
+        $tenant = $this->createTenant('corr-strict-own-' . uniqid(), 'ltd_3');
+        $tenant->update(['timezone' => 'UTC', 'setup_completed' => true]);
+        $this->seedTenantDefaults($tenant);
+
+        $maker = $this->createTenantUser($tenant, 'cashier');
+        $otherEmployee = $this->createTenantUser($tenant, 'cashier');
+        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $owner = $this->createTenantUser($tenant, 'owner');
+
+        $platformAdmin = User::factory()->create([
+            'email'             => 'admin-' . uniqid() . '@venqore-platform.internal',
+            'is_platform_admin' => true,
+            'platform_role'     => 'platform_owner',
+            'last_store_id'     => null,
+        ]);
+
+        $party = Party::create([
+            'tenant_id' => $tenant->id,
+            'name'      => 'Customer Test',
+            'type'      => 'customer',
+        ]);
+
+        $doc = $this->createReturnedDoc($tenant, $maker, $reviewer, ApprovalDocument::TYPE_CUSTOMER_RECEIPT, [
+            'party_id' => $party->id,
+            'amount' => 500.00,
+            'payment_method' => 'cash',
+        ]);
+
+        // 1. Other employee in same tenant -> 403 on edit & resubmit
+        $this->actingAsTenantUserModel($otherEmployee, $tenant);
+        $this->get($this->storeUrl($tenant, "/payments/in?edit_approval={$doc->id}"))->assertStatus(403);
+        $this->postJson($this->storeUrl($tenant, "/approvals/{$doc->id}/resubmit"), [
+            'payload' => ['party_id' => $party->id, 'amount' => 500, 'payment_method' => 'cash'], 'expected_version' => 1
+        ])->assertStatus(403);
+
+        // 2. Tenant Owner -> 403 on edit & resubmit
+        $this->actingAsTenantUserModel($owner, $tenant);
+        $this->get($this->storeUrl($tenant, "/payments/in?edit_approval={$doc->id}"))->assertStatus(403);
+        $this->postJson($this->storeUrl($tenant, "/approvals/{$doc->id}/resubmit"), [
+            'payload' => ['party_id' => $party->id, 'amount' => 500, 'payment_method' => 'cash'], 'expected_version' => 1
+        ])->assertStatus(403);
+
+        // 3. Reviewer/Manager -> 403 on edit & resubmit
+        $this->actingAsTenantUserModel($reviewer, $tenant);
+        $this->get($this->storeUrl($tenant, "/payments/in?edit_approval={$doc->id}"))->assertStatus(403);
+        $this->postJson($this->storeUrl($tenant, "/approvals/{$doc->id}/resubmit"), [
+            'payload' => ['party_id' => $party->id, 'amount' => 500, 'payment_method' => 'cash'], 'expected_version' => 1
+        ])->assertStatus(403);
+
+        // 4. Platform Administrator -> 403 on edit & resubmit (MUST NOT bypass maker ownership)
+        $this->actingAsTenantUserModel($platformAdmin, $tenant);
+        $this->get($this->storeUrl($tenant, "/payments/in?edit_approval={$doc->id}"))->assertStatus(403);
+        $this->postJson($this->storeUrl($tenant, "/approvals/{$doc->id}/resubmit"), [
+            'payload' => ['party_id' => $party->id, 'amount' => 500, 'payment_method' => 'cash'], 'expected_version' => 1
+        ])->assertStatus(403);
+
+        // 5. Original Maker -> Succeeds (200 on edit, 200 on resubmit)
+        $this->actingAsTenantUserModel($maker, $tenant);
+        $this->get($this->storeUrl($tenant, "/payments/in?edit_approval={$doc->id}"))->assertStatus(200);
+        $this->postJson($this->storeUrl($tenant, "/approvals/{$doc->id}/resubmit"), [
+            'payload' => ['party_id' => $party->id, 'amount' => 550, 'payment_method' => 'cash'],
+            'expected_version' => 1,
+            'notes' => 'Corrected amount by maker'
+        ])->assertStatus(200);
+    }
 }

@@ -1,0 +1,22 @@
+{
+  "shard": "shard_11a2_reckoner_laws",
+  "label": "Baseline",
+  "file_count": 7,
+  "files": [
+    "tests/tests/Feature/Reckoner/Laws/L1TenantIsolationTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L2GroupingConservationTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L3PeriodAdditivityTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L4ComparisonSymmetryTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L5EmptyTenantTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L6PermissionLawTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L7ReversalTest.php"
+  ],
+  "duration_seconds": 8.14,
+  "exit_code": 2,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 8 testcases (1 failed/errors)",
+  "testcase_count": 8,
+  "failure_count": 1,
+  "start_time": "2026-09-23T18:11:52.795562",
+  "end_time": "2026-09-23T18:12:00.933094"
+}

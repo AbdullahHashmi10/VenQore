@@ -170,6 +170,7 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
             extra_charge_value: applyDefaults() && showExtra ? num(defExtraValue) : 0,
             extra_charge_label: defExtraLabel,
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEdit, current, approval_correction]);
 
     /* Turning the several-charges switch off must not leave the money behind:

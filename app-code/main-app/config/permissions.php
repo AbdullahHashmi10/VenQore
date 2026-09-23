@@ -28,6 +28,19 @@
  *
  * NOTE: 'owner' and 'admin' are checked separately in CheckPermissions (they
  * skip this map entirely — fast path). This map is for all other roles.
+ *
+ * Phase 1 approval release (2026-09-23) added 7 new permission keys:
+ *   finance.customer_refund, finance.supplier_refund, purchases.returns,
+ *   finance.capital_add, finance.owner_drawings, finance.internal_transfer,
+ *   approvals.configure
+ * Defaults: owner/admin get all 7. franchise_admin mirrors admin on the 3
+ * refund/return keys only — NOT the 3 sensitive-funds keys or
+ * approvals.configure, which stay owner/admin-only by design. manager and
+ * purchasing_officer both get purchases.returns. No other role gets any of
+ * the 7 by default; owners may delegate any of them per-employee via a
+ * membership's custom permission override.
+ * See project doc "Phase 1 — new permission keys, role defaults" for the
+ * full rationale and the decisions confirmed with the store owner.
  */
 
 return [
@@ -48,11 +61,14 @@ return [
         // Store Administration
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'admin.billing_store',
         // Approvals & Governance
-        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit', 'approvals.configure',
         // Granular split permissions
         'data.export', 'records.force_delete', 'users.manage',
         // Marketplace / VenSynQ integrations
         'vensynq.manage',
+        // Phase 1: refunds, returns, sensitive funds (owner has full access)
+        'finance.customer_refund', 'finance.supplier_refund', 'purchases.returns',
+        'finance.capital_add', 'finance.owner_drawings', 'finance.internal_transfer',
     ],
 
     'admin' => [
@@ -71,11 +87,14 @@ return [
         // Store Administration (excluding billing / store deletion)
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery',
         // Approvals & Governance
-        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit', 'approvals.configure',
         // Granular split permissions
         'data.export', 'records.force_delete', 'users.manage',
         // Marketplace / VenSynQ integrations
         'vensynq.manage',
+        // Phase 1: refunds, returns, sensitive funds (admin has full access, matching owner)
+        'finance.customer_refund', 'finance.supplier_refund', 'purchases.returns',
+        'finance.capital_add', 'finance.owner_drawings', 'finance.internal_transfer',
     ],
 
     'manager' => [
@@ -96,6 +115,8 @@ return [
         'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
         // Granular split permissions
         'data.export',
+        // Phase 1: purchase returns (manager already holds full purchase authority)
+        'purchases.returns',
     ],
 
     'cashier' => [
@@ -129,6 +150,8 @@ return [
         'reports.stock',
         // Approvals (Submit purchasing/supplier payment approvals, view own)
         'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
+        // Phase 1: purchase returns (explicitly authorized default per release scope)
+        'purchases.returns',
     ],
 
     'viewer' => [
@@ -154,6 +177,10 @@ return [
         'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses',
         'data.export', 'users.manage',
+        // Phase 1: refunds and returns mirror admin. NOT sensitive funds (capital/drawings/
+        // internal transfer) or approvals.configure — those stay owner/admin only regardless
+        // of franchise_admin's usual "mirrors admin" pattern (release scope decision).
+        'finance.customer_refund', 'finance.supplier_refund', 'purchases.returns',
     ],
 
     'shift_supervisor' => [

@@ -1,0 +1,13 @@
+{
+    "suite": "current",
+    "commit": "0d33d5b07a56a82aabcc9015a330e8639dd0ad2a",
+    "database": "amd_pos_test_current_0d33d5b0",
+    "start_time": "2026-09-23T10:20:06+02:00",
+    "end_time": "2026-09-23T10:38:44+02:00",
+    "duration_seconds": 1117.76,
+    "exit_code": 2,
+    "junit_file": "current_junit.xml",
+    "console_log": "current_console.log",
+    "pre_run_git_status": "m ../production-clean-repo\n?? docs/approval-dashboard-audit-2026-09-22/15-post-push-verification-rejection-and-final-instructions.md\n?? docs/approval-dashboard-audit-2026-09-22/evidence/final-0d33d5b0/",
+    "post_run_git_status": "D storage/installed\n m ../production-clean-repo\n?? docs/approval-dashboard-audit-2026-09-22/15-post-push-verification-rejection-and-final-instructions.md\n?? docs/approval-dashboard-audit-2026-09-22/evidence/final-0d33d5b0/"
+}

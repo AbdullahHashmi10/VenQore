@@ -38,7 +38,7 @@ final class ApprovalCorrectionResolver
             abort(404, 'Approval document not found.');
         }
 
-        if ($doc->maker_id !== $user->id && !$user->isPlatformAdmin()) {
+        if ($doc->maker_id !== $user->id) {
             abort(403, 'Only the original creator can edit returned approval documents.');
         }
 

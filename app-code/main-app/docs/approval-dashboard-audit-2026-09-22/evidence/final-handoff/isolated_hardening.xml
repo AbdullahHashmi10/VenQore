@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="E:\AMD POS\AMD POS\app-code\main-app\phpunit.xml" tests="9" assertions="24" errors="5" failures="0" skipped="0" time="5.835800">
+    <testsuite name="Feature" tests="9" assertions="24" errors="5" failures="0" skipped="0" time="5.835800">
+      <testsuite name="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php" tests="9" assertions="24" errors="3" failures="0" skipped="0" time="5.835800">
+        <testcase name="a successful scan costs exactly one upstream AI request" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::a successful scan costs exactly one upstream AI request" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="3" time="1.524442"/>
+        <testcase name="a rate limit is surfaced as 429 and never retried against another model" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::a rate limit is surfaced as 429 and never retried against another model" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="4" time="0.502015"/>
+        <testcase name="a server error is surfaced without burning extra requests" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::a server error is surfaced without burning extra requests" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="2" time="0.457550"/>
+        <testcase name="an unusable model is substituted exactly once" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::an unusable model is substituted exactly once" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="2" time="0.852688"/>
+        <testcase name="a truncated JSON response is repaired instead of triggering a re-scan" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::a truncated JSON response is repaired instead of triggering a re-scan" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="2" time="0.850204"/>
+        <testcase name="confirming a transaction teaches the store what the wording meant" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::confirming a transaction teaches the store what the wording meant" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="3" time="0.518121"/>
+        <testcase name="a learned wording is pre-selected at full confidence on the next scan" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::a learned wording is pre-selected at full confidence on the next scan" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="5" time="0.558810"/>
+        <testcase name="the store vocabulary is sent to the model on the next scan" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::the store vocabulary is sent to the model on the next scan" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="3" time="0.571969"/>
+        <testcase name="repeating a lesson strengthens it rather than duplicating the row" file="tests\tests\Feature\Chat\SmartCaptureHardeningTest.php::repeating a lesson strengthens it rather than duplicating the row" class="Tests\tests\Feature\Chat\SmartCaptureHardeningTest" classname="Tests.tests.Feature.Chat.SmartCaptureHardeningTest" assertions="0" time="0.000000">
+          <error type="Illuminate\Database\QueryException">repeating a lesson strengthens it rather than duplicating the rowIlluminate\Database\QueryException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_current_0d33d5b0, SQL: update `accounts` set `id` = f1f5d650-f0ad-4c76-9ef6-ab502653d55b, `name` = Cash in Hand, `type` = asset, `balance` = 0, `normal_balance` = debit, `role` = cash, `is_current` = 1, `is_active` = 1, `created_at` = 2026-09-23 11:35:31, `updated_at` = 2026-09-23 11:35:31 where (`tenant_id` = 1004641 and `code` = 1000) limit 1)&#13;
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:609
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:597
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:549
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4234
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4280
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:263
+at tests\tests\Feature\Chat\SmartCaptureHardeningTest.php:32
+Caused by
+PDOException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction
+
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:609
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:597
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:549
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4234
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4280
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:263
+at tests\tests\Feature\Chat\SmartCaptureHardeningTest.php:32</error>
+        </testcase>
+      </testsuite>
+      <testsuite name="Tests\Feature\Hardening\ApproverPinTest" file="Approver Pin (Tests\Feature\Hardening\ApproverPin)" tests="0" assertions="0" errors="1" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\InertiaCsrfPropTest" file="Inertia Csrf Prop (Tests\Feature\Hardening\InertiaCsrfProp)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\InventoryDbGuardsInstalledTest" file="Inventory Db Guards Installed (Tests\Feature\Hardening\InventoryDbGuardsInstalled)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\InventoryDbGuardsTest" file="Inventory Db Guards (Tests\Feature\Hardening\InventoryDbGuards)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\LedgerAtomicityTest" file="Ledger Atomicity (Tests\Feature\Hardening\LedgerAtomicity)" tests="0" assertions="0" errors="1" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\LegacySalesPathsTest" file="Legacy Sales Paths (Tests\Feature\Hardening\LegacySalesPaths)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\PaymentsScreenAndDebitNoteTest" file="Payments Screen And Debit Note (Tests\Feature\Hardening\PaymentsScreenAndDebitNote)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\PlatformAiKeysTest" file="Platform Ai Keys (Tests\Feature\Hardening\PlatformAiKeys)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\PosApprovalGuardTest" file="Pos Approval Guard (Tests\Feature\Hardening\PosApprovalGuard)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\ProductionScreenContractTest" file="Production Screen Contract (Tests\Feature\Hardening\ProductionScreenContract)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\PurchaseAccountingTest" file="Purchase Accounting (Tests\Feature\Hardening\PurchaseAccounting)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\SalesReturnAccountingTest" file="Sales Return Accounting (Tests\Feature\Hardening\SalesReturnAccounting)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\SerialAndUomHousekeepingTest" file="Serial And Uom Housekeeping (Tests\Feature\Hardening\SerialAndUomHousekeeping)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\StoreScopingHardeningTest" file="Store Scoping Hardening (Tests\Feature\Hardening\StoreScopingHardening)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      <testsuite name="Tests\Feature\Hardening\V3IdScopingTest" file="V3Id Scoping (Tests\Feature\Hardening\V3IdScoping)" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000">
+        <testsuite name="A foreign store id is refused and nothing is written" tests="0" assertions="0" errors="0" failures="0" skipped="0" time="0.000000"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="E:\AMD POS\AMD POS\app-code\main-app\phpunit.xml" tests="5" assertions="12" errors="1" failures="3" skipped="0" time="4.053167">
+    <testsuite name="Feature" tests="5" assertions="12" errors="1" failures="3" skipped="0" time="4.053167">
+      <testsuite name="Tests\tests\Feature\Module17\SettingsTest" file="tests\tests\Feature\Module17\SettingsTest.php" tests="5" assertions="12" errors="1" failures="3" skipped="0" time="4.053167">
+        <testcase name="stop_sale_on_negative_stock_toggle_affects_sale_outcome" file="tests\tests\Feature\Module17\SettingsTest.php::stop_sale_on_negative_stock_toggle_affects_sale_outcome" class="Tests\tests\Feature\Module17\SettingsTest" classname="Tests.tests.Feature.Module17.SettingsTest" assertions="2" time="1.159446"/>
+        <testcase name="currency_symbol_setting_appears_in_sale_receipts" file="tests\tests\Feature\Module17\SettingsTest.php::currency_symbol_setting_appears_in_sale_receipts" class="Tests\tests\Feature\Module17\SettingsTest" classname="Tests.tests.Feature.Module17.SettingsTest" assertions="3" time="0.678035"/>
+        <testcase name="tax_rate_setting_applies_to_new_sales" file="tests\tests\Feature\Module17\SettingsTest.php::tax_rate_setting_applies_to_new_sales" class="Tests\tests\Feature\Module17\SettingsTest" classname="Tests.tests.Feature.Module17.SettingsTest" assertions="3" time="0.778226"/>
+        <testcase name="store_name_update_reflects_on_dashboard" file="tests\tests\Feature\Module17\SettingsTest.php::store_name_update_reflects_on_dashboard" class="Tests\tests\Feature\Module17\SettingsTest" classname="Tests.tests.Feature.Module17.SettingsTest" assertions="4" time="1.437461"/>
+        <testcase name="prevents platform admin settings cache from bleeding into global fallback cache" file="tests\tests\Feature\Module17\SettingsTest.php::prevents platform admin settings cache from bleeding into global fallback cache" class="Tests\tests\Feature\Module17\SettingsTest" classname="Tests.tests.Feature.Module17.SettingsTest" assertions="0" time="0.000000">
+          <error type="Illuminate\Database\QueryException">prevents platform admin settings cache from bleeding into global fallback cacheIlluminate\Database\QueryException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_current_0d33d5b0, SQL: update `accounts` set `id` = b1c47c96-0a6b-41f3-9f24-25d2502360d1, `name` = Cash in Hand, `type` = asset, `balance` = 0, `normal_balance` = debit, `role` = cash, `is_current` = 1, `is_active` = 1, `created_at` = 2026-09-23 11:35:34, `updated_at` = 2026-09-23 11:35:34 where (`tenant_id` = 1004652 and `code` = 1000) limit 1)&#13;
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:609
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:597
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:549
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4234
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4280
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:263
+at tests\tests\Feature\Module17\SettingsTest.php:18
+Caused by
+PDOException: SQLSTATE[40001]: Serialization failure: 1213 Deadlock found when trying to get lock; try restarting transaction
+
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:609
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:597
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:549
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4234
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4280
+at database\seeders\TenantDefaultSeeder.php:252
+at database\seeders\TenantDefaultSeeder.php:26
+at tests\tests\Feature\VenQoreTestCase.php:263
+at tests\tests\Feature\Module17\SettingsTest.php:18</error>
+        </testcase>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

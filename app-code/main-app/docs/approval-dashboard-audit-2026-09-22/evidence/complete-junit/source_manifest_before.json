@@ -1,0 +1,22 @@
+{
+  "app/Http/Controllers/Admin/SuperAdminController.php": "91d52aa25c5773bed49bdf03e02e8a11b0db0e5fb8d1b7e8ccdd7901ebb5cc36",
+  "app/Http/Controllers/ApprovalDocumentController.php": "95dd24cb05713ac557960cb40f078c89b6669eb42a59617b8b24c35049fd9c93",
+  "app/Models/TenantUser.php": "ba5bceb8705e44e517be8ada15c9e0c9e0d355c780e9df05adf424b68c2bc636",
+  "app/Models/User.php": "55d127e76626d55f19103cc468f38e1720373bbc90a883a1fff3a19b31fff2ec",
+  "app/Services/Approval/ApprovalCorrectionResolver.php": "9f298d4c6c8e5d406ca31173dd8203d017082a70118cbcd0e2e8345f6bffc001",
+  "app/Services/Approval/ApprovalExecutionEngine.php": "dcc63356df10046ca727281ee53cfed546063d4f4c0deaae483f9e48030355f2",
+  "package.json": "9ff56f5afc2c4d5a2e396d39ac41f2c1646376e5f50affe913ae56b8a638fa51",
+  "resources/js/Pages/Approvals/Show.jsx": "0b30e00196df52c969a55ec86c024da31e31656a039c533d9ae01e2dab93e054",
+  "resources/js/Pages/Expenses/Create.jsx": "b927dfd1098cc1e684b7a455f129c1998cb5b1ad4c455a0b17b939aa939cc937",
+  "resources/js/Pages/Sales/CreateInvoice.jsx": "d00e889c5b0f72225cb2e354ee76560ec5d56f522320307519512f5d264659ca",
+  "routes/web.php": "e03686364cdfdfdbd46c715257e4fbf80fd586bbb050bafcd1a4e84275b7fc4c",
+  "scripts/audit_ziggy_routes.cjs": "cc76c5afa7e0c4369e91ebaca54d3f1d6924db7882669b92e92133596070a18d",
+  "tests/tests/Feature/Approval/ApprovalPolicyMatrixIntegrationTest.php": "48c29653bd4f48acd79607db5a85e0ef3329bbc1df6ad92916c6f44286701a9c",
+  "tests/tests/Feature/Approval/TransactionEditorCorrectionTest.php": "f31c5d7e12bfcd51f1fdb66cd5763311ad462101ef3a1a3c8ab58f382b1069ae",
+  "tests/tests/Feature/Auth/PermissionOverrideModeTest.php": "576a2049bca2ae09e249c3fadde0d2f1e3ae1eafe08115a7eaedc5e35f9ba0a9",
+  "tests/tests/Feature/Batch1RegressionTest.php": "21a2278107966a3df9572f779006fafed95a86dbf06da36c9747b8c6461d5cfc",
+  "tests/tests/Feature/Chat/SupportTicketsTest.php": "d4e8fd9b71e794a71abf09845cbc74e85a87cef28d539f8107d01d3c19521744",
+  "tests/tests/Unit/AiBuilder/ScreenshotRegressionTest.php": "93136bab0d04968798c74de152804ba06f047533bf5206a603fd93bb6a8811f9",
+  "tests/tests/Unit/ZiggyRouteAuditScriptTest.php": "28a01a69696cc51916088ba6c364e3567eb36ec40acbb4f0df4749d831878e05",
+  "storage/installed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

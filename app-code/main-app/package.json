@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "npm run fonts:check && npm run ds:check && npm run theme:sync && node scratch/audit_ziggy_routes.cjs && vite build && vite build --ssr",
+        "build": "npm run fonts:check && npm run ds:check && npm run theme:sync && node scripts/audit_ziggy_routes.cjs && vite build && vite build --ssr",
         "dev": "npm run theme:sync && vite",
         "ssr": "php artisan inertia:start-ssr",
         "audit:routes": "node scratch/audit_route_params.cjs",

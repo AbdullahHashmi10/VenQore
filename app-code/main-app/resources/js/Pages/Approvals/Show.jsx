@@ -616,7 +616,7 @@ export default function ApprovalDetail({
 
                             {actionModal === 'return' && (
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-700 mb-2">Preset Return Reasons</label>
+                                    <div className="block text-xs font-semibold text-gray-700 mb-2">Preset Return Reasons</div>
                                     <div className="space-y-1.5 max-h-40 overflow-y-auto border p-2 rounded-lg">
                                         {(returnReasons || []).map((r) => (
                                             <label key={r.code} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
@@ -642,8 +642,9 @@ export default function ApprovalDetail({
                             {actionModal === 'resubmit' && (
                                 <div className="space-y-3">
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-700 mb-1">Corrected Total Amount *</label>
+                                        <label htmlFor="resubmit-amount-input" className="block text-xs font-semibold text-gray-700 mb-1">Corrected Total Amount *</label>
                                         <input
+                                            id="resubmit-amount-input"
                                             type="number"
                                             step="0.01"
                                             min="0.01"
@@ -654,8 +655,9 @@ export default function ApprovalDetail({
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-700 mb-1">Maker Correction Notes</label>
+                                        <label htmlFor="resubmit-notes-input" className="block text-xs font-semibold text-gray-700 mb-1">Maker Correction Notes</label>
                                         <textarea
+                                            id="resubmit-notes-input"
                                             value={resubmitNotes}
                                             onChange={(e) => setResubmitNotes(e.target.value)}
                                             rows={2}

@@ -1,0 +1,35 @@
+{
+  "shard": "shard_11a1_reckoner_gates",
+  "file_count_baseline": 13,
+  "file_count_current": 13,
+  "baseline_files": [
+    "tests/tests/Feature/Dashboard/FrameGeometryLawTest.php",
+    "tests/tests/Feature/Reckoner/AdversarialInvariantGateTest.php",
+    "tests/tests/Feature/Reckoner/CardContractValidatorTest.php",
+    "tests/tests/Feature/Reckoner/CustomCardsGateTest.php",
+    "tests/tests/Feature/Reckoner/DataCaptureMigrationsGateTest.php",
+    "tests/tests/Feature/Reckoner/GoldenStoreLedgerTest.php",
+    "tests/tests/Feature/Reckoner/LedgerFoundationGateTest.php",
+    "tests/tests/Feature/Reckoner/RollupParityGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4aMoneyGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4bSellingGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4cStockGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4dOperationsGateTest.php",
+    "tests/tests/Feature/Reckoner/TruthGateTest.php"
+  ],
+  "current_files": [
+    "tests/tests/Feature/Dashboard/FrameGeometryLawTest.php",
+    "tests/tests/Feature/Reckoner/AdversarialInvariantGateTest.php",
+    "tests/tests/Feature/Reckoner/CardContractValidatorTest.php",
+    "tests/tests/Feature/Reckoner/CustomCardsGateTest.php",
+    "tests/tests/Feature/Reckoner/DataCaptureMigrationsGateTest.php",
+    "tests/tests/Feature/Reckoner/GoldenStoreLedgerTest.php",
+    "tests/tests/Feature/Reckoner/LedgerFoundationGateTest.php",
+    "tests/tests/Feature/Reckoner/RollupParityGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4aMoneyGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4bSellingGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4cStockGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4dOperationsGateTest.php",
+    "tests/tests/Feature/Reckoner/TruthGateTest.php"
+  ]
+}

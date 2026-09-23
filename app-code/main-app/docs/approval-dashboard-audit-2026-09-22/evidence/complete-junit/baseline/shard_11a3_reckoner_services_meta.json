@@ -1,0 +1,23 @@
+{
+  "shard": "shard_11a3_reckoner_services",
+  "label": "Baseline",
+  "file_count": 8,
+  "files": [
+    "tests/tests/Feature/Reckoner/AssistantParityTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerConsistencyTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerGateTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerPeriodTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerRegistryTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerSettingsTest.php",
+    "tests/tests/Feature/Reckoner/SaleServiceParityTest.php",
+    "tests/tests/Feature/Reports/CrossTenantReportLeakTest.php"
+  ],
+  "duration_seconds": 10.46,
+  "exit_code": 2,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 61 testcases (2 failed/errors)",
+  "testcase_count": 61,
+  "failure_count": 2,
+  "start_time": "2026-09-23T18:12:01.935313",
+  "end_time": "2026-09-23T18:12:12.394423"
+}

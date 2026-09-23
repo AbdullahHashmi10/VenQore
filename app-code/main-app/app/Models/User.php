@@ -470,12 +470,24 @@ class User extends Authenticatable implements MustVerifyEmail
                 return config('permissions.owner', ['*']);
             }
 
-            // 1. If custom permissions are stored on the pivot (explicit 'custom' mode or non-empty permissions array)
+            $mode = $membership->permission_override_mode;
+
+            // 1. 'inherit' mode: strictly resolve role permissions from config/permissions.php (ignore any stale custom array)
+            if ($mode === 'inherit') {
+                $role = $membership->role ?? 'viewer';
+                return config('permissions.' . $role, []);
+            }
+
+            // 2. 'custom' mode: use stored custom permissions verbatim, including an empty array
+            if ($mode === 'custom') {
+                return is_array($membership->permissions) ? $membership->permissions : [];
+            }
+
+            // 3. Null / legacy mode: fallback to custom permissions if non-empty, otherwise role defaults
             if (!empty($membership->permissions) && is_array($membership->permissions)) {
                 return $membership->permissions;
             }
 
-            // 2. Delegate to config/permissions.php — the CANONICAL permission map (default inherited mode)
             $role = $membership->role ?? 'viewer';
             return config('permissions.' . $role, []);
         }

@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="199" assertions="33664" errors="4" failures="6" skipped="0" time="59.767594">
+    <testsuite name="Tests\Unit\AiBuilder\BusinessUnderstandingTest" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)" tests="11" assertions="28" errors="0" failures="0" skipped="0" time="0.753469">
+      <testcase name="It reads a sentence into modules with reasons" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::It reads a sentence into modules with reasons" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="5" time="0.252458"/>
+      <testcase name="Solo becomes a structured fact" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::Solo becomes a structured fact" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="2" time="0.046710"/>
+      <testcase name="Invented module keys never survive" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::Invented module keys never survive" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="1" time="0.046295"/>
+      <testcase name="A reason cannot carry markup or a link" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::A reason cannot carry markup or a link" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="3" time="0.046563"/>
+      <testcase name="Enums and confidence are clamped" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::Enums and confidence are clamped" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="3" time="0.046435"/>
+      <testcase name="A refusal returns null so the caller falls back" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::A refusal returns null so the caller falls back" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="3" time="0.053128"/>
+      <testcase name="A thrown gateway does not take the page down" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::A thrown gateway does not take the page down" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="1" time="0.051989"/>
+      <testcase name="A reading that proposes nothing is not a reading" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::A reading that proposes nothing is not a reading" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="1" time="0.054564"/>
+      <testcase name="The same sentence is read once" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::The same sentence is read once" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="1" time="0.050841"/>
+      <testcase name="The instructions stay small and fence untrusted text" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::The instructions stay small and fence untrusted text" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="4" time="0.055060"/>
+      <testcase name="The manifest only ever offers live modules" file="Business Understanding (Tests\Unit\AiBuilder\BusinessUnderstanding)::The manifest only ever offers live modules" class="Tests\Unit\AiBuilder\BusinessUnderstandingTest" classname="Tests.Unit.AiBuilder.BusinessUnderstandingTest" assertions="4" time="0.049427"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\AiBuilder\CapabilityRegistryTest" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)" tests="8" assertions="163" errors="0" failures="0" skipped="0" time="0.454662">
+      <testcase name="All capabilities have consequences and dependencies" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::All capabilities have consequences and dependencies" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="134" time="0.062883"/>
+      <testcase name="Simple retail grocery modules" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::Simple retail grocery modules" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="7" time="0.050835"/>
+      <testcase name="Unknown preset still yields a usable floor" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::Unknown preset still yields a usable floor" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="2" time="0.054606"/>
+      <testcase name="Working alone removes staff modules" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::Working alone removes staff modules" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="3" time="0.061967"/>
+      <testcase name="Ambiguous electronics selects serial or repair question" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::Ambiguous electronics selects serial or repair question" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="2" time="0.056675"/>
+      <testcase name="Explicit input calculates high readiness" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::Explicit input calculates high readiness" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="6" time="0.054061"/>
+      <testcase name="Multilingual fact extraction" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::Multilingual fact extraction" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="6" time="0.057136"/>
+      <testcase name="Hallucinated and injected modules dropped strictly" file="Capability Registry (Tests\Unit\AiBuilder\CapabilityRegistry)::Hallucinated and injected modules dropped strictly" class="Tests\Unit\AiBuilder\CapabilityRegistryTest" classname="Tests.Unit.AiBuilder.CapabilityRegistryTest" assertions="3" time="0.056499"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\AiBuilder\DiscoverySessionTest" file="Discovery Session (Tests\Unit\AiBuilder\DiscoverySession)" tests="2" assertions="6" errors="0" failures="0" skipped="0" time="0.122501">
+      <testcase name="Session survives a normal interruption window" file="Discovery Session (Tests\Unit\AiBuilder\DiscoverySession)::Session survives a normal interruption window" class="Tests\Unit\AiBuilder\DiscoverySessionTest" classname="Tests.Unit.AiBuilder.DiscoverySessionTest" assertions="2" time="0.071898"/>
+      <testcase name="Session records and revises capabilities correctly" file="Discovery Session (Tests\Unit\AiBuilder\DiscoverySession)::Session records and revises capabilities correctly" class="Tests\Unit\AiBuilder\DiscoverySessionTest" classname="Tests.Unit.AiBuilder.DiscoverySessionTest" assertions="4" time="0.050604"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\AiBuilder\DiscoverySkipTest" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)" tests="7" assertions="25" errors="0" failures="0" skipped="0" time="0.505911">
+      <testcase name="The selector repeats itself when nothing is resolved" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)::The selector repeats itself when nothing is resolved" class="Tests\Unit\AiBuilder\DiscoverySkipTest" classname="Tests.Unit.AiBuilder.DiscoverySkipTest" assertions="2" time="0.064457"/>
+      <testcase name="A skipped capability is not offered again" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)::A skipped capability is not offered again" class="Tests\Unit\AiBuilder\DiscoverySkipTest" classname="Tests.Unit.AiBuilder.DiscoverySkipTest" assertions="3" time="0.092629"/>
+      <testcase name="Skipping every candidate exhausts the selector" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)::Skipping every candidate exhausts the selector" class="Tests\Unit\AiBuilder\DiscoverySkipTest" classname="Tests.Unit.AiBuilder.DiscoverySkipTest" assertions="8" time="0.102747"/>
+      <testcase name="Record skip costs a turn and resolves nothing" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)::Record skip costs a turn and resolves nothing" class="Tests\Unit\AiBuilder\DiscoverySkipTest" classname="Tests.Unit.AiBuilder.DiscoverySkipTest" assertions="4" time="0.063421"/>
+      <testcase name="Record skip leaves an honest transcript row" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)::Record skip leaves an honest transcript row" class="Tests\Unit\AiBuilder\DiscoverySkipTest" classname="Tests.Unit.AiBuilder.DiscoverySkipTest" assertions="4" time="0.053546"/>
+      <testcase name="Record skip does not duplicate a capability" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)::Record skip does not duplicate a capability" class="Tests\Unit\AiBuilder\DiscoverySkipTest" classname="Tests.Unit.AiBuilder.DiscoverySkipTest" assertions="2" time="0.066988"/>
+      <testcase name="Record skip tolerates a missing capability" file="Discovery Skip (Tests\Unit\AiBuilder\DiscoverySkip)::Record skip tolerates a missing capability" class="Tests\Unit\AiBuilder\DiscoverySkipTest" classname="Tests.Unit.AiBuilder.DiscoverySkipTest" assertions="2" time="0.062123"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\AiBuilder\ScreenshotRegressionTest" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)" tests="33" assertions="17422" errors="0" failures="5" skipped="0" time="4.779458">
+      <testcase name="Freelance designer ineligible for screenshot bundle capabilities" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Freelance designer ineligible for screenshot bundle capabilities" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="14" time="0.086567"/>
+      <testcase name="Freelance designer turn one selects service capability" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Freelance designer turn one selects service capability" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="1" time="0.107252">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Freelance designer turn one selects service capabilityFailed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\AiBuilder\ScreenshotRegressionTest.php:115</failure>
+      </testcase>
+      <testcase name="Freelance designer bundle does not contain screenshot options" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Freelance designer bundle does not contain screenshot options" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="4" time="0.072348"/>
+      <testcase name="Freelance designer final modules omit pos and inventory" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Freelance designer final modules omit pos and inventory" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="11" time="0.056099"/>
+      <testcase name="Declining quotations does not imply pos" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Declining quotations does not imply pos" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="3" time="0.075498"/>
+      <testcase name="Ambiguous freelancer triggers clarification" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Ambiguous freelancer triggers clarification" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="4" time="0.062870">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Ambiguous freelancer triggers clarificationFailed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\AiBuilder\ScreenshotRegressionTest.php:242</failure>
+      </testcase>
+      <testcase name="Phone repair freelancer allows repair capabilities" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Phone repair freelancer allows repair capabilities" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="4" time="0.058782"/>
+      <testcase name="Template confidence separated from activity confidence" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Template confidence separated from activity confidence" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="4" time="0.064948"/>
+      <testcase name="Facts retained across turns" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Facts retained across turns" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="9" time="0.063723">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Facts retained across turnsFailed asserting that an array contains 'recurring_billing'.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\AiBuilder\ScreenshotRegressionTest.php:337</failure>
+      </testcase>
+      <testcase name="Reaches question limit without claiming full understanding" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Reaches question limit without claiming full understanding" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="3" time="0.055162"/>
+      <testcase name="Recurring billing question wording" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Recurring billing question wording" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="2" time="0.057806"/>
+      <testcase name="Retail store asks retail questions never repairs or freelancing" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Retail store asks retail questions never repairs or freelancing" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="11" time="0.059219">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Retail store asks retail questions never repairs or freelancingFailed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\AiBuilder\ScreenshotRegressionTest.php:424</failure>
+      </testcase>
+      <testcase name="Repair clarification assigns valid preset and stock" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Repair clarification assigns valid preset and stock" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="1" time="0.073764">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Repair clarification assigns valid preset and stockFailed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\AiBuilder\ScreenshotRegressionTest.php:452</failure>
+      </testcase>
+      <testcase name="Generic retail stays generic and requires subtype evidence" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Generic retail stays generic and requires subtype evidence" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="13" time="0.055663"/>
+      <testcase name="Every catalogue type obeys sector and subtype boundaries" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Every catalogue type obeys sector and subtype boundaries" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="1446" time="0.619645"/>
+      <testcase name="Catalogue has positive appointment coverage for services" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Catalogue has positive appointment coverage for services" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="26" time="0.070710"/>
+      <testcase name="Generic service capabilities do not leak into law firm" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Generic service capabilities do not leak into law firm" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="4" time="0.059343"/>
+      <testcase name="Natural walk in language unlocks counter when sector default denies it" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Natural walk in language unlocks counter when sector default denies it" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="6" time="0.052255"/>
+      <testcase name="Manual questionnaire keeps specialist stock questions conditional" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Manual questionnaire keeps specialist stock questions conditional" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="7" time="0.058155"/>
+      <testcase name="Confident catalogue identity outranks conflicting keyword trade" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Confident catalogue identity outranks conflicting keyword trade" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="8" time="0.053681"/>
+      <testcase name="Catalogue reconciliation preserves supported cross sector subtypes" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Catalogue reconciliation preserves supported cross sector subtypes" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="6" time="0.058379"/>
+      <testcase name="Explicit mixed business keeps second trade signal" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Explicit mixed business keeps second trade signal" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="1" time="0.054425"/>
+      <testcase name="Reconciled false trade facts cannot unlock trigger escape hatches" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Reconciled false trade facts cannot unlock trigger escape hatches" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="14" time="0.081682"/>
+      <testcase name="Every catalogue alias treats reconciled false facts as no evidence" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Every catalogue alias treats reconciled false facts as no evidence" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="15751" time="2.204191"/>
+      <testcase name="Every preset named by eligibility gates exists" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Every preset named by eligibility gates exists" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="24" time="0.055905"/>
+      <testcase name="Every sector clarification resolves to a real preset" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Every sector clarification resolves to a real preset" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="11" time="0.048909"/>
+      <testcase name="Manufacturing sector choice uses manufacturing workspace" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Manufacturing sector choice uses manufacturing workspace" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="5" time="0.068332"/>
+      <testcase name="Completed session emits an outcome event" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Completed session emits an outcome event" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="1" time="0.054935"/>
+      <testcase name="Unknown business clarifies across all five sectors" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Unknown business clarifies across all five sectors" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="6" time="0.061469"/>
+      <testcase name="Something else waits for a real description" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Something else waits for a real description" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="2" time="0.056525"/>
+      <testcase name="Skipping a bundle costs only one turn" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Skipping a bundle costs only one turn" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="4" time="0.058838"/>
+      <testcase name="Later specific description updates the profile" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Later specific description updates the profile" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="4" time="0.050595"/>
+      <testcase name="Explicit business correction discards old sector decisions" file="Screenshot Regression (Tests\Unit\AiBuilder\ScreenshotRegression)::Explicit business correction discards old sector decisions" class="Tests\Unit\AiBuilder\ScreenshotRegressionTest" classname="Tests.Unit.AiBuilder.ScreenshotRegressionTest" assertions="12" time="0.061784"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Onboarding\ModuleEligibilityTest" file="Module Eligibility (Tests\Unit\Onboarding\ModuleEligibility)" tests="2" assertions="9" errors="0" failures="0" skipped="0" time="0.118844">
+      <testcase name="Impossible modules are not offered to the wrong trade" file="Module Eligibility (Tests\Unit\Onboarding\ModuleEligibility)::Impossible modules are not offered to the wrong trade" class="Tests\Unit\Onboarding\ModuleEligibilityTest" classname="Tests.Unit.Onboarding.ModuleEligibilityTest" assertions="3" time="0.068116"/>
+      <testcase name="Plan has five or fewer owner choice rounds and silent core" file="Module Eligibility (Tests\Unit\Onboarding\ModuleEligibility)::Plan has five or fewer owner choice rounds and silent core" class="Tests\Unit\Onboarding\ModuleEligibilityTest" classname="Tests.Unit.Onboarding.ModuleEligibilityTest" assertions="6" time="0.050729"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\CardRegistryGateTest" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)" tests="8" assertions="3588" errors="4" failures="0" skipped="0" time="0.521460">
+      <testcase name="Gate registry complete" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate registry complete" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="1049" time="0.102388"/>
+      <testcase name="Gate no orphan resolver" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate no orphan resolver" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="698" time="0.055106"/>
+      <testcase name="Gate module cards match" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate module cards match" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="96" time="0.052891"/>
+      <testcase name="Gate units declared" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate units declared" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="1745" time="0.054260"/>
+      <testcase name="Gate qore cards universal" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate qore cards universal" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="0" time="0.068566">
+        <error type="Illuminate\Database\QueryException">Gate qore cards universalIlluminate\Database\QueryException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_baseline_sharded, SQL: select * from `tenant_users` where `tenant_users`.`user_id` = 1 and `tenant_users`.`user_id` is not null and `tenant_id` is null and `status` = active limit 1)&#13;
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:110
+Caused by
+PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist
+
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:110</error>
+      </testcase>
+      <testcase name="Gate locked module" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate locked module" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="0" time="0.058161">
+        <error type="Illuminate\Database\QueryException">Gate locked moduleIlluminate\Database\QueryException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_baseline_sharded, SQL: select * from `tenant_users` where `tenant_users`.`user_id` = 1 and `tenant_users`.`user_id` is not null and `tenant_id` is null and `status` = active limit 1)&#13;
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:141
+Caused by
+PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist
+
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:141</error>
+      </testcase>
+      <testcase name="Gate envelope shape" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate envelope shape" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="0" time="0.063390">
+        <error type="Illuminate\Database\QueryException">Gate envelope shapeIlluminate\Database\QueryException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_baseline_sharded, SQL: select * from `tenant_users` where `tenant_users`.`user_id` = 1 and `tenant_users`.`user_id` is not null and `tenant_id` is null and `status` = active limit 1)&#13;
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:178
+Caused by
+PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist
+
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:178</error>
+      </testcase>
+      <testcase name="Gate tenant scoped" file="Card Registry Gate (Tests\Unit\Reckoner\CardRegistryGate)::Gate tenant scoped" class="Tests\Unit\Reckoner\CardRegistryGateTest" classname="Tests.Unit.Reckoner.CardRegistryGateTest" assertions="0" time="0.066699">
+        <error type="Illuminate\Database\QueryException">Gate tenant scopedIlluminate\Database\QueryException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_baseline_sharded, SQL: select * from `tenant_users` where `tenant_users`.`user_id` = 1 and `tenant_users`.`user_id` is not null and `tenant_id` is null and `status` = active limit 1)&#13;
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:219
+Caused by
+PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'amd_pos_test_baseline_sharded.tenant_users' doesn't exist
+
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:420
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:411
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3505
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3490
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4080
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:3489
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:902
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:884
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\BuildsQueries.php:366
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:52
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Relations\Relation.php:538
+at app\Models\User.php:326
+at app\Reckoner\ReckonerContext.php:30
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\CardRegistryGateTest.php:219</error>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ChartRegistryParityTest" file="Chart Registry Parity (Tests\Unit\Reckoner\ChartRegistryParity)" tests="1" assertions="2" errors="0" failures="0" skipped="0" time="0.053873">
+      <testcase name="Backend and frontend registries have parity" file="Chart Registry Parity (Tests\Unit\Reckoner\ChartRegistryParity)::Backend and frontend registries have parity" class="Tests\Unit\Reckoner\ChartRegistryParityTest" classname="Tests.Unit.Reckoner.ChartRegistryParityTest" assertions="2" time="0.053873"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\DashboardApiTest" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)" tests="7" assertions="15" errors="0" failures="0" skipped="0" time="44.188398">
+      <testcase name="Get dashboards index returns list or auto creates default" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)::Get dashboards index returns list or auto creates default" class="Tests\Unit\Reckoner\DashboardApiTest" classname="Tests.Unit.Reckoner.DashboardApiTest" assertions="3" time="43.032249">
+        <system-out>﻿﻿﻿﻿﻿﻿﻿﻿</system-out>
+      </testcase>
+      <testcase name="Create dashboard" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)::Create dashboard" class="Tests\Unit\Reckoner\DashboardApiTest" classname="Tests.Unit.Reckoner.DashboardApiTest" assertions="3" time="0.188727"/>
+      <testcase name="Show dashboard" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)::Show dashboard" class="Tests\Unit\Reckoner\DashboardApiTest" classname="Tests.Unit.Reckoner.DashboardApiTest" assertions="2" time="0.191327"/>
+      <testcase name="Update dashboard" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)::Update dashboard" class="Tests\Unit\Reckoner\DashboardApiTest" classname="Tests.Unit.Reckoner.DashboardApiTest" assertions="3" time="0.185541"/>
+      <testcase name="Delete dashboard prevents deleting the last one" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)::Delete dashboard prevents deleting the last one" class="Tests\Unit\Reckoner\DashboardApiTest" classname="Tests.Unit.Reckoner.DashboardApiTest" assertions="1" time="0.168258"/>
+      <testcase name="Add card validates metric availability" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)::Add card validates metric availability" class="Tests\Unit\Reckoner\DashboardApiTest" classname="Tests.Unit.Reckoner.DashboardApiTest" assertions="1" time="0.200665"/>
+      <testcase name="Save layout saves atomic card coordinates" file="Dashboard Api (Tests\Unit\Reckoner\DashboardApi)::Save layout saves atomic card coordinates" class="Tests\Unit\Reckoner\DashboardApiTest" classname="Tests.Unit.Reckoner.DashboardApiTest" assertions="2" time="0.221632"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\DashboardLockTest" file="Dashboard Lock (Tests\Unit\Reckoner\DashboardLock)" tests="4" assertions="9" errors="0" failures="0" skipped="0" time="0.875260">
+      <testcase name="Non managers cannot publish or lock layouts" file="Dashboard Lock (Tests\Unit\Reckoner\DashboardLock)::Non managers cannot publish or lock layouts" class="Tests\Unit\Reckoner\DashboardLockTest" classname="Tests.Unit.Reckoner.DashboardLockTest" assertions="1" time="0.196866"/>
+      <testcase name="Managers can publish and lock layouts" file="Dashboard Lock (Tests\Unit\Reckoner\DashboardLock)::Managers can publish and lock layouts" class="Tests\Unit\Reckoner\DashboardLockTest" classname="Tests.Unit.Reckoner.DashboardLockTest" assertions="4" time="0.206910"/>
+      <testcase name="Locked dashboard blocks user modifications" file="Dashboard Lock (Tests\Unit\Reckoner\DashboardLock)::Locked dashboard blocks user modifications" class="Tests\Unit\Reckoner\DashboardLockTest" classname="Tests.Unit.Reckoner.DashboardLockTest" assertions="2" time="0.215387"/>
+      <testcase name="Gating checks outrank manager locked dashboard" file="Dashboard Lock (Tests\Unit\Reckoner\DashboardLock)::Gating checks outrank manager locked dashboard" class="Tests\Unit\Reckoner\DashboardLockTest" classname="Tests.Unit.Reckoner.DashboardLockTest" assertions="2" time="0.256096"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\DashboardSanitizerTest" file="Dashboard Sanitizer (Tests\Unit\Reckoner\DashboardSanitizer)" tests="4" assertions="15" errors="0" failures="0" skipped="0" time="0.300942">
+      <testcase name="Sanitizes valid cards" file="Dashboard Sanitizer (Tests\Unit\Reckoner\DashboardSanitizer)::Sanitizes valid cards" class="Tests\Unit\Reckoner\DashboardSanitizerTest" classname="Tests.Unit.Reckoner.DashboardSanitizerTest" assertions="12" time="0.070413"/>
+      <testcase name="Rejects platform scoped keys" file="Dashboard Sanitizer (Tests\Unit\Reckoner\DashboardSanitizer)::Rejects platform scoped keys" class="Tests\Unit\Reckoner\DashboardSanitizerTest" classname="Tests.Unit.Reckoner.DashboardSanitizerTest" assertions="1" time="0.067945"/>
+      <testcase name="Drops unavailable gated keys" file="Dashboard Sanitizer (Tests\Unit\Reckoner\DashboardSanitizer)::Drops unavailable gated keys" class="Tests\Unit\Reckoner\DashboardSanitizerTest" classname="Tests.Unit.Reckoner.DashboardSanitizerTest" assertions="1" time="0.080695"/>
+      <testcase name="Limits to maximum 45 cards" file="Dashboard Sanitizer (Tests\Unit\Reckoner\DashboardSanitizer)::Limits to maximum 45 cards" class="Tests\Unit\Reckoner\DashboardSanitizerTest" classname="Tests.Unit.Reckoner.DashboardSanitizerTest" assertions="1" time="0.081889"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerBatchKeyTest" file="Reckoner Batch Key (Tests\Unit\Reckoner\ReckonerBatchKey)" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="0.127663">
+      <testcase name="Same key at different periods returns distinct results" file="Reckoner Batch Key (Tests\Unit\Reckoner\ReckonerBatchKey)::Same key at different periods returns distinct results" class="Tests\Unit\Reckoner\ReckonerBatchKeyTest" classname="Tests.Unit.Reckoner.ReckonerBatchKeyTest" assertions="7" time="0.127663"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerCatalogParityTest" file="Reckoner Catalog Parity (Tests\Unit\Reckoner\ReckonerCatalogParity)" tests="1" assertions="1051" errors="0" failures="0" skipped="0" time="0.113881">
+      <testcase name="Reckoner catalog json parity with backend v6 catalog" file="Reckoner Catalog Parity (Tests\Unit\Reckoner\ReckonerCatalogParity)::Reckoner catalog json parity with backend v6 catalog" class="Tests\Unit\Reckoner\ReckonerCatalogParityTest" classname="Tests.Unit.Reckoner.ReckonerCatalogParityTest" assertions="1051" time="0.113881"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerChartsTest" file="Reckoner Charts (Tests\Unit\Reckoner\ReckonerCharts)" tests="4" assertions="15" errors="0" failures="0" skipped="0" time="0.395707">
+      <testcase name="Charts mapping contains expected shapes" file="Reckoner Charts (Tests\Unit\Reckoner\ReckonerCharts)::Charts mapping contains expected shapes" class="Tests\Unit\Reckoner\ReckonerChartsTest" classname="Tests.Unit.Reckoner.ReckonerChartsTest" assertions="4" time="0.096690"/>
+      <testcase name="For method returns matching charts" file="Reckoner Charts (Tests\Unit\Reckoner\ReckonerCharts)::For method returns matching charts" class="Tests\Unit\Reckoner\ReckonerChartsTest" classname="Tests.Unit.Reckoner.ReckonerChartsTest" assertions="4" time="0.106672"/>
+      <testcase name="Is legal validates pairs" file="Reckoner Charts (Tests\Unit\Reckoner\ReckonerCharts)::Is legal validates pairs" class="Tests\Unit\Reckoner\ReckonerChartsTest" classname="Tests.Unit.Reckoner.ReckonerChartsTest" assertions="5" time="0.089817"/>
+      <testcase name="Default returns fallback chart" file="Reckoner Charts (Tests\Unit\Reckoner\ReckonerCharts)::Default returns fallback chart" class="Tests\Unit\Reckoner\ReckonerChartsTest" classname="Tests.Unit.Reckoner.ReckonerChartsTest" assertions="2" time="0.102528"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerComparisonTest" file="Reckoner Comparison (Tests\Unit\Reckoner\ReckonerComparison)" tests="3" assertions="11" errors="0" failures="0" skipped="0" time="0.241697">
+      <testcase name="Comparison resolves previous and change pct" file="Reckoner Comparison (Tests\Unit\Reckoner\ReckonerComparison)::Comparison resolves previous and change pct" class="Tests\Unit\Reckoner\ReckonerComparisonTest" classname="Tests.Unit.Reckoner.ReckonerComparisonTest" assertions="4" time="0.088928"/>
+      <testcase name="Zero baseline returns null change pct" file="Reckoner Comparison (Tests\Unit\Reckoner\ReckonerComparison)::Zero baseline returns null change pct" class="Tests\Unit\Reckoner\ReckonerComparisonTest" classname="Tests.Unit.Reckoner.ReckonerComparisonTest" assertions="4" time="0.073566"/>
+      <testcase name="Live period does not trigger comparison read" file="Reckoner Comparison (Tests\Unit\Reckoner\ReckonerComparison)::Live period does not trigger comparison read" class="Tests\Unit\Reckoner\ReckonerComparisonTest" classname="Tests.Unit.Reckoner.ReckonerComparisonTest" assertions="3" time="0.079203"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerGateTest" file="Reckoner Gate (Tests\Unit\Reckoner\ReckonerGate)" tests="6" assertions="10" errors="0" failures="0" skipped="0" time="0.489341">
+      <testcase name="Unknown key returns not found" file="Reckoner Gate (Tests\Unit\Reckoner\ReckonerGate)::Unknown key returns not found" class="Tests\Unit\Reckoner\ReckonerGateTest" classname="Tests.Unit.Reckoner.ReckonerGateTest" assertions="2" time="0.091242"/>
+      <testcase name="Platform key in tenant context returns not found" file="Reckoner Gate (Tests\Unit\Reckoner\ReckonerGate)::Platform key in tenant context returns not found" class="Tests\Unit\Reckoner\ReckonerGateTest" classname="Tests.Unit.Reckoner.ReckonerGateTest" assertions="2" time="0.085745"/>
+      <testcase name="Invalid period returns correct error" file="Reckoner Gate (Tests\Unit\Reckoner\ReckonerGate)::Invalid period returns correct error" class="Tests\Unit\Reckoner\ReckonerGateTest" classname="Tests.Unit.Reckoner.ReckonerGateTest" assertions="2" time="0.111528"/>
+      <testcase name="Readmany preserves request order" file="Reckoner Gate (Tests\Unit\Reckoner\ReckonerGate)::Readmany preserves request order" class="Tests\Unit\Reckoner\ReckonerGateTest" classname="Tests.Unit.Reckoner.ReckonerGateTest" assertions="1" time="0.088728"/>
+      <testcase name="Readmany caps at max batch" file="Reckoner Gate (Tests\Unit\Reckoner\ReckonerGate)::Readmany caps at max batch" class="Tests\Unit\Reckoner\ReckonerGateTest" classname="Tests.Unit.Reckoner.ReckonerGateTest" assertions="1" time="0.061399"/>
+      <testcase name="Check availability hides platform keys" file="Reckoner Gate (Tests\Unit\Reckoner\ReckonerGate)::Check availability hides platform keys" class="Tests\Unit\Reckoner\ReckonerGateTest" classname="Tests.Unit.Reckoner.ReckonerGateTest" assertions="2" time="0.050698"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerInvariantsTest" file="Reckoner Invariants (Tests\Unit\Reckoner\ReckonerInvariants)" tests="2" assertions="23" errors="0" failures="0" skipped="0" time="0.135916">
+      <testcase name="All 21 invariants defined" file="Reckoner Invariants (Tests\Unit\Reckoner\ReckonerInvariants)::All 21 invariants defined" class="Tests\Unit\Reckoner\ReckonerInvariantsTest" classname="Tests.Unit.Reckoner.ReckonerInvariantsTest" assertions="1" time="0.058016"/>
+      <testcase name="All 21 invariants pass for tenant" file="Reckoner Invariants (Tests\Unit\Reckoner\ReckonerInvariants)::All 21 invariants pass for tenant" class="Tests\Unit\Reckoner\ReckonerInvariantsTest" classname="Tests.Unit.Reckoner.ReckonerInvariantsTest" assertions="22" time="0.077900"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerLabelsTest" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)" tests="9" assertions="9" errors="0" failures="0" skipped="0" time="0.473927">
+      <testcase name="Positive net profit keeps profit label" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Positive net profit keeps profit label" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.057246"/>
+      <testcase name="Zero net profit keeps profit label" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Zero net profit keeps profit label" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.050732"/>
+      <testcase name="Negative net profit becomes net loss" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Negative net profit becomes net loss" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.053290"/>
+      <testcase name="Negative gross profit becomes gross loss" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Negative gross profit becomes gross loss" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.049983"/>
+      <testcase name="Unsigned metric keeps label when negative" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Unsigned metric keeps label when negative" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.053949"/>
+      <testcase name="Null value keeps default label" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Null value keeps default label" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.049751"/>
+      <testcase name="Non numeric value keeps default label" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Non numeric value keeps default label" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.054087"/>
+      <testcase name="Value in array envelope is read correctly" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Value in array envelope is read correctly" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.050105"/>
+      <testcase name="Signed metric not in table keeps default label" file="Reckoner Labels (Tests\Unit\Reckoner\ReckonerLabels)::Signed metric not in table keeps default label" class="Tests\Unit\Reckoner\ReckonerLabelsTest" classname="Tests.Unit.Reckoner.ReckonerLabelsTest" assertions="1" time="0.054783"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerPeriodTest" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)" tests="25" assertions="76" errors="0" failures="0" skipped="0" time="1.329582">
+      <testsuite name="Named period resolves" tests="16" assertions="48" errors="0" failures="0" skipped="0" time="0.859793">
+        <testcase name="Named period resolves with data set #0" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #0" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.054765"/>
+        <testcase name="Named period resolves with data set #1" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #1" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.054402"/>
+        <testcase name="Named period resolves with data set #2" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #2" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.052126"/>
+        <testcase name="Named period resolves with data set #3" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #3" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.055154"/>
+        <testcase name="Named period resolves with data set #4" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #4" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.050554"/>
+        <testcase name="Named period resolves with data set #5" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #5" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.055038"/>
+        <testcase name="Named period resolves with data set #6" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #6" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.061442"/>
+        <testcase name="Named period resolves with data set #7" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #7" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.058126"/>
+        <testcase name="Named period resolves with data set #8" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #8" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.051745"/>
+        <testcase name="Named period resolves with data set #9" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #9" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.054560"/>
+        <testcase name="Named period resolves with data set #10" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #10" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.050963"/>
+        <testcase name="Named period resolves with data set #11" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #11" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.053821"/>
+        <testcase name="Named period resolves with data set #12" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #12" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.050462"/>
+        <testcase name="Named period resolves with data set #13" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #13" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.053545"/>
+        <testcase name="Named period resolves with data set #14" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #14" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.049404"/>
+        <testcase name="Named period resolves with data set #15" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Named period resolves with data set #15" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="3" time="0.053686"/>
+      </testsuite>
+      <testcase name="Today start and end are same date" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Today start and end are same date" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="1" time="0.049996"/>
+      <testcase name="This month start is first of month" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::This month start is first of month" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="1" time="0.054958"/>
+      <testcase name="This year start is january first" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::This year start is january first" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="1" time="0.050287"/>
+      <testcase name="Custom range uses supplied dates" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Custom range uses supplied dates" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="2" time="0.053871"/>
+      <testcase name="Custom range requires both dates" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Custom range requires both dates" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="1" time="0.050434"/>
+      <testcase name="Custom range start after end throws" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Custom range start after end throws" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="1" time="0.055558"/>
+      <testcase name="Live period resolves" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Live period resolves" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="1" time="0.050025"/>
+      <testcase name="Keys constant is non empty" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Keys constant is non empty" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="19" time="0.054990"/>
+      <testcase name="Custom is in keys" file="Reckoner Period (Tests\Unit\Reckoner\ReckonerPeriod)::Custom is in keys" class="Tests\Unit\Reckoner\ReckonerPeriodTest" classname="Tests.Unit.Reckoner.ReckonerPeriodTest" assertions="1" time="0.049671"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerRegistryTest" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)" tests="21" assertions="11082" errors="0" failures="1" skipped="0" time="1.128355">
+      <testcase name="Every entry has required fields" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every entry has required fields" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="7215" time="0.069511"/>
+      <testcase name="Every key matches its array index" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every key matches its array index" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="401" time="0.050390"/>
+      <testcase name="Every key is dot namespaced" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every key is dot namespaced" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="401" time="0.054427"/>
+      <testcase name="Every shape is a valid enum value" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every shape is a valid enum value" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="401" time="0.050174"/>
+      <testcase name="Currency units have precision 2" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Currency units have precision 2" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="193" time="0.055906"/>
+      <testcase name="Integer units have precision 0" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Integer units have precision 0" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="28" time="0.050410"/>
+      <testcase name="Every scope is tenant or platform" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every scope is tenant or platform" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="401" time="0.054619"/>
+      <testcase name="Live only metrics do not support comparison or series" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Live only metrics do not support comparison or series" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="3" time="0.050627"/>
+      <testcase name="Every default period is in the periods list" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every default period is in the periods list" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="401" time="0.054769"/>
+      <testcase name="Every source class exists" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every source class exists" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="398" time="0.053175"/>
+      <testcase name="Every source implements reckoner source" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every source implements reckoner source" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="398" time="0.055382"/>
+      <testcase name="Every registry key is supported by its source" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Every registry key is supported by its source" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="25" time="0.050643"/>
+      <testcase name="No bare margin label" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::No bare margin label" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="401" time="0.054567"/>
+      <testcase name="Signed metrics are in labels table" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Signed metrics are in labels table" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="4" time="0.050247"/>
+      <testcase name="Balance sheet ok is status shape" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Balance sheet ok is status shape" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="3" time="0.054821"/>
+      <testcase name="Low stock and out of stock are separate metrics" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Low stock and out of stock are separate metrics" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="2" time="0.050796"/>
+      <testcase name="Production cost is wired to production source" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Production cost is wired to production source" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="1" time="0.055881"/>
+      <testcase name="Purchasing and paid to suppliers are distinct" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Purchasing and paid to suppliers are distinct" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="3" time="0.050080"/>
+      <testcase name="Platform metrics have platform scope" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Platform metrics have platform scope" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="2" time="0.055062"/>
+      <testcase name="Tenant metrics have tenant scope" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Tenant metrics have tenant scope" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="399" time="0.051169"/>
+      <testcase name="Registry has expected key count" file="Reckoner Registry (Tests\Unit\Reckoner\ReckonerRegistry)::Registry has expected key count" class="Tests\Unit\Reckoner\ReckonerRegistryTest" classname="Tests.Unit.Reckoner.ReckonerRegistryTest" assertions="2" time="0.055698">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Registry has expected key countRegistry key count changed unexpectedly. Update this test if you intentionally added or removed a key.
+Failed asserting that actual size 401 matches expected size 397.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Unit\Reckoner\ReckonerRegistryTest.php:355</failure>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerResultTest" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)" tests="12" assertions="34" errors="0" failures="0" skipped="0" time="0.635512">
+      <testcase name="Failure returns not ok" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Failure returns not ok" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="1" time="0.063408"/>
+      <testcase name="Failure serialises error structure" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Failure serialises error structure" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="7" time="0.049072"/>
+      <testcase name="Failure is a complete reading envelope" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Failure is a complete reading envelope" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="5" time="0.054021"/>
+      <testcase name="Success is ok" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Success is ok" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="1" time="0.049512"/>
+      <testcase name="Empty reading is not an error" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Empty reading is not an error" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="3" time="0.053881"/>
+      <testcase name="Success exposes data" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Success exposes data" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="1" time="0.050671"/>
+      <testcase name="Success exposes period" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Success exposes period" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="3" time="0.054046"/>
+      <testcase name="Success exposes drill" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Success exposes drill" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="2" time="0.050487"/>
+      <testcase name="Meta includes computed at" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Meta includes computed at" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="1" time="0.055682"/>
+      <testcase name="Status shape passes through as is" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Status shape passes through as is" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="1" time="0.049988"/>
+      <testcase name="Json serialize matches to array" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Json serialize matches to array" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="1" time="0.054765"/>
+      <testcase name="Success exposes contract state and verified" file="Reckoner Result (Tests\Unit\Reckoner\ReckonerResult)::Success exposes contract state and verified" class="Tests\Unit\Reckoner\ReckonerResultTest" classname="Tests.Unit.Reckoner.ReckonerResultTest" assertions="8" time="0.049980"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerRouteTest" file="Reckoner Route (Tests\Unit\Reckoner\ReckonerRoute)" tests="3" assertions="24" errors="0" failures="0" skipped="0" time="0.653332">
+      <testcase name="Reckoner routes require authentication" file="Reckoner Route (Tests\Unit\Reckoner\ReckonerRoute)::Reckoner routes require authentication" class="Tests\Unit\Reckoner\ReckonerRouteTest" classname="Tests.Unit.Reckoner.ReckonerRouteTest" assertions="2" time="0.074292"/>
+      <testcase name="Catalogue route returns tenant metrics" file="Reckoner Route (Tests\Unit\Reckoner\ReckonerRoute)::Catalogue route returns tenant metrics" class="Tests\Unit\Reckoner\ReckonerRouteTest" classname="Tests.Unit.Reckoner.ReckonerRouteTest" assertions="5" time="0.389492"/>
+      <testcase name="Read route performs batch reads" file="Reckoner Route (Tests\Unit\Reckoner\ReckonerRoute)::Read route performs batch reads" class="Tests\Unit\Reckoner\ReckonerRouteTest" classname="Tests.Unit.Reckoner.ReckonerRouteTest" assertions="17" time="0.189549"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Reckoner\ReckonerSettingsTest" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)" tests="14" assertions="14" errors="0" failures="0" skipped="0" time="0.734947">
+      <testcase name="Restaurant gets 30 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Restaurant gets 30 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.056526"/>
+      <testcase name="Grocery gets 21 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Grocery gets 21 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.049408"/>
+      <testcase name="Pharmacy gets 60 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Pharmacy gets 60 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.054357"/>
+      <testcase name="Retail gets 90 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Retail gets 90 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.050107"/>
+      <testcase name="Automotive gets 180 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Automotive gets 180 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.054504"/>
+      <testcase name="Services gets 120 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Services gets 120 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.050538"/>
+      <testcase name="Wholesale gets 45 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Wholesale gets 45 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.054786"/>
+      <testcase name="Manufacturing gets 90 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Manufacturing gets 90 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.050999"/>
+      <testcase name="Generic gets 90 day dormancy" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Generic gets 90 day dormancy" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.054319"/>
+      <testcase name="Unknown business type falls back to generic" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Unknown business type falls back to generic" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.050312"/>
+      <testcase name="Get overstock mode returns default off" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Get overstock mode returns default off" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.054626"/>
+      <testcase name="Get heavy discount pct returns default 20" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Get heavy discount pct returns default 20" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.049827"/>
+      <testcase name="Get unknown key returns null" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Get unknown key returns null" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.054112"/>
+      <testcase name="Dormant days with null tenant returns generic default" file="Reckoner Settings (Tests\Unit\Reckoner\ReckonerSettings)::Dormant days with null tenant returns generic default" class="Tests\Unit\Reckoner\ReckonerSettingsTest" classname="Tests.Unit.Reckoner.ReckonerSettingsTest" assertions="1" time="0.050525"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\SharedCatalogServiceTest" file="Shared Catalog Service (Tests\Unit\SharedCatalogService)" tests="3" assertions="9" errors="0" failures="0" skipped="0" time="0.208016">
+      <testcase name="Single tenant multiple contributions does not publish" file="Shared Catalog Service (Tests\Unit\SharedCatalogService)::Single tenant multiple contributions does not publish" class="Tests\Unit\SharedCatalogServiceTest" classname="Tests.Unit.SharedCatalogServiceTest" assertions="3" time="0.071356"/>
+      <testcase name="Distinct tenants reach threshold publishes product" file="Shared Catalog Service (Tests\Unit\SharedCatalogService)::Distinct tenants reach threshold publishes product" class="Tests\Unit\SharedCatalogServiceTest" classname="Tests.Unit.SharedCatalogServiceTest" assertions="4" time="0.080299"/>
+      <testcase name="Opted out tenant contributes nothing" file="Shared Catalog Service (Tests\Unit\SharedCatalogService)::Opted out tenant contributes nothing" class="Tests\Unit\SharedCatalogServiceTest" classname="Tests.Unit.SharedCatalogServiceTest" assertions="2" time="0.056361"/>
+    </testsuite>
+    <testsuite name="Tests\Unit\Tools\CheckDigitTest" file="Check Digit (Tests\Unit\Tools\CheckDigit)" tests="8" assertions="17" errors="0" failures="0" skipped="0" time="0.424939">
+      <testcase name="Computes correct upc a check digit" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Computes correct upc a check digit" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="1" time="0.053005"/>
+      <testcase name="Computes correct ean 13 check digit" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Computes correct ean 13 check digit" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="1" time="0.053800"/>
+      <testcase name="Computes correct ean 8 check digit" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Computes correct ean 8 check digit" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="1" time="0.049712"/>
+      <testcase name="Computes correct itf 14 check digit" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Computes correct itf 14 check digit" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="7" time="0.055051"/>
+      <testcase name="Validate gtin detects invalid check digit" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Validate gtin detects invalid check digit" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="3" time="0.050605"/>
+      <testcase name="Validate gtin strips whitespace and hyphens" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Validate gtin strips whitespace and hyphens" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="2" time="0.056149"/>
+      <testcase name="Validate gtin rejects non digit input" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Validate gtin rejects non digit input" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="1" time="0.051140"/>
+      <testcase name="Validate gtin rejects wrong length" file="Check Digit (Tests\Unit\Tools\CheckDigit)::Validate gtin rejects wrong length" class="Tests\Unit\Tools\CheckDigitTest" classname="Tests.Unit.Tools.CheckDigitTest" assertions="1" time="0.055478"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

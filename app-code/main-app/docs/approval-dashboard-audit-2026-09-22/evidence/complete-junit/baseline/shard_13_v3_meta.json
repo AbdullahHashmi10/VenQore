@@ -1,0 +1,30 @@
+{
+  "shard": "shard_13_v3",
+  "label": "Baseline",
+  "file_count": 15,
+  "files": [
+    "tests/tests/Feature/V3/SalesOrderTest.php",
+    "tests/tests/Feature/V3/Scenarios/AccountingServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/FifoServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/InventoryAndPartyServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/ManufacturingServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/PartialReturnTest.php",
+    "tests/tests/Feature/V3/Scenarios/PaymentServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase2InventoryScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase3SalesScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase4OperationsScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase56ReportsInfraScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/ScenarioStubsTest.php",
+    "tests/tests/Feature/V3/Scenarios/SettlementAndReportServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/TaxAndUomServiceTest.php",
+    "tests/tests/Feature/V3/SmokeTest.php"
+  ],
+  "duration_seconds": 98.72,
+  "exit_code": 0,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 135 testcases (0 failed/errors)",
+  "testcase_count": 135,
+  "failure_count": 0,
+  "start_time": "2026-09-23T18:16:36.206557",
+  "end_time": "2026-09-23T18:18:14.924265"
+}

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="E:\AMD POS\AMD POS\app-code\main-app\phpunit.xml" tests="23" assertions="61" errors="0" failures="6" skipped="0" time="13.272858">
+    <testsuite name="Feature" tests="23" assertions="61" errors="0" failures="6" skipped="0" time="13.272858">
+      <testsuite name="Tests\tests\Feature\Billing\SubscriptionCancelTest" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php" tests="7" assertions="21" errors="0" failures="1" skipped="0" time="6.813650">
+        <testcase name="the owner can cancel and keeps access until the paid period ends" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php::the owner can cancel and keeps access until the paid period ends" class="Tests\tests\Feature\Billing\SubscriptionCancelTest" classname="Tests.tests.Feature.Billing.SubscriptionCancelTest" assertions="5" time="2.168001"/>
+        <testcase name="cancelling clears the payment-history cache so the tab is not stale" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php::cancelling clears the payment-history cache so the tab is not stale" class="Tests\tests\Feature\Billing\SubscriptionCancelTest" classname="Tests.tests.Feature.Billing.SubscriptionCancelTest" assertions="1" time="1.258048"/>
+        <testcase name="a non-owner cannot cancel the subscription" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php::a non-owner cannot cancel the subscription" class="Tests\tests\Feature\Billing\SubscriptionCancelTest" classname="Tests.tests.Feature.Billing.SubscriptionCancelTest" assertions="4" time="1.586477"/>
+        <testcase name="the controller blocks a non-owner even when the permission gate lets them through" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php::the controller blocks a non-owner even when the permission gate lets them through" class="Tests\tests\Feature\Billing\SubscriptionCancelTest" classname="Tests.tests.Feature.Billing.SubscriptionCancelTest" assertions="1" time="0.570652">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">the controller blocks a non-owner even when the permission gate lets them throughExpected response status code [201, 301, 302, 303, 307, 308] but received 403.
+Failed asserting that false is true.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:200
+at tests\tests\Feature\Billing\SubscriptionCancelTest.php:140</failure>
+        </testcase>
+        <testcase name="a store with no subscription is told there is nothing to cancel" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php::a store with no subscription is told there is nothing to cancel" class="Tests\tests\Feature\Billing\SubscriptionCancelTest" classname="Tests.tests.Feature.Billing.SubscriptionCancelTest" assertions="3" time="0.502568"/>
+        <testcase name="a Lemon Squeezy failure leaves the subscription untouched" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php::a Lemon Squeezy failure leaves the subscription untouched" class="Tests\tests\Feature\Billing\SubscriptionCancelTest" classname="Tests.tests.Feature.Billing.SubscriptionCancelTest" assertions="3" time="0.388999"/>
+        <testcase name="the owner can resume a cancelled subscription" file="tests\tests\Feature\Billing\SubscriptionCancelTest.php::the owner can resume a cancelled subscription" class="Tests\tests\Feature\Billing\SubscriptionCancelTest" classname="Tests.tests.Feature.Billing.SubscriptionCancelTest" assertions="4" time="0.338905"/>
+      </testsuite>
+      <testsuite name="Tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest" file="tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest.php" tests="4" assertions="11" errors="0" failures="1" skipped="0" time="2.540538">
+        <testcase name="resolved chat session reopens automatically when visitor sends a message" file="tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest.php::resolved chat session reopens automatically when visitor sends a message" class="Tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest" classname="Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest" assertions="5" time="0.810338"/>
+        <testcase name="inactivity timeout command automatically closes inactive sessions" file="tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest.php::inactivity timeout command automatically closes inactive sessions" class="Tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest" classname="Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest" assertions="4" time="0.239568"/>
+        <testcase name="claiming a session is completely anonymous (no system join message is sent to visitor)" file="tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest.php::claiming a session is completely anonymous (no system join message is sent to visitor)" class="Tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest" classname="Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest" assertions="1" time="0.745402">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">claiming a session is completely anonymous (no system join message is sent to visitor)Expected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest.php:131</failure>
+        </testcase>
+        <testcase name="sending a message broadcasts on agent inbox channels" file="tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest.php::sending a message broadcasts on agent inbox channels" class="Tests\tests\Feature\Chat\ChatInactivityAndAnonymousTest" classname="Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest" assertions="1" time="0.745229"/>
+      </testsuite>
+      <testsuite name="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php" tests="12" assertions="29" errors="0" failures="4" skipped="0" time="3.918670">
+        <testcase name="amazon sync purchase grants the vensync_command entitlement" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::amazon sync purchase grants the vensync_command entitlement" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="3" time="0.893937"/>
+        <testcase name="add-on provisioning survives the NOT NULL applied_by column" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::add-on provisioning survives the NOT NULL applied_by column" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="4" time="0.204385"/>
+        <testcase name="vensynq returns 404 when the platform switch is off" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::vensynq returns 404 when the platform switch is off" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="1" time="0.488901"/>
+        <testcase name="vensynq returns 403 when enabled but the tenant has no entitlement" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::vensynq returns 403 when enabled but the tenant has no entitlement" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="1" time="0.367192">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">vensynq returns 403 when enabled but the tenant has no entitlementExpected response status code [403] but received 404.
+Failed asserting that 404 is identical to 403.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:141
+at tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php:131</failure>
+        </testcase>
+        <testcase name="vensynq is reachable once the override is granted" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::vensynq is reachable once the override is granted" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="2" time="0.456613">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">vensynq is reachable once the override is grantedExpecting 404 not to be 404.&#13;
+at tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php:153</failure>
+        </testcase>
+        <testcase name="platform registry honours the config allowlist" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::platform registry honours the config allowlist" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="4" time="0.067094"/>
+        <testcase name="a dashboard marketplace switch overrides the config allowlist" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::a dashboard marketplace switch overrides the config allowlist" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="2" time="0.126260"/>
+        <testcase name="connecting a disabled marketplace is refused" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::connecting a disabled marketplace is refused" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="1" time="0.396220">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">connecting a disabled marketplace is refusedExpected response status code [201, 301, 302, 303, 307, 308] but received 404.
+Failed asserting that false is true.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:200
+at tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php:208</failure>
+        </testcase>
+        <testcase name="free tier allowance comes from config, not a hardcoded number" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::free tier allowance comes from config, not a hardcoded number" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="5" time="0.131907"/>
+        <testcase name="managed tier stops at its monthly quota" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::managed tier stops at its monthly quota" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="2" time="0.148843"/>
+        <testcase name="smart capture routes 404 when the platform switch is off" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::smart capture routes 404 when the platform switch is off" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="1" time="0.393072">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">smart capture routes 404 when the platform switch is offExpected response status code [404] but received 200.
+Failed asserting that 200 is identical to 404.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:151
+at tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php:262</failure>
+        </testcase>
+        <testcase name="monthly reset clears managed usage but never the free lifetime allowance" file="tests\tests\Feature\Monetization\AiAndSyncEntitlementTest.php::monthly reset clears managed usage but never the free lifetime allowance" class="Tests\tests\Feature\Monetization\AiAndSyncEntitlementTest" classname="Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest" assertions="3" time="0.244246"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

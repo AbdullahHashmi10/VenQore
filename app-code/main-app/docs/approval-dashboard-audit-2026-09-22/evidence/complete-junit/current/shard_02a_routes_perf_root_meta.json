@@ -1,0 +1,32 @@
+{
+  "shard": "shard_02a_routes_perf_root",
+  "label": "Current",
+  "file_count": 17,
+  "files": [
+    "tests/tests/Feature/ActivityLogTest.php",
+    "tests/tests/Feature/BlogPostEngineTest.php",
+    "tests/tests/Feature/ComparePagesTest.php",
+    "tests/tests/Feature/CrawlHygieneTest.php",
+    "tests/tests/Feature/DebitNoteTest.php",
+    "tests/tests/Feature/DocumentConversionTest.php",
+    "tests/tests/Feature/DocumentationHubTest.php",
+    "tests/tests/Feature/FeaturePagesTest.php",
+    "tests/tests/Feature/FrontendSyntaxIntegrityTest.php",
+    "tests/tests/Feature/GoldenAuditTestsTest.php",
+    "tests/tests/Feature/ImportMappingTest.php",
+    "tests/tests/Feature/InvoiceFooterViralLoopTest.php",
+    "tests/tests/Feature/LayoutAndAdminUsersRegressionTest.php",
+    "tests/tests/Feature/LedgerAccountingIntegrationTest.php",
+    "tests/tests/Feature/LegacyAdminPasscodeTest.php",
+    "tests/tests/Performance/SnapshotPerformanceTest.php",
+    "tests/tests/Routes/FullRouteSweepTest.php"
+  ],
+  "duration_seconds": 133.79,
+  "exit_code": 1,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 79 testcases (14 failed/errors)",
+  "testcase_count": 79,
+  "failure_count": 14,
+  "start_time": "2026-09-23T18:19:22.805254",
+  "end_time": "2026-09-23T18:21:36.595305"
+}

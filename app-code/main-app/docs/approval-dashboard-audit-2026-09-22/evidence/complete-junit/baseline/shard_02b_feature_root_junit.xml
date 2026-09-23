@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="231" assertions="938" errors="5" failures="28" skipped="0" time="104.810369">
+    <testsuite name="Tests\Feature\MarketingSsrTest" file="Marketing Ssr (Tests\Feature\MarketingSsr)" tests="2" assertions="3" errors="0" failures="1" skipped="0" time="0.736502">
+      <testcase name="Marketing routes have ssr enabled" file="Marketing Ssr (Tests\Feature\MarketingSsr)::Marketing routes have ssr enabled" class="Tests\Feature\MarketingSsrTest" classname="Tests.Feature.MarketingSsrTest" assertions="2" time="0.574603">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Marketing routes have ssr enabledExpected Inertia SSR to be enabled for marketing route: /features
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\MarketingSsrTest.php:31</failure>
+      </testcase>
+      <testcase name="Tenant routes keep inertia ssr disabled" file="Marketing Ssr (Tests\Feature\MarketingSsr)::Tenant routes keep inertia ssr disabled" class="Tests\Feature\MarketingSsrTest" classname="Tests.Feature.MarketingSsrTest" assertions="1" time="0.161899"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\MigrateOpeningBalancesTest" file="Migrate Opening Balances (Tests\Feature\MigrateOpeningBalances)" tests="1" assertions="11" errors="0" failures="0" skipped="0" time="0.453766">
+      <testcase name="It seeds opening balances with correct tenant scoping" file="Migrate Opening Balances (Tests\Feature\MigrateOpeningBalances)::It seeds opening balances with correct tenant scoping" class="Tests\Feature\MigrateOpeningBalancesTest" classname="Tests.Feature.MigrateOpeningBalancesTest" assertions="11" time="0.453766"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\MigrationTest" file="Migration (Tests\Feature\Migration)" tests="1" assertions="19" errors="0" failures="0" skipped="0" time="0.540838">
+      <testcase name="Migration execute imports parties products sales and purchases" file="Migration (Tests\Feature\Migration)::Migration execute imports parties products sales and purchases" class="Tests\Feature\MigrationTest" classname="Tests.Feature.MigrationTest" assertions="19" time="0.540838"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\ModalValidationRegressionTest" file="Modal Validation Regression (Tests\Feature\ModalValidationRegression)" tests="5" assertions="31" errors="0" failures="0" skipped="0" time="2.476691">
+      <testcase name="Parties validation rules and error handling" file="Modal Validation Regression (Tests\Feature\ModalValidationRegression)::Parties validation rules and error handling" class="Tests\Feature\ModalValidationRegressionTest" classname="Tests.Feature.ModalValidationRegressionTest" assertions="12" time="0.595497"/>
+      <testcase name="Bank accounts validation rules and error handling" file="Modal Validation Regression (Tests\Feature\ModalValidationRegression)::Bank accounts validation rules and error handling" class="Tests\Feature\ModalValidationRegressionTest" classname="Tests.Feature.ModalValidationRegressionTest" assertions="5" time="0.521355"/>
+      <testcase name="Categories validation rules and error handling" file="Modal Validation Regression (Tests\Feature\ModalValidationRegression)::Categories validation rules and error handling" class="Tests\Feature\ModalValidationRegressionTest" classname="Tests.Feature.ModalValidationRegressionTest" assertions="5" time="0.626656"/>
+      <testcase name="Expenses validation rules and error handling" file="Modal Validation Regression (Tests\Feature\ModalValidationRegression)::Expenses validation rules and error handling" class="Tests\Feature\ModalValidationRegressionTest" classname="Tests.Feature.ModalValidationRegressionTest" assertions="6" time="0.390037"/>
+      <testcase name="Inventory validation rules and error handling" file="Modal Validation Regression (Tests\Feature\ModalValidationRegression)::Inventory validation rules and error handling" class="Tests\Feature\ModalValidationRegressionTest" classname="Tests.Feature.ModalValidationRegressionTest" assertions="3" time="0.343146"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\OwnersDailyPulseTest" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)" tests="13" assertions="34" errors="0" failures="0" skipped="0" time="3.587895">
+      <testcase name="All pulse routes are registered" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::All pulse routes are registered" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="5" time="0.156556"/>
+      <testcase name="Unauthenticated user cannot access pulse dashboard" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Unauthenticated user cannot access pulse dashboard" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="1" time="0.125151"/>
+      <testcase name="Authenticated owner can access pulse dashboard" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Authenticated owner can access pulse dashboard" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="1" time="0.350520"/>
+      <testcase name="Verify endpoint returns success for valid passcode" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Verify endpoint returns success for valid passcode" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="2" time="0.303429"/>
+      <testcase name="Verify endpoint returns 403 for invalid passcode" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Verify endpoint returns 403 for invalid passcode" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="2" time="0.301214"/>
+      <testcase name="Verify endpoint validates passcode is required" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Verify endpoint validates passcode is required" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="3" time="0.283480"/>
+      <testcase name="Setup endpoint can enable passcode" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Setup endpoint can enable passcode" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="4" time="0.291905"/>
+      <testcase name="Setup endpoint can disable passcode" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Setup endpoint can disable passcode" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="3" time="0.311887"/>
+      <testcase name="Setup requires passcode when action is set" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Setup requires passcode when action is set" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="3" time="0.292324"/>
+      <testcase name="Lock endpoint clears session and redirects" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Lock endpoint clears session and redirects" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="3" time="0.291243"/>
+      <testcase name="Note endpoint saves memo when authorized" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Note endpoint saves memo when authorized" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="3" time="0.287384"/>
+      <testcase name="Note endpoint rejects unauthorized access" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Note endpoint rejects unauthorized access" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="1" time="0.305513"/>
+      <testcase name="Note endpoint validates date format" file="Owners Daily Pulse (Tests\Feature\OwnersDailyPulse)::Note endpoint validates date format" class="Tests\Feature\OwnersDailyPulseTest" classname="Tests.Feature.OwnersDailyPulseTest" assertions="3" time="0.287290"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PartnersPageTest" file="Partners Page (Tests\Feature\PartnersPage)" tests="4" assertions="14" errors="0" failures="1" skipped="0" time="0.334460">
+      <testcase name="Partners page renders successfully with ssr" file="Partners Page (Tests\Feature\PartnersPage)::Partners page renders successfully with ssr" class="Tests\Feature\PartnersPageTest" classname="Tests.Feature.PartnersPageTest" assertions="2" time="0.133184">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Partners page renders successfully with ssrExpected Inertia SSR to be enabled for /partners
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\PartnersPageTest.php:34</failure>
+      </testcase>
+      <testcase name="Partners page is included in sitemap" file="Partners Page (Tests\Feature\PartnersPage)::Partners page is included in sitemap" class="Tests\Feature\PartnersPageTest" classname="Tests.Feature.PartnersPageTest" assertions="2" time="0.064790"/>
+      <testcase name="Partnership inquiry submission stores to database" file="Partners Page (Tests\Feature\PartnersPage)::Partnership inquiry submission stores to database" class="Tests\Feature\PartnersPageTest" classname="Tests.Feature.PartnersPageTest" assertions="4" time="0.068843"/>
+      <testcase name="Partnership inquiry rejects incomplete submissions" file="Partners Page (Tests\Feature\PartnersPage)::Partnership inquiry rejects incomplete submissions" class="Tests\Feature\PartnersPageTest" classname="Tests.Feature.PartnersPageTest" assertions="6" time="0.067643"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PaymentAllocationTest" file="Payment Allocation (Tests\Feature\PaymentAllocation)" tests="2" assertions="5" errors="0" failures="0" skipped="0" time="0.349068">
+      <testcase name="Purchase service creates payment allocation with correct columns" file="Payment Allocation (Tests\Feature\PaymentAllocation)::Purchase service creates payment allocation with correct columns" class="Tests\Feature\PaymentAllocationTest" classname="Tests.Feature.PaymentAllocationTest" assertions="3" time="0.191169"/>
+      <testcase name="Payment allocation exceeding journal entry fails db trigger" file="Payment Allocation (Tests\Feature\PaymentAllocation)::Payment allocation exceeding journal entry fails db trigger" class="Tests\Feature\PaymentAllocationTest" classname="Tests.Feature.PaymentAllocationTest" assertions="2" time="0.157899"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase1SmartCaptureTest" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)" tests="10" assertions="31" errors="0" failures="0" skipped="0" time="1.013305">
+      <testcase name="It indexes products and matches via sql search index" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It indexes products and matches via sql search index" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="4" time="0.074914"/>
+      <testcase name="It executes benchmark command and outputs results" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It executes benchmark command and outputs results" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="1" time="0.066895"/>
+      <testcase name="It detects benchmark failure on faulty fixtures" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It detects benchmark failure on faulty fixtures" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="1" time="0.074374"/>
+      <testcase name="It routes predefined ai queries directly to sql reports" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It routes predefined ai queries directly to sql reports" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="4" time="0.086339"/>
+      <testcase name="It routes low stock query to sql reports" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It routes low stock query to sql reports" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="4" time="0.078541"/>
+      <testcase name="It enforces tenant scoping in intent router reports" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It enforces tenant scoping in intent router reports" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="3" time="0.064552"/>
+      <testcase name="It validates audio duration and pdf pages in extraction service" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It validates audio duration and pdf pages in extraction service" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="2" time="0.061173"/>
+      <testcase name="It routes receivables query to sql reports with correct sums" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It routes receivables query to sql reports with correct sums" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="4" time="0.203021"/>
+      <testcase name="It routes payables query to sql reports with correct sums" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It routes payables query to sql reports with correct sums" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="4" time="0.222093"/>
+      <testcase name="It get party balance tool returns correct current balance" file="Phase1Smart Capture (Tests\Feature\Phase1SmartCapture)::It get party balance tool returns correct current balance" class="Tests\Feature\Phase1SmartCaptureTest" classname="Tests.Feature.Phase1SmartCaptureTest" assertions="4" time="0.081402"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase2MeteringTest" file="Phase2Metering (Tests\Feature\Phase2Metering)" tests="10" assertions="35" errors="0" failures="0" skipped="0" time="1.287604">
+      <testcase name="It debits and refunds pages correctly" file="Phase2Metering (Tests\Feature\Phase2Metering)::It debits and refunds pages correctly" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="2" time="0.059792"/>
+      <testcase name="It calculates audio page credits correctly" file="Phase2Metering (Tests\Feature\Phase2Metering)::It calculates audio page credits correctly" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="5" time="0.058472"/>
+      <testcase name="It enforces managed limit and unlimited flag" file="Phase2Metering (Tests\Feature\Phase2Metering)::It enforces managed limit and unlimited flag" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="6" time="0.060231"/>
+      <testcase name="It handles job status polling for async jobs" file="Phase2Metering (Tests\Feature\Phase2Metering)::It handles job status polling for async jobs" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="5" time="0.300481"/>
+      <testcase name="It triggers 80 percent quota warning and 100 percent limit" file="Phase2Metering (Tests\Feature\Phase2Metering)::It triggers 80 percent quota warning and 100 percent limit" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="3" time="0.065145"/>
+      <testcase name="It credits top up pages in checkout service" file="Phase2Metering (Tests\Feature\Phase2Metering)::It credits top up pages in checkout service" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="1" time="0.077916"/>
+      <testcase name="It resets usage on tenant anniversary day" file="Phase2Metering (Tests\Feature\Phase2Metering)::It resets usage on tenant anniversary day" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="2" time="0.068073"/>
+      <testcase name="It executes real http post to extract endpoint without undefined variable errors" file="Phase2Metering (Tests\Feature\Phase2Metering)::It executes real http post to extract endpoint without undefined variable errors" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="6" time="0.298544"/>
+      <testcase name="It dispatches process smart capture job when rate limiter wait exceeds 8000ms" file="Phase2Metering (Tests\Feature\Phase2Metering)::It dispatches process smart capture job when rate limiter wait exceeds 8000ms" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="4" time="0.231273"/>
+      <testcase name="It provisions topup pages on order created webhook" file="Phase2Metering (Tests\Feature\Phase2Metering)::It provisions topup pages on order created webhook" class="Tests\Feature\Phase2MeteringTest" classname="Tests.Feature.Phase2MeteringTest" assertions="1" time="0.067676"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase3FeatureGatesTest" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)" tests="7" assertions="22" errors="0" failures="1" skipped="0" time="10.748392">
+      <testcase name="It blocks access to locked features via route middleware" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)::It blocks access to locked features via route middleware" class="Tests\Feature\Phase3FeatureGatesTest" classname="Tests.Feature.Phase3FeatureGatesTest" assertions="3" time="1.475452"/>
+      <testcase name="It shares plan features and limits in inertia props" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)::It shares plan features and limits in inertia props" class="Tests\Feature\Phase3FeatureGatesTest" classname="Tests.Feature.Phase3FeatureGatesTest" assertions="1" time="1.601620">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">It shares plan features and limits in inertia propsExpected response status code [200] but received 500.
+Failed asserting that 500 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Phase3FeatureGatesTest.php:94</failure>
+      </testcase>
+      <testcase name="It enforces counter plan sku and report limits" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)::It enforces counter plan sku and report limits" class="Tests\Feature\Phase3FeatureGatesTest" classname="Tests.Feature.Phase3FeatureGatesTest" assertions="5" time="1.415134"/>
+      <testcase name="It grants cookbook recipes to counter food prep tenants" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)::It grants cookbook recipes to counter food prep tenants" class="Tests\Feature\Phase3FeatureGatesTest" classname="Tests.Feature.Phase3FeatureGatesTest" assertions="4" time="1.460540"/>
+      <testcase name="It prevents downgrade when tenant has open payables or receivables" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)::It prevents downgrade when tenant has open payables or receivables" class="Tests\Feature\Phase3FeatureGatesTest" classname="Tests.Feature.Phase3FeatureGatesTest" assertions="3" time="1.408380"/>
+      <testcase name="It blocks downgrade via http endpoint when open balances exist" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)::It blocks downgrade via http endpoint when open balances exist" class="Tests\Feature\Phase3FeatureGatesTest" classname="Tests.Feature.Phase3FeatureGatesTest" assertions="3" time="1.732215"/>
+      <testcase name="It blocks downgrade via http endpoint for trial tenants with open balances" file="Phase3Feature Gates (Tests\Feature\Phase3FeatureGates)::It blocks downgrade via http endpoint for trial tenants with open balances" class="Tests\Feature\Phase3FeatureGatesTest" classname="Tests.Feature.Phase3FeatureGatesTest" assertions="3" time="1.655051"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase4PricingLiveTest" file="Phase4Pricing Live (Tests\Feature\Phase4PricingLive)" tests="5" assertions="21" errors="0" failures="1" skipped="0" time="7.363865">
+      <testcase name="It loads single source of truth pricing config" file="Phase4Pricing Live (Tests\Feature\Phase4PricingLive)::It loads single source of truth pricing config" class="Tests\Feature\Phase4PricingLiveTest" classname="Tests.Feature.Phase4PricingLiveTest" assertions="11" time="1.415269"/>
+      <testcase name="It seeds v4 plans with correct visibility flags" file="Phase4Pricing Live (Tests\Feature\Phase4PricingLive)::It seeds v4 plans with correct visibility flags" class="Tests\Feature\Phase4PricingLiveTest" classname="Tests.Feature.Phase4PricingLiveTest" assertions="4" time="1.385258"/>
+      <testcase name="It shares pricing config in inertia props" file="Phase4Pricing Live (Tests\Feature\Phase4PricingLive)::It shares pricing config in inertia props" class="Tests\Feature\Phase4PricingLiveTest" classname="Tests.Feature.Phase4PricingLiveTest" assertions="1" time="1.642774">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">It shares pricing config in inertia propsExpected response status code [200] but received 500.
+Failed asserting that 500 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Phase4PricingLiveTest.php:79</failure>
+      </testcase>
+      <testcase name="It executes v4 tenant migration command" file="Phase4Pricing Live (Tests\Feature\Phase4PricingLive)::It executes v4 tenant migration command" class="Tests\Feature\Phase4PricingLiveTest" classname="Tests.Feature.Phase4PricingLiveTest" assertions="2" time="1.462403"/>
+      <testcase name="It ensures ltd tenants are never migrated by v4 command" file="Phase4Pricing Live (Tests\Feature\Phase4PricingLive)::It ensures ltd tenants are never migrated by v4 command" class="Tests\Feature\Phase4PricingLiveTest" classname="Tests.Feature.Phase4PricingLiveTest" assertions="3" time="1.458161"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase5TruthAndTrustTest" file="Phase5Truth And Trust (Tests\Feature\Phase5TruthAndTrust)" tests="6" assertions="23" errors="0" failures="0" skipped="0" time="8.691989">
+      <testcase name="It records terms consent and version on store creation" file="Phase5Truth And Trust (Tests\Feature\Phase5TruthAndTrust)::It records terms consent and version on store creation" class="Tests\Feature\Phase5TruthAndTrustTest" classname="Tests.Feature.Phase5TruthAndTrustTest" assertions="5" time="1.386956"/>
+      <testcase name="It updates shared catalog opt out and ai accuracy in settings" file="Phase5Truth And Trust (Tests\Feature\Phase5TruthAndTrust)::It updates shared catalog opt out and ai accuracy in settings" class="Tests\Feature\Phase5TruthAndTrustTest" classname="Tests.Feature.Phase5TruthAndTrustTest" assertions="3" time="1.441733"/>
+      <testcase name="It executes prune scan images command and removes old files" file="Phase5Truth And Trust (Tests\Feature\Phase5TruthAndTrust)::It executes prune scan images command and removes old files" class="Tests\Feature\Phase5TruthAndTrustTest" classname="Tests.Feature.Phase5TruthAndTrustTest" assertions="2" time="1.443061"/>
+      <testcase name="It verifies pricing tech specs contain no false claims" file="Phase5Truth And Trust (Tests\Feature\Phase5TruthAndTrust)::It verifies pricing tech specs contain no false claims" class="Tests\Feature\Phase5TruthAndTrustTest" classname="Tests.Feature.Phase5TruthAndTrustTest" assertions="7" time="1.451308"/>
+      <testcase name="It updates data privacy via fallback when current tenant not bound" file="Phase5Truth And Trust (Tests\Feature\Phase5TruthAndTrust)::It updates data privacy via fallback when current tenant not bound" class="Tests\Feature\Phase5TruthAndTrustTest" classname="Tests.Feature.Phase5TruthAndTrustTest" assertions="3" time="1.387875"/>
+      <testcase name="It updates data privacy end to end through real middleware stack" file="Phase5Truth And Trust (Tests\Feature\Phase5TruthAndTrust)::It updates data privacy end to end through real middleware stack" class="Tests\Feature\Phase5TruthAndTrustTest" classname="Tests.Feature.Phase5TruthAndTrustTest" assertions="3" time="1.581057"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase6VenSynQTest" file="Phase6Ven Syn Q (Tests\Feature\Phase6VenSynQ)" tests="5" assertions="12" errors="0" failures="0" skipped="0" time="7.623666">
+      <testcase name="It provisions amazon addon and creates plan overrides" file="Phase6Ven Syn Q (Tests\Feature\Phase6VenSynQ)::It provisions amazon addon and creates plan overrides" class="Tests\Feature\Phase6VenSynQTest" classname="Tests.Feature.Phase6VenSynQTest" assertions="5" time="1.398719"/>
+      <testcase name="It validates and generates checkout url for amazon and woocommerce addons" file="Phase6Ven Syn Q (Tests\Feature\Phase6VenSynQ)::It validates and generates checkout url for amazon and woocommerce addons" class="Tests\Feature\Phase6VenSynQTest" classname="Tests.Feature.Phase6VenSynQTest" assertions="4" time="1.619173"/>
+      <testcase name="It blocks unentitled tenant from accessing vensynq dashboard end to end" file="Phase6Ven Syn Q (Tests\Feature\Phase6VenSynQ)::It blocks unentitled tenant from accessing vensynq dashboard end to end" class="Tests\Feature\Phase6VenSynQTest" classname="Tests.Feature.Phase6VenSynQTest" assertions="1" time="1.555713"/>
+      <testcase name="It allows entitled tenant to access vensynq dashboard end to end" file="Phase6Ven Syn Q (Tests\Feature\Phase6VenSynQ)::It allows entitled tenant to access vensynq dashboard end to end" class="Tests\Feature\Phase6VenSynQTest" classname="Tests.Feature.Phase6VenSynQTest" assertions="1" time="1.663389"/>
+      <testcase name="It ensures vensynq simulation mode defaults to false" file="Phase6Ven Syn Q (Tests\Feature\Phase6VenSynQ)::It ensures vensynq simulation mode defaults to false" class="Tests\Feature\Phase6VenSynQTest" classname="Tests.Feature.Phase6VenSynQTest" assertions="1" time="1.386671"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase7GrowthTest" file="Phase7Growth (Tests\Feature\Phase7Growth)" tests="10" assertions="33" errors="0" failures="0" skipped="0" time="14.636360">
+      <testcase name="It records contribution to shared catalog and publishes at three confirmations" file="Phase7Growth (Tests\Feature\Phase7Growth)::It records contribution to shared catalog and publishes at three confirmations" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="9" time="1.393591"/>
+      <testcase name="It wires shared catalog into learning service and fuzzy match strategy six" file="Phase7Growth (Tests\Feature\Phase7Growth)::It wires shared catalog into learning service and fuzzy match strategy six" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="3" time="1.442991"/>
+      <testcase name="It does not contribute when tenant has opted out" file="Phase7Growth (Tests\Feature\Phase7Growth)::It does not contribute when tenant has opted out" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="2" time="1.411758"/>
+      <testcase name="It enforces public tool daily budget cap atomically" file="Phase7Growth (Tests\Feature\Phase7Growth)::It enforces public tool daily budget cap atomically" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="2" time="1.431381"/>
+      <testcase name="It enforces sequential spend reservation totals against budget cap" file="Phase7Growth (Tests\Feature\Phase7Growth)::It enforces sequential spend reservation totals against budget cap" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="7" time="1.389060"/>
+      <testcase name="It enforces public tool per email rate limit" file="Phase7Growth (Tests\Feature\Phase7Growth)::It enforces public tool per email rate limit" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="2" time="1.418604"/>
+      <testcase name="It verifies public tool submission with mocked turnstile and extraction" file="Phase7Growth (Tests\Feature\Phase7Growth)::It verifies public tool submission with mocked turnstile and extraction" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="3" time="1.384879"/>
+      <testcase name="It dispatches generate product descriptions job and debits balance" file="Phase7Growth (Tests\Feature\Phase7Growth)::It dispatches generate product descriptions job and debits balance" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="2" time="1.611845"/>
+      <testcase name="It does not generate descriptions when balance is zero" file="Phase7Growth (Tests\Feature\Phase7Growth)::It does not generate descriptions when balance is zero" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="1" time="1.564823"/>
+      <testcase name="It processes listing image for amazon compliance" file="Phase7Growth (Tests\Feature\Phase7Growth)::It processes listing image for amazon compliance" class="Tests\Feature\Phase7GrowthTest" classname="Tests.Feature.Phase7GrowthTest" assertions="2" time="1.587428"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase8AppSumoTest" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)" tests="8" assertions="12" errors="0" failures="0" skipped="0" time="11.392398">
+      <testcase name="It enforces monthly transaction limits on limited tiers" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It enforces monthly transaction limits on limited tiers" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="3" time="1.418069"/>
+      <testcase name="It restricts expired hosted until stores to read only" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It restricts expired hosted until stores to read only" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="2" time="1.414227"/>
+      <testcase name="It hard blocks managed platform ai on all ltd plans" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It hard blocks managed platform ai on all ltd plans" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="1" time="1.384603"/>
+      <testcase name="It allows smart capture on ltd plans when byok key is provided" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It allows smart capture on ltd plans when byok key is provided" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="1" time="1.418395"/>
+      <testcase name="It dispatches check hosted until expiry job cleanly" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It dispatches check hosted until expiry job cleanly" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="1" time="1.390201"/>
+      <testcase name="It serves help centre index and article search" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It serves help centre index and article search" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="2" time="1.501864"/>
+      <testcase name="It executes load testing benchmark command" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It executes load testing benchmark command" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="1" time="1.419228"/>
+      <testcase name="It serves known issues status page" file="Phase8App Sumo (Tests\Feature\Phase8AppSumo)::It serves known issues status page" class="Tests\Feature\Phase8AppSumoTest" classname="Tests.Feature.Phase8AppSumoTest" assertions="1" time="1.445811"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase9InfrastructureTest" file="Phase9Infrastructure (Tests\Feature\Phase9Infrastructure)" tests="5" assertions="13" errors="0" failures="0" skipped="0" time="0.317862">
+      <testcase name="It verifies r2 and offsite backup disk configurations" file="Phase9Infrastructure (Tests\Feature\Phase9Infrastructure)::It verifies r2 and offsite backup disk configurations" class="Tests\Feature\Phase9InfrastructureTest" classname="Tests.Feature.Phase9InfrastructureTest" assertions="3" time="0.072237"/>
+      <testcase name="It copies backup archives to offsite storage with hash verification" file="Phase9Infrastructure (Tests\Feature\Phase9Infrastructure)::It copies backup archives to offsite storage with hash verification" class="Tests\Feature\Phase9InfrastructureTest" classname="Tests.Feature.Phase9InfrastructureTest" assertions="3" time="0.056891"/>
+      <testcase name="It audits database infrastructure command" file="Phase9Infrastructure (Tests\Feature\Phase9Infrastructure)::It audits database infrastructure command" class="Tests\Feature\Phase9InfrastructureTest" classname="Tests.Feature.Phase9InfrastructureTest" assertions="1" time="0.071371"/>
+      <testcase name="It audits messaging channels and mail driver configuration" file="Phase9Infrastructure (Tests\Feature\Phase9Infrastructure)::It audits messaging channels and mail driver configuration" class="Tests\Feature\Phase9InfrastructureTest" classname="Tests.Feature.Phase9InfrastructureTest" assertions="3" time="0.062034"/>
+      <testcase name="It verifies ai model deprecation dates and fallback chains" file="Phase9Infrastructure (Tests\Feature\Phase9Infrastructure)::It verifies ai model deprecation dates and fallback chains" class="Tests\Feature\Phase9InfrastructureTest" classname="Tests.Feature.Phase9InfrastructureTest" assertions="3" time="0.055329"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Phase9OptionalFeaturesTest" file="Phase9Optional Features (Tests\Feature\Phase9OptionalFeatures)" tests="4" assertions="8" errors="0" failures="1" skipped="0" time="5.846788">
+      <testcase name="Bulk upload plan gate allows growth and blocks starter" file="Phase9Optional Features (Tests\Feature\Phase9OptionalFeatures)::Bulk upload plan gate allows growth and blocks starter" class="Tests\Feature\Phase9OptionalFeaturesTest" classname="Tests.Feature.Phase9OptionalFeaturesTest" assertions="2" time="1.406895"/>
+      <testcase name="Restaurant dashboard and kitchen status updates" file="Phase9Optional Features (Tests\Feature\Phase9OptionalFeatures)::Restaurant dashboard and kitchen status updates" class="Tests\Feature\Phase9OptionalFeaturesTest" classname="Tests.Feature.Phase9OptionalFeaturesTest" assertions="1" time="1.566457">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Restaurant dashboard and kitchen status updatesExpected response status code [200] but received 404.
+Failed asserting that 404 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Phase9OptionalFeaturesTest.php:85</failure>
+      </testcase>
+      <testcase name="Cosine embedding vector similarity matching" file="Phase9Optional Features (Tests\Feature\Phase9OptionalFeatures)::Cosine embedding vector similarity matching" class="Tests\Feature\Phase9OptionalFeaturesTest" classname="Tests.Feature.Phase9OptionalFeaturesTest" assertions="4" time="1.415788"/>
+      <testcase name="Prescan hints validation and acceptance" file="Phase9Optional Features (Tests\Feature\Phase9OptionalFeatures)::Prescan hints validation and acceptance" class="Tests\Feature\Phase9OptionalFeaturesTest" classname="Tests.Feature.Phase9OptionalFeaturesTest" assertions="1" time="1.457647"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PlanGatingAndLimitsTest" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)" tests="23" assertions="95" errors="2" failures="4" skipped="0" time="1.660222">
+      <testcase name="Solo plan is denied all eight capability fences" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Solo plan is denied all eight capability fences" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="9" time="0.081701"/>
+      <testcase name="Starter plan is denied all eight capability fences" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Starter plan is denied all eight capability fences" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="9" time="0.067772"/>
+      <testcase name="Growth plan allows tier one fences and denies scale fences" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Growth plan allows tier one fences and denies scale fences" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="9" time="0.074908"/>
+      <testcase name="Business scale plan allows all eight capability fences" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Business scale plan allows all eight capability fences" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="9" time="0.066006"/>
+      <testcase name="Trial plan acts as growth plan entitlements" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Trial plan acts as growth plan entitlements" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="3" time="0.090782"/>
+      <testcase name="Unknown feature key fails closed and logs warning" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Unknown feature key fails closed and logs warning" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="2" time="0.080888"/>
+      <testcase name="Unauthenticated or null tenant fails closed" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Unauthenticated or null tenant fails closed" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="1" time="0.068125"/>
+      <testcase name="Warehouse observer blocks exceeding location limit" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Warehouse observer blocks exceeding location limit" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="1" time="0.057095">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Warehouse observer blocks exceeding location limitFailed asserting that exception of type "App\Exceptions\PlanLimitException" is thrown.</failure>
+      </testcase>
+      <testcase name="Register observer blocks exceeding register limit" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Register observer blocks exceeding register limit" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="1" time="0.074350">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Register observer blocks exceeding register limitFailed asserting that exception of type "App\Exceptions\PlanLimitException" is thrown.</failure>
+      </testcase>
+      <testcase name="Tenant user observer blocks exceeding staff seat limit on full seats only" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Tenant user observer blocks exceeding staff seat limit on full seats only" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="3" time="0.074761">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Tenant user observer blocks exceeding staff seat limit on full seats onlyFailed asserting that exception of type "App\Exceptions\PlanLimitException" is thrown.</failure>
+      </testcase>
+      <testcase name="Product observer blocks exceeding sku limit" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Product observer blocks exceeding sku limit" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="2" time="0.079835"/>
+      <testcase name="Pos till is never blocked under any tenant billing status" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Pos till is never blocked under any tenant billing status" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="5" time="0.062310"/>
+      <testcase name="Session eviction and banner notification" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Session eviction and banner notification" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="6" time="0.073934"/>
+      <testcase name="Soft device cap and self service deactivation" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Soft device cap and self service deactivation" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="2" time="0.065995"/>
+      <testcase name="Solo history scope filters old records while db keeps them" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Solo history scope filters old records while db keeps them" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="0" time="0.064659">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">Solo history scope filters old records while db keeps themSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\PlanGatingAndLimitsTest.php:389</error>
+      </testcase>
+      <testcase name="Trial expiry drops to solo plan" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Trial expiry drops to solo plan" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="3" time="0.067688"/>
+      <testcase name="Tenant plan overrides are respected" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Tenant plan overrides are respected" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="2" time="0.088532"/>
+      <testcase name="Ensure plan feature middleware enforces gate" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Ensure plan feature middleware enforces gate" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="4" time="0.065440"/>
+      <testcase name="Ai meter and scan subcap limits" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Ai meter and scan subcap limits" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="5" time="0.068985"/>
+      <testcase name="Downgrade validation blocks when balances open" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Downgrade validation blocks when balances open" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="3" time="0.072126"/>
+      <testcase name="Ltd plans have unlimited transactions and correct fences" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Ltd plans have unlimited transactions and correct fences" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="14" time="0.095245">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Ltd plans have unlimited transactions and correct fencesFailed asserting that false matches expected 12000.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\PlanGatingAndLimitsTest.php:541</failure>
+      </testcase>
+      <testcase name="History reappears instantly upon upgrade from solo" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::History reappears instantly upon upgrade from solo" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="0" time="0.057148">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">History reappears instantly upon upgrade from soloSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\PlanGatingAndLimitsTest.php:552</error>
+      </testcase>
+      <testcase name="Till remains unblocked when device cap exceeded" file="Plan Gating And Limits (Tests\Feature\PlanGatingAndLimits)::Till remains unblocked when device cap exceeded" class="Tests\Feature\PlanGatingAndLimitsTest" classname="Tests.Feature.PlanGatingAndLimitsTest" assertions="2" time="0.061936"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PlanLimitsEnforcerTest" file="Plan Limits Enforcer (Tests\Feature\PlanLimitsEnforcer)" tests="3" assertions="11" errors="0" failures="0" skipped="0" time="1.497542">
+      <testcase name="Exceeding limit starts 3 day countdown" file="Plan Limits Enforcer (Tests\Feature\PlanLimitsEnforcer)::Exceeding limit starts 3 day countdown" class="Tests\Feature\PlanLimitsEnforcerTest" classname="Tests.Feature.PlanLimitsEnforcerTest" assertions="7" time="0.488386"/>
+      <testcase name="Self healing clears grace period and view only mode" file="Plan Limits Enforcer (Tests\Feature\PlanLimitsEnforcer)::Self healing clears grace period and view only mode" class="Tests\Feature\PlanLimitsEnforcerTest" classname="Tests.Feature.PlanLimitsEnforcerTest" assertions="2" time="0.530516"/>
+      <testcase name="Expired countdown triggers view only lock" file="Plan Limits Enforcer (Tests\Feature\PlanLimitsEnforcer)::Expired countdown triggers view only lock" class="Tests\Feature\PlanLimitsEnforcerTest" classname="Tests.Feature.PlanLimitsEnforcerTest" assertions="2" time="0.478640"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PlanManagementTest" file="Plan Management (Tests\Feature\PlanManagement)" tests="5" assertions="13" errors="0" failures="0" skipped="0" time="1.135395">
+      <testcase name="Pricing page is accessible" file="Plan Management (Tests\Feature\PlanManagement)::Pricing page is accessible" class="Tests\Feature\PlanManagementTest" classname="Tests.Feature.PlanManagementTest" assertions="1" time="0.279893"/>
+      <testcase name="Super admin can access plans index" file="Plan Management (Tests\Feature\PlanManagement)::Super admin can access plans index" class="Tests\Feature\PlanManagementTest" classname="Tests.Feature.PlanManagementTest" assertions="1" time="0.518998"/>
+      <testcase name="Super admin can update plan limits" file="Plan Management (Tests\Feature\PlanManagement)::Super admin can update plan limits" class="Tests\Feature\PlanManagementTest" classname="Tests.Feature.PlanManagementTest" assertions="3" time="0.088716"/>
+      <testcase name="Super admin can bulk update plan limits" file="Plan Management (Tests\Feature\PlanManagement)::Super admin can bulk update plan limits" class="Tests\Feature\PlanManagementTest" classname="Tests.Feature.PlanManagementTest" assertions="5" time="0.096484"/>
+      <testcase name="Plangate allows and blocks features correctly" file="Plan Management (Tests\Feature\PlanManagement)::Plangate allows and blocks features correctly" class="Tests\Feature\PlanManagementTest" classname="Tests.Feature.PlanManagementTest" assertions="3" time="0.151305"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PosFeaturesTest" file="Pos Features (Tests\Feature\PosFeatures)" tests="3" assertions="10" errors="0" failures="0" skipped="0" time="1.084548">
+      <testcase name="Categories endpoint returns product count for active categories" file="Pos Features (Tests\Feature\PosFeatures)::Categories endpoint returns product count for active categories" class="Tests\Feature\PosFeaturesTest" classname="Tests.Feature.PosFeaturesTest" assertions="4" time="0.367954"/>
+      <testcase name="Featured endpoint returns active products for the grid" file="Pos Features (Tests\Feature\PosFeatures)::Featured endpoint returns active products for the grid" class="Tests\Feature\PosFeaturesTest" classname="Tests.Feature.PosFeaturesTest" assertions="3" time="0.354904"/>
+      <testcase name="Search endpoint filters products by category id" file="Pos Features (Tests\Feature\PosFeatures)::Search endpoint filters products by category id" class="Tests\Feature\PosFeaturesTest" classname="Tests.Feature.PosFeaturesTest" assertions="3" time="0.361690"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PrelaunchP0VerificationTest" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)" tests="7" assertions="40" errors="0" failures="1" skipped="0" time="1.710818">
+      <testcase name="R01 disabled operational endpoints return 403 for solo tenant" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)::R01 disabled operational endpoints return 403 for solo tenant" class="Tests\Feature\PrelaunchP0VerificationTest" classname="Tests.Feature.PrelaunchP0VerificationTest" assertions="12" time="0.380862"/>
+      <testcase name="R03 analyze endpoint runs business understanding on non empty prompt" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)::R03 analyze endpoint runs business understanding on non empty prompt" class="Tests\Feature\PrelaunchP0VerificationTest" classname="Tests.Feature.PrelaunchP0VerificationTest" assertions="5" time="0.094093"/>
+      <testcase name="R04 ai failure fallback resolves against facts without unwanted modules" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)::R04 ai failure fallback resolves against facts without unwanted modules" class="Tests\Feature\PrelaunchP0VerificationTest" classname="Tests.Feature.PrelaunchP0VerificationTest" assertions="3" time="0.059301"/>
+      <testcase name="R05 store provisioner with empty modules array creates lean workspace" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)::R05 store provisioner with empty modules array creates lean workspace" class="Tests\Feature\PrelaunchP0VerificationTest" classname="Tests.Feature.PrelaunchP0VerificationTest" assertions="2" time="0.287011"/>
+      <testcase name="R06 disabled module reckoner readings are unavailable" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)::R06 disabled module reckoner readings are unavailable" class="Tests\Feature\PrelaunchP0VerificationTest" classname="Tests.Feature.PrelaunchP0VerificationTest" assertions="7" time="0.294673">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">R06 disabled module reckoner readings are unavailableFailed asserting that two strings are identical.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\PrelaunchP0VerificationTest.php:176</failure>
+      </testcase>
+      <testcase name="R07 quick action routes from command palette do not return 501" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)::R07 quick action routes from command palette do not return 501" class="Tests\Feature\PrelaunchP0VerificationTest" classname="Tests.Feature.PrelaunchP0VerificationTest" assertions="8" time="0.537321"/>
+      <testcase name="R25 blueprint marketing copy uses bounded language" file="Prelaunch P0Verification (Tests\Feature\PrelaunchP0Verification)::R25 blueprint marketing copy uses bounded language" class="Tests\Feature\PrelaunchP0VerificationTest" classname="Tests.Feature.PrelaunchP0VerificationTest" assertions="3" time="0.057557"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PricingConversionOptimizationTest" file="Pricing Conversion Optimization (Tests\Feature\PricingConversionOptimization)" tests="1" assertions="9" errors="0" failures="0" skipped="0" time="0.330790">
+      <testcase name="Pricing page loads successfully and has trust badges competitor table and faqs" file="Pricing Conversion Optimization (Tests\Feature\PricingConversionOptimization)::Pricing page loads successfully and has trust badges competitor table and faqs" class="Tests\Feature\PricingConversionOptimizationTest" classname="Tests.Feature.PricingConversionOptimizationTest" assertions="9" time="0.330790"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\ProductDeletionTest" file="Product Deletion (Tests\Feature\ProductDeletion)" tests="3" assertions="12" errors="1" failures="0" skipped="0" time="0.964676">
+      <testcase name="Cannot delete product with remaining stock" file="Product Deletion (Tests\Feature\ProductDeletion)::Cannot delete product with remaining stock" class="Tests\Feature\ProductDeletionTest" classname="Tests.Feature.ProductDeletionTest" assertions="3" time="0.351321"/>
+      <testcase name="Cannot delete product with transaction history" file="Product Deletion (Tests\Feature\ProductDeletion)::Cannot delete product with transaction history" class="Tests\Feature\ProductDeletionTest" classname="Tests.Feature.ProductDeletionTest" assertions="0" time="0.188777">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">Cannot delete product with transaction historySymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\ProductDeletionTest.php:73</error>
+      </testcase>
+      <testcase name="Can delete clean product and force delete" file="Product Deletion (Tests\Feature\ProductDeletion)::Can delete clean product and force delete" class="Tests\Feature\ProductDeletionTest" classname="Tests.Feature.ProductDeletionTest" assertions="9" time="0.424578"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\ProfileTest" file="Profile (Tests\Feature\Profile)" tests="5" assertions="18" errors="0" failures="0" skipped="0" time="1.303205">
+      <testcase name="Profile page is displayed" file="Profile (Tests\Feature\Profile)::Profile page is displayed" class="Tests\Feature\ProfileTest" classname="Tests.Feature.ProfileTest" assertions="1" time="0.327648"/>
+      <testcase name="Profile information can be updated" file="Profile (Tests\Feature\Profile)::Profile information can be updated" class="Tests\Feature\ProfileTest" classname="Tests.Feature.ProfileTest" assertions="5" time="0.231599"/>
+      <testcase name="Email verification status is unchanged when the email address is unchanged" file="Profile (Tests\Feature\Profile)::Email verification status is unchanged when the email address is unchanged" class="Tests\Feature\ProfileTest" classname="Tests.Feature.ProfileTest" assertions="3" time="0.232395"/>
+      <testcase name="User can delete their account" file="Profile (Tests\Feature\Profile)::User can delete their account" class="Tests\Feature\ProfileTest" classname="Tests.Feature.ProfileTest" assertions="5" time="0.271280"/>
+      <testcase name="Correct password must be provided to delete account" file="Profile (Tests\Feature\Profile)::Correct password must be provided to delete account" class="Tests\Feature\ProfileTest" classname="Tests.Feature.ProfileTest" assertions="4" time="0.240282"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\PurchasesImportTest" file="Purchases Import (Tests\Feature\PurchasesImport)" tests="1" assertions="2" errors="0" failures="1" skipped="0" time="0.161420">
+      <testcase name="Can import purchase rows with correct columns" file="Purchases Import (Tests\Feature\PurchasesImport)::Can import purchase rows with correct columns" class="Tests\Feature\PurchasesImportTest" classname="Tests.Feature.PurchasesImportTest" assertions="2" time="0.161420">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Can import purchase rows with correct columnsFailed asserting that two strings are equal.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\PurchasesImportTest.php:61</failure>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\RegressionFixesTest" file="Regression Fixes (Tests\Feature\RegressionFixes)" tests="15" assertions="47" errors="1" failures="0" skipped="0" time="7.653917">
+      <testcase name="Parties show route redirects to ledger" file="Regression Fixes (Tests\Feature\RegressionFixes)::Parties show route redirects to ledger" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="3" time="0.293797"/>
+      <testcase name="Expense category store creates category" file="Regression Fixes (Tests\Feature\RegressionFixes)::Expense category store creates category" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="8" time="0.291203"/>
+      <testcase name="Role prioritization from tenant memberships" file="Regression Fixes (Tests\Feature\RegressionFixes)::Role prioritization from tenant memberships" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="3" time="0.121968"/>
+      <testcase name="Party opening balance updates successfully" file="Regression Fixes (Tests\Feature\RegressionFixes)::Party opening balance updates successfully" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="2" time="0.366485"/>
+      <testcase name="Record payment passes selected party id" file="Regression Fixes (Tests\Feature\RegressionFixes)::Record payment passes selected party id" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="2" time="0.356716"/>
+      <testcase name="Excel import ignores helper row" file="Regression Fixes (Tests\Feature\RegressionFixes)::Excel import ignores helper row" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="1" time="0.117409"/>
+      <testcase name="Multi word search tokenization" file="Regression Fixes (Tests\Feature\RegressionFixes)::Multi word search tokenization" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="3" time="0.318569"/>
+      <testcase name="Logout route does not support delete method" file="Regression Fixes (Tests\Feature\RegressionFixes)::Logout route does not support delete method" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="1" time="2.039832"/>
+      <testcase name="Handle inertia requests version is null in local testing" file="Regression Fixes (Tests\Feature\RegressionFixes)::Handle inertia requests version is null in local testing" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="1" time="0.072500"/>
+      <testcase name="Sale stats exclude returned sales" file="Regression Fixes (Tests\Feature\RegressionFixes)::Sale stats exclude returned sales" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="0" time="0.191948">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">Sale stats exclude returned salesSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\RegressionFixesTest.php:205</error>
+      </testcase>
+      <testcase name="Verify elevated pin by platform user and membership" file="Regression Fixes (Tests\Feature\RegressionFixes)::Verify elevated pin by platform user and membership" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="4" time="0.362070"/>
+      <testcase name="Sales dashboard excludes returned sales" file="Regression Fixes (Tests\Feature\RegressionFixes)::Sales dashboard excludes returned sales" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="6" time="0.700706"/>
+      <testcase name="Woocommerce integration is gated by plan" file="Regression Fixes (Tests\Feature\RegressionFixes)::Woocommerce integration is gated by plan" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="3" time="0.540351"/>
+      <testcase name="Report tier gating restricts access" file="Regression Fixes (Tests\Feature\RegressionFixes)::Report tier gating restricts access" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="2" time="0.710264"/>
+      <testcase name="New features plan gating" file="Regression Fixes (Tests\Feature\RegressionFixes)::New features plan gating" class="Tests\Feature\RegressionFixesTest" classname="Tests.Feature.RegressionFixesTest" assertions="8" time="1.170100"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\RoadmapTest" file="Roadmap (Tests\Feature\Roadmap)" tests="3" assertions="14" errors="0" failures="1" skipped="0" time="0.337882">
+      <testcase name="Roadmap page renders successfully" file="Roadmap (Tests\Feature\Roadmap)::Roadmap page renders successfully" class="Tests\Feature\RoadmapTest" classname="Tests.Feature.RoadmapTest" assertions="10" time="0.128984"/>
+      <testcase name="Roadmap page enables inertia ssr" file="Roadmap (Tests\Feature\Roadmap)::Roadmap page enables inertia ssr" class="Tests\Feature\RoadmapTest" classname="Tests.Feature.RoadmapTest" assertions="2" time="0.121888">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Roadmap page enables inertia ssrExpected Inertia SSR to be enabled for /roadmap — without SSR the roadmap is invisible to search engines and social previews.
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\RoadmapTest.php:37</failure>
+      </testcase>
+      <testcase name="Roadmap page included in sitemap" file="Roadmap (Tests\Feature\Roadmap)::Roadmap page included in sitemap" class="Tests\Feature\RoadmapTest" classname="Tests.Feature.RoadmapTest" assertions="2" time="0.087009"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\RouteParameterRegressionTest" file="Route Parameter Regression (Tests\Feature\RouteParameterRegression)" tests="1" assertions="64" errors="0" failures="0" skipped="0" time="0.059813">
+      <testcase name="Route parameter names match frontend expectations" file="Route Parameter Regression (Tests\Feature\RouteParameterRegression)::Route parameter names match frontend expectations" class="Tests\Feature\RouteParameterRegressionTest" classname="Tests.Feature.RouteParameterRegressionTest" assertions="64" time="0.059813"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\SitemapIndexAndLastModifiedTest" file="Sitemap Index And Last Modified (Tests\Feature\SitemapIndexAndLastModified)" tests="3" assertions="24" errors="0" failures="0" skipped="0" time="0.417047">
+      <testcase name="Sitemap xml acts as index when count exceeds 30" file="Sitemap Index And Last Modified (Tests\Feature\SitemapIndexAndLastModified)::Sitemap xml acts as index when count exceeds 30" class="Tests\Feature\SitemapIndexAndLastModifiedTest" classname="Tests.Feature.SitemapIndexAndLastModifiedTest" assertions="9" time="0.079187"/>
+      <testcase name="Sub sitemaps return urlset" file="Sitemap Index And Last Modified (Tests\Feature\SitemapIndexAndLastModified)::Sub sitemaps return urlset" class="Tests\Feature\SitemapIndexAndLastModifiedTest" classname="Tests.Feature.SitemapIndexAndLastModifiedTest" assertions="7" time="0.096672"/>
+      <testcase name="Marketing responses contain last modified header" file="Sitemap Index And Last Modified (Tests\Feature\SitemapIndexAndLastModified)::Marketing responses contain last modified header" class="Tests\Feature\SitemapIndexAndLastModifiedTest" classname="Tests.Feature.SitemapIndexAndLastModifiedTest" assertions="8" time="0.241188"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\SitemapTest" file="Sitemap (Tests\Feature\Sitemap)" tests="4" assertions="20" errors="0" failures="0" skipped="0" time="0.324983">
+      <testcase name="Sitemap endpoint returns a valid sitemap index" file="Sitemap (Tests\Feature\Sitemap)::Sitemap endpoint returns a valid sitemap index" class="Tests\Feature\SitemapTest" classname="Tests.Feature.SitemapTest" assertions="10" time="0.086548"/>
+      <testcase name="Pages sub sitemap contains home and core static pages" file="Sitemap (Tests\Feature\Sitemap)::Pages sub sitemap contains home and core static pages" class="Tests\Feature\SitemapTest" classname="Tests.Feature.SitemapTest" assertions="6" time="0.077774"/>
+      <testcase name="Blog sub sitemap contains blog index and a post" file="Sitemap (Tests\Feature\Sitemap)::Blog sub sitemap contains blog index and a post" class="Tests\Feature\SitemapTest" classname="Tests.Feature.SitemapTest" assertions="3" time="0.088034"/>
+      <testcase name="Unknown sub sitemap type returns 404" file="Sitemap (Tests\Feature\Sitemap)::Unknown sub sitemap type returns 404" class="Tests\Feature\SitemapTest" classname="Tests.Feature.SitemapTest" assertions="1" time="0.072627"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\SmartFulfillmentTest" file="Smart Fulfillment (Tests\Feature\SmartFulfillment)" tests="1" assertions="0" errors="1" failures="0" skipped="0" time="0.175684">
+      <testcase name="Smart fulfillment creates jit purchase draft with correct unit price" file="Smart Fulfillment (Tests\Feature\SmartFulfillment)::Smart fulfillment creates jit purchase draft with correct unit price" class="Tests\Feature\SmartFulfillmentTest" classname="Tests.Feature.SmartFulfillmentTest" assertions="0" time="0.175684">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">Smart fulfillment creates jit purchase draft with correct unit priceSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at app\Services\SmartFulfillmentService.php:263
+at vendor\laravel\framework\src\Illuminate\Database\Concerns\ManagesTransactions.php:35
+at vendor\laravel\framework\src\Illuminate\Database\DatabaseManager.php:491
+at vendor\laravel\framework\src\Illuminate\Support\Facades\Facade.php:363
+at app\Services\SmartFulfillmentService.php:155
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SmartFulfillmentTest.php:61</error>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\SolutionsPagesTest" file="Solutions Pages (Tests\Feature\SolutionsPages)" tests="9" assertions="22" errors="0" failures="7" skipped="0" time="1.045143">
+      <testcase name="Solutions hub page renders successfully with ssr" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions hub page renders successfully with ssr" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="2" time="0.135008">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Solutions hub page renders successfully with ssrExpected Inertia SSR to be enabled for /solutions
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:37</failure>
+      </testcase>
+      <testcase name="Solutions pharmacy page renders successfully with ssr" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions pharmacy page renders successfully with ssr" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="2" time="0.131798">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Solutions pharmacy page renders successfully with ssrExpected Inertia SSR to be enabled for /solutions/pharmacy
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:110
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:46</failure>
+      </testcase>
+      <testcase name="Solutions electronics store page renders successfully with ssr" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions electronics store page renders successfully with ssr" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="2" time="0.132534">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Solutions electronics store page renders successfully with ssrExpected Inertia SSR to be enabled for /solutions/electronics-store
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:110
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:52</failure>
+      </testcase>
+      <testcase name="Solutions grocery page renders successfully with ssr" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions grocery page renders successfully with ssr" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="2" time="0.137706">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Solutions grocery page renders successfully with ssrExpected Inertia SSR to be enabled for /solutions/grocery
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:110
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:58</failure>
+      </testcase>
+      <testcase name="Solutions wholesale page renders successfully with ssr" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions wholesale page renders successfully with ssr" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="2" time="0.127800">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Solutions wholesale page renders successfully with ssrExpected Inertia SSR to be enabled for /solutions/wholesale
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:110
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:64</failure>
+      </testcase>
+      <testcase name="Solutions clothing page renders successfully with ssr" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions clothing page renders successfully with ssr" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="2" time="0.118772">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Solutions clothing page renders successfully with ssrExpected Inertia SSR to be enabled for /solutions/clothing
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:110
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:70</failure>
+      </testcase>
+      <testcase name="Solutions multi store page renders successfully with ssr" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions multi store page renders successfully with ssr" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="2" time="0.128275">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Solutions multi store page renders successfully with ssrExpected Inertia SSR to be enabled for /solutions/multi-store
+Failed asserting that false is true.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:110
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\SolutionsPagesTest.php:76</failure>
+      </testcase>
+      <testcase name="Unknown solution slug returns 404" file="Solutions Pages (Tests\Feature\SolutionsPages)::Unknown solution slug returns 404" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="1" time="0.065398"/>
+      <testcase name="Solutions pages are included in sitemap" file="Solutions Pages (Tests\Feature\SolutionsPages)::Solutions pages are included in sitemap" class="Tests\Feature\SolutionsPagesTest" classname="Tests.Feature.SolutionsPagesTest" assertions="7" time="0.067852"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\StoreUniqueNameTest" file="Store Unique Name (Tests\Feature\StoreUniqueName)" tests="5" assertions="15" errors="0" failures="0" skipped="0" time="0.616061">
+      <testcase name="Creates store successfully when name is unique" file="Store Unique Name (Tests\Feature\StoreUniqueName)::Creates store successfully when name is unique" class="Tests\Feature\StoreUniqueNameTest" classname="Tests.Feature.StoreUniqueNameTest" assertions="3" time="0.282579"/>
+      <testcase name="Blocks creation when same active store is owned by current user" file="Store Unique Name (Tests\Feature\StoreUniqueName)::Blocks creation when same active store is owned by current user" class="Tests\Feature\StoreUniqueNameTest" classname="Tests.Feature.StoreUniqueNameTest" assertions="3" time="0.078354"/>
+      <testcase name="Blocks creation when same active store is owned by another user" file="Store Unique Name (Tests\Feature\StoreUniqueName)::Blocks creation when same active store is owned by another user" class="Tests\Feature\StoreUniqueNameTest" classname="Tests.Feature.StoreUniqueNameTest" assertions="3" time="0.082463"/>
+      <testcase name="Blocks creation and asks to contact support when deleted by current user" file="Store Unique Name (Tests\Feature\StoreUniqueName)::Blocks creation and asks to contact support when deleted by current user" class="Tests\Feature\StoreUniqueNameTest" classname="Tests.Feature.StoreUniqueNameTest" assertions="3" time="0.089179"/>
+      <testcase name="Blocks creation and asks for unique name when deleted by another user" file="Store Unique Name (Tests\Feature\StoreUniqueName)::Blocks creation and asks for unique name when deleted by another user" class="Tests\Feature\StoreUniqueNameTest" classname="Tests.Feature.StoreUniqueNameTest" assertions="3" time="0.083486"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\SystemManifestTest" file="System Manifest (Tests\Feature\SystemManifest)" tests="4" assertions="7" errors="0" failures="0" skipped="0" time="0.345826">
+      <testcase name="Manifest is not stale" file="System Manifest (Tests\Feature\SystemManifest)::Manifest is not stale" class="Tests\Feature\SystemManifestTest" classname="Tests.Feature.SystemManifestTest" assertions="1" time="0.085391"/>
+      <testcase name="Every manifest reading actually computes" file="System Manifest (Tests\Feature\SystemManifest)::Every manifest reading actually computes" class="Tests\Feature\SystemManifestTest" classname="Tests.Feature.SystemManifestTest" assertions="1" time="0.084723"/>
+      <testcase name="Entries are retrieval sized not prompt dumps" file="System Manifest (Tests\Feature\SystemManifest)::Entries are retrieval sized not prompt dumps" class="Tests\Feature\SystemManifestTest" classname="Tests.Feature.SystemManifestTest" assertions="1" time="0.096514"/>
+      <testcase name="Manifest contains no tenant data" file="System Manifest (Tests\Feature\SystemManifest)::Manifest contains no tenant data" class="Tests\Feature\SystemManifestTest" classname="Tests.Feature.SystemManifestTest" assertions="4" time="0.079198"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\SystemResetTest" file="System Reset (Tests\Feature\SystemReset)" tests="8" assertions="32" errors="0" failures="0" skipped="0" time="3.792699">
+      <testcase name="System reset endpoint redirects unauthenticated guests" file="System Reset (Tests\Feature\SystemReset)::System reset endpoint redirects unauthenticated guests" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="3" time="0.124458"/>
+      <testcase name="System reset fails with invalid credentials" file="System Reset (Tests\Feature\SystemReset)::System reset fails with invalid credentials" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="2" time="0.300174"/>
+      <testcase name="System reset wipes all tenant data with valid password" file="System Reset (Tests\Feature\SystemReset)::System reset wipes all tenant data with valid password" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="6" time="0.441037"/>
+      <testcase name="System reset selective delete wipes only products" file="System Reset (Tests\Feature\SystemReset)::System reset selective delete wipes only products" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="6" time="0.370610"/>
+      <testcase name="Google user who set password can reset system" file="System Reset (Tests\Feature\SystemReset)::Google user who set password can reset system" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="6" time="0.477316"/>
+      <testcase name="Unprefixed system reset route falls back to fallback route or fails" file="System Reset (Tests\Feature\SystemReset)::Unprefixed system reset route falls back to fallback route or fails" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="1" time="1.320223"/>
+      <testcase name="Google user without password cannot reset system without setting password" file="System Reset (Tests\Feature\SystemReset)::Google user without password cannot reset system without setting password" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="4" time="0.303356"/>
+      <testcase name="Google user without password can reset using admin passcode" file="System Reset (Tests\Feature\SystemReset)::Google user without password can reset using admin passcode" class="Tests\Feature\SystemResetTest" classname="Tests.Feature.SystemResetTest" assertions="4" time="0.455525"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\TerminalAppIntegrationTest" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)" tests="10" assertions="23" errors="0" failures="8" skipped="0" time="1.356219">
+      <testcase name="Heartbeat can register new terminal and scope to tenant" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Heartbeat can register new terminal and scope to tenant" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="1" time="0.149986">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Heartbeat can register new terminal and scope to tenantExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:41
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:55</failure>
+      </testcase>
+      <testcase name="Unpaired device cannot create a terminal" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Unpaired device cannot create a terminal" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="3" time="0.121060"/>
+      <testcase name="Heartbeat returns existing terminal id and requires secret" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Heartbeat returns existing terminal id and requires secret" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="1" time="0.120869">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Heartbeat returns existing terminal id and requires secretExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:41
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:82</failure>
+      </testcase>
+      <testcase name="Legacy paired terminal must re pair with a code" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Legacy paired terminal must re pair with a code" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="10" time="0.196296"/>
+      <testcase name="A pairing code pairs only one device" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::A pairing code pairs only one device" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="1" time="0.118400">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">A pairing code pairs only one deviceExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:138</failure>
+      </testcase>
+      <testcase name="Terminal activities logging" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Terminal activities logging" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="1" time="0.126940">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Terminal activities loggingExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:41
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:148</failure>
+      </testcase>
+      <testcase name="Terminal screenshot upload decryption and security" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Terminal screenshot upload decryption and security" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="1" time="0.124621">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Terminal screenshot upload decryption and securityExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:41
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:189</failure>
+      </testcase>
+      <testcase name="Tenant isolation on screenshot viewing" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Tenant isolation on screenshot viewing" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="1" time="0.163555">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Tenant isolation on screenshot viewingExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:41
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:233</failure>
+      </testcase>
+      <testcase name="Screenshots stored in the old format still open" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Screenshots stored in the old format still open" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="1" time="0.120447">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Screenshots stored in the old format still openExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:41
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:261</failure>
+      </testcase>
+      <testcase name="Terminal screenshot upload security boundaries" file="Terminal App Integration (Tests\Feature\TerminalAppIntegration)::Terminal screenshot upload security boundaries" class="Tests\Feature\TerminalAppIntegrationTest" classname="Tests.Feature.TerminalAppIntegrationTest" assertions="3" time="0.114044">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Terminal screenshot upload security boundariesExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:41
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\TerminalAppIntegrationTest.php:292</failure>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\V11PlanGatingAndEntitlementsTest" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)" tests="12" assertions="101" errors="0" failures="1" skipped="0" time="0.883729">
+      <testcase name="Scale fences across all plans" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Scale fences across all plans" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="40" time="0.113786"/>
+      <testcase name="Every universal module is on for solo" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Every universal module is on for solo" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="19" time="0.076604"/>
+      <testcase name="Paid only modules off on solo and on for paid" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Paid only modules off on solo and on for paid" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="15" time="0.077255"/>
+      <testcase name="Observers block exceeding quantity caps" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Observers block exceeding quantity caps" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="1" time="0.069734">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Observers block exceeding quantity capsFailed asserting that 5 matches expected 5000.&#13;
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\V11PlanGatingAndEntitlementsTest.php:194</failure>
+      </testcase>
+      <testcase name="Till logins cashier rules" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Till logins cashier rules" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="3" time="0.083308"/>
+      <testcase name="Catalogue at capacity rule" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Catalogue at capacity rule" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="2" time="0.067611"/>
+      <testcase name="Sale write path has no plangate enforce calls" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Sale write path has no plangate enforce calls" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="2" time="0.059553"/>
+      <testcase name="Till works with transactions per month row deleted from plan limits" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Till works with transactions per month row deleted from plan limits" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="1" time="0.065696"/>
+      <testcase name="Solo 30 day history rule" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Solo 30 day history rule" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="2" time="0.066695"/>
+      <testcase name="Unknown feature key fails closed and logs warning" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Unknown feature key fails closed and logs warning" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="2" time="0.067446"/>
+      <testcase name="Ensure plan feature middleware fails closed with no tenant" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Ensure plan feature middleware fails closed with no tenant" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="1" time="0.060847"/>
+      <testcase name="Ltd tiers have unlimited transactions and scale fences" file="V11Plan Gating And Entitlements (Tests\Feature\V11PlanGatingAndEntitlements)::Ltd tiers have unlimited transactions and scale fences" class="Tests\Feature\V11PlanGatingAndEntitlementsTest" classname="Tests.Feature.V11PlanGatingAndEntitlementsTest" assertions="13" time="0.075195"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\ZiggyRouteIntegrityTest" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)" tests="7" assertions="32" errors="0" failures="0" skipped="0" time="0.551302">
+      <testcase name="All frontend route calls have registered routes" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)::All frontend route calls have registered routes" class="Tests\Feature\ZiggyRouteIntegrityTest" classname="Tests.Feature.ZiggyRouteIntegrityTest" assertions="1" time="0.203096"/>
+      <testcase name="Owner daily pulse routes are all registered" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)::Owner daily pulse routes are all registered" class="Tests\Feature\ZiggyRouteIntegrityTest" classname="Tests.Feature.ZiggyRouteIntegrityTest" assertions="5" time="0.053536"/>
+      <testcase name="Backup routes use correct store prefix" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)::Backup routes use correct store prefix" class="Tests\Feature\ZiggyRouteIntegrityTest" classname="Tests.Feature.ZiggyRouteIntegrityTest" assertions="12" time="0.057304"/>
+      <testcase name="Recycle bin routes use admin prefix" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)::Recycle bin routes use admin prefix" class="Tests\Feature\ZiggyRouteIntegrityTest" classname="Tests.Feature.ZiggyRouteIntegrityTest" assertions="5" time="0.060803"/>
+      <testcase name="Migration routes use store legacy prefix" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)::Migration routes use store legacy prefix" class="Tests\Feature\ZiggyRouteIntegrityTest" classname="Tests.Feature.ZiggyRouteIntegrityTest" assertions="3" time="0.067505"/>
+      <testcase name="Returns route uses history suffix" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)::Returns route uses history suffix" class="Tests\Feature\ZiggyRouteIntegrityTest" classname="Tests.Feature.ZiggyRouteIntegrityTest" assertions="1" time="0.051888"/>
+      <testcase name="No route registered without store slug parameter when expected" file="Ziggy Route Integrity (Tests\Feature\ZiggyRouteIntegrity)::No route registered without store slug parameter when expected" class="Tests\Feature\ZiggyRouteIntegrityTest" classname="Tests.Feature.ZiggyRouteIntegrityTest" assertions="5" time="0.057171"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

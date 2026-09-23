@@ -1,0 +1,23 @@
+{
+  "shard": "shard_11a2_reckoner_laws",
+  "file_count_baseline": 7,
+  "file_count_current": 7,
+  "baseline_files": [
+    "tests/tests/Feature/Reckoner/Laws/L1TenantIsolationTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L2GroupingConservationTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L3PeriodAdditivityTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L4ComparisonSymmetryTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L5EmptyTenantTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L6PermissionLawTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L7ReversalTest.php"
+  ],
+  "current_files": [
+    "tests/tests/Feature/Reckoner/Laws/L1TenantIsolationTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L2GroupingConservationTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L3PeriodAdditivityTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L4ComparisonSymmetryTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L5EmptyTenantTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L6PermissionLawTest.php",
+    "tests/tests/Feature/Reckoner/Laws/L7ReversalTest.php"
+  ]
+}

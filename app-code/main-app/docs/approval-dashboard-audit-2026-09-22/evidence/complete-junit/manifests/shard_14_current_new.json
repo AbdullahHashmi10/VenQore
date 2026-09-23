@@ -1,0 +1,27 @@
+{
+  "shard": "shard_14_current_new",
+  "file_count_baseline": 0,
+  "file_count_current": 19,
+  "baseline_files": [],
+  "current_files": [
+    "tests/tests/Feature/Approval/ApprovalFoundationTest.php",
+    "tests/tests/Feature/Approval/ApprovalPolicyMatrixIntegrationTest.php",
+    "tests/tests/Feature/Approval/FourDocumentApprovalTest.php",
+    "tests/tests/Feature/Approval/PostingBoundaryGuardTest.php",
+    "tests/tests/Feature/Approval/PostingCallsiteEnforcementTest.php",
+    "tests/tests/Feature/Approval/PostingParityTest.php",
+    "tests/tests/Feature/Approval/RealFormHttpWorkflowTest.php",
+    "tests/tests/Feature/Approval/RuntimeRoleDashboardMatrixTest.php",
+    "tests/tests/Feature/Approval/SaleObserverCanonicalGuardTest.php",
+    "tests/tests/Feature/Approval/StorePolicyPrecedenceTest.php",
+    "tests/tests/Feature/Approval/TransactionEditorCorrectionTest.php",
+    "tests/tests/Feature/Approval/TrustedPosSeparationTest.php",
+    "tests/tests/Feature/Auth/PermissionOverrideModeTest.php",
+    "tests/tests/Feature/Batch1RegressionTest.php",
+    "tests/tests/Feature/Reckoner/ApprovalCardsAndScopeTest.php",
+    "tests/tests/Feature/Reckoner/CardContractAndPresetResolutionTest.php",
+    "tests/tests/Unit/Audit/MigrationCompatibilityTest.php",
+    "tests/tests/Unit/Audit/RoleCardAuditTest.php",
+    "tests/tests/Unit/ZiggyRouteAuditScriptTest.php"
+  ]
+}

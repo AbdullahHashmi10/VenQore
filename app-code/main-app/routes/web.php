@@ -718,6 +718,7 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
         Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
         Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
         Route::post('/stores/{tenant}/toggle-internal', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleInternal'])->name('store.toggle-internal');
+        Route::post('/stores/{tenant}/feature-flags', [\App\Http\Controllers\Admin\SuperAdminController::class, 'updateStoreFeatureFlags'])->name('store.feature-flag');
 
         // Trash Management
         Route::delete('/stores/{tenant}/destroy',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyStore'])->name('store.destroy');

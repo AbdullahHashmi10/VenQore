@@ -1,0 +1,11 @@
+{
+    "suite": "baseline",
+    "commit": "10988c439169faee75fa3d622f98f6d7d6f51954",
+    "database": "amd_pos_test_baseline_10988c43",
+    "start_time": "2026-09-23T10:01:19+02:00",
+    "end_time": "2026-09-23T10:19:46+02:00",
+    "duration_seconds": 1107.39,
+    "exit_code": 2,
+    "junit_file": "baseline_junit.xml",
+    "console_log": "baseline_console.log"
+}

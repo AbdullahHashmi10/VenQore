@@ -1,0 +1,341 @@
+{
+    "generated_at": "2026-09-23T08:49:27+00:00",
+    "database": "amd_pos_test_current_0d33d5b0",
+    "total_roles_inspected": 10,
+    "cache_and_tenant_isolation": {
+        "user_cache_isolation": "PASS",
+        "cross_tenant_isolation": "PASS"
+    },
+    "roles": {
+        "owner": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 24,
+            "resolved_keys_count": 23,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "core.revenue",
+                "core.revenue_trend",
+                "core.net_profit",
+                "core.profit_trend",
+                "core.gross_profit",
+                "core.gross_margin_pct",
+                "core.net_margin_pct",
+                "core.cogs",
+                "core.expenses_total",
+                "core.total_liquidity",
+                "core.liquidity_trend",
+                "core.cash_flow_trend",
+                "core.net_cash_position",
+                "core.working_capital",
+                "core.receivables",
+                "core.receivables_aging",
+                "core.payables",
+                "core.payables_aging",
+                "pos.revenue",
+                "pos.sale_count",
+                "pos.avg_ticket",
+                "inventory.stock_value",
+                "inventory.low_stock_count"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboard",
+                "expected_component": "Dashboard",
+                "status": "PASS"
+            }
+        },
+        "admin": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 24,
+            "resolved_keys_count": 23,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "core.revenue",
+                "core.revenue_trend",
+                "core.net_profit",
+                "core.profit_trend",
+                "core.gross_profit",
+                "core.gross_margin_pct",
+                "core.net_margin_pct",
+                "core.cogs",
+                "core.expenses_total",
+                "core.total_liquidity",
+                "core.liquidity_trend",
+                "core.cash_flow_trend",
+                "core.net_cash_position",
+                "core.working_capital",
+                "core.receivables",
+                "core.receivables_aging",
+                "core.payables",
+                "core.payables_aging",
+                "pos.revenue",
+                "pos.sale_count",
+                "pos.avg_ticket",
+                "inventory.stock_value",
+                "inventory.low_stock_count"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboard",
+                "expected_component": "Dashboard",
+                "status": "PASS"
+            }
+        },
+        "manager": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 20,
+            "resolved_keys_count": 18,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "core.revenue",
+                "core.revenue_trend",
+                "core.gross_profit",
+                "core.gross_margin_pct",
+                "core.expenses_total",
+                "core.receivables",
+                "core.payables",
+                "pos.revenue",
+                "pos.revenue_trend",
+                "pos.sale_count",
+                "pos.avg_ticket",
+                "pos.payment_breakdown",
+                "inventory.stock_value",
+                "inventory.low_stock_count",
+                "inventory.out_of_stock_count",
+                "inventory.turnover_ratio",
+                "invoicing.count",
+                "invoicing.unpaid_value"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboard",
+                "expected_component": "Dashboard",
+                "status": "PASS"
+            }
+        },
+        "cashier": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 10,
+            "resolved_keys_count": 10,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "pos.revenue",
+                "pos.sale_count",
+                "pos.avg_ticket",
+                "pos.items_per_sale",
+                "pos.payment_breakdown",
+                "pos.hourly_heatmap",
+                "pos.discount_total",
+                "pos.live_feed",
+                "products.count",
+                "customers.count"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboards/CashierDashboard",
+                "expected_component": "Dashboards/CashierDashboard",
+                "status": "PASS"
+            }
+        },
+        "accountant": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 18,
+            "resolved_keys_count": 16,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "core.revenue",
+                "core.net_profit",
+                "core.gross_profit",
+                "core.cogs",
+                "core.expenses_total",
+                "core.expense_ratio",
+                "core.receivables",
+                "core.receivables_aging",
+                "core.payables",
+                "core.payables_aging",
+                "core.total_liquidity",
+                "core.liquidity_trend",
+                "core.cash_flow_trend",
+                "core.net_cash_position",
+                "core.working_capital",
+                "core.balance_sheet_ok"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboards/AccountantDashboard",
+                "expected_component": "Dashboards/AccountantDashboard",
+                "status": "PASS"
+            }
+        },
+        "purchasing_officer": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 12,
+            "resolved_keys_count": 12,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "purchases.spend",
+                "purchases.spend_trend",
+                "purchases.count",
+                "purchases.unpaid_value",
+                "purchases.by_supplier",
+                "suppliers.count",
+                "suppliers.active",
+                "suppliers.top_suppliers",
+                "suppliers.spend_total",
+                "suppliers.owed_list",
+                "inventory.low_stock_count",
+                "inventory.low_stock_list"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboards/PurchasingDashboard",
+                "expected_component": "Dashboards/PurchasingDashboard",
+                "status": "PASS"
+            }
+        },
+        "inventory_controller": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 14,
+            "resolved_keys_count": 14,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "inventory.stock_value",
+                "inventory.stock_value_trend",
+                "inventory.low_stock_count",
+                "inventory.out_of_stock_count",
+                "inventory.turnover_ratio",
+                "inventory.dead_stock_value",
+                "inventory.units_on_hand",
+                "inventory.low_stock_list",
+                "stocktakes.pending_count",
+                "stocktakes.variance_value",
+                "purchases.spend",
+                "purchases.count",
+                "products.count",
+                "products.active_count"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboard",
+                "expected_component": "Dashboard",
+                "status": "PASS"
+            }
+        },
+        "sales_executive": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 12,
+            "resolved_keys_count": 12,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "pos.revenue",
+                "pos.sale_count",
+                "pos.avg_ticket",
+                "pos.discount_total",
+                "invoicing.count",
+                "invoicing.value",
+                "invoicing.unpaid_value",
+                "quotations.count",
+                "quotations.open_value",
+                "quotations.win_rate",
+                "sales_orders.open_count",
+                "sales_orders.open_value"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboard",
+                "expected_component": "Dashboard",
+                "status": "PASS"
+            }
+        },
+        "shift_supervisor": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 14,
+            "resolved_keys_count": 14,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "pos.revenue",
+                "pos.revenue_trend",
+                "pos.sale_count",
+                "pos.avg_ticket",
+                "pos.max_sale",
+                "pos.items_per_sale",
+                "pos.payment_breakdown",
+                "pos.hourly_heatmap",
+                "pos.discount_total",
+                "pos.live_feed",
+                "register.open_count",
+                "register.variance_total",
+                "tables.occupied",
+                "tables.occupancy_rate"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboard",
+                "expected_component": "Dashboard",
+                "status": "PASS"
+            }
+        },
+        "viewer": {
+            "status_code": 200,
+            "renders_new_dashboard": "PASS",
+            "component": "NewDashboard",
+            "configured_keys_count": 8,
+            "resolved_keys_count": 8,
+            "within_layout_cap_40": "PASS",
+            "all_keys_in_registry": "PASS",
+            "resolved_card_keys": [
+                "core.revenue",
+                "core.revenue_trend",
+                "pos.revenue",
+                "pos.sale_count",
+                "invoicing.count",
+                "products.count",
+                "inventory.stock_value",
+                "customers.count"
+            ],
+            "cashier_financial_leak_guard": "PASS",
+            "legacy_dashboard_v1_route": {
+                "status_code": 200,
+                "component": "Dashboards/ViewerDashboard",
+                "expected_component": "Dashboards/ViewerDashboard",
+                "status": "PASS"
+            }
+        }
+    }
+}

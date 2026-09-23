@@ -1,0 +1,14 @@
+{
+  "label": "Current Repaired Tree (0d33d5b0)",
+  "worktree": "E:/AMD POS/AMD POS/app-code/main-app",
+  "database": "amd_pos_test_current_exclusive_final",
+  "cache_prefix": "current_exclusive_",
+  "start_time": "2026-09-23T17:11:32.679631",
+  "end_time": "2026-09-23T17:30:26.954491",
+  "duration_seconds": 1134.27,
+  "exit_code": 2,
+  "junit_valid": true,
+  "junit_message": "Valid XML with 1641 testcases",
+  "junit_path": "E:/AMD POS/AMD POS/app-code/main-app/docs/approval-dashboard-audit-2026-09-22/evidence/exclusive-final/current_junit.xml",
+  "log_path": "E:/AMD POS/AMD POS/app-code/main-app/docs/approval-dashboard-audit-2026-09-22/evidence/exclusive-final/current_console.log"
+}

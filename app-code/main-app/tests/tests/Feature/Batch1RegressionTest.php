@@ -393,6 +393,7 @@ class Batch1RegressionTest extends VenQoreTestCase
         $membershipA = TenantUser::where('tenant_id', $tenantA->id)->where('user_id', $restrictedAdmin->id)->first();
         $membershipA->update([
             'permissions' => ['pos.open_session', 'inventory.view'],
+            'permission_override_mode' => 'custom',
         ]);
 
         $this->actingAsTenantUserModel($restrictedAdmin, $tenantA);
@@ -483,7 +484,10 @@ class Batch1RegressionTest extends VenQoreTestCase
         // Custom wildcard permissions test on TenantUser pivot
         $wildcardUser = $this->createTenantUser($tenantAlpha, 'cashier');
         $pivot = TenantUser::where('tenant_id', $tenantAlpha->id)->where('user_id', $wildcardUser->id)->first();
-        $pivot->update(['permissions' => ['sales.*', 'inventory.view']]);
+        $pivot->update([
+            'permissions' => ['sales.*', 'inventory.view'],
+            'permission_override_mode' => 'custom',
+        ]);
 
         $this->actingAsTenantUserModel($wildcardUser, $tenantAlpha);
         $this->assertTrue($wildcardUser->hasPermission('sales.view'));

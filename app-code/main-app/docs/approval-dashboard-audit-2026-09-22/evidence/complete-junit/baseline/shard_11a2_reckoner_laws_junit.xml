@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="8" assertions="9" errors="1" failures="0" skipped="0" time="7.634991">
+    <testsuite name="Tests\Feature\Reckoner\Laws\L1TenantIsolationTest" file="L1Tenant Isolation (Tests\Feature\Reckoner\Laws\L1TenantIsolation)" tests="1" assertions="0" errors="1" failures="0" skipped="0" time="0.495503">
+      <testcase name="All tenant readings are isolated from other tenant data" file="L1Tenant Isolation (Tests\Feature\Reckoner\Laws\L1TenantIsolation)::All tenant readings are isolated from other tenant data" class="Tests\Feature\Reckoner\Laws\L1TenantIsolationTest" classname="Tests.Feature.Reckoner.Laws.L1TenantIsolationTest" assertions="0" time="0.495503">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">All tenant readings are isolated from other tenant dataSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Reckoner\Laws\L1TenantIsolationTest.php:222
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Reckoner\Laws\L1TenantIsolationTest.php:42</error>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L2GroupingConservationTest" file="L2Grouping Conservation (Tests\Feature\Reckoner\Laws\L2GroupingConservation)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.442507">
+      <testcase name="Grouped sum equals ungrouped total" file="L2Grouping Conservation (Tests\Feature\Reckoner\Laws\L2GroupingConservation)::Grouped sum equals ungrouped total" class="Tests\Feature\Reckoner\Laws\L2GroupingConservationTest" classname="Tests.Feature.Reckoner.Laws.L2GroupingConservationTest" assertions="1" time="0.442507"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L3PeriodAdditivityTest" file="L3Period Additivity (Tests\Feature\Reckoner\Laws\L3PeriodAdditivity)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="1.402143">
+      <testcase name="Additive readings monthly sum equals year" file="L3Period Additivity (Tests\Feature\Reckoner\Laws\L3PeriodAdditivity)::Additive readings monthly sum equals year" class="Tests\Feature\Reckoner\Laws\L3PeriodAdditivityTest" classname="Tests.Feature.Reckoner.Laws.L3PeriodAdditivityTest" assertions="1" time="1.402143"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L4ComparisonSymmetryTest" file="L4Comparison Symmetry (Tests\Feature\Reckoner\Laws\L4ComparisonSymmetry)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="2.571900">
+      <testcase name="Comparison value equals direct previous period read" file="L4Comparison Symmetry (Tests\Feature\Reckoner\Laws\L4ComparisonSymmetry)::Comparison value equals direct previous period read" class="Tests\Feature\Reckoner\Laws\L4ComparisonSymmetryTest" classname="Tests.Feature.Reckoner.Laws.L4ComparisonSymmetryTest" assertions="1" time="2.571900"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L5EmptyTenantTest" file="L5Empty Tenant (Tests\Feature\Reckoner\Laws\L5EmptyTenant)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="1.804424">
+      <testcase name="Every reading returns zero or not applicable on empty tenant" file="L5Empty Tenant (Tests\Feature\Reckoner\Laws\L5EmptyTenant)::Every reading returns zero or not applicable on empty tenant" class="Tests\Feature\Reckoner\Laws\L5EmptyTenantTest" classname="Tests.Feature.Reckoner.Laws.L5EmptyTenantTest" assertions="1" time="1.804424"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L6PermissionLawTest" file="L6Permission Law (Tests\Feature\Reckoner\Laws\L6PermissionLaw)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.259551">
+      <testcase name="Every reading executes zero queries when forbidden" file="L6Permission Law (Tests\Feature\Reckoner\Laws\L6PermissionLaw)::Every reading executes zero queries when forbidden" class="Tests\Feature\Reckoner\Laws\L6PermissionLawTest" classname="Tests.Feature.Reckoner.Laws.L6PermissionLawTest" assertions="1" time="0.259551"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L7ReversalTest" file="L7Reversal (Tests\Feature\Reckoner\Laws\L7Reversal)" tests="2" assertions="4" errors="0" failures="0" skipped="0" time="0.658962">
+      <testcase name="Reversing a sale restores sales revenue" file="L7Reversal (Tests\Feature\Reckoner\Laws\L7Reversal)::Reversing a sale restores sales revenue" class="Tests\Feature\Reckoner\Laws\L7ReversalTest" classname="Tests.Feature.Reckoner.Laws.L7ReversalTest" assertions="2" time="0.352372"/>
+      <testcase name="Reversing a sale restores finance gross profit" file="L7Reversal (Tests\Feature\Reckoner\Laws\L7Reversal)::Reversing a sale restores finance gross profit" class="Tests\Feature\Reckoner\Laws\L7ReversalTest" classname="Tests.Feature.Reckoner.Laws.L7ReversalTest" assertions="2" time="0.306590"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

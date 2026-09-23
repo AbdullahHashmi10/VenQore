@@ -1,0 +1,73 @@
+{
+    "npm_test": {
+        "name": "npm_test",
+        "command": "npm test",
+        "exit_code": 0,
+        "status": "PASS",
+        "log_file": "npm_test.log"
+    },
+    "npm_lint": {
+        "name": "npm_lint",
+        "command": "npm run lint",
+        "exit_code": 1,
+        "status": "FAIL",
+        "log_file": "npm_lint.log"
+    },
+    "npm_build": {
+        "name": "npm_build",
+        "command": "npm run build",
+        "exit_code": 1,
+        "status": "FAIL",
+        "log_file": "npm_build.log"
+    },
+    "approval_suite": {
+        "name": "approval_suite",
+        "command": "\"E:\\Software\\Xampp\\php\\php.exe\" vendor/bin/pest tests/tests/Feature/Approval",
+        "exit_code": 0,
+        "status": "PASS",
+        "log_file": "approval_suite.log"
+    },
+    "callsite_enforcement": {
+        "name": "callsite_enforcement",
+        "command": "\"E:\\Software\\Xampp\\php\\php.exe\" vendor/bin/pest tests/tests/Feature/Approval/PostingCallsiteEnforcementTest.php",
+        "exit_code": 0,
+        "status": "PASS",
+        "log_file": "callsite_enforcement.log"
+    },
+    "role_dashboard_matrix": {
+        "name": "role_dashboard_matrix",
+        "command": "\"E:\\Software\\Xampp\\php\\php.exe\" vendor/bin/pest tests/tests/Feature/Approval/RuntimeRoleDashboardMatrixTest.php",
+        "exit_code": 0,
+        "status": "PASS",
+        "log_file": "role_dashboard_matrix.log"
+    },
+    "editor_correction_suite": {
+        "name": "editor_correction_suite",
+        "command": "\"E:\\Software\\Xampp\\php\\php.exe\" vendor/bin/pest tests/tests/Feature/Approval/TransactionEditorCorrectionTest.php",
+        "exit_code": 0,
+        "status": "PASS",
+        "log_file": "editor_correction_suite.log"
+    },
+    "ziggy_route_integrity": {
+        "name": "ziggy_route_integrity",
+        "command": "\"E:\\Software\\Xampp\\php\\php.exe\" vendor/bin/pest tests/tests/Feature/ZiggyRouteIntegrityTest.php",
+        "exit_code": 0,
+        "status": "PASS",
+        "log_file": "ziggy_route_integrity.log"
+    },
+    "git_diff_check": {
+        "name": "git_diff_check",
+        "command": "git diff --check",
+        "exit_code": 0,
+        "status": "PASS",
+        "log_file": "git_diff_check.log"
+    },
+    "manifest_verification": {
+        "name": "manifest_verification",
+        "command": "Manifest File Existence Check",
+        "exit_code": 0,
+        "status": "PASS",
+        "missing_files": [],
+        "log_file": "manifest_verification.log"
+    }
+}

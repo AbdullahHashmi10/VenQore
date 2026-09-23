@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="70" assertions="371" errors="0" failures="6" skipped="0" time="32.006622">
+    <testsuite name="Tests\Feature\Core\BalanceConsistencyTest" file="Balance Consistency (Tests\Feature\Core\BalanceConsistency)" tests="1" assertions="9" errors="0" failures="0" skipped="0" time="0.519431">
+      <testcase name="Balance consistency and finance controller sorting" file="Balance Consistency (Tests\Feature\Core\BalanceConsistency)::Balance consistency and finance controller sorting" class="Tests\Feature\Core\BalanceConsistencyTest" classname="Tests.Feature.Core.BalanceConsistencyTest" assertions="9" time="0.519431"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\CalculatorParityTest" file="Calculator Parity (Tests\Feature\Core\CalculatorParity)" tests="1" assertions="24" errors="0" failures="0" skipped="0" time="1.122707">
+      <testcase name="Calculator parity on golden transaction" file="Calculator Parity (Tests\Feature\Core\CalculatorParity)::Calculator parity on golden transaction" class="Tests\Feature\Core\CalculatorParityTest" classname="Tests.Feature.Core.CalculatorParityTest" assertions="24" time="1.122707">
+        <system-out>
+
+| Metric | FRS (A) | DirectDB (C) | Matches |
+| --- | --- | --- | --- |
+| total_revenue | 2600.00 | 2600.00 | FRS |
+| total_cogs | 800.00 | 800.00 | FRS |
+| gross_profit | 1800.00 | 1800.00 | FRS |
+| net_profit | 1800.00 | 1800.00 | FRS |
+| tax_payable | 0.00 | 0.00 | FRS |
+| receivables | 2600.00 | 2600.00 | FRS |
+| payables | 1500.00 | 1500.00 | FRS |
+| inventory_val | 700.00 | 700.00 | FRS |
+
+</system-out>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\DashboardConsistencyTest" file="Dashboard Consistency (Tests\Feature\Core\DashboardConsistency)" tests="1" assertions="17" errors="0" failures="0" skipped="0" time="1.319254">
+      <testcase name="Dashboard reconciles exactly to reporting service and direct db" file="Dashboard Consistency (Tests\Feature\Core\DashboardConsistency)::Dashboard reconciles exactly to reporting service and direct db" class="Tests\Feature\Core\DashboardConsistencyTest" classname="Tests.Feature.Core.DashboardConsistencyTest" assertions="17" time="1.319254"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\FifoDeterminismTest" file="Fifo Determinism (Tests\Feature\Core\FifoDeterminism)" tests="1" assertions="15" errors="0" failures="0" skipped="0" time="2.315075">
+      <testcase name="Fifo cogs determinism under same timestamps" file="Fifo Determinism (Tests\Feature\Core\FifoDeterminism)::Fifo cogs determinism under same timestamps" class="Tests\Feature\Core\FifoDeterminismTest" classname="Tests.Feature.Core.FifoDeterminismTest" assertions="15" time="2.315075"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\NoSecondCalculatorTest" file="No Second Calculator (Tests\Feature\Core\NoSecondCalculator)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.098641">
+      <testcase name="No controller imports v3 report service" file="No Second Calculator (Tests\Feature\Core\NoSecondCalculator)::No controller imports v3 report service" class="Tests\Feature\Core\NoSecondCalculatorTest" classname="Tests.Feature.Core.NoSecondCalculatorTest" assertions="1" time="0.098641"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\NumberLineageCompletenessTest" file="Number Lineage Completeness (Tests\Feature\Core\NumberLineageCompleteness)" tests="3" assertions="9" errors="0" failures="0" skipped="0" time="0.306727">
+      <testcase name="Ledger derived metrics trace to a service and accounts" file="Number Lineage Completeness (Tests\Feature\Core\NumberLineageCompleteness)::Ledger derived metrics trace to a service and accounts" class="Tests\Feature\Core\NumberLineageCompletenessTest" classname="Tests.Feature.Core.NumberLineageCompletenessTest" assertions="2" time="0.095693"/>
+      <testcase name="Every metric names a controller and route" file="Number Lineage Completeness (Tests\Feature\Core\NumberLineageCompleteness)::Every metric names a controller and route" class="Tests\Feature\Core\NumberLineageCompletenessTest" classname="Tests.Feature.Core.NumberLineageCompletenessTest" assertions="2" time="0.102563"/>
+      <testcase name="Registry is non trivial" file="Number Lineage Completeness (Tests\Feature\Core\NumberLineageCompleteness)::Registry is non trivial" class="Tests\Feature\Core\NumberLineageCompletenessTest" classname="Tests.Feature.Core.NumberLineageCompletenessTest" assertions="5" time="0.108471"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\PlanTruthFailClosedTest" file="Plan Truth Fail Closed (Tests\Feature\Core\PlanTruthFailClosed)" tests="4" assertions="13" errors="0" failures="1" skipped="0" time="1.633164">
+      <testcase name="Unseeded feature key is locked not unlocked" file="Plan Truth Fail Closed (Tests\Feature\Core\PlanTruthFailClosed)::Unseeded feature key is locked not unlocked" class="Tests\Feature\Core\PlanTruthFailClosedTest" classname="Tests.Feature.Core.PlanTruthFailClosedTest" assertions="1" time="0.414232">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Unseeded feature key is locked not unlockedFAIL-OPEN REGRESSION: an unseeded feature key resolved to unlocked.
+Failed asserting that true is false.&#13;
+at tests\tests\Feature\Core\PlanTruthFailClosedTest.php:42</failure>
+      </testcase>
+      <testcase name="Recurring invoices and fund management use their own keys" file="Plan Truth Fail Closed (Tests\Feature\Core\PlanTruthFailClosed)::Recurring invoices and fund management use their own keys" class="Tests\Feature\Core\PlanTruthFailClosedTest" classname="Tests.Feature.Core.PlanTruthFailClosedTest" assertions="6" time="0.839949"/>
+      <testcase name="Starter includes profit and loss report" file="Plan Truth Fail Closed (Tests\Feature\Core\PlanTruthFailClosed)::Starter includes profit and loss report" class="Tests\Feature\Core\PlanTruthFailClosedTest" classname="Tests.Feature.Core.PlanTruthFailClosedTest" assertions="1" time="0.177598"/>
+      <testcase name="Ltd plan snapshot comes from seeded table not config" file="Plan Truth Fail Closed (Tests\Feature\Core\PlanTruthFailClosed)::Ltd plan snapshot comes from seeded table not config" class="Tests\Feature\Core\PlanTruthFailClosedTest" classname="Tests.Feature.Core.PlanTruthFailClosedTest" assertions="5" time="0.201385"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\RecentFixesAuditTest" file="Recent Fixes Audit (Tests\Feature\Core\RecentFixesAudit)" tests="5" assertions="16" errors="0" failures="0" skipped="0" time="1.213002">
+      <testcase name="Provision tenant job stamps correct ai quotas" file="Recent Fixes Audit (Tests\Feature\Core\RecentFixesAudit)::Provision tenant job stamps correct ai quotas" class="Tests\Feature\Core\RecentFixesAuditTest" classname="Tests.Feature.Core.RecentFixesAuditTest" assertions="5" time="0.197760"/>
+      <testcase name="Subscription expiry removes lemon squeezy sourced overrides" file="Recent Fixes Audit (Tests\Feature\Core\RecentFixesAudit)::Subscription expiry removes lemon squeezy sourced overrides" class="Tests\Feature\Core\RecentFixesAuditTest" classname="Tests.Feature.Core.RecentFixesAuditTest" assertions="4" time="0.177103"/>
+      <testcase name="Plan matrix does not contain duplicate recurring invoicing key" file="Recent Fixes Audit (Tests\Feature\Core\RecentFixesAudit)::Plan matrix does not contain duplicate recurring invoicing key" class="Tests\Feature\Core\RecentFixesAuditTest" classname="Tests.Feature.Core.RecentFixesAuditTest" assertions="2" time="0.061727"/>
+      <testcase name="Tenant override controller uses ltd snapshot for ltd plans" file="Recent Fixes Audit (Tests\Feature\Core\RecentFixesAudit)::Tenant override controller uses ltd snapshot for ltd plans" class="Tests\Feature\Core\RecentFixesAuditTest" classname="Tests.Feature.Core.RecentFixesAuditTest" assertions="3" time="0.472869"/>
+      <testcase name="Settings helper cache is partitioned by tenant" file="Recent Fixes Audit (Tests\Feature\Core\RecentFixesAudit)::Settings helper cache is partitioned by tenant" class="Tests\Feature\Core\RecentFixesAuditTest" classname="Tests.Feature.Core.RecentFixesAuditTest" assertions="2" time="0.303544"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\RegistryDriftTest" file="Registry Drift (Tests\Feature\Core\RegistryDrift)" tests="5" assertions="10" errors="0" failures="2" skipped="0" time="0.480479">
+      <testcase name="Registry suite paths exist" file="Registry Drift (Tests\Feature\Core\RegistryDrift)::Registry suite paths exist" class="Tests\Feature\Core\RegistryDriftTest" classname="Tests.Feature.Core.RegistryDriftTest" assertions="2" time="0.070741"/>
+      <testcase name="Every live test file is registered" file="Registry Drift (Tests\Feature\Core\RegistryDrift)::Every live test file is registered" class="Tests\Feature\Core\RegistryDriftTest" classname="Tests.Feature.Core.RegistryDriftTest" assertions="2" time="0.111919">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Every live test file is registeredLive test files not present in suites.yaml (registry drift):
+tests/Feature/Approval/ApprovalPolicyMatrixIntegrationTest.php
+tests/Feature/Approval/PostingCallsiteEnforcementTest.php
+tests/Feature/Approval/PostingParityTest.php
+tests/Feature/Approval/RuntimeRoleDashboardMatrixTest.php
+tests/Feature/Approval/SaleObserverCanonicalGuardTest.php
+tests/Feature/Approval/StorePolicyPrecedenceTest.php
+tests/Feature/Approval/TransactionEditorCorrectionTest.php
+tests/Feature/Reckoner/CardContractAndPresetResolutionTest.php
+tests/Unit/ZiggyRouteAuditScriptTest.php
+Failed asserting that two arrays are identical.&#13;
+at tests\tests\Feature\Core\RegistryDriftTest.php:105</failure>
+      </testcase>
+      <testcase name="Phpunit method total matches filesystem" file="Registry Drift (Tests\Feature\Core\RegistryDrift)::Phpunit method total matches filesystem" class="Tests\Feature\Core\RegistryDriftTest" classname="Tests.Feature.Core.RegistryDriftTest" assertions="2" time="0.143562">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Phpunit method total matches filesystemRegistry declares 2216 phpunit test methods but the filesystem has 2274. Regenerate suites.yaml (Phase B generator) after adding/removing tests.
+Failed asserting that 2274 is identical to 2216.&#13;
+at tests\tests\Feature\Core\RegistryDriftTest.php:122</failure>
+      </testcase>
+      <testcase name="Every member has a valid oracle tier" file="Registry Drift (Tests\Feature\Core\RegistryDrift)::Every member has a valid oracle tier" class="Tests\Feature\Core\RegistryDriftTest" classname="Tests.Feature.Core.RegistryDriftTest" assertions="2" time="0.084152"/>
+      <testcase name="Every verification source is well formed" file="Registry Drift (Tests\Feature\Core\RegistryDrift)::Every verification source is well formed" class="Tests\Feature\Core\RegistryDriftTest" classname="Tests.Feature.Core.RegistryDriftTest" assertions="2" time="0.070105"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\SingleWriterGuardTest" file="Single Writer Guard (Tests\Feature\Core\SingleWriterGuard)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.255023">
+      <testcase name="No raw journal writes allowed outside engine" file="Single Writer Guard (Tests\Feature\Core\SingleWriterGuard)::No raw journal writes allowed outside engine" class="Tests\Feature\Core\SingleWriterGuardTest" classname="Tests.Feature.Core.SingleWriterGuardTest" assertions="1" time="0.255023"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Core\SuiteIntegrityTest" file="Suite Integrity (Tests\Feature\Core\SuiteIntegrity)" tests="4" assertions="11" errors="0" failures="0" skipped="0" time="0.410945">
+      <testcase name="Every test file maps to a registered suite" file="Suite Integrity (Tests\Feature\Core\SuiteIntegrity)::Every test file maps to a registered suite" class="Tests\Feature\Core\SuiteIntegrityTest" classname="Tests.Feature.Core.SuiteIntegrityTest" assertions="4" time="0.084970"/>
+      <testcase name="No duplicate fully qualified class names on test path" file="Suite Integrity (Tests\Feature\Core\SuiteIntegrity)::No duplicate fully qualified class names on test path" class="Tests\Feature\Core\SuiteIntegrityTest" classname="Tests.Feature.Core.SuiteIntegrityTest" assertions="1" time="0.106116"/>
+      <testcase name="No test files hide outside the live tree" file="Suite Integrity (Tests\Feature\Core\SuiteIntegrity)::No test files hide outside the live tree" class="Tests\Feature\Core\SuiteIntegrityTest" classname="Tests.Feature.Core.SuiteIntegrityTest" assertions="4" time="0.163540"/>
+      <testcase name="Phpunit wires bootstrap and run ledger" file="Suite Integrity (Tests\Feature\Core\SuiteIntegrity)::Phpunit wires bootstrap and run ledger" class="Tests\Feature\Core\SuiteIntegrityTest" classname="Tests.Feature.Core.SuiteIntegrityTest" assertions="2" time="0.056319"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\AccountingIntegrityGuardTest" file="Accounting Integrity Guard (Tests\Feature\Guardrails\AccountingIntegrityGuard)" tests="2" assertions="6" errors="0" failures="0" skipped="0" time="0.415054">
+      <testcase name="Engine rejects an unbalanced journal entry" file="Accounting Integrity Guard (Tests\Feature\Guardrails\AccountingIntegrityGuard)::Engine rejects an unbalanced journal entry" class="Tests\Feature\Guardrails\AccountingIntegrityGuardTest" classname="Tests.Feature.Guardrails.AccountingIntegrityGuardTest" assertions="1" time="0.182640"/>
+      <testcase name="Every journal entry balances and no orphans exist" file="Accounting Integrity Guard (Tests\Feature\Guardrails\AccountingIntegrityGuard)::Every journal entry balances and no orphans exist" class="Tests\Feature\Guardrails\AccountingIntegrityGuardTest" classname="Tests.Feature.Guardrails.AccountingIntegrityGuardTest" assertions="5" time="0.232414"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\AstSingleWriterGuardTest" file="Ast Single Writer Guard (Tests\Feature\Guardrails\AstSingleWriterGuard)" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="4.936713">
+      <testcase name="No journal writes outside the approved writer" file="Ast Single Writer Guard (Tests\Feature\Guardrails\AstSingleWriterGuard)::No journal writes outside the approved writer" class="Tests\Feature\Guardrails\AstSingleWriterGuardTest" classname="Tests.Feature.Guardrails.AstSingleWriterGuardTest" assertions="1" time="4.882979"/>
+      <testcase name="Guard self test alias evasion would be caught" file="Ast Single Writer Guard (Tests\Feature\Guardrails\AstSingleWriterGuard)::Guard self test alias evasion would be caught" class="Tests\Feature\Guardrails\AstSingleWriterGuardTest" classname="Tests.Feature.Guardrails.AstSingleWriterGuardTest" assertions="2" time="0.053734"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\FifoConcurrencyRaceTest" file="Fifo Concurrency Race (Tests\Feature\Guardrails\FifoConcurrencyRace)" tests="1" assertions="26" errors="0" failures="0" skipped="0" time="3.335854">
+      <testcase name="Concurrent deductions never oversell a batch" file="Fifo Concurrency Race (Tests\Feature\Guardrails\FifoConcurrencyRace)::Concurrent deductions never oversell a batch" class="Tests\Feature\Guardrails\FifoConcurrencyRaceTest" classname="Tests.Feature.Guardrails.FifoConcurrencyRaceTest" assertions="26" time="3.335854"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\HeartbeatOwnershipGuardTest" file="Heartbeat Ownership Guard (Tests\Feature\Guardrails\HeartbeatOwnershipGuard)" tests="4" assertions="10" errors="0" failures="1" skipped="0" time="0.546771">
+      <testcase name="Unauthenticated caller cannot hijack another tenants terminal via heartbeat" file="Heartbeat Ownership Guard (Tests\Feature\Guardrails\HeartbeatOwnershipGuard)::Unauthenticated caller cannot hijack another tenants terminal via heartbeat" class="Tests\Feature\Guardrails\HeartbeatOwnershipGuardTest" classname="Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest" assertions="4" time="0.242039"/>
+      <testcase name="Unclaimed terminal can still be claimed on first contact via heartbeat" file="Heartbeat Ownership Guard (Tests\Feature\Guardrails\HeartbeatOwnershipGuard)::Unclaimed terminal can still be claimed on first contact via heartbeat" class="Tests\Feature\Guardrails\HeartbeatOwnershipGuardTest" classname="Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest" assertions="1" time="0.127344">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">Unclaimed terminal can still be claimed on first contact via heartbeatExpected response status code [200] but received 403.
+Failed asserting that 403 is identical to 200.&#13;
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:45
+at vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:175
+at vendor\laravel\framework\src\Illuminate\Testing\Concerns\AssertsStatusCodes.php:16
+at tests\tests\Feature\Guardrails\HeartbeatOwnershipGuardTest.php:103</failure>
+      </testcase>
+      <testcase name="Heartbeat requires device id" file="Heartbeat Ownership Guard (Tests\Feature\Guardrails\HeartbeatOwnershipGuard)::Heartbeat requires device id" class="Tests\Feature\Guardrails\HeartbeatOwnershipGuardTest" classname="Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest" assertions="2" time="0.054809"/>
+      <testcase name="Legitimate heartbeat from owning store returns alive" file="Heartbeat Ownership Guard (Tests\Feature\Guardrails\HeartbeatOwnershipGuard)::Legitimate heartbeat from owning store returns alive" class="Tests\Feature\Guardrails\HeartbeatOwnershipGuardTest" classname="Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest" assertions="3" time="0.122579"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\LedgerCorruptionAlertTest" file="Ledger Corruption Alert (Tests\Feature\Guardrails\LedgerCorruptionAlert)" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.091062">
+      <testcase name="Verify ledger detects and alerts on injected corruption" file="Ledger Corruption Alert (Tests\Feature\Guardrails\LedgerCorruptionAlert)::Verify ledger detects and alerts on injected corruption" class="Tests\Feature\Guardrails\LedgerCorruptionAlertTest" classname="Tests.Feature.Guardrails.LedgerCorruptionAlertTest" assertions="3" time="0.091062"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\LtdPricingSingleSourceOfTruthGuardTest" file="Ltd Pricing Single Source Of Truth Guard (Tests\Feature\Guardrails\LtdPricingSingleSourceOfTruthGuard)" tests="1" assertions="6" errors="0" failures="0" skipped="0" time="0.051354">
+      <testcase name="Ltd transaction limits match across all configs and seeder" file="Ltd Pricing Single Source Of Truth Guard (Tests\Feature\Guardrails\LtdPricingSingleSourceOfTruthGuard)::Ltd transaction limits match across all configs and seeder" class="Tests\Feature\Guardrails\LtdPricingSingleSourceOfTruthGuardTest" classname="Tests.Feature.Guardrails.LtdPricingSingleSourceOfTruthGuardTest" assertions="6" time="0.051354"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\MassAssignmentGuardTest" file="Mass Assignment Guard (Tests\Feature\Guardrails\MassAssignmentGuard)" tests="2" assertions="4" errors="0" failures="1" skipped="0" time="1.690005">
+      <testcase name="No new static write assigns a nonexistent column" file="Mass Assignment Guard (Tests\Feature\Guardrails\MassAssignmentGuard)::No new static write assigns a nonexistent column" class="Tests\Feature\Guardrails\MassAssignmentGuardTest" classname="Tests.Feature.Guardrails.MassAssignmentGuardTest" assertions="2" time="1.296176"/>
+      <testcase name="No new stale fillable entry" file="Mass Assignment Guard (Tests\Feature\Guardrails\MassAssignmentGuard)::No new stale fillable entry" class="Tests\Feature\Guardrails\MassAssignmentGuardTest" classname="Tests.Feature.Guardrails.MassAssignmentGuardTest" assertions="2" time="0.393829">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">No new stale fillable entryNEW stale $fillable entries (writes to these keys are silently dropped):
+  - ParkedSale::customer_name
+  - ParkedSale::expires_at
+Failed asserting that two arrays are identical.&#13;
+at tests\tests\Feature\Guardrails\MassAssignmentGuardTest.php:167</failure>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\OfflineSyncIdempotencyGuardTest" file="Offline Sync Idempotency Guard (Tests\Feature\Guardrails\OfflineSyncIdempotencyGuard)" tests="2" assertions="6" errors="0" failures="0" skipped="0" time="0.269207">
+      <testcase name="Resubmitting an already synced sale does not duplicate it" file="Offline Sync Idempotency Guard (Tests\Feature\Guardrails\OfflineSyncIdempotencyGuard)::Resubmitting an already synced sale does not duplicate it" class="Tests\Feature\Guardrails\OfflineSyncIdempotencyGuardTest" classname="Tests.Feature.Guardrails.OfflineSyncIdempotencyGuardTest" assertions="3" time="0.143511"/>
+      <testcase name="Offline sync idempotency under missing tenant context" file="Offline Sync Idempotency Guard (Tests\Feature\Guardrails\OfflineSyncIdempotencyGuard)::Offline sync idempotency under missing tenant context" class="Tests\Feature\Guardrails\OfflineSyncIdempotencyGuardTest" classname="Tests.Feature.Guardrails.OfflineSyncIdempotencyGuardTest" assertions="3" time="0.125696"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\PaymentAllocationTriggerTest" file="Payment Allocation Trigger (Tests\Feature\Guardrails\PaymentAllocationTrigger)" tests="1" assertions="3" errors="0" failures="0" skipped="0" time="0.069990">
+      <testcase name="Trigger rejects over allocation of a payment" file="Payment Allocation Trigger (Tests\Feature\Guardrails\PaymentAllocationTrigger)::Trigger rejects over allocation of a payment" class="Tests\Feature\Guardrails\PaymentAllocationTriggerTest" classname="Tests.Feature.Guardrails.PaymentAllocationTriggerTest" assertions="3" time="0.069990"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\PermissionBypassGuardTest" file="Permission Bypass Guard (Tests\Feature\Guardrails\PermissionBypassGuard)" tests="2" assertions="10" errors="0" failures="1" skipped="0" time="0.120693">
+      <testcase name="No store role is granted the wildcard permission" file="Permission Bypass Guard (Tests\Feature\Guardrails\PermissionBypassGuard)::No store role is granted the wildcard permission" class="Tests\Feature\Guardrails\PermissionBypassGuardTest" classname="Tests.Feature.Guardrails.PermissionBypassGuardTest" assertions="3" time="0.054402"/>
+      <testcase name="No new state changing route is missing permission middleware" file="Permission Bypass Guard (Tests\Feature\Guardrails\PermissionBypassGuard)::No new state changing route is missing permission middleware" class="Tests\Feature\Guardrails\PermissionBypassGuardTest" classname="Tests.Feature.Guardrails.PermissionBypassGuardTest" assertions="7" time="0.066292">
+        <failure type="PHPUnit\Framework\ExpectationFailedException">No new state changing route is missing permission middlewarePermission debt ratchet BREACHED: 121 unprotected write routes exceed the ceiling of 118. Protect routes or (deliberately) raise the ceiling — but the ceiling must only ever DECREASE across releases.
+Failed asserting that 121 is equal to 118 or is less than 118.&#13;
+at tests\tests\Feature\Guardrails\PermissionBypassGuardTest.php:113</failure>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\SaleFinancialValueGuardTest" file="Sale Financial Value Guard (Tests\Feature\Guardrails\SaleFinancialValueGuard)" tests="4" assertions="35" errors="0" failures="0" skipped="0" time="1.098201">
+      <testcase name="Sale stores exact money values and holds invariants" file="Sale Financial Value Guard (Tests\Feature\Guardrails\SaleFinancialValueGuard)::Sale stores exact money values and holds invariants" class="Tests\Feature\Guardrails\SaleFinancialValueGuardTest" classname="Tests.Feature.Guardrails.SaleFinancialValueGuardTest" assertions="14" time="0.245553"/>
+      <testcase name="Credit sale stores exact money values and updates customer balance" file="Sale Financial Value Guard (Tests\Feature\Guardrails\SaleFinancialValueGuard)::Credit sale stores exact money values and updates customer balance" class="Tests\Feature\Guardrails\SaleFinancialValueGuardTest" classname="Tests.Feature.Guardrails.SaleFinancialValueGuardTest" assertions="8" time="0.287483"/>
+      <testcase name="Sale reversal restores financials and stocks" file="Sale Financial Value Guard (Tests\Feature\Guardrails\SaleFinancialValueGuard)::Sale reversal restores financials and stocks" class="Tests\Feature\Guardrails\SaleFinancialValueGuardTest" classname="Tests.Feature.Guardrails.SaleFinancialValueGuardTest" assertions="6" time="0.313328"/>
+      <testcase name="Purchase stores exact money values" file="Sale Financial Value Guard (Tests\Feature\Guardrails\SaleFinancialValueGuard)::Purchase stores exact money values" class="Tests\Feature\Guardrails\SaleFinancialValueGuardTest" classname="Tests.Feature.Guardrails.SaleFinancialValueGuardTest" assertions="7" time="0.251837"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\TenantIsolationSweepGuardTest" file="Tenant Isolation Sweep Guard (Tests\Feature\Guardrails\TenantIsolationSweepGuard)" tests="3" assertions="11" errors="0" failures="0" skipped="0" time="0.757331">
+      <testcase name="Core models do not leak across tenants" file="Tenant Isolation Sweep Guard (Tests\Feature\Guardrails\TenantIsolationSweepGuard)::Core models do not leak across tenants" class="Tests\Feature\Guardrails\TenantIsolationSweepGuardTest" classname="Tests.Feature.Guardrails.TenantIsolationSweepGuardTest" assertions="8" time="0.323708"/>
+      <testcase name="Plan change notifications do not leak across tenants" file="Tenant Isolation Sweep Guard (Tests\Feature\Guardrails\TenantIsolationSweepGuard)::Plan change notifications do not leak across tenants" class="Tests\Feature\Guardrails\TenantIsolationSweepGuardTest" classname="Tests.Feature.Guardrails.TenantIsolationSweepGuardTest" assertions="1" time="0.233795"/>
+      <testcase name="Staff invitations list is isolated per tenant" file="Tenant Isolation Sweep Guard (Tests\Feature\Guardrails\TenantIsolationSweepGuard)::Staff invitations list is isolated per tenant" class="Tests\Feature\Guardrails\TenantIsolationSweepGuardTest" classname="Tests.Feature.Guardrails.TenantIsolationSweepGuardTest" assertions="2" time="0.199828"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Guardrails\TerminalOwnershipGuardTest" file="Terminal Ownership Guard (Tests\Feature\Guardrails\TerminalOwnershipGuard)" tests="5" assertions="11" errors="0" failures="0" skipped="0" time="0.523186">
+      <testcase name="Telemetry is disabled by default config" file="Terminal Ownership Guard (Tests\Feature\Guardrails\TerminalOwnershipGuard)::Telemetry is disabled by default config" class="Tests\Feature\Guardrails\TerminalOwnershipGuardTest" classname="Tests.Feature.Guardrails.TerminalOwnershipGuardTest" assertions="1" time="0.068967"/>
+      <testcase name="Unauthenticated caller cannot hijack another tenants terminal" file="Terminal Ownership Guard (Tests\Feature\Guardrails\TerminalOwnershipGuard)::Unauthenticated caller cannot hijack another tenants terminal" class="Tests\Feature\Guardrails\TerminalOwnershipGuardTest" classname="Tests.Feature.Guardrails.TerminalOwnershipGuardTest" assertions="4" time="0.189678"/>
+      <testcase name="Activities cannot claim an unclaimed terminal" file="Terminal Ownership Guard (Tests\Feature\Guardrails\TerminalOwnershipGuard)::Activities cannot claim an unclaimed terminal" class="Tests\Feature\Guardrails\TerminalOwnershipGuardTest" classname="Tests.Feature.Guardrails.TerminalOwnershipGuardTest" assertions="2" time="0.131730"/>
+      <testcase name="Activities requires device id" file="Terminal Ownership Guard (Tests\Feature\Guardrails\TerminalOwnershipGuard)::Activities requires device id" class="Tests\Feature\Guardrails\TerminalOwnershipGuardTest" classname="Tests.Feature.Guardrails.TerminalOwnershipGuardTest" assertions="2" time="0.080105"/>
+      <testcase name="Upload screenshot requires device id" file="Terminal Ownership Guard (Tests\Feature\Guardrails\TerminalOwnershipGuard)::Upload screenshot requires device id" class="Tests\Feature\Guardrails\TerminalOwnershipGuardTest" classname="Tests.Feature.Guardrails.TerminalOwnershipGuardTest" assertions="2" time="0.052707"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Heart\OneCoreReconciliationGateTest" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)" tests="13" assertions="111" errors="0" failures="0" skipped="0" time="8.426753">
+      <testcase name="Journal is balanced after cash sale" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Journal is balanced after cash sale" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="2" time="0.536521"/>
+      <testcase name="Journal is balanced after credit sale and partial return" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Journal is balanced after credit sale and partial return" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="4" time="0.532258"/>
+      <testcase name="Journal is balanced after purchase on credit" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Journal is balanced after purchase on credit" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="2" time="0.505004"/>
+      <testcase name="All account derived balances match journal direct aggregate" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::All account derived balances match journal direct aggregate" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="35" time="0.692198"/>
+      <testcase name="Frs report numbers match direct db on golden transaction" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Frs report numbers match direct db on golden transaction" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="18" time="0.645602"/>
+      <testcase name="Per cashier revenue sums to pl total" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Per cashier revenue sums to pl total" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="6" time="0.638698"/>
+      <testcase name="Item wise gp reconciles to pl gp" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Item wise gp reconciles to pl gp" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="9" time="0.596427"/>
+      <testcase name="Dashboard controller revenue matches frs" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Dashboard controller revenue matches frs" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="6" time="0.906574"/>
+      <testcase name="Party statement closing balance matches ar journal" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Party statement closing balance matches ar journal" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="7" time="0.780896"/>
+      <testcase name="Frs inventory value matches direct batch aggregate" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Frs inventory value matches direct batch aggregate" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="6" time="0.671153"/>
+      <testcase name="Trial balance report balances to zero" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Trial balance report balances to zero" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="5" time="0.593154"/>
+      <testcase name="Balance sheet assets equal liabilities plus equity" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Balance sheet assets equal liabilities plus equity" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="5" time="0.652186"/>
+      <testcase name="Aged receivables total matches ar account" file="One Core Reconciliation Gate (Tests\Feature\Heart\OneCoreReconciliationGate)::Aged receivables total matches ar account" class="Tests\Feature\Heart\OneCoreReconciliationGateTest" classname="Tests.Feature.Heart.OneCoreReconciliationGateTest" assertions="6" time="0.676081"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

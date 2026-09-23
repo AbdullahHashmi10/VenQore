@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="8" assertions="16" errors="0" failures="0" skipped="0" time="11.889743">
+    <testsuite name="Tests\Feature\Reckoner\Laws\L1TenantIsolationTest" file="L1Tenant Isolation (Tests\Feature\Reckoner\Laws\L1TenantIsolation)" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="5.412062">
+      <testcase name="All tenant readings are isolated from other tenant data" file="L1Tenant Isolation (Tests\Feature\Reckoner\Laws\L1TenantIsolation)::All tenant readings are isolated from other tenant data" class="Tests\Feature\Reckoner\Laws\L1TenantIsolationTest" classname="Tests.Feature.Reckoner.Laws.L1TenantIsolationTest" assertions="7" time="5.412062"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L2GroupingConservationTest" file="L2Grouping Conservation (Tests\Feature\Reckoner\Laws\L2GroupingConservation)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.301298">
+      <testcase name="Grouped sum equals ungrouped total" file="L2Grouping Conservation (Tests\Feature\Reckoner\Laws\L2GroupingConservation)::Grouped sum equals ungrouped total" class="Tests\Feature\Reckoner\Laws\L2GroupingConservationTest" classname="Tests.Feature.Reckoner.Laws.L2GroupingConservationTest" assertions="1" time="0.301298"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L3PeriodAdditivityTest" file="L3Period Additivity (Tests\Feature\Reckoner\Laws\L3PeriodAdditivity)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="1.196938">
+      <testcase name="Additive readings monthly sum equals year" file="L3Period Additivity (Tests\Feature\Reckoner\Laws\L3PeriodAdditivity)::Additive readings monthly sum equals year" class="Tests\Feature\Reckoner\Laws\L3PeriodAdditivityTest" classname="Tests.Feature.Reckoner.Laws.L3PeriodAdditivityTest" assertions="1" time="1.196938"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L4ComparisonSymmetryTest" file="L4Comparison Symmetry (Tests\Feature\Reckoner\Laws\L4ComparisonSymmetry)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="2.463297">
+      <testcase name="Comparison value equals direct previous period read" file="L4Comparison Symmetry (Tests\Feature\Reckoner\Laws\L4ComparisonSymmetry)::Comparison value equals direct previous period read" class="Tests\Feature\Reckoner\Laws\L4ComparisonSymmetryTest" classname="Tests.Feature.Reckoner.Laws.L4ComparisonSymmetryTest" assertions="1" time="2.463297"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L5EmptyTenantTest" file="L5Empty Tenant (Tests\Feature\Reckoner\Laws\L5EmptyTenant)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="1.698550">
+      <testcase name="Every reading returns zero or not applicable on empty tenant" file="L5Empty Tenant (Tests\Feature\Reckoner\Laws\L5EmptyTenant)::Every reading returns zero or not applicable on empty tenant" class="Tests\Feature\Reckoner\Laws\L5EmptyTenantTest" classname="Tests.Feature.Reckoner.Laws.L5EmptyTenantTest" assertions="1" time="1.698550"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L6PermissionLawTest" file="L6Permission Law (Tests\Feature\Reckoner\Laws\L6PermissionLaw)" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.223917">
+      <testcase name="Every reading executes zero queries when forbidden" file="L6Permission Law (Tests\Feature\Reckoner\Laws\L6PermissionLaw)::Every reading executes zero queries when forbidden" class="Tests\Feature\Reckoner\Laws\L6PermissionLawTest" classname="Tests.Feature.Reckoner.Laws.L6PermissionLawTest" assertions="1" time="0.223917"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Reckoner\Laws\L7ReversalTest" file="L7Reversal (Tests\Feature\Reckoner\Laws\L7Reversal)" tests="2" assertions="4" errors="0" failures="0" skipped="0" time="0.593682">
+      <testcase name="Reversing a sale restores sales revenue" file="L7Reversal (Tests\Feature\Reckoner\Laws\L7Reversal)::Reversing a sale restores sales revenue" class="Tests\Feature\Reckoner\Laws\L7ReversalTest" classname="Tests.Feature.Reckoner.Laws.L7ReversalTest" assertions="2" time="0.297488"/>
+      <testcase name="Reversing a sale restores finance gross profit" file="L7Reversal (Tests\Feature\Reckoner\Laws\L7Reversal)::Reversing a sale restores finance gross profit" class="Tests\Feature\Reckoner\Laws\L7ReversalTest" classname="Tests.Feature.Reckoner.Laws.L7ReversalTest" assertions="2" time="0.296193"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

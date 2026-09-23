@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="CLI Arguments" tests="52" assertions="1011" errors="3" failures="0" skipped="0" time="41.659112">
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\CascadeDeleteAuditTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\CascadeDeleteAuditTest.php" tests="5" assertions="19" errors="0" failures="0" skipped="0" time="2.418354">
+      <testcase name="C3: deleting a product directly at DB level is blocked or does not cascade-delete financial rows" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\CascadeDeleteAuditTest.php::C3: deleting a product directly at DB level is blocked or does not cascade-delete financial rows" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\CascadeDeleteAuditTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.CascadeDeleteAuditTest" assertions="5" time="0.969391"/>
+      <testcase name="C3: deleting a party directly at DB level is blocked or does not cascade-delete financial rows" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\CascadeDeleteAuditTest.php::C3: deleting a party directly at DB level is blocked or does not cascade-delete financial rows" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\CascadeDeleteAuditTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.CascadeDeleteAuditTest" assertions="5" time="0.457625"/>
+      <testcase name="C3: deleting a warehouse directly at DB level is blocked or does not cascade-delete financial rows" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\CascadeDeleteAuditTest.php::C3: deleting a warehouse directly at DB level is blocked or does not cascade-delete financial rows" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\CascadeDeleteAuditTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.CascadeDeleteAuditTest" assertions="5" time="0.600669"/>
+      <testcase name="C3: deleting a product directly at DB level does not delete its stock movements" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\CascadeDeleteAuditTest.php::C3: deleting a product directly at DB level does not delete its stock movements" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\CascadeDeleteAuditTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.CascadeDeleteAuditTest" assertions="2" time="0.189767"/>
+      <testcase name="C3: deleting a sale directly at DB level does not delete its manufacturing logs" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\CascadeDeleteAuditTest.php::C3: deleting a sale directly at DB level does not delete its manufacturing logs" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\CascadeDeleteAuditTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.CascadeDeleteAuditTest" assertions="2" time="0.200902"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\FractionalQtyAdjacentTest" file="Fractional Qty Adjacent (Tests\Feature\Money\FractionalQtyAdjacent)" tests="2" assertions="2" errors="1" failures="0" skipped="0" time="0.331022">
+      <testcase name="B7 a pre sale sales order persists a fractional quantity 2 point 5" file="Fractional Qty Adjacent (Tests\Feature\Money\FractionalQtyAdjacent)::B7 a pre sale sales order persists a fractional quantity 2 point 5" class="Tests\Feature\Money\FractionalQtyAdjacentTest" classname="Tests.Feature.Money.FractionalQtyAdjacentTest" assertions="2" time="0.138531"/>
+      <testcase name="B7 a stock transfer persists a fractional quantity 2 point 5" file="Fractional Qty Adjacent (Tests\Feature\Money\FractionalQtyAdjacent)::B7 a stock transfer persists a fractional quantity 2 point 5" class="Tests\Feature\Money\FractionalQtyAdjacentTest" classname="Tests.Feature.Money.FractionalQtyAdjacentTest" assertions="0" time="0.192491">
+        <error type="Illuminate\Database\UniqueConstraintViolationException">B7 a stock transfer persists a fractional quantity 2 point 5Illuminate\Database\UniqueConstraintViolationException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '1001220-6300' for key 'accounts_tenant_id_code_unique' (Connection: mariadb, Host: 127.0.0.1, Port: 3306, Database: amd_pos_test_baseline_sharded, SQL: insert into `accounts` (`tenant_id`, `code`, `name`, `type`, `normal_balance`, `id`, `updated_at`, `created_at`) values (1001220, 6300, Stock Adjustment Loss, expense, debit, 01a0ce5e-97eb-7049-96a3-ca3263abc05c, 2026-09-23 13:05:00, 2026-09-23 13:05:00))&#13;
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:42
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4121
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2237
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1412
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1243
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\GuardsAttributes.php:157
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1242
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\FractionalQtyAdjacentTest.php:71
+Caused by
+PDOException: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '1001220-6300' for key 'accounts_tenant_id_code_unique'
+
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:53
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:827
+at vendor\laravel\framework\src\Illuminate\Database\Connection.php:794
+at vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:42
+at vendor\laravel\framework\src\Illuminate\Database\Query\Builder.php:4121
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:2237
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1412
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1243
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\GuardsAttributes.php:157
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1242
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\FractionalQtyAdjacentTest.php:71</error>
+      </testcase>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\FractionalQtyTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\FractionalQtyTest.php" tests="1" assertions="5" errors="0" failures="0" skipped="0" time="0.529087">
+      <testcase name="M1-07: a fractional-quantity sale persists 2.5, not 2 or 3" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\FractionalQtyTest.php::M1-07: a fractional-quantity sale persists 2.5, not 2 or 3" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\FractionalQtyTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.FractionalQtyTest" assertions="5" time="0.529087"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php" tests="7" assertions="26" errors="0" failures="0" skipped="0" time="12.366130">
+      <testcase name="M1-11: WooCommerce is blocked for Starter and Growth and allowed on Scale" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php::M1-11: WooCommerce is blocked for Starter and Growth and allowed on Scale" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GatingTest" assertions="2" time="1.802806"/>
+      <testcase name="M1-11: Scale-only features like white_label are blocked on Starter" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php::M1-11: Scale-only features like white_label are blocked on Starter" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GatingTest" assertions="2" time="1.700048"/>
+      <testcase name="M1-11: Cookbook works on a plan WITH bill_of_materials" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php::M1-11: Cookbook works on a plan WITH bill_of_materials" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GatingTest" assertions="3" time="1.744485"/>
+      <testcase name="F17: legacy /sales route enforces the monthly transaction limit" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php::F17: legacy /sales route enforces the monthly transaction limit" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GatingTest" assertions="5" time="1.851756"/>
+      <testcase name="F17: a tenant under the limit can still post a sale via /sales" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php::F17: a tenant under the limit can still post a sale via /sales" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GatingTest" assertions="1" time="1.785770"/>
+      <testcase name="Tenant featuresArray returns correct feature availability flags based on plan" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php::Tenant featuresArray returns correct feature availability flags based on plan" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GatingTest" assertions="10" time="1.779596"/>
+      <testcase name="SaleController store handles InsufficientStockException and returns HTTP 422" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GatingTest.php::SaleController store handles InsufficientStockException and returns HTTP 422" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GatingTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GatingTest" assertions="3" time="1.701669"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GoldenTransactionTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GoldenTransactionTest.php" tests="1" assertions="21" errors="0" failures="0" skipped="0" time="0.794871">
+      <testcase name="GOLDEN: full lifecycle — buy, sell on credit, partial return — every number correct" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\GoldenTransactionTest.php::GOLDEN: full lifecycle — buy, sell on credit, partial return — every number correct" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\GoldenTransactionTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.GoldenTransactionTest" assertions="21" time="0.794871"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\GranularPermissionTest" file="Granular Permission (Tests\Feature\Money\GranularPermission)" tests="4" assertions="7" errors="0" failures="0" skipped="0" time="1.643839">
+      <testcase name="Manager access restrictions" file="Granular Permission (Tests\Feature\Money\GranularPermission)::Manager access restrictions" class="Tests\Feature\Money\GranularPermissionTest" classname="Tests.Feature.Money.GranularPermissionTest" assertions="2" time="0.405203"/>
+      <testcase name="Cashier export blocked" file="Granular Permission (Tests\Feature\Money\GranularPermission)::Cashier export blocked" class="Tests\Feature\Money\GranularPermissionTest" classname="Tests.Feature.Money.GranularPermissionTest" assertions="1" time="0.374075"/>
+      <testcase name="Accountant staff blocked" file="Granular Permission (Tests\Feature\Money\GranularPermission)::Accountant staff blocked" class="Tests\Feature\Money\GranularPermissionTest" classname="Tests.Feature.Money.GranularPermissionTest" assertions="1" time="0.384175"/>
+      <testcase name="Owner has all granular permissions" file="Granular Permission (Tests\Feature\Money\GranularPermission)::Owner has all granular permissions" class="Tests\Feature\Money\GranularPermissionTest" classname="Tests.Feature.Money.GranularPermissionTest" assertions="3" time="0.480386"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\HistoryImmutabilityTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\HistoryImmutabilityTest.php" tests="2" assertions="12" errors="0" failures="0" skipped="0" time="0.905598">
+      <testcase name="M1-04: a posted sale cannot be force-deleted from the recycle bin" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\HistoryImmutabilityTest.php::M1-04: a posted sale cannot be force-deleted from the recycle bin" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\HistoryImmutabilityTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.HistoryImmutabilityTest" assertions="7" time="0.471503"/>
+      <testcase name="M1-04: an unposted draft sale CAN be force-deleted" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\HistoryImmutabilityTest.php::M1-04: an unposted draft sale CAN be force-deleted" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\HistoryImmutabilityTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.HistoryImmutabilityTest" assertions="5" time="0.434094"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\IdorSweepTest" file="Idor Sweep (Tests\Feature\Money\IdorSweep)" tests="1" assertions="135" errors="0" failures="0" skipped="0" time="0.967725">
+      <testcase name="B10 IDOR every binding is safe" file="Idor Sweep (Tests\Feature\Money\IdorSweep)::B10 IDOR every binding is safe" class="Tests\Feature\Money\IdorSweepTest" classname="Tests.Feature.Money.IdorSweepTest" assertions="135" time="0.967725"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\LowStockWarehouseTest" file="Low Stock Warehouse (Tests\Feature\Money\LowStockWarehouse)" tests="2" assertions="9" errors="0" failures="0" skipped="0" time="0.849844">
+      <testcase name="B3 low stock honors the warehouse filter" file="Low Stock Warehouse (Tests\Feature\Money\LowStockWarehouse)::B3 low stock honors the warehouse filter" class="Tests\Feature\Money\LowStockWarehouseTest" classname="Tests.Feature.Money.LowStockWarehouseTest" assertions="8" time="0.606271"/>
+      <testcase name="B3 low stock issues a bounded number of queries no n plus one" file="Low Stock Warehouse (Tests\Feature\Money\LowStockWarehouse)::B3 low stock issues a bounded number of queries no n plus one" class="Tests\Feature\Money\LowStockWarehouseTest" classname="Tests.Feature.Money.LowStockWarehouseTest" assertions="1" time="0.243573"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PosBankAccountsPropsTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PosBankAccountsPropsTest.php" tests="1" assertions="7" errors="0" failures="0" skipped="0" time="0.490686">
+      <testcase name="POS interface receives user-created bank accounts in props" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PosBankAccountsPropsTest.php::POS interface receives user-created bank accounts in props" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PosBankAccountsPropsTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.PosBankAccountsPropsTest" assertions="7" time="0.490686"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PosOpenReturnTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PosOpenReturnTest.php" tests="3" assertions="16" errors="0" failures="0" skipped="0" time="1.402880">
+      <testcase name="M1-09: a POS open-return REDUCES revenue, not increases it" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PosOpenReturnTest.php::M1-09: a POS open-return REDUCES revenue, not increases it" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PosOpenReturnTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.PosOpenReturnTest" assertions="8" time="0.489107"/>
+      <testcase name="M1-09: open-return restores stock to the SPECIFIED warehouse" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PosOpenReturnTest.php::M1-09: open-return restores stock to the SPECIFIED warehouse" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PosOpenReturnTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.PosOpenReturnTest" assertions="3" time="0.491673"/>
+      <testcase name="M1-09: a double-submitted open-return refunds only once" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PosOpenReturnTest.php::M1-09: a double-submitted open-return refunds only once" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PosOpenReturnTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.PosOpenReturnTest" assertions="5" time="0.422101"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PreSaleConversionTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PreSaleConversionTest.php" tests="1" assertions="14" errors="0" failures="0" skipped="0" time="0.512007">
+      <testcase name="M1-05: converting a pre-sale posts COGS and keeps the books balanced" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\PreSaleConversionTest.php::M1-05: converting a pre-sale posts COGS and keeps the books balanced" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\PreSaleConversionTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.PreSaleConversionTest" assertions="14" time="0.512007"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\PrecisionStandardTest" file="Precision Standard (Tests\Feature\Money\PrecisionStandard)" tests="2" assertions="9" errors="0" failures="0" skipped="0" time="0.672887">
+      <testcase name="Large balance precise storage and retrieval" file="Precision Standard (Tests\Feature\Money\PrecisionStandard)::Large balance precise storage and retrieval" class="Tests\Feature\Money\PrecisionStandardTest" classname="Tests.Feature.Money.PrecisionStandardTest" assertions="2" time="0.176536"/>
+      <testcase name="Invoice total rounds to two decimal places" file="Precision Standard (Tests\Feature\Money\PrecisionStandard)::Invoice total rounds to two decimal places" class="Tests\Feature\Money\PrecisionStandardTest" classname="Tests.Feature.Money.PrecisionStandardTest" assertions="7" time="0.496351"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\ReportReconciliationTest" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)" tests="10" assertions="103" errors="1" failures="0" skipped="0" time="8.543148">
+      <testcase name="ProfitLoss reconciles to direct db aggregate" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::ProfitLoss reconciles to direct db aggregate" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="10" time="0.812652"/>
+      <testcase name="ItemWiseProfit reconciles to direct db aggregate" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::ItemWiseProfit reconciles to direct db aggregate" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="7" time="0.638149"/>
+      <testcase name="BillWiseProfit and partyWiseProfitLoss reconcile" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::BillWiseProfit and partyWiseProfitLoss reconcile" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="6" time="0.777202"/>
+      <testcase name="Tax reconciles to direct db aggregate" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::Tax reconciles to direct db aggregate" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="3" time="0.583922"/>
+      <testcase name="StockValuation reconciles to direct db aggregate" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::StockValuation reconciles to direct db aggregate" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="2" time="0.512315"/>
+      <testcase name="TrialBalance reconciles" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::TrialBalance reconciles" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="5" time="0.544715"/>
+      <testcase name="DailySales reconciles to direct db aggregate" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::DailySales reconciles to direct db aggregate" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="0" time="0.202825">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">DailySales reconciles to direct db aggregateSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\ReportReconciliationTest.php:446</error>
+      </testcase>
+      <testcase name="PartyStatement reconciles to direct db aggregate" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::PartyStatement reconciles to direct db aggregate" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="3" time="0.661120"/>
+      <testcase name="Empty reconciliation no crash" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::Empty reconciliation no crash" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="9" time="1.115763"/>
+      <testcase name="Tier2 smoke tests" file="Report Reconciliation (Tests\Feature\Money\ReportReconciliation)::Tier2 smoke tests" class="Tests\Feature\Money\ReportReconciliationTest" classname="Tests.Feature.Money.ReportReconciliationTest" assertions="58" time="2.694485"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\ReturnIntegrityTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\ReturnIntegrityTest.php" tests="2" assertions="9" errors="0" failures="0" skipped="0" time="1.217925">
+      <testcase name="M1-01: repeated partial returns cannot refund more than was sold" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\ReturnIntegrityTest.php::M1-01: repeated partial returns cannot refund more than was sold" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\ReturnIntegrityTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.ReturnIntegrityTest" assertions="4" time="0.552287"/>
+      <testcase name="M1-02 north-star: item-wise profit nets the 2 returned units (shows 13, not 15)" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\ReturnIntegrityTest.php::M1-02 north-star: item-wise profit nets the 2 returned units (shows 13, not 15)" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\ReturnIntegrityTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.ReturnIntegrityTest" assertions="5" time="0.665638"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\SaleHeaderInvariantTest" file="Sale Header Invariant (Tests\Feature\Money\SaleHeaderInvariant)" tests="1" assertions="240" errors="0" failures="0" skipped="0" time="3.317035">
+      <testcase name="B4 header invariant holds across many randomized sales" file="Sale Header Invariant (Tests\Feature\Money\SaleHeaderInvariant)::B4 header invariant holds across many randomized sales" class="Tests\Feature\Money\SaleHeaderInvariantTest" classname="Tests.Feature.Money.SaleHeaderInvariantTest" assertions="240" time="3.317035"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\SalesListMonthFilterTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\SalesListMonthFilterTest.php" tests="1" assertions="0" errors="1" failures="0" skipped="0" time="0.175781">
+      <testcase name="M1-XX: sales list month filter includes sales created in the current month" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\SalesListMonthFilterTest.php::M1-XX: sales list month filter includes sales created in the current month" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\SalesListMonthFilterTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.SalesListMonthFilterTest" assertions="0" time="0.175781">
+        <error type="Symfony\Component\HttpKernel\Exception\HttpException">M1-XX: sales list month filter includes sales created in the current monthSymfony\Component\HttpKernel\Exception\HttpException: Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.&#13;
+at vendor\laravel\framework\src\Illuminate\Foundation\Application.php:1440
+at vendor\laravel\framework\src\Illuminate\Foundation\helpers.php:67
+at app\Observers\SaleObserver.php:78
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:512
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:319
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:299
+at vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php:259
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Concerns\HasEvents.php:224
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1384
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:1240
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1219
+at vendor\laravel\framework\src\Illuminate\Support\helpers.php:393
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Builder.php:1218
+at vendor\laravel\framework\src\Illuminate\Support\Traits\ForwardsCalls.php:23
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2544
+at vendor\laravel\framework\src\Illuminate\Database\Eloquent\Model.php:2560
+at E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\SalesListMonthFilterTest.php:28</error>
+      </testcase>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\SplitPaymentReconcileTest" file="Split Payment Reconcile (Tests\Feature\Money\SplitPaymentReconcile)" tests="1" assertions="355" errors="0" failures="0" skipped="0" time="2.030692">
+      <testcase name="B6 split payment legs always sum to the invoice total and books balance" file="Split Payment Reconcile (Tests\Feature\Money\SplitPaymentReconcile)::B6 split payment legs always sum to the invoice total and books balance" class="Tests\Feature\Money\SplitPaymentReconcileTest" classname="Tests.Feature.Money.SplitPaymentReconcileTest" assertions="355" time="2.030692"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\SupplierStatementTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\SupplierStatementTest.php" tests="2" assertions="8" errors="0" failures="0" skipped="0" time="1.084561">
+      <testcase name="M1-10: a credit purchase shows as a POSITIVE supplier payable" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\SupplierStatementTest.php::M1-10: a credit purchase shows as a POSITIVE supplier payable" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\SupplierStatementTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.SupplierStatementTest" assertions="4" time="0.544670"/>
+      <testcase name="M1-10: a credit sale still shows customer receivable with correct sign" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\SupplierStatementTest.php::M1-10: a credit sale still shows customer receivable with correct sign" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\SupplierStatementTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.SupplierStatementTest" assertions="4" time="0.539891"/>
+    </testsuite>
+    <testsuite name="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\TaxAfterDiscountTest" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\TaxAfterDiscountTest.php" tests="1" assertions="10" errors="0" failures="0" skipped="0" time="0.475781">
+      <testcase name="M1-06: order discount reduces the tax base — simple case" file="E:\AMD POS\baseline-10988c43\app-code\main-app\tests\tests\Feature\Money\TaxAfterDiscountTest.php::M1-06: order discount reduces the tax base — simple case" class="E\AMDPOS\baseline10988c43\appcode\mainapp\tests\tests\Feature\Money\TaxAfterDiscountTest" classname="E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.TaxAfterDiscountTest" assertions="10" time="0.475781"/>
+    </testsuite>
+    <testsuite name="Tests\Feature\Money\TenantTimezoneTest" file="Tenant Timezone (Tests\Feature\Money\TenantTimezone)" tests="2" assertions="4" errors="0" failures="0" skipped="0" time="0.929259">
+      <testcase name="B2 a sale at 02 point 00 tenant local counts on the tenant local date not the UTC date" file="Tenant Timezone (Tests\Feature\Money\TenantTimezone)::B2 a sale at 02 point 00 tenant local counts on the tenant local date not the UTC date" class="Tests\Feature\Money\TenantTimezoneTest" classname="Tests.Feature.Money.TenantTimezoneTest" assertions="2" time="0.454418"/>
+      <testcase name="B2 a UTC tenant is unaffected" file="Tenant Timezone (Tests\Feature\Money\TenantTimezone)::B2 a UTC tenant is unaffected" class="Tests\Feature\Money\TenantTimezoneTest" classname="Tests.Feature.Money.TenantTimezoneTest" assertions="2" time="0.474841"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

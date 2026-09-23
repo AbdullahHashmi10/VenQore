@@ -1,0 +1,39 @@
+{
+  "shard": "shard_13_v3",
+  "file_count_baseline": 15,
+  "file_count_current": 15,
+  "baseline_files": [
+    "tests/tests/Feature/V3/SalesOrderTest.php",
+    "tests/tests/Feature/V3/Scenarios/AccountingServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/FifoServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/InventoryAndPartyServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/ManufacturingServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/PartialReturnTest.php",
+    "tests/tests/Feature/V3/Scenarios/PaymentServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase2InventoryScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase3SalesScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase4OperationsScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase56ReportsInfraScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/ScenarioStubsTest.php",
+    "tests/tests/Feature/V3/Scenarios/SettlementAndReportServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/TaxAndUomServiceTest.php",
+    "tests/tests/Feature/V3/SmokeTest.php"
+  ],
+  "current_files": [
+    "tests/tests/Feature/V3/SalesOrderTest.php",
+    "tests/tests/Feature/V3/Scenarios/AccountingServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/FifoServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/InventoryAndPartyServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/ManufacturingServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/PartialReturnTest.php",
+    "tests/tests/Feature/V3/Scenarios/PaymentServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase2InventoryScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase3SalesScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase4OperationsScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/Phase56ReportsInfraScenariosTest.php",
+    "tests/tests/Feature/V3/Scenarios/ScenarioStubsTest.php",
+    "tests/tests/Feature/V3/Scenarios/SettlementAndReportServiceTest.php",
+    "tests/tests/Feature/V3/Scenarios/TaxAndUomServiceTest.php",
+    "tests/tests/Feature/V3/SmokeTest.php"
+  ]
+}

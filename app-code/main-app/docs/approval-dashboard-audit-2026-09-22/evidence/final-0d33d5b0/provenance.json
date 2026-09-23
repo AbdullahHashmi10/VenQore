@@ -1,0 +1,30 @@
+{
+    "timestamp": "2026-09-23T09:52:48+02:00",
+    "current_commit": "0d33d5b07a56a82aabcc9015a330e8639dd0ad2a",
+    "origin_main_commit": "0d33d5b07a56a82aabcc9015a330e8639dd0ad2a",
+    "baseline_commit": "10988c439169faee75fa3d622f98f6d7d6f51954",
+    "git_status": "## main...origin/main\n m ../production-clean-repo\n?? docs/approval-dashboard-audit-2026-09-22/15-post-push-verification-rejection-and-final-instructions.md\n?? docs/approval-dashboard-audit-2026-09-22/evidence/final-0d33d5b0/",
+    "environment_versions": {
+        "php": "8.2.12",
+        "composer": "Composer version 2.7.2",
+        "node": "v22.20.0",
+        "npm": "10.9.3",
+        "mariadb": "10.4.32-MariaDB",
+        "laravel": "Laravel Framework 12.x"
+    },
+    "current_hashes": {
+        "composer.lock": "12d123fcb5195cd8bc18415d1d13bebfe67dd5a62e4a5cdbb0e6d42946fedd5b",
+        "package-lock.json": "fb9451346da1f48095cb812f0ab744fc3cd478bd98783e2b54463f9438fba77a",
+        "phpunit.xml": "e63848cc9fb77ac23b28c705f576142f3eb236d496023455da39c407c0721c0d",
+        ".env.testing": "ff9cc3b2b9d7980c4cb5ebe7ebb1f2e980b97f4f13c6e7df1b7ec2de89416449"
+    },
+    "baseline_hashes": {
+        "composer.lock": "12d123fcb5195cd8bc18415d1d13bebfe67dd5a62e4a5cdbb0e6d42946fedd5b",
+        "package-lock.json": "fb9451346da1f48095cb812f0ab744fc3cd478bd98783e2b54463f9438fba77a",
+        "phpunit.xml": "e63848cc9fb77ac23b28c705f576142f3eb236d496023455da39c407c0721c0d"
+    },
+    "databases": {
+        "baseline": "amd_pos_test_baseline_10988c43",
+        "current": "amd_pos_test_current_0d33d5b0"
+    }
+}

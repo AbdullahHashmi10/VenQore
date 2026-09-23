@@ -1,0 +1,33 @@
+{
+  "shard": "shard_03_ai_chat_marketing",
+  "label": "Baseline",
+  "file_count": 18,
+  "files": [
+    "tests/tests/Feature/Ai/AiControllerAccessTest.php",
+    "tests/tests/Feature/Ai/AiRateLimiterTest.php",
+    "tests/tests/Feature/Ai/AiScopeGuardTest.php",
+    "tests/tests/Feature/Ai/GenerateProductDescriptionsJobTest.php",
+    "tests/tests/Feature/Ai/SmartCaptureSpendCapTest.php",
+    "tests/tests/Feature/AppSumo/CodeStackingTest.php",
+    "tests/tests/Feature/AppSumo/ImportAppSumoCodesTest.php",
+    "tests/tests/Feature/Chat/ChatInactivityAndAnonymousTest.php",
+    "tests/tests/Feature/Chat/ChatbotSystemTest.php",
+    "tests/tests/Feature/Chat/SmartCaptureHardeningTest.php",
+    "tests/tests/Feature/Chat/SmartCaptureSafetyTest.php",
+    "tests/tests/Feature/Chat/SmartCaptureTest.php",
+    "tests/tests/Feature/Chat/SupportTicketsTest.php",
+    "tests/tests/Feature/DemoStore/GoldenMasterResolutionTest.php",
+    "tests/tests/Feature/DemoStore/PageHealthTest.php",
+    "tests/tests/Feature/Marketing/GeoPricingTest.php",
+    "tests/tests/Feature/Marketing/NewsletterSubscriptionTest.php",
+    "tests/tests/Feature/Marketing/PricingPageReportingTiersTest.php"
+  ],
+  "duration_seconds": 36.24,
+  "exit_code": 1,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 186 testcases (1 failed/errors)",
+  "testcase_count": 186,
+  "failure_count": 1,
+  "start_time": "2026-09-23T17:57:50.423399",
+  "end_time": "2026-09-23T17:58:26.663126"
+}

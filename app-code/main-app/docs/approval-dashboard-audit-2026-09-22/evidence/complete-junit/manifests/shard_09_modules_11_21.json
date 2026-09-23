@@ -1,0 +1,41 @@
+{
+  "shard": "shard_09_modules_11_21",
+  "file_count_baseline": 16,
+  "file_count_current": 16,
+  "baseline_files": [
+    "tests/tests/Feature/Module11/BillingTest.php",
+    "tests/tests/Feature/Module12/ReportsTest.php",
+    "tests/tests/Feature/Module13/DashboardTest.php",
+    "tests/tests/Feature/Module14/AiEngineTest.php",
+    "tests/tests/Feature/Module15/PartiesLedgerTest.php",
+    "tests/tests/Feature/Module16/StaffAttendanceTest.php",
+    "tests/tests/Feature/Module17/SettingsTest.php",
+    "tests/tests/Feature/Module18/OfflineDrmTest.php",
+    "tests/tests/Feature/Module19/MarketplaceClearingT17Test.php",
+    "tests/tests/Feature/Module19/RealTimeNotificationTest.php",
+    "tests/tests/Feature/Module19/VenSynQIntegrationT16Test.php",
+    "tests/tests/Feature/Module19/VenSynQTest.php",
+    "tests/tests/Feature/Module20/FinancialExtensionTest.php",
+    "tests/tests/Feature/Module20/SuperAdminTest.php",
+    "tests/tests/Feature/Module21/RealWorkflowIntegrationTest.php",
+    "tests/tests/Feature/Monetization/AiAndSyncEntitlementTest.php"
+  ],
+  "current_files": [
+    "tests/tests/Feature/Module11/BillingTest.php",
+    "tests/tests/Feature/Module12/ReportsTest.php",
+    "tests/tests/Feature/Module13/DashboardTest.php",
+    "tests/tests/Feature/Module14/AiEngineTest.php",
+    "tests/tests/Feature/Module15/PartiesLedgerTest.php",
+    "tests/tests/Feature/Module16/StaffAttendanceTest.php",
+    "tests/tests/Feature/Module17/SettingsTest.php",
+    "tests/tests/Feature/Module18/OfflineDrmTest.php",
+    "tests/tests/Feature/Module19/MarketplaceClearingT17Test.php",
+    "tests/tests/Feature/Module19/RealTimeNotificationTest.php",
+    "tests/tests/Feature/Module19/VenSynQIntegrationT16Test.php",
+    "tests/tests/Feature/Module19/VenSynQTest.php",
+    "tests/tests/Feature/Module20/FinancialExtensionTest.php",
+    "tests/tests/Feature/Module20/SuperAdminTest.php",
+    "tests/tests/Feature/Module21/RealWorkflowIntegrationTest.php",
+    "tests/tests/Feature/Monetization/AiAndSyncEntitlementTest.php"
+  ]
+}

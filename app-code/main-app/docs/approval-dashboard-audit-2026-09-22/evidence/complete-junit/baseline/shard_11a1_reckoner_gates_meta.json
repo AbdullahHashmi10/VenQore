@@ -1,0 +1,28 @@
+{
+  "shard": "shard_11a1_reckoner_gates",
+  "label": "Baseline",
+  "file_count": 13,
+  "files": [
+    "tests/tests/Feature/Dashboard/FrameGeometryLawTest.php",
+    "tests/tests/Feature/Reckoner/AdversarialInvariantGateTest.php",
+    "tests/tests/Feature/Reckoner/CardContractValidatorTest.php",
+    "tests/tests/Feature/Reckoner/CustomCardsGateTest.php",
+    "tests/tests/Feature/Reckoner/DataCaptureMigrationsGateTest.php",
+    "tests/tests/Feature/Reckoner/GoldenStoreLedgerTest.php",
+    "tests/tests/Feature/Reckoner/LedgerFoundationGateTest.php",
+    "tests/tests/Feature/Reckoner/RollupParityGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4aMoneyGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4bSellingGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4cStockGateTest.php",
+    "tests/tests/Feature/Reckoner/Slice4dOperationsGateTest.php",
+    "tests/tests/Feature/Reckoner/TruthGateTest.php"
+  ],
+  "duration_seconds": 16.03,
+  "exit_code": 1,
+  "xml_valid": true,
+  "xml_message": "Valid XML with 59 testcases (1 failed/errors)",
+  "testcase_count": 59,
+  "failure_count": 1,
+  "start_time": "2026-09-23T18:11:35.760824",
+  "end_time": "2026-09-23T18:11:51.792799"
+}

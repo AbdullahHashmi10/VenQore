@@ -121,19 +121,28 @@ class ApprovalDocumentController extends Controller
             ->firstOrFail();
 
         $isMaker = ($doc->maker_id === $user->id);
+        // View access: approvals.inbox is fine here — it's meant to let someone
+        // see the inbox and its documents.
+        $hasViewPerm = $user->hasPermission('approvals.review') ||
+                       $user->hasPermission('approvals.inbox') ||
+                       $user->isPlatformAdmin();
+
+        // Decision capability (drives canApprove below): approvals.inbox is
+        // deliberately EXCLUDED. Viewing the inbox must never authorize a
+        // decision, even indirectly through the UI showing an approve button.
         $hasReviewPerm = $user->hasPermission('approvals.review') ||
-                         $user->hasPermission('approvals.inbox') ||
+                         $user->hasPermission('approvals.approve') ||
                          $user->isPlatformAdmin();
 
         $hasOwnPerm = $user->hasPermission('approvals.view_own') ||
                       $user->hasPermission('approvals.submit') ||
                       $user->isPlatformAdmin();
 
-        if ($isMaker && !$hasOwnPerm && !$hasReviewPerm) {
+        if ($isMaker && !$hasOwnPerm && !$hasViewPerm) {
             abort(403, 'Access Denied: You do not have permission to view your submission.');
         }
 
-        if (!$isMaker && !$hasReviewPerm) {
+        if (!$isMaker && !$hasViewPerm) {
             abort(403, 'Access Denied: You do not have permission to view approval documents.');
         }
 
@@ -331,7 +340,7 @@ class ApprovalDocumentController extends Controller
         ]);
 
         $existing = ApprovalDocument::where('tenant_id', $tenant->id)->where('id', $id)->firstOrFail();
-        if ($existing->maker_id !== $user->id && !$user->isPlatformAdmin()) {
+        if ($existing->maker_id !== $user->id) {
             abort(403, 'Access Denied: Only the document maker can resubmit this submission.');
         }
 

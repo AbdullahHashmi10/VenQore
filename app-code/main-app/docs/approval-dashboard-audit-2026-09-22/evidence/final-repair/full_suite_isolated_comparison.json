@@ -1,0 +1,1140 @@
+{
+  "generated_at": "2026-09-23T09:53:51.874Z",
+  "baseline": {
+    "commit": "10988c43",
+    "database": "amd_pos_test_baseline_10988c43",
+    "started_at": "2026-09-23T09:17:39.489Z",
+    "completed_at": "2026-09-23T09:35:00.393Z",
+    "exit_code": 2,
+    "total": 67,
+    "passed": 1,
+    "failed": 66,
+    "failures": [
+      {
+        "fullName": "Tests.Unit.AiBuilder.BusinessUnderstandingTest::It reads a sentence into modules with reasons",
+        "file": "Business Understanding (Tests\\Unit\\AiBuilder\\BusinessUnderstanding)::It reads a sentence into modules with reasons",
+        "className": "Tests.Unit.AiBuilder.BusinessUnderstandingTest",
+        "name": "It reads a sentence into modules with reasons"
+      },
+      {
+        "fullName": "Tests.Unit.Reckoner.ReckonerResultTest::Failure returns not ok",
+        "file": "Reckoner Result (Tests\\Unit\\Reckoner\\ReckonerResult)::Failure returns not ok",
+        "className": "Tests.Unit.Reckoner.ReckonerResultTest",
+        "name": "Failure returns not ok"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Billing.SubscriptionCancelTest::a store with no subscription is told there is nothing to cancel",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Billing\\SubscriptionCancelTest.php::a store with no subscription is told there is nothing to cancel",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Billing.SubscriptionCancelTest",
+        "name": "a store with no subscription is told there is nothing to cancel"
+      },
+      {
+        "fullName": "Tests.Feature.BlogPostEngineTest::Blog show page renders successfully with dynamic seo and ssr",
+        "file": "Blog Post Engine (Tests\\Feature\\BlogPostEngine)::Blog show page renders successfully with dynamic seo and ssr",
+        "className": "Tests.Feature.BlogPostEngineTest",
+        "name": "Blog show page renders successfully with dynamic seo and ssr"
+      },
+      {
+        "fullName": "Tests.Feature.BlogPostEngineTest::Unknown blog slug returns 404",
+        "file": "Blog Post Engine (Tests\\Feature\\BlogPostEngine)::Unknown blog slug returns 404",
+        "className": "Tests.Feature.BlogPostEngineTest",
+        "name": "Unknown blog slug returns 404"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest::sending a message broadcasts on agent inbox channels",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Chat\\ChatInactivityAndAnonymousTest.php::sending a message broadcasts on agent inbox channels",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest",
+        "name": "sending a message broadcasts on agent inbox channels"
+      },
+      {
+        "fullName": "Tests.Feature.ComparePagesTest::Compare square page renders successfully with ssr",
+        "file": "Compare Pages (Tests\\Feature\\ComparePages)::Compare square page renders successfully with ssr",
+        "className": "Tests.Feature.ComparePagesTest",
+        "name": "Compare square page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.ComparePagesTest::Compare vyapar page renders successfully with ssr",
+        "file": "Compare Pages (Tests\\Feature\\ComparePages)::Compare vyapar page renders successfully with ssr",
+        "className": "Tests.Feature.ComparePagesTest",
+        "name": "Compare vyapar page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.Core.DashboardConsistencyTest::Dashboard reconciles exactly to reporting service and direct db",
+        "file": "Dashboard Consistency (Tests\\Feature\\Core\\DashboardConsistency)::Dashboard reconciles exactly to reporting service and direct db",
+        "className": "Tests.Feature.Core.DashboardConsistencyTest",
+        "name": "Dashboard reconciles exactly to reporting service and direct db"
+      },
+      {
+        "fullName": "Tests.Feature.Core.PlanTruthFailClosedTest::Recurring invoices and fund management use their own keys",
+        "file": "Plan Truth Fail Closed (Tests\\Feature\\Core\\PlanTruthFailClosed)::Recurring invoices and fund management use their own keys",
+        "className": "Tests.Feature.Core.PlanTruthFailClosedTest",
+        "name": "Recurring invoices and fund management use their own keys"
+      },
+      {
+        "fullName": "Tests.Feature.Core.RegistryDriftTest::Phpunit method total matches filesystem",
+        "file": "Registry Drift (Tests\\Feature\\Core\\RegistryDrift)::Phpunit method total matches filesystem",
+        "className": "Tests.Feature.Core.RegistryDriftTest",
+        "name": "Phpunit method total matches filesystem"
+      },
+      {
+        "fullName": "Tests.Feature.Core.RegistryDriftTest::Every member has a valid oracle tier",
+        "file": "Registry Drift (Tests\\Feature\\Core\\RegistryDrift)::Every member has a valid oracle tier",
+        "className": "Tests.Feature.Core.RegistryDriftTest",
+        "name": "Every member has a valid oracle tier"
+      },
+      {
+        "fullName": "Tests.Feature.DocumentationHubTest::Docs search filters qas correctly",
+        "file": "Documentation Hub (Tests\\Feature\\DocumentationHub)::Docs search filters qas correctly",
+        "className": "Tests.Feature.DocumentationHubTest",
+        "name": "Docs search filters qas correctly"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features accounting page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features accounting page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features accounting page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features inventory management page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features inventory management page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features inventory management page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features offline pos page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features offline pos page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features offline pos page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features point of sale page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features point of sale page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features point of sale page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features growth engine page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features growth engine page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features growth engine page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Unknown feature slug returns 404",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Unknown feature slug returns 404",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Unknown feature slug returns 404"
+      },
+      {
+        "fullName": "Tests.Feature.GoldenAuditTestsTest::Ledger truth audit",
+        "file": "Golden Audit Tests (Tests\\Feature\\GoldenAuditTests)::Ledger truth audit",
+        "className": "Tests.Feature.GoldenAuditTestsTest",
+        "name": "Ledger truth audit"
+      },
+      {
+        "fullName": "Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest::Heartbeat requires device id",
+        "file": "Heartbeat Ownership Guard (Tests\\Feature\\Guardrails\\HeartbeatOwnershipGuard)::Heartbeat requires device id",
+        "className": "Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest",
+        "name": "Heartbeat requires device id"
+      },
+      {
+        "fullName": "Tests.Feature.Guardrails.OfflineSyncIdempotencyGuardTest::Resubmitting an already synced sale does not duplicate it",
+        "file": "Offline Sync Idempotency Guard (Tests\\Feature\\Guardrails\\OfflineSyncIdempotencyGuard)::Resubmitting an already synced sale does not duplicate it",
+        "className": "Tests.Feature.Guardrails.OfflineSyncIdempotencyGuardTest",
+        "name": "Resubmitting an already synced sale does not duplicate it"
+      },
+      {
+        "fullName": "Tests.Feature.Guardrails.SaleFinancialValueGuardTest::Sale stores exact money values and holds invariants",
+        "file": "Sale Financial Value Guard (Tests\\Feature\\Guardrails\\SaleFinancialValueGuard)::Sale stores exact money values and holds invariants",
+        "className": "Tests.Feature.Guardrails.SaleFinancialValueGuardTest",
+        "name": "Sale stores exact money values and holds invariants"
+      },
+      {
+        "fullName": "Tests.Feature.Hardening.PosApprovalGuardTest::Below cost is allowed with manager and pin and approval is recorded",
+        "file": "Pos Approval Guard (Tests\\Feature\\Hardening\\PosApprovalGuard)::Below cost is allowed with manager and pin and approval is recorded",
+        "className": "Tests.Feature.Hardening.PosApprovalGuardTest",
+        "name": "Below cost is allowed with manager and pin and approval is recorded"
+      },
+      {
+        "fullName": "Tests.Feature.MarketingSsrTest::Tenant routes keep inertia ssr disabled",
+        "file": "Marketing Ssr (Tests\\Feature\\MarketingSsr)::Tenant routes keep inertia ssr disabled",
+        "className": "Tests.Feature.MarketingSsrTest",
+        "name": "Tenant routes keep inertia ssr disabled"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest::guest cannot access venqore routes",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::guest cannot access venqore routes",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "guest cannot access venqore routes"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest::user can log in via POS PIN with valid credentials",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::user can log in via POS PIN with valid credentials",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "user can log in via POS PIN with valid credentials"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module02.StoreCreationAndProvisioningTest::ltd tier1 blocked after 1 store",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module02\\StoreCreationAndProvisioningTest.php::ltd tier1 blocked after 1 store",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module02.StoreCreationAndProvisioningTest",
+        "name": "ltd tier1 blocked after 1 store"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module06.SalesEcosystemTest::recurring invoice generation creates a correct new invoice with line items",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module06\\SalesEcosystemTest.php::recurring invoice generation creates a correct new invoice with line items",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module06.SalesEcosystemTest",
+        "name": "recurring invoice generation creates a correct new invoice with line items"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "scopes all cashier dashboard widgets and session stats strictly to the current tenant"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::handles zero activity onboarding state without throwing unhandled exceptions",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::handles zero activity onboarding state without throwing unhandled exceptions",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "handles zero activity onboarding state without throwing unhandled exceptions"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::restricts V3 dashboard endpoint to users without financial permissions",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::restricts V3 dashboard endpoint to users without financial permissions",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "restricts V3 dashboard endpoint to users without financial permissions"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest::restricts chatbot settings updates to store owner or administrator",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module17\\SettingsTest.php::restricts chatbot settings updates to store owner or administrator",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest",
+        "name": "restricts chatbot settings updates to store owner or administrator"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest::enforces tenant bounds when settings are updated globally or via platform commands",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module17\\SettingsTest.php::enforces tenant bounds when settings are updated globally or via platform commands",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest",
+        "name": "enforces tenant bounds when settings are updated globally or via platform commands"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest::resolves the settings panel without redirecting to the hub",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module17\\SettingsTest.php::resolves the settings panel without redirecting to the hub",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest",
+        "name": "resolves the settings panel without redirecting to the hub"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module18.OfflineDrmTest::drm_license_validated_on_startup",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module18\\OfflineDrmTest.php::drm_license_validated_on_startup",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module18.OfflineDrmTest",
+        "name": "drm_license_validated_on_startup"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module21.RealWorkflowIntegrationTest::full_pos_sale_cash_payment",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module21\\RealWorkflowIntegrationTest.php::full_pos_sale_cash_payment",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module21.RealWorkflowIntegrationTest",
+        "name": "full_pos_sale_cash_payment"
+      },
+      {
+        "fullName": "Tests.Feature.Module.ModuleRegistryIntegrityTest::Every permission key is real",
+        "file": "Module Registry Integrity (Tests\\Feature\\Module\\ModuleRegistryIntegrity)::Every permission key is real",
+        "className": "Tests.Feature.Module.ModuleRegistryIntegrityTest",
+        "name": "Every permission key is real"
+      },
+      {
+        "fullName": "Tests.Feature.Module.ReportPlanMapIntegrityTest::Every suffix in report plan map is a registered route",
+        "file": "Report Plan Map Integrity (Tests\\Feature\\Module\\ReportPlanMapIntegrity)::Every suffix in report plan map is a registered route",
+        "className": "Tests.Feature.Module.ReportPlanMapIntegrityTest",
+        "name": "Every suffix in report plan map is a registered route"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::vensynq is reachable once the override is granted",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::vensynq is reachable once the override is granted",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "vensynq is reachable once the override is granted"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::platform registry honours the config allowlist",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::platform registry honours the config allowlist",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "platform registry honours the config allowlist"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::free tier allowance comes from config, not a hardcoded number",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::free tier allowance comes from config, not a hardcoded number",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "free tier allowance comes from config, not a hardcoded number"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::monthly reset clears managed usage but never the free lifetime allowance",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::monthly reset clears managed usage but never the free lifetime allowance",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "monthly reset clears managed usage but never the free lifetime allowance"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.FractionalQtyTest::M1-07: a fractional-quantity sale persists 2.5, not 2 or 3",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Money\\FractionalQtyTest.php::M1-07: a fractional-quantity sale persists 2.5, not 2 or 3",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.FractionalQtyTest",
+        "name": "M1-07: a fractional-quantity sale persists 2.5, not 2 or 3"
+      },
+      {
+        "fullName": "Tests.Feature.Money.ReportReconciliationTest::PartyStatement reconciles to direct db aggregate",
+        "file": "Report Reconciliation (Tests\\Feature\\Money\\ReportReconciliation)::PartyStatement reconciles to direct db aggregate",
+        "className": "Tests.Feature.Money.ReportReconciliationTest",
+        "name": "PartyStatement reconciles to direct db aggregate"
+      },
+      {
+        "fullName": "Tests.Feature.Money.SplitPaymentReconcileTest::B6 split payment legs always sum to the invoice total and books balance",
+        "file": "Split Payment Reconcile (Tests\\Feature\\Money\\SplitPaymentReconcile)::B6 split payment legs always sum to the invoice total and books balance",
+        "className": "Tests.Feature.Money.SplitPaymentReconcileTest",
+        "name": "B6 split payment legs always sum to the invoice total and books balance"
+      },
+      {
+        "fullName": "Tests.Feature.PartnersPageTest::Partners page is included in sitemap",
+        "file": "Partners Page (Tests\\Feature\\PartnersPage)::Partners page is included in sitemap",
+        "className": "Tests.Feature.PartnersPageTest",
+        "name": "Partners page is included in sitemap"
+      },
+      {
+        "fullName": "Tests.Feature.Phase3FeatureGatesTest::It enforces counter plan sku and report limits",
+        "file": "Phase3Feature Gates (Tests\\Feature\\Phase3FeatureGates)::It enforces counter plan sku and report limits",
+        "className": "Tests.Feature.Phase3FeatureGatesTest",
+        "name": "It enforces counter plan sku and report limits"
+      },
+      {
+        "fullName": "Tests.Feature.Phase4PricingLiveTest::It executes v4 tenant migration command",
+        "file": "Phase4Pricing Live (Tests\\Feature\\Phase4PricingLive)::It executes v4 tenant migration command",
+        "className": "Tests.Feature.Phase4PricingLiveTest",
+        "name": "It executes v4 tenant migration command"
+      },
+      {
+        "fullName": "Tests.Feature.Phase9OptionalFeaturesTest::Cosine embedding vector similarity matching",
+        "file": "Phase9Optional Features (Tests\\Feature\\Phase9OptionalFeatures)::Cosine embedding vector similarity matching",
+        "className": "Tests.Feature.Phase9OptionalFeaturesTest",
+        "name": "Cosine embedding vector similarity matching"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Register observer blocks exceeding register limit",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Register observer blocks exceeding register limit",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Register observer blocks exceeding register limit"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Tenant user observer blocks exceeding staff seat limit on full seats only",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Tenant user observer blocks exceeding staff seat limit on full seats only",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Tenant user observer blocks exceeding staff seat limit on full seats only"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Product observer blocks exceeding sku limit",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Product observer blocks exceeding sku limit",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Product observer blocks exceeding sku limit"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Trial expiry drops to solo plan",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Trial expiry drops to solo plan",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Trial expiry drops to solo plan"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::History reappears instantly upon upgrade from solo",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::History reappears instantly upon upgrade from solo",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "History reappears instantly upon upgrade from solo"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Till remains unblocked when device cap exceeded",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Till remains unblocked when device cap exceeded",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Till remains unblocked when device cap exceeded"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::4 nothing deleted older records preserved",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::4 nothing deleted older records preserved",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "4 nothing deleted older records preserved"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::5 upgrading solo to starter exposes full history",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::5 upgrading solo to starter exposes full history",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "5 upgrading solo to starter exposes full history"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::6 card row caps on solo",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::6 card row caps on solo",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "6 card row caps on solo"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::7 solo tenant blocked from analytical reckoner metrics",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::7 solo tenant blocked from analytical reckoner metrics",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "7 solo tenant blocked from analytical reckoner metrics"
+      },
+      {
+        "fullName": "Tests.Feature.PosFeaturesTest::Categories endpoint returns product count for active categories",
+        "file": "Pos Features (Tests\\Feature\\PosFeatures)::Categories endpoint returns product count for active categories",
+        "className": "Tests.Feature.PosFeaturesTest",
+        "name": "Categories endpoint returns product count for active categories"
+      },
+      {
+        "fullName": "Tests.Feature.PrelaunchP0VerificationTest::R07 quick action routes from command palette do not return 501",
+        "file": "Prelaunch P0Verification (Tests\\Feature\\PrelaunchP0Verification)::R07 quick action routes from command palette do not return 501",
+        "className": "Tests.Feature.PrelaunchP0VerificationTest",
+        "name": "R07 quick action routes from command palette do not return 501"
+      },
+      {
+        "fullName": "Tests.Feature.ProductDeletionTest::Can delete clean product and force delete",
+        "file": "Product Deletion (Tests\\Feature\\ProductDeletion)::Can delete clean product and force delete",
+        "className": "Tests.Feature.ProductDeletionTest",
+        "name": "Can delete clean product and force delete"
+      },
+      {
+        "fullName": "Tests.Feature.Production.LegacyPosCogsPinningTest::Pos003 sale is blocked rather than fabricated when stock is missing",
+        "file": "Legacy Pos Cogs Pinning (Tests\\Feature\\Production\\LegacyPosCogsPinning)::Pos003 sale is blocked rather than fabricated when stock is missing",
+        "className": "Tests.Feature.Production.LegacyPosCogsPinningTest",
+        "name": "Pos003 sale is blocked rather than fabricated when stock is missing"
+      },
+      {
+        "fullName": "Tests.Feature.Reckoner.AdversarialInvariantGateTest::Adversarial balanced books corruption and recovery",
+        "file": "Adversarial Invariant Gate (Tests\\Feature\\Reckoner\\AdversarialInvariantGate)::Adversarial balanced books corruption and recovery",
+        "className": "Tests.Feature.Reckoner.AdversarialInvariantGateTest",
+        "name": "Adversarial balanced books corruption and recovery"
+      }
+    ]
+  },
+  "current": {
+    "commit": "0d33d5b0 (repaired)",
+    "database": "amd_pos_test_current_0d33d5b0",
+    "started_at": "2026-09-23T09:35:00.398Z",
+    "completed_at": "2026-09-23T09:53:51.864Z",
+    "exit_code": 2,
+    "total": 70,
+    "passed": 2,
+    "failed": 68,
+    "failures": [
+      {
+        "fullName": "Tests.Unit.AiBuilder.BusinessUnderstandingTest::It reads a sentence into modules with reasons",
+        "file": "Business Understanding (Tests\\Unit\\AiBuilder\\BusinessUnderstanding)::It reads a sentence into modules with reasons",
+        "className": "Tests.Unit.AiBuilder.BusinessUnderstandingTest",
+        "name": "It reads a sentence into modules with reasons"
+      },
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Freelance designer bundle does not contain screenshot options",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Freelance designer bundle does not contain screenshot options",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Freelance designer bundle does not contain screenshot options"
+      },
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Phone repair freelancer allows repair capabilities",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Phone repair freelancer allows repair capabilities",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Phone repair freelancer allows repair capabilities"
+      },
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Reaches question limit without claiming full understanding",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Reaches question limit without claiming full understanding",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Reaches question limit without claiming full understanding"
+      },
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Repair clarification assigns valid preset and stock",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Repair clarification assigns valid preset and stock",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Repair clarification assigns valid preset and stock"
+      },
+      {
+        "fullName": "Tests.Unit.Audit.MigrationCompatibilityTest::Sales tenant idempotency migration and non destructive rollback",
+        "file": "Migration Compatibility (Tests\\Unit\\Audit\\MigrationCompatibility)::Sales tenant idempotency migration and non destructive rollback",
+        "className": "Tests.Unit.Audit.MigrationCompatibilityTest",
+        "name": "Sales tenant idempotency migration and non destructive rollback"
+      },
+      {
+        "fullName": "Tests.Feature.Batch1RegressionTest::Accountant aging buckets return honest unavailable state",
+        "file": "Batch1Regression (Tests\\Feature\\Batch1Regression)::Accountant aging buckets return honest unavailable state",
+        "className": "Tests.Feature.Batch1RegressionTest",
+        "name": "Accountant aging buckets return honest unavailable state"
+      },
+      {
+        "fullName": "Tests.Feature.Batch1RegressionTest::Incidental change return calculation",
+        "file": "Batch1Regression (Tests\\Feature\\Batch1Regression)::Incidental change return calculation",
+        "className": "Tests.Feature.Batch1RegressionTest",
+        "name": "Incidental change return calculation"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Billing.SubscriptionCancelTest::a store with no subscription is told there is nothing to cancel",
+        "file": "tests\\tests\\Feature\\Billing\\SubscriptionCancelTest.php::a store with no subscription is told there is nothing to cancel",
+        "className": "Tests.tests.Feature.Billing.SubscriptionCancelTest",
+        "name": "a store with no subscription is told there is nothing to cancel"
+      },
+      {
+        "fullName": "Tests.Feature.BlogPostEngineTest::Blog show page renders successfully with dynamic seo and ssr",
+        "file": "Blog Post Engine (Tests\\Feature\\BlogPostEngine)::Blog show page renders successfully with dynamic seo and ssr",
+        "className": "Tests.Feature.BlogPostEngineTest",
+        "name": "Blog show page renders successfully with dynamic seo and ssr"
+      },
+      {
+        "fullName": "Tests.Feature.BlogPostEngineTest::Unknown blog slug returns 404",
+        "file": "Blog Post Engine (Tests\\Feature\\BlogPostEngine)::Unknown blog slug returns 404",
+        "className": "Tests.Feature.BlogPostEngineTest",
+        "name": "Unknown blog slug returns 404"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest::sending a message broadcasts on agent inbox channels",
+        "file": "tests\\tests\\Feature\\Chat\\ChatInactivityAndAnonymousTest.php::sending a message broadcasts on agent inbox channels",
+        "className": "Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest",
+        "name": "sending a message broadcasts on agent inbox channels"
+      },
+      {
+        "fullName": "Tests.Feature.ComparePagesTest::Compare square page renders successfully with ssr",
+        "file": "Compare Pages (Tests\\Feature\\ComparePages)::Compare square page renders successfully with ssr",
+        "className": "Tests.Feature.ComparePagesTest",
+        "name": "Compare square page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.ComparePagesTest::Compare vyapar page renders successfully with ssr",
+        "file": "Compare Pages (Tests\\Feature\\ComparePages)::Compare vyapar page renders successfully with ssr",
+        "className": "Tests.Feature.ComparePagesTest",
+        "name": "Compare vyapar page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.Core.DashboardConsistencyTest::Dashboard reconciles exactly to reporting service and direct db",
+        "file": "Dashboard Consistency (Tests\\Feature\\Core\\DashboardConsistency)::Dashboard reconciles exactly to reporting service and direct db",
+        "className": "Tests.Feature.Core.DashboardConsistencyTest",
+        "name": "Dashboard reconciles exactly to reporting service and direct db"
+      },
+      {
+        "fullName": "Tests.Feature.Core.PlanTruthFailClosedTest::Recurring invoices and fund management use their own keys",
+        "file": "Plan Truth Fail Closed (Tests\\Feature\\Core\\PlanTruthFailClosed)::Recurring invoices and fund management use their own keys",
+        "className": "Tests.Feature.Core.PlanTruthFailClosedTest",
+        "name": "Recurring invoices and fund management use their own keys"
+      },
+      {
+        "fullName": "Tests.Feature.Core.RegistryDriftTest::Phpunit method total matches filesystem",
+        "file": "Registry Drift (Tests\\Feature\\Core\\RegistryDrift)::Phpunit method total matches filesystem",
+        "className": "Tests.Feature.Core.RegistryDriftTest",
+        "name": "Phpunit method total matches filesystem"
+      },
+      {
+        "fullName": "Tests.Feature.Core.RegistryDriftTest::Every member has a valid oracle tier",
+        "file": "Registry Drift (Tests\\Feature\\Core\\RegistryDrift)::Every member has a valid oracle tier",
+        "className": "Tests.Feature.Core.RegistryDriftTest",
+        "name": "Every member has a valid oracle tier"
+      },
+      {
+        "fullName": "Tests.Feature.DocumentationHubTest::Docs search filters qas correctly",
+        "file": "Documentation Hub (Tests\\Feature\\DocumentationHub)::Docs search filters qas correctly",
+        "className": "Tests.Feature.DocumentationHubTest",
+        "name": "Docs search filters qas correctly"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features accounting page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features accounting page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features accounting page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features inventory management page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features inventory management page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features inventory management page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features offline pos page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features offline pos page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features offline pos page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features point of sale page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features point of sale page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features point of sale page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Features growth engine page renders successfully with ssr",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Features growth engine page renders successfully with ssr",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Features growth engine page renders successfully with ssr"
+      },
+      {
+        "fullName": "Tests.Feature.FeaturePagesTest::Unknown feature slug returns 404",
+        "file": "Feature Pages (Tests\\Feature\\FeaturePages)::Unknown feature slug returns 404",
+        "className": "Tests.Feature.FeaturePagesTest",
+        "name": "Unknown feature slug returns 404"
+      },
+      {
+        "fullName": "Tests.Feature.GoldenAuditTestsTest::Ledger truth audit",
+        "file": "Golden Audit Tests (Tests\\Feature\\GoldenAuditTests)::Ledger truth audit",
+        "className": "Tests.Feature.GoldenAuditTestsTest",
+        "name": "Ledger truth audit"
+      },
+      {
+        "fullName": "Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest::Heartbeat requires device id",
+        "file": "Heartbeat Ownership Guard (Tests\\Feature\\Guardrails\\HeartbeatOwnershipGuard)::Heartbeat requires device id",
+        "className": "Tests.Feature.Guardrails.HeartbeatOwnershipGuardTest",
+        "name": "Heartbeat requires device id"
+      },
+      {
+        "fullName": "Tests.Feature.Guardrails.OfflineSyncIdempotencyGuardTest::Resubmitting an already synced sale does not duplicate it",
+        "file": "Offline Sync Idempotency Guard (Tests\\Feature\\Guardrails\\OfflineSyncIdempotencyGuard)::Resubmitting an already synced sale does not duplicate it",
+        "className": "Tests.Feature.Guardrails.OfflineSyncIdempotencyGuardTest",
+        "name": "Resubmitting an already synced sale does not duplicate it"
+      },
+      {
+        "fullName": "Tests.Feature.Guardrails.SaleFinancialValueGuardTest::Sale stores exact money values and holds invariants",
+        "file": "Sale Financial Value Guard (Tests\\Feature\\Guardrails\\SaleFinancialValueGuard)::Sale stores exact money values and holds invariants",
+        "className": "Tests.Feature.Guardrails.SaleFinancialValueGuardTest",
+        "name": "Sale stores exact money values and holds invariants"
+      },
+      {
+        "fullName": "Tests.Feature.MarketingSsrTest::Tenant routes keep inertia ssr disabled",
+        "file": "Marketing Ssr (Tests\\Feature\\MarketingSsr)::Tenant routes keep inertia ssr disabled",
+        "className": "Tests.Feature.MarketingSsrTest",
+        "name": "Tenant routes keep inertia ssr disabled"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module01.AuthAndTenancyTest::guest cannot access venqore routes",
+        "file": "tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::guest cannot access venqore routes",
+        "className": "Tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "guest cannot access venqore routes"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module01.AuthAndTenancyTest::user can log in via POS PIN with valid credentials",
+        "file": "tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::user can log in via POS PIN with valid credentials",
+        "className": "Tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "user can log in via POS PIN with valid credentials"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest::ltd tier1 blocked after 1 store",
+        "file": "tests\\tests\\Feature\\Module02\\StoreCreationAndProvisioningTest.php::ltd tier1 blocked after 1 store",
+        "className": "Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest",
+        "name": "ltd tier1 blocked after 1 store"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module06.SalesEcosystemTest::recurring invoice generation creates a correct new invoice with line items",
+        "file": "tests\\tests\\Feature\\Module06\\SalesEcosystemTest.php::recurring invoice generation creates a correct new invoice with line items",
+        "className": "Tests.tests.Feature.Module06.SalesEcosystemTest",
+        "name": "recurring invoice generation creates a correct new invoice with line items"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "scopes all cashier dashboard widgets and session stats strictly to the current tenant"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::handles zero activity onboarding state without throwing unhandled exceptions",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::handles zero activity onboarding state without throwing unhandled exceptions",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "handles zero activity onboarding state without throwing unhandled exceptions"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::restricts V3 dashboard endpoint to users without financial permissions",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::restricts V3 dashboard endpoint to users without financial permissions",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "restricts V3 dashboard endpoint to users without financial permissions"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module17.SettingsTest::restricts chatbot settings updates to store owner or administrator",
+        "file": "tests\\tests\\Feature\\Module17\\SettingsTest.php::restricts chatbot settings updates to store owner or administrator",
+        "className": "Tests.tests.Feature.Module17.SettingsTest",
+        "name": "restricts chatbot settings updates to store owner or administrator"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module17.SettingsTest::enforces tenant bounds when settings are updated globally or via platform commands",
+        "file": "tests\\tests\\Feature\\Module17\\SettingsTest.php::enforces tenant bounds when settings are updated globally or via platform commands",
+        "className": "Tests.tests.Feature.Module17.SettingsTest",
+        "name": "enforces tenant bounds when settings are updated globally or via platform commands"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module17.SettingsTest::resolves the settings panel without redirecting to the hub",
+        "file": "tests\\tests\\Feature\\Module17\\SettingsTest.php::resolves the settings panel without redirecting to the hub",
+        "className": "Tests.tests.Feature.Module17.SettingsTest",
+        "name": "resolves the settings panel without redirecting to the hub"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module18.OfflineDrmTest::drm_license_validated_on_startup",
+        "file": "tests\\tests\\Feature\\Module18\\OfflineDrmTest.php::drm_license_validated_on_startup",
+        "className": "Tests.tests.Feature.Module18.OfflineDrmTest",
+        "name": "drm_license_validated_on_startup"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module21.RealWorkflowIntegrationTest::full_pos_sale_cash_payment",
+        "file": "tests\\tests\\Feature\\Module21\\RealWorkflowIntegrationTest.php::full_pos_sale_cash_payment",
+        "className": "Tests.tests.Feature.Module21.RealWorkflowIntegrationTest",
+        "name": "full_pos_sale_cash_payment"
+      },
+      {
+        "fullName": "Tests.Feature.Module.ModuleRegistryIntegrityTest::Every permission key is real",
+        "file": "Module Registry Integrity (Tests\\Feature\\Module\\ModuleRegistryIntegrity)::Every permission key is real",
+        "className": "Tests.Feature.Module.ModuleRegistryIntegrityTest",
+        "name": "Every permission key is real"
+      },
+      {
+        "fullName": "Tests.Feature.Module.ReportPlanMapIntegrityTest::Every suffix in report plan map is a registered route",
+        "file": "Report Plan Map Integrity (Tests\\Feature\\Module\\ReportPlanMapIntegrity)::Every suffix in report plan map is a registered route",
+        "className": "Tests.Feature.Module.ReportPlanMapIntegrityTest",
+        "name": "Every suffix in report plan map is a registered route"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::vensynq is reachable once the override is granted",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::vensynq is reachable once the override is granted",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "vensynq is reachable once the override is granted"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::platform registry honours the config allowlist",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::platform registry honours the config allowlist",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "platform registry honours the config allowlist"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::free tier allowance comes from config, not a hardcoded number",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::free tier allowance comes from config, not a hardcoded number",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "free tier allowance comes from config, not a hardcoded number"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::monthly reset clears managed usage but never the free lifetime allowance",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::monthly reset clears managed usage but never the free lifetime allowance",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "monthly reset clears managed usage but never the free lifetime allowance"
+      },
+      {
+        "fullName": "Tests.Feature.PartnersPageTest::Partners page is included in sitemap",
+        "file": "Partners Page (Tests\\Feature\\PartnersPage)::Partners page is included in sitemap",
+        "className": "Tests.Feature.PartnersPageTest",
+        "name": "Partners page is included in sitemap"
+      },
+      {
+        "fullName": "Tests.Feature.Phase3FeatureGatesTest::It enforces counter plan sku and report limits",
+        "file": "Phase3Feature Gates (Tests\\Feature\\Phase3FeatureGates)::It enforces counter plan sku and report limits",
+        "className": "Tests.Feature.Phase3FeatureGatesTest",
+        "name": "It enforces counter plan sku and report limits"
+      },
+      {
+        "fullName": "Tests.Feature.Phase4PricingLiveTest::It executes v4 tenant migration command",
+        "file": "Phase4Pricing Live (Tests\\Feature\\Phase4PricingLive)::It executes v4 tenant migration command",
+        "className": "Tests.Feature.Phase4PricingLiveTest",
+        "name": "It executes v4 tenant migration command"
+      },
+      {
+        "fullName": "Tests.Feature.Phase9OptionalFeaturesTest::Cosine embedding vector similarity matching",
+        "file": "Phase9Optional Features (Tests\\Feature\\Phase9OptionalFeatures)::Cosine embedding vector similarity matching",
+        "className": "Tests.Feature.Phase9OptionalFeaturesTest",
+        "name": "Cosine embedding vector similarity matching"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Register observer blocks exceeding register limit",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Register observer blocks exceeding register limit",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Register observer blocks exceeding register limit"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Tenant user observer blocks exceeding staff seat limit on full seats only",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Tenant user observer blocks exceeding staff seat limit on full seats only",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Tenant user observer blocks exceeding staff seat limit on full seats only"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Product observer blocks exceeding sku limit",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Product observer blocks exceeding sku limit",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Product observer blocks exceeding sku limit"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Trial expiry drops to solo plan",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Trial expiry drops to solo plan",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Trial expiry drops to solo plan"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::History reappears instantly upon upgrade from solo",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::History reappears instantly upon upgrade from solo",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "History reappears instantly upon upgrade from solo"
+      },
+      {
+        "fullName": "Tests.Feature.PlanGatingAndLimitsTest::Till remains unblocked when device cap exceeded",
+        "file": "Plan Gating And Limits (Tests\\Feature\\PlanGatingAndLimits)::Till remains unblocked when device cap exceeded",
+        "className": "Tests.Feature.PlanGatingAndLimitsTest",
+        "name": "Till remains unblocked when device cap exceeded"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::4 nothing deleted older records preserved",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::4 nothing deleted older records preserved",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "4 nothing deleted older records preserved"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::5 upgrading solo to starter exposes full history",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::5 upgrading solo to starter exposes full history",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "5 upgrading solo to starter exposes full history"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::6 card row caps on solo",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::6 card row caps on solo",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "6 card row caps on solo"
+      },
+      {
+        "fullName": "Tests.Feature.Plan.ReportingTiersTest::7 solo tenant blocked from analytical reckoner metrics",
+        "file": "Reporting Tiers (Tests\\Feature\\Plan\\ReportingTiers)::7 solo tenant blocked from analytical reckoner metrics",
+        "className": "Tests.Feature.Plan.ReportingTiersTest",
+        "name": "7 solo tenant blocked from analytical reckoner metrics"
+      },
+      {
+        "fullName": "Tests.Feature.PosFeaturesTest::Categories endpoint returns product count for active categories",
+        "file": "Pos Features (Tests\\Feature\\PosFeatures)::Categories endpoint returns product count for active categories",
+        "className": "Tests.Feature.PosFeaturesTest",
+        "name": "Categories endpoint returns product count for active categories"
+      },
+      {
+        "fullName": "Tests.Feature.PrelaunchP0VerificationTest::R07 quick action routes from command palette do not return 501",
+        "file": "Prelaunch P0Verification (Tests\\Feature\\PrelaunchP0Verification)::R07 quick action routes from command palette do not return 501",
+        "className": "Tests.Feature.PrelaunchP0VerificationTest",
+        "name": "R07 quick action routes from command palette do not return 501"
+      },
+      {
+        "fullName": "Tests.Feature.ProductDeletionTest::Can delete clean product and force delete",
+        "file": "Product Deletion (Tests\\Feature\\ProductDeletion)::Can delete clean product and force delete",
+        "className": "Tests.Feature.ProductDeletionTest",
+        "name": "Can delete clean product and force delete"
+      },
+      {
+        "fullName": "Tests.Feature.Production.LegacyPosCogsPinningTest::Pos003 sale is blocked rather than fabricated when stock is missing",
+        "file": "Legacy Pos Cogs Pinning (Tests\\Feature\\Production\\LegacyPosCogsPinning)::Pos003 sale is blocked rather than fabricated when stock is missing",
+        "className": "Tests.Feature.Production.LegacyPosCogsPinningTest",
+        "name": "Pos003 sale is blocked rather than fabricated when stock is missing"
+      },
+      {
+        "fullName": "Tests.Feature.Reckoner.AdversarialInvariantGateTest::Adversarial balanced books corruption and recovery",
+        "file": "Adversarial Invariant Gate (Tests\\Feature\\Reckoner\\AdversarialInvariantGate)::Adversarial balanced books corruption and recovery",
+        "className": "Tests.Feature.Reckoner.AdversarialInvariantGateTest",
+        "name": "Adversarial balanced books corruption and recovery"
+      }
+    ]
+  },
+  "comparison": {
+    "current_only_failures_count": 26,
+    "current_only_failures": [
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Freelance designer bundle does not contain screenshot options",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Freelance designer bundle does not contain screenshot options",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Freelance designer bundle does not contain screenshot options"
+      },
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Phone repair freelancer allows repair capabilities",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Phone repair freelancer allows repair capabilities",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Phone repair freelancer allows repair capabilities"
+      },
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Reaches question limit without claiming full understanding",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Reaches question limit without claiming full understanding",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Reaches question limit without claiming full understanding"
+      },
+      {
+        "fullName": "Tests.Unit.AiBuilder.ScreenshotRegressionTest::Repair clarification assigns valid preset and stock",
+        "file": "Screenshot Regression (Tests\\Unit\\AiBuilder\\ScreenshotRegression)::Repair clarification assigns valid preset and stock",
+        "className": "Tests.Unit.AiBuilder.ScreenshotRegressionTest",
+        "name": "Repair clarification assigns valid preset and stock"
+      },
+      {
+        "fullName": "Tests.Unit.Audit.MigrationCompatibilityTest::Sales tenant idempotency migration and non destructive rollback",
+        "file": "Migration Compatibility (Tests\\Unit\\Audit\\MigrationCompatibility)::Sales tenant idempotency migration and non destructive rollback",
+        "className": "Tests.Unit.Audit.MigrationCompatibilityTest",
+        "name": "Sales tenant idempotency migration and non destructive rollback"
+      },
+      {
+        "fullName": "Tests.Feature.Batch1RegressionTest::Accountant aging buckets return honest unavailable state",
+        "file": "Batch1Regression (Tests\\Feature\\Batch1Regression)::Accountant aging buckets return honest unavailable state",
+        "className": "Tests.Feature.Batch1RegressionTest",
+        "name": "Accountant aging buckets return honest unavailable state"
+      },
+      {
+        "fullName": "Tests.Feature.Batch1RegressionTest::Incidental change return calculation",
+        "file": "Batch1Regression (Tests\\Feature\\Batch1Regression)::Incidental change return calculation",
+        "className": "Tests.Feature.Batch1RegressionTest",
+        "name": "Incidental change return calculation"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Billing.SubscriptionCancelTest::a store with no subscription is told there is nothing to cancel",
+        "file": "tests\\tests\\Feature\\Billing\\SubscriptionCancelTest.php::a store with no subscription is told there is nothing to cancel",
+        "className": "Tests.tests.Feature.Billing.SubscriptionCancelTest",
+        "name": "a store with no subscription is told there is nothing to cancel"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest::sending a message broadcasts on agent inbox channels",
+        "file": "tests\\tests\\Feature\\Chat\\ChatInactivityAndAnonymousTest.php::sending a message broadcasts on agent inbox channels",
+        "className": "Tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest",
+        "name": "sending a message broadcasts on agent inbox channels"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module01.AuthAndTenancyTest::guest cannot access venqore routes",
+        "file": "tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::guest cannot access venqore routes",
+        "className": "Tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "guest cannot access venqore routes"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module01.AuthAndTenancyTest::user can log in via POS PIN with valid credentials",
+        "file": "tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::user can log in via POS PIN with valid credentials",
+        "className": "Tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "user can log in via POS PIN with valid credentials"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest::ltd tier1 blocked after 1 store",
+        "file": "tests\\tests\\Feature\\Module02\\StoreCreationAndProvisioningTest.php::ltd tier1 blocked after 1 store",
+        "className": "Tests.tests.Feature.Module02.StoreCreationAndProvisioningTest",
+        "name": "ltd tier1 blocked after 1 store"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module06.SalesEcosystemTest::recurring invoice generation creates a correct new invoice with line items",
+        "file": "tests\\tests\\Feature\\Module06\\SalesEcosystemTest.php::recurring invoice generation creates a correct new invoice with line items",
+        "className": "Tests.tests.Feature.Module06.SalesEcosystemTest",
+        "name": "recurring invoice generation creates a correct new invoice with line items"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "scopes all cashier dashboard widgets and session stats strictly to the current tenant"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::handles zero activity onboarding state without throwing unhandled exceptions",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::handles zero activity onboarding state without throwing unhandled exceptions",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "handles zero activity onboarding state without throwing unhandled exceptions"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module13.DashboardTest::restricts V3 dashboard endpoint to users without financial permissions",
+        "file": "tests\\tests\\Feature\\Module13\\DashboardTest.php::restricts V3 dashboard endpoint to users without financial permissions",
+        "className": "Tests.tests.Feature.Module13.DashboardTest",
+        "name": "restricts V3 dashboard endpoint to users without financial permissions"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module17.SettingsTest::restricts chatbot settings updates to store owner or administrator",
+        "file": "tests\\tests\\Feature\\Module17\\SettingsTest.php::restricts chatbot settings updates to store owner or administrator",
+        "className": "Tests.tests.Feature.Module17.SettingsTest",
+        "name": "restricts chatbot settings updates to store owner or administrator"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module17.SettingsTest::enforces tenant bounds when settings are updated globally or via platform commands",
+        "file": "tests\\tests\\Feature\\Module17\\SettingsTest.php::enforces tenant bounds when settings are updated globally or via platform commands",
+        "className": "Tests.tests.Feature.Module17.SettingsTest",
+        "name": "enforces tenant bounds when settings are updated globally or via platform commands"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module17.SettingsTest::resolves the settings panel without redirecting to the hub",
+        "file": "tests\\tests\\Feature\\Module17\\SettingsTest.php::resolves the settings panel without redirecting to the hub",
+        "className": "Tests.tests.Feature.Module17.SettingsTest",
+        "name": "resolves the settings panel without redirecting to the hub"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module18.OfflineDrmTest::drm_license_validated_on_startup",
+        "file": "tests\\tests\\Feature\\Module18\\OfflineDrmTest.php::drm_license_validated_on_startup",
+        "className": "Tests.tests.Feature.Module18.OfflineDrmTest",
+        "name": "drm_license_validated_on_startup"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Module21.RealWorkflowIntegrationTest::full_pos_sale_cash_payment",
+        "file": "tests\\tests\\Feature\\Module21\\RealWorkflowIntegrationTest.php::full_pos_sale_cash_payment",
+        "className": "Tests.tests.Feature.Module21.RealWorkflowIntegrationTest",
+        "name": "full_pos_sale_cash_payment"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::vensynq is reachable once the override is granted",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::vensynq is reachable once the override is granted",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "vensynq is reachable once the override is granted"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::platform registry honours the config allowlist",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::platform registry honours the config allowlist",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "platform registry honours the config allowlist"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::free tier allowance comes from config, not a hardcoded number",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::free tier allowance comes from config, not a hardcoded number",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "free tier allowance comes from config, not a hardcoded number"
+      },
+      {
+        "fullName": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::monthly reset clears managed usage but never the free lifetime allowance",
+        "file": "tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::monthly reset clears managed usage but never the free lifetime allowance",
+        "className": "Tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "monthly reset clears managed usage but never the free lifetime allowance"
+      }
+    ],
+    "fixed_in_current_count": 24,
+    "fixed_in_current": [
+      {
+        "fullName": "Tests.Unit.Reckoner.ReckonerResultTest::Failure returns not ok",
+        "file": "Reckoner Result (Tests\\Unit\\Reckoner\\ReckonerResult)::Failure returns not ok",
+        "className": "Tests.Unit.Reckoner.ReckonerResultTest",
+        "name": "Failure returns not ok"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Billing.SubscriptionCancelTest::a store with no subscription is told there is nothing to cancel",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Billing\\SubscriptionCancelTest.php::a store with no subscription is told there is nothing to cancel",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Billing.SubscriptionCancelTest",
+        "name": "a store with no subscription is told there is nothing to cancel"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest::sending a message broadcasts on agent inbox channels",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Chat\\ChatInactivityAndAnonymousTest.php::sending a message broadcasts on agent inbox channels",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Chat.ChatInactivityAndAnonymousTest",
+        "name": "sending a message broadcasts on agent inbox channels"
+      },
+      {
+        "fullName": "Tests.Feature.Hardening.PosApprovalGuardTest::Below cost is allowed with manager and pin and approval is recorded",
+        "file": "Pos Approval Guard (Tests\\Feature\\Hardening\\PosApprovalGuard)::Below cost is allowed with manager and pin and approval is recorded",
+        "className": "Tests.Feature.Hardening.PosApprovalGuardTest",
+        "name": "Below cost is allowed with manager and pin and approval is recorded"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest::guest cannot access venqore routes",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::guest cannot access venqore routes",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "guest cannot access venqore routes"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest::user can log in via POS PIN with valid credentials",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module01\\AuthAndTenancyTest.php::user can log in via POS PIN with valid credentials",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module01.AuthAndTenancyTest",
+        "name": "user can log in via POS PIN with valid credentials"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module02.StoreCreationAndProvisioningTest::ltd tier1 blocked after 1 store",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module02\\StoreCreationAndProvisioningTest.php::ltd tier1 blocked after 1 store",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module02.StoreCreationAndProvisioningTest",
+        "name": "ltd tier1 blocked after 1 store"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module06.SalesEcosystemTest::recurring invoice generation creates a correct new invoice with line items",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module06\\SalesEcosystemTest.php::recurring invoice generation creates a correct new invoice with line items",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module06.SalesEcosystemTest",
+        "name": "recurring invoice generation creates a correct new invoice with line items"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "computes dashboard net profit and P&amp;L summary using accrual journal entry credits/debits, not cash movement"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::scopes all cashier dashboard widgets and session stats strictly to the current tenant",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "scopes all cashier dashboard widgets and session stats strictly to the current tenant"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::handles zero activity onboarding state without throwing unhandled exceptions",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::handles zero activity onboarding state without throwing unhandled exceptions",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "handles zero activity onboarding state without throwing unhandled exceptions"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest::restricts V3 dashboard endpoint to users without financial permissions",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module13\\DashboardTest.php::restricts V3 dashboard endpoint to users without financial permissions",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module13.DashboardTest",
+        "name": "restricts V3 dashboard endpoint to users without financial permissions"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest::restricts chatbot settings updates to store owner or administrator",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module17\\SettingsTest.php::restricts chatbot settings updates to store owner or administrator",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest",
+        "name": "restricts chatbot settings updates to store owner or administrator"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest::enforces tenant bounds when settings are updated globally or via platform commands",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module17\\SettingsTest.php::enforces tenant bounds when settings are updated globally or via platform commands",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest",
+        "name": "enforces tenant bounds when settings are updated globally or via platform commands"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest::resolves the settings panel without redirecting to the hub",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module17\\SettingsTest.php::resolves the settings panel without redirecting to the hub",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module17.SettingsTest",
+        "name": "resolves the settings panel without redirecting to the hub"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module18.OfflineDrmTest::drm_license_validated_on_startup",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module18\\OfflineDrmTest.php::drm_license_validated_on_startup",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module18.OfflineDrmTest",
+        "name": "drm_license_validated_on_startup"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module21.RealWorkflowIntegrationTest::full_pos_sale_cash_payment",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Module21\\RealWorkflowIntegrationTest.php::full_pos_sale_cash_payment",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Module21.RealWorkflowIntegrationTest",
+        "name": "full_pos_sale_cash_payment"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::vensynq is reachable once the override is granted",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::vensynq is reachable once the override is granted",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "vensynq is reachable once the override is granted"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::platform registry honours the config allowlist",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::platform registry honours the config allowlist",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "platform registry honours the config allowlist"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::free tier allowance comes from config, not a hardcoded number",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::free tier allowance comes from config, not a hardcoded number",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "free tier allowance comes from config, not a hardcoded number"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest::monthly reset clears managed usage but never the free lifetime allowance",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Monetization\\AiAndSyncEntitlementTest.php::monthly reset clears managed usage but never the free lifetime allowance",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Monetization.AiAndSyncEntitlementTest",
+        "name": "monthly reset clears managed usage but never the free lifetime allowance"
+      },
+      {
+        "fullName": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.FractionalQtyTest::M1-07: a fractional-quantity sale persists 2.5, not 2 or 3",
+        "file": "E:\\AMD POS\\baseline-10988c43\\app-code\\main-app\\tests\\tests\\Feature\\Money\\FractionalQtyTest.php::M1-07: a fractional-quantity sale persists 2.5, not 2 or 3",
+        "className": "E.AMDPOS.baseline10988c43.appcode.mainapp.tests.tests.Feature.Money.FractionalQtyTest",
+        "name": "M1-07: a fractional-quantity sale persists 2.5, not 2 or 3"
+      },
+      {
+        "fullName": "Tests.Feature.Money.ReportReconciliationTest::PartyStatement reconciles to direct db aggregate",
+        "file": "Report Reconciliation (Tests\\Feature\\Money\\ReportReconciliation)::PartyStatement reconciles to direct db aggregate",
+        "className": "Tests.Feature.Money.ReportReconciliationTest",
+        "name": "PartyStatement reconciles to direct db aggregate"
+      },
+      {
+        "fullName": "Tests.Feature.Money.SplitPaymentReconcileTest::B6 split payment legs always sum to the invoice total and books balance",
+        "file": "Split Payment Reconcile (Tests\\Feature\\Money\\SplitPaymentReconcile)::B6 split payment legs always sum to the invoice total and books balance",
+        "className": "Tests.Feature.Money.SplitPaymentReconcileTest",
+        "name": "B6 split payment legs always sum to the invoice total and books balance"
+      }
+    ],
+    "regression_status": "REGRESSION_FAIL"
+  }
+}

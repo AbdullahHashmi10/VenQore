@@ -99,10 +99,10 @@ class ApprovalExecutionEngine
                 throw new RuntimeException("Version conflict: document version {$doc->version} does not match expected {$expectedVersion}.");
             }
 
-            // Check reviewer permission
+            // Check reviewer permission. approvals.inbox (view-only) is deliberately
+            // NOT accepted here: viewing the inbox must never authorize a decision.
             $hasReviewPerm = $reviewer->hasPermission('approvals.review') ||
                              $reviewer->hasPermission('approvals.approve') ||
-                             $reviewer->hasPermission('approvals.inbox') ||
                              $reviewer->isPlatformAdmin();
 
             if (!$hasReviewPerm) {
@@ -179,9 +179,10 @@ class ApprovalExecutionEngine
     ): ApprovalDocument {
         app()->instance('current.tenant', $tenant);
 
+        // approvals.inbox (view-only) is deliberately NOT accepted: viewing the
+        // inbox must never authorize a decision.
         $hasReviewPerm = $reviewer->hasPermission('approvals.review') ||
                          $reviewer->hasPermission('approvals.reject') ||
-                         $reviewer->hasPermission('approvals.inbox') ||
                          $reviewer->isPlatformAdmin();
 
         if (!$hasReviewPerm) {
@@ -220,9 +221,10 @@ class ApprovalExecutionEngine
     ): ApprovalDocument {
         app()->instance('current.tenant', $tenant);
 
+        // approvals.inbox (view-only) is deliberately NOT accepted: viewing the
+        // inbox must never authorize a decision.
         $hasReviewPerm = $reviewer->hasPermission('approvals.review') ||
                          $reviewer->hasPermission('approvals.return') ||
-                         $reviewer->hasPermission('approvals.inbox') ||
                          $reviewer->isPlatformAdmin();
 
         if (!$hasReviewPerm) {
@@ -287,7 +289,7 @@ class ApprovalExecutionEngine
         /** @var ApprovalDocument $doc */
         $doc = ApprovalDocument::where('tenant_id', $tenant->id)->where('id', $documentId)->firstOrFail();
 
-        if ($doc->maker_id !== $maker->id && !$maker->isPlatformAdmin()) {
+        if ($doc->maker_id !== $maker->id) {
             throw new RuntimeException("Only the document maker can resubmit this submission.");
         }
 

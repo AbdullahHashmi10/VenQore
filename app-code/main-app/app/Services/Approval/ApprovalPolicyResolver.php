@@ -58,26 +58,12 @@ class ApprovalPolicyResolver
         $adminEnabled = $adminEnabledSetting !== null ? filter_var($adminEnabledSetting, FILTER_VALIDATE_BOOLEAN) : true;
 
         if (!$adminEnabled) {
-            // Check for explicit stronger per-document policy or threshold
-            if ($docPolicySetting === 'required') {
-                return [
-                    'requires_approval' => true,
-                    'reason'            => 'document_policy_required',
-                    'effective_mode'    => 'required_by_doc_policy',
-                    'can_approve'       => false,
-                    'policy_details'    => ['document_policy' => 'required', 'store_admin_enabled' => false],
-                ];
-            }
-            if ($docThresholdSetting !== null && is_numeric($docThresholdSetting) && $amount >= (float)$docThresholdSetting) {
-                return [
-                    'requires_approval' => true,
-                    'reason'            => 'document_threshold_exceeded',
-                    'effective_mode'    => 'required_by_threshold',
-                    'can_approve'       => false,
-                    'policy_details'    => ['document_threshold' => (float)$docThresholdSetting, 'store_admin_enabled' => false],
-                ];
-            }
-
+            // Master switch OFF means no approval for future submissions, full stop.
+            // No per-document policy and no threshold may override this — doc 29/30
+            // are explicit that OFF always wins. (Previously a per-document `required`
+            // policy or an armed threshold could still force approval here; that was
+            // a bug, not a feature — a master OFF that sometimes still required
+            // approval was not actually a master switch.)
             return [
                 'requires_approval' => false,
                 'reason'            => 'store_approval_disabled',

@@ -1,0 +1,86 @@
+{
+    "generated_at": "2026-09-23T08:45:58+00:00",
+    "database": "amd_pos_test_current_0d33d5b0",
+    "tenant_a": "store-alpha-6ab391c497782",
+    "tenant_b": "store-beta-6ab391c49a1ea",
+    "maker_user": 11299,
+    "other_user": 11300,
+    "approver_user": 11301,
+    "platform_admin_policy_note": {
+        "policy_status": "Platform admins bypass maker check by design in ApprovalCorrectionResolver (is_platform_admin == true) for platform-wide troubleshooting/support oversight, but ordinary makers are strictly tenant and user-isolated."
+    },
+    "journeys": {
+        "customer_receipt": {
+            "1_pending_zero_financial_footprint": "PASS",
+            "2_approver_return_with_reason": "PASS",
+            "2_return_reason": [
+                "INCORRECT_AMOUNT"
+            ],
+            "3_other_maker_blocked": "PASS",
+            "3_cross_tenant_blocked": "PASS",
+            "3_original_maker_allowed": "PASS",
+            "4_editor_prefilled_payload": "PASS",
+            "4_editor_reviewer_notes": "PASS",
+            "4_editor_resubmit_url": "PASS",
+            "5_stale_version_rejected": "PASS",
+            "6_resubmission_increments_version": "PASS",
+            "7_approved_posts_exactly_once": "PASS",
+            "8_retry_approval_no_double_post": "PASS",
+            "9_rejection_never_posts": "PASS"
+        },
+        "supplier_payment": {
+            "1_pending_zero_financial_footprint": "PASS",
+            "2_approver_return_with_reason": "PASS",
+            "2_return_reason": [
+                "INCORRECT_AMOUNT"
+            ],
+            "3_other_maker_blocked": "PASS",
+            "3_cross_tenant_blocked": "PASS",
+            "3_original_maker_allowed": "PASS",
+            "4_editor_prefilled_payload": "PASS",
+            "4_editor_reviewer_notes": "PASS",
+            "4_editor_resubmit_url": "PASS",
+            "5_stale_version_rejected": "PASS",
+            "6_resubmission_increments_version": "PASS",
+            "7_approved_posts_exactly_once": "PASS",
+            "8_retry_approval_no_double_post": "PASS",
+            "9_rejection_never_posts": "PASS"
+        },
+        "operating_expense": {
+            "1_pending_zero_financial_footprint": "PASS",
+            "2_approver_return_with_reason": "PASS",
+            "2_return_reason": [
+                "INCORRECT_AMOUNT"
+            ],
+            "3_other_maker_blocked": "PASS",
+            "3_cross_tenant_blocked": "PASS",
+            "3_original_maker_allowed": "PASS",
+            "4_editor_prefilled_payload": "PASS",
+            "4_editor_reviewer_notes": "PASS",
+            "4_editor_resubmit_url": "PASS",
+            "5_stale_version_rejected": "PASS",
+            "6_resubmission_increments_version": "PASS",
+            "7_approved_posts_exactly_once": "PASS",
+            "8_retry_approval_no_double_post": "PASS",
+            "9_rejection_never_posts": "PASS"
+        },
+        "sales_invoice": {
+            "1_pending_zero_financial_footprint": "PASS",
+            "2_approver_return_with_reason": "PASS",
+            "2_return_reason": [
+                "INCORRECT_AMOUNT"
+            ],
+            "3_other_maker_blocked": "PASS",
+            "3_cross_tenant_blocked": "PASS",
+            "3_original_maker_allowed": "PASS",
+            "4_editor_prefilled_payload": "PASS",
+            "4_editor_reviewer_notes": "PASS",
+            "4_editor_resubmit_url": "PASS",
+            "5_stale_version_rejected": "PASS",
+            "6_resubmission_increments_version": "PASS",
+            "7_approved_posts_exactly_once": "PASS",
+            "8_retry_approval_no_double_post": "PASS",
+            "9_rejection_never_posts": "PASS"
+        }
+    }
+}

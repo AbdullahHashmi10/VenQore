@@ -127,16 +127,6 @@ export default function CreateExpense({ categories = [], approval_correction = n
             ) : null}
             settleDefault={(d, totals) => (d.paymentMethod === 'cash' ? totals.grandTotal : 0)}
             url={() => approval_correction ? approval_correction.resubmit_url : route('store.expenses.store', { store_slug: store?.slug })}
-            buildPayload={({ payload }) => {
-                if (approval_correction) {
-                    return {
-                        payload: payload,
-                        expected_version: approval_correction.expected_version,
-                        notes: 'Resubmitted with corrections'
-                    };
-                }
-                return payload;
-            }}
             onSaved={() => {
                 if (approval_correction) {
                     router.visit(route('store.approvals.show', { store_slug: store?.slug || window.location.pathname.split('/')[2], id: approval_correction.document_id }));
@@ -229,7 +219,7 @@ export default function CreateExpense({ categories = [], approval_correction = n
                         description: i.desc || null,
                         amount: num(i.amount),
                     }));
-                return {
+                const basePayload = {
                     date: d.date,
                     /* The row still carries one category, one amount and one
                        tax figure so every existing list, filter and report
@@ -250,6 +240,14 @@ export default function CreateExpense({ categories = [], approval_correction = n
                     notes: d.notes || null,
                     items: lines,
                 };
+                if (approval_correction) {
+                    return {
+                        payload: basePayload,
+                        expected_version: approval_correction.expected_version,
+                        notes: 'Resubmitted with corrections'
+                    };
+                }
+                return basePayload;
             }}
             /* An attachment cannot ride in a JSON body, so a voucher that has
                one is posted as a form instead. Everything else is identical. */

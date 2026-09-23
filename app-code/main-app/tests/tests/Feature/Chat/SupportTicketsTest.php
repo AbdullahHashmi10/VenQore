@@ -185,6 +185,48 @@ test('platform admin can batch update store feature flags', function () {
     expect($limits['multi_branch'])->toBeFalse();
 });
 
+test('batch update feature flags rejects invalid feature keys with 422 and rollback', function () {
+    app()->forgetInstance('current.tenant');
+    $this->actingAsSuperAdmin();
+
+    $this->tenant->update(['plan_limits' => ['woocommerce' => false]]);
+
+    $response = $this->post(route('platform.store.feature-flag', ['tenant' => $this->tenant->id]), [
+        'features' => [
+            'woocommerce' => true,
+            'malicious_unregistered_flag' => true,
+        ]
+    ]);
+
+    $response->assertSessionHasErrors('features');
+    $this->tenant->refresh();
+    // Verify atomicity - woocommerce remains false
+    expect($this->tenant->plan_limits['woocommerce'] ?? false)->toBeFalse();
+});
+
+test('unauthorized store user cannot update feature flags', function () {
+    // Ordinary store owner without platform admin is redirected by SuperAdminMiddleware
+    $response = $this->post(route('platform.store.feature-flag', ['tenant' => $this->tenant->id]), [
+        'features' => ['woocommerce' => true]
+    ]);
+
+    $response->assertRedirect(route('platform.login'));
+});
+
+test('feature flags update returns 404 for nonexistent tenant', function () {
+    app()->forgetInstance('current.tenant');
+    $this->actingAsSuperAdmin();
+
+    $nonExistentId = (int) (Tenant::max('id') + 100000);
+    $url = route('platform.store.feature-flag', ['tenant' => $nonExistentId]);
+
+    $response = $this->post($url, [
+        'features' => ['woocommerce' => true]
+    ]);
+
+    $response->assertStatus(404);
+});
+
 test('store staff can view store support tickets', function () {
     SupportTicket::create([
         'tenant_id' => $this->tenant->id,

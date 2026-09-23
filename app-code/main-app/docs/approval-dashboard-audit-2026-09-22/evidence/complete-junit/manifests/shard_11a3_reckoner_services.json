@@ -1,0 +1,25 @@
+{
+  "shard": "shard_11a3_reckoner_services",
+  "file_count_baseline": 8,
+  "file_count_current": 8,
+  "baseline_files": [
+    "tests/tests/Feature/Reckoner/AssistantParityTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerConsistencyTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerGateTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerPeriodTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerRegistryTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerSettingsTest.php",
+    "tests/tests/Feature/Reckoner/SaleServiceParityTest.php",
+    "tests/tests/Feature/Reports/CrossTenantReportLeakTest.php"
+  ],
+  "current_files": [
+    "tests/tests/Feature/Reckoner/AssistantParityTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerConsistencyTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerGateTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerPeriodTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerRegistryTest.php",
+    "tests/tests/Feature/Reckoner/ReckonerSettingsTest.php",
+    "tests/tests/Feature/Reckoner/SaleServiceParityTest.php",
+    "tests/tests/Feature/Reports/CrossTenantReportLeakTest.php"
+  ]
+}
