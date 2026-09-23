@@ -192,34 +192,55 @@ class ApprovalStateMachine
         // Validate reason codes against preset definitions
         foreach ($reasonCodes as $code) {
             $preset = ApprovalReturnReason::where('code', $code)
+                ->where('is_active', true)
                 ->where(function ($q) use ($document) {
                     $q->whereNull('tenant_id')->orWhere('tenant_id', $document->tenant_id);
                 })->first();
 
-            if ($preset && $preset->requires_notes && empty(trim($reviewerNotes ?? ''))) {
+            if (!$preset) {
+                throw new InvalidArgumentException("Unknown or inactive return reason code '{$code}'.");
+            }
+
+            $appliesTo = (array)($preset->applies_to ?? ['all']);
+            if (!in_array('all', $appliesTo, true) && !in_array($document->document_type, $appliesTo, true)) {
+                throw new InvalidArgumentException("Return reason '{$preset->label}' does not apply to {$document->document_type} documents.");
+            }
+
+            if ($preset->requires_notes && empty(trim($reviewerNotes ?? ''))) {
                 throw new InvalidArgumentException("Return reason '{$preset->label}' requires an explanation note.");
             }
         }
 
-        return DB::transaction(function () use ($document, $reviewer, $reasonCodes, $reviewerNotes) {
-            $fromStatus = $document->status;
-            $document->status = ApprovalDocument::STATUS_RETURNED;
-            $document->reviewer_id = $reviewer->id;
-            $document->version = (int)$document->version + 1;
-            $document->save();
+        return DB::transaction(function () use ($document, $reviewer, $reasonCodes, $reviewerNotes, $expectedVersion) {
+            /** @var ApprovalDocument $lockedDoc */
+            $lockedDoc = ApprovalDocument::where('id', $document->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedDoc->status !== ApprovalDocument::STATUS_PENDING) {
+                throw new RuntimeException("Only pending documents can be returned. Current status: '{$lockedDoc->status}'.");
+            }
+
+            if ($expectedVersion !== null && (int)$lockedDoc->version !== (int)$expectedVersion) {
+                throw new RuntimeException("Version conflict: document version {$lockedDoc->version} does not match expected {$expectedVersion}.");
+            }
+
+            $fromStatus = $lockedDoc->status;
+            $lockedDoc->status = ApprovalDocument::STATUS_RETURNED;
+            $lockedDoc->reviewer_id = $reviewer->id;
+            $lockedDoc->version = (int)$lockedDoc->version + 1;
+            $lockedDoc->save();
 
             ApprovalTransition::create([
-                'approval_document_id' => $document->id,
+                'approval_document_id' => $lockedDoc->id,
                 'actor_id'             => $reviewer->id,
-                'source_revision_id'   => $document->current_revision_id,
+                'source_revision_id'   => $lockedDoc->current_revision_id,
                 'from_status'          => $fromStatus,
                 'to_status'            => ApprovalDocument::STATUS_RETURNED,
                 'reason_codes'         => $reasonCodes,
                 'notes'                => $reviewerNotes,
-                'metadata'             => ['version' => $document->version],
+                'metadata'             => ['version' => $lockedDoc->version],
             ]);
 
-            return $document->fresh(['currentRevision', 'revisions', 'transitions']);
+            return $lockedDoc->fresh(['currentRevision', 'revisions', 'transitions']);
         });
     }
 
@@ -240,25 +261,36 @@ class ApprovalStateMachine
             throw new RuntimeException("Version conflict: document has been modified by another transition.");
         }
 
-        return DB::transaction(function () use ($document, $reviewer, $rejectionReason) {
-            $fromStatus = $document->status;
-            $document->status = ApprovalDocument::STATUS_REJECTED;
-            $document->reviewer_id = $reviewer->id;
-            $document->version = (int)$document->version + 1;
-            $document->save();
+        return DB::transaction(function () use ($document, $reviewer, $rejectionReason, $expectedVersion) {
+            /** @var ApprovalDocument $lockedDoc */
+            $lockedDoc = ApprovalDocument::where('id', $document->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedDoc->status !== ApprovalDocument::STATUS_PENDING) {
+                throw new RuntimeException("Only pending documents can be rejected. Current status: '{$lockedDoc->status}'.");
+            }
+
+            if ($expectedVersion !== null && (int)$lockedDoc->version !== (int)$expectedVersion) {
+                throw new RuntimeException("Version conflict: document version {$lockedDoc->version} does not match expected {$expectedVersion}.");
+            }
+
+            $fromStatus = $lockedDoc->status;
+            $lockedDoc->status = ApprovalDocument::STATUS_REJECTED;
+            $lockedDoc->reviewer_id = $reviewer->id;
+            $lockedDoc->version = (int)$lockedDoc->version + 1;
+            $lockedDoc->save();
 
             ApprovalTransition::create([
-                'approval_document_id' => $document->id,
+                'approval_document_id' => $lockedDoc->id,
                 'actor_id'             => $reviewer->id,
-                'source_revision_id'   => $document->current_revision_id,
+                'source_revision_id'   => $lockedDoc->current_revision_id,
                 'from_status'          => $fromStatus,
                 'to_status'            => ApprovalDocument::STATUS_REJECTED,
                 'reason_codes'         => ['REJECTED'],
                 'notes'                => $rejectionReason ?: 'Document rejected by reviewer',
-                'metadata'             => ['version' => $document->version],
+                'metadata'             => ['version' => $lockedDoc->version],
             ]);
 
-            return $document->fresh(['currentRevision', 'revisions', 'transitions']);
+            return $lockedDoc->fresh(['currentRevision', 'revisions', 'transitions']);
         });
     }
 
@@ -268,7 +300,8 @@ class ApprovalStateMachine
     public function withdrawDocument(
         ApprovalDocument $document,
         User $maker,
-        ?string $reason = null
+        ?string $reason = null,
+        ?int $expectedVersion = null
     ): ApprovalDocument {
         if (!in_array($document->status, [
             ApprovalDocument::STATUS_DRAFT,
@@ -278,24 +311,43 @@ class ApprovalStateMachine
             throw new RuntimeException("Document with status '{$document->status}' cannot be withdrawn.");
         }
 
-        return DB::transaction(function () use ($document, $maker, $reason) {
-            $fromStatus = $document->status;
-            $document->status = ApprovalDocument::STATUS_WITHDRAWN;
-            $document->version = (int)$document->version + 1;
-            $document->save();
+        if ($expectedVersion !== null && (int)$document->version !== (int)$expectedVersion) {
+            throw new RuntimeException("Version conflict: document has been modified by another transition.");
+        }
+
+        return DB::transaction(function () use ($document, $maker, $reason, $expectedVersion) {
+            /** @var ApprovalDocument $lockedDoc */
+            $lockedDoc = ApprovalDocument::where('id', $document->id)->lockForUpdate()->firstOrFail();
+
+            if (!in_array($lockedDoc->status, [
+                ApprovalDocument::STATUS_DRAFT,
+                ApprovalDocument::STATUS_PENDING,
+                ApprovalDocument::STATUS_RETURNED,
+            ], true)) {
+                throw new RuntimeException("Document with status '{$lockedDoc->status}' cannot be withdrawn.");
+            }
+
+            if ($expectedVersion !== null && (int)$lockedDoc->version !== (int)$expectedVersion) {
+                throw new RuntimeException("Version conflict: document version {$lockedDoc->version} does not match expected {$expectedVersion}.");
+            }
+
+            $fromStatus = $lockedDoc->status;
+            $lockedDoc->status = ApprovalDocument::STATUS_WITHDRAWN;
+            $lockedDoc->version = (int)$lockedDoc->version + 1;
+            $lockedDoc->save();
 
             ApprovalTransition::create([
-                'approval_document_id' => $document->id,
+                'approval_document_id' => $lockedDoc->id,
                 'actor_id'             => $maker->id,
-                'source_revision_id'   => $document->current_revision_id,
+                'source_revision_id'   => $lockedDoc->current_revision_id,
                 'from_status'          => $fromStatus,
                 'to_status'            => ApprovalDocument::STATUS_WITHDRAWN,
                 'reason_codes'         => ['WITHDRAWN_BY_MAKER'],
                 'notes'                => $reason ?: 'Withdrawn by maker',
-                'metadata'             => ['version' => $document->version],
+                'metadata'             => ['version' => $lockedDoc->version],
             ]);
 
-            return $document->fresh(['currentRevision', 'revisions', 'transitions']);
+            return $lockedDoc->fresh(['currentRevision', 'revisions', 'transitions']);
         });
     }
 }

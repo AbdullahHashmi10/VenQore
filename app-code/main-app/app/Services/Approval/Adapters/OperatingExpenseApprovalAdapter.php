@@ -2,10 +2,8 @@
 
 namespace App\Services\Approval\Adapters;
 
-use App\Engines\AccountingService;
+use App\Services\ExpensePostingService;
 use App\Models\ApprovalDocument;
-use App\Models\BankAccount;
-use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Tenant;
 use App\Models\User;
@@ -15,7 +13,7 @@ use RuntimeException;
 class OperatingExpenseApprovalAdapter implements ApprovalAdapterInterface
 {
     public function __construct(
-        private AccountingService $accounting
+        private ExpensePostingService $postingService
     ) {}
 
     public function documentType(): string
@@ -51,7 +49,9 @@ class OperatingExpenseApprovalAdapter implements ApprovalAdapterInterface
             'bank_account_id'     => $payload['bank_account_id'] ?? null,
             'expense_date'        => $payload['expense_date'] ?? $payload['date'] ?? now()->toDateString(),
             'notes'               => $payload['notes'] ?? $payload['description'] ?? null,
+            'description'         => $payload['description'] ?? $payload['notes'] ?? null,
             'reference'           => $payload['reference'] ?? null,
+            'input_tax'           => (float)($payload['input_tax'] ?? $payload['tax_amount'] ?? 0),
         ];
     }
 
@@ -68,57 +68,13 @@ class OperatingExpenseApprovalAdapter implements ApprovalAdapterInterface
     public function post(ApprovalDocument $doc, Tenant $tenant, User $reviewer): array
     {
         $payload = $doc->currentRevision->payload;
-        $tenantId = $tenant->id;
-
-        $paymentAccount = $payload['payment_method'] === 'bank' ? '1010' : '1000';
-        $bankAccountId = $payload['bank_account_id'] ?? null;
-
-        if ($payload['payment_method'] === 'bank' && empty($bankAccountId)) {
-            $firstBank = BankAccount::where('tenant_id', $tenantId)
-                ->where('type', 'bank')
-                ->first();
-            $bankAccountId = $firstBank?->id;
-        }
-
-        // Create Expense Model
-        $expense = Expense::create([
-            'tenant_id'           => $tenantId,
-            'expense_category_id' => $payload['expense_category_id'] ?? null,
-            'amount'              => $payload['amount'],
-            'date'                => $payload['expense_date'],
-            'payment_method'      => $payload['payment_method'],
-            'bank_account_id'     => $bankAccountId,
-            'notes'               => $payload['notes'] ?? 'Operating expense (Approved)',
-            'reference'           => $payload['reference'] ?? ('EXP-' . strtoupper(uniqid())),
-        ]);
-
-        // General Ledger Entry: DR 5200 Operating Expenses, CR 1000/1010 Cash/Bank
-        $journalEntry = $this->accounting->createEntry([
-            'date'           => $payload['expense_date'],
-            'reference_type' => 'expense',
-            'reference'      => $expense->reference,
-            'description'    => 'Operating expense (Approved) — ' . ($expense->notes ?? ''),
-            'user_id'        => $reviewer->id ?? $doc->maker_id,
-            'approved_by'    => $reviewer->id,
-        ], [
-            [
-                'account_code' => '5200',
-                'debit'        => $payload['amount'],
-                'credit'       => 0,
-            ],
-            [
-                'account_code'    => $paymentAccount,
-                'debit'           => 0,
-                'credit'          => $payload['amount'],
-                'bank_account_id' => $payload['payment_method'] === 'bank' ? $bankAccountId : null,
-            ],
-        ]);
+        $result = $this->postingService->post($tenant, $payload, $reviewer);
 
         return [
-            'type'            => 'expense',
-            'id'              => $expense->id,
-            'reference'       => $expense->reference,
-            'journal_entry_id'=> $journalEntry->id,
+            'type'             => 'expense',
+            'id'               => $result['expense_id'],
+            'reference'        => $result['reference'],
+            'journal_entry_id' => $result['journal_entry_id'],
         ];
     }
 }

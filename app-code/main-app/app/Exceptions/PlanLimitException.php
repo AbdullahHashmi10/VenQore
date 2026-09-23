@@ -17,7 +17,7 @@ use Illuminate\Http\JsonResponse;
  *   - limit: mixed
  *   - upgradeTarget: string ('growth' | 'business' | 'custom')
  */
-class PlanLimitException extends Exception
+class PlanLimitException extends \Symfony\Component\HttpKernel\Exception\HttpException
 {
     protected string $feature;
     protected ?int   $currentCount;
@@ -68,15 +68,6 @@ class PlanLimitException extends Exception
             'sku_limit'                => 'You\'ve reached the maximum number of catalogue items for your plan.',
             'locations'                => 'You\'ve reached the maximum number of store locations for your plan.',
             'location_limit'           => 'You\'ve reached the maximum number of store locations for your plan.',
-            'registers'                => 'You\'ve reached the maximum number of POS registers for your plan.',
-            'staff_limit'              => 'You\'ve reached the maximum number of full staff seats for your plan. Till logins remain free and unlimited.',
-            'multi_branch'             => 'Multi-branch operations activate automatically with a 2nd location or on the Scale plan.',
-            'growth_engine'            => 'The Growth Engine is available on paid plans.',
-            'owners_daily_pulse'       => 'Owner\'s Daily Pulse is available on paid plans.',
-            'recurring_invoices'       => 'Recurring Invoices are available on paid plans.',
-            'bank_reconciliation'      => 'Bank Reconciliation is available on paid plans.',
-            'e_invoicing'              => 'E-Invoicing integration is available on paid plans.',
-            'fund_management'          => 'Fund Management is available on paid plans.',
             'invoice_reminders'        => 'Automated Invoice Reminders are available on paid plans.',
             'fiscal_year_closing'      => 'Fiscal Year Closing is available on paid plans.',
             'fixed_asset_depreciation' => 'Fixed Asset Depreciation is available on paid plans.',
@@ -100,7 +91,7 @@ class PlanLimitException extends Exception
         };
 
         $msg = $messages[$feature] ?? "The feature '{$feature}' requires an upgrade to {$targetLabel}.";
-        parent::__construct($msg);
+        parent::__construct(403, $msg);
     }
 
     public function getFeature(): string

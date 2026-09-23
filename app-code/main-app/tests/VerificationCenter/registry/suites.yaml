@@ -1,14 +1,14 @@
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 2107
+  phpunit_test_methods_total: 2216
   note: 'total = SUM of member test_methods (testX(), @test,'
 suites:
   -
     id: Feature
     path: tests/Feature
-    test_methods: 733
-    files: 124
+    test_methods: 821
+    files: 143
     members:
       -
         file: tests/Feature/ActivityLogTest.php
@@ -37,6 +37,30 @@ suites:
       -
         file: tests/Feature/AllocationTest.php
         test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/ApprovalFoundationTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/FourDocumentApprovalTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/PostingBoundaryGuardTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/RealFormHttpWorkflowTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/TrustedPosSeparationTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/Batch1RegressionTest.php
+        test_methods: 12
         oracle_tier: T1
       -
         file: tests/Feature/BlogPostEngineTest.php
@@ -339,7 +363,31 @@ suites:
         test_methods: 1
         oracle_tier: T2
       -
+        file: tests/Feature/Reckoner/AdversarialInvariantGateTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/ApprovalCardsAndScopeTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
         file: tests/Feature/Reckoner/AssistantParityTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/CardContractValidatorTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/CustomCardsGateTest.php
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/DataCaptureMigrationsGateTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/GoldenStoreLedgerTest.php
         test_methods: 1
         oracle_tier: T1
       -
@@ -375,6 +423,10 @@ suites:
         test_methods: 14
         oracle_tier: T1
       -
+        file: tests/Feature/Reckoner/LedgerFoundationGateTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
         file: tests/Feature/Reckoner/PlanGateReachabilityTest.php
         test_methods: 2
         oracle_tier: T1
@@ -397,6 +449,30 @@ suites:
       -
         file: tests/Feature/Reckoner/ReckonerSettingsTest.php
         test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/RollupParityGateTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/SaleServiceParityTest.php
+        test_methods: 0
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Slice4aMoneyGateTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Slice4bSellingGateTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Slice4cStockGateTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/Slice4dOperationsGateTest.php
+        test_methods: 5
         oracle_tier: T1
       -
         file: tests/Feature/Reckoner/SuspendedMembershipTest.php
@@ -523,8 +599,8 @@ suites:
   -
     id: Feature.Auth
     path: tests/Feature/Auth
-    test_methods: 29
-    files: 6
+    test_methods: 32
+    files: 7
     members:
       -
         file: tests/Feature/Auth/AuthenticationTest.php
@@ -546,6 +622,10 @@ suites:
         file: tests/Feature/Auth/PasswordUpdateTest.php
         test_methods: 3
         oracle_tier: T2
+      -
+        file: tests/Feature/Auth/PermissionOverrideModeTest.php
+        test_methods: 3
+        oracle_tier: T1
       -
         file: tests/Feature/Auth/RegistrationTest.php
         test_methods: 3
@@ -1483,9 +1563,13 @@ suites:
   -
     id: Unit.Reckoner
     path: tests/Unit/Reckoner
-    test_methods: 100
-    files: 15
+    test_methods: 113
+    files: 18
     members:
+      -
+        file: tests/Unit/Reckoner/CardRegistryGateTest.php
+        test_methods: 8
+        oracle_tier: T1
       -
         file: tests/Unit/Reckoner/ChartRegistryParityTest.php
         test_methods: 1
@@ -1511,6 +1595,10 @@ suites:
         test_methods: 1
         oracle_tier: T1
       -
+        file: tests/Unit/Reckoner/ReckonerCatalogParityTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
         file: tests/Unit/Reckoner/ReckonerChartsTest.php
         test_methods: 4
         oracle_tier: T1
@@ -1521,6 +1609,10 @@ suites:
       -
         file: tests/Unit/Reckoner/ReckonerGateTest.php
         test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Unit/Reckoner/ReckonerInvariantsTest.php
+        test_methods: 2
         oracle_tier: T1
       -
         file: tests/Unit/Reckoner/ReckonerLabelsTest.php
@@ -1536,7 +1628,7 @@ suites:
         oracle_tier: T1
       -
         file: tests/Unit/Reckoner/ReckonerResultTest.php
-        test_methods: 10
+        test_methods: 12
         oracle_tier: T1
       -
         file: tests/Unit/Reckoner/ReckonerRouteTest.php
@@ -1549,8 +1641,8 @@ suites:
   -
     id: Unit
     path: tests/Unit
-    test_methods: 64
-    files: 6
+    test_methods: 69
+    files: 9
     members:
       -
         file: tests/Unit/AiBuilder/BusinessUnderstandingTest.php
@@ -1571,6 +1663,18 @@ suites:
       -
         file: tests/Unit/AiBuilder/ScreenshotRegressionTest.php
         test_methods: 33
+        oracle_tier: T1
+      -
+        file: tests/Unit/Audit/MigrationCompatibilityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Unit/Audit/RoleCardAuditTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Unit/Onboarding/ModuleEligibilityTest.php
+        test_methods: 2
         oracle_tier: T1
       -
         file: tests/Unit/SharedCatalogServiceTest.php

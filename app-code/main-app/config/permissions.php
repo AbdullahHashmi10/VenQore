@@ -47,6 +47,8 @@ return [
         'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
         // Store Administration
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'admin.billing_store',
+        // Approvals & Governance
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
         // Granular split permissions
         'data.export', 'records.force_delete', 'users.manage',
         // Marketplace / VenSynQ integrations
@@ -68,6 +70,8 @@ return [
         'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
         // Store Administration (excluding billing / store deletion)
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery',
+        // Approvals & Governance
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
         // Granular split permissions
         'data.export', 'records.force_delete', 'users.manage',
         // Marketplace / VenSynQ integrations
@@ -88,6 +92,8 @@ return [
         'reports.summary', 'reports.stock', 'reports.performance',
         // Store Administration (Read general settings and edit print formats only)
         'admin.staff_view', 'admin.settings_view', 'admin.receipt_print',
+        // Approvals & Governance (Managers review operational documents)
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
         // Granular split permissions
         'data.export',
     ],
@@ -97,6 +103,8 @@ return [
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.close_session',
         // Inventory View (check product availability at checkout)
         'inventory.view',
+        // Approvals (Can view own submissions and resubmit/withdraw them)
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'accountant' => [
@@ -106,6 +114,8 @@ return [
         'reports.summary', 'reports.financial', 'reports.audit',
         // Sales & Purchases Read-Only views for audits
         'sales.view', 'purchases.view', 'inventory.view',
+        // Approvals & Governance (Accountants review vouchers and receipts)
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
         // Granular split permissions
         'data.export',
     ],
@@ -117,6 +127,8 @@ return [
         'inventory.view',
         // Stock Reports for low stock notifications
         'reports.stock',
+        // Approvals (Submit purchasing/supplier payment approvals, view own)
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'viewer' => [

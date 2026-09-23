@@ -609,6 +609,7 @@ class ReckonerGoldenStoreFixture
                 $q->select('id')->from('parties')->where('tenant_id', $tid);
             })->delete();
             DB::table('parties')->where('tenant_id', $tid)->delete();
+            DB::table('tenant_users')->where('tenant_id', $tid)->delete();
         });
     }
 }

@@ -96,10 +96,11 @@ class SaleService
             }
         }
 
-        try {
-            return DB::transaction(function () use ($data) {
-            $data['customer_id']    = $data['customer_id'] ?? $data['party_id'] ?? null;
-            $data['payment_method'] = $data['payment_method'] ?? 'cash';
+        return \App\Services\CanonicalPostingScope::run(function () use ($data, $idempotencyKey) {
+            try {
+                return DB::transaction(function () use ($data) {
+                    $data['customer_id']    = $data['customer_id'] ?? $data['party_id'] ?? null;
+                    $data['payment_method'] = $data['payment_method'] ?? 'cash';
             $data['warehouse_id']   = $data['warehouse_id'] ?? DB::table('warehouses')->where('tenant_id', $this->tenantId)->value('id');
             $data['sale_date']      = $data['sale_date'] ?? now()->toDateString();
 
@@ -573,21 +574,22 @@ class SaleService
 
             return DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->first();
 
-        });
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Concurrent race condition handling:
-            // Catch ONLY the database unique-constraint violation for sales_tenant_idempotency_unique
-            if ($idempotencyKey && str_contains($e->getMessage(), 'sales_tenant_idempotency_unique')) {
-                $existing = DB::table('sales')
-                    ->where('tenant_id', $this->tenantId)
-                    ->where('idempotency_key', $idempotencyKey)
-                    ->first();
-                if ($existing) {
-                    return Sale::find($existing->id);
+                });
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Concurrent race condition handling:
+                // Catch ONLY the database unique-constraint violation for sales_tenant_idempotency_unique
+                if ($idempotencyKey && str_contains($e->getMessage(), 'sales_tenant_idempotency_unique')) {
+                    $existing = DB::table('sales')
+                        ->where('tenant_id', $this->tenantId)
+                        ->where('idempotency_key', $idempotencyKey)
+                        ->first();
+                    if ($existing) {
+                        return Sale::find($existing->id);
+                    }
                 }
+                throw $e;
             }
-            throw $e;
-        }
+        });
     }
 
     /**

@@ -202,4 +202,34 @@ class ApprovalFoundationTest extends VenQoreTestCase
         $this->assertFalse($resDisabled['requires_approval']);
         $this->assertSame('store_approval_disabled', $resDisabled['reason']);
     }
+
+    public function test_tenant_users_schema_definition_enforces_not_null_default_inherit(): void
+    {
+        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+        if (in_array($driver, ['mysql', 'mariadb'], true)) {
+            $cols = \Illuminate\Support\Facades\DB::select("
+                SELECT COLUMN_NAME, IS_NULLABLE, COLUMN_DEFAULT
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'tenant_users'
+                  AND COLUMN_NAME IN ('permission_override_mode', 'transaction_approval_mode')
+            ");
+
+            $colMap = [];
+            foreach ($cols as $col) {
+                $colMap[$col->COLUMN_NAME] = $col;
+            }
+
+            $this->assertArrayHasKey('permission_override_mode', $colMap);
+            $this->assertArrayHasKey('transaction_approval_mode', $colMap);
+
+            $this->assertSame('NO', $colMap['permission_override_mode']->IS_NULLABLE, "permission_override_mode must be NOT NULL");
+            $this->assertSame('inherit', trim((string)$colMap['permission_override_mode']->COLUMN_DEFAULT, "'"), "permission_override_mode default must be 'inherit'");
+
+            $this->assertSame('NO', $colMap['transaction_approval_mode']->IS_NULLABLE, "transaction_approval_mode must be NOT NULL");
+            $this->assertSame('inherit', trim((string)$colMap['transaction_approval_mode']->COLUMN_DEFAULT, "'"), "transaction_approval_mode default must be 'inherit'");
+        } else {
+            $this->assertTrue(true);
+        }
+    }
 }

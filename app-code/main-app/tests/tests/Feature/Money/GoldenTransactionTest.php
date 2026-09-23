@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 beforeEach(function () {
-    $this->tenant = $this->createTenant('golden-store', 'ltd_3');
+    $this->tenant = $this->createTenant('golden-txn-' . \Illuminate\Support\Str::random(6), 'ltd_3');
     $this->actingAsOwner($this->tenant);
     $this->seedTenantDefaults($this->tenant);
     $this->warehouseId = DB::table('warehouses')->where('tenant_id', $this->tenant->id)->value('id');

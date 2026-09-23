@@ -4,84 +4,60 @@ namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V3\StoreSupplierPaymentRequest;
-use App\Engines\AccountingService;
-use App\Engines\PaymentService;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\SupplierPaymentPostingService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class SupplierPaymentController extends Controller
 {
     public function __construct(
-        private AccountingService $accounting,
-        private PaymentService    $payments
+        private SupplierPaymentPostingService $postingService,
+        private ApprovalPolicyResolver $policyResolver,
+        private ApprovalExecutionEngine $approvalEngine
     ) {}
 
     public function store(StoreSupplierPaymentRequest $request)
     {
         $validated = $request->validated();
+        $tenant = app('current.tenant');
+        $user = auth()->user();
+
+        // ── Maker-Checker Approval Interception ──────────────────────────────
+        $policy = $this->policyResolver->resolve(
+            tenant: $tenant,
+            user: $user,
+            documentType: ApprovalDocument::TYPE_SUPPLIER_PAYMENT,
+            amount: (float)$validated['amount']
+        );
+
+        if ($policy['requires_approval']) {
+            $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+            $doc = $this->approvalEngine->submit(
+                tenant: $tenant,
+                maker: $user,
+                documentType: ApprovalDocument::TYPE_SUPPLIER_PAYMENT,
+                payload: $validated,
+                amount: (float)$validated['amount'],
+                description: 'Supplier payment — ' . ($validated['reference'] ?? ''),
+                idempotencyKey: $idempotencyKey
+            );
+
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'status'               => 'pending_approval',
+                    'approval_document_id' => $doc->id,
+                    'document_number'      => $doc->document_number,
+                    'message'              => 'Supplier payment submitted for approval.',
+                ], 202);
+            }
+
+            return redirect()->back()->with('info', 'Supplier payment submitted for approval.');
+        }
 
         try {
-            DB::transaction(function () use ($validated) {
-
-                $paymentAccount = '1000'; // Cash
-                if ($validated['payment_method'] === 'bank') {
-                    $paymentAccount = '1010'; // Default Bank
-                    if (!empty($validated['bank_account_id'])) {
-                        $ba = \App\Models\BankAccount::find($validated['bank_account_id']);
-                        if ($ba && $ba->account_id) {
-                            $acc = \App\Models\Account::find($ba->account_id);
-                            if ($acc) {
-                                $paymentAccount = $acc->code;
-                            }
-                        }
-                    }
-                }
-
-                $bankAccountId = $validated['bank_account_id'] ?? null;
-                if ($validated['payment_method'] === 'bank' && empty($bankAccountId)) {
-                    $firstBank = \App\Models\BankAccount::where('tenant_id', app('current.tenant')->id)
-                        ->where('type', 'bank')
-                        ->first();
-                    $bankAccountId = $firstBank?->id;
-                }
-
-                // B5 Journal:
-                // DR 2000 Accounts Payable  (liability reduces)
-                // CR 1000/1010 Cash or Bank (asset reduces)
-                $journalEntry = $this->accounting->createEntry([
-                    'date'     => $validated['payment_date'],
-                    'reference_type' => 'supplier_payment',
-                    'reference'   => Str::uuid()->toString(),
-                    'description'    => 'Supplier payment — ' . ($validated['reference'] ?? ''),
-                    'party_id'       => $validated['supplier_id'],
-                ], [
-                    [
-                        'account_code' => '2000',
-                        'debit'        => $validated['amount'],
-                        'credit'       => 0,
-                        'party_id'     => $validated['supplier_id'],
-                    ],
-                    [
-                        'account_code'    => $paymentAccount,
-                        'debit'           => 0,
-                        'credit'          => $validated['amount'],
-                        'bank_account_id' => $validated['payment_method'] === 'bank' ? $bankAccountId : null,
-                    ],
-                ]);
-
-                // Allocate payment to purchase invoices
-                $allocations = array_map(fn($a) => [
-                    'purchase_id' => $a['purchase_id'],
-                    'amount'      => $a['amount'],
-                ], $validated['allocations']);
-
-                $this->payments->allocate($journalEntry->id, $allocations);
-
-                // Update payment_status badge on each allocated purchase
-                foreach ($validated['allocations'] as $alloc) {
-                    $this->updatePurchaseBadge($alloc['purchase_id']);
-                }
-            });
+            $result = $this->postingService->post($tenant, $validated, $user);
         } catch (\App\Exceptions\OverAllocationException $e) {
             if (request()->expectsJson() || request()->wantsJson()) {
                 return response()->json([

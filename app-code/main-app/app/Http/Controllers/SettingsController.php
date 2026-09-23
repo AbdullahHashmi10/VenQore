@@ -54,6 +54,23 @@ class SettingsController extends Controller
             'settings.sso_idp_entity_id'            => 'nullable|string|max:255',
             'settings.sso_url'                      => 'nullable|string|max:255',
             'settings.sso_certificate'              => 'nullable|string',
+            // Approvals & Maker-Checker Controls
+            'settings.approval_policy'                           => 'nullable|string|in:disabled,threshold,required',
+            'settings.approval_threshold'                        => 'nullable|numeric|min:0',
+            'settings.approval_admin_enabled'                   => 'nullable|string|in:0,1',
+            'settings.approval_strict_owner_separation'         => 'nullable|string|in:0,1',
+            'settings.approval_default_employee_mode'           => 'nullable|string|in:inherit,required,direct',
+            'settings.approval_policy_employee_default'         => 'nullable|string|in:inherit,required,direct',
+            'settings.approval_amount_threshold'                => 'nullable|numeric|min:0',
+            // Per-Document Policies & Thresholds
+            'settings.approval_policy_customer_receipt'         => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_customer_receipt'      => 'nullable|numeric|min:0',
+            'settings.approval_policy_supplier_payment'         => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_supplier_payment'      => 'nullable|numeric|min:0',
+            'settings.approval_policy_operating_expense'        => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_operating_expense'     => 'nullable|numeric|min:0',
+            'settings.approval_policy_sales_invoice'            => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_sales_invoice'         => 'nullable|numeric|min:0',
         ]);
 
         foreach ($data['settings'] as $key => $value) {

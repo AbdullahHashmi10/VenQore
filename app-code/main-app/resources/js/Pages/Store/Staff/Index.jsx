@@ -78,7 +78,7 @@ function Avatar({ name, role }) {
 // ─── Invite Modal ─────────────────────────────────────────────────────────────
 function InviteModal({ storeId, onClose }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '', role: 'cashier', display_name: '',
+        email: '', role: 'cashier', display_name: '', transaction_approval_mode: 'inherit',
     });
 
     function submit(e) {
@@ -162,6 +162,25 @@ function InviteModal({ storeId, onClose }) {
                         </div>
                     </div>
 
+                    {/* Transaction Approval Mode */}
+                    <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 6 }}>
+                            Transaction Approval Mode
+                        </label>
+                        <div style={{ position: 'relative' }}>
+                            <select
+                                value={data.transaction_approval_mode}
+                                onChange={e => setData('transaction_approval_mode', e.target.value)}
+                                style={{ width: '100%', padding: '10px 36px 10px 14px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', color: 'var(--text-main,rgb(var(--vq-slate-900)))', appearance: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+                            >
+                                <option value="inherit">Inherit Store Policy (Default)</option>
+                                <option value="required">Always Require Approval</option>
+                                <option value="direct">Direct Posting (Bypass Approval)</option>
+                            </select>
+                            <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: vq.slate[400], pointerEvents: 'none' }} />
+                        </div>
+                    </div>
+
                     {/* Display Name */}
                     <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 6 }}>
@@ -199,6 +218,7 @@ function EditMemberModal({ member, storeId, onClose }) {
         role: member.role,
         display_name: member.display_name ?? '',
         status: member.status,
+        transaction_approval_mode: member.transaction_approval_mode ?? 'inherit',
     });
 
     function submit(e) {
@@ -210,7 +230,7 @@ function EditMemberModal({ member, storeId, onClose }) {
 
     return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid rgb(var(--vq-slate-200))', borderRadius: 24, padding: 30, width: '100%', maxWidth: 400, boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid rgb(var(--vq-slate-200))', borderRadius: 24, padding: 30, width: '100%', maxWidth: 420, boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                     <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}>Edit {member.name}</div>
                     <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: '1px solid rgb(var(--vq-slate-200))', background: 'transparent', cursor: 'pointer', color: vq.slate[500] }}><X size={14} /></button>
@@ -224,6 +244,15 @@ function EditMemberModal({ member, storeId, onClose }) {
                             {INVITABLE_ROLES.map(r => <option key={r} value={r}>{ROLES[r]?.label ?? r}</option>)}
                         </select>
                         {member.role === 'owner' && <div style={{ fontSize: 11, color: vq.slate[400], marginTop: 4 }}>Owner role cannot be changed.</div>}
+                    </div>
+                    <div>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Approval Mode</label>
+                        <select value={data.transaction_approval_mode} onChange={e => setData('transaction_approval_mode', e.target.value)}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--input-bg,rgb(var(--vq-slate-50)))', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+                            <option value="inherit">Inherit Store Policy</option>
+                            <option value="required">Always Require Approval</option>
+                            <option value="direct">Direct Posting (Bypass Approval)</option>
+                        </select>
                     </div>
                     <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: vq.slate[600], display: 'block', marginBottom: 5 }}>Display Name</label>
@@ -300,6 +329,23 @@ function MemberRow({ member, storeId, canManage, myRole }) {
                 {/* Status */}
                 <td style={{ padding: '14px 16px' }}><StatusDot status={member.status} /></td>
 
+                {/* Approval Mode */}
+                <td style={{ padding: '14px 16px' }}>
+                    {member.transaction_approval_mode === 'required' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: vq.amber[50], color: vq.amber[700], border: `1px solid ${vq.amber[300]}`, fontSize: 11, fontWeight: 700 }}>
+                            <Shield size={10} /> Required
+                        </span>
+                    ) : member.transaction_approval_mode === 'direct' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: vq.green[50], color: vq.emerald[700], border: `1px solid ${vq.emerald[300]}`, fontSize: 11, fontWeight: 700 }}>
+                            <Zap size={10} /> Direct
+                        </span>
+                    ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 6, background: vq.slate[50], color: vq.slate[600], border: `1px solid ${vq.slate[200]}`, fontSize: 11, fontWeight: 600 }}>
+                            Inherit
+                        </span>
+                    )}
+                </td>
+
                 {/* PIN */}
                 <td style={{ padding: '14px 16px' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: member.pos_pin_set ? vq.emerald[500] : vq.slate[400], fontWeight: 600 }}>
@@ -334,7 +380,7 @@ function MemberRow({ member, storeId, canManage, myRole }) {
                                             style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 13, color: vq.slate[600], cursor: 'pointer', textAlign: 'left' }}
                                             onMouseEnter={e => e.currentTarget.style.background = vq.slate[50]}
                                             onMouseLeave={e => e.currentTarget.style.background = 'none'}>
-                                            <Edit2 size={13} /> Edit Role
+                                            <Edit2 size={13} /> Edit Role & Approval
                                         </button>
                                         <button onClick={remove}
                                             style={{ width: '100%', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', fontSize: 13, color: vq.red[500], cursor: 'pointer', textAlign: 'left' }}
@@ -419,12 +465,13 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 {/* Join Code + Search Row */}
                 <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
                     {/* Search */}
-                    <div style={{ flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 12, padding: '0 14px' }}>
-                        <Users size={14} color={vq.slate[400]} />
+                    <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
                         <input
-                            value={search} onChange={e => setSearch(e.target.value)}
-                            placeholder="Search by name, email, or role…"
-                            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, padding: '10px 0', color: 'var(--text-main,rgb(var(--vq-slate-900)))' }}
+                            type="text"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Search team members…"
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--card-bg,#fff)', fontSize: 13, outline: 'none', color: 'var(--text-main,rgb(var(--vq-slate-900)))', boxSizing: 'border-box' }}
                         />
                     </div>
 
@@ -450,7 +497,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--card-border,rgb(var(--vq-slate-100)))' }}>
-                                {['Member', 'Role', 'Status', 'POS PIN', 'Joined', 'Actions'].map(h => (
+                                {['Member', 'Role', 'Status', 'Approval Mode', 'POS PIN', 'Joined', 'Actions'].map(h => (
                                     <th key={h} style={{ padding: '12px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                         {h === 'Actions' && !canManage ? '' : h}
                                     </th>

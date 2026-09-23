@@ -67,29 +67,9 @@ class FractionalQtyAdjacentTest extends VenQoreTestCase
         $tenant = $this->createTenant('transfer-store', 'scale');
         $this->actingAsOwner($tenant);
 
-        // Account setups for stock adjustments
-        Account::forceCreate([
-            'tenant_id' => $tenant->id,
-            'code' => '6300',
-            'name' => 'Stock Adjustment Loss',
-            'type' => 'expense',
-            'normal_balance' => 'debit',
-        ]);
-        Account::forceCreate([
-            'tenant_id' => $tenant->id,
-            'code' => '4200',
-            'name' => 'Stock Adjustment Gain',
-            'type' => 'revenue',
-            'normal_balance' => 'credit',
-        ]);
-        // Inventory account is 1400
-        Account::forceCreate([
-            'tenant_id' => $tenant->id,
-            'code' => '1400',
-            'name' => 'Inventory',
-            'type' => 'asset',
-            'normal_balance' => 'debit',
-        ]);
+        // NOTE: createTenant() already calls TenantDefaultSeeder::seedFor() which seeds
+        // accounts 6300 (Stock Adjustment Loss), 4200 (Stock Adjustment Gain), 1400 (Inventory).
+        // No need to create them manually here.
 
         $warehouseA = Warehouse::create([
             'tenant_id' => $tenant->id,

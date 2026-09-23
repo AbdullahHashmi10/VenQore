@@ -712,12 +712,12 @@ final class Reckoner
 
     private function cacheKey(int|string|null $tenantId, string $metric, ReckonerPeriod $period, ?string $granularity, array $args, ?User $user = null): string
     {
-        $isPersonal = str_starts_with($metric, 'approval.my_')
-            || str_starts_with($metric, 'cashier.')
-            || str_starts_with($metric, 'staff.my_')
-            || in_array($metric, ['approval.awaiting_review', 'approval.pending_aging'], true);
-
-        $scope = ($isPersonal && $user) ? 'u_' . $user->id : 'tenant';
+        $tenant = $tenantId ? app(\App\Models\Tenant::class)->find($tenantId) : null;
+        $scope = 'tenant';
+        if ($user) {
+            $ctx = new ReckonerContext($tenant, $user);
+            $scope = $ctx->scopeFingerprint($metric);
+        }
 
         return sprintf(
             'vq_reckoner:%s:%s:%s:%s:%s:%s',

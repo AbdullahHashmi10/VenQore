@@ -33,13 +33,14 @@ class Product extends Model
 
     public function getImageUrlAttribute()
     {
-        if (!$this->image_path) {
+        $imagePath = $this->attributes['image_path'] ?? null;
+        if (!$imagePath) {
             return null;
         }
-        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
-            return $this->image_path;
+        if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://')) {
+            return $imagePath;
         }
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path);
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($imagePath);
     }
 
     protected static function booted(): void

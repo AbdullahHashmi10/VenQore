@@ -357,6 +357,49 @@ class SaleController extends Controller
                 $isStockEnabled
             );
 
+            // ── Maker-Checker Approval Interception for Administrative Invoices ──
+            $user = auth()->user();
+            $hasActiveShift = DB::table('register_shifts')
+                ->where('tenant_id', $currentTenant?->id)
+                ->where('opened_by', $user?->id)
+                ->where('status', 'open')
+                ->exists();
+            $isTrustedPos = $hasActiveShift || ($approvedBy !== null) || ($request->input('source') === 'pos');
+
+            $policyResolver = app(\App\Services\Approval\ApprovalPolicyResolver::class);
+            $policy = $policyResolver->resolve(
+                tenant: $currentTenant,
+                user: $user,
+                documentType: \App\Models\ApprovalDocument::TYPE_SALES_INVOICE,
+                amount: (float)$invoiceTotal,
+                isTrustedPos: $isTrustedPos
+            );
+
+            if ($policy['requires_approval']) {
+                DB::rollBack();
+                $approvalEngine = app(\App\Services\Approval\ApprovalExecutionEngine::class);
+                $doc = $approvalEngine->submit(
+                    tenant: $currentTenant,
+                    maker: $user,
+                    documentType: \App\Models\ApprovalDocument::TYPE_SALES_INVOICE,
+                    payload: $request->all(),
+                    amount: (float)$invoiceTotal,
+                    description: 'Sales invoice — ' . ($request->input('reference_number') ?? ''),
+                    idempotencyKey: $idempotencyKey
+                );
+
+                if ($request->wantsJson() || $request->expectsJson()) {
+                    return response()->json([
+                        'status'               => 'pending_approval',
+                        'approval_document_id' => $doc->id,
+                        'document_number'      => $doc->document_number,
+                        'message'              => 'Sales invoice submitted for approval.',
+                    ], 202);
+                }
+
+                return redirect()->back()->with('info', 'Sales invoice submitted for approval.');
+            }
+
             $tendered = $request->filled('amount_paid')
                 ? (float) $request->amount_paid
                 : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);

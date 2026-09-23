@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApprovalDocument;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\BankAccount;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\Approval\ApprovalPolicyResolver;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -12,6 +15,13 @@ use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
+    public function __construct(
+        private ?ApprovalPolicyResolver $policyResolver = null,
+        private ?ApprovalExecutionEngine $approvalEngine = null
+    ) {
+        $this->policyResolver = $this->policyResolver ?? app(ApprovalPolicyResolver::class);
+        $this->approvalEngine = $this->approvalEngine ?? app(ApprovalExecutionEngine::class);
+    }
     public function index(Request $request)
     {
         $query = Expense::with(['expenseCategory', 'serviceJob']);
@@ -245,6 +255,41 @@ class ExpenseController extends Controller
         }
         $validated['category']    = $category->name;
         $validated['tax_amount']  = $validated['tax_amount'] ?? 0;
+
+        $tenant = app('current.tenant');
+        $user = auth()->user();
+
+        // ── Maker-Checker Approval Interception ──────────────────────────────
+        $policy = $this->policyResolver->resolve(
+            tenant: $tenant,
+            user: $user,
+            documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+            amount: (float)$validated['amount']
+        );
+
+        if ($policy['requires_approval']) {
+            $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+            $doc = $this->approvalEngine->submit(
+                tenant: $tenant,
+                maker: $user,
+                documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+                payload: $validated,
+                amount: (float)$validated['amount'],
+                description: 'Operating expense — ' . ($validated['description'] ?? $validated['category'] ?? ''),
+                idempotencyKey: $idempotencyKey
+            );
+
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'status'               => 'pending_approval',
+                    'approval_document_id' => $doc->id,
+                    'document_number'      => $doc->document_number,
+                    'message'              => 'Operating expense submitted for approval.',
+                ], 202);
+            }
+
+            return redirect()->route('expenses.index')->with('info', 'Operating expense submitted for approval.');
+        }
 
         $expense = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
             $lines = $validated['items'] ?? [];

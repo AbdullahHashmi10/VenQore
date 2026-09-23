@@ -42,13 +42,23 @@ class PosSaleController extends Controller
         $openShift = $shiftQuery->latest('id')->first();
         $isTrustedPos = ($openShift !== null);
 
-        // 2. Resolve Policy
+        if (!$isTrustedPos) {
+            return response()->json([
+                'success' => false,
+                'message' => 'POS Checkout requires an active, open cash register shift for the current cashier.',
+                'errors'  => [
+                    'register_shift' => ['No open register shift found for this cashier in the current store. Please open a shift before checkout.'],
+                ],
+            ], 422);
+        }
+
+        // 2. Resolve Policy for Verified POS
         $payload = $request->all();
         $amount = (float)($payload['total'] ?? $payload['payable_amount'] ?? 0.0);
-        $policy = $this->policyResolver->resolve($tenant, $user, ApprovalDocument::TYPE_SALES_INVOICE, $amount, $isTrustedPos);
+        $policy = $this->policyResolver->resolve($tenant, $user, ApprovalDocument::TYPE_SALES_INVOICE, $amount, true);
 
         // 3. If POS Clearance passes, post directly to SaleService
-        if (!$policy['requires_approval'] && $isTrustedPos) {
+        if (!$policy['requires_approval']) {
             $formattedItems = array_map(fn($item) => [
                 'product_id'       => $item['product_id'],
                 'qty'              => (float)($item['quantity'] ?? $item['qty'] ?? 1),
@@ -81,7 +91,7 @@ class PosSaleController extends Controller
             ], 201);
         }
 
-        // 4. Untrusted context / shift missing / policy requires approval -> Route to Maker-Checker Approval
+        // 4. Policy requires approval (e.g. amount escalation) -> Route to Maker-Checker Approval
         $idempotencyKey = $request->input('idempotency_key');
         $doc = $this->approvalEngine->submit(
             tenant: $tenant,

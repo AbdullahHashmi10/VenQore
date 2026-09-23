@@ -30,14 +30,9 @@ class Slice4bSellingGateTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::where('slug', 'golden-store')->first();
-        if (!$this->tenant) {
-            $built = ReckonerGoldenStoreFixture::build(http: $this);
-            $this->tenant = $built['tenant'];
-            $this->user   = $built['user'];
-        } else {
-            $this->user = User::where('email', 'golden-owner@venqore.com')->first();
-        }
+        $built = ReckonerGoldenStoreFixture::build(tenant: null, http: $this);
+        $this->tenant = $built['tenant'];
+        $this->user   = $built['user'];
     }
 
     /**

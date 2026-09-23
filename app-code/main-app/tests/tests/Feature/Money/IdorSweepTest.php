@@ -43,11 +43,11 @@ class IdorSweepTest extends VenQoreTestCase
             'name' => 'B Warehouse',
             'slug' => 'b-warehouse',
         ]);
-        $saleB = Sale::factory()->create([
+        $saleB = \App\Services\CanonicalPostingScope::run(fn() => Sale::factory()->create([
             'tenant_id' => $tenantB->id,
             'warehouse_id' => $warehouseB->id,
             'party_id' => $partyB->id,
-        ]);
+        ]));
         $purchaseB = Invoice::create([
             'tenant_id' => $tenantB->id,
             'type' => 'purchase',

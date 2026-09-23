@@ -150,6 +150,7 @@ class PosApprovalGuardTest extends VenQoreTestCase
         $cashier2 = $this->member($this->tenant, 'cashier', self::CASHIER2_PIN);
         $otherStore = $this->createTenant('pos-approval-other', 'ltd_3', 'active');
         $otherManager = $this->member($otherStore, 'manager', self::MANAGER_PIN);
+        $this->actingAsTenantUserModel($this->cashier, $this->tenant);
         $before = $this->footprint();
 
         $attempts = [

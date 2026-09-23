@@ -2,23 +2,19 @@
 
 namespace App\Services\Approval\Adapters;
 
-use App\Engines\AccountingService;
-use App\Engines\PaymentService;
+use App\Services\SupplierPaymentPostingService;
 use App\Models\ApprovalDocument;
-use App\Models\BankAccount;
 use App\Models\Party;
 use App\Models\Purchase;
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class SupplierPaymentApprovalAdapter implements ApprovalAdapterInterface
 {
     public function __construct(
-        private AccountingService $accounting,
-        private PaymentService $payments
+        private SupplierPaymentPostingService $postingService
     ) {}
 
     public function documentType(): string
@@ -95,56 +91,13 @@ class SupplierPaymentApprovalAdapter implements ApprovalAdapterInterface
     public function post(ApprovalDocument $doc, Tenant $tenant, User $reviewer): array
     {
         $payload = $doc->currentRevision->payload;
-        $tenantId = $tenant->id;
-
-        $paymentAccount = $payload['payment_method'] === 'bank' ? '1010' : '1000';
-        $bankAccountId = $payload['bank_account_id'] ?? null;
-
-        if ($payload['payment_method'] === 'bank' && empty($bankAccountId)) {
-            $firstBank = BankAccount::where('tenant_id', $tenantId)
-                ->where('type', 'bank')
-                ->first();
-            $bankAccountId = $firstBank?->id;
-        }
-
-        // Create General Ledger Journal: DR 2000 Accounts Payable, CR 1000/1010 Cash/Bank
-        $journalEntry = $this->accounting->createEntry([
-            'date'           => $payload['payment_date'],
-            'reference_type' => 'supplier_payment',
-            'reference'      => $payload['reference'] ?: ('APP-SUP-' . strtoupper(uniqid())),
-            'description'    => 'Supplier payment (Approved) — ' . ($payload['reference'] ?? ''),
-            'party_id'       => $payload['supplier_id'],
-            'user_id'        => $reviewer->id ?? $doc->maker_id,
-            'approved_by'    => $reviewer->id,
-        ], [
-            [
-                'account_code' => '2000',
-                'debit'        => $payload['amount'],
-                'credit'       => 0,
-                'party_id'     => $payload['supplier_id'],
-            ],
-            [
-                'account_code'    => $paymentAccount,
-                'debit'           => 0,
-                'credit'          => $payload['amount'],
-                'bank_account_id' => $payload['payment_method'] === 'bank' ? $bankAccountId : null,
-            ],
-        ]);
-
-        if (!empty($payload['allocations'])) {
-            $allocations = array_map(fn($a) => [
-                'purchase_id' => $a['purchase_id'],
-                'amount'      => $a['amount'],
-            ], $payload['allocations']);
-
-            $this->payments->allocate($journalEntry->id, $allocations);
-        }
+        $result = $this->postingService->post($tenant, $payload, $reviewer);
 
         return [
-            'type'            => 'journal_entry',
-            'id'              => $journalEntry->id,
-            'reference'       => $journalEntry->reference,
-            'journal_entry_id'=> $journalEntry->id,
+            'type'             => 'journal_entry',
+            'id'               => $result['journal_entry_id'],
+            'reference'        => $result['reference'],
+            'journal_entry_id' => $result['journal_entry_id'],
         ];
     }
 }

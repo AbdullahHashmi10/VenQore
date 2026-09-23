@@ -155,4 +155,48 @@ class ApprovalCardsAndScopeTest extends VenQoreTestCase
         $this->assertTrue($res2[$id]->ok);
         $this->assertSame(0, $res2[$id]->data['count']);
     }
+
+    public function test_data_scope_differentiates_cache_fingerprint(): void
+    {
+        $tenant = $this->createTenant('reck-scope-' . uniqid(), 'ltd_3');
+        $user = $this->createTenantUser($tenant, 'cashier');
+
+        $ctx1 = new \App\Reckoner\ReckonerContext($tenant, $user, 'cashier', ['sales.view'], ['warehouse_id' => 1]);
+        $ctx2 = new \App\Reckoner\ReckonerContext($tenant, $user, 'cashier', ['sales.view'], ['warehouse_id' => 2]);
+
+        $fp1 = $ctx1->scopeFingerprint('sales.daily_volume');
+        $fp2 = $ctx2->scopeFingerprint('sales.daily_volume');
+
+        $this->assertNotEquals($fp1, $fp2, 'Users with different dataScopes must produce distinct cache fingerprints.');
+    }
+
+    public function test_data_scope_key_order_normalization_invariance(): void
+    {
+        $tenant = $this->createTenant('reck-order-' . uniqid(), 'ltd_3');
+        $user = $this->createTenantUser($tenant, 'cashier');
+
+        // Same nested data scope supplied with keys in different order
+        $scopeA = [
+            'warehouse_id' => 5,
+            'branch_id'    => 12,
+            'assignments'  => ['role' => 'lead', 'zone' => 'north'],
+            'customer_ids' => [101, 102],
+        ];
+
+        $scopeB = [
+            'customer_ids' => [101, 102],
+            'assignments'  => ['zone' => 'north', 'role' => 'lead'],
+            'branch_id'    => 12,
+            'warehouse_id' => 5,
+        ];
+
+        $ctxA = new \App\Reckoner\ReckonerContext($tenant, $user, 'cashier', ['sales.view'], $scopeA);
+        $ctxB = new \App\Reckoner\ReckonerContext($tenant, $user, 'cashier', ['sales.view'], $scopeB);
+
+        $this->assertSame(
+            $ctxA->scopeFingerprint('sales.daily_volume'),
+            $ctxB->scopeFingerprint('sales.daily_volume'),
+            'Identical data scopes in different key orders must produce the exact same fingerprint.'
+        );
+    }
 }

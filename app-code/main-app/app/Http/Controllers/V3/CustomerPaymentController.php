@@ -3,19 +3,21 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Engines\AccountingService;
-use App\Engines\PaymentService;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\CustomerPaymentPostingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class CustomerPaymentController extends Controller
 {
     public function __construct(
-        private AccountingService $accounting,
-        private PaymentService    $payments
+        private CustomerPaymentPostingService $postingService,
+        private ApprovalPolicyResolver $policyResolver,
+        private ApprovalExecutionEngine $approvalEngine
     ) {}
 
     public function store(Request $request)
@@ -61,53 +63,43 @@ class CustomerPaymentController extends Controller
             ]);
         }
 
+        $tenant = app('current.tenant');
+        $user = auth()->user();
+
+        // ── Maker-Checker Approval Interception ──────────────────────────────
+        $policy = $this->policyResolver->resolve(
+            tenant: $tenant,
+            user: $user,
+            documentType: ApprovalDocument::TYPE_CUSTOMER_RECEIPT,
+            amount: (float)$validated['amount']
+        );
+
+        if ($policy['requires_approval']) {
+            $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+            $doc = $this->approvalEngine->submit(
+                tenant: $tenant,
+                maker: $user,
+                documentType: ApprovalDocument::TYPE_CUSTOMER_RECEIPT,
+                payload: $validated,
+                amount: (float)$validated['amount'],
+                description: 'Customer payment — ' . ($validated['reference'] ?? ''),
+                idempotencyKey: $idempotencyKey
+            );
+
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'status'               => 'pending_approval',
+                    'approval_document_id' => $doc->id,
+                    'document_number'      => $doc->document_number,
+                    'message'              => 'Customer payment submitted for approval.',
+                ], 202);
+            }
+
+            return redirect()->back()->with('info', 'Customer payment submitted for approval.');
+        }
+
         try {
-            DB::transaction(function () use ($validated, $tenantId) {
-
-                $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
-                $bankAccountId = $validated['bank_account_id'] ?? null;
-                if ($validated['payment_method'] === 'bank' && empty($bankAccountId)) {
-                    $firstBank = \App\Models\BankAccount::where('tenant_id', $tenantId)
-                        ->where('type', 'bank')
-                        ->first();
-                    $bankAccountId = $firstBank?->id;
-                }
-
-                // B4 Journal:
-                // DR 1000/1010 Cash or Bank
-                // CR 1200 Accounts Receivable
-                $journalEntry = $this->accounting->createEntry([
-                    'date'     => $validated['payment_date'],
-                    'reference_type' => 'customer_payment',
-                    'reference'   => Str::uuid()->toString(),
-                    'description'    => 'Customer payment' .
-                                        (isset($validated['reference']) && $validated['reference']
-                                            ? ' — ' . $validated['reference']
-                                            : ''),
-                    'party_id'       => $validated['customer_id'],
-                ], [
-                    [
-                        'account_code'    => $cashAccount,
-                        'debit'           => $validated['amount'],
-                        'credit'          => 0,
-                        'bank_account_id' => $validated['payment_method'] === 'bank' ? $bankAccountId : null,
-                    ],
-                    [
-                        'account_code' => '1200',
-                        'debit'        => 0,
-                        'credit'       => $validated['amount'],
-                        'party_id'     => $validated['customer_id'],
-                    ],
-                ]);
-
-                // Allocate to sale invoices
-                $allocations = array_map(fn($a) => [
-                    'sale_id' => $a['sale_id'],
-                    'amount'  => $a['amount'],
-                ], $validated['allocations']);
-
-                $this->payments->allocate($journalEntry->id, $allocations);
-            });
+            $result = $this->postingService->post($tenant, $validated, $user);
         } catch (\App\Exceptions\OverAllocationException $e) {
             if (request()->expectsJson() || request()->wantsJson()) {
                 return response()->json([

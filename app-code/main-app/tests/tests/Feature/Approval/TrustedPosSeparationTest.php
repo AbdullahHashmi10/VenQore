@@ -97,22 +97,11 @@ class TrustedPosSeparationTest extends VenQoreTestCase
             'payment_method'    => 'cash',
         ]);
 
-        $response->assertStatus(202);
-        $response->assertJson([
-            'status'  => 'pending_approval',
-            'success' => true,
-        ]);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['register_shift']);
 
         // Assert sale was NOT posted directly
         $this->assertSame(0, Sale::where('tenant_id', $tenant->id)->count());
-
-        // Assert Approval Document created with pending status
-        $this->assertDatabaseHas('approval_documents', [
-            'tenant_id'     => $tenant->id,
-            'document_type' => ApprovalDocument::TYPE_SALES_INVOICE,
-            'status'        => ApprovalDocument::STATUS_PENDING,
-            'maker_id'      => $cashier->id,
-        ]);
     }
 
     public function test_foreign_cashier_shift_context_is_rejected_from_direct_pos_clearance(): void
@@ -157,12 +146,9 @@ class TrustedPosSeparationTest extends VenQoreTestCase
             'payment_method'    => 'cash',
         ]);
 
-        // Server-side verification recognizes shift belongs to Cashier B -> fails POS clearance -> routes to approval
-        $response->assertStatus(202);
-        $response->assertJson([
-            'status'  => 'pending_approval',
-            'success' => true,
-        ]);
+        // Server-side verification recognizes shift belongs to Cashier B -> fails POS clearance -> rejects with 422
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['register_shift']);
 
         $this->assertSame(0, Sale::where('tenant_id', $tenant->id)->count());
     }

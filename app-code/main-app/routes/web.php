@@ -1864,13 +1864,30 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/pos/sales', [\App\Http\Controllers\PosSaleController::class, 'store'])->middleware(['permission:pos.checkout,sales.create', \App\Http\Middleware\EnforceTransactionLimit::class])->name('pos.sales.store');
 
     // Approval Workflow Routes
-    Route::get('/approvals/inbox', [\App\Http\Controllers\ApprovalDocumentController::class, 'inbox'])->name('approvals.inbox');
-    Route::get('/approvals/my-submissions', [\App\Http\Controllers\ApprovalDocumentController::class, 'mySubmissions'])->name('approvals.my-submissions');
-    Route::get('/approvals/{id}', [\App\Http\Controllers\ApprovalDocumentController::class, 'show'])->name('approvals.show');
-    Route::post('/approvals/{id}/approve', [\App\Http\Controllers\ApprovalDocumentController::class, 'approve'])->name('approvals.approve');
-    Route::post('/approvals/{id}/reject', [\App\Http\Controllers\ApprovalDocumentController::class, 'reject'])->name('approvals.reject');
-    Route::post('/approvals/{id}/return', [\App\Http\Controllers\ApprovalDocumentController::class, 'returnDocument'])->name('approvals.return');
-    Route::post('/approvals/{id}/resubmit', [\App\Http\Controllers\ApprovalDocumentController::class, 'resubmit'])->name('approvals.resubmit');
+    Route::get('/approvals/inbox', [\App\Http\Controllers\ApprovalDocumentController::class, 'inbox'])
+        ->middleware('permission:approvals.inbox,approvals.review')
+        ->name('approvals.inbox');
+    Route::get('/approvals/my-submissions', [\App\Http\Controllers\ApprovalDocumentController::class, 'mySubmissions'])
+        ->middleware('permission:approvals.view_own,approvals.submit')
+        ->name('approvals.my-submissions');
+    Route::get('/approvals/{id}', [\App\Http\Controllers\ApprovalDocumentController::class, 'show'])
+        ->middleware('permission:approvals.view_own,approvals.submit,approvals.inbox,approvals.review')
+        ->name('approvals.show');
+    Route::post('/approvals/{id}/approve', [\App\Http\Controllers\ApprovalDocumentController::class, 'approve'])
+        ->middleware('permission:approvals.approve,approvals.review')
+        ->name('approvals.approve');
+    Route::post('/approvals/{id}/reject', [\App\Http\Controllers\ApprovalDocumentController::class, 'reject'])
+        ->middleware('permission:approvals.reject,approvals.review')
+        ->name('approvals.reject');
+    Route::post('/approvals/{id}/return', [\App\Http\Controllers\ApprovalDocumentController::class, 'returnDocument'])
+        ->middleware('permission:approvals.return,approvals.review')
+        ->name('approvals.return');
+    Route::post('/approvals/{id}/withdraw', [\App\Http\Controllers\ApprovalDocumentController::class, 'withdraw'])
+        ->middleware('permission:approvals.withdraw,approvals.view_own,approvals.submit')
+        ->name('approvals.withdraw');
+    Route::post('/approvals/{id}/resubmit', [\App\Http\Controllers\ApprovalDocumentController::class, 'resubmit'])
+        ->middleware('permission:approvals.resubmit,approvals.view_own,approvals.submit')
+        ->name('approvals.resubmit');
 
     Route::get('/sales/approvers', [\App\Http\Controllers\SaleController::class, 'approvers'])->middleware('permission:sales.create,pos.checkout')->name('sales.approvers');
     Route::get('/attendance/status', [\App\Http\Controllers\AttendanceController::class, 'status'])->name('attendance.status');
@@ -2422,6 +2439,25 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.journal')->name('fiscal-year.close');
 
 
+
+    // Reports under /v3/reports/* (JSON APIs for V3 / Scenarios / UI)
+    Route::middleware(['permission:reports.summary', 'plan.report'])->prefix('reports')->name('reports.')->group(function () {
+        Route::get('trial-balance', [\App\Http\Controllers\V3\ReportController::class, 'trialBalance'])->name('trial-balance');
+        Route::get('profit-loss', [\App\Http\Controllers\V3\ReportController::class, 'profitAndLoss'])->name('profit-loss');
+        Route::get('balance-sheet', [\App\Http\Controllers\V3\ReportController::class, 'balanceSheet'])->name('balance-sheet');
+        Route::get('cash-flow', [\App\Http\Controllers\V3\ReportController::class, 'cashFlow'])->name('cash-flow');
+        Route::get('aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->name('aged-receivables');
+        Route::get('aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->name('aged-payables');
+        Route::get('sales', [\App\Http\Controllers\V3\ReportController::class, 'sales'])->name('sales');
+        Route::get('purchases', [\App\Http\Controllers\V3\ReportController::class, 'purchases'])->name('purchases');
+        Route::get('inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->name('inventory-valuation');
+        Route::get('cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs'])->name('cogs');
+        Route::get('gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->name('gross-profit');
+        Route::get('tax', [\App\Http\Controllers\V3\ReportController::class, 'tax'])->name('tax');
+        Route::get('party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->name('party-ledger');
+        Route::get('inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('inventory-movement');
+        Route::get('export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->middleware('permission:data.export')->name('export');
+    });
 
     // Dashboard
     Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index'])->name('dashboard');

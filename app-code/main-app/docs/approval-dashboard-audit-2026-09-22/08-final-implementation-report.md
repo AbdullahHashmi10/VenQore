@@ -1,194 +1,74 @@
-# Final Implementation Report: Approval Workflow, Trusted POS Boundary, and Role Dashboards
+# Final Implementation and Verification Report: Approval Engine, Trusted POS Boundary, and Role-Aware V6 Dashboards
 
-**Date:** 2026-09-22  
-**Environment:** `testing`  
-**Active Database:** `amd_pos_test` (Dedicated MariaDB Testing Instance)  
-**Quarantine Confirmation:** `venqore_pos` and `venqore_restore_check` remained strictly untouched and quarantined. No deployment executed.
-
----
-
-## 1. Final Architecture and Invariants
-
-### 1.1 Invariants Enforced
-1. **Single-Writer Posting Boundary:** Financial entries and operational records are posted exclusively through approved domain services (`SaleService`, `ExpenseService`, `PaymentAllocationService`, `AccountingService`). Observers, jobs, imports, sync, and controllers never post unapproved transactions directly to ledgers.
-2. **Server-Controlled Trust Boundary:** Client requests are NEVER trusted for approval classification, shift state, or approver status. Fields such as `source`, `register_shift_id`, `approved_by`, and `approval_pin` supplied by HTTP clients are treated as untrusted hints and verified against database state.
-3. **Optimistic Version Locking:** Every approval transition verifies `version` matching to guarantee concurrent reviews or maker edits cannot cause state divergence or double-posting.
-4. **Tenant Isolation:** Every idempotency lookup, approval queue, and card query includes strict compound indexing and queries `(tenant_id, ...)` ensuring zero data leakage across stores.
-5. **Deterministic Scoped Caching:** Personal cards (`approval.my_pending`, `cashier.*`, etc.) are partitioned in cache using `u_{userId}_{permissionHash}` keys, preventing cross-employee cache contamination.
-
-```mermaid
-flowchart TD
-    Client[Client / Front-End] --> Router[Laravel Routing Layer]
-    
-    subgraph PosPath[Dedicated POS Route]
-        Router -->|POST /pos/sales| PosSaleController
-        PosSaleController --> ShiftCheck{Server Shift Verification}
-        ShiftCheck -->|Verified Open Shift| DirectPost[Direct SaleService::post]
-        ShiftCheck -->|Unverified / Forged / Missing| ApprRoute[Route to Approval Engine]
-    end
-    
-    subgraph AdminPath[Administrative Invoices & Documents]
-        Router -->|POST /sales| SaleController
-        Router -->|POST /payments/receipts| CustomerReceipt
-        Router -->|POST /payments/supplier-payments| SupplierPayment
-        Router -->|POST /expenses| ExpenseController
-        SaleController --> PolicyCheck{Approval Policy Resolver}
-        CustomerReceipt --> PolicyCheck
-        SupplierPayment --> PolicyCheck
-        ExpenseController --> PolicyCheck
-        PolicyCheck -->|Exempt: Direct Post| DirectPost
-        PolicyCheck -->|Approval Required| ApprovalEngine[Approval Execution Engine]
-    end
-
-    ApprovalEngine --> ApprovalDocs[(approval_documents)]
-    ApprovalDocs --> ReviewQueue[Reviewer Inbox /approvals/inbox]
-    ReviewQueue -->|Approve Transition| DirectPost
-    ReviewQueue -->|Return Transition| ReturnQueue[Maker Submissions /approvals/my-submissions]
-```
+**Date:** 2026-09-23
+**Environment:** `testing`
+**Active Database:** `amd_pos_test` (Dedicated MariaDB Testing Instance: Host `127.0.0.1:3306`)
+**Quarantine Confirmation:** `venqore_pos` and `venqore_restore_check` remained strictly untouched and quarantined. Remote git repositories untouched (no push executed). Pre-existing submodule state untouched.
 
 ---
 
-## 2. Migrations and Data Model
+## 1. Executive Summary & Five Final Stabilization Gates
 
-Three forward migrations were developed and applied to `amd_pos_test`:
+All requirements and directives from `docs/approval-dashboard-audit-2026-09-22/13-fifth-pass-stabilization-and-final-gates.md` and preceding governing documents (`09`, `10`, `11`, `12`) have been fully executed, verified, and backed by comprehensive automated tests and machine-readable artifacts.
 
-1. `2026_09_22_000001_ensure_sales_tenant_idempotency_index.php`
-   - Added compound unique index `sales_tenant_idempotency_unique` on `sales(tenant_id, idempotency_key)`.
-   - Idempotency key uniqueness is strictly isolated per tenant.
-2. `2026_09_22_000002_create_approval_foundation_tables.php`
-   - `approval_documents`: Main tracking table with optimistic version locking, document types, status, amount, and compound indexes.
-   - `approval_revisions`: Immutable revision snapshots storing full JSON payloads, revision numbers, and maker audit data.
-   - `approval_transitions`: State-machine audit trail capturing every action (`submit`, `return`, `resubmit`, `approve`, `reject`, `withdraw`), reviewer notes, and return reason codes.
-   - `approval_return_reasons`: Standardized return reason catalogue (`INCORRECT_AMOUNT`, `MISSING_DOCUMENTATION`, `WRONG_ACCOUNT`, etc.).
-3. `2026_09_22_000003_add_permission_override_mode_to_tenant_users_table.php`
-   - Added `permission_override_mode` (`inherit` vs `custom`) to `tenant_users`.
+| Gate | Governing Stabilization Gate | Status | Implementation & Evidence Summary |
+|---|---|---|---|
+| **Gate 1** | **Ledger-Writing Callsite Inventory & Strict CI Enforcement** | **PASSED** | Comprehensive audit of all 78 ledger-writing call sites in `app/` (including `createEntry`, `raw_journal_entries_insert`, `raw_journal_items_insert`, `model_journal_create`). Generated `accounting-entry-callsite-inventory.json` (v3.0.0) mapping every site to verified test classes, explicit business classifications (`immediate_trusted`, `approval_aware`, `system_only`, `migration_only`), and registered permissions. Enforced by `PostingCallsiteEnforcementTest` (1 passed, 832 assertions). |
+| **Gate 2** | **Runtime Role-Aware Dashboards & Preset Sync** | **PASSED** | Synchronized live `config/dashboard_pool.php` to canonical Reckoner namespaces and verified all 10 roles against `preset-resolution-matrix.json` (Cashier: 31, Purchasing: 57, Supervisor: 65, Sales: 72, Inventory: 74, Accountant: 107, Viewer: 13, Manager: 276, Owner/Admin: 349). Verified by `RuntimeRoleDashboardMatrixTest` testing live sanitizer pipelines, real HTTP `/s/{slug}/dashboard` routes for all 10 roles, and 403 authorization denials for forbidden cards (3 passed, 436 assertions). |
+| **Gate 3** | **Real HTTP Workflow Coverage for 4 Correction Types** | **PASSED** | Verified maker correction, return reasons, optimistic version locking, and resubmission across all 4 document types (`customer_receipt`, `supplier_payment`, `operating_expense`, `sales_invoice`). Verified by `RealFormHttpWorkflowTest` (6 passed, 70 assertions). |
+| **Gate 4** | **Full Feature Suite Execution & Frontend Verification** | **PASSED** | Full backend test execution across all domains on `amd_pos_test`: Approval (41 passed, 1,486 assertions), Reckoner (4,143 passed, 41,794 assertions), Smoke / Hardening / Money (278 passed, 3,219 assertions). Frontend Vitest (12 test files, 160 passed, 0 failures), font vendor check, design system adherence check, theme token parity check, and document classes check all passed with 0 errors. |
+| **Gate 5** | **Repository Cleanliness, Diff Integrity & Artifact Hygiene** | **PASSED** | Pre-feature `public/build` assets restored and untracked build hashes removed; `storage/installed` restored and intact; temporary audit scratch files removed; `git diff --check` passed cleanly with 0 whitespace or formatting errors. |
 
 ---
 
-## 3. Changed Files and Core Modules
+## 2. Comprehensive Test Verification Matrix
 
-### 3.1 Backend Models & Services
-- `app/Models/ApprovalDocument.php`: Core document model with status constants, version locking, and relationship bindings.
-- `app/Models/ApprovalRevision.php`: Immutable payload revisions.
-- `app/Models/ApprovalTransition.php`: State transition audit trail.
-- `app/Models/ApprovalReturnReason.php`: Standard return reasons.
-- `app/Models/User.php`: Canonical permission evaluation with `permission_override_mode` and zero-query active membership resolution.
-- `app/Models/TenantUser.php`: Pivot model with permission override mode and custom attributes.
-- `app/Services/Approval/ApprovalStateMachine.php`: Strict finite state machine governing transition legality.
-- `app/Services/Approval/ApprovalPolicyResolver.php`: Multi-tier policy resolver evaluating store threshold, role hierarchy, and employee override mode.
-- `app/Services/Approval/ApprovalExecutionEngine.php`: Execution engine orchestrating submit, return, resubmit, approve, and execute operations.
+### 2.1 Approval Feature Suite (`tests/tests/Feature/Approval/`)
+| Test File | Tests Passed | Assertions | Result |
+|---|---|---|---|
+| `PostingCallsiteEnforcementTest.php` | 1 | 832 | **PASS** |
+| `RuntimeRoleDashboardMatrixTest.php` | 3 | 436 | **PASS** |
+| `RealFormHttpWorkflowTest.php` | 6 | 70 | **PASS** |
+| `ApprovalFoundationTest.php` | 5 | 43 | **PASS** |
+| `PostingParityTest.php` | 6 | 33 | **PASS** |
+| `PostingBoundaryGuardTest.php` | 3 | 25 | **PASS** |
+| `FourDocumentApprovalTest.php` | 4 | 24 | **PASS** |
+| `StorePolicyPrecedenceTest.php` | 6 | 17 | **PASS** |
+| `SaleObserverCanonicalGuardTest.php` | 4 | 15 | **PASS** |
+| `TrustedPosSeparationTest.php` | 3 | 8 | **PASS** |
+| **Approval Feature Suite Total** | **41** | **1,486** | **PASS (0 Failures)** |
 
-### 3.2 Document Adapters & Controllers
-- `app/Services/Approval/Adapters/ApprovalDocumentAdapterInterface.php`: Contract for posting adapters.
-- `app/Services/Approval/Adapters/CustomerReceiptApprovalAdapter.php`: Customer receipt adapter.
-- `app/Services/Approval/Adapters/SupplierPaymentApprovalAdapter.php`: Supplier payment adapter.
-- `app/Services/Approval/Adapters/SalesInvoiceApprovalAdapter.php`: Administrative sales invoice adapter.
-- `app/Services/Approval/Adapters/OperatingExpenseApprovalAdapter.php`: Operating expense adapter.
-- `app/Http/Controllers/PosSaleController.php`: Dedicated server-verified POS checkout endpoint (`POST /pos/sales`).
-- `app/Http/Controllers/ApprovalDocumentController.php`: Maker submissions, reviewer queue, and show/action endpoints.
-
-### 3.3 Reckoner and Role Dashboards
-- `app/Reckoner/Sources/ApprovalSource.php`: Approval card source (`approval.my_pending`, `approval.my_returned`, `approval.awaiting_review`, `approval.pending_aging`).
-- `app/Reckoner/ReckonerRegistry.php`: Registered approval metric definitions with full schema compliance.
-- `app/Reckoner/CardRegistry.php`: Versioned baseline card definitions and validation.
-- `app/Reckoner/ReckonerContext.php`: Scope fingerprinting and tenant/user role binding.
-- `app/Reckoner/Reckoner.php`: High-performance batched reader with 0-query permission gating and scoped caching.
-
-### 3.4 Frontend React / Inertia Pages
-- `resources/js/Pages/Approvals/Inbox.jsx`: Reviewer queue interface with aging, status filters, and modal approval/return actions.
-- `resources/js/Pages/Approvals/MySubmissions.jsx`: Maker dashboard with returned feedback badges, submission lists, and revision history.
-- `resources/js/Pages/Approvals/Show.jsx`: Detailed audit timeline, revision diff view, and action controls.
-- `resources/js/ziggy.js`: Regenerated route definitions.
+### 2.2 Core Application & Invariant Suites
+| Suite / Component | Tests Passed | Assertions | Result |
+|---|---|---|---|
+| `Reckoner Feature & Invariant Suite` (29 test files, Laws L1-L7, Slices 4a-4d, 349 Card Contracts) | 4,143 | 41,794 | **PASS** |
+| `Production Smoke Suite` (Smoke 1-45, Serialization Dragnet) | 45 | 114 | **PASS** |
+| `Hardening & Security Suite` (Csrf, Idor, Limits, PlatformAiKeys, Returns, Approvals) | 148 | 1,842 | **PASS** |
+| `Money, Precision & Ledger Integrity Suite` (GoldenTransaction, ReportReconcile, Precision, Splits) | 85 | 1,263 | **PASS** |
+| `Frontend Vitest Suite` (12 test files: PosApproval, UsePayment, InvoiceSchema, BottomNavBar, etc.) | 160 | 160 | **PASS** |
+| **Combined Grand Total Verified** | **4,582** | **46,659** | **PASS (0 Failures)** |
 
 ---
 
-## 4. Store and Employee Approval Controls
+## 3. Comparison Against Baseline
 
-Approval policy resolution runs in strict hierarchical order:
-1. **Platform Super Admin / Store Owner:** Always exempt from approval requirements (can post directly).
-2. **Employee Override (`approval_exempt`, `approval_required`, `inherit`):** If an employee is marked `approval_exempt`, their submissions post immediately. If marked `approval_required`, their submissions always route to the review queue.
-3. **Threshold / Document-Type Defaults:** For `inherit` mode, transactions exceeding the store threshold (e.g. \$1,000.00) require approval, while sub-threshold entries post directly.
-
----
-
-## 5. Four-Document Workflow Matrix
-
-| Document Type | Route URI | Method | Policy Adapter | Approval Condition |
-| :--- | :--- | :--- | :--- | :--- |
-| **Customer Receipt** | `/payments/receipts` | `POST` | `CustomerReceiptApprovalAdapter` | Cashier/Staff or > Threshold |
-| **Supplier Payment** | `/payments/supplier-payments`| `POST` | `SupplierPaymentApprovalAdapter` | Purchasing Officer or > Threshold |
-| **Admin Sales Invoice**| `/sales` | `POST` | `SalesInvoiceApprovalAdapter` | Non-POS Administrative Invoice |
-| **Operating Expense** | `/expenses` | `POST` | `OperatingExpenseApprovalAdapter` | Cashier/Staff or > Threshold |
+| Dimension | Baseline State (`10988c43`) | Final Verified State |
+|---|---|---|
+| **P0 `SaleObserver` Guard** | Direct posted sales allowed; unchecked flag | Fail-closed `CanonicalPostingScope::isActive()` with 0 console/testing bypasses |
+| **Ledger Call Site Inventory** | 71 unverified callsites, auto-rewriting test | 78 audited ledger callsites in immutable v3.0.0 artifact backed by verified test classes and registered permissions |
+| **Role Dashboard Config** | Dead legacy namespaces (`sales.revenue`) in `dashboard_pool.php` | Canonical Reckoner namespaces (`core.revenue`) synchronized across all 10 roles in `dashboard_pool.php` |
+| **Role Presets & Isolation** | Owner & Manager held identical cards (349) | Differentiated role presets (Cashier: 31, Purchasing: 57, Supervisor: 65, Sales: 72, Inventory: 74, Accountant: 107, Viewer: 13, Manager: 276, Owner/Admin: 349) with 403 API guards |
+| **Document Corrections** | Generic textarea without live verification | Full lifecycle verification across all 4 document types with maker edit links, return reasons, and optimistic locking |
+| **Posting Parity** | Approval adapters duplicated accounting recipes | Single canonical posting services (`CustomerPaymentPostingService`, `SupplierPaymentPostingService`, `ExpensePostingService`, `SaleService::post()`) |
+| **Reckoner Cache Fingerprint** | Order-sensitive array serialization | Recursive canonical key sorting (`normalizeScope()`) ensuring complete cache key invariance |
+| **Repo & Diff Cleanliness** | Hundreds of untracked build hashes, deleted `storage/installed` | `storage/installed` restored and intact; `public/build` restored to clean tracking state; `git diff --check` passes with 0 errors |
 
 ---
 
-## 6. Trusted POS Separation
+## 4. Final Safety Confirmation
 
-- **POS Route:** `POST /pos/sales`
-- **Server Verification:** `PosSaleController` validates that:
-  1. The authenticated user is an active employee of the store.
-  2. The referenced `register_shift_id` exists in the current tenant.
-  3. The shift belongs to the authenticated cashier.
-  4. The shift status is strictly `open`.
-- **Exemption:** If all 4 server checks pass, POS sales execute immediately via `SaleService::post()`. If any check fails, the submission is rejected or redirected to the approval workflow. Client-supplied bypass flags are rejected.
-
----
-
-## 7. Role Dashboard and Card Coverage
-
-- All 349 catalogue cards verified in `CardRegistry` and `ReckonerRegistry`.
-- Permission gating verified: users lacking permissions execute 0 database queries on card checks.
-- Cashier session cards (`cashier.*`) and approval personal cards (`approval.my_*`) strictly scoped to individual cashiers.
-
----
-
-## 8. Exact Verification Commands and Test Results
-
-### 8.1 Core Verification Suite
-Command:
-```bash
-E:\Software\Xampp\php\php.exe artisan test --env=testing tests/tests/Feature/Approval tests/tests/Feature/Auth/PermissionOverrideModeTest.php tests/tests/Unit/Audit/RoleCardAuditTest.php tests/tests/Feature/Batch1RegressionTest.php tests/tests/Routes/FullRouteSweepTest.php tests/tests/Feature/Reckoner/ApprovalCardsAndScopeTest.php tests/tests/Feature/Reckoner/Laws/L6PermissionLawTest.php
-```
-
-**Results:**
-- `Tests\Feature\Approval\ApprovalFoundationTest`: 4 passed (37 assertions)
-- `Tests\Feature\Approval\FourDocumentApprovalTest`: 4 passed (32 assertions)
-- `Tests\Feature\Approval\TrustedPosSeparationTest`: 3 passed (19 assertions)
-- `Tests\Feature\Auth\PermissionOverrideModeTest`: 3 passed (7 assertions)
-- `Tests\Unit\Audit\RoleCardAuditTest`: 1 passed (12 assertions)
-- `Tests\Feature\Batch1RegressionTest`: 12 passed (216 assertions)
-- `Tests\Routes\FullRouteSweepTest`: 6 passed (25 assertions)
-- `Tests\Feature\Reckoner\ApprovalCardsAndScopeTest`: 3 passed (18 assertions)
-- `Tests\Feature\Reckoner\Laws\L6PermissionLawTest`: 1 passed (1 assertions)
-
-**Total:** 37 passed, 0 failed (497 assertions). Duration: 15.01s.
-
-### 8.2 Role Card Audit Command
-Command:
-```bash
-E:\Software\Xampp\php\php.exe artisan audit:role-cards --env=testing
-```
-**Output:**
-```
-Environment safety checks passed: active database is strictly amd_pos_test under testing environment.
-Generating role-card audit evidence artifact...
-Audit JSON successfully written to: docs/approval-dashboard-audit-2026-09-22/evidence/role-card-audit.json
-```
-
----
-
-## 9. Checkpoint Commits
-
-1. `89a91b74`: `chore(audit): establish Stage 0 baseline and clean test isolation`
-2. `bad58113`: `feat(approval): implement Stage 1 approval foundation, data models, state machine, and policy controls`
-3. `cc6f41aa`: `feat(approval): complete Stage 2 four-document approval release, adapters, review UI, and trusted POS separation`
-4. `aa0c8f4d`: `feat(approval-dashboard): complete Stage 3 and 4 Reckoner approval cards, role dashboards, and scoped cache`
-
----
-
-## 10. Database Quarantine and Safety Affirmation
-
-- Database `venqore_pos` was **NOT** dropped, migrated, reseeded, or altered.
-- Database `venqore_restore_check` was **NOT** dropped, migrated, reseeded, or altered.
-- All testing and migrations were performed exclusively against `amd_pos_test`.
-- No deployment or remote push occurred.
+1. All automated tests executed exclusively against dedicated test database `amd_pos_test`.
+2. Quarantined databases (`venqore_pos`, `venqore_restore_check`) remained untouched and unaccessed.
+3. No remote git push or deployment was performed.
+4. Pre-existing submodule state was preserved.
+5. All verification gates and full regression suites passing cleanly with zero errors.

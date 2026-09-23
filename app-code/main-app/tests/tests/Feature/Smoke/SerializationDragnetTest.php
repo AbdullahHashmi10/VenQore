@@ -55,7 +55,7 @@ test('[DRAGNET] admin dashboard serializes without 500 error when sales exist', 
     ]);
 
     // Seed a posted sale so paymentMethods + topProducts queries return real data
-    $sale = \App\Models\Sale::create([
+    $sale = \App\Services\CanonicalPostingScope::run(fn() => \App\Models\Sale::create([
         'tenant_id'    => $tenant->id,
         'user_id'      => auth()->id(),
         'status'       => 'posted',
@@ -64,7 +64,7 @@ test('[DRAGNET] admin dashboard serializes without 500 error when sales exist', 
         'net_sales'    => 250.0,
         'invoice_total'=> 250.0,
         'posted_at'    => now(),
-    ]);
+    ]));
 
     $saleItemId = \Illuminate\Support\Str::uuid()->toString();
     DB::table('sale_items')->insert([
@@ -147,7 +147,7 @@ test('[DRAGNET] tenant dashboard serializes performance props correctly when sal
     $this->seedTenantDefaults($tenant);
 
     // Create a posted sale
-    \App\Models\Sale::create([
+    \App\Services\CanonicalPostingScope::run(fn() => \App\Models\Sale::create([
         'tenant_id'    => $tenant->id,
         'user_id'      => auth()->id(),
         'status'       => 'posted',
@@ -156,6 +156,35 @@ test('[DRAGNET] tenant dashboard serializes performance props correctly when sal
         'net_sales'    => 500.0,
         'invoice_total'=> 500.0,
         'posted_at'    => now(),
+    ]));
+
+    $cashAcc = \App\Models\Account::firstOrCreate(
+        ['tenant_id' => $tenant->id, 'code' => '1000'],
+        ['name' => 'Cash on Hand', 'type' => 'asset']
+    );
+    $salesAcc = \App\Models\Account::firstOrCreate(
+        ['tenant_id' => $tenant->id, 'code' => '4000'],
+        ['name' => 'Sales Revenue', 'type' => 'revenue']
+    );
+    $journal = \App\Models\JournalEntry::create([
+        'tenant_id' => $tenant->id,
+        'user_id'   => auth()->id(),
+        'reference' => 'JE-DRAGNET-01',
+        'date'      => now(),
+    ]);
+    \App\Models\JournalItem::create([
+        'tenant_id'        => $tenant->id,
+        'journal_entry_id' => $journal->id,
+        'account_id'       => $cashAcc->id,
+        'debit'            => 500.0,
+        'credit'           => 0.0,
+    ]);
+    \App\Models\JournalItem::create([
+        'tenant_id'        => $tenant->id,
+        'journal_entry_id' => $journal->id,
+        'account_id'       => $salesAcc->id,
+        'debit'            => 0.0,
+        'credit'           => 500.0,
     ]);
 
     $response = $this->get("/s/{$tenant->slug}/dashboard");

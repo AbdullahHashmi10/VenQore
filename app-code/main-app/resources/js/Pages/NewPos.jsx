@@ -404,7 +404,7 @@ export default function NewPos({
         const pending = queue.filter((q) => q.state !== 'error');
         for (const item of pending) {
             try {
-                const url = storeSlug ? route('store.sales.store', { store_slug: storeSlug }) : '/sales';
+                const url = storeSlug ? route('store.pos.sales.store', { store_slug: storeSlug }) : '/pos/sales';
                 // eslint-disable-next-line no-await-in-loop
                 const res = await axios.post(url, item.payload);
                 if (res.data?.success) {
@@ -660,7 +660,7 @@ export default function NewPos({
             toast(`Saved offline (${offlineSale.id}). Will sync when connected.`, { tone: 'good', ms: 5000 });
         } else {
             try {
-                const url = storeSlug ? route('store.sales.store', { store_slug: storeSlug }) : '/sales';
+                const url = storeSlug ? route('store.pos.sales.store', { store_slug: storeSlug }) : '/pos/sales';
                 // The approval (manager id + PIN) rides only on this online post, never the offline queue.
                 const res = await axios.post(url, withApproval(payload, opts.approval));
                 setApproval(null);

@@ -4,6 +4,7 @@ namespace App\Services\Approval;
 
 use App\Models\ApprovalDocument;
 use App\Models\ApprovalTransition;
+use App\Models\Setting;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\User;
@@ -98,18 +99,30 @@ class ApprovalExecutionEngine
                 throw new RuntimeException("Version conflict: document version {$doc->version} does not match expected {$expectedVersion}.");
             }
 
-            // Enforce separation of duties: maker cannot approve own document
-            // Check store strict owner separation or non-owner maker
-            $reviewerMembership = TenantUser::where('tenant_id', $tenant->id)->where('user_id', $reviewer->id)->first();
-            $reviewerRole = $reviewerMembership?->role ?? 'cashier';
-            $canApprove = in_array($reviewerRole, ['owner', 'admin', 'manager'], true);
+            // Check reviewer permission
+            $hasReviewPerm = $reviewer->hasPermission('approvals.review') ||
+                             $reviewer->hasPermission('approvals.approve') ||
+                             $reviewer->hasPermission('approvals.inbox') ||
+                             $reviewer->isPlatformAdmin();
 
-            if (!$canApprove) {
-                throw new RuntimeException("User {$reviewer->id} does not have permission to approve transactions.");
+            if (!$hasReviewPerm) {
+                throw new RuntimeException("User {$reviewer->id} does not have permission to review approval documents.");
             }
 
-            if ($doc->maker_id === $reviewer->id && $reviewerRole !== 'owner') {
-                throw new RuntimeException("Separation of duties violation: Maker cannot approve their own submission.");
+            // Strict Owner Separation Setting
+            $strictOwnerSetting = Setting::withoutGlobalScopes()
+                ->where('tenant_id', $tenant->id)
+                ->where('key', 'approval_strict_owner_separation')
+                ->value('value');
+            $strictOwnerSeparation = filter_var($strictOwnerSetting, FILTER_VALIDATE_BOOLEAN);
+
+            $membership = TenantUser::where('tenant_id', $tenant->id)->where('user_id', $reviewer->id)->first();
+            $isOwner = ($membership?->role === 'owner');
+
+            if ($doc->maker_id === $reviewer->id) {
+                if ($strictOwnerSeparation || !$isOwner) {
+                    throw new RuntimeException("Separation of duties violation: Maker cannot approve their own submission.");
+                }
             }
 
             $adapter = $this->getAdapter($doc->document_type);
@@ -117,8 +130,10 @@ class ApprovalExecutionEngine
             // Revalidate against live database state
             $adapter->revalidate($doc, $tenant, $reviewer);
 
-            // Execute operational and financial posting atomically
-            $postedResult = $adapter->post($doc, $tenant, $reviewer);
+            // Execute operational and financial posting atomically within canonical posting scope
+            $postedResult = \App\Services\CanonicalPostingScope::run(function () use ($adapter, $doc, $tenant, $reviewer) {
+                return $adapter->post($doc, $tenant, $reviewer);
+            });
 
             // Update document to approved
             $fromStatus = $doc->status;
@@ -162,7 +177,33 @@ class ApprovalExecutionEngine
         ?string $reason = null,
         ?int $expectedVersion = null
     ): ApprovalDocument {
+        app()->instance('current.tenant', $tenant);
+
+        $hasReviewPerm = $reviewer->hasPermission('approvals.review') ||
+                         $reviewer->hasPermission('approvals.reject') ||
+                         $reviewer->hasPermission('approvals.inbox') ||
+                         $reviewer->isPlatformAdmin();
+
+        if (!$hasReviewPerm) {
+            throw new RuntimeException("User {$reviewer->id} does not have permission to reject approval documents.");
+        }
+
+        /** @var ApprovalDocument $doc */
         $doc = ApprovalDocument::where('tenant_id', $tenant->id)->where('id', $documentId)->firstOrFail();
+
+        $strictOwnerSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_strict_owner_separation')
+            ->value('value');
+        $strictOwnerSeparation = filter_var($strictOwnerSetting, FILTER_VALIDATE_BOOLEAN);
+
+        $membership = TenantUser::where('tenant_id', $tenant->id)->where('user_id', $reviewer->id)->first();
+        $isOwner = ($membership?->role === 'owner');
+
+        if ($doc->maker_id === $reviewer->id && ($strictOwnerSeparation || !$isOwner)) {
+            throw new RuntimeException("Separation of duties violation: Maker cannot reject their own submission.");
+        }
+
         return $this->stateMachine->rejectDocument($doc, $reviewer, $reason, $expectedVersion);
     }
 
@@ -177,8 +218,56 @@ class ApprovalExecutionEngine
         ?string $notes = null,
         ?int $expectedVersion = null
     ): ApprovalDocument {
+        app()->instance('current.tenant', $tenant);
+
+        $hasReviewPerm = $reviewer->hasPermission('approvals.review') ||
+                         $reviewer->hasPermission('approvals.return') ||
+                         $reviewer->hasPermission('approvals.inbox') ||
+                         $reviewer->isPlatformAdmin();
+
+        if (!$hasReviewPerm) {
+            throw new RuntimeException("User {$reviewer->id} does not have permission to return approval documents.");
+        }
+
+        /** @var ApprovalDocument $doc */
         $doc = ApprovalDocument::where('tenant_id', $tenant->id)->where('id', $documentId)->firstOrFail();
+
+        $strictOwnerSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_strict_owner_separation')
+            ->value('value');
+        $strictOwnerSeparation = filter_var($strictOwnerSetting, FILTER_VALIDATE_BOOLEAN);
+
+        $membership = TenantUser::where('tenant_id', $tenant->id)->where('user_id', $reviewer->id)->first();
+        $isOwner = ($membership?->role === 'owner');
+
+        if ($doc->maker_id === $reviewer->id && ($strictOwnerSeparation || !$isOwner)) {
+            throw new RuntimeException("Separation of duties violation: Maker cannot return their own submission.");
+        }
+
         return $this->stateMachine->returnDocument($doc, $reviewer, $reasonCodes, $notes, $expectedVersion);
+    }
+
+    /**
+     * Maker withdraws a pending or returned document.
+     */
+    public function withdraw(
+        int $documentId,
+        Tenant $tenant,
+        User $maker,
+        ?string $reason = null,
+        ?int $expectedVersion = null
+    ): ApprovalDocument {
+        app()->instance('current.tenant', $tenant);
+
+        /** @var ApprovalDocument $doc */
+        $doc = ApprovalDocument::where('tenant_id', $tenant->id)->where('id', $documentId)->firstOrFail();
+
+        if ($doc->maker_id !== $maker->id && !$maker->isPlatformAdmin()) {
+            throw new RuntimeException("Only the document maker can withdraw this submission.");
+        }
+
+        return $this->stateMachine->withdrawDocument($doc, $maker, $reason, $expectedVersion);
     }
 
     /**
@@ -193,7 +282,15 @@ class ApprovalExecutionEngine
         ?string $notes = null,
         ?int $expectedVersion = null
     ): ApprovalDocument {
+        app()->instance('current.tenant', $tenant);
+
+        /** @var ApprovalDocument $doc */
         $doc = ApprovalDocument::where('tenant_id', $tenant->id)->where('id', $documentId)->firstOrFail();
+
+        if ($doc->maker_id !== $maker->id && !$maker->isPlatformAdmin()) {
+            throw new RuntimeException("Only the document maker can resubmit this submission.");
+        }
+
         $adapter = $this->getAdapter($doc->document_type);
         $normalizedPayload = $adapter->validatePayload($updatedPayload, $tenant, $maker);
 

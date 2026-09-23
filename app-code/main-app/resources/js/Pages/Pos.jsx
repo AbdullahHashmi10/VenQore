@@ -2423,7 +2423,7 @@ const POSInterface = ({
             let responseData;
 
             if (isOnline) {
-                const response = await axios.post(route('store.sales.store', { store_slug: store?.slug }), payload);
+                const response = await axios.post(route('store.pos.sales.store', { store_slug: store?.slug }), payload);
                 responseData = response.data;
             } else {
                 throw new Error("Offline");
