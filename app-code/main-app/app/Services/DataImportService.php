@@ -740,6 +740,14 @@ class DataImportService
                     $date = $this->parseDate($row['date'] ?? null);
                     $ref = $row['reference_number'] ?? ('VY-JE-' . ($row['id'] ?? Str::random(4)));
 
+                    if (app()->bound('current.tenant') && app('current.tenant')) {
+                        app(\App\Services\Accounting\AccountingPeriodGuard::class)->validateTransactionDate(
+                            app('current.tenant')->id,
+                            $date,
+                            $user
+                        );
+                    }
+
                     $je = JournalEntry::create([
                         'date' => $date,
                         'reference' => $ref,

@@ -40,9 +40,17 @@ class User extends Authenticatable implements MustVerifyEmail
     protected bool $membershipResolved = false;
     protected ?string $temp_passcode = null;
 
+    protected $attributes = [
+        'is_platform_admin' => false,
+        'email_verified_at' => null,
+        'permissions'       => null,
+        'last_store_id'     => null,
+    ];
+
     protected $fillable = [
         'name',
         'email',
+        'email_verified_at',
         'password',
         'last_store_id',
         'platform_pin',
@@ -51,6 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'permissions',
         'passcode',
+        'is_platform_admin',
     ];
 
     protected $hidden = [
@@ -173,22 +182,25 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isPlatformAdmin(): bool
     {
-        return (bool) ($this->attributes['is_platform_admin'] ?? false);
+        return (bool) (array_key_exists('is_platform_admin', $this->attributes) ? $this->attributes['is_platform_admin'] : false);
     }
 
     public function isPlatformOwner(): bool
     {
-        return $this->isPlatformAdmin() && (($this->attributes['platform_role'] ?? null) === 'platform_owner');
+        $role = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        return $this->isPlatformAdmin() && ($role === 'platform_owner');
     }
 
     public function isPlatformSuperAdmin(): bool
     {
-        return $this->isPlatformAdmin() && in_array($this->attributes['platform_role'] ?? null, ['platform_owner', 'platform_manager', 'product_manager']);
+        $role = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        return $this->isPlatformAdmin() && in_array($role, ['platform_owner', 'platform_manager', 'product_manager']);
     }
 
     public function isPlatformSupport(): bool
     {
-        return $this->isPlatformAdmin() && in_array($this->attributes['platform_role'] ?? null, [
+        $role = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        return $this->isPlatformAdmin() && in_array($role, [
             'platform_owner', 'platform_manager', 'product_manager',
             'support_director', 'support_dept_manager', 'support_agent', 'support_qa', 'tech_escalation'
         ]);
@@ -196,8 +208,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isPlatformStaff(): bool
     {
-        $platformRole = $this->attributes['platform_role'] ?? null;
-        $staffRole = $this->attributes['staff_role'] ?? null;
+        $platformRole = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        $staffRole    = array_key_exists('staff_role', $this->attributes) ? $this->attributes['staff_role'] : null;
 
         return $this->isPlatformAdmin() ||
             ($platformRole !== 'none' && !empty($platformRole)) ||
@@ -224,7 +236,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasPermission(string $permission): bool
     {
-        if ($this->is_platform_admin) return true;
+        if ($this->isPlatformAdmin()) return true;
 
         $membership = $this->getActiveMembership();
         if (!$membership) return false;
@@ -377,7 +389,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getRoleAttribute(): ?string
     {
-        if ($this->is_platform_admin) return 'platform_admin';
+        if ($this->isPlatformAdmin()) return 'platform_admin';
         
         $membership = $this->getActiveMembership();
         if ($membership && !empty($membership->role)) {
@@ -460,7 +472,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getPermissionsAttribute(): array
     {
         // Platform level super admin only
-        if ($this->is_platform_admin) return ['*'];
+        if ($this->isPlatformAdmin()) return ['*'];
 
         // Resolve the active membership
         $membership = $this->getActiveMembership();

@@ -1,14 +1,14 @@
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 2216
+  phpunit_test_methods_total: 2413
   note: 'total = SUM of member test_methods (testX(), @test,'
 suites:
   -
     id: Feature
     path: tests/Feature
-    test_methods: 821
-    files: 143
+    test_methods: 979
+    files: 169
     members:
       -
         file: tests/Feature/ActivityLogTest.php
@@ -40,19 +40,83 @@ suites:
         oracle_tier: T1
       -
         file: tests/Feature/Approval/ApprovalFoundationTest.php
-        test_methods: 4
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/ApprovalPolicyMatrixIntegrationTest.php
+        test_methods: 9
         oracle_tier: T1
       -
         file: tests/Feature/Approval/FourDocumentApprovalTest.php
         test_methods: 4
         oracle_tier: T1
       -
+        file: tests/Feature/Approval/FourteenOperationsHttpWorkflowTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/OwnerEmployeeWalkthroughTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
         file: tests/Feature/Approval/PostingBoundaryGuardTest.php
         test_methods: 3
         oracle_tier: T1
       -
+        file: tests/Feature/Approval/PostingCallsiteEnforcementTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/PostingParityTest.php
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/R01AdminInvoiceBypassTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/R02RouteBypassTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/R05R06FundParityTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/R08PurchaseReturnDateTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/R10ReviewerAuthorityTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/R13StaffInvitationModeTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/R15RefundCoverageTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
         file: tests/Feature/Approval/RealFormHttpWorkflowTest.php
-        test_methods: 5
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/RuntimeRoleDashboardMatrixTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/SaleObserverCanonicalGuardTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/StorePolicyPrecedenceTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Approval/TransactionEditorCorrectionTest.php
+        test_methods: 12
         oracle_tier: T1
       -
         file: tests/Feature/Approval/TrustedPosSeparationTest.php
@@ -66,6 +130,26 @@ suites:
         file: tests/Feature/BlogPostEngineTest.php
         test_methods: 6
         oracle_tier: T2
+      -
+        file: tests/Feature/Cheque/ChequeApprovalIntegrationTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Cheque/ChequeBookManagementTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Cheque/ChequeLeafLifecycleTest.php
+        test_methods: 9
+        oracle_tier: T1
+      -
+        file: tests/Feature/Cheque/ChequePermissionsAndGovernanceTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
+        file: tests/Feature/Cheque/ReceivedChequeLifecycleTest.php
+        test_methods: 8
+        oracle_tier: T1
       -
         file: tests/Feature/ComparePagesTest.php
         test_methods: 5
@@ -95,6 +179,10 @@ suites:
         test_methods: 7
         oracle_tier: T2
       -
+        file: tests/Feature/FiscalYear/FiscalYearTest.php
+        test_methods: 18
+        oracle_tier: T1
+      -
         file: tests/Feature/FrontendSyntaxIntegrityTest.php
         test_methods: 1
         oracle_tier: T2
@@ -102,6 +190,10 @@ suites:
         file: tests/Feature/GoldenAuditTestsTest.php
         test_methods: 2
         oracle_tier: T2
+      -
+        file: tests/Feature/HeaderCalculatorTest.php
+        test_methods: 5
+        oracle_tier: T1
       -
         file: tests/Feature/Hardening/ApproverPinTest.php
         test_methods: 8
@@ -368,15 +460,23 @@ suites:
         oracle_tier: T1
       -
         file: tests/Feature/Reckoner/ApprovalCardsAndScopeTest.php
-        test_methods: 3
+        test_methods: 6
         oracle_tier: T1
       -
         file: tests/Feature/Reckoner/AssistantParityTest.php
         test_methods: 1
         oracle_tier: T1
       -
+        file: tests/Feature/Reckoner/CardContractAndPresetResolutionTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
         file: tests/Feature/Reckoner/CardContractValidatorTest.php
         test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/ChequeCardsAndScopeTest.php
+        test_methods: 2
         oracle_tier: T1
       -
         file: tests/Feature/Reckoner/CustomCardsGateTest.php
@@ -449,6 +549,10 @@ suites:
       -
         file: tests/Feature/Reckoner/ReckonerSettingsTest.php
         test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Reckoner/RollupConcurrencyTest.php
+        test_methods: 7
         oracle_tier: T1
       -
         file: tests/Feature/Reckoner/RollupParityGateTest.php
@@ -599,7 +703,7 @@ suites:
   -
     id: Feature.Auth
     path: tests/Feature/Auth
-    test_methods: 32
+    test_methods: 37
     files: 7
     members:
       -
@@ -624,7 +728,7 @@ suites:
         oracle_tier: T2
       -
         file: tests/Feature/Auth/PermissionOverrideModeTest.php
-        test_methods: 3
+        test_methods: 8
         oracle_tier: T1
       -
         file: tests/Feature/Auth/RegistrationTest.php
@@ -663,7 +767,7 @@ suites:
   -
     id: Feature.Chat
     path: tests/Feature/Chat
-    test_methods: 60
+    test_methods: 63
     files: 6
     members:
       -
@@ -688,7 +792,7 @@ suites:
         oracle_tier: T2
       -
         file: tests/Feature/Chat/SupportTicketsTest.php
-        test_methods: 8
+        test_methods: 11
         oracle_tier: T2
   -
     id: Feature.Core
@@ -1471,8 +1575,8 @@ suites:
   -
     id: Feature.V3.Scenarios
     path: tests/Feature/V3/Scenarios
-    test_methods: 127
-    files: 13
+    test_methods: 157
+    files: 14
     members:
       -
         file: tests/Feature/V3/Scenarios/AccountingServiceTest.php
@@ -1497,6 +1601,10 @@ suites:
       -
         file: tests/Feature/V3/Scenarios/PaymentServiceTest.php
         test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/V3/Scenarios/Phase1ScenariosTest.php
+        test_methods: 30
         oracle_tier: T1
       -
         file: tests/Feature/V3/Scenarios/Phase2InventoryScenariosTest.php
@@ -1641,8 +1749,8 @@ suites:
   -
     id: Unit
     path: tests/Unit
-    test_methods: 69
-    files: 9
+    test_methods: 70
+    files: 10
     members:
       -
         file: tests/Unit/AiBuilder/BusinessUnderstandingTest.php
@@ -1679,6 +1787,10 @@ suites:
       -
         file: tests/Unit/SharedCatalogServiceTest.php
         test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Unit/ZiggyRouteAuditScriptTest.php
+        test_methods: 1
         oracle_tier: T1
 verification_sources:
   -
