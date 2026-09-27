@@ -84,8 +84,14 @@ class CommunicationController extends Controller
             }
 
             // Enforce return vs sale distinction:
-            // If the transaction status is 'returned' or type was requested as 'sale_return', treat strictly as return/credit note
-            $isReturn = ($documentType === 'sale_return' || $sale->status === 'returned');
+            $isActualReturn = ($sale->status === 'returned' || str_starts_with((string)$sale->reference_number, 'RET-'));
+
+            // Reject if caller requested a return but the underlying transaction is not a return
+            if ($documentType === 'sale_return' && !$isActualReturn) {
+                return response()->json(['success' => false, 'message' => 'Specified transaction is not a return.'], 422);
+            }
+
+            $isReturn = $isActualReturn;
 
             $party = $sale->customer;
             $partyName = $party?->name ?? 'Walk-in Customer';

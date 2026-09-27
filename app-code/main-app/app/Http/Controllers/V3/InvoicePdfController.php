@@ -10,15 +10,15 @@ class InvoicePdfController extends Controller
 {
     public function show(string $saleId)
     {
-        return $this->renderPdf($saleId, false);
+        return $this->renderPdf($saleId, 'sale');
     }
 
     public function showReturn(string $returnId)
     {
-        return $this->renderPdf($returnId, true);
+        return $this->renderPdf($returnId, 'return');
     }
 
-    private function renderPdf(string $docId, bool $forceReturn = false)
+    private function renderPdf(string $docId, string $expectedType = 'sale')
     {
         $sale = DB::table('sales as s')->where('s.tenant_id', app('current.tenant')->id)
             ->leftJoin('parties as p', 's.party_id', '=', 'p.id')
@@ -34,9 +34,23 @@ class InvoicePdfController extends Controller
             )
             ->firstOrFail();
 
-        $isReturn = $forceReturn
-            || ($sale->status === 'returned')
+        $isActualReturn = ($sale->status === 'returned')
             || str_starts_with((string)$sale->reference_number, 'RET-');
+
+        if ($expectedType === 'return') {
+            if (!$isActualReturn) {
+                abort(404, 'Return document not found or transaction is not a return.');
+            }
+            $isReturn = true;
+        } else {
+            if ($isActualReturn) {
+                return redirect()->route('store.v3.returns.pdf', [
+                    'store_slug' => app('current.tenant')->slug,
+                    'returnId'   => $sale->id,
+                ]);
+            }
+            $isReturn = false;
+        }
 
         $docTitle = $isReturn ? 'CREDIT NOTE / SALE RETURN' : 'INVOICE';
         $docPrefix = $isReturn ? 'credit-note' : 'invoice';

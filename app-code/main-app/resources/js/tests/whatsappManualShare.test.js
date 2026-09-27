@@ -27,7 +27,13 @@ function prepareWhatsAppDraft({
   currency = 'PKR',
   receiptLink = 'https://pos.venqore.com/r/test_token'
 }) {
-  const isReturn = documentType === 'sale_return' || saleStatus === 'returned';
+  const isActualReturn = saleStatus === 'returned' || String(docNumber || '').startsWith('RET-');
+
+  if (documentType === 'sale_return' && !isActualReturn) {
+    throw new Error('Specified transaction is not a return.');
+  }
+
+  const isReturn = isActualReturn;
 
   if (documentType === 'payment_receipt') {
     const formattedAmount = `${currency} ${Number(total || 0).toFixed(2)}`;
@@ -194,6 +200,17 @@ describe('WhatsApp Manual Sharing & Settings Safeguards', () => {
       expect(returnSale.document_type).toBe('sale_return');
       expect(returnSale.document_type_label).toBe('Credit Note / Sale Return');
       expect(returnSale.message_text).toContain('Credit Note / Sale Return');
+    });
+
+    it('rejects requested sale_return when transaction is an ordinary completed sale', () => {
+      expect(() => {
+        prepareWhatsAppDraft({
+          documentType: 'sale_return',
+          saleStatus: 'completed',
+          docNumber: 'INV-10045',
+          total: 5000,
+        });
+      }).toThrow('Specified transaction is not a return.');
     });
 
     it('routes returns strictly to dedicated returns.pdf endpoint and sales to sales.pdf endpoint', () => {
