@@ -37,24 +37,52 @@ class CommunicationController extends Controller
             return response()->json(['success' => false, 'message' => 'No phone number provided.'], 422);
         }
 
-        // In a real scenario, we would use Twilio or a similar API
-        // For now, we simulate the process
+        $metaToken = \App\Helpers\SettingsHelper::get('whatsapp_access_token');
+        $metaPhoneId = \App\Helpers\SettingsHelper::get('whatsapp_phone_number_id');
+        $metaApiUrl = \App\Helpers\SettingsHelper::get('whatsapp_api_url', 'https://graph.facebook.com/v17.0');
 
-        /*
-        $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
-        $twilio->messages->create(
-            "whatsapp:" . $phone,
-            [
-                "from" => "whatsapp:" . config('services.twilio.whatsapp_from'),
-                "body" => "Your receipt for Order #{$sale->reference_number} is ready. View it here: " . route('sales.receipt.public', $sale->id)
-            ]
-        );
-        */
+        $messageText = "Your receipt for Order #{$sale->reference_number} is ready. Total: {$sale->total}";
+
+        // If automated Meta Cloud API is configured:
+        if (!empty($metaToken) && !empty($metaPhoneId)) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withToken($metaToken)
+                    ->timeout(10)
+                    ->post("{$metaApiUrl}/{$metaPhoneId}/messages", [
+                        'messaging_product' => 'whatsapp',
+                        'to' => $phone,
+                        'type' => 'text',
+                        'text' => ['body' => $messageText],
+                    ]);
+
+                if ($response->successful()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'WhatsApp receipt sent successfully via Meta Cloud API.',
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta WhatsApp API returned error: ' . $response->body(),
+                ], 400);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'WhatsApp gateway error: ' . $e->getMessage(),
+                ], 500);
+            }
+        }
+
+        // Manual share fallback: Open prepared wa.me draft
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+        $shareUrl = "https://wa.me/{$cleanPhone}?text=" . urlencode($messageText);
 
         return response()->json([
             'success' => true,
-            'message' => 'WhatsApp message queued successfully.',
-            'mock_url' => "https://wa.me/{$phone}?text=" . urlencode("Your receipt for Order #{$sale->reference_number} is ready.")
+            'action' => 'open_whatsapp',
+            'url' => $shareUrl,
+            'message' => 'Opening WhatsApp with receipt draft...',
         ]);
     }
 }

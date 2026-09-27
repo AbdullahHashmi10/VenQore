@@ -87,17 +87,44 @@ class InvoiceReminderController extends Controller
     {
         $reminder = InvoiceReminder::with(['invoice', 'customer'])->findOrFail($id);
         
-        $phone = $reminder->customer->phone;
+        $customer = $reminder->customer;
+        $phone = $customer?->phone;
         $amount = (float)($reminder->invoice->invoice_total ?? $reminder->invoice->total ?? 0.0);
-        $messageBody = "Dear {$reminder->customer->name}, this is a reminder that invoice #{$reminder->invoice->reference_number} is outstanding. Amount: " . $amount;
-
-        if (!$phone) {
-            return redirect()->back()->with('error', 'Customer does not have a phone number registered.');
-        }
+        $messageBody = "Dear {$customer?->name}, this is a reminder that invoice #{$reminder->invoice->reference_number} is outstanding. Amount due: {$amount}";
 
         if ($reminder->type === 'whatsapp') {
-            try {
-                if (class_exists(\Twilio\Rest\Client::class) && config('services.twilio.sid')) {
+            if (!$phone) {
+                return redirect()->back()->with('error', 'Customer does not have a phone number registered.');
+            }
+
+            $metaToken = \App\Helpers\SettingsHelper::get('whatsapp_access_token');
+            $metaPhoneId = \App\Helpers\SettingsHelper::get('whatsapp_phone_number_id');
+            $metaApiUrl = \App\Helpers\SettingsHelper::get('whatsapp_api_url', 'https://graph.facebook.com/v17.0');
+
+            if (!empty($metaToken) && !empty($metaPhoneId)) {
+                try {
+                    $response = \Illuminate\Support\Facades\Http::withToken($metaToken)
+                        ->timeout(10)
+                        ->post("{$metaApiUrl}/{$metaPhoneId}/messages", [
+                            'messaging_product' => 'whatsapp',
+                            'to' => $phone,
+                            'type' => 'text',
+                            'text' => ['body' => $messageBody],
+                        ]);
+
+                    if ($response->successful()) {
+                        $reminder->update(['status' => 'sent', 'sent_at' => now()]);
+                        return redirect()->back()->with('success', 'WhatsApp reminder delivered via Meta Cloud API.');
+                    }
+
+                    $reminder->update(['status' => 'failed']);
+                    return redirect()->back()->with('error', 'Meta WhatsApp API returned error: ' . $response->body());
+                } catch (\Exception $e) {
+                    $reminder->update(['status' => 'failed']);
+                    return redirect()->back()->with('error', 'WhatsApp dispatch error: ' . $e->getMessage());
+                }
+            } elseif (class_exists(\Twilio\Rest\Client::class) && config('services.twilio.sid')) {
+                try {
                     $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
                     $twilio->messages->create(
                         "whatsapp:" . $phone,
@@ -106,35 +133,34 @@ class InvoiceReminderController extends Controller
                             "body" => $messageBody
                         ]
                     );
-                } else {
-                    Log::info("Twilio Client not available or credentials missing. Simulated WhatsApp sent to {$phone}: {$messageBody}");
+                    $reminder->update(['status' => 'sent', 'sent_at' => now()]);
+                    return redirect()->back()->with('success', 'WhatsApp reminder delivered via Twilio.');
+                } catch (\Exception $e) {
+                    $reminder->update(['status' => 'failed']);
+                    return redirect()->back()->with('error', 'Twilio WhatsApp failed: ' . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Log::error("Failed to send Twilio WhatsApp reminder: " . $e->getMessage());
+            } else {
+                return redirect()->back()->with('error', 'No WhatsApp API gateway configured. Please configure Meta API credentials in Settings -> Messages.');
             }
-        } else {
+        } elseif ($reminder->type === 'email') {
+            $email = $customer?->email;
+            if (!$email) {
+                return redirect()->back()->with('error', 'Customer does not have an email address registered.');
+            }
+
             try {
-                if (class_exists(\Twilio\Rest\Client::class) && config('services.twilio.sid')) {
-                    $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
-                    $twilio->messages->create(
-                        $phone,
-                        [
-                            "from" => config('services.twilio.sms_from', 'VenQore'),
-                            "body" => $messageBody
-                        ]
-                    );
-                } else {
-                    Log::info("Twilio Client not available or credentials missing. Simulated SMS sent to {$phone}: {$messageBody}");
-                }
+                \Illuminate\Support\Facades\Mail::raw($messageBody, function ($m) use ($email, $reminder) {
+                    $m->to($email)
+                      ->subject("Payment Reminder: Invoice #{$reminder->invoice->reference_number}");
+                });
+                $reminder->update(['status' => 'sent', 'sent_at' => now()]);
+                return redirect()->back()->with('success', 'Email reminder sent successfully.');
             } catch (\Exception $e) {
-                Log::error("Failed to send Twilio SMS reminder: " . $e->getMessage());
+                $reminder->update(['status' => 'failed']);
+                return redirect()->back()->with('error', 'Email sending failed: ' . $e->getMessage());
             }
         }
 
-        $reminder->update([
-            'status' => 'sent'
-        ]);
-
-        return redirect()->back()->with('success', 'Reminder sent successfully.');
+        return redirect()->back()->with('error', 'Unsupported reminder type.');
     }
 }

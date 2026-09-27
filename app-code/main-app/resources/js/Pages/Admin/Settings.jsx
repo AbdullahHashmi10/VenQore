@@ -285,6 +285,7 @@ export default function AdminSettings({ settings = {} }) {
     whatsapp_enabled: settings.whatsapp_enabled === '1' || settings.whatsapp_enabled === true,
     sms_to_party: settings.sms_to_party === '1' || settings.sms_to_party === true,
     auto_send_sales: settings.auto_send_sales !== '0',
+    message_template_sales: settings.message_template_sales || 'Greetings from [Firm_Name]. Your invoice for [Invoice_Amount] is ready. View here: [Link]',
 
     // Party
     party_grouping: settings.party_grouping === '1' || settings.party_grouping === true,
@@ -394,13 +395,17 @@ export default function AdminSettings({ settings = {} }) {
   });
 
   const saveSettings = (code) => {
- post(route('store.settings.update', { store_slug: store?.slug }), {
- onSuccess: () => {
- setSaved(true);
- setTimeout(() => setSaved(false), 3000);
- }
- });
- };
+    if (code) {
+      data.passcode_challenge = code;
+    }
+    post(route('store.settings.update', { store_slug: store?.slug }), {
+      preserveScroll: true,
+      onSuccess: () => {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    });
+  };
 
  const handleSectionChange = (sectionId) => {
  if (isDirty) {
@@ -739,89 +744,117 @@ export default function AdminSettings({ settings = {} }) {
  case 'taxes':
  return <TaxSettingsSection data={data} setData={setData} />;
 
- case 'messages':
- // Fully built (WhatsApp + SMS), but until now this id was never
- // added to any category's `sections` list above, so it could
- // never actually appear in the sidebar. Now it's reachable.
- return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-6 flex items-center justify-between">
- <div className="flex items-center gap-4">
- <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg ">
- <MessageSquare size={28} />
- </div>
- <div>
- <h4 className="font-bold text-emerald-900 dark:text-emerald-400 text-lg">WhatsApp Integration</h4>
- <p className="text-sm text-emerald-700 dark:text-emerald-500/80">{tt("Send invoices directly to customer's WhatsApp")}</p>
- </div>
- </div>
- <button type="button" className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all">Connect Account</button>
- </div>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-4">
- <SectionHeader title="SMS Settings" description="Automated text notifications" />
- <Toggle enabled={data.sms_to_party} onChange={v => setData('sms_to_party', v)} label="Send SMS to Party" description={tt('Notify customers on every transaction')} />
- <Toggle enabled={data.auto_send_sales} onChange={v => setData('auto_send_sales', v)} label="Auto-send for Sales" />
- </div>
- <div className="p-6 bg-sunken rounded-2xl border border-line">
- <label className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4 block">Message Template</label>
- <div className="bg-surface rounded-xl p-4 text-sm text-ink-secondary border border-line dark:border-line">
- Greetings from <span className="text-brand-500 font-bold">[Firm_Name]</span>. Your invoice for <span className="text-brand-500 font-bold">[Invoice_Amount]</span> is ready. View here: [Link]
- </div>
- <div className="mt-4 flex items-center justify-between">
- <button type="button" onClick={() => alert("Custom SMS/WhatsApp templates can be modified per message template.")} className="text-brand-600 text-sm font-bold flex items-center gap-2 hover:underline"><Palette size={16} /> Customize Template</button>
- <Toggle enabled={data.whatsapp_enabled} onChange={v => setData('whatsapp_enabled', v)} label="Enable WhatsApp" />
- </div>
- </div>
- </div>
+    case 'messages':
+      return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+          <div className="bg-surface rounded-2xl border border-line p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                <MessageSquare size={28} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-ink text-lg">WhatsApp &amp; SMS Messaging</h4>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${data.whatsapp_enabled && data.whatsapp_access_token ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-sunken text-ink-muted'}`}>
+                    {data.whatsapp_enabled && data.whatsapp_access_token ? 'Automated Cloud API' : 'Manual Share Active'}
+                  </span>
+                </div>
+                <p className="text-sm text-ink-muted mt-0.5">
+                  Send receipts and payment alerts via instant WhatsApp drafts or automated Meta Cloud API.
+                </p>
+              </div>
+            </div>
+          </div>
 
- {data.whatsapp_enabled && (
- <div className="p-8 bg-surface rounded-xl border border-line shadow-xl animate-in zoom-in-95 duration-normal">
- <div className="flex items-center gap-4 mb-6">
- <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg ">
- <MessageSquare size={24} />
- </div>
- <div>
- <h4 className="text-lg font-bold text-ink">WhatsApp API Credentials</h4>
- <p className="text-sm text-ink-muted">Configure your Meta Business for WhatsApp</p>
- </div>
- </div>
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-2">
- <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">API URL</label>
- <input
- type="text"
- value={data.whatsapp_api_url}
- onChange={e => setData('whatsapp_api_url', e.target.value)}
- className="w-full px-4 py-3 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
- placeholder="https://graph.facebook.com/v17.0"
- />
- </div>
- <div className="space-y-2">
- <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">Phone Number ID</label>
- <input
- type="text"
- value={data.whatsapp_phone_number_id}
- onChange={e => setData('whatsapp_phone_number_id', e.target.value)}
- className="w-full px-4 py-3 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
- placeholder="your_phone_number_id"
- />
- </div>
- <div className="md:col-span-2 space-y-2">
- <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">Access Token</label>
- <input
- type="password"
- value={data.whatsapp_access_token}
- onChange={e => setData('whatsapp_access_token', e.target.value)}
- className="w-full px-4 py-3 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
- placeholder="EAAB..."
- />
- </div>
- </div>
- </div>
- )}
- </div>
- );
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 bg-surface rounded-2xl border border-line p-6">
+              <SectionHeader title="SMS & Notifications" description="Automated text notifications" />
+              <Toggle enabled={data.sms_to_party} onChange={v => setData('sms_to_party', v)} label="Send SMS to Party" description={tt('Notify customers on every transaction')} />
+              <Toggle enabled={data.auto_send_sales} onChange={v => setData('auto_send_sales', v)} label="Auto-send for Sales" description="Automatically trigger receipt dispatch on sale posting" />
+              <div className="pt-3 border-t border-line">
+                <Toggle enabled={data.whatsapp_enabled} onChange={v => setData('whatsapp_enabled', v)} label="Enable Automated Meta Cloud API" description="Use Meta Cloud API for background delivery rather than manual wa.me links" />
+              </div>
+            </div>
+
+            <div className="p-6 bg-surface rounded-2xl border border-line space-y-3">
+              <label className="text-xs font-bold uppercase tracking-wider text-ink block">Message Template</label>
+              <p className="text-xs text-ink-muted">Customize the text sent with receipts and payment notifications.</p>
+              
+              <textarea
+                rows={4}
+                value={data.message_template_sales}
+                onChange={e => setData('message_template_sales', e.target.value)}
+                className="w-full p-3.5 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
+                placeholder="Greetings from [Firm_Name]. Your invoice for [Invoice_Amount] is ready. View here: [Link]"
+              />
+
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-2xs font-bold text-ink-muted uppercase">Insert tag:</span>
+                {['[Firm_Name]', '[Invoice_Number]', '[Invoice_Amount]', '[Link]'].map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      const current = data.message_template_sales || '';
+                      setData('message_template_sales', current + ' ' + tag);
+                    }}
+                    className="px-2 py-1 bg-sunken hover:bg-interactive-hover border border-line rounded-md text-3xs font-mono font-bold text-brand-600 dark:text-brand-400 cursor-pointer"
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {data.whatsapp_enabled && (
+            <div className="p-6 bg-surface rounded-2xl border border-line shadow-sm animate-in zoom-in-95 duration-normal space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <MessageSquare size={20} />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-ink">Meta Cloud API Credentials</h4>
+                  <p className="text-xs text-ink-muted">Direct integration via Meta Business Platform for automated background sending</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-ink">API Endpoint URL</label>
+                  <input
+                    type="text"
+                    value={data.whatsapp_api_url}
+                    onChange={e => setData('whatsapp_api_url', e.target.value)}
+                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    placeholder="https://graph.facebook.com/v17.0"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-ink">Phone Number ID</label>
+                  <input
+                    type="text"
+                    value={data.whatsapp_phone_number_id}
+                    onChange={e => setData('whatsapp_phone_number_id', e.target.value)}
+                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    placeholder="e.g. 104829384729102"
+                  />
+                </div>
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-bold text-ink">System User Access Token</label>
+                  <input
+                    type="password"
+                    value={data.whatsapp_access_token}
+                    onChange={e => setData('whatsapp_access_token', e.target.value)}
+                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
+                    placeholder="EAAB..."
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
 
  case 'party':
  return (

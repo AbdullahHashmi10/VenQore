@@ -504,6 +504,103 @@ class AdminController extends Controller
             }
         }
 
+        // S04: Server-side passcode verification if passcode protection is enabled
+        $passcodeEnabled = \App\Models\Setting::where('key', 'enable_passcode')->value('value');
+        if ($passcodeEnabled === '1' || $passcodeEnabled === 'true' || $passcodeEnabled === true) {
+            $hashedPasscode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+            if (!empty($hashedPasscode)) {
+                $challenge = $request->input('passcode_challenge') ?? $request->header('X-Passcode-Challenge');
+                $isValid = false;
+                if (!empty($challenge)) {
+                    if (str_starts_with($hashedPasscode, '$2y$')) {
+                        $isValid = \Illuminate\Support\Facades\Hash::check((string)$challenge, $hashedPasscode);
+                    } else {
+                        $isValid = hash_equals((string)$hashedPasscode, (string)$challenge);
+                    }
+                }
+
+                $user = auth()->user();
+                $tenant = app('current.tenant');
+                $tenantMembership = $tenant && $user ? \App\Models\TenantUser::where('tenant_id', $tenant->id)->where('user_id', $user->id)->first() : null;
+                $isOwner = ($tenantMembership?->role ?? '') === 'owner' || ($user?->isPlatformAdmin() ?? false);
+
+                if (!$isValid && !$isOwner) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Administrator passcode required to update settings.',
+                    ], 403);
+                }
+            }
+        }
+
+        // S03: Comprehensive Typed Allowlist Filter
+        $allowlist = [
+            'business_name', 'store_name', 'business_address', 'store_address',
+            'business_phone', 'store_phone', 'business_email', 'tax_number',
+            'currency', 'currency_code', 'currency_symbol', 'timezone',
+            'decimal_places', 'custom_domain', 'product_cost_update_policy',
+            'shared_catalog_opt_out', 'ai_accuracy_opt_in',
+            'enable_passcode', 'admin_passcode', 'ui_scale', 'language',
+            'date_format', 'auto_logout', 'dark_mode_default', 'senior_mode',
+            'header_calculator_enabled', 'stop_sale_negative_stock', 'cash_sale_default',
+            'round_off_total', 'billing_type', 'sale_prefix', 'purchase_prefix',
+            'quotation_prefix', 'return_prefix', 'pos_auto_fill_cash', 'show_margin_percentage',
+            'charity_enabled', 'pos_return_mode', 'pos_return_window', 'pos_return_window_behavior',
+            'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id',
+            'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
+            'print_logo', 'print_logo_path', 'print_signature_text', 'print_original_copy',
+            'print_company_text_size', 'print_invoice_text_size',
+            'margin_top', 'margin_bottom', 'margin_left', 'margin_right',
+            'custom_paper_width', 'custom_paper_height',
+            'print_show_sno', 'print_show_units', 'print_show_mrp', 'print_show_description',
+            'print_show_hsn', 'print_show_discount', 'print_show_free_qty',
+            'print_qr_code', 'print_show_delivery_charge', 'print_show_extra_charge',
+            'print_total_quantity', 'print_amount_decimal', 'print_received_amount',
+            'print_balance_amount', 'print_party_balance', 'print_tax_details',
+            'print_you_saved', 'print_show_previous_balance', 'print_amount_grouping',
+            'print_amount_words', 'print_description', 'print_terms',
+            'print_received_by', 'print_delivered_by', 'print_payment_mode',
+            'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
+            'print_min_item_rows', 'invoice_theme', 'invoice_primary_color',
+            'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
+            'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
+            'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
+            'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units',
+            'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
+            'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
+            'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
+            'thermal_custom_footer',
+            'whatsapp_enabled', 'sms_to_party', 'auto_send_sales', 'message_template_sales',
+            'whatsapp_api_url', 'whatsapp_access_token', 'whatsapp_phone_number_id',
+            'party_grouping', 'loyalty_enabled', 'enable_credit_limit',
+            'payment_reminders', 'payment_reminder_days',
+            'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
+            'wholesale_price_enabled', 'low_stock_threshold', 'low_stock_alerts',
+            'service_reminders', 'email_notifications', 'daily_sales_summary',
+            'fiscal_year_start', 'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days',
+            'reckoner.carrying_cost_pct', 'reckoner.stock_aging_buckets',
+            'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
+            'fbr_integration', 'fbr_pos_id', 'fbr_usin', 'fbr_mode', 'fbr_auth_token',
+            'stripe_enabled', 'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
+            'woocommerce_enabled', 'woocommerce_url', 'woocommerce_consumer_key', 'woocommerce_consumer_secret',
+            'approval_admin_enabled', 'approval_strict_owner_separation',
+            'approval_amount_threshold', 'approval_default_employee_mode',
+        ];
+
+        // Filter submitted data strictly to allowed keys (or dynamic approval keys)
+        $filteredData = [];
+        foreach ($settingsData as $k => $v) {
+            if (
+                in_array($k, $allowlist, true) ||
+                str_starts_with($k, 'approval_policy_') ||
+                str_starts_with($k, 'approval_threshold_') ||
+                str_starts_with($k, 'approval_user_')
+            ) {
+                $filteredData[$k] = $v;
+            }
+        }
+        $settingsData = $filteredData;
+
         $tenant = app('current.tenant');
 
         \Illuminate\Support\Facades\DB::transaction(function() use ($settingsData, $tenant) {

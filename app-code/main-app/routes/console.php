@@ -222,13 +222,13 @@ Artisan::command('inspire', function () {
     ->onOneServer()
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
-// â”€â”€ Service Reminders â€” Daily â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Checks each tenant's service_reminders list and fires email for any
-// reminder whose interval has elapsed since it was last sent.
-\Illuminate\Support\Facades\Schedule::command('services:send-reminders')
-    ->dailyAt('08:30')
+// ── Scheduled Invoice Reminders ──────────────────────────────────────────────
+// Dispatches due invoice-specific payment reminders via email or WhatsApp API
+\Illuminate\Support\Facades\Schedule::command('invoices:process-scheduled-reminders')
+    ->everyFifteenMinutes()
     ->withoutOverlapping()
     ->onOneServer();
+
 
 
 

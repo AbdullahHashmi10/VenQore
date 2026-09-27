@@ -72,71 +72,58 @@ class FbrService
             })->toArray(),
         ];
 
-        // If credentials are not set, do not mark as reported
-        if (empty($this->posId) || empty($this->usin)) {
-            Log::warning('[FBR] Missing POS ID or USIN configuration.');
+        // Validate that credentials and token are present before attempting gateway communication
+        if (empty($this->posId) || empty($this->usin) || empty($this->authToken)) {
+            Log::warning('[FBR] Incomplete FBR credentials (missing POS ID, USIN, or Auth Token).');
             return [
                 'Code' => 0,
-                'Response' => 'Configuration Error: Missing POS ID or USIN',
+                'Response' => 'Configuration Error: Missing POS ID, USIN, or Auth Token',
                 'InvoiceNumber' => null,
                 'QRData' => null,
             ];
         }
 
-        // Live Mode or configured Sandbox API Request
-        if (!empty($this->authToken) || $this->environment === 'live') {
-            try {
-                $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $this->authToken,
-                    'Content-Type' => 'application/json',
-                ])->timeout(10)->post($this->apiUrl, $data);
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->authToken,
+                'Content-Type' => 'application/json',
+            ])->timeout(10)->post($this->apiUrl, $data);
 
-                if ($response->successful()) {
-                    $json = $response->json();
-                    if (isset($json['Code']) && $json['Code'] == 100) {
-                        return [
-                            'Code' => 100,
-                            'Response' => $json['Response'] ?? 'Success',
-                            'InvoiceNumber' => $json['InvoiceNumber'] ?? ('FBR-' . $this->posId . '-' . time()),
-                            'QRData' => $json['QRData'] ?? ('https://verify.fbr.gov.pk/verify/' . time()),
-                        ];
-                    }
-                    Log::error('[FBR] Rejected response: ' . $response->body());
+            if ($response->successful()) {
+                $json = $response->json();
+                if (isset($json['Code']) && $json['Code'] == 100 && !empty($json['InvoiceNumber'])) {
                     return [
-                        'Code' => $json['Code'] ?? 400,
-                        'Response' => $json['Response'] ?? 'Rejected by FBR',
-                        'InvoiceNumber' => null,
-                        'QRData' => null,
+                        'Code' => 100,
+                        'Response' => $json['Response'] ?? 'Success',
+                        'InvoiceNumber' => $json['InvoiceNumber'],
+                        'QRData' => $json['QRData'] ?? null,
                     ];
                 }
-
-                Log::error('[FBR] HTTP Error: ' . $response->status() . ' Body: ' . $response->body());
+                Log::error('[FBR] Rejected response from gateway: ' . $response->body());
                 return [
-                    'Code' => $response->status(),
-                    'Response' => 'HTTP Error: ' . $response->body(),
-                    'InvoiceNumber' => null,
-                    'QRData' => null,
-                ];
-            } catch (\Exception $e) {
-                Log::error('[FBR] Connection Exception: ' . $e->getMessage());
-                return [
-                    'Code' => 500,
-                    'Response' => 'Connection Exception: ' . $e->getMessage(),
+                    'Code' => $json['Code'] ?? 400,
+                    'Response' => $json['Response'] ?? 'Rejected by FBR Gateway',
                     'InvoiceNumber' => null,
                     'QRData' => null,
                 ];
             }
-        }
 
-        // Sandbox Mode fallback (explicit sandbox indicator)
-        Log::info('[FBR] Running in local Sandbox mode for sale #' . $sale->id);
-        return [
-            'Code' => 100,
-            'Response' => 'Sandbox Simulated Success',
-            'InvoiceNumber' => 'SANDBOX-FBR-' . $this->posId . '-' . time(),
-            'QRData' => 'https://verify.fbr.gov.pk/sandbox/' . time(),
-            'is_sandbox' => true,
-        ];
+            Log::error('[FBR] HTTP Error: ' . $response->status() . ' Body: ' . $response->body());
+            return [
+                'Code' => $response->status(),
+                'Response' => 'FBR Gateway HTTP Error (' . $response->status() . ')',
+                'InvoiceNumber' => null,
+                'QRData' => null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('[FBR] Connection Exception: ' . $e->getMessage());
+            return [
+                'Code' => 500,
+                'Response' => 'FBR Gateway Connection Exception: ' . $e->getMessage(),
+                'InvoiceNumber' => null,
+                'QRData' => null,
+            ];
+        }
     }
 
     private function getPaymentModeCode($method)
