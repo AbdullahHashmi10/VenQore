@@ -1132,6 +1132,28 @@ Route::get('/dashboard', function() {
     return \redirect()->route('hub');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/fiscal-year', function () {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+    if (!$tenant) {
+        $membership = \App\Models\TenantUser::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
+        $tenant = $membership?->tenant;
+    }
+
+    if ($tenant) {
+        return redirect()->route('store.v3.fiscal-year.index', ['store_slug' => $tenant->slug]);
+    }
+
+    return redirect()->route('hub');
+})->middleware(['auth', 'verified'])->name('fiscal-year.redirect');
+
 // Error Reporting API
 Route::post('/api/report-error', [\App\Http\Controllers\Api\ErrorReporterController::class, 'store'])->middleware('throttle:20,1')->name('api.report-error');
 

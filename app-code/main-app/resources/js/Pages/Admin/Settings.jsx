@@ -1226,13 +1226,13 @@ export default function AdminSettings({ settings = {} }) {
                   Hard period locks freeze past dates across sales, purchases, expenses, and general journals. Unlocking or granting temporary exceptions requires administrative privilege.
                 </p>
               </div>
-              <a
-                href="/fiscal-year"
+              <Link
+                href={route('store.v3.fiscal-year.index', { store_slug: store?.slug || route().params.store_slug })}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm shrink-0 active:scale-95"
               >
                 <Lock size={14} />
                 <span>Fiscal Years &amp; Locks</span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
