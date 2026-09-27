@@ -53,17 +53,28 @@ export default function PrintButton({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handlePrint = (type) => {
-        PrintService.printInvoice(sale, printSettings, type);
-        setLastPrinted(type);
+    const [isPrinting, setIsPrinting] = useState(false);
+
+    const handlePrint = async (type) => {
+        setIsPrinting(true);
         setIsOpen(false);
-
-        if (onPrint) {
-            onPrint(type);
+        try {
+            const res = await PrintService.printInvoice(sale, printSettings, type);
+            if (res && res.success === false) {
+                console.error('[PrintButton] Hardware print returned failure:', res);
+            } else {
+                setLastPrinted(type);
+                if (onPrint) {
+                    onPrint(type);
+                }
+            }
+        } catch (err) {
+            console.error('[PrintButton] Print invocation failed:', err);
+        } finally {
+            setIsPrinting(false);
+            // Reset the "last printed" indicator after 3 seconds
+            setTimeout(() => setLastPrinted(null), 3000);
         }
-
-        // Reset the "last printed" indicator after 3 seconds
-        setTimeout(() => setLastPrinted(null), 3000);
     };
 
     // Single option - just a button

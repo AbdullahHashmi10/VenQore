@@ -20,9 +20,12 @@ export default function Toggle({ enabled, onChange, label, description, upcoming
             </div>
             <button
                 type="button"
+                role="switch"
+                aria-checked={Boolean(enabled)}
+                aria-label={label}
                 disabled={upcoming || comingSoon || disabled}
                 onClick={() => onChange(!enabled)}
-                className={`relative w-12 h-6 rounded-full transition-all duration-normal ${upcoming || comingSoon || disabled ? 'cursor-not-allowed bg-sunken' : enabled ? (variant === 'danger' ? 'bg-red-600 shadow-lg ' : 'bg-brand-600 shadow-lg ') : 'bg-sunken'}`}
+                className={`relative w-12 h-6 rounded-full transition-all duration-normal focus:outline-none focus:ring-2 focus:ring-brand-500/50 ${upcoming || comingSoon || disabled ? 'cursor-not-allowed bg-sunken' : enabled ? (variant === 'danger' ? 'bg-red-600 shadow-lg ' : 'bg-brand-600 shadow-lg ') : 'bg-sunken'}`}
             >
                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-normal ${enabled && !upcoming && !comingSoon && !disabled ? 'left-7' : 'left-1'}`} />
             </button>

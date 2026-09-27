@@ -92,8 +92,22 @@ export default function AdminSettings({ settings = {} }) {
  });
 
  useEffect(() => {
- localStorage.setItem('active_settings_section', activeSection);
- window.location.hash = activeSection;
+  localStorage.setItem('active_settings_section', activeSection);
+  if (window.location.hash !== `#${activeSection}`) {
+    window.location.hash = activeSection;
+  }
+ }, [activeSection]);
+
+ useEffect(() => {
+  const onHashChange = () => {
+    const hash = window.location.hash.replace('#', '');
+    const validIds = SETTINGS_SECTIONS.map(s => s.id);
+    if (validIds.includes(hash) && hash !== activeSection) {
+      setActiveSection(hash);
+    }
+  };
+  window.addEventListener('hashchange', onHashChange);
+  return () => window.removeEventListener('hashchange', onHashChange);
  }, [activeSection]);
 
  const [saved, setSaved] = useState(false);
@@ -295,9 +309,10 @@ export default function AdminSettings({ settings = {} }) {
     auto_backup: settings.auto_backup !== '0',
     dark_mode_default: settings.dark_mode_default === '1' || settings.dark_mode_default === true,
     header_calculator_enabled: settings.header_calculator_enabled === '1' ? '1' : '0',
-    low_stock_alerts: settings.low_stock_alerts !== '0',
-    daily_sales_summary: settings.daily_sales_summary === '1',
     fiscal_year_start: settings.fiscal_year_start || '2025-01-01',
+    'reckoner.heavy_discount_pct': safeInt(settings['reckoner.heavy_discount_pct'] ?? settings.reckoner_heavy_discount_pct, 20),
+    'reckoner.expiry_warning_days': safeInt(settings['reckoner.expiry_warning_days'] ?? settings.reckoner_expiry_warning_days, 30),
+    'reckoner.carrying_cost_pct': safeInt(settings['reckoner.carrying_cost_pct'] ?? settings.reckoner_carrying_cost_pct, 15),
 
     // POS Specific
     pos_auto_fill_cash: settings.pos_auto_fill_cash === '1' || settings.pos_auto_fill_cash === true,
@@ -865,20 +880,80 @@ export default function AdminSettings({ settings = {} }) {
  </div>
  );
 
- case 'accounting':
- return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-4">
- <SectionHeader title="Financial Cycles" description="Manage your fiscal year and reporting" />
- <div className="space-y-2">
- <label className="text-sm font-bold text-ink-secondary">Fiscal Year Start</label>
- <input type="date" value={data.fiscal_year_start || '2025-01-01'} onChange={e => setData('fiscal_year_start', e.target.value)} className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 shadow-sm" />
- </div>
- </div>
- </div>
- </div>
- );
+    case 'accounting':
+      return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 bg-surface rounded-2xl border border-line p-6">
+              <SectionHeader title="Financial Cycles" description="Fiscal calendar boundaries and accounting cycle start" />
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-ink">Fiscal Year Start Date</label>
+                <input
+                  type="date"
+                  value={data.fiscal_year_start || '2025-01-01'}
+                  onChange={e => setData('fiscal_year_start', e.target.value)}
+                  className="w-full px-4 py-3 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
+                />
+                <p className="text-xs text-ink-muted">Used by financial statements, P&L reports, and period closing calculations.</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 bg-surface rounded-2xl border border-line p-6">
+              <SectionHeader title="Reckoner Intelligence Thresholds" description="Autonomous business health and risk analysis tuning" />
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-bold text-ink flex items-center justify-between">
+                    <span>Heavy Discount Warning (%)</span>
+                    <span className="text-xs font-semibold text-brand-600">{data['reckoner.heavy_discount_pct']}%</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={data['reckoner.heavy_discount_pct']}
+                    onChange={e => setData('reckoner.heavy_discount_pct', safeInt(e.target.value, 20))}
+                    className="w-full mt-1.5 px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+                  />
+                  <p className="text-2xs text-ink-muted mt-1">Discounts above this percentage trigger manager review flags in audit logs.</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-ink flex items-center justify-between">
+                    <span>Stock Expiry Lead Warning (Days)</span>
+                    <span className="text-xs font-semibold text-brand-600">{data['reckoner.expiry_warning_days']} days</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={data['reckoner.expiry_warning_days']}
+                    onChange={e => setData('reckoner.expiry_warning_days', safeInt(e.target.value, 30))}
+                    className="w-full mt-1.5 px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+                  />
+                  <p className="text-2xs text-ink-muted mt-1">Products reaching expiration within this window are highlighted on the dashboard.</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-ink flex items-center justify-between">
+                    <span>Annual Inventory Carrying Cost (%)</span>
+                    <span className="text-xs font-semibold text-brand-600">{data['reckoner.carrying_cost_pct']}%</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={data['reckoner.carrying_cost_pct']}
+                    onChange={e => setData('reckoner.carrying_cost_pct', safeInt(e.target.value, 15))}
+                    className="w-full mt-1.5 px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+                  />
+                  <p className="text-2xs text-ink-muted mt-1">Holding cost rate used to compute overstock cost and dead inventory write-down risk.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
 
  case 'approvals':
       return <ApprovalsSection data={data} setData={setData} store={store} />;

@@ -557,9 +557,13 @@ class AdminController extends Controller
             }
         });
 
-        // Clear settings cache
+        // Clear settings and reckoner cache
         if ($tenant) {
             \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.heavy_discount_pct");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.expiry_warning_days");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.carrying_cost_pct");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.stock_aging_buckets");
         }
         \Illuminate\Support\Facades\Cache::forget('settings:global');
         \App\Helpers\SettingsHelper::clearCache();

@@ -51,7 +51,11 @@ class PrintService {
         // VenQore Station (hardware silent-print) takes priority for thermal
         if (type === 'thermal' && isAMDStationAvailable()) {
             try {
-                return await this.printWithAMDStation(sale, data, options);
+                const stationRes = await this.printWithAMDStation(sale, data, options);
+                if (stationRes && stationRes.success !== false) {
+                    return stationRes;
+                }
+                console.warn('[PrintService] AMD Station returned failure, falling back to browser dialog:', stationRes);
             } catch (e) {
                 console.error('[PrintService] AMD Station failed, falling back to browser:', e);
             }
@@ -82,7 +86,7 @@ class PrintService {
         }
 
         const html = this._buildHtml(previewHtml, allStyles, pageDeclaration, sale, isThermal, data);
-        this._openPrintWindow(html, type, widthMm);
+        return this._openPrintWindow(html, type, widthMm);
     }
 
     /**
@@ -120,8 +124,7 @@ class PrintService {
                     
                     const fullSale = response.data?.sale || response.data?.purchase || response.data?.return || response.data;
                     if (fullSale) {
-                        this.printInvoice(fullSale, settings, effectiveType);
-                        return;
+                        return await this.printInvoice(fullSale, settings, effectiveType);
                     }
                 }
             } catch (err) {
@@ -129,7 +132,7 @@ class PrintService {
             }
         }
 
-        this.printInvoice(sale, settings, effectiveType);
+        return await this.printInvoice(sale, settings, effectiveType);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -413,36 +416,39 @@ class PrintService {
      * The @page size is already correct in the HTML — no post-hoc measurement.
      */
     static _openPrintWindow(html, type, widthMm) {
-        const isThermal = type === 'thermal';
+        return new Promise((resolve) => {
+            const isThermal = type === 'thermal';
 
-        const iframe = document.createElement('iframe');
-        iframe.style.cssText = [
-            'position:fixed',
-            'border:none',
-            'visibility:hidden',
-            'pointer-events:none',
-            isThermal ? `left:-9999px;top:0;width:${widthMm}mm;height:1px` : 'left:0;top:0;width:0;height:0',
-        ].join(';');
-        iframe.name = 'printFrame';
-        document.body.appendChild(iframe);
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = [
+                'position:fixed',
+                'border:none',
+                'visibility:hidden',
+                'pointer-events:none',
+                isThermal ? `left:-9999px;top:0;width:${widthMm}mm;height:1px` : 'left:0;top:0;width:0;height:0',
+            ].join(';');
+            iframe.name = 'printFrame';
+            document.body.appendChild(iframe);
 
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(html);
-        doc.close();
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
 
-        let printed = false;
-        const triggerPrint = () => {
-            if (printed || !iframe.contentWindow) return;
-            printed = true;
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 2500);
-        };
+            let printed = false;
+            const triggerPrint = () => {
+                if (printed || !iframe.contentWindow) return;
+                printed = true;
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                resolve({ success: true, transport: 'browser' });
+                setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 2500);
+            };
 
-        // For thermal: images are already measured in the main doc, so a short delay suffices
-        const delay = isThermal ? 350 : 500;
-        setTimeout(triggerPrint, delay);
+            // For thermal: images are already measured in the main doc, so a short delay suffices
+            const delay = isThermal ? 350 : 500;
+            setTimeout(triggerPrint, delay);
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
