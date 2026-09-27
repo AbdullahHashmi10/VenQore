@@ -383,10 +383,25 @@ class AdminController extends Controller
     {
         $settings = \App\Models\Setting::all()->pluck('value', 'key')->toArray();
 
-        // S02: Security Sanitization — Do not leak raw password/passcode hashes in props
-        if (isset($settings['admin_passcode'])) {
-            $settings['has_admin_passcode'] = !empty($settings['admin_passcode']);
-            $settings['admin_passcode'] = '';
+        // S02: Security Sanitization — Do not leak raw password/passcode hashes or API secrets in props
+        $secretKeys = [
+            'admin_passcode',
+            'openai_api_key',
+            'anthropic_api_key',
+            'gemini_api_key',
+            'stripe_secret_key',
+            'stripe_webhook_secret',
+            'woocommerce_consumer_secret',
+            'whatsapp_access_token',
+        ];
+
+        foreach ($secretKeys as $secretKey) {
+            if (isset($settings[$secretKey])) {
+                $settings["has_{$secretKey}"] = !empty($settings[$secretKey]);
+                if (!empty($settings[$secretKey])) {
+                    $settings[$secretKey] = $secretKey === 'admin_passcode' ? '' : '••••••••';
+                }
+            }
         }
 
         // Fetch Backups
@@ -492,14 +507,28 @@ class AdminController extends Controller
         $tenant = app('current.tenant');
 
         \Illuminate\Support\Facades\DB::transaction(function() use ($settingsData, $tenant) {
+            $secretKeys = [
+                'admin_passcode',
+                'openai_api_key',
+                'anthropic_api_key',
+                'gemini_api_key',
+                'stripe_secret_key',
+                'stripe_webhook_secret',
+                'woocommerce_consumer_secret',
+                'whatsapp_access_token',
+            ];
+
             foreach ($settingsData as $key => $value) {
-                if ($key === 'admin_passcode') {
-                    if ($value === null || $value === '') {
+                // If it's a secret key and value is empty or masked, skip overwriting
+                if (in_array($key, $secretKeys, true)) {
+                    if ($value === null || $value === '' || str_starts_with((string)$value, '••••')) {
                         continue;
                     }
-                    // Only hash if not already bcrypt-hashed
-                    if (!str_starts_with((string)$value, '$2y$')) {
-                        $value = \Illuminate\Support\Facades\Hash::make($value);
+                    if ($key === 'admin_passcode') {
+                        // Only hash if not already bcrypt-hashed
+                        if (!str_starts_with((string)$value, '$2y$')) {
+                            $value = \Illuminate\Support\Facades\Hash::make($value);
+                        }
                     }
                 }
 

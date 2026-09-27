@@ -831,6 +831,12 @@ export default function AdminSettings({ settings = {} }) {
  <SectionHeader title={tt('Customer Preferences')} description="Manage how you interact with parties" />
  <Toggle enabled={data.party_grouping} onChange={v => setData('party_grouping', v)} label="Enable Party Grouping" description={tt('Categorize customers by region or type')} />
  <Toggle enabled={data.loyalty_enabled} onChange={v => setData('loyalty_enabled', v)} label="Loyalty Points Program" description={tt('Reward frequent customers with points')} />
+ {data.loyalty_enabled && (
+   <div className="p-3 bg-brand-500/10 rounded-xl border border-brand-500/20 flex items-center justify-between text-xs text-brand-600 dark:text-brand-400">
+     <span>{tt('Fine-tune reward points ratio and redemption policies in Growth Engine')}</span>
+     <a href={`/s/${store?.slug}/growth-engine/settings`} className="font-bold underline hover:text-brand-700 dark:hover:text-brand-300 ml-2 shrink-0">{tt('Open Loyalty Rules')} →</a>
+   </div>
+ )}
  <Toggle enabled={data.enable_credit_limit} onChange={v => setData('enable_credit_limit', v)} label="Enable Credit Limit" description={tt('Set maximum credit limits for customers')} />
  </div>
  <div className="p-6 bg-brand-50 dark:bg-brand-500/10 rounded-2xl border border-brand-100 dark:border-brand-500/20">
