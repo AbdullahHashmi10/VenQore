@@ -1,10 +1,10 @@
 <?php
 
-namespace AppServices;
+namespace App\Services;
 
-use AppModelsSale;
-use IlluminateSupportFacadesHttp;
-use IlluminateSupportFacadesLog;
+use App\Models\Sale;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class FbrService
 {
@@ -12,7 +12,7 @@ class FbrService
     protected $posId;
     protected $usin;
     protected $authToken;
-    protected $environment; // 'sandbox' or 'live'
+    protected $environment; // 'sandbox', 'live', or 'disabled'
 
     public function __construct()
     {
@@ -20,8 +20,15 @@ class FbrService
         $this->posId = $settings['fbr_pos_id'] ?? '';
         $this->usin = $settings['fbr_usin'] ?? '';
         $this->authToken = $settings['fbr_auth_token'] ?? config('services.fbr.token', '');
+        
         $rawEnv = strtolower((string) ($settings['fbr_environment'] ?? $settings['fbr_mode'] ?? config('services.fbr.environment', 'sandbox')));
-        $this->environment = in_array($rawEnv, ['live', 'production'], true) ? 'live' : 'sandbox';
+        if ($rawEnv === 'disabled' || ($settings['fbr_integration'] ?? '0') === '0') {
+            $this->environment = 'disabled';
+        } elseif (in_array($rawEnv, ['live', 'production'], true)) {
+            $this->environment = 'live';
+        } else {
+            $this->environment = 'sandbox';
+        }
         
         $defaultUrl = $this->environment === 'live'
             ? 'https://ims.fbr.gov.pk/api/Live/PostData'
@@ -35,6 +42,15 @@ class FbrService
      */
     public function reportSale(Sale $sale)
     {
+        if ($this->environment === 'disabled') {
+            return [
+                'Code' => 0,
+                'Response' => 'FBR integration is disabled',
+                'InvoiceNumber' => null,
+                'QRData' => null,
+            ];
+        }
+
         // Build accurate payload from sale data and actual item taxes
         $data = [
             'InvoiceNumber' => '',
