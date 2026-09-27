@@ -213,7 +213,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  currency_code: store?.currency_code || settings?.currency_code,
  currency_symbol: store?.currency_symbol || settings?.currency_symbol,
  store_name: store?.name || settings?.store_name || settings?.business_name,
- decimal_places: parseInt(settings?.decimal_places || 2)
+ decimal_places: parseInt(settings?.decimal_places ?? 2, 10)
  };
  }
 

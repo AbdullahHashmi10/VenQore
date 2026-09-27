@@ -125,7 +125,7 @@ class SettingsHelper
     {
         $decimals = $decimalOverride;
         if ($decimals === null) {
-            $decimals = self::get('print_amount_decimal', '1') === '0' ? 0 : (int) self::get('decimal_places', 2);
+            $decimals = (int) self::get('decimal_places', 2);
         }
         $useGrouping = self::get('print_amount_grouping', '1') !== '0';
         if ($useGrouping) {
@@ -515,4 +515,3 @@ class SettingsHelper
         return self::get('product_cost_update_policy', 'never');
     }
 }
-

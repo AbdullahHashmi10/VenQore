@@ -1,1698 +1,1183 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import PasscodeModal from '@/Components/PasscodeModal';
-import PrintPreview from '@/Components/PrintPreview';
-import PrintSettingsSection from '@/Components/PrintSettingsSection';
-import BusinessSettingsSection from '@/Components/BusinessSettingsSection';
-import GeneralSettingsSection from '@/Components/GeneralSettingsSection';
-import AiSettingsSection from '@/Components/AiSettingsSection';
-import TransactionSettingsSection from '@/Components/TransactionSettingsSection';
-import TaxSettingsSection from '@/Components/TaxSettingsSection';
-import SystemSettingsSection from '@/Components/SystemSettingsSection';
-import DangerSettingsSection from '@/Components/DangerSettingsSection';
-import TerminalPairingSection from '@/Components/Settings/TerminalPairingSection';
 import {
- Settings, Building2, Globe, Bell, Shield, ShieldCheck, Database, Mail, Printer,
- CreditCard, Clock, Save, Check, RefreshCw, AlertTriangle, FileText,
- ChevronRight, Palette, Lock, Wifi, HardDrive, Trash2, Download,
- Upload, Key, Percent, MessageSquare, Users, Package, Plus, Search,
- Layout, Type, Smartphone, Image as ImageIcon, FileCheck, History, Sparkles, Send, ShoppingCart, BookOpen,
- Phone, MapPin, Hash, AlertOctagon
+    Building2, Globe, Bell, Shield, ShieldCheck, Database, Printer,
+    Save, Check, RefreshCw, AlertTriangle, FileText,
+    ChevronRight, Palette, Lock, Users, Package, Search,
+    Layout, Smartphone, Sparkles, ShoppingCart, BookOpen,
+    MessageSquare, AlertOctagon, ExternalLink
 } from 'lucide-react';
-import Toggle from '@/Components/Toggle';
-import SectionHeader from '@/Components/SectionHeader';
+
+// Modular Section Components
+import BusinessProfileSection from '@/Components/Settings/BusinessProfileSection';
+import RegionNumbersSection from '@/Components/Settings/RegionNumbersSection';
+import DisplayPreferencesSection from '@/Components/Settings/DisplayPreferencesSection';
+import CheckoutReturnsSection from '@/Components/Settings/CheckoutReturnsSection';
+import DocumentsNumberingSection from '@/Components/Settings/DocumentsNumberingSection';
+import TaxSettingsSection from '@/Components/TaxSettingsSection';
+import CustomersSuppliersSection from '@/Components/Settings/CustomersSuppliersSection';
+import StockItemsSection from '@/Components/Settings/StockItemsSection';
+import DocumentLayoutsSection from '@/Components/Settings/DocumentLayoutsSection';
+import PrinterDeviceSection from '@/Components/Settings/PrinterDeviceSection';
+import ManualSharingSection from '@/Components/Settings/ManualSharingSection';
+import RemindersAlertsSection from '@/Components/Settings/RemindersAlertsSection';
+import AccountingSection from '@/Components/Settings/AccountingSection';
+import FeaturesConnectionsSection from '@/Components/Settings/FeaturesConnectionsSection';
+import SecuritySection from '@/Components/Settings/SecuritySection';
 import ApprovalsSection from '@/Components/Settings/ApprovalsSection';
+import TerminalPairingSection from '@/Components/Settings/TerminalPairingSection';
+import DangerSettingsSection from '@/Components/DangerSettingsSection';
 
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
-// ── Settings IA (restructured) ──────────────────────────────────────────
-// Consolidated settings into a single authoritative surface across 4 categories:
+
+// ── Settings IA (5 Plain-Language Task Groups) ──────────────────────────
 const SETTINGS_CATEGORIES = [
- {
- id: 'org',
- name: 'Organization',
- icon: Building2,
- sections: ['business', 'modules', 'preferences']
- },
- {
- id: 'ops',
- name: 'Operations',
- icon: ShoppingCart,
- sections: ['sales', 'taxes', 'print', 'messages', 'item', 'party', 'reminders', 'accounting']
- },
- {
- id: 'adv',
- name: 'Advanced',
- icon: Sparkles,
- sections: ['security', 'approvals', 'terminals', 'ai_integrations', 'backup']
- },
- {
- id: 'zone',
- name: 'Danger Zone',
- icon: AlertOctagon,
- sections: ['reset']
- }
+    {
+        id: 'business',
+        name: 'Business',
+        icon: Building2,
+        sections: ['profile', 'region_numbers', 'display']
+    },
+    {
+        id: 'selling',
+        name: 'Selling',
+        icon: ShoppingCart,
+        sections: ['checkout_returns', 'documents_numbering', 'taxes', 'customers_suppliers']
+    },
+    {
+        id: 'inventory',
+        name: 'Inventory',
+        icon: Package,
+        sections: ['stock_items']
+    },
+    {
+        id: 'printing_sharing',
+        name: 'Printing & Sharing',
+        icon: Printer,
+        sections: ['document_layouts', 'printer_device', 'manual_sharing']
+    },
+    {
+        id: 'operations',
+        name: 'Operations',
+        icon: ClockIconWrapper,
+        sections: ['reminders_alerts', 'accounting', 'features_connections']
+    },
+    {
+        id: 'access_data',
+        name: 'Access & Data',
+        icon: Shield,
+        sections: ['security', 'approvals', 'terminals', 'backup', 'reset']
+    }
 ];
+
+function ClockIconWrapper(props) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={props.size || 16}
+            height={props.size || 16}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={props.className}
+        >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+        </svg>
+    );
+}
 
 const SETTINGS_SECTIONS = [
- { id: 'business', name: 'Business Info', icon: Building2, description: 'Company details, custom domain and branding' },
- { id: 'modules', name: 'Modules & Features', icon: Sparkles, description: 'Turn business capabilities on or off' },
- { id: 'preferences', name: 'Preferences', icon: Settings, description: 'Passcode, multi-firm, language & alerts' },
- { id: 'sales', name: 'Sales & Invoicing', icon: ShoppingCart, description: 'Checkout behavior and invoice fields' },
- { id: 'taxes', name: 'Taxes', icon: Percent, description: 'Tax rates and groups' },
- { id: 'print', name: 'Print & Templates', icon: Printer, description: 'Regular, Thermal printer & B2B invoice layouts' },
- { id: 'messages', name: 'Messages', icon: MessageSquare, description: 'WhatsApp & SMS notifications' },
- { id: 'party', name: 'Party', icon: Users, description: 'Customer & Supplier preferences' },
- { id: 'item', name: 'Item', icon: Package, description: 'Inventory, MRP & batch tracking' },
- { id: 'reminders', name: 'Reminders', icon: Clock, description: 'Service and payment alerts' },
- { id: 'accounting', name: 'Accounting', icon: BookOpen, description: 'Ledgers, depreciation & fiscal year' },
- { id: 'security', name: 'Security & SSO', icon: Shield, description: 'Access control, 2FA & SAML Single Sign-On' },
-  { id: 'approvals', name: 'Approvals & Governance', icon: ShieldCheck, description: 'Maker-checker approval policies and thresholds' },
- { id: 'terminals', name: 'Terminals', icon: Smartphone, description: 'Pair VenQore Station devices' },
- { id: 'ai_integrations', name: 'AI & Integrations', icon: Sparkles, description: 'Gemini, OpenAI, FBR & Stripe' },
- { id: 'backup', name: 'Backup & Data', icon: Database, description: 'Now lives in the Data & Backup hub' },
- { id: 'reset', name: 'Factory Reset', icon: Trash2, description: 'Erase data & start fresh' },
+    // Business
+    {
+        id: 'profile',
+        name: 'Business Profile',
+        icon: Building2,
+        description: 'Store name, address, phone, tax ID & custom domain',
+        keywords: ['name', 'logo', 'address', 'phone', 'email', 'ntn', 'tax', 'domain', 'store']
+    },
+    {
+        id: 'region_numbers',
+        name: 'Region & Numbers',
+        icon: Globe,
+        description: 'Currency, timezone, language, date format & decimal precision',
+        keywords: ['currency', 'symbol', 'timezone', 'language', 'date', 'decimals', 'precision', 'money']
+    },
+    {
+        id: 'display',
+        name: 'Display Preferences',
+        icon: Palette,
+        description: 'Text size, color theme, calculator and easier-to-read controls',
+        keywords: ['zoom', 'scale', 'dark mode', 'calculator', 'senior', 'theme', 'appearance', 'density']
+    },
+
+    // Selling
+    {
+        id: 'checkout_returns',
+        name: 'Checkout & Returns',
+        icon: ShoppingCart,
+        description: 'Cash payments, rounding, stock checks and returns',
+        keywords: ['register', 'cash', 'round off', 'negative stock', 'overselling', 'returns', 'refunds', 'window']
+    },
+    {
+        id: 'documents_numbering',
+        name: 'Documents & Numbering',
+        icon: FileText,
+        description: 'Invoice types and the numbers shown on documents',
+        keywords: ['invoice', 'prefix', 'billing', 'numbering', 'quotation', 'purchase', 'series']
+    },
+    {
+        id: 'taxes',
+        name: 'Taxes',
+        icon: PercentIconWrapper,
+        description: 'Tax rates and whether prices include tax',
+        keywords: ['tax', 'gst', 'vat', 'inclusive', 'exclusive', 'rates', 'fbr']
+    },
+    {
+        id: 'customers_suppliers',
+        name: 'Customers & Suppliers',
+        icon: Users,
+        description: 'Customer and supplier groups, credit limits and rewards',
+        keywords: ['customer', 'party', 'supplier', 'credit limit', 'loyalty', 'points', 'reward']
+    },
+
+    // Inventory
+    {
+        id: 'stock_items',
+        name: 'Stock & Items',
+        icon: Package,
+        description: 'Stock tracking, barcodes, batches and wholesale prices',
+        keywords: ['stock', 'inventory', 'barcode', 'scanner', 'batch', 'expiry', 'wholesale', 'cost', 'charity']
+    },
+
+    // Printing & Sharing
+    {
+        id: 'document_layouts',
+        name: 'Document Layouts',
+        icon: Layout,
+        description: 'How receipts and invoices look when printed',
+        keywords: ['layout', 'a4', 'a5', 'pdf', 'printed decimals', 'theme', 'columns', 'header', 'footer', 'logo']
+    },
+    {
+        id: 'printer_device',
+        name: 'Printer & Device',
+        icon: Printer,
+        description: 'Receipt paper, printer actions and cash drawer',
+        keywords: ['thermal', 'printer', 'esc/pos', 'auto-cut', 'cash drawer', 'slip', 'receipt', 'cut']
+    },
+    {
+        id: 'manual_sharing',
+        name: 'Manual Sharing',
+        icon: MessageSquare,
+        description: 'Prepare messages and share invoices yourself',
+        keywords: ['whatsapp', 'messages', 'templates', 'share', 'drafts', 'click to chat', 'sms']
+    },
+
+    // Operations
+    {
+        id: 'reminders_alerts',
+        name: 'Reminders & Alerts',
+        icon: Bell,
+        description: 'Payment due reminders, recurring service schedules & low stock alerts',
+        keywords: ['reminders', 'due date', 'service', 'low stock', 'email digest', 'alerts', 'notifications']
+    },
+    {
+        id: 'accounting',
+        name: 'Accounting',
+        icon: BookOpen,
+        description: 'Financial year, multiple businesses and cost warnings',
+        keywords: ['fiscal year', 'multi firm', 'books', 'locks', 'depreciation', 'carrying cost', 'reckoner']
+    },
+    {
+        id: 'features_connections',
+        name: 'Features & Connections',
+        icon: Sparkles,
+        description: 'Turn on features and connect external services',
+        keywords: ['system builder', 'apps', 'modules', 'ai', 'gemini', 'openai', 'fbr', 'stripe', 'woocommerce']
+    },
+
+    // Access & Data
+    {
+        id: 'security',
+        name: 'Security & Sign-in',
+        icon: Shield,
+        description: 'Passcodes, sign-in protection and staff access',
+        keywords: ['passcode', 'pin', 'auto-logout', '2fa', 'sso', 'saml', 'staff', 'roles', 'permissions']
+    },
+    {
+        id: 'approvals',
+        name: 'Approvals',
+        icon: ShieldCheck,
+        description: 'Choose which transactions need a manager to approve them',
+        keywords: ['approval', 'maker checker', 'governance', 'threshold', 'dual control', 'owner separation']
+    },
+    {
+        id: 'terminals',
+        name: 'Terminals',
+        icon: Smartphone,
+        description: 'Pair secondary VenQore Station counter devices',
+        keywords: ['terminal', 'station', 'pairing', 'device', 'counter', 'sync']
+    },
+    {
+        id: 'backup',
+        name: 'Data & Backup',
+        icon: Database,
+        description: 'Cloud backups, local snapshots, restore & Google Drive sync',
+        keywords: ['backup', 'restore', 'google drive', 'export', 'import', 'sql', 'database']
+    },
+    {
+        id: 'reset',
+        name: 'Factory Reset',
+        icon: AlertOctagon,
+        description: 'Erase transactional records or reset store database',
+        keywords: ['reset', 'erase', 'danger', 'delete data', 'factory', 'wipe']
+    }
 ];
 
+function PercentIconWrapper(props) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={props.size || 16}
+            height={props.size || 16}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={props.className}
+        >
+            <line x1="19" y1="5" x2="5" y2="19" />
+            <circle cx="6.5" cy="6.5" r="2.5" />
+            <circle cx="17.5" cy="17.5" r="2.5" />
+        </svg>
+    );
+}
+
+// ── Backward-Compatible Hash Aliases Map ───────────────────────────────
+const HASH_ALIASES = {
+    business: 'profile',
+    preferences: 'region_numbers',
+    sales: 'checkout_returns',
+    print: 'document_layouts',
+    messages: 'manual_sharing',
+    party: 'customers_suppliers',
+    item: 'stock_items',
+    reminders: 'reminders_alerts',
+    modules: 'features_connections',
+    ai_integrations: 'features_connections',
+    region: 'region_numbers',
+    display_settings: 'display',
+    device: 'printer_device',
+    sharing: 'manual_sharing',
+    whatsapp: 'manual_sharing',
+    alerts: 'reminders_alerts',
+    notifications: 'reminders_alerts',
+};
+
+const resolveSectionId = (rawHash) => {
+    if (!rawHash) return 'profile';
+    const cleaned = rawHash.replace(/^#/, '');
+    if (HASH_ALIASES[cleaned]) return HASH_ALIASES[cleaned];
+    const match = SETTINGS_SECTIONS.find(s => s.id === cleaned);
+    return match ? match.id : 'profile';
+};
+
+// ── Single-Source Authoritative Field Map ──────────────────────────────
 const SECTION_FIELD_MAP = {
-  business: [
-    'business_name', 'store_name', 'business_address', 'store_address',
-    'business_phone', 'store_phone', 'business_email', 'tax_number',
-    'currency', 'currency_code', 'currency_symbol', 'timezone',
-    'decimal_places', 'custom_domain', 'product_cost_update_policy',
-    'shared_catalog_opt_out', 'ai_accuracy_opt_in'
-  ],
-  modules: [
-    'charity_enabled', 'loyalty_enabled', 'batch_tracking_enabled',
-    'wholesale_price_enabled', 'barcode_scan_enabled', 'stock_maintenance'
-  ],
-  preferences: [
-    'enable_passcode', 'admin_passcode', 'ui_scale', 'language',
-    'date_format', 'auto_logout', 'dark_mode_default', 'senior_mode',
-    'header_calculator_enabled', 'multi_firm_enabled', 'low_stock_alerts',
-    'low_stock_threshold'
-  ],
-  sales: [
-    'invoice_number_enabled', 'stop_sale_negative_stock', 'cash_sale_default',
-    'round_off_total', 'billing_type', 'sale_prefix', 'purchase_prefix',
-    'quotation_prefix', 'return_prefix', 'pos_auto_fill_cash',
-    'show_margin_percentage', 'show_margin_on_invoice',
-    'pos_return_mode', 'pos_return_window', 'pos_return_window_behavior'
-  ],
-  taxes: [
-    'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id'
-  ],
-  print: [
-    'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
-    'print_logo', 'print_logo_path', 'print_logo_file', 'print_signature_text',
-    'print_original_copy', 'print_company_text_size', 'print_invoice_text_size',
-    'margin_top', 'margin_bottom', 'margin_left', 'margin_right',
-    'custom_paper_width', 'custom_paper_height', 'print_show_sno',
-    'print_show_units', 'print_show_mrp', 'print_show_description',
-    'print_show_hsn', 'print_show_discount', 'print_show_free_qty',
-    'print_qr_code', 'print_show_delivery_charge', 'print_show_extra_charge',
-    'print_total_quantity', 'print_amount_decimal', 'print_received_amount',
-    'print_balance_amount', 'print_party_balance', 'print_tax_details',
-    'print_you_saved', 'print_show_previous_balance', 'print_amount_grouping',
-    'print_amount_words', 'print_description', 'print_terms',
-    'print_received_by', 'print_delivered_by', 'print_payment_mode',
-    'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
-    'print_min_item_rows', 'invoice_theme', 'invoice_primary_color',
-    'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
-    'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
-    'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
-    'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units',
-    'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
-    'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
-    'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
-    'thermal_custom_footer'
-  ],
-  messages: [
-    'message_template_sales', 'message_template_returns', 'message_template_reminders',
-    'whatsapp_offer_pdf', 'payment_reminder_days', 'business_name'
-  ],
-  party: [
-    'party_grouping', 'loyalty_enabled', 'enable_credit_limit',
-    'payment_reminders', 'payment_reminder_days'
-  ],
-  item: [
-    'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
-    'wholesale_price_enabled', 'low_stock_threshold', 'low_stock_alerts'
-  ],
-  reminders: [
-    'service_reminders', 'email_notifications', 'daily_sales_summary'
-  ],
-  accounting: [
-    'fiscal_year_start'
-  ],
-  security: [
-    'two_factor_auth', 'auto_backup', 'sso_enabled', 'sso_idp_entity_id',
-    'sso_url', 'sso_certificate'
-  ],
-  approvals: [
-    'approval_admin_enabled', 'approval_strict_owner_separation',
-    'approval_amount_threshold', 'approval_default_employee_mode',
-    'approval_policy_customer_receipt', 'approval_threshold_customer_receipt',
-    'approval_policy_supplier_payment', 'approval_threshold_supplier_payment',
-    'approval_policy_operating_expense', 'approval_threshold_operating_expense',
-    'approval_policy_sales_invoice', 'approval_threshold_sales_invoice',
-    'approval_policy_supplier_refund', 'approval_threshold_supplier_refund',
-    'approval_policy_purchase_posting', 'approval_threshold_purchase_posting',
-    'approval_policy_sales_return', 'approval_threshold_sales_return',
-    'approval_policy_purchase_return', 'approval_threshold_purchase_return',
-    'approval_policy_capital_injection', 'approval_threshold_capital_injection',
-    'approval_policy_owner_drawings', 'approval_threshold_owner_drawings',
-    'approval_policy_fund_transfer', 'approval_threshold_fund_transfer'
-  ],
-  ai_integrations: [
-    'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
-    'shared_catalog_opt_out', 'ai_accuracy_opt_in', 'fbr_integration', 'fbr_pos_id',
-    'fbr_usin', 'fbr_mode', 'fbr_environment', 'fbr_api_url', 'fbr_auth_token',
-    'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
-    'stripe_enabled', 'woocommerce_url', 'woocommerce_consumer_key',
-    'woocommerce_consumer_secret', 'woocommerce_enabled'
-  ]
+    profile: [
+        'business_name', 'business_address', 'business_phone', 'business_email',
+        'tax_number', 'custom_domain', 'store_name', 'store_address', 'store_phone',
+        'product_cost_update_policy'
+    ],
+    region_numbers: [
+        'currency', 'currency_symbol', 'timezone', 'language', 'date_format', 'decimal_places'
+    ],
+    display: [
+        'ui_scale', 'dark_mode_default', 'header_calculator_enabled', 'senior_mode'
+    ],
+    checkout_returns: [
+        'stop_sale_negative_stock', 'cash_sale_default', 'round_off_total',
+        'pos_auto_fill_cash', 'show_margin_percentage', 'pos_return_mode',
+        'pos_return_window', 'pos_return_window_behavior', 'charity_enabled'
+    ],
+    documents_numbering: [
+        'invoice_number_enabled', 'billing_type', 'sale_prefix', 'purchase_prefix',
+        'quotation_prefix', 'return_prefix'
+    ],
+    taxes: [
+        'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id'
+    ],
+    customers_suppliers: [
+        'loyalty_enabled', 'enable_credit_limit', 'party_grouping'
+    ],
+    stock_items: [
+        'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
+        'wholesale_price_enabled', 'low_stock_alerts', 'low_stock_threshold'
+    ],
+    document_layouts: [
+        'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
+        'print_logo', 'print_logo_path', 'print_logo_file', 'print_signature_text',
+        'print_original_copy', 'print_company_text_size', 'print_invoice_text_size',
+        'margin_top', 'margin_bottom', 'margin_left', 'margin_right',
+        'custom_paper_width', 'custom_paper_height', 'print_show_sno',
+        'print_show_units', 'print_show_mrp', 'print_show_description',
+        'print_show_hsn', 'print_show_discount', 'print_show_free_qty',
+        'print_qr_code', 'print_show_delivery_charge', 'print_show_extra_charge',
+        'print_total_quantity', 'print_amount_decimal', 'print_received_amount',
+        'print_balance_amount', 'print_party_balance', 'print_tax_details',
+        'print_you_saved', 'print_show_previous_balance', 'print_amount_grouping',
+        'print_amount_words', 'print_description', 'print_terms',
+        'print_received_by', 'print_delivered_by', 'print_payment_mode',
+        'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
+        'print_min_item_rows', 'invoice_theme', 'invoice_primary_color', 'show_margin_on_invoice'
+    ],
+    printer_device: [
+        'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
+        'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
+        'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
+        'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units',
+        'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
+        'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
+        'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
+        'thermal_custom_footer'
+    ],
+    manual_sharing: [
+        'message_template_sales', 'message_template_returns', 'message_template_reminders', 'whatsapp_offer_pdf'
+    ],
+    reminders_alerts: [
+        'payment_reminders', 'payment_reminder_days', 'service_reminders',
+        'email_notifications', 'daily_sales_summary'
+    ],
+    accounting: [
+        'multi_firm_enabled', 'fiscal_year_start',
+        'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days', 'reckoner.carrying_cost_pct'
+    ],
+    features_connections: [
+        'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
+        'shared_catalog_opt_out', 'ai_accuracy_opt_in', 'fbr_integration', 'fbr_pos_id',
+        'fbr_usin', 'stripe_enabled', 'woocommerce_enabled'
+    ],
+    security: [
+        'enable_passcode', 'admin_passcode', 'auto_logout', 'sso_enabled', 'sso_idp_entity_id',
+        'sso_url', 'sso_certificate'
+    ],
+    approvals: [
+        'approval_admin_enabled', 'approval_strict_owner_separation',
+        'approval_amount_threshold', 'approval_default_employee_mode',
+        'approval_policy_customer_receipt', 'approval_threshold_customer_receipt',
+        'approval_policy_supplier_payment', 'approval_threshold_supplier_payment',
+        'approval_policy_operating_expense', 'approval_threshold_operating_expense',
+        'approval_policy_sales_invoice', 'approval_threshold_sales_invoice',
+        'approval_policy_supplier_refund', 'approval_threshold_supplier_refund',
+        'approval_policy_purchase_posting', 'approval_threshold_purchase_posting',
+        'approval_policy_sales_return', 'approval_threshold_sales_return',
+        'approval_policy_purchase_return', 'approval_threshold_purchase_return',
+        'approval_policy_capital_injection', 'approval_threshold_capital_injection',
+        'approval_policy_owner_drawings', 'approval_threshold_owner_drawings',
+        'approval_policy_fund_transfer', 'approval_threshold_fund_transfer'
+    ]
 };
 
 export default function AdminSettings({ settings = {} }) {
- const tt = useTermText();
- const { store } = usePage().props;
- const [activeSection, setActiveSection] = useState(() => {
- // NOTE: this used to check against a hardcoded array of section ids
- // ('loyalty' isn't even a real section id, and most real ids like
- // 'party'/'item'/'security'/'backup' were missing) — any bookmark or
- // reload landing on a non-whitelisted-but-real tab silently bounced
- // back to 'business'. Now it validates against the real, current list.
- const validIds = SETTINGS_SECTIONS.map(s => s.id);
- const hash = window.location.hash.replace('#', '');
- if (validIds.includes(hash)) return hash;
- const stored = localStorage.getItem('active_settings_section');
- return validIds.includes(stored) ? stored : 'business';
- });
+    const tt = useTermText();
+    const { store } = usePage().props;
 
- useEffect(() => {
-  localStorage.setItem('active_settings_section', activeSection);
-  if (window.location.hash !== `#${activeSection}`) {
-    window.location.hash = activeSection;
-  }
- }, [activeSection]);
-
- useEffect(() => {
-  const onHashChange = () => {
-    const hash = window.location.hash.replace('#', '');
-    const validIds = SETTINGS_SECTIONS.map(s => s.id);
-    if (validIds.includes(hash) && hash !== activeSection) {
-      setActiveSection(hash);
-    }
-  };
-  window.addEventListener('hashchange', onHashChange);
-  return () => window.removeEventListener('hashchange', onHashChange);
- }, [activeSection]);
-
- const [saved, setSaved] = useState(false);
- const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
- const [configuringApp, setConfiguringApp] = useState(null);
- const [verifyingKey, setVerifyingKey] = useState(false);
- const [verificationResult, setVerificationResult] = useState(null);
- const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
- const [expandedCategories, setExpandedCategories] = useState(['org', 'ops', 'adv', 'zone']);
- const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(settings.pos_return_mode === 'open');
- const [pendingSectionId, setPendingSectionId] = useState(null);
- const [showUnsavedModal, setShowUnsavedModal] = useState(false);
- const [reminderSearch, setReminderSearch] = useState('');
- const [sectionSearch, setSectionSearch] = useState('');
-
- const safeInt = (val, fallback) => {
-  const parsed = parseInt(val, 10);
-  return !isNaN(parsed) ? parsed : fallback;
- };
-
- const safeParseJson = (value, fallback) => {
-  if (!value) return fallback;
-  if (typeof value !== 'string') return Array.isArray(value) ? value : fallback;
-  try {
-   const parsed = JSON.parse(value);
-   return Array.isArray(parsed) ? parsed : fallback;
-  } catch (e) {
-   return fallback;
-  }
- };
-
- const toggleCategory = (catId) => {
- setExpandedCategories(prev =>
- prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
- );
- };
-
- const handleVerifyKey = async () => {
- if (!data.openai_api_key) return;
- setVerifyingKey(true);
- setVerificationResult(null);
- try {
- const res = await window.axios.post(route('store.ai.test', { store_slug: store?.slug }), {
- api_key: data.openai_api_key,
- provider: data.ai_provider,
- model: data.ai_model
- });
-
- if (res.data.suggested_model && res.data.suggested_model !== data.ai_model) {
- setData(d => ({ ...d, ai_model: res.data.suggested_model }));
- }
-
- setVerificationResult({ type: 'success', message: res.data.message });
- } catch (e) {
- setVerificationResult({ type: 'error', message: e.response?.data?.message || e.message });
- } finally {
- setVerifyingKey(false);
- }
- };
-
- const { data, setData, post, processing, errors, isDirty, reset, transform } = useForm({
-    // Business
-    business_name: settings.business_name || 'VENQORE',
-    business_email: settings.business_email || '',
-    business_phone: settings.business_phone || '',
-    business_address: settings.business_address || '',
-    tax_number: settings.tax_number || '',
-    currency: settings.currency || 'PKR',
-    currency_symbol: settings.currency_symbol || '',
-    timezone: settings.timezone || 'Asia/Karachi',
-
-    // General
-    enable_passcode: settings.enable_passcode === '1' || settings.enable_passcode === true,
-    admin_passcode: settings.admin_passcode || '',
-    decimal_places: safeInt(settings.decimal_places, 2),
-    stop_sale_negative_stock: settings.stop_sale_negative_stock === '1' || settings.stop_sale_negative_stock === true,
-    multi_firm_enabled: settings.multi_firm_enabled === '1' || settings.multi_firm_enabled === true,
-    ui_scale: safeInt(settings.ui_scale, 100),
-
-    // AI
-    ai_provider: settings.ai_provider || 'gemini',
-    openai_api_key: settings.openai_api_key || '',
-    ai_model: settings.ai_model || 'gemini-2.5-flash',
-    shared_catalog_opt_out: Boolean(store?.shared_catalog_opt_out ?? (settings.shared_catalog_opt_out === '1' || settings.shared_catalog_opt_out === true)),
-    ai_accuracy_opt_in: Boolean(store?.ai_accuracy_opt_in ?? (settings.ai_accuracy_opt_in === '1' || settings.ai_accuracy_opt_in === true)),
-
-    // Transaction
-    invoice_number_enabled: settings.invoice_number_enabled !== '0',
-    cash_sale_default: settings.cash_sale_default === '1' || settings.cash_sale_default === true,
-    round_off_total: settings.round_off_total || 'none',
-    billing_type: settings.billing_type || 'full',
-    sale_prefix: settings.sale_prefix || 'INV-',
-    purchase_prefix: settings.purchase_prefix || 'PUR-',
-    quotation_prefix: settings.quotation_prefix || 'QTN-',
-    return_prefix: settings.return_prefix || 'RET-',
-
-    // Print - Regular Printer Settings
-    print_header_all_pages: settings.print_header_all_pages !== '0',
-    paper_size: settings.paper_size || 'A4',
-    paper_orientation: settings.paper_orientation || 'Portrait',
-    print_logo: settings.print_logo !== '0',
-    print_logo_path: settings.print_logo_path || null,
-    print_logo_file: null,
-    print_signature_text: settings.print_signature_text || 'Authorized Signatory',
-    print_theme: settings.print_theme || 'modern',
-    print_company_text_size: settings.print_company_text_size || '4',
-    print_invoice_text_size: settings.print_invoice_text_size || '3',
-    print_original_copy: settings.print_original_copy === '1',
-    margin_top: safeInt(settings.margin_top, 20),
-    margin_bottom: safeInt(settings.margin_bottom, 20),
-    margin_left: safeInt(settings.margin_left, 20),
-    margin_right: safeInt(settings.margin_right, 20),
-    custom_paper_width: safeInt(settings.custom_paper_width, 210),
-    custom_paper_height: safeInt(settings.custom_paper_height, 297),
-    print_theme_color: settings.print_theme_color || vq.indigo[600],
-    print_extra_space_top: safeInt(settings.print_extra_space_top, 0),
-    print_min_item_rows: safeInt(settings.print_min_item_rows, 5),
-
-    // Print - Column Toggles (Regular)
-    print_show_sno: settings.print_show_sno !== '0',
-    print_show_units: settings.print_show_units !== '0',
-    print_show_mrp: settings.print_show_mrp === '1',
-    print_show_description: settings.print_show_description !== '0',
-    print_show_hsn: settings.print_show_hsn === '1',
-    print_show_discount: settings.print_show_discount === '1' || settings.print_show_discount === true,
-    print_show_free_qty: settings.print_show_free_qty === '1' || settings.print_show_free_qty === true,
-    print_show_delivery_charge: settings.print_show_delivery_charge !== '0' && settings.print_show_delivery_charge !== false,
-    print_show_extra_charge: settings.print_show_extra_charge !== '0' && settings.print_show_extra_charge !== false,
-    print_qr_code: settings.print_qr_code !== '0' && settings.print_qr_code !== false,
-
-    // Print - Totals & Footer (Regular)
-    print_total_quantity: settings.print_total_quantity !== '0',
-    print_amount_decimal: settings.print_amount_decimal !== '0',
-    print_received_amount: settings.print_received_amount !== '0',
-    print_balance_amount: settings.print_balance_amount !== '0',
-    print_party_balance: settings.print_party_balance === '1' || settings.print_party_balance === true,
-    print_tax_details: settings.print_tax_details !== '0',
-    print_you_saved: settings.print_you_saved === '1' || settings.print_you_saved === true,
-    print_show_previous_balance: settings.print_show_previous_balance === '1' || settings.print_show_previous_balance === true,
-    print_amount_grouping: settings.print_amount_grouping !== '0',
-    print_amount_words: settings.print_amount_words || '0',
-    print_description: settings.print_description !== '0',
-    print_terms: settings.print_terms || '',
-    print_received_by: settings.print_received_by === '1' || settings.print_received_by === true,
-    print_delivered_by: settings.print_delivered_by === '1' || settings.print_delivered_by === true,
-    print_payment_mode: settings.print_payment_mode !== '0',
-    print_acknowledgement: settings.print_acknowledgement === '1' || settings.print_acknowledgement === true,
-
-    // Print - Thermal Printer Settings
-    default_print_type: settings.default_print_type || 'regular',
-    thermal_page_size: settings.thermal_page_size || '3inch',
-    thermal_custom_chars: safeInt(settings.thermal_custom_chars, 48),
-    thermal_use_bold: settings.thermal_use_bold !== '0',
-    thermal_auto_cut: settings.thermal_auto_cut !== '0',
-    thermal_open_drawer: settings.thermal_open_drawer === '1' || settings.thermal_open_drawer === true,
-    thermal_extra_lines: safeInt(settings.thermal_extra_lines, 3),
-    thermal_copies: safeInt(settings.thermal_copies, 1),
-    thermal_font_size: safeInt(settings.thermal_font_size, 12),
-
-    // Print - Column Toggles (Thermal)
-    thermal_show_headers: settings.thermal_show_headers === '1' || settings.thermal_show_headers === true,
-    thermal_show_sno: settings.thermal_show_sno === '1' || settings.thermal_show_sno === true,
-    thermal_show_units: settings.thermal_show_units === '1' || settings.thermal_show_units === true,
-    thermal_show_mrp: settings.thermal_show_mrp === '1' || settings.thermal_show_mrp === true,
-    thermal_show_description: settings.thermal_show_description === '1' || settings.thermal_show_description === true,
-    thermal_show_batch: settings.thermal_show_batch === '1' || settings.thermal_show_batch === true,
-    thermal_show_expiry: settings.thermal_show_expiry === '1' || settings.thermal_show_expiry === true,
-    thermal_show_mfg_date: settings.thermal_show_mfg_date === '1' || settings.thermal_show_mfg_date === true,
-    thermal_show_size: settings.thermal_show_size === '1' || settings.thermal_show_size === true,
-    thermal_show_model: settings.thermal_show_model === '1' || settings.thermal_show_model === true,
-    thermal_show_serial: settings.thermal_show_serial === '1' || settings.thermal_show_serial === true,
-    thermal_show_barcode: settings.thermal_show_barcode !== '0',
-    thermal_custom_footer: settings.thermal_custom_footer || '',
-
-    // Messages
-    whatsapp_enabled: settings.whatsapp_enabled === '1' || settings.whatsapp_enabled === true,
-    sms_to_party: settings.sms_to_party === '1' || settings.sms_to_party === true,
-    auto_send_sales: settings.auto_send_sales === '1' || settings.auto_send_sales === true,
-    message_template_sales: settings.message_template_sales || 'Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready. Receipt: [Link]',
-    message_template_returns: settings.message_template_returns || 'Greetings from [Firm_Name]. Credit Note / Sale Return [Return_Number] for [Return_Amount] has been processed. Summary: [Link]',
-    message_template_reminders: settings.message_template_reminders || 'Dear [Customer_Name], this is a friendly reminder that invoice #[Invoice_Number] from [Firm_Name] is outstanding. Current amount due: [Due_Amount]. View receipt: [Link]',
-    whatsapp_offer_pdf: settings.whatsapp_offer_pdf !== '0' && settings.whatsapp_offer_pdf !== false,
-
-    // Party
-    party_grouping: settings.party_grouping === '1' || settings.party_grouping === true,
-    loyalty_enabled: settings.loyalty_enabled === '1' || settings.loyalty_enabled === true,
-    enable_credit_limit: settings.enable_credit_limit !== '0',
-    payment_reminder_days: safeInt(settings.payment_reminder_days, 7),
-    payment_reminders: settings.payment_reminders === '1' || settings.payment_reminders === true,
-
-    // Item
-    stock_maintenance: settings.stock_maintenance !== '0',
-    barcode_scan_enabled: settings.barcode_scan_enabled === '1' || settings.barcode_scan_enabled === true,
-    batch_tracking_enabled: settings.batch_tracking_enabled === '1' || settings.batch_tracking_enabled === true,
-    wholesale_price_enabled: settings.wholesale_price_enabled === '1' || settings.wholesale_price_enabled === true,
-
-    // System/Security
-    language: settings.language || 'en',
-    date_format: settings.date_format || 'DD/MM/YYYY',
-    low_stock_threshold: safeInt(settings.low_stock_threshold, 10),
-    auto_logout: safeInt(settings.auto_logout, 30),
-    email_notifications: settings.email_notifications !== '0',
-    two_factor_auth: settings.two_factor_auth === '1' || settings.two_factor_auth === true,
-    auto_backup: settings.auto_backup !== '0',
-    dark_mode_default: settings.dark_mode_default === '1' || settings.dark_mode_default === true,
-    header_calculator_enabled: settings.header_calculator_enabled === '1' ? '1' : '0',
-    fiscal_year_start: settings.fiscal_year_start || '2025-01-01',
-    'reckoner.heavy_discount_pct': safeInt(settings['reckoner.heavy_discount_pct'] ?? settings.reckoner_heavy_discount_pct, 20),
-    'reckoner.expiry_warning_days': safeInt(settings['reckoner.expiry_warning_days'] ?? settings.reckoner_expiry_warning_days, 30),
-    'reckoner.carrying_cost_pct': safeInt(settings['reckoner.carrying_cost_pct'] ?? settings.reckoner_carrying_cost_pct, 15),
-
-    // POS Specific
-    pos_auto_fill_cash: settings.pos_auto_fill_cash === '1' || settings.pos_auto_fill_cash === true,
-    senior_mode: settings.senior_mode === '1' || settings.senior_mode === true,
-    fbr_integration: settings.fbr_integration === '1' || settings.fbr_integration === true,
-    fbr_pos_id: settings.fbr_pos_id || '',
-    fbr_usin: settings.fbr_usin || '',
-    show_margin_percentage: settings.show_margin_percentage === '1' || settings.show_margin_percentage === true,
-    charity_enabled: settings.charity_enabled === '1' || settings.charity_enabled === true,
-    pos_return_mode: settings.pos_return_mode || 'reference',
-    pos_return_window: settings.pos_return_window || '',
-    pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
-    default_tax_rate: settings.default_tax_rate || '0',
-    default_tax_basis: settings.default_tax_basis || settings.tax_type || 'exclusive',
-    default_tax_id: settings.default_tax_id || '',
-
-    // Third Party Integrations
-    whatsapp_api_url: settings.whatsapp_api_url || '',
-    whatsapp_access_token: settings.whatsapp_access_token || '',
-    whatsapp_phone_number_id: settings.whatsapp_phone_number_id || '',
-
-    stripe_publishable_key: settings.stripe_publishable_key || '',
-    stripe_secret_key: settings.stripe_secret_key || '',
-    stripe_webhook_secret: settings.stripe_webhook_secret || '',
-    stripe_enabled: settings.stripe_enabled === '1' || settings.stripe_enabled === true,
-
-    woocommerce_url: settings.woocommerce_url || '',
-    woocommerce_consumer_key: settings.woocommerce_consumer_key || '',
-    woocommerce_consumer_secret: settings.woocommerce_consumer_secret || '',
-    woocommerce_enabled: settings.woocommerce_enabled === '1' || settings.woocommerce_enabled === true,
-
-    // Store & Domain
-    custom_domain: settings.custom_domain || store?.custom_domain || '',
-    product_cost_update_policy: settings.product_cost_update_policy || 'never',
-
-    // Invoice Styling & Margin Display
-    invoice_theme: settings.invoice_theme || 'classic',
-    invoice_primary_color: settings.invoice_primary_color && !settings.invoice_primary_color.includes('var(') ? settings.invoice_primary_color : '#4f46e5',
-    show_margin_on_invoice: settings.show_margin_on_invoice === '1' || settings.show_margin_on_invoice === true,
-
-    // SSO / SAML
-    sso_enabled: settings.sso_enabled === '1' || settings.sso_enabled === true,
-    sso_idp_entity_id: settings.sso_idp_entity_id || '',
-    sso_url: settings.sso_url || '',
-    sso_certificate: settings.sso_certificate || '',
-
-    // Approvals & Dual Control
-    approval_admin_enabled: settings.approval_admin_enabled === '1' || settings.approval_admin_enabled === true,
-    approval_strict_owner_separation: settings.approval_strict_owner_separation === '1' || settings.approval_strict_owner_separation === true,
-    approval_default_employee_mode: settings.approval_default_employee_mode || 'inherit',
-    approval_amount_threshold: settings.approval_amount_threshold || '0',
-    approval_policy_customer_receipt: settings.approval_policy_customer_receipt || 'inherit',
-    approval_threshold_customer_receipt: settings.approval_threshold_customer_receipt || '',
-    approval_policy_supplier_payment: settings.approval_policy_supplier_payment || 'inherit',
-    approval_threshold_supplier_payment: settings.approval_threshold_supplier_payment || '',
-    approval_policy_operating_expense: settings.approval_policy_operating_expense || 'inherit',
-    approval_threshold_operating_expense: settings.approval_threshold_operating_expense || '',
-    approval_policy_sales_invoice: settings.approval_policy_sales_invoice || 'inherit',
-    approval_threshold_sales_invoice: settings.approval_threshold_sales_invoice || '',
-    approval_policy_supplier_refund: settings.approval_policy_supplier_refund || 'inherit',
-    approval_threshold_supplier_refund: settings.approval_threshold_supplier_refund || '',
-    approval_policy_purchase_posting: settings.approval_policy_purchase_posting || 'inherit',
-    approval_threshold_purchase_posting: settings.approval_threshold_purchase_posting || '',
-    approval_policy_sales_return: settings.approval_policy_sales_return || 'inherit',
-    approval_threshold_sales_return: settings.approval_threshold_sales_return || '',
-    approval_policy_purchase_return: settings.approval_policy_purchase_return || 'inherit',
-    approval_threshold_purchase_return: settings.approval_threshold_purchase_return || '',
-    approval_policy_capital_injection: settings.approval_policy_capital_injection || 'inherit',
-    approval_threshold_capital_injection: settings.approval_threshold_capital_injection || '',
-    approval_policy_owner_drawings: settings.approval_policy_owner_drawings || 'inherit',
-    approval_threshold_owner_drawings: settings.approval_threshold_owner_drawings || '',
-    approval_policy_fund_transfer: settings.approval_policy_fund_transfer || 'inherit',
-    approval_threshold_fund_transfer: settings.approval_threshold_fund_transfer || '',
-
-    // Managed Lists
-    tax_rates: safeParseJson(settings.tax_rates, [
-      { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
-      { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
-    ]),
-    service_reminders: safeParseJson(settings.service_reminders, []),
-  });
-
-  const saveSettings = (code, sectionToSave = activeSection) => {
-    transform((currentData) => {
-      const allowedKeys = SECTION_FIELD_MAP[sectionToSave];
-      const payload = {
-        _save_section: sectionToSave,
-      };
-      if (code) {
-        payload.passcode_challenge = code;
-      }
-      if (allowedKeys) {
-        allowedKeys.forEach(k => {
-          if (currentData[k] !== undefined) {
-            payload[k] = currentData[k];
-          }
-        });
-      } else {
-        Object.assign(payload, currentData);
-      }
-      return payload;
-    });
-    post(route('store.settings.update', { store_slug: store?.slug }), {
-      preserveScroll: true,
-      onSuccess: () => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
-      }
-    });
-  };
-
-  const handleSectionChange = (sectionId) => {
-    if (isDirty) {
-      setPendingSectionId(sectionId);
-      setShowUnsavedModal(true);
-    } else {
-      setActiveSection(sectionId);
-    }
-  };
-
-  const handleSaveAndSwitch = () => {
-    const isPasscodeEnabled = settings.enable_passcode === '1' || settings.enable_passcode === true;
-    if (isPasscodeEnabled) {
-      setShowUnsavedModal(false);
-      setIsPasscodeModalOpen(true);
-      return;
-    }
-    const currentActive = activeSection;
-    const targetSection = pendingSectionId;
-    setShowUnsavedModal(false);
-
-    transform((currentData) => {
-      const allowedKeys = SECTION_FIELD_MAP[currentActive];
-      const payload = {
-        _save_section: currentActive,
-      };
-      if (allowedKeys) {
-        allowedKeys.forEach(k => {
-          if (currentData[k] !== undefined) {
-            payload[k] = currentData[k];
-          }
-        });
-      } else {
-        Object.assign(payload, currentData);
-      }
-      return payload;
+    const [activeSection, setActiveSection] = useState(() => {
+        const hash = window.location.hash.replace('#', '');
+        if (hash) return resolveSectionId(hash);
+        const stored = localStorage.getItem('active_settings_section');
+        return resolveSectionId(stored);
     });
 
-    post(route('store.settings.update', { store_slug: store?.slug }), {
-      onSuccess: () => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
-        if (targetSection) {
-          setActiveSection(targetSection);
-          setPendingSectionId(null);
+    useEffect(() => {
+        localStorage.setItem('active_settings_section', activeSection);
+        if (window.location.hash !== `#${activeSection}`) {
+            window.location.hash = activeSection;
         }
-      }
+    }, [activeSection]);
+
+    useEffect(() => {
+        const onHashChange = () => {
+            const raw = window.location.hash.replace('#', '');
+            const target = resolveSectionId(raw);
+            if (target && target !== activeSection) {
+                setActiveSection(target);
+            }
+        };
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, [activeSection]);
+
+    const [saved, setSaved] = useState(false);
+    const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
+    const [verifyingKey, setVerifyingKey] = useState(false);
+    const [verificationResult, setVerificationResult] = useState(null);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [expandedCategories, setExpandedCategories] = useState(['business', 'selling', 'inventory', 'printing_sharing', 'operations', 'access_data']);
+    const [pendingSectionId, setPendingSectionId] = useState(null);
+    const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+    const [sectionSearch, setSectionSearch] = useState('');
+
+    const safeInt = (val, fallback) => {
+        const parsed = parseInt(val, 10);
+        return !isNaN(parsed) ? parsed : fallback;
+    };
+
+    const safeParseJson = (value, fallback) => {
+        if (!value) return fallback;
+        if (typeof value !== 'string') return Array.isArray(value) ? value : fallback;
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : fallback;
+        } catch (e) {
+            return fallback;
+        }
+    };
+
+    const toggleCategory = (catId) => {
+        setExpandedCategories(prev =>
+            prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+        );
+    };
+
+    const handleVerifyKey = async () => {
+        if (!data.openai_api_key) return;
+        setVerifyingKey(true);
+        setVerificationResult(null);
+        try {
+            const res = await window.axios.post(route('store.ai.test', { store_slug: store?.slug }), {
+                api_key: data.openai_api_key,
+                provider: data.ai_provider,
+                model: data.ai_model
+            });
+
+            if (res.data.suggested_model && res.data.suggested_model !== data.ai_model) {
+                setData(d => ({ ...d, ai_model: res.data.suggested_model }));
+            }
+
+            setVerificationResult({ type: 'success', message: res.data.message });
+        } catch (e) {
+            setVerificationResult({ type: 'error', message: e.response?.data?.message || e.message });
+        } finally {
+            setVerifyingKey(false);
+        }
+    };
+
+    const { data, setData, post, processing, errors, isDirty, reset, transform } = useForm({
+        // Profile
+        business_name: settings.business_name || 'VENQORE',
+        business_email: settings.business_email || '',
+        business_phone: settings.business_phone || '',
+        business_address: settings.business_address || '',
+        tax_number: settings.tax_number || '',
+        custom_domain: settings.custom_domain || store?.custom_domain || '',
+
+        // Region & Numbers
+        currency: settings.currency || 'PKR',
+        currency_symbol: settings.currency_symbol || '',
+        timezone: settings.timezone || 'Asia/Karachi',
+        language: settings.language || 'en',
+        date_format: settings.date_format || 'DD/MM/YYYY',
+        decimal_places: safeInt(settings.decimal_places, 2),
+
+        // Display
+        ui_scale: safeInt(settings.ui_scale, 100),
+        dark_mode_default: settings.dark_mode_default === '1' || settings.dark_mode_default === true,
+        header_calculator_enabled: settings.header_calculator_enabled === '1' ? '1' : '0',
+        senior_mode: settings.senior_mode === '1' || settings.senior_mode === true,
+
+        // Selling - Checkout & Returns
+        stop_sale_negative_stock: settings.stop_sale_negative_stock === '1' || settings.stop_sale_negative_stock === true,
+        cash_sale_default: settings.cash_sale_default === '1' || settings.cash_sale_default === true,
+        round_off_total: settings.round_off_total || 'none',
+        pos_auto_fill_cash: settings.pos_auto_fill_cash === '1' || settings.pos_auto_fill_cash === true,
+        show_margin_percentage: settings.show_margin_percentage === '1' || settings.show_margin_percentage === true,
+        pos_return_mode: settings.pos_return_mode || 'reference',
+        pos_return_window: settings.pos_return_window || '',
+        pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
+
+        // Selling - Documents & Numbering
+        invoice_number_enabled: settings.invoice_number_enabled !== '0',
+        billing_type: settings.billing_type || 'full',
+        sale_prefix: settings.sale_prefix || 'INV-',
+        purchase_prefix: settings.purchase_prefix || 'PUR-',
+        quotation_prefix: settings.quotation_prefix || 'QTN-',
+        return_prefix: settings.return_prefix || 'RET-',
+
+        // Selling - Taxes
+        default_tax_rate: settings.default_tax_rate || '0',
+        default_tax_basis: settings.default_tax_basis || settings.tax_type || 'exclusive',
+        default_tax_id: settings.default_tax_id || '',
+        tax_rates: safeParseJson(settings.tax_rates, [
+            { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
+            { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
+        ]),
+
+        // Selling - Customers & Suppliers
+        loyalty_enabled: settings.loyalty_enabled === '1' || settings.loyalty_enabled === true,
+        enable_credit_limit: settings.enable_credit_limit !== '0',
+        party_grouping: settings.party_grouping === '1' || settings.party_grouping === true,
+
+        // Inventory - Stock & Items
+        stock_maintenance: settings.stock_maintenance !== '0',
+        barcode_scan_enabled: settings.barcode_scan_enabled === '1' || settings.barcode_scan_enabled === true,
+        batch_tracking_enabled: settings.batch_tracking_enabled === '1' || settings.batch_tracking_enabled === true,
+        wholesale_price_enabled: settings.wholesale_price_enabled === '1' || settings.wholesale_price_enabled === true,
+        charity_enabled: settings.charity_enabled === '1' || settings.charity_enabled === true,
+        product_cost_update_policy: settings.product_cost_update_policy || 'never',
+
+        // Printing - Document Layouts (Regular Layouts)
+        paper_size: settings.paper_size || 'A4',
+        paper_orientation: settings.paper_orientation || 'Portrait',
+        print_theme: settings.print_theme || 'modern',
+        print_theme_color: settings.print_theme_color || vq.indigo[600],
+        print_logo: settings.print_logo !== '0',
+        print_logo_path: settings.print_logo_path || null,
+        print_logo_file: null,
+        print_signature_text: settings.print_signature_text || 'Authorized Signatory',
+        print_original_copy: settings.print_original_copy === '1',
+        print_company_text_size: settings.print_company_text_size || '4',
+        print_invoice_text_size: settings.print_invoice_text_size || '3',
+        margin_top: safeInt(settings.margin_top, 20),
+        margin_bottom: safeInt(settings.margin_bottom, 20),
+        margin_left: safeInt(settings.margin_left, 20),
+        margin_right: safeInt(settings.margin_right, 20),
+        custom_paper_width: safeInt(settings.custom_paper_width, 210),
+        custom_paper_height: safeInt(settings.custom_paper_height, 297),
+        print_show_sno: settings.print_show_sno !== '0',
+        print_show_units: settings.print_show_units !== '0',
+        print_show_mrp: settings.print_show_mrp === '1',
+        print_show_description: settings.print_show_description !== '0',
+        print_show_hsn: settings.print_show_hsn === '1',
+        print_show_discount: settings.print_show_discount === '1' || settings.print_show_discount === true,
+        print_show_free_qty: settings.print_show_free_qty === '1' || settings.print_show_free_qty === true,
+        print_show_delivery_charge: settings.print_show_delivery_charge !== '0' && settings.print_show_delivery_charge !== false,
+        print_show_extra_charge: settings.print_show_extra_charge !== '0' && settings.print_show_extra_charge !== false,
+        print_qr_code: settings.print_qr_code !== '0' && settings.print_qr_code !== false,
+        print_total_quantity: settings.print_total_quantity !== '0',
+        print_amount_decimal: settings.print_amount_decimal !== '0',
+        print_received_amount: settings.print_received_amount !== '0',
+        print_balance_amount: settings.print_balance_amount !== '0',
+        print_party_balance: settings.print_party_balance === '1' || settings.print_party_balance === true,
+        print_tax_details: settings.print_tax_details !== '0',
+        print_you_saved: settings.print_you_saved === '1' || settings.print_you_saved === true,
+        print_show_previous_balance: settings.print_show_previous_balance === '1' || settings.print_show_previous_balance === true,
+        print_amount_grouping: settings.print_amount_grouping !== '0',
+        print_amount_words: settings.print_amount_words || '0',
+        print_description: settings.print_description !== '0',
+        print_terms: settings.print_terms || '',
+        print_received_by: settings.print_received_by === '1' || settings.print_received_by === true,
+        print_delivered_by: settings.print_delivered_by === '1' || settings.print_delivered_by === true,
+        print_payment_mode: settings.print_payment_mode !== '0',
+        print_acknowledgement: settings.print_acknowledgement === '1' || settings.print_acknowledgement === true,
+        print_header_all_pages: settings.print_header_all_pages !== '0',
+        print_extra_space_top: safeInt(settings.print_extra_space_top, 0),
+        print_min_item_rows: safeInt(settings.print_min_item_rows, 5),
+        invoice_theme: settings.invoice_theme || 'classic',
+        invoice_primary_color: settings.invoice_primary_color && !settings.invoice_primary_color.includes('var(') ? settings.invoice_primary_color : '#4f46e5',
+        show_margin_on_invoice: settings.show_margin_on_invoice === '1' || settings.show_margin_on_invoice === true,
+
+        // Printing - Printer Device (Thermal Hardware)
+        default_print_type: settings.default_print_type || 'regular',
+        thermal_page_size: settings.thermal_page_size || '3inch',
+        thermal_custom_chars: safeInt(settings.thermal_custom_chars, 48),
+        thermal_use_bold: settings.thermal_use_bold !== '0',
+        thermal_auto_cut: settings.thermal_auto_cut !== '0',
+        thermal_open_drawer: settings.thermal_open_drawer === '1' || settings.thermal_open_drawer === true,
+        thermal_extra_lines: safeInt(settings.thermal_extra_lines, 3),
+        thermal_copies: safeInt(settings.thermal_copies, 1),
+        thermal_font_size: safeInt(settings.thermal_font_size, 12),
+        thermal_show_headers: settings.thermal_show_headers === '1' || settings.thermal_show_headers === true,
+        thermal_show_sno: settings.thermal_show_sno === '1' || settings.thermal_show_sno === true,
+        thermal_show_units: settings.thermal_show_units === '1' || settings.thermal_show_units === true,
+        thermal_show_mrp: settings.thermal_show_mrp === '1' || settings.thermal_show_mrp === true,
+        thermal_show_description: settings.thermal_show_description === '1' || settings.thermal_show_description === true,
+        thermal_show_batch: settings.thermal_show_batch === '1' || settings.thermal_show_batch === true,
+        thermal_show_expiry: settings.thermal_show_expiry === '1' || settings.thermal_show_expiry === true,
+        thermal_show_mfg_date: settings.thermal_show_mfg_date === '1' || settings.thermal_show_mfg_date === true,
+        thermal_show_size: settings.thermal_show_size === '1' || settings.thermal_show_size === true,
+        thermal_show_model: settings.thermal_show_model === '1' || settings.thermal_show_model === true,
+        thermal_show_serial: settings.thermal_show_serial === '1' || settings.thermal_show_serial === true,
+        thermal_show_barcode: settings.thermal_show_barcode !== '0',
+        thermal_custom_footer: settings.thermal_custom_footer || '',
+
+        // Printing - Manual Sharing (WhatsApp Drafts)
+        message_template_sales: settings.message_template_sales || 'Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready. Receipt: [Link]',
+        message_template_returns: settings.message_template_returns || 'Greetings from [Firm_Name]. Credit Note / Sale Return [Return_Number] for [Return_Amount] has been processed. Summary: [Link]',
+        message_template_reminders: settings.message_template_reminders || 'Dear [Customer_Name], this is a friendly reminder that invoice #[Invoice_Number] from [Firm_Name] is outstanding. Current amount due: [Due_Amount]. View receipt: [Link]',
+        whatsapp_offer_pdf: settings.whatsapp_offer_pdf !== '0' && settings.whatsapp_offer_pdf !== false,
+
+        // Operations - Reminders & Alerts
+        payment_reminders: settings.payment_reminders === '1' || settings.payment_reminders === true,
+        payment_reminder_days: safeInt(settings.payment_reminder_days, 7),
+        service_reminders: safeParseJson(settings.service_reminders, []),
+        low_stock_alerts: settings.low_stock_alerts === '1' || settings.low_stock_alerts === true,
+        low_stock_threshold: safeInt(settings.low_stock_threshold, 10),
+        email_notifications: settings.email_notifications !== '0',
+        daily_sales_summary: settings.daily_sales_summary === '1' || settings.daily_sales_summary === true,
+
+        // Operations - Accounting
+        multi_firm_enabled: settings.multi_firm_enabled === '1' || settings.multi_firm_enabled === true,
+        fiscal_year_start: settings.fiscal_year_start || '2025-01-01',
+        'reckoner.heavy_discount_pct': safeInt(settings['reckoner.heavy_discount_pct'] ?? settings.reckoner_heavy_discount_pct, 20),
+        'reckoner.expiry_warning_days': safeInt(settings['reckoner.expiry_warning_days'] ?? settings.reckoner_expiry_warning_days, 30),
+        'reckoner.carrying_cost_pct': safeInt(settings['reckoner.carrying_cost_pct'] ?? settings.reckoner_carrying_cost_pct, 15),
+
+        // Operations - Features & Connections
+        ai_provider: settings.ai_provider || 'gemini',
+        openai_api_key: settings.openai_api_key || '',
+        ai_model: settings.ai_model || 'gemini-2.5-flash',
+        shared_catalog_opt_out: Boolean(store?.shared_catalog_opt_out ?? (settings.shared_catalog_opt_out === '1' || settings.shared_catalog_opt_out === true)),
+        ai_accuracy_opt_in: Boolean(store?.ai_accuracy_opt_in ?? (settings.ai_accuracy_opt_in === '1' || settings.ai_accuracy_opt_in === true)),
+        fbr_integration: settings.fbr_integration === '1' || settings.fbr_integration === true,
+        fbr_pos_id: settings.fbr_pos_id || '',
+        fbr_usin: settings.fbr_usin || '',
+        stripe_enabled: settings.stripe_enabled === '1' || settings.stripe_enabled === true,
+        woocommerce_enabled: settings.woocommerce_enabled === '1' || settings.woocommerce_enabled === true,
+
+        // Access & Data - Security
+        enable_passcode: settings.enable_passcode === '1' || settings.enable_passcode === true,
+        admin_passcode: settings.admin_passcode || '',
+        auto_logout: safeInt(settings.auto_logout, 30),
+        sso_enabled: settings.sso_enabled === '1' || settings.sso_enabled === true,
+        sso_idp_entity_id: settings.sso_idp_entity_id || '',
+        sso_url: settings.sso_url || '',
+        sso_certificate: settings.sso_certificate || '',
+
+        // Access & Data - Approvals
+        approval_admin_enabled: settings.approval_admin_enabled === '1' || settings.approval_admin_enabled === true,
+        approval_strict_owner_separation: settings.approval_strict_owner_separation === '1' || settings.approval_strict_owner_separation === true,
+        approval_default_employee_mode: settings.approval_default_employee_mode || 'inherit',
+        approval_amount_threshold: settings.approval_amount_threshold || '0',
+        approval_policy_customer_receipt: settings.approval_policy_customer_receipt || 'inherit',
+        approval_threshold_customer_receipt: settings.approval_threshold_customer_receipt || '',
+        approval_policy_supplier_payment: settings.approval_policy_supplier_payment || 'inherit',
+        approval_threshold_supplier_payment: settings.approval_threshold_supplier_payment || '',
+        approval_policy_operating_expense: settings.approval_policy_operating_expense || 'inherit',
+        approval_threshold_operating_expense: settings.approval_threshold_operating_expense || '',
+        approval_policy_sales_invoice: settings.approval_policy_sales_invoice || 'inherit',
+        approval_threshold_sales_invoice: settings.approval_threshold_sales_invoice || '',
+        approval_policy_supplier_refund: settings.approval_policy_supplier_refund || 'inherit',
+        approval_threshold_supplier_refund: settings.approval_threshold_supplier_refund || '',
+        approval_policy_purchase_posting: settings.approval_policy_purchase_posting || 'inherit',
+        approval_threshold_purchase_posting: settings.approval_threshold_purchase_posting || '',
+        approval_policy_sales_return: settings.approval_policy_sales_return || 'inherit',
+        approval_threshold_sales_return: settings.approval_threshold_sales_return || '',
+        approval_policy_purchase_return: settings.approval_policy_purchase_return || 'inherit',
+        approval_threshold_purchase_return: settings.approval_threshold_purchase_return || '',
+        approval_policy_capital_injection: settings.approval_policy_capital_injection || 'inherit',
+        approval_threshold_capital_injection: settings.approval_threshold_capital_injection || '',
+        approval_policy_owner_drawings: settings.approval_policy_owner_drawings || 'inherit',
+        approval_threshold_owner_drawings: settings.approval_threshold_owner_drawings || '',
+        approval_policy_fund_transfer: settings.approval_policy_fund_transfer || 'inherit',
+        approval_threshold_fund_transfer: settings.approval_threshold_fund_transfer || '',
     });
-  };
 
- const handleDiscardAndSwitch = () => {
- const targetSection = pendingSectionId;
- setShowUnsavedModal(false);
- reset();
- if (targetSection) {
- setActiveSection(targetSection);
- setPendingSectionId(null);
- }
- };
+    const saveSettings = (code, sectionToSave = activeSection) => {
+        transform((currentData) => {
+            const allowedKeys = SECTION_FIELD_MAP[sectionToSave];
+            const payload = {
+                _save_section: sectionToSave,
+            };
+            if (code) {
+                payload.passcode_challenge = code;
+            }
+            if (allowedKeys) {
+                allowedKeys.forEach(k => {
+                    if (currentData[k] !== undefined) {
+                        payload[k] = currentData[k];
+                    }
+                });
+            } else {
+                Object.assign(payload, currentData);
+            }
+            return payload;
+        });
 
- const handleCancelSwitch = () => {
- setShowUnsavedModal(false);
- setPendingSectionId(null);
- };
+        post(route('store.settings.update', { store_slug: store?.slug }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 3000);
+            }
+        });
+    };
 
- const handleSubmit = (e) => {
- e.preventDefault();
- // Check if passcode is enabled AND we are not just disabling it
- // Actually, for simplicity, if passcode is enabled in CURRENT settings (not form data), we challenge.
- // But if the user is *enabling* it for the first time, we don't need to challenge (unless they are changing other stuff).
- // Let's rely on the `settings` prop which holds the *saved* state.
+    const handleSectionChange = (sectionId) => {
+        if (sectionId === 'backup') {
+            router.visit(route('store.admin.data', { store_slug: store?.slug, tab: 'backups' }));
+            return;
+        }
 
- const isPasscodeEnabled = settings.enable_passcode === '1' || settings.enable_passcode === true;
+        if (isDirty) {
+            setPendingSectionId(sectionId);
+            setShowUnsavedModal(true);
+        } else {
+            setActiveSection(sectionId);
+        }
+    };
 
- if (isPasscodeEnabled) {
- setIsPasscodeModalOpen(true);
- } else {
- saveSettings();
- }
- };
+    const handleSaveAndSwitch = () => {
+        const isPasscodeEnabled = settings.enable_passcode === '1' || settings.enable_passcode === true;
+        if (isPasscodeEnabled) {
+            setShowUnsavedModal(false);
+            setIsPasscodeModalOpen(true);
+            return;
+        }
+        const currentActive = activeSection;
+        const targetSection = pendingSectionId;
+        setShowUnsavedModal(false);
 
+        transform((currentData) => {
+            const allowedKeys = SECTION_FIELD_MAP[currentActive];
+            const payload = {
+                _save_section: currentActive,
+            };
+            if (allowedKeys) {
+                allowedKeys.forEach(k => {
+                    if (currentData[k] !== undefined) {
+                        payload[k] = currentData[k];
+                    }
+                });
+            } else {
+                Object.assign(payload, currentData);
+            }
+            return payload;
+        });
 
+        post(route('store.settings.update', { store_slug: store?.slug }), {
+            onSuccess: () => {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 3000);
+                if (targetSection) {
+                    setActiveSection(targetSection);
+                    setPendingSectionId(null);
+                }
+            }
+        });
+    };
 
- const renderSection = () => {
- switch (activeSection) {
- case 'business':
- return <BusinessSettingsSection data={data} setData={setData} />;
+    const handleDiscardAndSwitch = () => {
+        const targetSection = pendingSectionId;
+        setShowUnsavedModal(false);
+        reset();
+        if (targetSection) {
+            setActiveSection(targetSection);
+            setPendingSectionId(null);
+        }
+    };
 
- case 'modules':
- return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <SectionHeader
- title="Modules & Features"
- description="Turn business capabilities on or off at any time with zero data loss"
- />
- <div className="bg-surface rounded-2xl border border-line p-8 space-y-6 shadow-xs">
- <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
- <div className="space-y-2">
- <div className="flex items-center gap-2.5">
- <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center">
- <Sparkles size={18} />
- </div>
- <h3 className="text-lg font-bold text-ink">System Builder</h3>
- </div>
- <p className="text-sm text-ink-muted max-w-xl leading-relaxed">
- Configure which modules your store uses across Catalog, Sell, Stock, Buy, Make, Finance, and Grow.
- Modules can be enabled or disabled at any time. When a module is turned off, all your historical
- data is preserved safely and hidden until you turn it back on.
- </p>
- </div>
- <Link
- href={route('store.builder', { store_slug: store?.slug })}
- className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 !text-white font-bold text-sm shadow-md transition-colors shrink-0"
- style={{ color: '#ffffff' }}
- >
- <Sparkles size={16} className="text-white shrink-0" />
- <span className="text-white">Open System Builder</span>
- <ChevronRight size={16} className="text-white shrink-0" />
- </Link>
- </div>
- </div>
- </div>
- );
+    const handleCancelSwitch = () => {
+        setShowUnsavedModal(false);
+        setPendingSectionId(null);
+    };
 
- case 'preferences':
- // Merges the old "General", "System" and "Notifications" tabs.
- // All three used to live in different categories even though
- // "System" and "Notifications" already rendered the exact same
- // <SystemSettingsSection/> component as "Security"/"Backup"/
- // "Integrations" — just a different activeSubSection prop.
- return (
- <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div>
- <GeneralSettingsSection data={data} setData={setData} />
- </div>
- <div className="pt-6 border-t border-line">
- <SectionHeader title="Localization & Appearance" description="Language, date format and display" />
- <SystemSettingsSection data={data} setData={setData} activeSubSection="system" />
- </div>
- <div className="pt-6 border-t border-line">
- <SystemSettingsSection data={data} setData={setData} activeSubSection="notifications" />
- </div>
- </div>
- );
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const isPasscodeEnabled = settings.enable_passcode === '1' || settings.enable_passcode === true;
+        if (isPasscodeEnabled) {
+            setIsPasscodeModalOpen(true);
+        } else {
+            saveSettings();
+        }
+    };
 
- case 'ai_integrations':
- // Merges the old "AI Intelligence" and "Integrations" tabs —
- // both are just cards for connecting a 3rd-party service.
- return (
- <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div>
- <SectionHeader title="AI Intelligence" description="Gemini, OpenAI & Smart Search" />
- <AiSettingsSection
- data={data}
- setData={setData}
- handleVerifyKey={handleVerifyKey}
- verifyingKey={verifyingKey}
- verificationResult={verificationResult}
- />
- </div>
- <div className="pt-6 border-t border-line">
- <SectionHeader title="Integrations" description="External API connections" />
- <SystemSettingsSection data={data} setData={setData} activeSubSection="integrations" />
- </div>
- </div>
- );
+    const renderSection = () => {
+        switch (activeSection) {
+            // Business Group
+            case 'profile':
+                return <BusinessProfileSection data={data} setData={setData} />;
+            case 'region_numbers':
+                return <RegionNumbersSection data={data} setData={setData} />;
+            case 'display':
+                return <DisplayPreferencesSection data={data} setData={setData} />;
 
- case 'sales':
- // Merges the old "POS & Sales" and "Transaction" tabs. They used
- // to duplicate the exact same pos_auto_fill_cash / round_off_total /
- // show_margin_percentage fields in two different places — those
- // now live only in "At the register" below, and TransactionSettingsSection
- // was trimmed down to just its two unique fields ("On the invoice").
- return (
- <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div>
- <SectionHeader title="At the Register" description="Customize your point of sale experience" />
- <div className="bg-surface rounded-2xl border border-line p-6">
- <div className="divide-y divide-line">
- <Toggle enabled={data.pos_auto_fill_cash} onChange={v => setData('pos_auto_fill_cash', v)} label="Auto-Fill Cash Received" description="Automatically populate the 'Cash Received' field with the total amount" />
- <Toggle enabled={data.senior_mode} onChange={v => setData('senior_mode', v)} label="Senior Mode (Accessibility)" description="Enable larger fonts and high-contrast UI for easier reading" />
- <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description={<span>Enable FBR sales reporting. <a href="#" onClick={e => { e.preventDefault(); setActiveSection('ai_integrations'); }} className="text-brand-600 dark:text-brand-400 underline font-bold">Configure POS ID & USIN →</a></span>} />
- <Toggle enabled={data.show_margin_percentage} onChange={v => setData('show_margin_percentage', v)} label="Show Margin Percentage" description="Display profit margin in sales overview" />
- <div className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
- <div>
- <h4 className="text-sm font-bold text-ink">Round Off Invoice Totals</h4>
- <p className="text-xs text-ink-muted">Choose rounding precision for sales and purchases</p>
- </div>
- <div className="grid grid-cols-6 gap-1 max-w-sm w-full">
- {[
- { value: 'none', label: 'None' },
- { value: '0', label: 'Whole' },
- { value: '1', label: '.0' },
- { value: '2', label: '.00' },
- { value: '3', label: '.000' },
- { value: '4', label: '.0000' }
- ].map((opt) => {
- const currentVal = data.round_off_total === true || data.round_off_total === '1' ? '0' : (data.round_off_total || 'none');
- const isActive = currentVal === opt.value;
- return (
- <button
- key={opt.value}
- type="button"
- onClick={() => setData('round_off_total', opt.value)}
- className={`py-2 px-1 text-center font-bold text-1xs rounded-lg border transition-all ${isActive
- ? 'border-brand-600 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300'
- : 'border-transparent bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >
- {opt.label}
- </button>
- );
- })}
- </div>
- </div>
- <Toggle
- enabled={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0}
- onChange={v => setData('stop_sale_negative_stock', !v)}
- label="Allow Negative Stock (Overselling)"
- description="Warning: Allows selling items even if inventory is 0"
- variant="danger"
- />
- </div>
- </div>
+            // Selling Group
+            case 'checkout_returns':
+                return <CheckoutReturnsSection data={data} setData={setData} />;
+            case 'documents_numbering':
+                return <DocumentsNumberingSection data={data} setData={setData} />;
+            case 'taxes':
+                return <TaxSettingsSection data={data} setData={setData} />;
+            case 'customers_suppliers':
+                return <CustomersSuppliersSection data={data} setData={setData} />;
 
- <div className="bg-surface rounded-2xl border border-line p-6 mt-6">
- <SectionHeader title="Return Mode" description="Configure return authorization requirements" />
- <div className="space-y-4">
- <div className="flex justify-between items-center py-2">
- <div>
- <label className="block text-sm font-bold text-ink-secondary">POS Return Mode</label>
- <span className="block text-xs text-ink-muted">Configure return authorization requirements</span>
- </div>
- <select
- value={data.pos_return_mode}
- onChange={(e) => {
- const val = e.target.value;
- setData('pos_return_mode', val);
- if (val !== 'open') setAcknowledgeOpenReturn(false);
- }}
- className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
- >
- <option value="reference">Reference Number Required</option>
- <option value="customer_or_reference">{tt('Customer or Reference')}</option>
- <option value="open">Open Return — No Reference Needed</option>
- </select>
- </div>
- {data.pos_return_mode === 'open' && (
- <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-3">
- <div className="flex items-start gap-3">
- <span className="text-amber-500 text-lg">⚠️</span>
- <p className="text-xs text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
- Warning: Open returns cannot be linked to original sales. You are responsible for verifying returned items were genuinely purchased.
- </p>
- </div>
- <label className="flex items-center gap-2 cursor-pointer select-none">
- <input type="checkbox" checked={acknowledgeOpenReturn} onChange={(e) => setAcknowledgeOpenReturn(e.target.checked)} className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-line" />
- <span className="text-xs font-bold text-ink-secondary">I understand and acknowledge this risk</span>
- </label>
- </div>
- )}
- {data.pos_return_mode === 'open' && (
- <div className="space-y-4 pt-4 border-t border-line">
- <div className="flex justify-between items-center py-2">
- <div>
- <label className="block text-sm font-bold text-ink-secondary">Return Window (days)</label>
- <span className="block text-xs text-ink-muted">Max days since purchase for returns (leave empty to disable)</span>
- </div>
- <input type="number" min="1" value={data.pos_return_window} onChange={(e) => setData('pos_return_window', e.target.value)} placeholder="e.g. 7, 14, 30" className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
- </div>
- {data.pos_return_window && (
- <div className="flex justify-between items-center py-2">
- <div>
- <span className="block text-sm font-bold text-ink-secondary">Window Behavior</span>
- <span className="block text-xs text-ink-muted">Action when return window has expired</span>
- </div>
- <div className="flex bg-sunken p-1 rounded-xl">
- <button type="button" onClick={() => setData('pos_return_window_behavior', 'warn')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}>Soft Warning</button>
- <button type="button" onClick={() => setData('pos_return_window_behavior', 'block')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}>Hard Block</button>
- </div>
- </div>
- )}
- </div>
- )}
- <div className="flex items-center justify-between py-4 border-t border-line">
- <div>
- <span className="block text-sm font-bold text-ink-secondary">Enable Charity Donations</span>
- <span className="block text-xs text-ink-muted">Show the Charity button on the POS for quick donation recording</span>
- </div>
- <button type="button" onClick={() => setData('charity_enabled', !data.charity_enabled)} className={`relative w-12 h-6 rounded-full transition-colors ${data.charity_enabled ? 'bg-rose-500' : 'bg-sunken'}`}>
- <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.charity_enabled ? 'right-1' : 'left-1'}`}></div>
- </button>
- </div>
- </div>
- </div>
- </div>
+            // Inventory Group
+            case 'stock_items':
+                return <StockItemsSection data={data} setData={setData} />;
 
- <div className="pt-6 border-t border-line">
- <TransactionSettingsSection data={data} setData={setData} />
- </div>
- </div>
- );
+            // Printing & Sharing Group
+            case 'document_layouts':
+                return <DocumentLayoutsSection data={data} setData={setData} saveSettings={saveSettings} />;
+            case 'printer_device':
+                return <PrinterDeviceSection data={data} setData={setData} />;
+            case 'manual_sharing':
+                return <ManualSharingSection data={data} setData={setData} saveSettings={saveSettings} />;
 
- case 'print':
- return (
-  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-slow">
-    <PrintSettingsSection data={data} setData={setData} saveSettings={saveSettings} />
-    <div className="bg-surface rounded-2xl border border-line p-6">
-      <SectionHeader title="Invoice & PDF Customization" description="Manage the design and interactive elements of generated B2B invoices." />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-ink-secondary mb-2">Invoice Template Theme</label>
-          <select
-            value={data.invoice_theme || 'classic'}
-            onChange={(e) => setData('invoice_theme', e.target.value)}
-            className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
-          >
-            <option value="classic">Classic Minimalist</option>
-            <option value="modern">Modern Professional</option>
-            <option value="elegant">Elegant Serif</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-ink-secondary mb-2">Primary Brand Color</label>
-          <div className="flex gap-2">
-            <input
-              type="color"
-              value={data.invoice_primary_color || '#6366f1'}
-              onChange={(e) => setData('invoice_primary_color', e.target.value)}
-              className="h-11 w-14 bg-sunken border border-line dark:border-line rounded-xl cursor-pointer p-1"
-            />
-            <input
-              type="text"
-              value={data.invoice_primary_color || '#6366f1'}
-              onChange={(e) => setData('invoice_primary_color', e.target.value)}
-              className="flex-1 px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none font-mono"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
-          <div className="flex items-center justify-between p-4 bg-sunken rounded-xl border border-line">
-            <div>
-              <h4 className="text-sm font-bold text-ink">B2B Margin Display</h4>
-              <p className="text-xs text-ink-muted">Display item-level profit margin column directly on B2B invoices.</p>
-            </div>
-            <input
-              type="checkbox"
-              checked={data.show_margin_on_invoice === '1' || data.show_margin_on_invoice === true}
-              onChange={(e) => setData('show_margin_on_invoice', e.target.checked)}
-              className="w-5 h-5 accent-brand-500 rounded border-line focus:ring-brand-500"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
- );
-
- case 'taxes':
- return <TaxSettingsSection data={data} setData={setData} />;
-
-    case 'messages':
-      return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
-          {/* Header Banner */}
-          <div className="bg-surface rounded-2xl border border-line p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shrink-0">
-                <MessageSquare size={28} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-ink text-lg">WhatsApp Sharing &amp; Manual Reminders</h4>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
-                    Manual Sharing Active (Zero Messaging Cost)
-                  </span>
-                </div>
-                <p className="text-sm text-ink-muted mt-1">
-                  Opens a prefilled draft in your WhatsApp application. You review and send it yourself. No delivery tracking or automated SMS fees.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Manual Sharing Configuration */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Column: Draft Message Templates */}
-            <div className="space-y-5 bg-surface rounded-2xl border border-line p-6">
-              <SectionHeader title="Message Templates" description="Customize text prefilled when sharing documents via WhatsApp" />
-
-              {/* Sales Invoice Template */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-ink block">Sales Invoice Template</label>
-                <textarea
-                  rows={3}
-                  value={data.message_template_sales}
-                  onChange={e => setData('message_template_sales', e.target.value)}
-                  className="w-full p-3 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
-                  placeholder="Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready. Receipt: [Link]"
-                />
-                <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-2xs font-bold text-ink-muted uppercase">Tags:</span>
-                  {['[Firm_Name]', '[Invoice_Number]', '[Invoice_Amount]', '[Link]'].map(tag => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setData('message_template_sales', (data.message_template_sales || '') + ' ' + tag)}
-                      className="px-1.5 py-0.5 bg-sunken hover:bg-interactive-hover border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
-                    >
-                      + {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sales Return / Credit Note Template */}
-              <div className="space-y-2 pt-3 border-t border-line">
-                <label className="text-xs font-bold uppercase tracking-wider text-ink block">Credit Note / Sale Return Template</label>
-                <textarea
-                  rows={3}
-                  value={data.message_template_returns}
-                  onChange={e => setData('message_template_returns', e.target.value)}
-                  className="w-full p-3 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
-                  placeholder="Greetings from [Firm_Name]. Credit Note / Sale Return [Return_Number] for [Return_Amount] has been processed. Summary: [Link]"
-                />
-                <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-2xs font-bold text-ink-muted uppercase">Tags:</span>
-                  {['[Firm_Name]', '[Return_Number]', '[Return_Amount]', '[Link]'].map(tag => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setData('message_template_returns', (data.message_template_returns || '') + ' ' + tag)}
-                      className="px-1.5 py-0.5 bg-sunken hover:bg-interactive-hover border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
-                    >
-                      + {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Payment Reminder Template */}
-              <div className="space-y-2 pt-3 border-t border-line">
-                <label className="text-xs font-bold uppercase tracking-wider text-ink block">Payment Reminder Template</label>
-                <textarea
-                  rows={3}
-                  value={data.message_template_reminders}
-                  onChange={e => setData('message_template_reminders', e.target.value)}
-                  className="w-full p-3 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
-                  placeholder="Dear [Customer_Name], this is a friendly reminder that invoice #[Invoice_Number] from [Firm_Name] is outstanding. Current amount due: [Due_Amount]. View receipt: [Link]"
-                />
-                <div className="flex flex-wrap items-center gap-1">
-                  <span className="text-2xs font-bold text-ink-muted uppercase">Tags:</span>
-                  {['[Customer_Name]', '[Invoice_Number]', '[Due_Amount]', '[Firm_Name]', '[Link]'].map(tag => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setData('message_template_reminders', (data.message_template_reminders || '') + ' ' + tag)}
-                      className="px-1.5 py-0.5 bg-sunken hover:bg-interactive-hover border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
-                    >
-                      + {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Draft Controls & Task Timing */}
-            <div className="space-y-5 bg-surface rounded-2xl border border-line p-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <SectionHeader title="Draft &amp; Staff Queue Options" description="Operational controls for WhatsApp sharing" />
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink">Business Name in Drafts</label>
-                  <input
-                    type="text"
-                    value={data.business_name}
-                    onChange={e => setData('business_name', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                    placeholder="e.g. VenQore Store"
-                  />
-                  <p className="text-2xs text-ink-muted">Inserted into [Firm_Name] tag across all message drafts.</p>
-                </div>
-
-                <div className="pt-3 border-t border-line space-y-3">
-                  <Toggle
-                    enabled={data.whatsapp_offer_pdf}
-                    onChange={v => setData('whatsapp_offer_pdf', v)}
-                    label="Offer PDF Alongside Draft"
-                    description="Provides quick PDF download or native mobile share sheet when preparing WhatsApp messages"
-                  />
-
-                  <div className="space-y-1.5 pt-2">
-                    <label className="text-xs font-bold text-ink">Staff Reminder Notice Window (Days)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={90}
-                      value={data.payment_reminder_days}
-                      onChange={e => setData('payment_reminder_days', safeInt(e.target.value, 7))}
-                      className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+            // Operations Group
+            case 'reminders_alerts':
+                return <RemindersAlertsSection data={data} setData={setData} />;
+            case 'accounting':
+                return <AccountingSection data={data} setData={setData} />;
+            case 'features_connections':
+                return (
+                    <FeaturesConnectionsSection
+                        data={data}
+                        setData={setData}
+                        handleVerifyKey={handleVerifyKey}
+                        verifyingKey={verifyingKey}
+                        verificationResult={verificationResult}
                     />
-                    <p className="text-2xs text-ink-muted">Days after invoice due date to schedule payment reminder task for staff review.</p>
-                  </div>
+                );
+
+            // Access & Data Group
+            case 'security':
+                return <SecuritySection data={data} setData={setData} />;
+            case 'approvals':
+                return <ApprovalsSection data={data} setData={setData} store={store} />;
+            case 'terminals':
+                return <TerminalPairingSection storeSlug={store?.slug} />;
+            case 'backup':
+                return (
+                    <div className="flex flex-col items-center text-center gap-4 bg-surface rounded-2xl border border-line p-12 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+                        <div className="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg">
+                            <Database size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-ink mb-2">Backups now live in Data &amp; Backup Hub</h3>
+                            <p className="text-sm text-ink-muted max-w-md">
+                                Automatic backups, manual database dumps, cloud sync, and CSV imports are organized in the centralized hub.
+                            </p>
+                        </div>
+                        <a
+                            href={route('store.admin.data', { store_slug: store?.slug, tab: 'backups' })}
+                            className="inline-flex items-center gap-2 px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95"
+                        >
+                            <span>Go to Data &amp; Backup Hub</span>
+                            <ChevronRight size={18} />
+                        </a>
+                    </div>
+                );
+            case 'reset':
+                return <DangerSettingsSection data={data} setData={setData} />;
+
+            default:
+                return (
+                    <div className="h-64 flex flex-col items-center justify-center text-ink-muted opacity-50">
+                        <Building2 size={48} className="mb-4" />
+                        <p className="font-bold uppercase tracking-widest">Section Under Development</p>
+                    </div>
+                );
+        }
+    };
+
+    const currentSection = SETTINGS_SECTIONS.find(s => s.id === activeSection) || SETTINGS_SECTIONS[0];
+
+    return (
+        <OneGlanceLayout title="Settings" activeMenu="Settings" noPadding={true}>
+            <Head title="Settings" />
+
+            <div className="h-full flex gap-6 overflow-hidden px-6 pb-6 pt-3.5">
+                {/* Main Content Area (Left) */}
+                <div className="flex-1 min-w-0 bg-surface rounded-2xl border border-line shadow-xs flex flex-col overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
+
+                    <form onSubmit={handleSubmit} className="flex flex-col h-full relative z-10">
+                        {/* Sleek Slim Header (Single-line height aligned) */}
+                        <div className="px-6 py-3.5 border-b border-line shrink-0 bg-surface/90 backdrop-blur-md">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <span className="px-2.5 py-1 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-wider rounded-md shrink-0">
+                                        {activeSection === 'security'
+                                            ? 'Account Scope'
+                                            : activeSection === 'terminals'
+                                            ? 'Device Scope'
+                                            : activeSection === 'display' || activeSection === 'checkout_returns'
+                                            ? 'Register Scope'
+                                            : 'Store Scope'}
+                                    </span>
+                                    <span className="h-3.5 w-px bg-line shrink-0" />
+                                    <h2 className="text-base font-bold text-ink tracking-tight shrink-0">
+                                        {currentSection?.name}
+                                    </h2>
+                                    <span className="hidden md:inline-block text-xs text-ink-muted truncate font-medium">
+                                        — {tt(currentSection?.description || '')}
+                                    </span>
+                                    {store?.name && (
+                                        <span className="hidden lg:inline-block text-3xs font-semibold text-ink-muted shrink-0">· {store.name}</span>
+                                    )}
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-brand-600 dark:hover:bg-brand-700 text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 shrink-0 disabled:opacity-60 cursor-pointer"
+                                >
+                                    {saved ? (
+                                        <>
+                                            <Check size={15} strokeWidth={2.5} className="text-emerald-400" />
+                                            <span>Saved</span>
+                                        </>
+                                    ) : processing ? (
+                                        <>
+                                            <RefreshCw size={15} className="animate-spin text-brand-300" />
+                                            <span>Saving...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save size={15} />
+                                            <span>Save Changes</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content Scroll Container */}
+                        <div className="flex-1 custom-scrollbar p-6 overflow-y-auto">
+                            <div className="mx-auto max-w-5xl pb-10 transition-all duration-slow">
+                                {errors && Object.keys(errors).length > 0 && (
+                                    <div role="alert" className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-2">
+                                        <div className="flex items-center gap-2 font-bold text-sm mb-1.5">
+                                            <AlertTriangle size={18} className="text-rose-600 dark:text-rose-400 shrink-0" />
+                                            <span>Settings could not be saved. Please correct the following errors:</span>
+                                        </div>
+                                        <ul className="list-disc list-inside text-xs space-y-1 mt-1 text-rose-800 dark:text-rose-200 font-medium">
+                                            {Object.entries(errors).map(([key, msg]) => (
+                                                <li key={key}>
+                                                    <span className="font-bold capitalize">{key.replace(/_/g, ' ')}:</span> {msg}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {renderSection()}
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1.5">
-                  <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">WhatsApp Attachment Policy</p>
-                  <p className="text-2xs text-emerald-700 dark:text-emerald-400 leading-relaxed">
-                    WhatsApp Click-to-Chat (wa.me) links only prefill text and cannot automatically attach files. On mobile devices, the native share sheet allows direct PDF sharing. On desktop, staff can download the PDF and manually attach it to the WhatsApp conversation.
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <div className="pt-4 border-t border-line flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => saveSettings(null, 'messages')}
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-colors text-sm"
-                >
-                  Save Messaging Settings
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Third Party / Automated Gateways (Unavailable) */}
-          <div className="p-6 bg-surface rounded-2xl border border-line opacity-80 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-sunken text-ink-muted flex items-center justify-center">
-                  <MessageSquare size={20} />
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-ink">Automated Gateways &amp; SMS</h4>
-                  <p className="text-xs text-ink-muted">Meta Cloud API, Twilio, and carrier SMS</p>
-                </div>
-              </div>
-              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 rounded-full text-xs font-bold">
-                Unavailable
-              </span>
-            </div>
-
-            <p className="text-xs text-ink-muted leading-relaxed">
-              Paid automated messaging integrations (Meta Business Platform API and carrier SMS) are currently dormant.
-              All store communications run through manual WhatsApp drafts opened directly on staff devices, guaranteeing zero API messaging costs.
-              Background jobs do not dispatch external HTTP or SMS calls, and saved credentials do not trigger automated sends.
-            </p>
-          </div>
-        </div>
-      );
-
- case 'party':
- return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-4">
- <SectionHeader title={tt('Customer Preferences')} description="Manage how you interact with parties" />
- <Toggle enabled={data.party_grouping} onChange={v => setData('party_grouping', v)} label="Enable Party Grouping" description={tt('Categorize customers by region or type')} />
- <Toggle enabled={data.loyalty_enabled} onChange={v => setData('loyalty_enabled', v)} label="Loyalty Points Program" description={tt('Reward frequent customers with points')} />
- {data.loyalty_enabled && (
-   <div className="p-3 bg-brand-500/10 rounded-xl border border-brand-500/20 flex items-center justify-between text-xs text-brand-600 dark:text-brand-400">
-     <span>{tt('Fine-tune reward points ratio and redemption policies in Growth Engine')}</span>
-     <a href={`/s/${store?.slug}/growth-engine/settings`} className="font-bold underline hover:text-brand-700 dark:hover:text-brand-300 ml-2 shrink-0">{tt('Open Loyalty Rules')} →</a>
-   </div>
- )}
- <Toggle enabled={data.enable_credit_limit} onChange={v => setData('enable_credit_limit', v)} label="Enable Credit Limit" description={tt('Set maximum credit limits for customers')} />
- </div>
- <div className="p-6 bg-brand-50 dark:bg-brand-500/10 rounded-2xl border border-brand-100 dark:border-brand-500/20">
- <h4 className="font-bold text-brand-900 dark:text-brand-400 flex items-center gap-2 mb-4"><Clock size={18} /> Payment Reminders</h4>
- <div className="space-y-4">
- <Toggle enabled={data.payment_reminders} onChange={v => setData('payment_reminders', v)} label="Enable Payment Reminders" description={tt('Automatically email customers with outstanding invoices')} />
- <div className="space-y-2">
- <label className="text-sm text-brand-700 dark:text-brand-300/80">Send reminder after (days) past invoice date</label>
- <input type="number" value={data.payment_reminder_days} onChange={e => setData('payment_reminder_days', e.target.value)} className="w-full px-4 py-3 bg-surface border border-brand-200 dark:border-brand-500/30 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" />
- </div>
- </div>
- </div>
- </div>
- </div>
- );
-
- case 'item':
- return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
- <div className="space-y-4">
- <SectionHeader title="Inventory Control" description="Manage products and stock levels" />
- <Toggle enabled={data.stock_maintenance} onChange={v => setData('stock_maintenance', v)} label="Stock Maintenance" description="Track real-time inventory levels" />
- <Toggle enabled={data.barcode_scan_enabled} onChange={v => setData('barcode_scan_enabled', v)} label="Barcode Scanning" description="Use scanners for quick billing" />
- <Toggle enabled={data.batch_tracking_enabled} onChange={v => setData('batch_tracking_enabled', v)} label="Batch & Expiry Tracking" description="Track products by batch numbers" />
- </div>
- <div className="p-6 bg-sunken rounded-2xl border border-line relative overflow-hidden group">
- <div className="absolute top-3 right-3">
- <span className="px-2 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-2xs font-bold uppercase tracking-widest rounded border border-amber-200 dark:border-amber-500/30 shadow-sm">Upcoming</span>
- </div>
- <h4 className="font-bold text-ink flex items-center gap-2 mb-4 opacity-50"><Plus size={18} className="text-brand-500" /> Custom Item Fields</h4>
- <p className="text-sm text-ink-muted mb-6 opacity-50">Add up to 6 custom fields like Color, Material, or Brand to your products.</p>
- </div>
- </div>
- <div className="pt-4 border-t border-line grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
- <Toggle enabled={data.wholesale_price_enabled} onChange={v => setData('wholesale_price_enabled', v)} label="Wholesale Pricing" description="Enable separate pricing for bulk buyers" />
- <div className="space-y-2">
- <label className="text-sm font-bold text-ink-secondary">Low Stock Threshold</label>
- <input
- type="number"
- value={data.low_stock_threshold}
- onChange={(e) => setData('low_stock_threshold', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500"
- />
- </div>
- </div>
- </div>
- );
-
-    case 'accounting':
-      return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4 bg-surface rounded-2xl border border-line p-6">
-              <SectionHeader title="Financial Cycles" description="Fiscal calendar boundaries and accounting cycle start" />
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-ink">Fiscal Year Start Date</label>
-                <input
-                  type="date"
-                  value={data.fiscal_year_start || '2025-01-01'}
-                  onChange={e => setData('fiscal_year_start', e.target.value)}
-                  className="w-full px-4 py-3 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
-                />
-                <p className="text-xs text-ink-muted">Used by financial statements, P&L reports, and period closing calculations.</p>
-              </div>
-            </div>
-
-            <div className="space-y-4 bg-surface rounded-2xl border border-line p-6">
-              <SectionHeader title="Reckoner Intelligence Thresholds" description="Autonomous business health and risk analysis tuning" />
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-bold text-ink flex items-center justify-between">
-                    <span>Heavy Discount Warning (%)</span>
-                    <span className="text-xs font-semibold text-brand-600">{data['reckoner.heavy_discount_pct']}%</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={data['reckoner.heavy_discount_pct']}
-                    onChange={e => setData('reckoner.heavy_discount_pct', safeInt(e.target.value, 20))}
-                    className="w-full mt-1.5 px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
-                  />
-                  <p className="text-2xs text-ink-muted mt-1">Discounts above this percentage trigger manager review flags in audit logs.</p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-bold text-ink flex items-center justify-between">
-                    <span>Stock Expiry Lead Warning (Days)</span>
-                    <span className="text-xs font-semibold text-brand-600">{data['reckoner.expiry_warning_days']} days</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="365"
-                    value={data['reckoner.expiry_warning_days']}
-                    onChange={e => setData('reckoner.expiry_warning_days', safeInt(e.target.value, 30))}
-                    className="w-full mt-1.5 px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
-                  />
-                  <p className="text-2xs text-ink-muted mt-1">Products reaching expiration within this window are highlighted on the dashboard.</p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-bold text-ink flex items-center justify-between">
-                    <span>Annual Inventory Carrying Cost (%)</span>
-                    <span className="text-xs font-semibold text-brand-600">{data['reckoner.carrying_cost_pct']}%</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={data['reckoner.carrying_cost_pct']}
-                    onChange={e => setData('reckoner.carrying_cost_pct', safeInt(e.target.value, 15))}
-                    className="w-full mt-1.5 px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm"
-                  />
-                  <p className="text-2xs text-ink-muted mt-1">Holding cost rate used to compute overstock cost and dead inventory write-down risk.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4 bg-surface rounded-2xl border border-line p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <SectionHeader title="Financial Period Locks & Year-End Closing" description="Lock historical periods to prevent retroactive transaction editing or ledger tampering" />
-                <p className="text-xs text-ink-muted mt-2 max-w-2xl leading-relaxed">
-                  Hard period locks freeze past dates across sales, purchases, expenses, and general journals. Unlocking or granting temporary exceptions requires administrative privilege.
-                </p>
-              </div>
-              <Link
-                href={route('store.v3.fiscal-year.index', { store_slug: store?.slug || route().params.store_slug })}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm shrink-0 active:scale-95"
-              >
-                <Lock size={14} />
-                <span>Fiscal Years &amp; Locks</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      );
-
- case 'approvals':
-      return <ApprovalsSection data={data} setData={setData} store={store} />;
-
-    case 'security':
- return <SystemSettingsSection data={data} setData={setData} activeSubSection="security" />;
-
- case 'terminals':
- return (
-  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
-    <TerminalPairingSection storeSlug={store?.slug} />
-  </div>
- );
-
- case 'backup':
- // Automatic backups, manual snapshots, cloud sync and restore all
- // moved to the "Data & Backup" hub (Pages/Admin/DataManagement.jsx) —
- // this used to duplicate that page's "Full System" tab almost exactly.
- return (
- <div className="flex flex-col items-center text-center gap-4 bg-surface rounded-xl border border-line p-12 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg ">
- <Database size={32} />
- </div>
- <div>
- <h3 className="text-xl font-bold text-ink mb-2">Backups now live in Data &amp; Backup</h3>
- <p className="text-sm text-ink-muted max-w-md">
- Automatic daily backups, manual snapshots, cloud sync and restore are all in one
- place now, instead of split between Settings and Data Management.
- </p>
- </div>
- <button
- type="button"
- onClick={() => router.visit(route('store.admin.data', { store_slug: store?.slug, tab: 'backups' }))}
- className="px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
- >
- Go to Data &amp; Backup <ChevronRight size={18} />
- </button>
- </div>
- );
-
- case 'reset':
- return <DangerSettingsSection data={data} setData={setData} />;
-
- case 'reminders':
- return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="bg-surface border border-line rounded-2xl overflow-hidden flex flex-col min-h-[400px]">
- <div className="p-4 bg-sunken border-b border-line flex items-center justify-between">
- <div className="relative flex-1 max-w-md">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
- <input type="text" value={reminderSearch} onChange={e => setReminderSearch(e.target.value)} placeholder={tt('Search services for reminder...')} className="w-full pl-10 pr-4 py-2 bg-surface border border-line dark:border-line rounded-xl text-sm outline-none" />
- </div>
- <button
- type="button"
- onClick={() => {
- const newReminder = {
- id: Date.now(),
- name: tt('New Service'),
- interval: 30,
- unit: 'days',
- };
- setData('service_reminders', [...data.service_reminders, newReminder]);
- }}
- className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors"
- >
- <Plus size={14} /> Add New Reminder
- </button>
- </div>
- <div className="flex-1 divide-y divide-line">
- {(data.service_reminders || []).filter(r => (r.name || "").toLowerCase().includes(reminderSearch.toLowerCase())).length > 0 ? (data.service_reminders || []).filter(r => (r.name || "").toLowerCase().includes(reminderSearch.toLowerCase())).map((reminder, idx) => (
- <div key={reminder.id} className="p-4 flex items-center justify-between hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
- <div className="flex items-center gap-4 flex-1">
- <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center text-ink-muted">
- <Clock size={20} />
- </div>
- <div className="flex-1 max-w-xs">
- <input
- type="text"
- value={reminder.name}
- onChange={(e) => {
- const newItems = [...data.service_reminders];
- newItems[idx].name = e.target.value;
- setData('service_reminders', newItems);
- }}
- className="w-full bg-transparent border-none p-0 text-sm font-bold text-ink focus:ring-0"
- />
- <p className="text-2xs text-ink-muted uppercase font-bold tracking-widest mt-0.5">{tt('Recurring Service')}</p>
- </div>
- <div className="flex items-center gap-2 bg-sunken px-3 py-1.5 rounded-xl">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-tighter">Every</span>
- <input
- type="number"
- value={reminder.interval}
- onChange={(e) => {
- const newItems = [...data.service_reminders];
- newItems[idx].interval = e.target.value;
- setData('service_reminders', newItems);
- }}
- className="w-12 bg-transparent border-none p-0 text-sm font-bold text-brand-600 focus:ring-0 text-center"
- />
- <select
- value={reminder.unit}
- onChange={(e) => {
- const newItems = [...data.service_reminders];
- newItems[idx].unit = e.target.value;
- setData('service_reminders', newItems);
- }}
- className="bg-transparent border-none p-0 text-xs font-bold text-ink-muted focus:ring-0"
- >
- <option value="days">Days</option>
- <option value="months">Months</option>
- <option value="years">Years</option>
- </select>
- </div>
- </div>
- <button
-                    type="button"
-                    aria-label={tt('Delete reminder')}
-                    onClick={() => {
-                      const newItems = data.service_reminders.filter(r => r.id !== reminder.id);
-                      setData('service_reminders', newItems);
+                {/* Settings Side Panel (Right) - V6 Standalone Mesh Background Styled */}
+                <div
+                    className={`${sidebarCollapsed ? 'w-16' : 'w-72 sm:w-80'} rounded-2xl border border-white/10 dark:border-white/10 shadow-lg p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}
+                    style={{
+                        background: 'radial-gradient(52% 62% at 16% 10%, rgba(35,196,166,0.30), transparent 68%), radial-gradient(46% 54% at 84% 80%, rgba(7,107,94,0.34), transparent 66%), radial-gradient(38% 42% at 62% 26%, rgba(93,165,176,0.14), transparent 70%), #0A0F0E'
                     }}
-                    className="p-2 text-neutral-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                  >
- <Trash2 size={16} />
- </button>
- </div>
- )) : (
- <div className="flex-1 flex flex-col items-center justify-center text-ink-muted py-12">
- <Clock size={48} className="mb-4 opacity-20" />
- <p className="font-bold text-sm tracking-tight mb-1">{tt('No Service Reminders Yet')}</p>
- <p className="text-xs text-center max-w-xs">{tt('Click "Add New Reminder" above to schedule automatic recurring service notifications.')}</p>
- </div>
- )}
- </div>
- </div>
- </div>
- );
+                >
+                    {/* Mesh Gradient Ambient Glow Elements */}
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/15 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-36 h-36 bg-teal-500/15 rounded-full blur-[50px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+                    <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none" />
 
- default:
- return (
- <div className="h-64 flex flex-col items-center justify-center text-ink-muted opacity-50">
- <Settings size={48} className="mb-4" />
- <p className="font-bold uppercase tracking-widest">Section Under Development</p>
- </div>
- );
- }
- };
- return (
-  <OneGlanceLayout title="Settings" activeMenu="Settings">
- <Head title="Settings" />
+                    {/* Header with Collapse Toggle */}
+                    <div className={`${sidebarCollapsed ? 'px-1 py-3 justify-center' : 'px-3 py-3 justify-between'} flex items-center border-b border-white/10 mb-3 relative z-50`}>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSidebarCollapsed(!sidebarCollapsed);
+                            }}
+                            className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-neutral-300 hover:text-white transition-colors shrink-0 z-50 cursor-pointer"
+                            title={sidebarCollapsed ? "Expand settings panel" : "Collapse settings panel"}
+                        >
+                            <ChevronRight size={14} className={`transition-transform duration-slow ${sidebarCollapsed ? 'rotate-180' : ''}`} />
+                        </button>
+                        {!sidebarCollapsed && (
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="text-right">
+                                    <h2 className="text-sm font-bold text-white tracking-tight">Settings</h2>
+                                    <p className="text-3xs font-bold uppercase tracking-[0.2em] text-emerald-400">Store Config</p>
+                                </div>
+                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
+                                    <Building2 size={16} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
- <div className="h-full flex gap-6 overflow-hidden">
- {/* Sidebar - Midnight Nebula Styled - Collapsible */}
- <div className={`${sidebarCollapsed ? 'w-20' : 'w-80'} bg-neutral-900 rounded-2xl border border-neutral-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}>
- {/* Nebula Background Elements */}
- <div className="absolute top-0 right-0 w-48 h-48 bg-brand-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
- <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-600/10 rounded-full blur-[40px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
- <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none" />
+                    {!sidebarCollapsed && (
+                        <div className="px-1 pb-2 relative z-20">
+                            <div className="relative">
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+                                <input
+                                    type="text"
+                                    value={sectionSearch}
+                                    onChange={(e) => setSectionSearch(e.target.value)}
+                                    placeholder="Search settings & keywords..."
+                                    className="w-full pl-8 pr-3 py-1.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                                />
+                            </div>
+                        </div>
+                    )}
 
- {/* Header with Collapse Toggle - Reports Style */}
- <div className={`${sidebarCollapsed ? 'px-2 py-4 justify-center' : 'px-4 py-5 justify-between'} flex items-center border-b border-neutral-800/50 mb-3 relative z-50`}>
- {!sidebarCollapsed && (
- <div className="flex items-center gap-3 min-w-0">
- <div className="w-8 h-8 rounded-lg bg-gradient-brand flex items-center justify-center text-white shadow-lg shrink-0">
- <Settings size={18} />
- </div>
- <div>
- <h2 className="text-base font-bold text-white tracking-tight">Settings</h2>
- <p className="text-3xs font-bold uppercase tracking-[0.2em] text-brand-400">Store Config</p>
- </div>
- </div>
- )}
- <button
- type="button"
- onClick={(e) => {
- e.preventDefault();
- e.stopPropagation();
- setSidebarCollapsed(!sidebarCollapsed);
- }}
- className="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-interactive-hover flex items-center justify-center text-ink-muted hover:text-white transition-colors shrink-0 z-50 cursor-pointer"
- >
- <ChevronRight size={14} className={`transition-transform duration-slow ${sidebarCollapsed ? 'rotate-180' : ''}`} />
- </button>
- </div>
+                    <nav className="flex-1 overflow-y-auto px-1 custom-scrollbar space-y-1 relative z-10 pb-16">
+                        {SETTINGS_CATEGORIES.map((category) => {
+                            const CatIcon = category.icon;
+                            const isExpanded = Boolean(sectionSearch) || expandedCategories.includes(category.id);
+                            const categorySections = SETTINGS_SECTIONS.filter(s =>
+                                category.sections.includes(s.id) &&
+                                (!sectionSearch ||
+                                    s.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
+                                    s.description.toLowerCase().includes(sectionSearch.toLowerCase()) ||
+                                    s.keywords?.some(k => k.toLowerCase().includes(sectionSearch.toLowerCase())))
+                            );
 
- {!sidebarCollapsed && (
- <div className="px-2 pb-2 relative z-20">
- <div className="relative">
- <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
- <input
- type="text"
- value={sectionSearch}
- onChange={(e) => setSectionSearch(e.target.value)}
- placeholder="Search settings..."
- className="w-full pl-8 pr-3 py-1.5 bg-neutral-800/80 border border-neutral-700/50 rounded-xl text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
- />
- </div>
- </div>
- )}
+                            if (categorySections.length === 0) return null;
 
- <nav className="flex-1 overflow-y-auto px-2 custom-scrollbar space-y-1 relative z-10 pb-20">
- {SETTINGS_CATEGORIES.map((category) => {
- const CatIcon = category.icon;
- const isExpanded = Boolean(sectionSearch) || expandedCategories.includes(category.id);
- const categorySections = SETTINGS_SECTIONS.filter(s =>
- category.sections.includes(s.id) &&
- (!sectionSearch ||
- s.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
- s.description.toLowerCase().includes(sectionSearch.toLowerCase()))
- );
+                            return (
+                                <div key={category.id} className="space-y-1">
+                                    {!sidebarCollapsed && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleCategory(category.id);
+                                            }}
+                                            className="w-full flex items-center justify-between px-2.5 py-1.5 text-2xs font-bold uppercase tracking-[0.18em] text-neutral-400 hover:text-emerald-300 transition-colors group"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <CatIcon size={12} className="text-neutral-400 group-hover:text-emerald-300" />
+                                                {category.name}
+                                            </div>
+                                            <ChevronRight size={12} className={`transition-transform duration-normal ${isExpanded ? 'rotate-90' : ''}`} />
+                                        </button>
+                                    )}
 
- if (categorySections.length === 0) return null;
+                                    {(isExpanded || sidebarCollapsed) && (
+                                        <div className="space-y-1">
+                                            {categorySections.map((section) => {
+                                                const Icon = section.icon;
+                                                const isActive = activeSection === section.id;
+                                                return (
+                                                    <button
+                                                        key={section.id}
+                                                        type="button"
+                                                        onClick={() => handleSectionChange(section.id)}
+                                                        title={sidebarCollapsed ? section.name : undefined}
+                                                        className={`w-full flex items-center gap-2.5 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2.5'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
+                                                            ? 'bg-white/15 backdrop-blur-xl border-white/25 text-white shadow-xs'
+                                                            : 'text-neutral-300 hover:bg-white/5 hover:text-white border-transparent'
+                                                            }`}
+                                                    >
+                                                        {isActive && (
+                                                            <div className="absolute inset-0 bg-emerald-500/20 opacity-100" />
+                                                        )}
 
- return (
- <div key={category.id} className="space-y-1">
- {!sidebarCollapsed && (
- <button
- type="button"
- onClick={(e) => {
- e.stopPropagation();
- toggleCategory(category.id);
- }}
- className="w-full flex items-center justify-between px-3 py-2 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-brand-400 transition-colors group"
- >
- <div className="flex items-center gap-2">
- <CatIcon size={12} />
- {category.name}
- </div>
- <ChevronRight size={12} className={`transition-transform duration-normal ${isExpanded ? 'rotate-90' : ''}`} />
- </button>
- )}
+                                                        <div className={`relative z-10 w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-emerald-500/30 text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.3)]' : 'bg-white/5 text-neutral-400 group-hover:text-emerald-300 group-hover:bg-white/10'}`}>
+                                                            <Icon size={15} />
+                                                        </div>
 
- {(isExpanded || sidebarCollapsed) && (
- <div className="space-y-1">
- {categorySections.map((section) => {
- const Icon = section.icon;
- const isActive = activeSection === section.id;
- return (
- <button
- key={section.id}
- type="button"
- onClick={() => handleSectionChange(section.id)}
- title={sidebarCollapsed ? section.name : undefined}
- className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
- ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
- : 'text-ink-muted hover:bg-white/5 hover:text-white border-transparent'
- }`}
- >
- {isActive && (
- <div className="absolute inset-0 bg-brand-600/20 opacity-100" />
- )}
+                                                        {!sidebarCollapsed && (
+                                                            <div className="relative z-10 flex-1 min-w-0">
+                                                                <p className={`text-xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-200'}`}>{section.name}</p>
+                                                                <p className={`text-3xs leading-tight ${isActive ? 'text-emerald-200' : 'text-neutral-400'} line-clamp-1`}>
+                                                                    {tt(section.description)}
+                                                                </p>
+                                                            </div>
+                                                        )}
 
- <div className={`relative z-10 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-brand-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-neutral-800 group-hover:bg-interactive-hover'}`}>
- <Icon size={16} className={isActive ? 'text-white' : 'text-ink-muted group-hover:text-brand-400'} />
- </div>
+                                                        {!sidebarCollapsed && (
+                                                            <ChevronRight size={14} className={`relative z-10 transition-all duration-normal shrink-0 ${isActive ? 'text-emerald-300' : 'text-neutral-500 opacity-0 group-hover:opacity-100'}`} />
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </nav>
+                </div>
+            </div>
 
- {!sidebarCollapsed && (
- <div className="relative z-10 flex-1 min-w-0">
- <p className={`text-xs font-bold tracking-tight ${isActive ? 'text-white' : 'text-neutral-200'}`}>{section.name}</p>
- <p className={`text-3xs leading-tight ${isActive ? 'text-brand-200' : 'text-ink-muted'} line-clamp-1`}>
- {tt(section.description)}
- </p>
- </div>
- )}
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgb(var(--vq-slate-700));
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgb(var(--vq-slate-600));
+                }
+            `}</style>
 
- {!sidebarCollapsed && (
- <ChevronRight size={14} className={`relative z-10 transition-all duration-normal shrink-0 ${isActive ? 'text-white' : 'text-ink-secondary opacity-0 group-hover:opacity-100'}`} />
- )}
- </button>
- );
- })}
- </div>
- )}
- </div>
- );
- })}
- </nav>
- </div>
+            <PasscodeModal
+                isOpen={isPasscodeModalOpen}
+                onClose={() => setIsPasscodeModalOpen(false)}
+                onSuccess={(code) => saveSettings(code)}
+                settings={settings}
+            />
 
- {/* Content Area */}
- <div className="flex-1 bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative">
- <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
- <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
+            {/* V6 Design System: Unsaved Changes Modal */}
+            {showUnsavedModal && (
+                <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs transition-opacity animate-in fade-in"
+                        onClick={handleCancelSwitch}
+                        aria-hidden="true"
+                    />
 
- <form onSubmit={handleSubmit} className="flex flex-col h-full relative z-10">
- {/* Header */}
- <div className="p-10 border-b border-line shrink-0 bg-white/80 dark:bg-app backdrop-blur-xl">
- <div className="flex items-center justify-between">
- <div>
- <div className="flex items-center gap-2 mb-2">
- <span className="px-2.5 py-0.5 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-[0.15em] rounded-full">
- {activeSection === 'security'
- ? 'Store & Account Scope'
- : activeSection === 'terminals'
- ? 'Device Hardware Scope'
- : activeSection === 'preferences'
- ? 'Store & Register Scope'
- : 'Store Policy Scope'}
- </span>
- {store?.name && (
- <span className="text-3xs font-semibold text-ink-muted">· {store.name}</span>
- )}
- </div>
- <h2 className="text-3xl font-bold text-ink tracking-tight">
- {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.name}
- </h2>
- <p className="text-base text-ink-muted font-medium">
- {tt(SETTINGS_SECTIONS.find(s => s.id === activeSection)?.description || '')}
- </p>
- </div>
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="unsaved-changes-title"
+                        className="relative z-10 w-full max-w-md bg-surface border border-line dark:border-line-strong rounded-2xl shadow-2xl p-6 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-3 duration-fast"
+                    >
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 shadow-xs">
+                                <AlertTriangle size={28} className="animate-pulse" />
+                            </div>
+                            <h3 id="unsaved-changes-title" className="text-lg font-bold text-ink tracking-tight">
+                                Unsaved Changes
+                            </h3>
+                            <p className="text-sm text-ink-secondary dark:text-ink-muted mt-2 leading-relaxed max-w-sm">
+                                You have unsaved changes. Do you want to save them before switching sections?
+                            </p>
+                        </div>
 
- <button
- type="submit"
- disabled={processing}
- className={`relative group px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl`}
- >
- {/* Midnight Nebula Background for Button */}
- <div className="absolute inset-0 bg-neutral-900 z-0">
- <div className="absolute top-0 right-0 w-32 h-32 bg-brand-600/60 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-transform duration-slower"></div>
- <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-600/50 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 transition-transform duration-slower"></div>
- <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20"></div>
- <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-brand-400 to-transparent opacity-50"></div>
- </div>
-
- <div className="relative z-10 flex items-center gap-3 text-white">
- {saved ? (
- <>
- <Check size={20} strokeWidth={3} className="text-emerald-400" />
- <span>Changes Saved</span>
- </>
- ) : processing ? (
- <>
- <RefreshCw size={20} className="animate-spin text-brand-300" />
- <span>Syncing...</span>
- </>
- ) : (
- <>
- <Save size={20} className="transition-transform" />
- <span>Save Changes</span>
- </>
- )}
- </div>
- </button>
- </div>
- </div>
-
-
- <div className={`flex-1 custom-scrollbar ${activeSection === 'print' ? 'p-0 overflow-hidden' : 'p-10 overflow-y-auto'}`}>
- <div className={`mx-auto transition-all duration-slow ${activeSection === 'print' ? 'max-w-full h-full' : activeSection === 'business' ? 'max-w-full px-6 pb-40' : 'max-w-5xl pb-40'}`}>
- {errors && Object.keys(errors).length > 0 && (
-  <div role="alert" className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-2">
-   <div className="flex items-center gap-2 font-bold text-sm mb-1.5">
-    <AlertTriangle size={18} className="text-rose-600 dark:text-rose-400 shrink-0" />
-    <span>Settings could not be saved. Please correct the following errors:</span>
-   </div>
-   <ul className="list-disc list-inside text-xs space-y-1 mt-1 text-rose-800 dark:text-rose-200 font-medium">
-    {Object.entries(errors).map(([key, msg]) => (
-     <li key={key}>
-      <span className="font-bold capitalize">{key.replace(/_/g, ' ')}:</span> {msg}
-     </li>
-    ))}
-   </ul>
-  </div>
- )}
-  {renderSection()}
- </div>
- </div>
- </form>
- </div>
- </div >
-
- <style>{`
- .custom-scrollbar::-webkit-scrollbar {
- width: 6px;
-}
- .custom-scrollbar::-webkit-scrollbar-track {
- background: transparent;
-}
- .custom-scrollbar::-webkit-scrollbar-thumb {
- background: rgb(var(--vq-slate-700));
- border-radius: 10px;
-}
- .custom-scrollbar::-webkit-scrollbar-thumb:hover {
- background: rgb(var(--vq-slate-600));
-}
-`}</style>
- <div className="fixed bottom-0 right-0 p-6 z-50 pointer-events-none">
- <div className="pointer-events-auto">
- {/* The actual save button is inside the form, but we can have an indicator here if needed or keep it clean */}
- </div>
- </div>
-
- <PasscodeModal
- isOpen={isPasscodeModalOpen}
- onClose={() => setIsPasscodeModalOpen(false)}
- onSuccess={(code) => saveSettings(code)}
- settings={settings}
- />
-
- {/* V6 Design System: Unsaved Changes Modal */}
- {showUnsavedModal && (
-  <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
-   {/* Backdrop */}
-   <div
-    className="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs transition-opacity animate-in fade-in"
-    onClick={handleCancelSwitch}
-    aria-hidden="true"
-   />
-
-   {/* Modal Card */}
-   <div
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="unsaved-changes-title"
-    className="relative z-10 w-full max-w-md bg-surface border border-line dark:border-line-strong rounded-2xl shadow-2xl p-6 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-3 duration-fast"
-   >
-    <div className="flex flex-col items-center text-center">
-     <div className="w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 shadow-xs">
-      <AlertTriangle size={28} className="animate-pulse" />
-     </div>
-     <h3 id="unsaved-changes-title" className="text-lg font-bold text-ink tracking-tight">
-      Unsaved Changes
-     </h3>
-     <p className="text-sm text-ink-secondary dark:text-ink-muted mt-2 leading-relaxed max-w-sm">
-      You have unsaved changes. Do you want to save them before switching sections?
-     </p>
-    </div>
-
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-6">
-     <button
-      type="button"
-      onClick={handleSaveAndSwitch}
-      className="order-1 sm:order-1 py-2.5 px-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.98]"
-     >
-      <Check size={14} />
-      <span>Save & Switch</span>
-     </button>
-     <button
-      type="button"
-      onClick={handleDiscardAndSwitch}
-      className="order-2 sm:order-2 py-2.5 px-3 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
-     >
-      <span>Discard</span>
-     </button>
-     <button
-      type="button"
-      onClick={handleCancelSwitch}
-      className="order-3 sm:order-3 py-2.5 px-3 bg-sunken hover:bg-interactive-hover dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-line-strong dark:border-neutral-700 text-ink dark:text-neutral-200 font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
-     >
-      <span>Cancel</span>
-     </button>
-    </div>
-   </div>
-  </div>
- )}
- </OneGlanceLayout >
- );
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-6">
+                            <button
+                                type="button"
+                                onClick={handleSaveAndSwitch}
+                                className="order-1 sm:order-1 py-2.5 px-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                            >
+                                <Check size={14} />
+                                <span>Save & Switch</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDiscardAndSwitch}
+                                className="order-2 sm:order-2 py-2.5 px-3 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
+                            >
+                                <span>Discard</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCancelSwitch}
+                                className="order-3 sm:order-3 py-2.5 px-3 bg-sunken hover:bg-interactive-hover dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-line-strong dark:border-neutral-700 text-ink dark:text-neutral-200 font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
+                            >
+                                <span>Cancel</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </OneGlanceLayout>
+    );
 }

@@ -3,7 +3,7 @@ import { ChevronDown, Check, Search } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 const PremiumSelect = ({
-    options,
+    options = [],
     value,
     onChange,
     placeholder = "Select option",
@@ -11,7 +11,9 @@ const PremiumSelect = ({
     addNewLabel,
     disabled,
     className = "",
-    searchable = true // Enable search by default
+    inputClassName = "",
+    icon: Icon,
+    searchable = true
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +21,9 @@ const PremiumSelect = ({
     const portalRef = useRef(null);
     const searchInputRef = useRef(null);
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+
+    const getOptionKey = (o) => o?.id !== undefined ? o.id : o?.value;
+    const getOptionLabel = (o) => o?.name !== undefined ? o.name : (o?.label !== undefined ? o.label : String(getOptionKey(o) ?? ''));
 
     const updateCoords = () => {
         if (dropdownRef.current) {
@@ -34,18 +39,19 @@ const PremiumSelect = ({
     useEffect(() => {
         if (isOpen) {
             updateCoords();
-            window.addEventListener('scroll', updateCoords);
+            window.addEventListener('scroll', updateCoords, true);
             window.addEventListener('resize', updateCoords);
-            // Focus search input when opened
-            setTimeout(() => searchInputRef.current?.focus(), 100);
+            if (searchable) {
+                setTimeout(() => searchInputRef.current?.focus(), 100);
+            }
         } else {
-            setSearchQuery(''); // Clear search when closed
+            setSearchQuery('');
         }
         return () => {
-            window.removeEventListener('scroll', updateCoords);
+            window.removeEventListener('scroll', updateCoords, true);
             window.removeEventListener('resize', updateCoords);
         };
-    }, [isOpen]);
+    }, [isOpen, searchable]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -58,11 +64,11 @@ const PremiumSelect = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const selectedOption = options.find(o => String(o.id) === String(value));
+    const selectedOption = options.find(o => String(getOptionKey(o)) === String(value));
 
     // Filter options based on search query
     const filteredOptions = searchable && searchQuery
-        ? options.filter(o => o.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        ? options.filter(o => getOptionLabel(o).toLowerCase().includes(searchQuery.toLowerCase()))
         : options;
 
     return (
@@ -70,71 +76,82 @@ const PremiumSelect = ({
             <div
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 className={`
-                    w-full px-4 py-3 rounded-xl bg-surface border border-line 
-                    text-ink font-medium focus:ring-2 ring-brand-500/20 outline-none transition-all 
-                    cursor-pointer flex items-center justify-between shadow-sm
+                    w-full px-3.5 py-2.5 rounded-xl bg-app border border-line 
+                    text-ink text-sm font-bold focus:ring-2 ring-brand-500/20 outline-none transition-all 
+                    cursor-pointer flex items-center justify-between shadow-xs
                     ${isOpen ? 'ring-2 ring-brand-500/20 border-brand-500' : ''} 
-                    ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-line dark:hover:border-line-strong'}
-`}
+                    ${disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-line-strong'}
+                    ${inputClassName}
+                `}
             >
-                <span className={`truncate ${!selectedOption ? 'text-ink-muted' : ''}`}>
-                    {selectedOption ? selectedOption.name : placeholder}
-                </span>
-                <ChevronDown size={18} className={`text-ink-muted transition-transform duration-slow ${isOpen ? 'rotate-180' : ''}`} />
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    {Icon && (
+                        <Icon size={16} className="text-ink-muted shrink-0" />
+                    )}
+                    <span className={`truncate text-sm font-bold ${!selectedOption ? 'text-ink-muted' : 'text-ink'}`}>
+                        {selectedOption ? getOptionLabel(selectedOption) : placeholder}
+                    </span>
+                </div>
+                <ChevronDown size={16} className={`text-ink-muted transition-transform duration-slow shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
             {isOpen && createPortal(
                 <div
                     ref={portalRef}
-                    className="fixed mt-2 bg-surface rounded-[14px] shadow-2xl border border-line z-command overflow-hidden animate-in fade-in zoom-in-95 duration-normal"
+                    className="fixed mt-1.5 bg-surface rounded-xl shadow-2xl border border-line z-modal overflow-hidden animate-in fade-in zoom-in-95 duration-fast"
                     style={{
                         top: coords.top,
                         left: coords.left,
-                        width: Math.max(coords.width, 280)
+                        width: Math.max(coords.width, 240)
                     }}
                 >
                     {/* Search Input */}
-                    {searchable && (
-                        <div className="p-2 border-b border-line">
+                    {searchable && options.length > 5 && (
+                        <div className="p-2 border-b border-line bg-surface">
                             <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
                                 <input
                                     ref={searchInputRef}
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search..."
-                                    className="w-full pl-9 pr-3 py-2 text-sm bg-app border border-line dark:border-line rounded-lg outline-none focus:ring-2 ring-brand-500/20 focus:border-brand-500 transition-all text-ink placeholder-slate-400"
+                                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-app border border-line rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-ink placeholder:text-ink-muted"
                                     onClick={(e) => e.stopPropagation()}
                                 />
                             </div>
                         </div>
                     )}
 
-                    <div className="max-h-64 overflow-y-auto custom-scrollbar p-1.5">
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar p-1">
                         {filteredOptions.length === 0 && !onAddNew && (
-                            <div className="px-4 py-3 text-sm text-ink-muted text-center">
+                            <div className="px-3 py-3 text-xs text-ink-muted text-center font-medium">
                                 {searchQuery ? 'No matching options' : 'No options available'}
                             </div>
                         )}
-                        {filteredOptions.map(option => (
-                            <div
-                                key={option.id}
-                                onClick={() => {
-                                    onChange(option.id);
-                                    setIsOpen(false);
-                                }}
-                                className={`
-                                    px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all flex items-center justify-between mb-0.5
-                                    ${String(value) === String(option.id)
-                                        ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
-                                        : 'text-ink-secondary dark:text-ink hover:bg-interactive-hover dark:hover:bg-interactive-hover'}
-`}
-                            >
-                                <span className="truncate">{option.name}</span>
-                                {String(value) === String(option.id) && <Check size={16} className="shrink-0" />}
-                            </div>
-                        ))}
+                        {filteredOptions.map(option => {
+                            const optKey = getOptionKey(option);
+                            const optLabel = getOptionLabel(option);
+                            const isSelected = String(value) === String(optKey);
+                            return (
+                                <div
+                                    key={optKey}
+                                    onClick={() => {
+                                        onChange(optKey, option);
+                                        setIsOpen(false);
+                                    }}
+                                    className={`
+                                        px-3 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all flex items-center justify-between mb-0.5
+                                        ${isSelected
+                                            ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400'
+                                            : 'text-ink hover:bg-interactive-hover'}
+                                    `}
+                                >
+                                    <span className="truncate">{optLabel}</span>
+                                    {isSelected && <Check size={14} className="shrink-0 ml-2 text-brand-600 dark:text-brand-400" />}
+                                </div>
+                            );
+                        })}
                         {onAddNew && (
                             <div
                                 id="tour-add-new-category-btn"
@@ -142,10 +159,10 @@ const PremiumSelect = ({
                                     onAddNew();
                                     setIsOpen(false);
                                 }}
-                                className="px-4 py-2.5 rounded-xl text-sm font-bold text-brand-600 dark:text-brand-400 cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors border-t border-line mt-1.5 pt-3"
+                                className="px-3 py-2 rounded-lg text-xs font-bold text-brand-600 dark:text-brand-400 cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors border-t border-line mt-1"
                             >
-                                <span className="flex items-center gap-2">
-                                    <span className="text-lg">+</span> {addNewLabel}
+                                <span className="flex items-center gap-1.5">
+                                    <span className="text-sm font-bold">+</span> {addNewLabel}
                                 </span>
                             </div>
                         )}

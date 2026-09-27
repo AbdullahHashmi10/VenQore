@@ -271,14 +271,14 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
             case 'notifications':
                 return (
                     <div className="space-y-6">
-                        <div className="p-8 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-500/20">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-brand-500 rounded-xl text-white">
-                                    <Bell size={24} />
+                        <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs">
+                            <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-line">
+                                <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                                    <Bell size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-brand-900 dark:text-white">Notification Center</h3>
-                                    <p className="text-brand-600 dark:text-brand-300">Control what alerts you receive.</p>
+                                    <h3 className="text-base font-bold text-ink leading-tight">Notification Center</h3>
+                                    <p className="text-xs text-ink-muted">Control in-app alerts and scheduled email reports</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -293,71 +293,71 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
             case 'security':
                 return (
                     <div className="space-y-6">
-                        <div className="p-8 bg-app rounded-xl border border-line">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-emerald-500 rounded-xl text-white">
-                                    <Shield size={24} />
+                        <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs">
+                            <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-line">
+                                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <Shield size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-ink">Security & Access</h3>
-                                    <p className="text-ink-muted">Protect your account and data.</p>
+                                    <h3 className="text-base font-bold text-ink leading-tight">Security & Access</h3>
+                                    <p className="text-xs text-ink-muted">Protect account sessions, 2FA credentials and staff permissions</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-4 bg-surface rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
-      <div>
-        <h4 className="text-sm font-bold text-ink">Two-Factor Authentication (2FA)</h4>
-        <p className="text-xs text-ink-muted">Set up Authenticator App (TOTP) verification for account logins.</p>
-      </div>
-      <a
-        href="/profile#security"
-        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
-      >
-        <span>Manage in Profile</span>
-      </a>
-    </div>
-                                <div className="p-4 bg-surface rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
+                                <div className="p-4 bg-app rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
+                                    <div>
+                                        <h4 className="text-sm font-bold text-ink">Two-Factor Authentication (2FA)</h4>
+                                        <p className="text-xs text-ink-muted">Set up Authenticator App (TOTP) verification for account logins.</p>
+                                    </div>
+                                    <a
+                                        href="/profile#security"
+                                        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95 shrink-0"
+                                    >
+                                        <span>Manage in Profile</span>
+                                    </a>
+                                </div>
+                                <div className="p-4 bg-app rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
                                     <div>
                                         <h4 className="text-sm font-bold text-ink">Staff Roles &amp; Discount Authority</h4>
                                         <p className="text-xs text-ink-muted">Configure staff roles (admin, manager, cashier), per-role maximum discount limits, and team access.</p>
                                     </div>
                                     <a
                                         href="/users"
-                                        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+                                        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95 shrink-0"
                                     >
                                         <span>Manage Staff &amp; Roles</span>
                                     </a>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-ink-muted ml-1">Auto-Logout Timer (Minutes)</label>
+                                <div className="space-y-1.5 col-span-1 md:col-span-2">
+                                    <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Auto-Logout Timer (Minutes)</label>
                                     <input
                                         type="number"
                                         value={data.auto_logout}
                                         onChange={e => setData('auto_logout', e.target.value)}
-                                        className="w-full px-4 py-3 bg-surface border border-line dark:border-line rounded-xl font-bold outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full max-w-xs px-4 py-2.5 bg-app border border-line rounded-xl font-bold text-sm text-ink outline-none focus:ring-2 focus:ring-brand-500"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* SSO / SAML Configuration */}
-                        <div className="p-8 bg-app rounded-xl border border-line">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-brand-500 rounded-xl text-white">
-                                    <Lock size={24} />
+                        <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs">
+                            <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-line">
+                                <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                                    <Lock size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-ink">SSO / SAML Authentication</h3>
-                                    <p className="text-ink-muted">Configure Single Sign-On for your organization.</p>
+                                    <h3 className="text-base font-bold text-ink leading-tight">SSO / SAML Authentication</h3>
+                                    <p className="text-xs text-ink-muted">Configure Single Sign-On for your enterprise organization</p>
                                 </div>
                             </div>
 
-                            {/* S06: Honest availability notice — SAML login flow is not implemented yet */}
+                            {/* Honest availability notice */}
                             <div className="mb-5 flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-xl text-sm text-amber-800 dark:text-amber-300">
                                 <span className="shrink-0 mt-0.5 font-bold text-base">⚠</span>
                                 <div>
                                     <p className="font-bold">Configuration saved, but SSO login is not yet active.</p>
-                                    <p className="text-xs mt-1 text-amber-700 dark:text-amber-400">
+                                    <p className="text-xs mt-1 text-amber-700 dark:text-amber-400 leading-relaxed">
                                         SAML 2.0 metadata, signature validation and tenant-bound callback are under development.
                                         Enabling this toggle saves your IdP details but does not redirect any login attempts through your provider.
                                         Users will continue to log in with their email and password until this feature ships.
@@ -376,32 +376,32 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
 
                             {(data.sso_enabled === '1' || data.sso_enabled === true) && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                                    <div>
-                                        <label className="block text-sm font-bold text-ink-secondary mb-2">IdP Entity ID</label>
+                                    <div className="space-y-1.5">
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted">IdP Entity ID</label>
                                         <input
                                             type="text"
                                             value={data.sso_idp_entity_id || ''}
                                             onChange={(e) => setData('sso_idp_entity_id', e.target.value)}
-                                            className="w-full px-4 py-3 bg-surface border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                                            className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-sm font-bold text-ink focus:ring-2 focus:ring-brand-500 outline-none"
                                             placeholder="https://identity-provider.com/metadata"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-ink-secondary mb-2">Single Sign-On Service URL</label>
+                                    <div className="space-y-1.5">
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted">Single Sign-On Service URL</label>
                                         <input
                                             type="text"
                                             value={data.sso_url || ''}
                                             onChange={(e) => setData('sso_url', e.target.value)}
-                                            className="w-full px-4 py-3 bg-surface border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+                                            className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-sm font-bold text-ink focus:ring-2 focus:ring-brand-500 outline-none"
                                             placeholder="https://identity-provider.com/sso"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-ink-secondary mb-2">X.509 Public Certificate</label>
+                                    <div className="space-y-1.5">
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted">X.509 Public Certificate</label>
                                         <textarea
                                             value={data.sso_certificate || ''}
                                             onChange={(e) => setData('sso_certificate', e.target.value)}
-                                            className="w-full px-4 py-3 bg-surface border border-line dark:border-line rounded-xl text-xs font-mono focus:ring-2 focus:ring-brand-500 outline-none resize-none"
+                                            className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-xs font-mono text-ink focus:ring-2 focus:ring-brand-500 outline-none resize-none"
                                             rows={5}
                                             placeholder="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
                                         />
@@ -414,38 +414,38 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
             case 'backup':
                 return (
                     <div className="space-y-6">
-                        <div className="p-8 bg-sky-50 dark:bg-sky-900/10 rounded-xl border border-sky-100 dark:border-sky-500/20">
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="p-3 bg-sky-500 rounded-xl text-white">
-                                    <Database size={24} />
+                        <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs">
+                            <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-line">
+                                <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                                    <Database size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-sky-900 dark:text-white">Data & Backup</h3>
-                                    <p className="text-sky-600 dark:text-sky-300">Prevent data loss.</p>
+                                    <h3 className="text-base font-bold text-ink leading-tight">Data & Backup</h3>
+                                    <p className="text-xs text-ink-muted">Download manual snapshots or restore database files</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <Toggle enabled={false} onChange={() => {}} label="Automatic Daily Backups" description="Backup database to local storage every night" comingSoon={true} />
                                 
-                                <div className="mt-3 p-4 bg-sky-500/10 rounded-2xl border border-sky-500/20 text-sky-700 dark:text-sky-400 text-xs">
-                                    <p className="font-semibold mb-2">💡 Automatic local database backups are coming soon. Use Google Drive Automated Backups to secure your data in the cloud.</p>
+                                <div className="p-4 bg-app rounded-xl border border-line text-ink-muted text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <p className="font-medium text-ink">💡 Automatic local database backups are coming soon. Use Google Drive Automated Backups to secure your data in the cloud.</p>
                                     <a
                                         href={route('store.admin.data', { store_slug: store?.slug })}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-1xs transition-all shadow-md cursor-pointer"
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs transition-all shadow-sm shrink-0"
                                     >
-                                        Configure Google Drive Backup
+                                        Configure Google Drive
                                     </a>
                                 </div>
 
-                                <div className="pt-4 flex flex-col sm:flex-row gap-4">
+                                <div className="pt-2 flex flex-col sm:flex-row gap-4">
                                     <button
                                         type="button"
                                         onClick={handleDownloadBackup}
                                         disabled={downloading}
-                                        className={`flex-1 py-3 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${downloading ? 'bg-sunken cursor-not-allowed' : 'bg-sky-600 hover:bg-sky-700 '}`}
+                                        className={`flex-1 py-3 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm ${downloading ? 'bg-sunken cursor-not-allowed text-ink-muted' : 'bg-brand-600 hover:bg-brand-500 active:scale-95'}`}
                                     >
-                                        <Download size={18} /> {downloading ? 'Creating Backup...' : 'Download Backup'}
+                                        <Download size={16} /> {downloading ? 'Creating Backup...' : 'Download Backup'}
                                     </button>
 
                                     <input
@@ -459,9 +459,9 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                         type="button"
                                         onClick={handleRestoreClick}
                                         disabled={restoring}
-                                        className={`flex-1 py-3 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${restoring ? 'bg-sunken cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700 '}`}
+                                        className={`flex-1 py-3 bg-app hover:bg-sunken text-ink border border-line rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 ${restoring ? 'cursor-not-allowed opacity-50' : ''}`}
                                     >
-                                        <HardDrive size={18} /> {restoring ? 'Processing...' : 'Restore / Import File'}
+                                        <HardDrive size={16} /> {restoring ? 'Processing...' : 'Restore / Import File'}
                                     </button>
                                 </div>
                             </div>
@@ -472,33 +472,44 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
 
             case 'integrations':
                 return (
-                    <div className="space-y-8">
-                        <div className="bg-surface p-8 rounded-2xl border border-line shadow-xl">
+                    <div className="space-y-6">
+                        <div className="bg-surface p-6 rounded-2xl border border-line shadow-xs">
+                            <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-line">
+                                <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                                    <Shield size={18} />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-ink leading-tight">FBR POS Fiscalization</h3>
+                                    <p className="text-xs text-ink-muted">Real-time fiscal invoice integration with Federal Board of Revenue</p>
+                                </div>
+                            </div>
                             <Toggle
                                 enabled={data.fbr_integration}
                                 onChange={v => setData('fbr_integration', v)}
-                                label="FBR POS Integration"
-                                description="Real-time sales reporting to FBR"
+                                label="Enable FBR Integration"
+                                description="Automatically sign and broadcast sales invoices to FBR API"
                             />
                             {data.fbr_integration && (
-                                <div className="mt-8 pt-8 border-t border-line space-y-4 animate-in slide-in-from-top-4 duration-slow">
-                                    <div className="grid grid-cols-2 gap-4">
+                                <div className="mt-4 pt-4 border-t border-line space-y-4 animate-in slide-in-from-top-2 duration-normal">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-2xs font-bold uppercase tracking-[0.15em] text-ink-muted">FBR POS ID</label>
+                                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">FBR POS ID</label>
                                             <input
                                                 type="text"
                                                 value={data.fbr_pos_id}
                                                 onChange={e => setData('fbr_pos_id', e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm font-bold"
+                                                className="w-full px-4 py-2.5 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm font-bold text-ink"
+                                                placeholder="e.g. 100234"
                                             />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-2xs font-bold uppercase tracking-[0.15em] text-ink-muted">FBR USIN</label>
+                                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">FBR USIN</label>
                                             <input
                                                 type="text"
                                                 value={data.fbr_usin}
                                                 onChange={e => setData('fbr_usin', e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm font-bold"
+                                                className="w-full px-4 py-2.5 bg-app border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand-500 text-sm font-bold text-ink"
+                                                placeholder="e.g. USIN-994821"
                                             />
                                         </div>
                                     </div>
@@ -506,25 +517,22 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                             )}
                         </div>
 
-                        <div className="space-y-6">
-
-                            {/* Stripe (Upcoming) */}
-                            <div className="p-8 bg-surface border-2 rounded-2xl opacity-60">
-                                <div className="flex items-center gap-5 mb-2">
-                                    <div className="w-14 h-14 rounded-2xl bg-cyan-500 flex items-center justify-center text-white shadow-xl flex-shrink-0">
-                                        <Wifi size={28} />
+                        {/* Stripe Integration Card */}
+                        <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs opacity-75">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 flex items-center justify-center shrink-0">
+                                        <Wifi size={20} />
                                     </div>
-                                    <div className="flex-1">
+                                    <div>
                                         <div className="flex items-center gap-2">
-                                            <h5 className="text-lg font-bold text-ink leading-tight">Stripe</h5>
-                                            <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-4xs font-bold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/30">Upcoming</span>
+                                            <h4 className="text-sm font-bold text-ink">Stripe Terminal & Online Payments</h4>
+                                            <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-4xs font-bold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/30">Upcoming</span>
                                         </div>
-                                        <p className="text-xs text-ink-muted font-medium">Process card payments</p>
+                                        <p className="text-xs text-ink-muted">Process in-person NFC and online credit card payments</p>
                                     </div>
-                                    <button disabled type="button" className="relative w-12 h-6 rounded-full bg-sunken cursor-not-allowed">
-                                        <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-                                    </button>
                                 </div>
+                                <Toggle enabled={false} disabled={true} upcoming={true} onChange={() => {}} />
                             </div>
                         </div>
                     </div>
@@ -535,45 +543,47 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                 return (
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-6 bg-surface rounded-2xl border border-line">
-                                <h4 className="font-bold text-ink mb-4">Localization</h4>
+                            <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs space-y-4">
+                                <h4 className="font-bold text-ink mb-2">Localization</h4>
                                 <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted ml-1">Language</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Language</label>
                                         <select
                                             value={data.language}
                                             onChange={e => setData('language', e.target.value)}
-                                            className="w-full px-4 py-3 bg-app border border-line dark:border-line rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                                            className="w-full px-4 py-2.5 bg-app border border-line rounded-xl font-bold text-sm text-ink outline-none focus:ring-2 focus:ring-brand-500"
                                         >
                                             <option value="en">English (US)</option>
                                             <option value="es" disabled>Spanish (Coming Soon)</option>
                                             <option value="fr" disabled>French (Coming Soon)</option>
                                         </select>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted ml-1">Date Format</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Date Format</label>
                                         <select
                                             value={data.date_format}
                                             onChange={e => setData('date_format', e.target.value)}
-                                            className="w-full px-4 py-3 bg-app border border-line dark:border-line rounded-xl font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                                            className="w-full px-4 py-2.5 bg-app border border-line rounded-xl font-bold text-sm text-ink outline-none focus:ring-2 focus:ring-brand-500"
                                         >
-                                            <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2023)</option>
-                                            <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2023)</option>
-                                            <option value="YYYY-MM-DD">YYYY-MM-DD (2023-12-31)</option>
+                                            <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2026)</option>
+                                            <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2026)</option>
+                                            <option value="YYYY-MM-DD">YYYY-MM-DD (2026-12-31)</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="p-6 bg-surface rounded-2xl border border-line space-y-4">
-                                <h4 className="font-bold text-ink mb-4">Appearance</h4>
-                                <Toggle enabled={data.dark_mode_default} onChange={v => setData('dark_mode_default', v)} label="Force Dark Mode" description="Use dark theme by default" />
-                                <Toggle
-                                    enabled={data.header_calculator_enabled === '1'}
-                                    onChange={v => setData('header_calculator_enabled', v ? '1' : '0')}
-                                    label="Header Calculator"
-                                    description="Show a calculator in the application header for everyone in this store."
-                                />
+                            <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs space-y-4">
+                                <h4 className="font-bold text-ink mb-2">Appearance</h4>
+                                <div className="divide-y divide-line">
+                                    <Toggle enabled={data.dark_mode_default} onChange={v => setData('dark_mode_default', v)} label="Force Dark Mode" description="Use dark theme by default" />
+                                    <Toggle
+                                        enabled={data.header_calculator_enabled === '1'}
+                                        onChange={v => setData('header_calculator_enabled', v ? '1' : '0')}
+                                        label="Header Calculator"
+                                        description="Show a calculator in the application header for everyone in this store."
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

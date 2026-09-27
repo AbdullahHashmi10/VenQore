@@ -85,7 +85,7 @@ export default function TerminalPairingSection({ storeSlug }) {
     return (
         <div className="bg-surface rounded-2xl border border-line p-6">
             <SectionHeader
-                title="Terminals (VenQore Station)"
+                title="Pair New Station Terminal"
                 description="Create a one-time code, then enter it on the Station setup screen. Each code works once and expires after 60 minutes."
             />
 

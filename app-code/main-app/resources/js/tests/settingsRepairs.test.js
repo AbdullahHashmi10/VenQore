@@ -130,7 +130,7 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
             return !isNaN(num) ? Math.max(0, Math.min(1440, num)) : 0;
         }
         if (k === 'product_cost_update_policy') {
-            return ['manual', 'latest_purchase', 'moving_average', 'fifo'].includes(v) ? v : 'latest_purchase';
+            return ['never', 'always', 'increase_only', 'decrease_only'].includes(v) ? v : 'never';
         }
         if (k === 'pos_return_mode') {
             return ['reference', 'customer_or_reference', 'open'].includes(v) ? v : 'reference';
@@ -171,8 +171,8 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         expect(normalizeSettingValue('ui_scale', 250)).toBe(200);
         expect(normalizeSettingValue('ui_scale', 30)).toBe(50);
         expect(normalizeSettingValue('auto_logout', 2000)).toBe(1440);
-        expect(normalizeSettingValue('product_cost_update_policy', 'invalid_policy')).toBe('latest_purchase');
-        expect(normalizeSettingValue('product_cost_update_policy', 'moving_average')).toBe('moving_average');
+        expect(normalizeSettingValue('product_cost_update_policy', 'invalid_policy')).toBe('never');
+        expect(normalizeSettingValue('product_cost_update_policy', 'always')).toBe('always');
         expect(normalizeSettingValue('pos_return_mode', 'reference')).toBe('reference');
         expect(normalizeSettingValue('pos_return_mode', 'customer_or_reference')).toBe('customer_or_reference');
         expect(normalizeSettingValue('pos_return_mode', 'open')).toBe('open');
@@ -288,5 +288,4 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         expect(prefs.ops.senior).toBe(true);
     });
 });
-
 

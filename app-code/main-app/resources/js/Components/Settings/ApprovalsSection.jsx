@@ -30,7 +30,7 @@ export default function ApprovalsSection({ data, setData, store }) {
             <ShieldCheck size={26} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-ink">Approvals & Governance</h3>
+            <h3 className="text-xl font-bold text-ink">Approvals</h3>
             <p className="text-sm text-ink-muted">Configure store-wide transaction maker-checker approval controls and dual authorization policies.</p>
           </div>
         </div>
@@ -39,15 +39,15 @@ export default function ApprovalsSection({ data, setData, store }) {
           <Toggle
             enabled={Boolean(data.approval_admin_enabled)}
             onChange={v => setData('approval_admin_enabled', v)}
-            label="Enable Store Approval Workflow"
-            description="When enabled, transactions requiring approval are routed to the manager review queue before posting to the general ledger."
+            label="Require approval for selected transactions"
+            description="Send transactions that match your rules to a manager before they are completed."
           />
 
           <Toggle
             enabled={Boolean(data.approval_strict_owner_separation)}
             onChange={v => setData('approval_strict_owner_separation', v)}
-            label="Strict Owner Separation"
-            description="Enforce dual control so store owners cannot self-approve transactions they personally submitted as maker."
+            label="Do not allow people to approve their own requests"
+            description="Someone else must approve a transaction submitted by the owner or staff."
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-line">
@@ -82,7 +82,7 @@ export default function ApprovalsSection({ data, setData, store }) {
 
           {/* Per-Document Type Controls */}
           <div className="pt-6 border-t border-line space-y-4">
-            <h4 className="text-sm font-bold text-ink uppercase tracking-wider">Per-Document Approval Policies & Overrides</h4>
+            <h4 className="text-sm font-bold text-ink uppercase tracking-wider">Choose which transactions need approval</h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {documentTypes.map(({ key, label }) => {

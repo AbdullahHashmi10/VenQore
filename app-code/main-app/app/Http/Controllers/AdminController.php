@@ -469,40 +469,43 @@ class AdminController extends Controller
         // preventing stale defaults or accidental overwrites of unrelated sections.
         $saveSection = $request->input('_save_section');
         $sectionKeyMap = [
-            'business' => [
-                'business_name', 'store_name', 'business_address', 'store_address',
-                'business_phone', 'store_phone', 'business_email', 'tax_number',
-                'currency', 'currency_code', 'currency_symbol', 'timezone',
-                'decimal_places', 'custom_domain', 'product_cost_update_policy',
-                'shared_catalog_opt_out', 'ai_accuracy_opt_in',
+            'profile' => [
+                'business_name', 'business_address', 'business_phone', 'business_email',
+                'tax_number', 'custom_domain', 'store_name', 'store_address', 'store_phone',
+                'product_cost_update_policy'
             ],
-            'modules' => [
-                'charity_enabled', 'loyalty_enabled', 'batch_tracking_enabled',
-                'wholesale_price_enabled', 'barcode_scan_enabled', 'stock_maintenance',
+            'region_numbers' => [
+                'currency', 'currency_symbol', 'timezone', 'language', 'date_format', 'decimal_places'
             ],
-            'preferences' => [
-                'enable_passcode', 'admin_passcode', 'ui_scale', 'language',
-                'date_format', 'auto_logout', 'dark_mode_default', 'senior_mode',
-                'header_calculator_enabled', 'multi_firm_enabled', 'low_stock_alerts',
-                'low_stock_threshold',
+            'display' => [
+                'ui_scale', 'dark_mode_default', 'header_calculator_enabled', 'senior_mode'
             ],
-            'sales' => [
-                'invoice_number_enabled', 'stop_sale_negative_stock', 'cash_sale_default',
-                'round_off_total', 'billing_type', 'sale_prefix', 'purchase_prefix',
-                'quotation_prefix', 'return_prefix', 'pos_auto_fill_cash',
-                'show_margin_percentage', 'show_margin_on_invoice',
-                'pos_return_mode', 'pos_return_window', 'pos_return_window_behavior',
+            'checkout_returns' => [
+                'stop_sale_negative_stock', 'cash_sale_default', 'round_off_total',
+                'pos_auto_fill_cash', 'show_margin_percentage', 'pos_return_mode',
+                'pos_return_window', 'pos_return_window_behavior', 'charity_enabled'
+            ],
+            'documents_numbering' => [
+                'invoice_number_enabled', 'billing_type', 'sale_prefix', 'purchase_prefix',
+                'quotation_prefix', 'return_prefix'
             ],
             'taxes' => [
-                'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id',
+                'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id'
             ],
-            'print' => [
+            'customers_suppliers' => [
+                'loyalty_enabled', 'enable_credit_limit', 'party_grouping'
+            ],
+            'stock_items' => [
+                'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
+                'wholesale_price_enabled', 'low_stock_alerts', 'low_stock_threshold'
+            ],
+            'document_layouts' => [
                 'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
-                'print_logo', 'print_logo_path', 'print_signature_text', 'print_original_copy',
-                'print_company_text_size', 'print_invoice_text_size',
+                'print_logo', 'print_logo_path', 'print_logo_file', 'print_signature_text',
+                'print_original_copy', 'print_company_text_size', 'print_invoice_text_size',
                 'margin_top', 'margin_bottom', 'margin_left', 'margin_right',
-                'custom_paper_width', 'custom_paper_height',
-                'print_show_sno', 'print_show_units', 'print_show_mrp', 'print_show_description',
+                'custom_paper_width', 'custom_paper_height', 'print_show_sno',
+                'print_show_units', 'print_show_mrp', 'print_show_description',
                 'print_show_hsn', 'print_show_discount', 'print_show_free_qty',
                 'print_qr_code', 'print_show_delivery_charge', 'print_show_extra_charge',
                 'print_total_quantity', 'print_amount_decimal', 'print_received_amount',
@@ -511,7 +514,9 @@ class AdminController extends Controller
                 'print_amount_words', 'print_description', 'print_terms',
                 'print_received_by', 'print_delivered_by', 'print_payment_mode',
                 'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
-                'print_min_item_rows', 'invoice_theme', 'invoice_primary_color',
+                'print_min_item_rows', 'invoice_theme', 'invoice_primary_color', 'show_margin_on_invoice'
+            ],
+            'printer_device' => [
                 'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
                 'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
                 'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
@@ -519,44 +524,50 @@ class AdminController extends Controller
                 'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
                 'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
                 'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
-                'thermal_custom_footer',
+                'thermal_custom_footer'
             ],
-            'messages' => [
-                'message_template_sales', 'message_template_returns', 'message_template_reminders',
-                'message_template_payments', 'message_template_statement',
-                'whatsapp_offer_pdf', 'payment_reminder_days', 'business_name',
+            'manual_sharing' => [
+                'message_template_sales', 'message_template_returns', 'message_template_reminders', 'whatsapp_offer_pdf'
             ],
-            'party' => [
-                'party_grouping', 'loyalty_enabled', 'enable_credit_limit',
-                'payment_reminders', 'payment_reminder_days',
-            ],
-            'item' => [
-                'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
-                'wholesale_price_enabled', 'low_stock_threshold', 'low_stock_alerts',
-            ],
-            'reminders' => [
-                'service_reminders', 'email_notifications', 'daily_sales_summary',
+            'reminders_alerts' => [
+                'payment_reminders', 'payment_reminder_days', 'service_reminders',
+                'email_notifications', 'daily_sales_summary'
             ],
             'accounting' => [
-                'fiscal_year_start',
+                'multi_firm_enabled', 'fiscal_year_start',
+                'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days', 'reckoner.carrying_cost_pct'
+            ],
+            'features_connections' => [
+                'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
+                'shared_catalog_opt_out', 'ai_accuracy_opt_in', 'fbr_integration', 'fbr_pos_id',
+                'fbr_usin', 'stripe_enabled', 'woocommerce_enabled'
             ],
             'security' => [
-                'two_factor_auth', 'auto_backup',
-                'sso_enabled', 'sso_idp_entity_id', 'sso_url', 'sso_certificate',
+                'enable_passcode', 'admin_passcode', 'auto_logout', 'sso_enabled', 'sso_idp_entity_id',
+                'sso_url', 'sso_certificate'
             ],
             'approvals' => [
                 'approval_admin_enabled', 'approval_strict_owner_separation',
                 'approval_amount_threshold', 'approval_default_employee_mode',
-            ],
-            'ai_integrations' => [
-                'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
-                'fbr_integration', 'fbr_pos_id', 'fbr_usin', 'fbr_mode', 'fbr_environment', 'fbr_api_url', 'fbr_auth_token',
-                'stripe_enabled', 'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
-                'woocommerce_enabled', 'woocommerce_url', 'woocommerce_consumer_key', 'woocommerce_consumer_secret',
-            ],
+                'approval_policy_customer_receipt', 'approval_threshold_customer_receipt',
+                'approval_policy_supplier_payment', 'approval_threshold_supplier_payment',
+                'approval_policy_operating_expense', 'approval_threshold_operating_expense',
+                'approval_policy_sales_invoice', 'approval_threshold_sales_invoice',
+                'approval_policy_supplier_refund', 'approval_threshold_supplier_refund',
+                'approval_policy_purchase_posting', 'approval_threshold_purchase_posting',
+                'approval_policy_sales_return', 'approval_threshold_sales_return',
+                'approval_policy_purchase_return', 'approval_threshold_purchase_return',
+                'approval_policy_capital_injection', 'approval_threshold_capital_injection',
+                'approval_policy_owner_drawings', 'approval_threshold_owner_drawings',
+                'approval_policy_fund_transfer', 'approval_threshold_fund_transfer'
+    ]
         ];
 
-        if (!empty($saveSection) && isset($sectionKeyMap[$saveSection])) {
+        if (!empty($saveSection) && !isset($sectionKeyMap[$saveSection])) {
+            return back()->withErrors(['settings' => 'This settings section is no longer available. Reload the page and try again.']);
+        }
+
+        if (!empty($saveSection)) {
             $allowedSectionKeys = $sectionKeyMap[$saveSection];
             $filteredSectionData = [];
             foreach ($settingsData as $k => $v) {
@@ -768,7 +779,7 @@ class AdminController extends Controller
             } elseif ($k === 'pos_return_window') {
                 $v = is_numeric($v) ? max(0, min(365, (int)$v)) : 30;
             } elseif ($k === 'product_cost_update_policy') {
-                $v = in_array($v, ['manual', 'latest_purchase', 'moving_average', 'fifo'], true) ? $v : 'latest_purchase';
+                $v = in_array($v, ['never', 'always', 'increase_only', 'decrease_only'], true) ? $v : 'never';
             } elseif ($k === 'pos_return_mode') {
                 $v = in_array($v, ['reference', 'customer_or_reference', 'open'], true) ? $v : 'reference';
             } elseif ($k === 'default_print_type') {
