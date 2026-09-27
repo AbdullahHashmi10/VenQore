@@ -274,7 +274,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
                 className="bg-white text-black print-container box-border mx-auto"
                 style={{
                     width: printWidth,
-                    paddingTop: `${data.margin_top || 0}mm`,
+                    paddingTop: `${(parseFloat(data.margin_top) || 0) + extraSpaceTop}mm`,
                     paddingBottom: `${data.margin_bottom || 0}mm`,
                     paddingLeft: `${data.margin_left || 0}mm`,
                     paddingRight: `${data.margin_right || 0}mm`,
@@ -539,7 +539,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
 
                 {data.print_qr_code && (
                     <div className="flex flex-col items-center justify-center my-4">
-                        <QRCodeSVG value={`https://verify.venqore.com/receipt/${data.id || 'sample'}`} size={64} />
+                        <QRCodeSVG value={sale?.qr_payload || sale?.qr_code || (sale?.id ? `${typeof window !== 'undefined' ? window.location.origin : ''}/s/${sale.store?.slug || 'store'}/sales/${sale.id}/verify` : `https://verify.venqore.com/receipt/${data.sale_prefix || 'INV-'}1001`)} size={64} />
                         <div className="text-3xs text-ink-muted mt-1">Scan to Verify</div>
                     </div>
                 )}

@@ -49,6 +49,26 @@ export default function TaxSettingsSection({ data, setData }) {
                 </button>
             </div>
 
+            {/* Default Tax Rate Selector */}
+            <div className="p-6 bg-surface rounded-xl border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 className="text-base font-bold text-ink">Default Tax Rate</h3>
+                    <p className="text-xs text-ink-muted">Choose which tax rate is automatically applied to new sales and invoices.</p>
+                </div>
+                <select
+                    value={data.default_tax_rate || '0'}
+                    onChange={(e) => setData('default_tax_rate', e.target.value)}
+                    className="px-4 py-2.5 bg-app border border-line rounded-xl font-bold text-sm text-ink focus:ring-2 focus:ring-emerald-500 outline-none w-full md:w-64 cursor-pointer"
+                >
+                    <option value="0">No Default Tax (0%)</option>
+                    {(data.tax_rates || []).map((t) => (
+                        <option key={t.id} value={String(t.rate)}>
+                            {t.name} ({t.type === 'fixed' ? `${t.rate} Fixed` : `${t.rate}%`})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
             {/* Tax Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {(data.tax_rates || []).map((tax, i) => (

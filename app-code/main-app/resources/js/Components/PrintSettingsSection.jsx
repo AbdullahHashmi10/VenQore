@@ -114,7 +114,12 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  body { margin: 0; padding: 0; background: white; }
  @page {
  margin: 0;
- ${isThermal ? `size: ${width / MM_TO_PX}mm 297mm;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
+ ${isThermal
+      ? `size: ${width / MM_TO_PX}mm 297mm;`
+      : currentData.paper_size === 'Custom'
+        ? `size: ${parseFloat(currentData.custom_paper_width) || 210}mm ${parseFloat(currentData.custom_paper_height) || 297}mm;`
+        : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`
+    }
  }
  @media print {
  html, body {

@@ -2,7 +2,7 @@
 // Relies on explicit settings argument OR global window.amdSettings injected by Layout
 
 export const getCurrencySymbol = (settings = null) => {
-    const config = settings || window.amdSettings || {};
+    const config = settings || (typeof window !== 'undefined' ? window.amdSettings : null) || {};
     const symbolMap = {
         'PKR': 'Rs.',
         'USD': '$',
@@ -22,7 +22,7 @@ export const getCurrencySymbol = (settings = null) => {
 };
 
 export const formatCurrency = (amount, settings = null) => {
-    const config = settings || window.amdSettings || {};
+    const config = settings || (typeof window !== 'undefined' ? window.amdSettings : null) || {};
     const symbol = getCurrencySymbol(config);
     let decimals = parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
     if (config.print_amount_decimal === '0' || config.print_amount_decimal === false || config.print_amount_decimal === 0) {
@@ -42,7 +42,7 @@ export const formatCurrency = (amount, settings = null) => {
 };
 
 export const formatNumber = (number, decimals = null, settings = null) => {
-    const config = settings || window.amdSettings || {};
+    const config = settings || (typeof window !== 'undefined' ? window.amdSettings : null) || {};
     // If decimals is explicitly passed, use it. Otherwise fall back to settings, then 2.
     let d = decimals !== null ? decimals : parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
     if (decimals === null && (config.print_amount_decimal === '0' || config.print_amount_decimal === false || config.print_amount_decimal === 0)) {

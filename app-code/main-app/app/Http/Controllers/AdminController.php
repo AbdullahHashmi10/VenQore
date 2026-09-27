@@ -383,6 +383,12 @@ class AdminController extends Controller
     {
         $settings = \App\Models\Setting::all()->pluck('value', 'key')->toArray();
 
+        // S02: Security Sanitization — Do not leak raw password/passcode hashes in props
+        if (isset($settings['admin_passcode'])) {
+            $settings['has_admin_passcode'] = !empty($settings['admin_passcode']);
+            $settings['admin_passcode'] = '';
+        }
+
         // Fetch Backups
         $files = \Illuminate\Support\Facades\Storage::disk('local')->files('backups');
         $backups = [];
@@ -483,69 +489,80 @@ class AdminController extends Controller
             }
         }
 
-        foreach ($settingsData as $key => $value) {
-            if ($key === 'admin_passcode') {
-                if ($value === null || $value === '') {
-                    continue;
-                }
-                // Only hash if not already bcrypt-hashed
-                if (!str_starts_with((string)$value, '$2y$')) {
-                    $value = \Illuminate\Support\Facades\Hash::make($value);
-                }
-            }
-
-            if (is_bool($value)) {
-                $value = $value ? '1' : '0';
-            }
-            \App\Models\Setting::updateOrCreate(
-                ['key' => $key],
-                ['value' => is_array($value) ? json_encode($value) : (string) $value]
-            );
-        }
-
-        // ── Phase 7: Sync Metadata to Tenant Model ────────────────────────────
-        // Some settings (like currency) are mirrored on the 'tenants' table for 
-        // high-performance routing and metadata access.
         $tenant = app('current.tenant');
-        if ($tenant) {
-            $syncNeeded = false;
-            
-            if (isset($settingsData['currency_code']) || isset($settingsData['currency'])) {
-                $tenant->currency_code = $settingsData['currency_code'] ?? $settingsData['currency'];
-                $syncNeeded = true;
-            }
-            
-            if (isset($settingsData['currency_symbol'])) {
-                $tenant->currency_symbol = $settingsData['currency_symbol'];
-                $syncNeeded = true;
+
+        \Illuminate\Support\Facades\DB::transaction(function() use ($settingsData, $tenant) {
+            foreach ($settingsData as $key => $value) {
+                if ($key === 'admin_passcode') {
+                    if ($value === null || $value === '') {
+                        continue;
+                    }
+                    // Only hash if not already bcrypt-hashed
+                    if (!str_starts_with((string)$value, '$2y$')) {
+                        $value = \Illuminate\Support\Facades\Hash::make($value);
+                    }
+                }
+
+                if (is_bool($value)) {
+                    $value = $value ? '1' : '0';
+                }
+                \App\Models\Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => is_array($value) ? json_encode($value) : (string) $value]
+                );
             }
 
-            if (isset($settingsData['store_name']) || isset($settingsData['business_name'])) {
-                $tenant->name = $settingsData['store_name'] ?? $settingsData['business_name'];
-                $syncNeeded = true;
-            }
+            // ── Phase 7: Sync Metadata to Tenant Model ────────────────────────────
+            if ($tenant) {
+                $syncNeeded = false;
+                
+                if (isset($settingsData['currency_code']) || isset($settingsData['currency'])) {
+                    $tenant->currency_code = $settingsData['currency_code'] ?? $settingsData['currency'];
+                    $syncNeeded = true;
+                }
+                
+                if (isset($settingsData['currency_symbol'])) {
+                    $tenant->currency_symbol = $settingsData['currency_symbol'];
+                    $syncNeeded = true;
+                }
 
-            if (isset($settingsData['timezone'])) {
-                $tenant->timezone = $settingsData['timezone'];
-                $syncNeeded = true;
-            }
+                if (isset($settingsData['store_name']) || isset($settingsData['business_name'])) {
+                    $tenant->name = $settingsData['store_name'] ?? $settingsData['business_name'];
+                    $syncNeeded = true;
+                }
 
-            if (isset($settingsData['custom_domain'])) {
-                $tenant->custom_domain = $settingsData['custom_domain'];
-                $syncNeeded = true;
-            }
+                if (isset($settingsData['timezone'])) {
+                    $tenant->timezone = $settingsData['timezone'];
+                    $syncNeeded = true;
+                }
 
-            if ($syncNeeded) {
-                $tenant->save();
+                if (isset($settingsData['custom_domain'])) {
+                    $tenant->custom_domain = $settingsData['custom_domain'];
+                    $syncNeeded = true;
+                }
+
+                if (isset($settingsData['shared_catalog_opt_out'])) {
+                    $tenant->shared_catalog_opt_out = (bool)$settingsData['shared_catalog_opt_out'];
+                    $syncNeeded = true;
+                }
+
+                if (isset($settingsData['ai_accuracy_opt_in'])) {
+                    $tenant->ai_accuracy_opt_in = (bool)$settingsData['ai_accuracy_opt_in'];
+                    $syncNeeded = true;
+                }
+
+                if ($syncNeeded) {
+                    $tenant->save();
+                }
             }
-        }
+        });
 
         // Clear settings cache
         if ($tenant) {
             \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
         }
         \Illuminate\Support\Facades\Cache::forget('settings:global');
-        SettingsHelper::clearCache();
+        \App\Helpers\SettingsHelper::clearCache();
 
         return redirect()->back()->with('success', 'Settings updated successfully');
     }

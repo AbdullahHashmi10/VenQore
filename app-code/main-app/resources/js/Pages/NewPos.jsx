@@ -156,18 +156,26 @@ export default function NewPos({
         try {
             if (settings?.tax_rates) {
                 const parsed = typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates;
-                if (Array.isArray(parsed)) list = parsed.map((t, idx) => ({ id: idx + 1, label: `${t.name || 'Tax'} (${t.rate}%)`, rate: Number(t.rate) }));
+                if (Array.isArray(parsed)) {
+                    list = parsed.map((t, idx) => ({
+                        id: t.id ?? (idx + 1),
+                        name: t.name || 'Tax',
+                        label: t.type === 'fixed' ? `${t.name || 'Tax'} (${t.rate} Fixed)` : `${t.name || 'Tax'} (${t.rate}%)`,
+                        rate: Number(t.rate),
+                        type: t.type || 'percentage'
+                    }));
+                }
             }
         } catch (_) {}
         if (!list.length) {
             list = [
-                { id: 0, label: 'No tax', rate: 0 },
-                { id: 1, label: 'GST 18%', rate: 18 },
-                { id: 2, label: 'GST 5%', rate: 5 },
-                { id: 3, label: `${tt('Services')} 15%`, rate: 15 },
+                { id: 0, label: 'No tax', rate: 0, type: 'percentage' },
+                { id: 1, label: 'GST 18%', rate: 18, type: 'percentage' },
+                { id: 2, label: 'GST 5%', rate: 5, type: 'percentage' },
+                { id: 3, label: `${tt('Services')} 15%`, rate: 15, type: 'percentage' },
             ];
         }
-        if (!list.some((t) => t.rate === 0)) list.unshift({ id: 0, label: 'No tax', rate: 0 });
+        if (!list.some((t) => t.rate === 0)) list.unshift({ id: 0, label: 'No tax', rate: 0, type: 'percentage' });
         return list;
     }, [settings?.tax_rates]);
 

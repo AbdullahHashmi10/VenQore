@@ -13,7 +13,7 @@ import SystemSettingsSection from '@/Components/SystemSettingsSection';
 import DangerSettingsSection from '@/Components/DangerSettingsSection';
 import TerminalPairingSection from '@/Components/Settings/TerminalPairingSection';
 import {
- Settings, Building2, Globe, Bell, Shield, Database, Mail, Printer,
+ Settings, Building2, Globe, Bell, Shield, ShieldCheck, Database, Mail, Printer,
  CreditCard, Clock, Save, Check, RefreshCw, AlertTriangle, FileText,
  ChevronRight, Palette, Lock, Wifi, HardDrive, Trash2, Download,
  Upload, Key, Percent, MessageSquare, Users, Package, Plus, Search,
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import Toggle from '@/Components/Toggle';
 import SectionHeader from '@/Components/SectionHeader';
+import ApprovalsSection from '@/Components/Settings/ApprovalsSection';
 
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
@@ -44,7 +45,7 @@ const SETTINGS_CATEGORIES = [
  id: 'adv',
  name: 'Advanced',
  icon: Sparkles,
- sections: ['security', 'terminals', 'ai_integrations', 'backup']
+ sections: ['security', 'approvals', 'terminals', 'ai_integrations', 'backup']
  },
  {
  id: 'zone',
@@ -67,6 +68,7 @@ const SETTINGS_SECTIONS = [
  { id: 'reminders', name: 'Reminders', icon: Clock, description: 'Service and payment alerts' },
  { id: 'accounting', name: 'Accounting', icon: BookOpen, description: 'Ledgers, depreciation & fiscal year' },
  { id: 'security', name: 'Security & SSO', icon: Shield, description: 'Access control, 2FA & SAML Single Sign-On' },
+  { id: 'approvals', name: 'Approvals & Governance', icon: ShieldCheck, description: 'Maker-checker approval policies and thresholds' },
  { id: 'terminals', name: 'Terminals', icon: Smartphone, description: 'Pair VenQore Station devices' },
  { id: 'ai_integrations', name: 'AI & Integrations', icon: Sparkles, description: 'Gemini, OpenAI, FBR & Stripe' },
  { id: 'backup', name: 'Backup & Data', icon: Database, description: 'Now lives in the Data & Backup hub' },
@@ -104,6 +106,23 @@ export default function AdminSettings({ settings = {} }) {
  const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(settings.pos_return_mode === 'open');
  const [pendingSectionId, setPendingSectionId] = useState(null);
  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+ const [reminderSearch, setReminderSearch] = useState('');
+
+ const safeInt = (val, fallback) => {
+  const parsed = parseInt(val, 10);
+  return !isNaN(parsed) ? parsed : fallback;
+ };
+
+ const safeParseJson = (value, fallback) => {
+  if (!value) return fallback;
+  if (typeof value !== 'string') return Array.isArray(value) ? value : fallback;
+  try {
+   const parsed = JSON.parse(value);
+   return Array.isArray(parsed) ? parsed : fallback;
+  } catch (e) {
+   return fallback;
+  }
+ };
 
  const toggleCategory = (catId) => {
  setExpandedCategories(prev =>
@@ -135,198 +154,229 @@ export default function AdminSettings({ settings = {} }) {
  };
 
  const { data, setData, post, processing, isDirty, reset } = useForm({
- // Business
- business_name: settings.business_name || 'VENQORE',
- business_email: settings.business_email || '',
- business_phone: settings.business_phone || '',
- business_address: settings.business_address || '',
- tax_number: settings.tax_number || '',
- currency: settings.currency || 'PKR',
- currency_symbol: settings.currency_symbol || '',
- timezone: settings.timezone || 'Asia/Karachi',
+    // Business
+    business_name: settings.business_name || 'VENQORE',
+    business_email: settings.business_email || '',
+    business_phone: settings.business_phone || '',
+    business_address: settings.business_address || '',
+    tax_number: settings.tax_number || '',
+    currency: settings.currency || 'PKR',
+    currency_symbol: settings.currency_symbol || '',
+    timezone: settings.timezone || 'Asia/Karachi',
 
- // General
- enable_passcode: settings.enable_passcode === '1' || settings.enable_passcode === true,
- admin_passcode: settings.admin_passcode || '',
- decimal_places: settings.decimal_places || 2,
- stop_sale_negative_stock: settings.stop_sale_negative_stock === '1' || settings.stop_sale_negative_stock === true,
- multi_firm_enabled: settings.multi_firm_enabled === '1' || settings.multi_firm_enabled === true,
- ui_scale: settings.ui_scale || 100,
+    // General
+    enable_passcode: settings.enable_passcode === '1' || settings.enable_passcode === true,
+    admin_passcode: settings.admin_passcode || '',
+    decimal_places: safeInt(settings.decimal_places, 2),
+    stop_sale_negative_stock: settings.stop_sale_negative_stock === '1' || settings.stop_sale_negative_stock === true,
+    multi_firm_enabled: settings.multi_firm_enabled === '1' || settings.multi_firm_enabled === true,
+    ui_scale: safeInt(settings.ui_scale, 100),
 
- // AI
- ai_provider: settings.ai_provider || 'gemini',
- openai_api_key: settings.openai_api_key || '',
- ai_model: settings.ai_model || 'gemini-2.5-flash',
+    // AI
+    ai_provider: settings.ai_provider || 'gemini',
+    openai_api_key: settings.openai_api_key || '',
+    ai_model: settings.ai_model || 'gemini-2.5-flash',
+    shared_catalog_opt_out: Boolean(store?.shared_catalog_opt_out ?? (settings.shared_catalog_opt_out === '1' || settings.shared_catalog_opt_out === true)),
+    ai_accuracy_opt_in: Boolean(store?.ai_accuracy_opt_in ?? (settings.ai_accuracy_opt_in === '1' || settings.ai_accuracy_opt_in === true)),
 
- // Transaction
- invoice_number_enabled: settings.invoice_number_enabled !== '0',
- cash_sale_default: settings.cash_sale_default === '1' || settings.cash_sale_default === true,
- round_off_total: settings.round_off_total || 'none',
- billing_type: settings.billing_type || 'full',
- sale_prefix: settings.sale_prefix || 'INV-',
- purchase_prefix: settings.purchase_prefix || 'PUR-',
+    // Transaction
+    invoice_number_enabled: settings.invoice_number_enabled !== '0',
+    cash_sale_default: settings.cash_sale_default === '1' || settings.cash_sale_default === true,
+    round_off_total: settings.round_off_total || 'none',
+    billing_type: settings.billing_type || 'full',
+    sale_prefix: settings.sale_prefix || 'INV-',
+    purchase_prefix: settings.purchase_prefix || 'PUR-',
 
- // Print - Regular Printer Settings
- print_header_all_pages: settings.print_header_all_pages !== '0',
- paper_size: settings.paper_size || 'A4',
- paper_orientation: settings.paper_orientation || 'Portrait',
- print_logo: settings.print_logo !== '0',
- print_logo_path: settings.print_logo_path || null,
- print_logo_file: null,
- print_signature_text: settings.print_signature_text || 'Authorized Signatory',
- print_theme: settings.print_theme || 'modern',
- print_company_text_size: settings.print_company_text_size || '4',
- print_invoice_text_size: settings.print_invoice_text_size || '3',
- print_original_copy: settings.print_original_copy === '1',
- margin_top: parseInt(settings.margin_top) || 20,
- margin_bottom: parseInt(settings.margin_bottom) || 20,
- margin_left: parseInt(settings.margin_left) || 20,
- margin_right: parseInt(settings.margin_right) || 20,
- custom_paper_width: parseInt(settings.custom_paper_width) || 210,
- custom_paper_height: parseInt(settings.custom_paper_height) || 297,
- print_theme_color: settings.print_theme_color || vq.indigo[600],
- print_extra_space_top: parseInt(settings.print_extra_space_top) || 0,
- print_min_item_rows: parseInt(settings.print_min_item_rows) || 5,
+    // Print - Regular Printer Settings
+    print_header_all_pages: settings.print_header_all_pages !== '0',
+    paper_size: settings.paper_size || 'A4',
+    paper_orientation: settings.paper_orientation || 'Portrait',
+    print_logo: settings.print_logo !== '0',
+    print_logo_path: settings.print_logo_path || null,
+    print_logo_file: null,
+    print_signature_text: settings.print_signature_text || 'Authorized Signatory',
+    print_theme: settings.print_theme || 'modern',
+    print_company_text_size: settings.print_company_text_size || '4',
+    print_invoice_text_size: settings.print_invoice_text_size || '3',
+    print_original_copy: settings.print_original_copy === '1',
+    margin_top: safeInt(settings.margin_top, 20),
+    margin_bottom: safeInt(settings.margin_bottom, 20),
+    margin_left: safeInt(settings.margin_left, 20),
+    margin_right: safeInt(settings.margin_right, 20),
+    custom_paper_width: safeInt(settings.custom_paper_width, 210),
+    custom_paper_height: safeInt(settings.custom_paper_height, 297),
+    print_theme_color: settings.print_theme_color || vq.indigo[600],
+    print_extra_space_top: safeInt(settings.print_extra_space_top, 0),
+    print_min_item_rows: safeInt(settings.print_min_item_rows, 5),
 
- // Print - Column Toggles (Regular)
- print_show_sno: settings.print_show_sno !== '0',
- print_show_units: settings.print_show_units !== '0',
- print_show_mrp: settings.print_show_mrp === '1',
- print_show_description: settings.print_show_description !== '0',
- print_show_hsn: settings.print_show_hsn === '1',
- print_show_discount: settings.print_show_discount === '1' || settings.print_show_discount === true,
- print_show_free_qty: settings.print_show_free_qty === '1' || settings.print_show_free_qty === true,
+    // Print - Column Toggles (Regular)
+    print_show_sno: settings.print_show_sno !== '0',
+    print_show_units: settings.print_show_units !== '0',
+    print_show_mrp: settings.print_show_mrp === '1',
+    print_show_description: settings.print_show_description !== '0',
+    print_show_hsn: settings.print_show_hsn === '1',
+    print_show_discount: settings.print_show_discount === '1' || settings.print_show_discount === true,
+    print_show_free_qty: settings.print_show_free_qty === '1' || settings.print_show_free_qty === true,
+    print_show_delivery_charge: settings.print_show_delivery_charge !== '0' && settings.print_show_delivery_charge !== false,
+    print_show_extra_charge: settings.print_show_extra_charge !== '0' && settings.print_show_extra_charge !== false,
+    print_qr_code: settings.print_qr_code !== '0' && settings.print_qr_code !== false,
 
- // Print - Totals & Footer (Regular)
- print_total_quantity: settings.print_total_quantity !== '0',
- print_amount_decimal: settings.print_amount_decimal !== '0',
- print_received_amount: settings.print_received_amount !== '0',
- print_balance_amount: settings.print_balance_amount !== '0',
- print_party_balance: settings.print_party_balance === '1' || settings.print_party_balance === true,
- print_tax_details: settings.print_tax_details !== '0',
- print_you_saved: settings.print_you_saved === '1' || settings.print_you_saved === true,
- print_show_previous_balance: settings.print_show_previous_balance === '1' || settings.print_show_previous_balance === true,
- print_amount_grouping: settings.print_amount_grouping !== '0',
- print_amount_words: settings.print_amount_words || '0',
- print_description: settings.print_description !== '0',
- print_terms: settings.print_terms || '',
- print_received_by: settings.print_received_by === '1' || settings.print_received_by === true,
- print_delivered_by: settings.print_delivered_by === '1' || settings.print_delivered_by === true,
- print_payment_mode: settings.print_payment_mode !== '0',
- print_acknowledgement: settings.print_acknowledgement === '1' || settings.print_acknowledgement === true,
+    // Print - Totals & Footer (Regular)
+    print_total_quantity: settings.print_total_quantity !== '0',
+    print_amount_decimal: settings.print_amount_decimal !== '0',
+    print_received_amount: settings.print_received_amount !== '0',
+    print_balance_amount: settings.print_balance_amount !== '0',
+    print_party_balance: settings.print_party_balance === '1' || settings.print_party_balance === true,
+    print_tax_details: settings.print_tax_details !== '0',
+    print_you_saved: settings.print_you_saved === '1' || settings.print_you_saved === true,
+    print_show_previous_balance: settings.print_show_previous_balance === '1' || settings.print_show_previous_balance === true,
+    print_amount_grouping: settings.print_amount_grouping !== '0',
+    print_amount_words: settings.print_amount_words || '0',
+    print_description: settings.print_description !== '0',
+    print_terms: settings.print_terms || '',
+    print_received_by: settings.print_received_by === '1' || settings.print_received_by === true,
+    print_delivered_by: settings.print_delivered_by === '1' || settings.print_delivered_by === true,
+    print_payment_mode: settings.print_payment_mode !== '0',
+    print_acknowledgement: settings.print_acknowledgement === '1' || settings.print_acknowledgement === true,
 
- // Print - Thermal Printer Settings
- default_print_type: settings.default_print_type || 'regular', // 'regular' or 'thermal'
- thermal_page_size: settings.thermal_page_size || '3inch',
- thermal_custom_chars: parseInt(settings.thermal_custom_chars) || 48,
- thermal_use_bold: settings.thermal_use_bold !== '0',
- thermal_auto_cut: settings.thermal_auto_cut !== '0',
- thermal_open_drawer: settings.thermal_open_drawer === '1' || settings.thermal_open_drawer === true,
- thermal_extra_lines: parseInt(settings.thermal_extra_lines) || 3,
- thermal_copies: parseInt(settings.thermal_copies) || 1,
- thermal_font_size: parseInt(settings.thermal_font_size) || 12, // Font size in pt
+    // Print - Thermal Printer Settings
+    default_print_type: settings.default_print_type || 'regular',
+    thermal_page_size: settings.thermal_page_size || '3inch',
+    thermal_custom_chars: safeInt(settings.thermal_custom_chars, 48),
+    thermal_use_bold: settings.thermal_use_bold !== '0',
+    thermal_auto_cut: settings.thermal_auto_cut !== '0',
+    thermal_open_drawer: settings.thermal_open_drawer === '1' || settings.thermal_open_drawer === true,
+    thermal_extra_lines: safeInt(settings.thermal_extra_lines, 3),
+    thermal_copies: safeInt(settings.thermal_copies, 1),
+    thermal_font_size: safeInt(settings.thermal_font_size, 12),
 
- // Print - Column Toggles (Thermal)
- thermal_show_headers: settings.thermal_show_headers === '1' || settings.thermal_show_headers === true,
- thermal_show_sno: settings.thermal_show_sno === '1' || settings.thermal_show_sno === true,
- thermal_show_units: settings.thermal_show_units === '1' || settings.thermal_show_units === true,
- thermal_show_mrp: settings.thermal_show_mrp === '1' || settings.thermal_show_mrp === true,
- thermal_show_description: settings.thermal_show_description === '1' || settings.thermal_show_description === true,
- thermal_show_batch: settings.thermal_show_batch === '1' || settings.thermal_show_batch === true,
- thermal_show_expiry: settings.thermal_show_expiry === '1' || settings.thermal_show_expiry === true,
- thermal_show_mfg_date: settings.thermal_show_mfg_date === '1' || settings.thermal_show_mfg_date === true,
- thermal_show_size: settings.thermal_show_size === '1' || settings.thermal_show_size === true,
- thermal_show_model: settings.thermal_show_model === '1' || settings.thermal_show_model === true,
- thermal_show_serial: settings.thermal_show_serial === '1' || settings.thermal_show_serial === true,
- thermal_show_barcode: settings.thermal_show_barcode !== '0', // Default On
- thermal_custom_footer: settings.thermal_custom_footer || '',
+    // Print - Column Toggles (Thermal)
+    thermal_show_headers: settings.thermal_show_headers === '1' || settings.thermal_show_headers === true,
+    thermal_show_sno: settings.thermal_show_sno === '1' || settings.thermal_show_sno === true,
+    thermal_show_units: settings.thermal_show_units === '1' || settings.thermal_show_units === true,
+    thermal_show_mrp: settings.thermal_show_mrp === '1' || settings.thermal_show_mrp === true,
+    thermal_show_description: settings.thermal_show_description === '1' || settings.thermal_show_description === true,
+    thermal_show_batch: settings.thermal_show_batch === '1' || settings.thermal_show_batch === true,
+    thermal_show_expiry: settings.thermal_show_expiry === '1' || settings.thermal_show_expiry === true,
+    thermal_show_mfg_date: settings.thermal_show_mfg_date === '1' || settings.thermal_show_mfg_date === true,
+    thermal_show_size: settings.thermal_show_size === '1' || settings.thermal_show_size === true,
+    thermal_show_model: settings.thermal_show_model === '1' || settings.thermal_show_model === true,
+    thermal_show_serial: settings.thermal_show_serial === '1' || settings.thermal_show_serial === true,
+    thermal_show_barcode: settings.thermal_show_barcode !== '0',
+    thermal_custom_footer: settings.thermal_custom_footer || '',
 
- // Messages
- whatsapp_enabled: settings.whatsapp_enabled === '1' || settings.whatsapp_enabled === true,
- sms_to_party: settings.sms_to_party === '1' || settings.sms_to_party === true,
- auto_send_sales: settings.auto_send_sales !== '0',
+    // Messages
+    whatsapp_enabled: settings.whatsapp_enabled === '1' || settings.whatsapp_enabled === true,
+    sms_to_party: settings.sms_to_party === '1' || settings.sms_to_party === true,
+    auto_send_sales: settings.auto_send_sales !== '0',
 
- // Party
- party_grouping: settings.party_grouping === '1' || settings.party_grouping === true,
- loyalty_enabled: settings.loyalty_enabled === '1' || settings.loyalty_enabled === true,
- enable_credit_limit: settings.enable_credit_limit !== '0', // Default On
- payment_reminder_days: settings.payment_reminder_days || 7,
- payment_reminders: settings.payment_reminders === '1' || settings.payment_reminders === true,
+    // Party
+    party_grouping: settings.party_grouping === '1' || settings.party_grouping === true,
+    loyalty_enabled: settings.loyalty_enabled === '1' || settings.loyalty_enabled === true,
+    enable_credit_limit: settings.enable_credit_limit !== '0',
+    payment_reminder_days: safeInt(settings.payment_reminder_days, 7),
+    payment_reminders: settings.payment_reminders === '1' || settings.payment_reminders === true,
 
- // Item
- stock_maintenance: settings.stock_maintenance !== '0',
- barcode_scan_enabled: settings.barcode_scan_enabled === '1' || settings.barcode_scan_enabled === true,
- batch_tracking_enabled: settings.batch_tracking_enabled === '1' || settings.batch_tracking_enabled === true,
- wholesale_price_enabled: settings.wholesale_price_enabled === '1' || settings.wholesale_price_enabled === true,
+    // Item
+    stock_maintenance: settings.stock_maintenance !== '0',
+    barcode_scan_enabled: settings.barcode_scan_enabled === '1' || settings.barcode_scan_enabled === true,
+    batch_tracking_enabled: settings.batch_tracking_enabled === '1' || settings.batch_tracking_enabled === true,
+    wholesale_price_enabled: settings.wholesale_price_enabled === '1' || settings.wholesale_price_enabled === true,
 
- // System/Security
- language: settings.language || 'en',
- date_format: settings.date_format || 'DD/MM/YYYY',
- low_stock_threshold: settings.low_stock_threshold || 10,
- auto_logout: settings.auto_logout || 30,
- email_notifications: settings.email_notifications !== '0',
- two_factor_auth: settings.two_factor_auth === '1' || settings.two_factor_auth === true,
- auto_backup: settings.auto_backup !== '0',
- dark_mode_default: settings.dark_mode_default === '1' || settings.dark_mode_default === true,
- header_calculator_enabled: settings.header_calculator_enabled === '1' ? '1' : '0',
- low_stock_alerts: settings.low_stock_alerts !== '0',
- daily_sales_summary: settings.daily_sales_summary === '1',
- fiscal_year_start: settings.fiscal_year_start || '2025-01-01',
+    // System/Security
+    language: settings.language || 'en',
+    date_format: settings.date_format || 'DD/MM/YYYY',
+    low_stock_threshold: safeInt(settings.low_stock_threshold, 10),
+    auto_logout: safeInt(settings.auto_logout, 30),
+    email_notifications: settings.email_notifications !== '0',
+    two_factor_auth: settings.two_factor_auth === '1' || settings.two_factor_auth === true,
+    auto_backup: settings.auto_backup !== '0',
+    dark_mode_default: settings.dark_mode_default === '1' || settings.dark_mode_default === true,
+    header_calculator_enabled: settings.header_calculator_enabled === '1' ? '1' : '0',
+    low_stock_alerts: settings.low_stock_alerts !== '0',
+    daily_sales_summary: settings.daily_sales_summary === '1',
+    fiscal_year_start: settings.fiscal_year_start || '2025-01-01',
 
- // POS Specific (from general settings)
- pos_auto_fill_cash: settings.pos_auto_fill_cash === '1' || settings.pos_auto_fill_cash === true,
- senior_mode: settings.senior_mode === '1' || settings.senior_mode === true,
- fbr_integration: settings.fbr_integration === '1' || settings.fbr_integration === true,
- fbr_pos_id: settings.fbr_pos_id || '',
- fbr_usin: settings.fbr_usin || '',
- show_margin_percentage: settings.show_margin_percentage === '1' || settings.show_margin_percentage === true,
- charity_enabled: settings.charity_enabled === '1' || settings.charity_enabled === true,
- pos_return_mode: settings.pos_return_mode || 'reference',
- pos_return_window: settings.pos_return_window || '',
- pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
- default_tax_rate: settings.default_tax_rate || '0',
+    // POS Specific
+    pos_auto_fill_cash: settings.pos_auto_fill_cash === '1' || settings.pos_auto_fill_cash === true,
+    senior_mode: settings.senior_mode === '1' || settings.senior_mode === true,
+    fbr_integration: settings.fbr_integration === '1' || settings.fbr_integration === true,
+    fbr_pos_id: settings.fbr_pos_id || '',
+    fbr_usin: settings.fbr_usin || '',
+    show_margin_percentage: settings.show_margin_percentage === '1' || settings.show_margin_percentage === true,
+    charity_enabled: settings.charity_enabled === '1' || settings.charity_enabled === true,
+    pos_return_mode: settings.pos_return_mode || 'reference',
+    pos_return_window: settings.pos_return_window || '',
+    pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
+    default_tax_rate: settings.default_tax_rate || '0',
 
- // Third Party Integrations
- whatsapp_api_url: settings.whatsapp_api_url || '',
- whatsapp_access_token: settings.whatsapp_access_token || '',
- whatsapp_phone_number_id: settings.whatsapp_phone_number_id || '',
+    // Third Party Integrations
+    whatsapp_api_url: settings.whatsapp_api_url || '',
+    whatsapp_access_token: settings.whatsapp_access_token || '',
+    whatsapp_phone_number_id: settings.whatsapp_phone_number_id || '',
 
- stripe_publishable_key: settings.stripe_publishable_key || '',
- stripe_secret_key: settings.stripe_secret_key || '',
- stripe_webhook_secret: settings.stripe_webhook_secret || '',
- stripe_enabled: settings.stripe_enabled === '1' || settings.stripe_enabled === true,
+    stripe_publishable_key: settings.stripe_publishable_key || '',
+    stripe_secret_key: settings.stripe_secret_key || '',
+    stripe_webhook_secret: settings.stripe_webhook_secret || '',
+    stripe_enabled: settings.stripe_enabled === '1' || settings.stripe_enabled === true,
 
- woocommerce_url: settings.woocommerce_url || '',
- woocommerce_consumer_key: settings.woocommerce_consumer_key || '',
- woocommerce_consumer_secret: settings.woocommerce_consumer_secret || '',
- woocommerce_enabled: settings.woocommerce_enabled === '1' || settings.woocommerce_enabled === true,
+    woocommerce_url: settings.woocommerce_url || '',
+    woocommerce_consumer_key: settings.woocommerce_consumer_key || '',
+    woocommerce_consumer_secret: settings.woocommerce_consumer_secret || '',
+    woocommerce_enabled: settings.woocommerce_enabled === '1' || settings.woocommerce_enabled === true,
 
- // Store & Domain
- custom_domain: settings.custom_domain || store?.custom_domain || '',
- product_cost_update_policy: settings.product_cost_update_policy || 'never',
+    // Store & Domain
+    custom_domain: settings.custom_domain || store?.custom_domain || '',
+    product_cost_update_policy: settings.product_cost_update_policy || 'never',
 
- // Invoice Styling & Margin Display
- invoice_theme: settings.invoice_theme || 'classic',
- invoice_primary_color: settings.invoice_primary_color || 'rgb(var(--vq-indigo-600))',
- show_margin_on_invoice: settings.show_margin_on_invoice === '1' || settings.show_margin_on_invoice === true,
+    // Invoice Styling & Margin Display
+    invoice_theme: settings.invoice_theme || 'classic',
+    invoice_primary_color: settings.invoice_primary_color && !settings.invoice_primary_color.includes('var(') ? settings.invoice_primary_color : '#4f46e5',
+    show_margin_on_invoice: settings.show_margin_on_invoice === '1' || settings.show_margin_on_invoice === true,
 
- // SSO / SAML
- sso_enabled: settings.sso_enabled === '1' || settings.sso_enabled === true,
- sso_idp_entity_id: settings.sso_idp_entity_id || '',
- sso_url: settings.sso_url || '',
- sso_certificate: settings.sso_certificate || '',
+    // SSO / SAML
+    sso_enabled: settings.sso_enabled === '1' || settings.sso_enabled === true,
+    sso_idp_entity_id: settings.sso_idp_entity_id || '',
+    sso_url: settings.sso_url || '',
+    sso_certificate: settings.sso_certificate || '',
 
- // Managed Lists
- tax_rates: settings.tax_rates ? (typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates) : [
- { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
- { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
- ],
- service_reminders: settings.service_reminders ? (typeof settings.service_reminders === 'string' ? JSON.parse(settings.service_reminders) : settings.service_reminders) : [],
- });
+    // Approvals & Dual Control
+    approval_admin_enabled: settings.approval_admin_enabled === '1' || settings.approval_admin_enabled === true,
+    approval_strict_owner_separation: settings.approval_strict_owner_separation === '1' || settings.approval_strict_owner_separation === true,
+    approval_default_employee_mode: settings.approval_default_employee_mode || 'inherit',
+    approval_amount_threshold: settings.approval_amount_threshold || '0',
+    approval_policy_customer_receipt: settings.approval_policy_customer_receipt || 'inherit',
+    approval_threshold_customer_receipt: settings.approval_threshold_customer_receipt || '',
+    approval_policy_supplier_payment: settings.approval_policy_supplier_payment || 'inherit',
+    approval_threshold_supplier_payment: settings.approval_threshold_supplier_payment || '',
+    approval_policy_operating_expense: settings.approval_policy_operating_expense || 'inherit',
+    approval_threshold_operating_expense: settings.approval_threshold_operating_expense || '',
+    approval_policy_sales_invoice: settings.approval_policy_sales_invoice || 'inherit',
+    approval_threshold_sales_invoice: settings.approval_threshold_sales_invoice || '',
+    approval_policy_supplier_refund: settings.approval_policy_supplier_refund || 'inherit',
+    approval_threshold_supplier_refund: settings.approval_threshold_supplier_refund || '',
+    approval_policy_purchase_posting: settings.approval_policy_purchase_posting || 'inherit',
+    approval_threshold_purchase_posting: settings.approval_threshold_purchase_posting || '',
+    approval_policy_sales_return: settings.approval_policy_sales_return || 'inherit',
+    approval_threshold_sales_return: settings.approval_threshold_sales_return || '',
+    approval_policy_purchase_return: settings.approval_policy_purchase_return || 'inherit',
+    approval_threshold_purchase_return: settings.approval_threshold_purchase_return || '',
+    approval_policy_capital_injection: settings.approval_policy_capital_injection || 'inherit',
+    approval_threshold_capital_injection: settings.approval_threshold_capital_injection || '',
+    approval_policy_owner_drawings: settings.approval_policy_owner_drawings || 'inherit',
+    approval_threshold_owner_drawings: settings.approval_threshold_owner_drawings || '',
+    approval_policy_fund_transfer: settings.approval_policy_fund_transfer || 'inherit',
+    approval_threshold_fund_transfer: settings.approval_threshold_fund_transfer || '',
 
+    // Managed Lists
+    tax_rates: safeParseJson(settings.tax_rates, [
+      { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
+      { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
+    ]),
+    service_reminders: safeParseJson(settings.service_reminders, []),
+  });
 
-
- const saveSettings = (code) => {
+  const saveSettings = (code) => {
  post(route('store.settings.update', { store_slug: store?.slug }), {
  onSuccess: () => {
  setSaved(true);
@@ -702,7 +752,7 @@ export default function AdminSettings({ settings = {} }) {
  Greetings from <span className="text-brand-500 font-bold">[Firm_Name]</span>. Your invoice for <span className="text-brand-500 font-bold">[Invoice_Amount]</span> is ready. View here: [Link]
  </div>
  <div className="mt-4 flex items-center justify-between">
- <button className="text-brand-600 text-sm font-bold flex items-center gap-2 hover:underline"><Palette size={16} /> Customize Template</button>
+ <button type="button" onClick={() => alert("Custom SMS/WhatsApp templates can be modified per message template.")} className="text-brand-600 text-sm font-bold flex items-center gap-2 hover:underline"><Palette size={16} /> Customize Template</button>
  <Toggle enabled={data.whatsapp_enabled} onChange={v => setData('whatsapp_enabled', v)} label="Enable WhatsApp" />
  </div>
  </div>
@@ -828,7 +878,10 @@ export default function AdminSettings({ settings = {} }) {
  </div>
  );
 
- case 'security':
+ case 'approvals':
+      return <ApprovalsSection data={data} setData={setData} store={store} />;
+
+    case 'security':
  return <SystemSettingsSection data={data} setData={setData} activeSubSection="security" />;
 
  case 'terminals':
@@ -874,7 +927,7 @@ export default function AdminSettings({ settings = {} }) {
  <div className="p-4 bg-sunken border-b border-line flex items-center justify-between">
  <div className="relative flex-1 max-w-md">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
- <input type="text" placeholder={tt('Search services for reminder...')} className="w-full pl-10 pr-4 py-2 bg-surface border border-line dark:border-line rounded-xl text-sm outline-none" />
+ <input type="text" value={reminderSearch} onChange={e => setReminderSearch(e.target.value)} placeholder={tt('Search services for reminder...')} className="w-full pl-10 pr-4 py-2 bg-surface border border-line dark:border-line rounded-xl text-sm outline-none" />
  </div>
  <button
  type="button"
@@ -893,7 +946,7 @@ export default function AdminSettings({ settings = {} }) {
  </button>
  </div>
  <div className="flex-1 divide-y divide-line">
- {data.service_reminders.length > 0 ? data.service_reminders.map((reminder, idx) => (
+ {(data.service_reminders || []).filter(r => (r.name || "").toLowerCase().includes(reminderSearch.toLowerCase())).length > 0 ? (data.service_reminders || []).filter(r => (r.name || "").toLowerCase().includes(reminderSearch.toLowerCase())).map((reminder, idx) => (
  <div key={reminder.id} className="p-4 flex items-center justify-between hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
  <div className="flex items-center gap-4 flex-1">
  <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center text-ink-muted">
@@ -940,12 +993,14 @@ export default function AdminSettings({ settings = {} }) {
  </div>
  </div>
  <button
- onClick={() => {
- const newItems = data.service_reminders.filter(r => r.id !== reminder.id);
- setData('service_reminders', newItems);
- }}
- className="p-2 text-neutral-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
- >
+                    type="button"
+                    aria-label={tt('Delete reminder')}
+                    onClick={() => {
+                      const newItems = data.service_reminders.filter(r => r.id !== reminder.id);
+                      setData('service_reminders', newItems);
+                    }}
+                    className="p-2 text-neutral-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  >
  <Trash2 size={16} />
  </button>
  </div>

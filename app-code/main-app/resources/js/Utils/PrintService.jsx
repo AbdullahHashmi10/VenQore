@@ -72,7 +72,13 @@ class PrintService {
             console.log(`[PrintService] Thermal @page → ${widthMm}mm x 297mm`);
         } else {
             const orient = data.paper_orientation === 'Landscape' ? 'landscape' : 'portrait';
-            pageDeclaration = `size: ${data.paper_size || 'A4'} ${orient};`;
+            if (data.paper_size === 'Custom') {
+                const w = parseFloat(data.custom_paper_width) || 210;
+                const h = parseFloat(data.custom_paper_height) || 297;
+                pageDeclaration = orient === 'landscape' ? `size: ${h}mm ${w}mm;` : `size: ${w}mm ${h}mm;`;
+            } else {
+                pageDeclaration = `size: ${data.paper_size || 'A4'} ${orient};`;
+            }
         }
 
         const html = this._buildHtml(previewHtml, allStyles, pageDeclaration, sale, isThermal, data);
@@ -217,6 +223,7 @@ class PrintService {
             print_show_hsn:         b(raw.print_show_hsn, false),
             print_show_discount:    b(raw.print_show_discount, false),
             print_show_free_qty:    b(raw.print_show_free_qty, false),
+            print_qr_code:             b(raw.print_qr_code, true),
             print_show_delivery_charge: b(raw.print_show_delivery_charge, true),
             print_show_extra_charge:    b(raw.print_show_extra_charge, true),
 
@@ -461,7 +468,7 @@ class PrintService {
             tax:           formatNumber(sale.tax || sale.tax_amount || 0),
             discount:      formatNumber(sale.discount || 0),
             total:         formatNumber(sale.total || sale.total_amount),
-            paidAmount:    formatNumber(sale.paid || sale.amount_paid || sale.total),
+            paidAmount:    formatNumber(sale.paid ?? sale.amount_paid ?? 0),
             changeAmount:  formatNumber(sale.change || 0),
             balanceAmount: formatNumber(sale.balance || 0),
             footerMessage: settings.print_terms || settings.thermal_custom_footer || 'Thank you!',

@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
 import React from 'react';
 import { Sparkles, Check, AlertTriangle, Globe } from 'lucide-react';
@@ -197,7 +198,7 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
  onChange={(e) => {
  const checked = e.target.checked;
  setData('shared_catalog_opt_out', checked);
- const { router } = require('@inertiajs/react');
+ // router is imported at top level
  router.post(route('store.settings.data-privacy.update'), {
  shared_catalog_opt_out: checked,
  ai_accuracy_opt_in: !!data.ai_accuracy_opt_in
@@ -218,7 +219,7 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
  onChange={(e) => {
  const checked = e.target.checked;
  setData('ai_accuracy_opt_in', checked);
- const { router } = require('@inertiajs/react');
+ // router is imported at top level
  router.post(route('store.settings.data-privacy.update'), {
  shared_catalog_opt_out: !!data.shared_catalog_opt_out,
  ai_accuracy_opt_in: checked

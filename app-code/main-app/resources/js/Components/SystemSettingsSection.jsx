@@ -283,8 +283,8 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Toggle enabled={data.low_stock_alerts} onChange={v => setData('low_stock_alerts', v)} label="Low Stock Alerts" description="Notify when items fall below threshold" />
-                                <Toggle enabled={data.email_notifications} onChange={v => setData('email_notifications', v)} label="Email Summaries" description="Daily sales digest via email" />
-                                <Toggle enabled={data.daily_sales_summary} onChange={v => setData('daily_sales_summary', v)} label="Daily Sales Report" description="End of day push notification" />
+                                <Toggle enabled={data.email_notifications} onChange={v => setData('email_notifications', v)} label="Email Summaries" description="Periodic digest & report summaries via email" />
+                                <Toggle enabled={data.daily_sales_summary} onChange={v => setData('daily_sales_summary', v)} label="Daily Sales Report" description="End of day sales summary via email" />
                             </div>
                         </div>
                     </div>
@@ -304,7 +304,18 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Toggle enabled={false} onChange={() => {}} label="Two-Factor Authentication" description="Require code verification on login" comingSoon={true} />
+                                <div className="p-4 bg-surface rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
+      <div>
+        <h4 className="text-sm font-bold text-ink">Two-Factor Authentication (2FA)</h4>
+        <p className="text-xs text-ink-muted">Set up Authenticator App (TOTP) verification for account logins.</p>
+      </div>
+      <a
+        href="/profile#security"
+        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+      >
+        <span>Manage in Profile</span>
+      </a>
+    </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase tracking-wider text-ink-muted ml-1">Auto-Logout Timer (Minutes)</label>
                                     <input
@@ -334,7 +345,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                     enabled={data.sso_enabled === '1' || data.sso_enabled === true}
                                     onChange={v => setData('sso_enabled', v)}
                                     label="Enable SSO"
-                                    description="Allow members to sign in securely using SAML Identity Provider"
+                                    description="Enterprise feature: SAML 2.0 Identity Provider integration (requires Enterprise tier)"
                                 />
                             </div>
 

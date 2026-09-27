@@ -3,6 +3,51 @@
 <head>
 <meta charset="utf-8">
 <style>
+    @if(($theme ?? 'classic') === 'elegant')
+    body {
+        font-family: DejaVu Serif, Georgia, serif;
+        font-size: 11px;
+        color: #1a1a1a;
+        margin: 0;
+        padding: 0;
+    }
+    .page { padding: 40px; }
+    .header { display: table; width: 100%; margin-bottom: 32px; }
+    .header-left { display: table-cell; width: 60%; vertical-align: top; }
+    .header-right { display: table-cell; width: 40%; vertical-align: top; text-align: right; }
+    .company-name { font-size: 24px; font-weight: bold; color: {{ $primaryColor }}; letter-spacing: 0.5px; }
+    .invoice-title { font-size: 26px; font-weight: bold; color: #333; margin-bottom: 4px; }
+    .invoice-number { font-size: 13px; color: #666; font-style: italic; }
+    table.items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    table.items thead th {
+        background: transparent; padding: 8px 10px;
+        text-align: left; font-size: 11px; text-transform: uppercase;
+        color: {{ $primaryColor }}; border-top: 1px solid {{ $primaryColor }}; border-bottom: 2px solid {{ $primaryColor }};
+    }
+    table.items tbody td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    @elseif(($theme ?? 'classic') === 'modern')
+    body {
+        font-family: DejaVu Sans, sans-serif;
+        font-size: 12px;
+        color: #111;
+        margin: 0;
+        padding: 0;
+    }
+    .page { padding: 40px; }
+    .header { display: table; width: 100%; margin-bottom: 32px; background: #f8fafc; padding: 16px; border-radius: 8px; }
+    .header-left { display: table-cell; width: 60%; vertical-align: top; }
+    .header-right { display: table-cell; width: 40%; vertical-align: top; text-align: right; }
+    .company-name { font-size: 22px; font-weight: bold; color: #111; }
+    .invoice-title { font-size: 28px; font-weight: bold; color: {{ $primaryColor }}; margin-bottom: 4px; }
+    .invoice-number { font-size: 14px; color: #555; font-weight: bold; }
+    table.items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    table.items thead th {
+        background: {{ $primaryColor }}; padding: 9px 10px;
+        text-align: left; font-size: 11px; text-transform: uppercase;
+        color: #ffffff; font-weight: bold;
+    }
+    table.items tbody td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    @else
     body {
         font-family: DejaVu Sans, sans-serif;
         font-size: 12px;
@@ -11,45 +56,20 @@
         padding: 0;
     }
     .page { padding: 40px; }
-
-    /* Header */
     .header { display: table; width: 100%; margin-bottom: 32px; }
-    .header-left {
-        display: table-cell; width: 60%; vertical-align: top;
-    }
-    .header-right {
-        display: table-cell; width: 40%; vertical-align: top;
-        text-align: right;
-    }
+    .header-left { display: table-cell; width: 60%; vertical-align: top; }
+    .header-right { display: table-cell; width: 40%; vertical-align: top; text-align: right; }
     .company-name { font-size: 22px; font-weight: bold; color: #111; }
-    .invoice-title {
-        font-size: 28px; font-weight: bold;
-        color: {{ $primaryColor }}; margin-bottom: 4px;
-    }
+    .invoice-title { font-size: 28px; font-weight: bold; color: {{ $primaryColor }}; margin-bottom: 4px; }
     .invoice-number { font-size: 14px; color: #555; }
-
-    /* Bill To */
-    .section-label {
-        font-size: 10px; text-transform: uppercase;
-        color: #888; letter-spacing: 1px; margin-bottom: 4px;
-    }
-    .bill-to { margin-bottom: 28px; }
-
-    /* Line items table */
-    table.items {
-        width: 100%; border-collapse: collapse; margin-bottom: 24px;
-    }
+    table.items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
     table.items thead th {
         background: #f3f4f6; padding: 8px 10px;
-        text-align: left; font-size: 11px;
-        text-transform: uppercase; color: #555;
-        border-bottom: 2px solid #e5e7eb;
+        text-align: left; font-size: 11px; text-transform: uppercase;
+        color: #555; border-bottom: 2px solid #e5e7eb;
     }
-    table.items tbody td {
-        padding: 8px 10px;
-        border-bottom: 1px solid #e5e7eb;
-        vertical-align: top;
-    }
+    table.items tbody td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    @endif
     table.items tbody tr:last-child td { border-bottom: none; }
     .text-right { text-align: right; }
 
