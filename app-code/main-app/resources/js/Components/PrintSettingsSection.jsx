@@ -699,7 +699,7 @@ const TextInput = ({ label, value, onChange, placeholder }) => (
  value={value || ''}
  onChange={e => onChange(e.target.value)}
  placeholder={placeholder}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink-secondary dark:text-white"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink placeholder:text-ink-faint"
  />
  </div>
 );
@@ -711,7 +711,7 @@ const NumberInput = ({ label, value, onChange }) => (
  type="number"
  value={value || 0}
  onChange={e => onChange(parseFloat(e.target.value) || 0)}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-center"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-ink text-center"
  />
  </div>
 );
@@ -722,7 +722,7 @@ const SelectInput = ({ label, value, onChange, options }) => (
  <select
  value={value}
  onChange={e => onChange(e.target.value)}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold text-ink"
  >
  {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
  </select>

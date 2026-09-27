@@ -101,12 +101,13 @@ export default function BusinessSettingsSection({ data, setData }) {
                 </div>
 
                 {/* Regional Settings (Compact Side Panel) */}
-                <div className="col-span-12 xl:col-span-4 p-6 bg-neutral-900 text-white rounded-xl shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 rounded-full blur-[40px] translate-x-1/2 -translate-y-1/2"></div>
+                <div className="col-span-12 xl:col-span-4 p-6 bg-surface text-ink rounded-xl border border-line shadow-sm relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-6">
-                            <Globe size={18} className="text-brand-400" />
-                            <h3 className="font-bold">Regional Settings</h3>
+                            <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-lg text-brand-600">
+                                <Globe size={18} />
+                            </div>
+                            <h3 className="font-bold text-ink">Regional Settings</h3>
                         </div>
 
                         <div className="space-y-5">
@@ -132,17 +133,17 @@ export default function BusinessSettingsSection({ data, setData }) {
                                                 currency_symbol: symbolMap[newCurr] || data.currency_symbol,
                                             });
                                         }}
-                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-white appearance-none cursor-pointer hover:bg-white/20"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-app border border-line rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-ink appearance-none cursor-pointer"
                                     >
-                                        <option className="bg-neutral-800 text-white" value="PKR">PKR - Pakistani Rupee</option>
-                                        <option className="bg-neutral-800 text-white" value="USD">USD - US Dollar</option>
-                                        <option className="bg-neutral-800 text-white" value="EUR">EUR - Euro</option>
-                                        <option className="bg-neutral-800 text-white" value="GBP">GBP - British Pound</option>
-                                        <option className="bg-neutral-800 text-white" value="AED">AED - UAE Dirham</option>
-                                        <option className="bg-neutral-800 text-white" value="SAR">SAR - Saudi Riyal</option>
-                                        <option className="bg-neutral-800 text-white" value="INR">INR - Indian Rupee</option>
+                                        <option value="PKR">PKR - Pakistani Rupee</option>
+                                        <option value="USD">USD - US Dollar</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                        <option value="GBP">GBP - British Pound</option>
+                                        <option value="AED">AED - UAE Dirham</option>
+                                        <option value="SAR">SAR - Saudi Riyal</option>
+                                        <option value="INR">INR - Indian Rupee</option>
                                     </select>
-                                    <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" size={16} />
+                                    <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
                                     <ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted rotate-90 pointer-events-none" size={14} />
                                 </div>
                             </div>
@@ -154,10 +155,10 @@ export default function BusinessSettingsSection({ data, setData }) {
                                         type="text"
                                         value={data.currency_symbol}
                                         onChange={(e) => setData('currency_symbol', e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-white placeholder:text-ink-secondary"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-app border border-line rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-ink placeholder:text-ink-faint"
                                         placeholder="e.g. Rs. or $"
                                     />
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-400 font-bold text-xs">SYM</div>
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-600 dark:text-brand-400 font-bold text-xs">SYM</div>
                                 </div>
                             </div>
 
@@ -167,20 +168,20 @@ export default function BusinessSettingsSection({ data, setData }) {
                                     <select
                                         value={data.timezone}
                                         onChange={(e) => setData('timezone', e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-white appearance-none cursor-pointer hover:bg-white/20"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-app border border-line rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none transition-all text-ink appearance-none cursor-pointer"
                                     >
-                                        <option className="bg-neutral-800 text-white" value="Asia/Karachi">Asia/Karachi (PKT)</option>
-                                        <option className="bg-neutral-800 text-white" value="Asia/Dubai">Asia/Dubai (GST)</option>
-                                        <option className="bg-neutral-800 text-white" value="Asia/Riyadh">Asia/Riyadh (AST)</option>
-                                        <option className="bg-neutral-800 text-white" value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                                        <option className="bg-neutral-800 text-white" value="Europe/London">Europe/London (GMT)</option>
-                                        <option className="bg-neutral-800 text-white" value="America/New_York">America/New_York (EST)</option>
-                                        <option className="bg-neutral-800 text-white" value="America/Chicago">America/Chicago (CST)</option>
-                                        <option className="bg-neutral-800 text-white" value="America/Los_Angeles">America/Los_Angeles (PST)</option>
-                                        <option className="bg-neutral-800 text-white" value="Australia/Sydney">Australia/Sydney (AEST)</option>
-                                        <option className="bg-neutral-800 text-white" value="UTC">Universal Time (UTC)</option>
+                                        <option value="Asia/Karachi">Asia/Karachi (PKT)</option>
+                                        <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                                        <option value="Asia/Riyadh">Asia/Riyadh (AST)</option>
+                                        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                        <option value="Europe/London">Europe/London (GMT)</option>
+                                        <option value="America/New_York">America/New_York (EST)</option>
+                                        <option value="America/Chicago">America/Chicago (CST)</option>
+                                        <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                                        <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+                                        <option value="UTC">Universal Time (UTC)</option>
                                     </select>
-                                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-400 pointer-events-none" size={16} />
+                                    <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
                                     <ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted rotate-90 pointer-events-none" size={14} />
                                 </div>
                                 <p className="text-2xs text-ink-muted mt-2">

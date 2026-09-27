@@ -82,7 +82,7 @@ export default function ApprovalsSection({ data, setData, store }) {
 
           {/* Per-Document Type Controls */}
           <div className="pt-6 border-t border-line space-y-4">
-            <h4 className="text-sm font-bold text-ink-primary uppercase tracking-wider">Per-Document Approval Policies & Overrides</h4>
+            <h4 className="text-sm font-bold text-ink uppercase tracking-wider">Per-Document Approval Policies & Overrides</h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {documentTypes.map(({ key, label }) => {
@@ -92,11 +92,11 @@ export default function ApprovalsSection({ data, setData, store }) {
                 return (
                   <div key={key} className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm text-ink-primary">{label}</span>
+                      <span className="font-semibold text-sm text-ink">{label}</span>
                       <select
                         value={data[policyKey] || 'inherit'}
                         onChange={e => setData(policyKey, e.target.value)}
-                        className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium focus:ring-1 focus:ring-brand-500 outline-none"
+                        className="px-3 py-1.5 bg-surface text-ink border border-line rounded-lg text-xs font-medium focus:ring-1 focus:ring-brand-500 outline-none"
                       >
                         <option value="inherit">Inherit Policy</option>
                         <option value="required">Always Required</option>
@@ -112,7 +112,7 @@ export default function ApprovalsSection({ data, setData, store }) {
                         value={data[thresholdKey] ?? ''}
                         onChange={e => setData(thresholdKey, e.target.value)}
                         placeholder="Inherit store threshold"
-                        className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs focus:ring-1 focus:ring-brand-500 outline-none"
+                        className="w-full px-3 py-1.5 bg-surface text-ink placeholder:text-ink-faint border border-line rounded-lg text-xs focus:ring-1 focus:ring-brand-500 outline-none"
                       />
                     </div>
                   </div>
