@@ -145,6 +145,7 @@ class PrintService {
             openDrawer: options.openDrawer !== false && settings.thermal_open_drawer,
             copies:     options.copies || settings.thermal_copies || 1,
             paperWidth: settings.thermal_page_size === '2inch' ? '58mm' : '80mm',
+            autoCut:    options.autoCut !== undefined ? options.autoCut : (settings.thermal_auto_cut !== false),
         });
     }
 
