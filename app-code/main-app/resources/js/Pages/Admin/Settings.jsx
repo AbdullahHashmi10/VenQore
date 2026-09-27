@@ -3,7 +3,6 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import PasscodeModal from '@/Components/PasscodeModal';
 import PrintPreview from '@/Components/PrintPreview';
-import Swal from 'sweetalert2';
 import PrintSettingsSection from '@/Components/PrintSettingsSection';
 import BusinessSettingsSection from '@/Components/BusinessSettingsSection';
 import GeneralSettingsSection from '@/Components/GeneralSettingsSection';
@@ -103,6 +102,8 @@ export default function AdminSettings({ settings = {} }) {
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
  const [expandedCategories, setExpandedCategories] = useState(['org', 'ops', 'adv', 'zone']);
  const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(settings.pos_return_mode === 'open');
+ const [pendingSectionId, setPendingSectionId] = useState(null);
+ const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 
  const toggleCategory = (catId) => {
  setExpandedCategories(prev =>
@@ -336,36 +337,41 @@ export default function AdminSettings({ settings = {} }) {
 
  const handleSectionChange = (sectionId) => {
  if (isDirty) {
- Swal.fire({
- title: 'Unsaved Changes',
- text: 'You have unsaved changes. Do you want to save them before switching sections?',
- icon: 'warning',
- showCancelButton: true,
- showDenyButton: true,
- confirmButtonText: 'Save and Switch',
- denyButtonText: 'Discard and Switch',
- cancelButtonText: 'Cancel',
- background: vq.slate[800],
- color: '#fff',
- confirmButtonColor: vq.indigo[500],
- denyButtonColor: vq.red[500],
- }).then((result) => {
- if (result.isConfirmed) {
+ setPendingSectionId(sectionId);
+ setShowUnsavedModal(true);
+ } else {
+ setActiveSection(sectionId);
+ }
+ };
+
+ const handleSaveAndSwitch = () => {
+ const targetSection = pendingSectionId;
+ setShowUnsavedModal(false);
  post(route('store.settings.update', { store_slug: store?.slug }), {
  onSuccess: () => {
  setSaved(true);
  setTimeout(() => setSaved(false), 3000);
- setActiveSection(sectionId);
+ if (targetSection) {
+ setActiveSection(targetSection);
+ setPendingSectionId(null);
+ }
  }
  });
- } else if (result.isDenied) {
+ };
+
+ const handleDiscardAndSwitch = () => {
+ const targetSection = pendingSectionId;
+ setShowUnsavedModal(false);
  reset();
- setActiveSection(sectionId);
+ if (targetSection) {
+ setActiveSection(targetSection);
+ setPendingSectionId(null);
  }
- });
- } else {
- setActiveSection(sectionId);
- }
+ };
+
+ const handleCancelSwitch = () => {
+ setShowUnsavedModal(false);
+ setPendingSectionId(null);
  };
 
  const handleSubmit = (e) => {
@@ -1169,6 +1175,63 @@ export default function AdminSettings({ settings = {} }) {
  onSuccess={(code) => saveSettings(code)}
  settings={settings}
  />
+
+ {/* V6 Design System: Unsaved Changes Modal */}
+ {showUnsavedModal && (
+  <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+   {/* Backdrop */}
+   <div
+    className="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs transition-opacity animate-in fade-in"
+    onClick={handleCancelSwitch}
+    aria-hidden="true"
+   />
+
+   {/* Modal Card */}
+   <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="unsaved-changes-title"
+    className="relative z-10 w-full max-w-md bg-surface border border-line dark:border-brand-500/20 rounded-2xl shadow-2xl p-6 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-3 duration-fast"
+   >
+    <div className="flex flex-col items-center text-center">
+     <div className="w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 shadow-xs">
+      <AlertTriangle size={28} className="animate-pulse" />
+     </div>
+     <h3 id="unsaved-changes-title" className="text-lg font-bold text-ink dark:text-white tracking-tight">
+      Unsaved Changes
+     </h3>
+     <p className="text-sm text-ink-muted mt-2 leading-relaxed max-w-sm">
+      You have unsaved changes. Do you want to save them before switching sections?
+     </p>
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-6">
+     <button
+      type="button"
+      onClick={handleSaveAndSwitch}
+      className="order-1 sm:order-1 py-2.5 px-3 bg-gradient-brand hover:opacity-95 text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.98]"
+     >
+      <Check size={14} />
+      <span>Save & Switch</span>
+     </button>
+     <button
+      type="button"
+      onClick={handleDiscardAndSwitch}
+      className="order-2 sm:order-2 py-2.5 px-3 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
+     >
+      <span>Discard</span>
+     </button>
+     <button
+      type="button"
+      onClick={handleCancelSwitch}
+      className="order-3 sm:order-3 py-2.5 px-3 bg-surface hover:bg-interactive-hover border border-line-strong text-ink-secondary hover:text-ink dark:text-ink-muted dark:hover:text-white font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
+     >
+      <span>Cancel</span>
+     </button>
+    </div>
+   </div>
+  </div>
+ )}
  </OneGlanceLayout >
  );
 }

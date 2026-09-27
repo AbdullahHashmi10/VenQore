@@ -359,6 +359,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const [isLargeText, setIsLargeText] = useState(false);
  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+ const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
  const [expandedMenu, setExpandedMenu] = useState(null);
  const userMenuRef = useRef(null);
@@ -642,6 +643,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const visibleInvoices = (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') ? (activeInvoices || []) : [];
 	const visiblePurchases = (activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases'))) ? activePurchases : [];
 	const totalActiveOps = visibleInvoices.length + userPosSessions.length + visiblePurchases.length;
+
+	const onboardingMetrics = props.onboarding_metrics || {
+		has_products: false,
+		has_purchases: false,
+		has_sales: false,
+		has_expenses: false,
+		has_drive_sync: false
+	};
+	const setupChecklist = useMemo(() => [
+		{ key: 'inventory', label: tt('Catalog First Product'), isDone: !!onboardingMetrics.has_products },
+		{ key: 'purchase', label: 'Record First Purchase', isDone: !!onboardingMetrics.has_purchases },
+		{ key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: !!onboardingMetrics.has_sales },
+		{ key: 'expense', label: 'Record Store Expense', isDone: !!onboardingMetrics.has_expenses },
+		{ key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: !!onboardingMetrics.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected }
+	], [onboardingMetrics, store?.google_backup_enabled, store?.google_connected, tt]);
+	const setupRemainingCount = useMemo(() => setupChecklist.filter(item => !item.isDone).length, [setupChecklist]);
+	const showSetupBadge = !!(store && !store?.onboarding_completed && store?.onboarding_step && store?.onboarding_step !== 'completed' && setupRemainingCount > 0 && !store?.is_demo);
 
  const appMenuItemsRaw = [
  {
@@ -1513,7 +1531,32 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  {/* USER MENU POPUP */}
  {isUserMenuOpen && (
- <div className="absolute bottom-20 left-4 w-56 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+ <div className="absolute bottom-20 left-4 w-60 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+  {/* Setup Checklist in Profile Menu */}
+  {showSetupBadge && (
+   <button
+    onClick={() => {
+     setIsUserMenuOpen(false);
+     setIsChecklistModalOpen(true);
+    }}
+    className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex items-center justify-between group shadow-xs cursor-pointer"
+   >
+    <div className="flex items-center gap-2.5">
+     <div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs shrink-0">
+      <Sparkles size={14} className="animate-pulse" />
+     </div>
+     <div>
+      <div className="text-xs font-bold text-ink">Setup Checklist</div>
+      <div className="text-3xs font-semibold text-brand-600 dark:text-brand-400">
+       {setupRemainingCount} step{setupRemainingCount > 1 ? 's' : ''} remaining
+      </div>
+     </div>
+    </div>
+    <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
+     {setupRemainingCount}
+    </span>
+   </button>
+  )}
  						{props.auth?.my_stores_count > 1 && (
 							<button
 								onClick={() => {
@@ -1572,9 +1615,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  )}
 
  <button
- className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent hover:border-line dark:hover:border-line-strong`}
+ className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent hover:border-line dark:hover:border-line-strong relative group`}
  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+ title={showSetupBadge ? `Profile (${setupRemainingCount} setup steps remaining)` : 'Profile'}
  >
+ <div className="relative shrink-0">
  <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md ring-2 ring-white dark:ring-line">
  {(() => {
  const name = props.auth?.user?.name || '';
@@ -1586,6 +1631,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
  return email.substring(0, 2).toUpperCase();
  })()}
+ </div>
+ {showSetupBadge && (
+ <span
+ title={`${setupRemainingCount} setup steps remaining`}
+ className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-amber-500 text-white text-3xs font-extrabold rounded-full flex items-center justify-center shadow-md ring-2 ring-surface animate-pulse pointer-events-none"
+ >
+ {setupRemainingCount}
+ </span>
+ )}
  </div>
  <div className={`text-left transition-all duration-slow overflow-hidden ${showExpandedSidebar ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
  <p className="text-sm font-bold text-ink truncate max-w-[120px]">
@@ -2077,6 +2131,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
               {/* User Settings */}
               <div className="border-t border-line pt-2 space-y-1">
+                  {showSetupBadge && (
+                      <button
+                          onClick={() => {
+                              setIsMobileMenuOpen(false);
+                              setIsChecklistModalOpen(true);
+                          }}
+                          className="w-full flex items-center justify-between p-2.5 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left group"
+                      >
+                          <div className="flex items-center gap-2.5">
+                              <Sparkles size={16} className="text-brand-500 shrink-0 animate-pulse" />
+                              <span className="text-sm font-semibold">Setup Checklist</span>
+                          </div>
+                          <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
+                              {setupRemainingCount}
+                          </span>
+                      </button>
+                  )}
                   {store && (
                       <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
                           <User size={16} /> Profile Settings
@@ -2149,7 +2220,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <PwaInstallPrompt />
  <VersionChecker />
  <OnboardingDriver />
- <GlobalOnboardingWidget store={store} />
+ <GlobalOnboardingWidget
+     store={store}
+     isOpen={isChecklistModalOpen}
+     onClose={() => setIsChecklistModalOpen(false)}
+ />
  <ActivityHubModal
      isOpen={isActivityHubModalOpen}
      onClose={() => setIsActivityHubModalOpen(false)}

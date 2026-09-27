@@ -26,6 +26,13 @@
     .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
 }
 
+/* Suppress native browser password reveal and clear buttons to prevent clash with custom toggles */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
+
+
 /* ════════════════════════════════════════════════════════════════════════════
    CRITICAL CONTRAST SAFEGUARD FOR BUTTONS AND ACTION LINKS
    Guarantees that action buttons and links with text-white or on dark/brand backgrounds
