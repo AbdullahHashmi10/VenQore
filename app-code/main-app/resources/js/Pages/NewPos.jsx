@@ -273,7 +273,7 @@ export default function NewPos({
     ]));
 
     /* ── User Preferences ─────────────────────────────────────────────────── */
-    const [prefs, setPrefs] = useState(() => loadPrefs(userId));
+    const [prefs, setPrefs] = useState(() => loadPrefs(userId, undefined, settings));
     useEffect(() => savePrefs(userId, prefs), [prefs, userId]);
 
     /* ── Viewport & Layout Law Composition ─────────────────────────────────── */

@@ -520,6 +520,13 @@ class AdminController extends Controller
                     }
                 }
 
+                if (!empty($challenge) && !$isValid) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid administrator passcode provided.',
+                    ], 403);
+                }
+
                 $user = auth()->user();
                 $tenant = app('current.tenant');
                 $tenantMembership = $tenant && $user ? \App\Models\TenantUser::where('tenant_id', $tenant->id)->where('user_id', $user->id)->first() : null;

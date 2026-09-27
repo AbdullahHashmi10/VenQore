@@ -218,5 +218,59 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
 
         expect(rendered).toBe('Greetings from AMD Store. Invoice INV-1002 for PKR 2,500.00 is ready. Link: https://pos.test/s/amd/sales/5');
     });
+
+    it('repeats print markup accurately for requested copy count in PrintService (P03)', () => {
+        const preview = '<div class="receipt">Receipt Content</div>';
+        const singleCopy = PrintService._buildHtml(preview, '', '', {}, false, { print_copies: 1 });
+        expect(singleCopy).toContain('<div class="print-copy-wrapper"');
+        const singleMatches = (singleCopy.match(/print-copy-wrapper/g) || []).length;
+        expect(singleMatches).toBe(1);
+
+        const threeCopies = PrintService._buildHtml(preview, '', '', {}, true, { thermal_copies: 3 });
+        const threeMatches = (threeCopies.match(/print-copy-wrapper/g) || []).length;
+        expect(threeMatches).toBe(3);
+        expect(threeCopies).toContain('border-dashed');
+    });
+
+    it('prioritizes server-authoritative store policies over local client defaults in NewPos (S16)', async () => {
+        const { loadPrefs } = await import('../NewPos/settings');
+        const customServerSettings = {
+            pos_return_mode: 'customer_or_reference',
+            pos_return_window: '45',
+            round_off_total: 'nearest',
+            stop_sale_negative_stock: '1',
+            senior_mode: '1',
+            show_margin_percentage: '1',
+            pos_auto_fill_cash: '0'
+        };
+
+        const prefs = loadPrefs('test_user_id', 'test_store', customServerSettings);
+        expect(prefs.ops.returnPolicy).toBe('customer_or_reference');
+        expect(prefs.ops.returnWindowDays).toBe(45);
+        expect(prefs.ops.roundOff).toBe(true);
+        expect(prefs.ops.allowOversell).toBe(false);
+        expect(prefs.ops.senior).toBe(true);
+        expect(prefs.ops.showMargin).toBe(true);
+        expect(prefs.ops.autoFillCash).toBe(false);
+    });
+
+    it('prioritizes server-authoritative store policies over local client defaults in NewInvoice (S16)', async () => {
+        const { loadPrefs } = await import('../NewInvoice/settings');
+        const customServerSettings = {
+            currency: 'EUR',
+            default_tax_basis: 'inclusive',
+            round_off_total: 'none',
+            show_margin_percentage: '1',
+            senior_mode: '1'
+        };
+
+        const prefs = loadPrefs('test_user_id', 'test_store', customServerSettings);
+        expect(prefs.ops.defaultCurrency).toBe('EUR');
+        expect(prefs.ops.taxInclusive).toBe(true);
+        expect(prefs.ops.roundOff).toBe(false);
+        expect(prefs.ops.showMargin).toBe(true);
+        expect(prefs.ops.senior).toBe(true);
+    });
 });
+
 

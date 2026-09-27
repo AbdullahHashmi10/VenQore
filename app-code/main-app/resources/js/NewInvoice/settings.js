@@ -163,11 +163,28 @@ export function deviceId() {
     } catch { return 'this'; }
 }
 
-export function loadPrefs(userId, tenantScope = currentTenantScope()) {
+export function loadPrefs(userId, tenantScope = currentTenantScope(), serverSettings = {}) {
+    const serverOps = {};
+    if (serverSettings.currency) {
+        serverOps.defaultCurrency = serverSettings.currency;
+    }
+    if (serverSettings.default_tax_basis !== undefined) {
+        serverOps.taxInclusive = serverSettings.default_tax_basis === 'inclusive';
+    }
+    if (serverSettings.round_off_total !== undefined) {
+        serverOps.roundOff = serverSettings.round_off_total !== 'none';
+    }
+    if (serverSettings.show_margin_percentage !== undefined) {
+        serverOps.showMargin = serverSettings.show_margin_percentage === '1' || serverSettings.show_margin_percentage === true;
+    }
+    if (serverSettings.senior_mode !== undefined) {
+        serverOps.senior = serverSettings.senior_mode === '1' || serverSettings.senior_mode === true;
+    }
+
     const base = {
         ...DEFAULTS,
         comp: presetDocument('panel'),
-        ops: { ...DEFAULT_OPS },
+        ops: { ...DEFAULT_OPS, ...serverOps },
         perms: { ...DEFAULT_PERMS },
     };
     try {
@@ -191,7 +208,7 @@ export function loadPrefs(userId, tenantScope = currentTenantScope()) {
             ...base,
             ...saved,
             comp: saved.comp ? { ...base.comp, ...saved.comp } : base.comp,
-            ops: { ...base.ops, ...(saved.ops || {}) },
+            ops: { ...base.ops, ...(saved.ops || {}), ...serverOps },
             perms: { ...base.perms, ...(saved.perms || {}) },
         };
     } catch { return base; }

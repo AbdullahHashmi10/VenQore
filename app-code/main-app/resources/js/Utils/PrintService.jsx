@@ -72,8 +72,12 @@ class PrintService {
 
         let pageDeclaration;
         if (isThermal) {
-            pageDeclaration = `size: ${widthMm}mm 297mm;`;
-            console.log(`[PrintService] Thermal @page → ${widthMm}mm x 297mm`);
+            let heightMm = 297;
+            try {
+                heightMm = await this._measureThermalHeight(previewHtml, widthMm);
+            } catch (_) {}
+            pageDeclaration = `size: ${widthMm}mm ${heightMm}mm;`;
+            console.log(`[PrintService] Thermal @page → ${widthMm}mm x ${heightMm}mm`);
         } else {
             const orient = data.paper_orientation === 'Landscape' ? 'landscape' : 'portrait';
             if (data.paper_size === 'Custom') {
@@ -372,9 +376,14 @@ class PrintService {
             }
         });
     }
-
     static _buildHtml(previewHtml, allStyles, pageDeclaration, sale, isThermal, data) {
         const title = sale?.reference_number || sale?.invoice_no || sale?.id || '';
+        const copies = parseInt(isThermal ? (data?.thermal_copies || 1) : (data?.print_copies || 1)) || 1;
+        let contentHtml = '';
+        for (let c = 0; c < copies; c++) {
+            contentHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'border-t-2 border-dashed border-black pt-4 mt-4;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
+        }
+
         return `<!DOCTYPE html>
 <html>
 <head>
@@ -408,7 +417,7 @@ class PrintService {
     }
   </style>
 </head>
-<body>${previewHtml}</body>
+<body>${contentHtml}</body>
 </html>`;
     }
 

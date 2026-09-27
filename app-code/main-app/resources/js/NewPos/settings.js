@@ -233,8 +233,32 @@ export function deviceId() {
     } catch { return 'this'; }
 }
 
-export function loadPrefs(userId, tenantScope = currentTenantScope()) {
-    const base = { ...DEFAULTS, comp: presetComposition('column'), ops: { ...DEFAULT_OPS }, perms: { ...DEFAULT_PERMS } };
+export function loadPrefs(userId, tenantScope = currentTenantScope(), serverSettings = {}) {
+    const serverOps = {};
+    if (serverSettings.pos_return_mode) {
+        serverOps.returnPolicy = serverSettings.pos_return_mode;
+    }
+    if (serverSettings.pos_return_window !== undefined && serverSettings.pos_return_window !== '') {
+        const win = parseInt(serverSettings.pos_return_window, 10);
+        if (!isNaN(win)) serverOps.returnWindowDays = win;
+    }
+    if (serverSettings.round_off_total !== undefined) {
+        serverOps.roundOff = serverSettings.round_off_total !== 'none';
+    }
+    if (serverSettings.stop_sale_negative_stock !== undefined) {
+        serverOps.allowOversell = serverSettings.stop_sale_negative_stock === '0' || serverSettings.stop_sale_negative_stock === false;
+    }
+    if (serverSettings.senior_mode !== undefined) {
+        serverOps.senior = serverSettings.senior_mode === '1' || serverSettings.senior_mode === true;
+    }
+    if (serverSettings.show_margin_percentage !== undefined) {
+        serverOps.showMargin = serverSettings.show_margin_percentage === '1' || serverSettings.show_margin_percentage === true;
+    }
+    if (serverSettings.pos_auto_fill_cash !== undefined) {
+        serverOps.autoFillCash = serverSettings.pos_auto_fill_cash === '1' || serverSettings.pos_auto_fill_cash === true;
+    }
+
+    const base = { ...DEFAULTS, comp: presetComposition('column'), ops: { ...DEFAULT_OPS, ...serverOps }, perms: { ...DEFAULT_PERMS } };
     try {
         const key = scopedKey(userId, deviceId(), tenantScope);
         let raw = localStorage.getItem(key);
@@ -256,7 +280,7 @@ export function loadPrefs(userId, tenantScope = currentTenantScope()) {
             ...base,
             ...saved,
             comp: saved.comp ? { ...base.comp, ...saved.comp } : base.comp,
-            ops: { ...base.ops, ...(saved.ops || {}) },
+            ops: { ...base.ops, ...(saved.ops || {}), ...serverOps },
             perms: { ...base.perms, ...(saved.perms || {}) },
         };
     } catch { return base; }

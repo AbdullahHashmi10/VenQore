@@ -121,6 +121,7 @@ export default function AdminSettings({ settings = {} }) {
  const [pendingSectionId, setPendingSectionId] = useState(null);
  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
  const [reminderSearch, setReminderSearch] = useState('');
+ const [sectionSearch, setSectionSearch] = useState('');
 
  const safeInt = (val, fallback) => {
   const parsed = parseInt(val, 10);
@@ -167,7 +168,7 @@ export default function AdminSettings({ settings = {} }) {
  }
  };
 
- const { data, setData, post, processing, isDirty, reset, transform } = useForm({
+ const { data, setData, post, processing, errors, isDirty, reset, transform } = useForm({
     // Business
     business_name: settings.business_name || 'VENQORE',
     business_email: settings.business_email || '',
@@ -1190,11 +1191,31 @@ export default function AdminSettings({ settings = {} }) {
  </button>
  </div>
 
+ {!sidebarCollapsed && (
+ <div className="px-2 pb-2 relative z-20">
+ <div className="relative">
+ <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+ <input
+ type="text"
+ value={sectionSearch}
+ onChange={(e) => setSectionSearch(e.target.value)}
+ placeholder="Search settings..."
+ className="w-full pl-8 pr-3 py-1.5 bg-neutral-800/80 border border-neutral-700/50 rounded-xl text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
+ />
+ </div>
+ </div>
+ )}
+
  <nav className="flex-1 overflow-y-auto px-2 custom-scrollbar space-y-1 relative z-10 pb-20">
  {SETTINGS_CATEGORIES.map((category) => {
  const CatIcon = category.icon;
- const isExpanded = expandedCategories.includes(category.id);
- const categorySections = SETTINGS_SECTIONS.filter(s => category.sections.includes(s.id));
+ const isExpanded = Boolean(sectionSearch) || expandedCategories.includes(category.id);
+ const categorySections = SETTINGS_SECTIONS.filter(s =>
+ category.sections.includes(s.id) &&
+ (!sectionSearch ||
+ s.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
+ s.description.toLowerCase().includes(sectionSearch.toLowerCase()))
+ );
 
  if (categorySections.length === 0) return null;
 
@@ -1274,12 +1295,23 @@ export default function AdminSettings({ settings = {} }) {
  <div className="p-10 border-b border-line shrink-0 bg-white/80 dark:bg-app backdrop-blur-xl">
  <div className="flex items-center justify-between">
  <div>
- <div className="flex items-center gap-3 mb-2">
- <span className="px-3 py-1 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-[0.2em] rounded-full">Section</span>
+ <div className="flex items-center gap-2 mb-2">
+ <span className="px-2.5 py-0.5 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-[0.15em] rounded-full">
+ {activeSection === 'security'
+ ? 'Store & Account Scope'
+ : activeSection === 'terminals'
+ ? 'Device Hardware Scope'
+ : activeSection === 'preferences'
+ ? 'Store & Register Scope'
+ : 'Store Policy Scope'}
+ </span>
+ {store?.name && (
+ <span className="text-3xs font-semibold text-ink-muted">· {store.name}</span>
+ )}
+ </div>
  <h2 className="text-3xl font-bold text-ink tracking-tight">
  {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.name}
  </h2>
- </div>
  <p className="text-base text-ink-muted font-medium">
  {tt(SETTINGS_SECTIONS.find(s => s.id === activeSection)?.description || '')}
  </p>
@@ -1323,7 +1355,22 @@ export default function AdminSettings({ settings = {} }) {
 
  <div className={`flex-1 custom-scrollbar ${activeSection === 'print' ? 'p-0 overflow-hidden' : 'p-10 overflow-y-auto'}`}>
  <div className={`mx-auto transition-all duration-slow ${activeSection === 'print' ? 'max-w-full h-full' : activeSection === 'business' ? 'max-w-full px-6 pb-40' : 'max-w-5xl pb-40'}`}>
- {renderSection()}
+ {errors && Object.keys(errors).length > 0 && (
+  <div role="alert" className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-2">
+   <div className="flex items-center gap-2 font-bold text-sm mb-1.5">
+    <AlertTriangle size={18} className="text-rose-600 dark:text-rose-400 shrink-0" />
+    <span>Settings could not be saved. Please correct the following errors:</span>
+   </div>
+   <ul className="list-disc list-inside text-xs space-y-1 mt-1 text-rose-800 dark:text-rose-200 font-medium">
+    {Object.entries(errors).map(([key, msg]) => (
+     <li key={key}>
+      <span className="font-bold capitalize">{key.replace(/_/g, ' ')}:</span> {msg}
+     </li>
+    ))}
+   </ul>
+  </div>
+ )}
+  {renderSection()}
  </div>
  </div>
  </form>

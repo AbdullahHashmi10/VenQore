@@ -34,7 +34,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useTermText } from '@/lib/terms';
 
 import '@/NewInvoice/newinvoice.css';
@@ -140,12 +140,14 @@ function newDoc(type, ops, seq = 148) {
    THE PAGE
    ════════════════════════════════════════════════════════════════════════════ */
 
-export default function NewInvoice({ auth }) {
+export default function NewInvoice({ auth, settings = {}, store = null }) {
+    const pageProps = usePage()?.props || {};
+    const effectiveSettings = settings && Object.keys(settings).length ? settings : (pageProps.settings || {});
     const userId = auth?.user?.id ?? 'demo';
     const vp = useViewport();
     const tt = useTermText();
 
-    const [prefs, setPrefs] = useState(() => loadPrefs(userId));
+    const [prefs, setPrefs] = useState(() => loadPrefs(userId, undefined, effectiveSettings));
     const [rankMode, setRankMode] = useState(false);
     const [setTab, setSetTab] = useState('arrange');
     useEffect(() => {

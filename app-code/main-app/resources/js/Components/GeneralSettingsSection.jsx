@@ -17,8 +17,11 @@ export default function GeneralSettingsSection({ data, setData }) {
 
             <button
                 type="button"
+                role="switch"
+                aria-checked={Boolean(checked)}
+                aria-label={label}
                 onClick={() => onChange(!checked)}
-                className={`relative w-14 h-8 rounded-full transition-all duration-slow ${checked ? `bg-${color}-600` : 'bg-sunken'}`}
+                className={`relative w-14 h-8 rounded-full transition-all duration-slow focus:outline-none focus:ring-2 focus:ring-brand-500/50 ${checked ? `bg-${color}-600` : 'bg-sunken'}`}
             >
                 <div className={`absolute top-1 bg-white rounded-full transition-all duration-slow shadow-md w-6 h-6 ${checked ? 'left-[calc(100%-28px)]' : 'left-1'}`} />
             </button>
@@ -87,18 +90,24 @@ export default function GeneralSettingsSection({ data, setData }) {
                         color="indigo"
                     />
 
-                    <SettingToggle
-                        label="Negative Stock Sales"
-                        description="Allow selling items even if stock is 0."
-                        checked={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0 || data.stop_sale_negative_stock === null}
-                        onChange={(v) => setData('stop_sale_negative_stock', !v)} // If we want to ALLOW (v=true), we set stop to FALSE.
-                        icon={AlertTriangle}
-                        color="amber"
-                    />
-                    <div className="px-4">
-                        <p className="text-xs text-ink-muted italic">
-                            * Note: Turning 'Negative Stock Sales' <b>ON</b> means you <b>CAN</b> sell items with 0 stock. <b>OFF</b> means strict control.
-                        </p>
+                    <div className="p-4 bg-sunken rounded-xl border border-line flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                <AlertTriangle size={18} />
+                            </div>
+                            <div>
+                                <span className="text-sm font-bold text-ink block">Negative Stock &amp; Overselling</span>
+                                <span className="text-2xs text-ink-muted">
+                                    Status: {data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0 || data.stop_sale_negative_stock === null ? 'Allowed (Overselling active)' : 'Strict (Blocked at 0 stock)'}
+                                </span>
+                            </div>
+                        </div>
+                        <a
+                            href="#sales"
+                            className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold text-xs rounded-xl transition-all"
+                        >
+                            Configure in Sales →
+                        </a>
                     </div>
 
                 </div>
