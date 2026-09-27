@@ -686,50 +686,6 @@ class SaleController extends Controller
                 'metadata' => json_encode(['reference' => $sale->reference_number, 'total' => $invoiceTotal]),
             ]);
 
-            // 8. MESSAGING: Auto-send WhatsApp receipt if enabled (uses message_template_sales setting)
-            $autoSend = \App\Helpers\SettingsHelper::get('auto_send_sales');
-            $whatsappEnabled = \App\Helpers\SettingsHelper::get('whatsapp_enabled');
-            $customerPhone = $sale->customer->phone ?? null;
-            if (($autoSend == '1' || $autoSend === true) && !empty($customerPhone)) {
-                try {
-                    $templateRaw = \App\Helpers\SettingsHelper::get('message_template_sales')
-                        ?? 'Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready.';
-
-                    $storeName = \App\Helpers\SettingsHelper::get('business_name', config('app.name'));
-                    $currency = \App\Helpers\SettingsHelper::get('currency', 'PKR');
-                    $messageText = str_replace(
-                        ['[Firm_Name]', '[Invoice_Number]', '[Invoice_Amount]', '[Link]'],
-                        [
-                            $storeName,
-                            $sale->reference_number,
-                            $currency . ' ' . number_format((float)$invoiceTotal, 2),
-                            route('store.sales.show', ['store_slug' => $currentTenant?->slug ?? '', 'sale' => $sale->id]),
-                        ],
-                        $templateRaw
-                    );
-
-                    $metaToken = \App\Helpers\SettingsHelper::get('whatsapp_access_token');
-                    $metaPhoneId = \App\Helpers\SettingsHelper::get('whatsapp_phone_number_id');
-                    $metaApiUrl = \App\Helpers\SettingsHelper::get('whatsapp_api_url', 'https://graph.facebook.com/v17.0');
-
-                    if (($whatsappEnabled == '1' || $whatsappEnabled === true) && !empty($metaToken) && !empty($metaPhoneId)) {
-                        \Illuminate\Support\Facades\Http::withToken($metaToken)
-                            ->timeout(8)
-                            ->post("{$metaApiUrl}/{$metaPhoneId}/messages", [
-                                'messaging_product' => 'whatsapp',
-                                'to' => preg_replace('/[^0-9]/', '', $customerPhone),
-                                'type' => 'text',
-                                'text' => ['body' => $messageText],
-                            ]);
-                        // Failure is non-blocking; do not abort the already-committed sale
-                    }
-                    // If Meta API not configured, auto-send via wa.me is not possible server-side;
-                    // the frontend Show.jsx opens a draft when the user clicks Share.
-                } catch (\Exception $waException) {
-                    \Illuminate\Support\Facades\Log::warning('[AutoSend] WhatsApp auto-send failed: ' . $waException->getMessage());
-                }
-            }
-
             return response()->json([
                 'success' => true,
                 'sale_id' => $sale->id,

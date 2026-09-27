@@ -33,6 +33,7 @@ import {
  Filter
 } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
+import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
 
@@ -277,26 +278,8 @@ export default function SalesIndex({ sales, filters, stats }) {
  setActiveFilter(type);
  applyFilters({ filter: type });
  };
-
- // WhatsApp share for quick-view sale
- const [whatsAppSending, setWhatsAppSending] = useState(false);
- const handleSendWhatsApp = async (sale) => {
- if (!sale) return;
- setWhatsAppSending(true);
- try {
- const res = await axios.post(
- route('store.sales.send-whatsapp', { store_slug: store?.slug, id: sale.id }),
- { phone: sale.customer?.phone }
- );
- if (res.data?.action === 'open_whatsapp' && res.data?.url) {
- window.open(res.data.url, '_blank', 'noopener,noreferrer');
- }
- } catch (err) {
- console.error('[WhatsApp share failed]', err);
- } finally {
- setWhatsAppSending(false);
- }
- };
+  // WhatsApp share target for modal
+  const [shareSaleTarget, setShareSaleTarget] = useState(null);
 
  const handleDateChange = (e) => {
  const { name, value } = e.target;
@@ -741,7 +724,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  {activeSharePopup === row.id && (
  <div className="absolute right-0 top-full mt-2 w-40 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm"><Mail size={14} className="text-red-500" /> Email</button>
- <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm"><MessageCircle size={14} className="text-green-500" /> WhatsApp</button>
+ <button onClick={() => { setActiveSharePopup(null); setShareSaleTarget(row); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm"><MessageCircle size={14} className="text-green-500" /> WhatsApp</button>
  </div>
  )}
  </div>
@@ -955,7 +938,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm">
  <Mail size={14} className="text-red-500" /> Email
  </button>
- <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm">
+ <button onClick={() => { setActiveSharePopup(null); setShareSaleTarget(row); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm">
  <MessageCircle size={14} className="text-green-500" /> WhatsApp
  </button>
  </div>
@@ -1274,11 +1257,10 @@ export default function SalesIndex({ sales, filters, stats }) {
  </div>
  <div className="flex gap-2 w-full sm:w-auto justify-end">
  <button
- onClick={() => handleSendWhatsApp(quickViewSale)}
- disabled={whatsAppSending}
- className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 text-xs font-bold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors flex items-center gap-1 disabled:opacity-50"
+ onClick={() => setShareSaleTarget(quickViewSale)}
+ className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 text-xs font-bold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors flex items-center gap-1"
  >
- <MessageCircle size={14} /> {whatsAppSending ? 'Sending…' : 'Share'}
+ <MessageCircle size={14} /> Share
  </button>
  <Link
  href={route('store.sales.show', { store_slug: store?.slug, sale: quickViewSale.id }) + '?action=return'}
@@ -1298,6 +1280,17 @@ export default function SalesIndex({ sales, filters, stats }) {
  </div>
  )
  }
+  {/* WhatsApp Share Modal */}
+  <WhatsAppShareModal
+    isOpen={Boolean(shareSaleTarget)}
+    onClose={() => setShareSaleTarget(null)}
+    documentType={shareSaleTarget?.status === 'returned' ? 'sale_return' : 'sale'}
+    documentId={shareSaleTarget?.id}
+    initialPartyName={shareSaleTarget?.customer?.name}
+    initialPhone={shareSaleTarget?.customer?.phone}
+    initialDocNumber={shareSaleTarget?.reference_number}
+    initialAmount={shareSaleTarget?.total}
+  />
  </OneGlanceLayout >
  );
 }

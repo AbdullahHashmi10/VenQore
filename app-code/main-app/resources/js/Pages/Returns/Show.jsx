@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatCurrency, formatDate } from '@/Utils/format';
-import { ArrowLeft, Printer, PackageCheck, Receipt } from 'lucide-react';
+import { ArrowLeft, Printer, PackageCheck, Receipt, MessageSquare } from 'lucide-react';
+import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 import { useTermText } from '@/lib/terms';
 
 export default function ReturnShow({ return: returnData, restockMovements = [] }) {
     const tt = useTermText();
     const { store } = usePage().props;
+    const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
     const creditNotePayment = (returnData?.payments || []).find(p => p.method === 'store_credit');
     const cashRefundPayment = (returnData?.payments || []).find(p => p.method === 'cash');
 
@@ -32,12 +34,21 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                         </Link>
                         <h1 className="text-2xl font-bold text-ink">Return #{returnData?.reference_number || returnData?.id}</h1>
                     </div>
-                    <button
-                        onClick={() => window.print()}
-                        className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
-                    >
-                        <Printer size={18} /> Print
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsWhatsAppModalOpen(true)}
+                            className="flex items-center gap-2 bg-surface text-emerald-600 dark:text-emerald-400 border border-line px-4 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all active:scale-95 font-medium"
+                            title="Share Return on WhatsApp"
+                        >
+                            <MessageSquare size={18} /> Share on WhatsApp
+                        </button>
+                        <button
+                            onClick={() => window.print()}
+                            className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
+                        >
+                            <Printer size={18} /> Print
+                        </button>
+                    </div>
                 </div>
 
                 {/* Summary */}
@@ -156,6 +167,17 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                     )}
                 </div>
             </div>
+
+            <WhatsAppShareModal
+                isOpen={isWhatsAppModalOpen}
+                onClose={() => setIsWhatsAppModalOpen(false)}
+                documentType="sale_return"
+                documentId={returnData?.id}
+                initialPartyName={returnData?.customer?.name}
+                initialPhone={returnData?.customer?.phone}
+                initialDocNumber={returnData?.reference_number || `RET-${returnData?.id}`}
+                initialAmount={Math.abs(returnData?.total || 0)}
+            />
         </OneGlanceLayout>
     );
 }

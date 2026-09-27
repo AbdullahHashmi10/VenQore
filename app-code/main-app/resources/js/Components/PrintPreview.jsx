@@ -543,9 +543,10 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                             value={
                                 sale?.fbr_qr_data ||
                                 sale?.qr_payload ||
-                                (sale?.id
-                                    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/s/${sale.store?.slug || 'store'}/sales/${sale.id}`
-                                    : `https://venqore.com/receipt/sample`)
+                                (sale?.public_receipt_url ||
+                                    (sale?.id
+                                        ? `${typeof window !== 'undefined' ? window.location.origin : ''}/receipt/verify/${sale.id}`
+                                        : 'https://venqore.com/receipt/sample'))
                             }
                             size={64}
                         />

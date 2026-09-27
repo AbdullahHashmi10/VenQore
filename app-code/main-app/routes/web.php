@@ -59,6 +59,10 @@ Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marke
 Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.contact.submit');
 
+// Public Customer Digital Receipt (signed, time-limited, privacy-preserving)
+Route::get('/r/{token}', [\App\Http\Controllers\PublicReceiptController::class, 'show'])->name('public.receipt.show');
+Route::get('/receipt/verify/{id}', [\App\Http\Controllers\PublicReceiptController::class, 'verifyById'])->name('public.receipt.verify');
+
 // Product lines & V6 showcases
 Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('marketing.vensynq');
 Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('marketing.smartcapture');
@@ -2098,6 +2102,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Communication Routes
     Route::post('/sales/{id}/send-email', [\App\Http\Controllers\CommunicationController::class, 'sendEmail'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-email');
     Route::post('/sales/{id}/send-whatsapp', [\App\Http\Controllers\CommunicationController::class, 'sendWhatsApp'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-whatsapp');
+    Route::post('/communication/whatsapp/prepare', [\App\Http\Controllers\CommunicationController::class, 'prepareWhatsAppDraft'])->middleware('permission:sales.view,pos.checkout,payments.view,parties.view')->name('communication.whatsapp.prepare');
+    Route::post('/communication/whatsapp/opened', [\App\Http\Controllers\CommunicationController::class, 'recordDraftOpened'])->middleware('permission:sales.view,pos.checkout,payments.view,parties.view')->name('communication.whatsapp.opened');
 
 
 
@@ -2245,6 +2251,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/invoice-reminders/create', [\App\Http\Controllers\InvoiceReminderController::class, 'create'])->name('invoice-reminders.create');
     Route::post('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'store'])->middleware('permission:sales.edit')->name('invoice-reminders.store');
     Route::post('/invoice-reminders/{id}/send', [\App\Http\Controllers\InvoiceReminderController::class, 'send'])->middleware('permission:sales.edit')->name('invoice-reminders.send');
+    Route::post('/invoice-reminders/{id}/mark-sent-manually', [\App\Http\Controllers\InvoiceReminderController::class, 'markSentManually'])->middleware('permission:sales.edit')->name('invoice-reminders.mark-sent-manually');
+    Route::post('/invoice-reminders/{id}/dismiss', [\App\Http\Controllers\InvoiceReminderController::class, 'dismiss'])->middleware('permission:sales.edit')->name('invoice-reminders.dismiss');
 
     // Staff Attendance
     Route::get('/staff/attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff.attendance.index');

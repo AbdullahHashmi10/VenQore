@@ -31,12 +31,15 @@ import SellModuleTabs from '@/Components/SellModuleTabs';
 import axios from 'axios';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
+import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 
 export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} }) {
  const {
  store
  } = usePage().props;
  const tt = useTermText();
+
+ const [shareReturnTarget, setShareReturnTarget] = useState(null);
 
  // Infinite Scroll State
  const [allReturns, setAllReturns] = useState(returns.data || []);
@@ -476,6 +479,9 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <Link href={route("store.sales.show", [store.slug, row.id])} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
  <Eye size={14} /> View Details
  </Link>
+ <button onClick={(e) => { e.stopPropagation(); setShareReturnTarget(row); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+ <MessageCircle size={14} /> Share on WhatsApp
+ </button>
  <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
  <Printer size={14} /> Print
  </button>
@@ -620,6 +626,12 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
 
  <div className="mt-6 flex justify-end gap-3">
  <button
+ onClick={() => setShareReturnTarget(quickViewReturn)}
+ className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors flex items-center gap-2"
+ >
+ <MessageCircle size={16} /> Share on WhatsApp
+ </button>
+ <button
  onClick={() => PrintService.quickPrint(quickViewReturn)}
  className="px-4 py-2 bg-sunken text-ink-secondary font-bold rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-2"
  >
@@ -636,6 +648,17 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  </div>
  </div>
  )}
+
+ <WhatsAppShareModal
+ isOpen={Boolean(shareReturnTarget)}
+ onClose={() => setShareReturnTarget(null)}
+ documentType="sale_return"
+ documentId={shareReturnTarget?.id}
+ initialPartyName={shareReturnTarget?.customer?.name}
+ initialPhone={shareReturnTarget?.customer?.phone}
+ initialDocNumber={shareReturnTarget?.reference_number || `RET-${shareReturnTarget?.id}`}
+ initialAmount={Math.abs(shareReturnTarget?.total || 0)}
+ />
  </OneGlanceLayout>
  );
 }

@@ -5,14 +5,13 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\InvoiceReminder;
 use App\Models\Tenant;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
 class ProcessScheduledInvoiceReminders extends Command
 {
     protected $signature = 'invoices:process-scheduled-reminders';
-    protected $description = 'Processes and delivers scheduled invoice reminders due for dispatch.';
+    protected $description = 'Processes scheduled invoice reminders due for dispatch.';
 
     public function handle()
     {
@@ -38,7 +37,21 @@ class ProcessScheduledInvoiceReminders extends Command
                 continue;
             }
 
-            $amount = (float) ($invoice->invoice_total ?? $invoice->total ?? 0.0);
+            if (!$invoice) {
+                $reminder->update(['status' => 'failed']);
+                Log::warning("[InvoiceReminder] Skipped reminder #{$reminder->id}: Missing invoice relationship.");
+                continue;
+            }
+
+            // Immediately check invoice payment & void status
+            $unpaid = (float) ($invoice->invoice_total ?? $invoice->total ?? 0.0) - (float) ($invoice->paid_amount ?? 0.0);
+            if (in_array(strtolower((string)$invoice->status), ['void', 'cancelled'], true) || $unpaid <= 0.001) {
+                $reminder->update(['status' => 'settled']);
+                $this->line("Invoice #{$invoice->reference_number} is settled or void; reminder #{$reminder->id} marked settled.");
+                continue;
+            }
+
+            $amount = number_format($unpaid, 2);
             $messageBody = "Dear {$customer->name}, this is a reminder that invoice #{$invoice->reference_number} is outstanding. Amount due: {$amount}";
 
             if ($reminder->type === 'email') {
@@ -59,56 +72,11 @@ class ProcessScheduledInvoiceReminders extends Command
                     Log::warning("[InvoiceReminder] Email reminder #{$reminder->id} failed: Customer has no email.");
                 }
             } elseif ($reminder->type === 'whatsapp') {
-                $phone = $customer->phone;
-                if (empty($phone)) {
-                    $reminder->update(['status' => 'failed']);
-                    Log::warning("[InvoiceReminder] WhatsApp reminder #{$reminder->id} failed: Customer has no phone.");
-                    continue;
-                }
-
-                $metaToken = \App\Helpers\SettingsHelper::get('whatsapp_access_token');
-                $metaPhoneId = \App\Helpers\SettingsHelper::get('whatsapp_phone_number_id');
-                $metaApiUrl = \App\Helpers\SettingsHelper::get('whatsapp_api_url', 'https://graph.facebook.com/v17.0');
-
-                if (!empty($metaToken) && !empty($metaPhoneId)) {
-                    try {
-                        $res = Http::withToken($metaToken)
-                            ->timeout(10)
-                            ->post("{$metaApiUrl}/{$metaPhoneId}/messages", [
-                                'messaging_product' => 'whatsapp',
-                                'to' => $phone,
-                                'type' => 'text',
-                                'text' => ['body' => $messageBody],
-                            ]);
-
-                        if ($res->successful()) {
-                            $reminder->update(['status' => 'sent', 'sent_at' => now()]);
-                            $this->info("✓ Sent Meta WhatsApp reminder #{$reminder->id} to {$phone}");
-                        } else {
-                            Log::error("[InvoiceReminder] Meta WhatsApp failed for #{$reminder->id}: " . $res->body());
-                            $reminder->update(['status' => 'failed']);
-                        }
-                    } catch (\Exception $e) {
-                        Log::error("[InvoiceReminder] WhatsApp exception for #{$reminder->id}: " . $e->getMessage());
-                        $reminder->update(['status' => 'failed']);
-                    }
-                } elseif (class_exists(\Twilio\Rest\Client::class) && config('services.twilio.sid')) {
-                    try {
-                        $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
-                        $twilio->messages->create("whatsapp:" . $phone, [
-                            "from" => "whatsapp:" . config('services.twilio.whatsapp_from'),
-                            "body" => $messageBody,
-                        ]);
-                        $reminder->update(['status' => 'sent', 'sent_at' => now()]);
-                        $this->info("✓ Sent Twilio WhatsApp reminder #{$reminder->id} to {$phone}");
-                    } catch (\Exception $e) {
-                        Log::error("[InvoiceReminder] Twilio WhatsApp failed for #{$reminder->id}: " . $e->getMessage());
-                        $reminder->update(['status' => 'failed']);
-                    }
-                } else {
-                    $reminder->update(['status' => 'failed']);
-                    Log::warning("[InvoiceReminder] WhatsApp reminder #{$reminder->id} failed: No active WhatsApp API credentials configured.");
-                }
+                // Per product decision & no-cost policy:
+                // Scheduled background workers must NOT make automated outbound WhatsApp or SMS requests.
+                // WhatsApp reminders are marked ready_for_draft for manual staff review.
+                $reminder->update(['status' => 'ready_for_draft']);
+                $this->info("✓ Queued WhatsApp reminder #{$reminder->id} for staff manual review (zero outbound API calls).");
             }
         }
     }

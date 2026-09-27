@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import Pagination from '@/Components/Pagination';
@@ -70,26 +71,64 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
     const getStatusBadge = (status) => {
         const styles = {
             sent: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+            marked_sent_manually: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+            ready_for_draft: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+            opened: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
             pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-
-
+            settled: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+            dismissed: 'bg-neutral-100 text-ink-secondary dark:bg-app dark:text-ink-muted',
             failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
             cancelled: 'bg-neutral-100 text-ink-secondary dark:bg-app dark:text-ink-muted',
         };
         return styles[status] || styles.pending;
     };
 
-    const handleSendNow = (reminder) => {
+    const handleSendNow = async (reminder) => {
+        if (reminder.type === 'whatsapp') {
+            try {
+                const res = await axios.post(
+                    route('store.invoice-reminders.send', { store_slug: store.slug, id: reminder.id }),
+                    {},
+                    { headers: { 'Accept': 'application/json' } }
+                );
+                if (res.data?.action === 'open_whatsapp_draft' && res.data?.url) {
+                    window.open(res.data.url, '_blank', 'noopener,noreferrer');
+                    showAlert({ title: 'Draft Opened', message: 'WhatsApp draft opened in new tab. Please review and send.', type: 'info' });
+                    router.reload({ preserveScroll: true });
+                } else if (res.data?.settled) {
+                    showAlert({ title: 'Invoice Settled', message: res.data.message, type: 'info' });
+                    router.reload({ preserveScroll: true });
+                }
+            } catch (err) {
+                showAlert({ title: 'Failed', message: err.response?.data?.message || err.message, type: 'error' });
+            }
+            return;
+        }
+
         showConfirm({
-            title: 'Send Reminder Now?',
-            message: `This will immediately send the reminder to ${reminder.customer?.name}.`,
+            title: 'Send Email Reminder?',
+            message: `Send payment reminder email to ${reminder.customer?.name}?`,
             type: 'info',
-            confirmLabel: 'Send Now',
+            confirmLabel: 'Send Email',
             onConfirm: () => {
-                router.post(route('store.invoice-reminders.send', reminder.id), {}, {
-                    onSuccess: () => showAlert({ title: 'Sent', message: 'Reminder sent successfully', type: 'success' })
+                router.post(route('store.invoice-reminders.send', { store_slug: store.slug, id: reminder.id }), {}, {
+                    onSuccess: () => showAlert({ title: 'Sent', message: 'Email reminder sent successfully', type: 'success' })
                 });
             }
+        });
+    };
+
+    const handleMarkSentManually = (reminder) => {
+        router.post(route('store.invoice-reminders.mark-sent-manually', { store_slug: store.slug, id: reminder.id }), {}, {
+            preserveScroll: true,
+            onSuccess: () => showAlert({ title: 'Marked', message: 'Reminder recorded as sent manually by staff.', type: 'success' })
+        });
+    };
+
+    const handleDismiss = (reminder) => {
+        router.post(route('store.invoice-reminders.dismiss', { store_slug: store.slug, id: reminder.id }), {}, {
+            preserveScroll: true,
+            onSuccess: () => showAlert({ title: 'Dismissed', message: 'Reminder dismissed.', type: 'info' })
         });
     };
 
@@ -345,15 +384,35 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                                                 </span>
                                             </td>
                                             <td className="px-6 py-3 text-center">
-                                                {reminder.status === 'pending' && (
-                                                    <button
-                                                        onClick={() => handleSendNow(reminder)}
-                                                        className="p-2 text-ink-muted hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
-                                                        title="Send Now"
-                                                    >
-                                                        <Send size={18} />
-                                                    </button>
-                                                )}
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    {['pending', 'ready_for_draft', 'opened'].includes(reminder.status) && (
+                                                        <button
+                                                            onClick={() => handleSendNow(reminder)}
+                                                            className="p-2 text-ink-muted hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+                                                            title={reminder.type === 'whatsapp' ? 'Open WhatsApp Draft' : 'Send Email'}
+                                                        >
+                                                            {reminder.type === 'whatsapp' ? <MessageSquare size={16} className="text-emerald-600" /> : <Send size={16} />}
+                                                        </button>
+                                                    )}
+                                                    {reminder.type === 'whatsapp' && ['pending', 'ready_for_draft', 'opened'].includes(reminder.status) && (
+                                                        <button
+                                                            onClick={() => handleMarkSentManually(reminder)}
+                                                            className="p-2 text-ink-muted hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-all"
+                                                            title="Mark Sent Manually (Staff self-report)"
+                                                        >
+                                                            <CheckCircle size={16} />
+                                                        </button>
+                                                    )}
+                                                    {['pending', 'ready_for_draft', 'opened'].includes(reminder.status) && (
+                                                        <button
+                                                            onClick={() => handleDismiss(reminder)}
+                                                            className="p-2 text-ink-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                            title="Dismiss Reminder"
+                                                        >
+                                                            <XCircle size={16} />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -415,14 +474,32 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
 
                                     <div className="flex justify-between items-center text-xs">
                                         <div></div>
-                                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                            {reminder.status === 'pending' && (
+                                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                            {['pending', 'ready_for_draft', 'opened'].includes(reminder.status) && (
                                                 <button
                                                     onClick={() => handleSendNow(reminder)}
-                                                    className="px-3 py-1.5 bg-brand-600 text-white hover:bg-brand-700 rounded-lg font-bold transition-all shadow-md flex items-center gap-1 text-1xs"
+                                                    className="px-2.5 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-bold transition-all shadow-sm flex items-center gap-1 text-2xs"
                                                 >
-                                                    <Send size={12} />
-                                                    <span>Send Now</span>
+                                                    {reminder.type === 'whatsapp' ? <MessageSquare size={12} /> : <Send size={12} />}
+                                                    <span>{reminder.type === 'whatsapp' ? 'Draft' : 'Send'}</span>
+                                                </button>
+                                            )}
+                                            {reminder.type === 'whatsapp' && ['pending', 'ready_for_draft', 'opened'].includes(reminder.status) && (
+                                                <button
+                                                    onClick={() => handleMarkSentManually(reminder)}
+                                                    className="px-2 py-1.5 bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 rounded-lg font-bold text-2xs flex items-center gap-1"
+                                                    title="Mark Sent Manually"
+                                                >
+                                                    <CheckCircle size={12} />
+                                                </button>
+                                            )}
+                                            {['pending', 'ready_for_draft', 'opened'].includes(reminder.status) && (
+                                                <button
+                                                    onClick={() => handleDismiss(reminder)}
+                                                    className="px-2 py-1.5 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-lg font-bold text-2xs flex items-center gap-1"
+                                                    title="Dismiss"
+                                                >
+                                                    <XCircle size={12} />
                                                 </button>
                                             )}
                                         </div>

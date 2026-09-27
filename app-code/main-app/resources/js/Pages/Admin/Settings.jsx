@@ -75,6 +75,106 @@ const SETTINGS_SECTIONS = [
  { id: 'reset', name: 'Factory Reset', icon: Trash2, description: 'Erase data & start fresh' },
 ];
 
+const SECTION_FIELD_MAP = {
+  business: [
+    'business_name', 'store_name', 'business_address', 'store_address',
+    'business_phone', 'store_phone', 'business_email', 'tax_number',
+    'currency', 'currency_code', 'currency_symbol', 'timezone',
+    'decimal_places', 'custom_domain', 'product_cost_update_policy',
+    'shared_catalog_opt_out', 'ai_accuracy_opt_in'
+  ],
+  modules: [
+    'charity_enabled', 'loyalty_enabled', 'batch_tracking_enabled',
+    'wholesale_price_enabled', 'barcode_scan_enabled', 'stock_maintenance'
+  ],
+  preferences: [
+    'enable_passcode', 'admin_passcode', 'ui_scale', 'language',
+    'date_format', 'auto_logout', 'dark_mode_default', 'senior_mode',
+    'header_calculator_enabled', 'multi_firm_enabled', 'low_stock_alerts',
+    'low_stock_threshold'
+  ],
+  sales: [
+    'invoice_number_enabled', 'stop_sale_negative_stock', 'cash_sale_default',
+    'round_off_total', 'billing_type', 'sale_prefix', 'purchase_prefix',
+    'quotation_prefix', 'return_prefix', 'pos_auto_fill_cash',
+    'show_margin_percentage', 'show_margin_on_invoice',
+    'pos_return_mode', 'pos_return_window', 'pos_return_window_behavior'
+  ],
+  taxes: [
+    'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id'
+  ],
+  print: [
+    'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
+    'print_logo', 'print_logo_path', 'print_logo_file', 'print_signature_text',
+    'print_original_copy', 'print_company_text_size', 'print_invoice_text_size',
+    'margin_top', 'margin_bottom', 'margin_left', 'margin_right',
+    'custom_paper_width', 'custom_paper_height', 'print_show_sno',
+    'print_show_units', 'print_show_mrp', 'print_show_description',
+    'print_show_hsn', 'print_show_discount', 'print_show_free_qty',
+    'print_qr_code', 'print_show_delivery_charge', 'print_show_extra_charge',
+    'print_total_quantity', 'print_amount_decimal', 'print_received_amount',
+    'print_balance_amount', 'print_party_balance', 'print_tax_details',
+    'print_you_saved', 'print_show_previous_balance', 'print_amount_grouping',
+    'print_amount_words', 'print_description', 'print_terms',
+    'print_received_by', 'print_delivered_by', 'print_payment_mode',
+    'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
+    'print_min_item_rows', 'invoice_theme', 'invoice_primary_color',
+    'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
+    'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
+    'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
+    'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units',
+    'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
+    'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
+    'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
+    'thermal_custom_footer'
+  ],
+  messages: [
+    'message_template_sales', 'message_template_returns', 'message_template_reminders',
+    'whatsapp_offer_pdf', 'payment_reminder_days', 'business_name'
+  ],
+  party: [
+    'party_grouping', 'loyalty_enabled', 'enable_credit_limit',
+    'payment_reminders', 'payment_reminder_days'
+  ],
+  item: [
+    'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
+    'wholesale_price_enabled', 'low_stock_threshold', 'low_stock_alerts'
+  ],
+  reminders: [
+    'service_reminders', 'email_notifications', 'daily_sales_summary'
+  ],
+  accounting: [
+    'fiscal_year_start'
+  ],
+  security: [
+    'two_factor_auth', 'auto_backup', 'sso_enabled', 'sso_idp_entity_id',
+    'sso_url', 'sso_certificate'
+  ],
+  approvals: [
+    'approval_admin_enabled', 'approval_strict_owner_separation',
+    'approval_amount_threshold', 'approval_default_employee_mode',
+    'approval_policy_customer_receipt', 'approval_threshold_customer_receipt',
+    'approval_policy_supplier_payment', 'approval_threshold_supplier_payment',
+    'approval_policy_operating_expense', 'approval_threshold_operating_expense',
+    'approval_policy_sales_invoice', 'approval_threshold_sales_invoice',
+    'approval_policy_supplier_refund', 'approval_threshold_supplier_refund',
+    'approval_policy_purchase_posting', 'approval_threshold_purchase_posting',
+    'approval_policy_sales_return', 'approval_threshold_sales_return',
+    'approval_policy_purchase_return', 'approval_threshold_purchase_return',
+    'approval_policy_capital_injection', 'approval_threshold_capital_injection',
+    'approval_policy_owner_drawings', 'approval_threshold_owner_drawings',
+    'approval_policy_fund_transfer', 'approval_threshold_fund_transfer'
+  ],
+  ai_integrations: [
+    'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
+    'shared_catalog_opt_out', 'ai_accuracy_opt_in', 'fbr_integration', 'fbr_pos_id',
+    'fbr_usin', 'fbr_mode', 'fbr_environment', 'fbr_api_url', 'fbr_auth_token',
+    'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
+    'stripe_enabled', 'woocommerce_url', 'woocommerce_consumer_key',
+    'woocommerce_consumer_secret', 'woocommerce_enabled'
+  ]
+};
+
 export default function AdminSettings({ settings = {} }) {
  const tt = useTermText();
  const { store } = usePage().props;
@@ -285,8 +385,11 @@ export default function AdminSettings({ settings = {} }) {
     // Messages
     whatsapp_enabled: settings.whatsapp_enabled === '1' || settings.whatsapp_enabled === true,
     sms_to_party: settings.sms_to_party === '1' || settings.sms_to_party === true,
-    auto_send_sales: settings.auto_send_sales !== '0',
-    message_template_sales: settings.message_template_sales || 'Greetings from [Firm_Name]. Your invoice for [Invoice_Amount] is ready. View here: [Link]',
+    auto_send_sales: settings.auto_send_sales === '1' || settings.auto_send_sales === true,
+    message_template_sales: settings.message_template_sales || 'Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready. Receipt: [Link]',
+    message_template_returns: settings.message_template_returns || 'Greetings from [Firm_Name]. Credit Note / Sale Return [Return_Number] for [Return_Amount] has been processed. Summary: [Link]',
+    message_template_reminders: settings.message_template_reminders || 'Dear [Customer_Name], this is a friendly reminder that invoice #[Invoice_Number] from [Firm_Name] is outstanding. Current amount due: [Due_Amount]. View receipt: [Link]',
+    whatsapp_offer_pdf: settings.whatsapp_offer_pdf !== '0' && settings.whatsapp_offer_pdf !== false,
 
     // Party
     party_grouping: settings.party_grouping === '1' || settings.party_grouping === true,
@@ -397,13 +500,26 @@ export default function AdminSettings({ settings = {} }) {
     service_reminders: safeParseJson(settings.service_reminders, []),
   });
 
-  const saveSettings = (code) => {
-    if (code) {
-      transform((currentData) => ({
-        ...currentData,
-        passcode_challenge: code,
-      }));
-    }
+  const saveSettings = (code, sectionToSave = activeSection) => {
+    transform((currentData) => {
+      const allowedKeys = SECTION_FIELD_MAP[sectionToSave];
+      const payload = {
+        _save_section: sectionToSave,
+      };
+      if (code) {
+        payload.passcode_challenge = code;
+      }
+      if (allowedKeys) {
+        allowedKeys.forEach(k => {
+          if (currentData[k] !== undefined) {
+            payload[k] = currentData[k];
+          }
+        });
+      } else {
+        Object.assign(payload, currentData);
+      }
+      return payload;
+    });
     post(route('store.settings.update', { store_slug: store?.slug }), {
       preserveScroll: true,
       onSuccess: () => {
@@ -413,35 +529,54 @@ export default function AdminSettings({ settings = {} }) {
     });
   };
 
- const handleSectionChange = (sectionId) => {
- if (isDirty) {
- setPendingSectionId(sectionId);
- setShowUnsavedModal(true);
- } else {
- setActiveSection(sectionId);
- }
- };
+  const handleSectionChange = (sectionId) => {
+    if (isDirty) {
+      setPendingSectionId(sectionId);
+      setShowUnsavedModal(true);
+    } else {
+      setActiveSection(sectionId);
+    }
+  };
 
- const handleSaveAndSwitch = () => {
- const isPasscodeEnabled = settings.enable_passcode === '1' || settings.enable_passcode === true;
- if (isPasscodeEnabled) {
-   setShowUnsavedModal(false);
-   setIsPasscodeModalOpen(true);
-   return;
- }
- const targetSection = pendingSectionId;
- setShowUnsavedModal(false);
- post(route('store.settings.update', { store_slug: store?.slug }), {
- onSuccess: () => {
- setSaved(true);
- setTimeout(() => setSaved(false), 3000);
- if (targetSection) {
- setActiveSection(targetSection);
- setPendingSectionId(null);
- }
- }
- });
- };
+  const handleSaveAndSwitch = () => {
+    const isPasscodeEnabled = settings.enable_passcode === '1' || settings.enable_passcode === true;
+    if (isPasscodeEnabled) {
+      setShowUnsavedModal(false);
+      setIsPasscodeModalOpen(true);
+      return;
+    }
+    const currentActive = activeSection;
+    const targetSection = pendingSectionId;
+    setShowUnsavedModal(false);
+
+    transform((currentData) => {
+      const allowedKeys = SECTION_FIELD_MAP[currentActive];
+      const payload = {
+        _save_section: currentActive,
+      };
+      if (allowedKeys) {
+        allowedKeys.forEach(k => {
+          if (currentData[k] !== undefined) {
+            payload[k] = currentData[k];
+          }
+        });
+      } else {
+        Object.assign(payload, currentData);
+      }
+      return payload;
+    });
+
+    post(route('store.settings.update', { store_slug: store?.slug }), {
+      onSuccess: () => {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        if (targetSection) {
+          setActiveSection(targetSection);
+          setPendingSectionId(null);
+        }
+      }
+    });
+  };
 
  const handleDiscardAndSwitch = () => {
  const targetSection = pendingSectionId;
@@ -759,6 +894,7 @@ export default function AdminSettings({ settings = {} }) {
     case 'messages':
       return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+          {/* Header Banner */}
           <div className="bg-surface rounded-2xl border border-line p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shrink-0">
@@ -766,105 +902,183 @@ export default function AdminSettings({ settings = {} }) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-ink text-lg">WhatsApp &amp; SMS Messaging</h4>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${data.whatsapp_enabled && data.whatsapp_access_token ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-sunken text-ink-muted'}`}>
-                    {data.whatsapp_enabled && data.whatsapp_access_token ? 'Automated Cloud API' : 'Manual Share Active'}
+                  <h4 className="font-bold text-ink text-lg">WhatsApp Sharing &amp; Manual Reminders</h4>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
+                    Manual Sharing Active (Zero Messaging Cost)
                   </span>
                 </div>
-                <p className="text-sm text-ink-muted mt-0.5">
-                  Send receipts and payment alerts via instant WhatsApp drafts or automated Meta Cloud API.
+                <p className="text-sm text-ink-muted mt-1">
+                  Opens a prefilled draft in your WhatsApp application. You review and send it yourself. No delivery tracking or automated SMS fees.
                 </p>
               </div>
             </div>
           </div>
 
+          {/* Manual Sharing Configuration */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4 bg-surface rounded-2xl border border-line p-6">
-              <SectionHeader title="SMS & Notifications" description="Automated text notifications" />
-              <Toggle enabled={data.sms_to_party} onChange={v => setData('sms_to_party', v)} label="Send SMS to Party" description={tt('Notify customers on every transaction')} />
-              <Toggle enabled={data.auto_send_sales} onChange={v => setData('auto_send_sales', v)} label="Auto-send for Sales" description="Automatically trigger receipt dispatch on sale posting" />
-              <div className="pt-3 border-t border-line">
-                <Toggle enabled={data.whatsapp_enabled} onChange={v => setData('whatsapp_enabled', v)} label="Enable Automated Meta Cloud API" description="Use Meta Cloud API for background delivery rather than manual wa.me links" />
+            {/* Left Column: Draft Message Templates */}
+            <div className="space-y-5 bg-surface rounded-2xl border border-line p-6">
+              <SectionHeader title="Message Templates" description="Customize text prefilled when sharing documents via WhatsApp" />
+
+              {/* Sales Invoice Template */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-ink block">Sales Invoice Template</label>
+                <textarea
+                  rows={3}
+                  value={data.message_template_sales}
+                  onChange={e => setData('message_template_sales', e.target.value)}
+                  className="w-full p-3 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
+                  placeholder="Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready. Receipt: [Link]"
+                />
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="text-2xs font-bold text-ink-muted uppercase">Tags:</span>
+                  {['[Firm_Name]', '[Invoice_Number]', '[Invoice_Amount]', '[Link]'].map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setData('message_template_sales', (data.message_template_sales || '') + ' ' + tag)}
+                      className="px-1.5 py-0.5 bg-sunken hover:bg-interactive-hover border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sales Return / Credit Note Template */}
+              <div className="space-y-2 pt-3 border-t border-line">
+                <label className="text-xs font-bold uppercase tracking-wider text-ink block">Credit Note / Sale Return Template</label>
+                <textarea
+                  rows={3}
+                  value={data.message_template_returns}
+                  onChange={e => setData('message_template_returns', e.target.value)}
+                  className="w-full p-3 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
+                  placeholder="Greetings from [Firm_Name]. Credit Note / Sale Return [Return_Number] for [Return_Amount] has been processed. Summary: [Link]"
+                />
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="text-2xs font-bold text-ink-muted uppercase">Tags:</span>
+                  {['[Firm_Name]', '[Return_Number]', '[Return_Amount]', '[Link]'].map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setData('message_template_returns', (data.message_template_returns || '') + ' ' + tag)}
+                      className="px-1.5 py-0.5 bg-sunken hover:bg-interactive-hover border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment Reminder Template */}
+              <div className="space-y-2 pt-3 border-t border-line">
+                <label className="text-xs font-bold uppercase tracking-wider text-ink block">Payment Reminder Template</label>
+                <textarea
+                  rows={3}
+                  value={data.message_template_reminders}
+                  onChange={e => setData('message_template_reminders', e.target.value)}
+                  className="w-full p-3 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
+                  placeholder="Dear [Customer_Name], this is a friendly reminder that invoice #[Invoice_Number] from [Firm_Name] is outstanding. Current amount due: [Due_Amount]. View receipt: [Link]"
+                />
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="text-2xs font-bold text-ink-muted uppercase">Tags:</span>
+                  {['[Customer_Name]', '[Invoice_Number]', '[Due_Amount]', '[Firm_Name]', '[Link]'].map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setData('message_template_reminders', (data.message_template_reminders || '') + ' ' + tag)}
+                      className="px-1.5 py-0.5 bg-sunken hover:bg-interactive-hover border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="p-6 bg-surface rounded-2xl border border-line space-y-3">
-              <label className="text-xs font-bold uppercase tracking-wider text-ink block">Message Template</label>
-              <p className="text-xs text-ink-muted">Customize the text sent with receipts and payment notifications.</p>
-              
-              <textarea
-                rows={4}
-                value={data.message_template_sales}
-                onChange={e => setData('message_template_sales', e.target.value)}
-                className="w-full p-3.5 bg-sunken text-ink border border-line rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-sans leading-relaxed"
-                placeholder="Greetings from [Firm_Name]. Your invoice for [Invoice_Amount] is ready. View here: [Link]"
-              />
+            {/* Right Column: Draft Controls & Task Timing */}
+            <div className="space-y-5 bg-surface rounded-2xl border border-line p-6 flex flex-col justify-between">
+              <div className="space-y-4">
+                <SectionHeader title="Draft &amp; Staff Queue Options" description="Operational controls for WhatsApp sharing" />
 
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-2xs font-bold text-ink-muted uppercase">Insert tag:</span>
-                {['[Firm_Name]', '[Invoice_Number]', '[Invoice_Amount]', '[Link]'].map(tag => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => {
-                      const current = data.message_template_sales || '';
-                      setData('message_template_sales', current + ' ' + tag);
-                    }}
-                    className="px-2 py-1 bg-sunken hover:bg-interactive-hover border border-line rounded-md text-3xs font-mono font-bold text-brand-600 dark:text-brand-400 cursor-pointer"
-                  >
-                    + {tag}
-                  </button>
-                ))}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-ink">Business Name in Drafts</label>
+                  <input
+                    type="text"
+                    value={data.business_name}
+                    onChange={e => setData('business_name', e.target.value)}
+                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    placeholder="e.g. VenQore Store"
+                  />
+                  <p className="text-2xs text-ink-muted">Inserted into [Firm_Name] tag across all message drafts.</p>
+                </div>
+
+                <div className="pt-3 border-t border-line space-y-3">
+                  <Toggle
+                    enabled={data.whatsapp_offer_pdf}
+                    onChange={v => setData('whatsapp_offer_pdf', v)}
+                    label="Offer PDF Alongside Draft"
+                    description="Provides quick PDF download or native mobile share sheet when preparing WhatsApp messages"
+                  />
+
+                  <div className="space-y-1.5 pt-2">
+                    <label className="text-xs font-bold text-ink">Staff Reminder Notice Window (Days)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={90}
+                      value={data.payment_reminder_days}
+                      onChange={e => setData('payment_reminder_days', safeInt(e.target.value, 7))}
+                      className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    />
+                    <p className="text-2xs text-ink-muted">Days after invoice due date to schedule payment reminder task for staff review.</p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1.5">
+                  <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">WhatsApp Attachment Policy</p>
+                  <p className="text-2xs text-emerald-700 dark:text-emerald-400 leading-relaxed">
+                    WhatsApp Click-to-Chat (wa.me) links only prefill text and cannot automatically attach files. On mobile devices, the native share sheet allows direct PDF sharing. On desktop, staff can download the PDF and manually attach it to the WhatsApp conversation.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-4 border-t border-line flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => saveSettings(null, 'messages')}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-colors text-sm"
+                >
+                  Save Messaging Settings
+                </button>
               </div>
             </div>
           </div>
 
-          {data.whatsapp_enabled && (
-            <div className="p-6 bg-surface rounded-2xl border border-line shadow-sm animate-in zoom-in-95 duration-normal space-y-4">
+          {/* Third Party / Automated Gateways (Unavailable) */}
+          <div className="p-6 bg-surface rounded-2xl border border-line opacity-80 space-y-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-sunken text-ink-muted flex items-center justify-center">
                   <MessageSquare size={20} />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-ink">Meta Cloud API Credentials</h4>
-                  <p className="text-xs text-ink-muted">Direct integration via Meta Business Platform for automated background sending</p>
+                  <h4 className="text-base font-bold text-ink">Automated Gateways &amp; SMS</h4>
+                  <p className="text-xs text-ink-muted">Meta Cloud API, Twilio, and carrier SMS</p>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink">API Endpoint URL</label>
-                  <input
-                    type="text"
-                    value={data.whatsapp_api_url}
-                    onChange={e => setData('whatsapp_api_url', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                    placeholder="https://graph.facebook.com/v17.0"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink">Phone Number ID</label>
-                  <input
-                    type="text"
-                    value={data.whatsapp_phone_number_id}
-                    onChange={e => setData('whatsapp_phone_number_id', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-                    placeholder="e.g. 104829384729102"
-                  />
-                </div>
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-bold text-ink">System User Access Token</label>
-                  <input
-                    type="password"
-                    value={data.whatsapp_access_token}
-                    onChange={e => setData('whatsapp_access_token', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-sunken text-ink border border-line rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
-                    placeholder="EAAB..."
-                  />
-                </div>
-              </div>
+              <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 rounded-full text-xs font-bold">
+                Unavailable
+              </span>
             </div>
-          )}
+
+            <p className="text-xs text-ink-muted leading-relaxed">
+              Paid automated messaging integrations (Meta Business Platform API and carrier SMS) are currently dormant.
+              All store communications run through manual WhatsApp drafts opened directly on staff devices, guaranteeing zero API messaging costs.
+              Background jobs do not dispatch external HTTP or SMS calls, and saved credentials do not trigger automated sends.
+            </p>
+          </div>
         </div>
       );
 

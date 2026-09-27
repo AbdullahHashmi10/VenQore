@@ -1,0 +1,32 @@
+# IDE handoff: manual WhatsApp sharing with no paid messaging integration
+
+Date: 27 September 2026. Product decision: **do not use paid SMS or the WhatsApp Business Platform/API now**. Keep the useful sharing and reminder workflow, with a person reviewing and pressing Send in their own WhatsApp app. This document is an implementation instruction, not evidence that these changes have already been made.
+
+## Required behavior
+
+1. Put a **Share on WhatsApp** action on the detail view of each supported posted transaction (at least sale invoice/receipt, sale return/credit note, customer payment receipt, and party statement). Start from that exact transaction ID. Resolve the correct party and document server-side, with tenant and permission checks. Never substitute a sale receipt when the operator selected a return. Do not show the action for draft, void, or unassociated documents unless a recipient is explicitly chosen.
+2. Show a preview before leaving the app: party, normalized international phone, document type/number, amount/currency, and the proposed message. Let the operator correct the number for this share. Make the final action **Open WhatsApp draft**, not “Send,” “Queued,” or “Delivered.” WhatsApp's [Click to Chat documentation](https://faq.whatsapp.com/5913398998672934) supports `wa.me/<international-number>?text=<url-encoded-text>`; the operator must press Send in WhatsApp. Do not mark delivery in our database based on opening a link.
+3. For a PDF, reuse the canonical PDF for the selected transaction. On supported mobile devices, offer the native share sheet with the PDF; otherwise provide **Download PDF** alongside **Open WhatsApp draft** and explain that the operator attaches the file manually. A `wa.me` URL cannot attach an image or PDF. Image export is optional and should use the same transaction renderer if added.
+4. The current sales-show route requires app access; do not put it in a customer message as though it is a public receipt. Either send a concise text summary or implement a short-lived, protected customer receipt link with minimal data disclosure and revocation. No permanent public PDF links or sensitive financial details in query strings.
+5. For reminders, provide a **manual reminder queue** (due invoices and party balances) with preview and **Open WhatsApp draft** per party. Reminders may be scheduled *inside our app as tasks for staff*, but the background job must not send WhatsApp or SMS. Mark records `draft/opened` or `dismissed`; only the operator may mark `sent manually`, which is self-reported and must not be labeled delivered. Recheck the current unpaid amount immediately before drafting. Stop showing paid, voided, or opted-out accounts.
+6. Disable/remove the existing `auto_send_sales`, `sms_to_party`, `whatsapp_enabled`, Meta credential, and gateway-status controls from the active settings experience for now, or label them **Unavailable** with an explicit explanation and no active switch. Remove the sale-posting Meta HTTP request and make the scheduled WhatsApp worker create staff tasks only, or disable its WhatsApp dispatch branch. Remove the obsolete Twilio fallback. Do not place secret credentials in view props or logs. Keep migration compatibility for saved keys, but their presence must not activate sending.
+7. Consolidate the manual-sharing controls in Settings > Messages: business name in draft, receipt and reminder text templates, whether to offer PDF, and optional staff reminder timing. State clearly: “Opens a draft in WhatsApp. You review and send it yourself. No delivery tracking.” Do not imply that an API account is connected or that outgoing messages are automatic.
+
+## Cost and account-risk boundary
+
+- Manual WhatsApp sharing through a user's installed app incurs **no WhatsApp Business Platform API messaging fee**. It still needs the operator's internet/data connection. WhatsApp does not guarantee that opening a draft means a message was sent. [WhatsApp Click to Chat](https://faq.whatsapp.com/5913398998672934).
+- **Do not send SMS** or implement an `sms:` shortcut under a “free” label: ordinary SMS may be billed by the carrier or plan. If the business wants zero SMS cost, leave SMS out entirely.
+- Do not automate WhatsApp Web with a browser bot, extension, QR-session tool, or bulk sender. This is not an approved substitute for the Business Platform and risks account restriction. Respect recipient permission and opt-outs even for manual business messages. There is no guarantee that any messaging behavior is ban-proof. [WhatsApp Business Messaging Policy](https://whatsappbusiness.com/policy/).
+- Do not turn on Meta Cloud API or Twilio until the business separately authorizes provider onboarding, pricing, consent/template policy, and a production test plan. Meta [prices Business Platform messages](https://whatsappbusiness.com/products/platform-pricing/) by destination and category, while manual app sharing is outside that API billing flow.
+
+## Acceptance checks
+
+- From a sale return, the preview and PDF say **return/credit note**, show the correct party and amount, and never fall back to the original sale receipt.
+- An invalid/missing phone shows a clear correction path; country code is validated. A cross-tenant transaction ID cannot expose a receipt or contact.
+- Clicking Open WhatsApp opens a text draft for the selected party. The UI records **opened**, not sent/delivered. Browser pop-up blocking is handled with a normal clickable link fallback.
+- On mobile, the PDF share sheet works where supported; on desktop, download plus manual attachment is clear and usable. No link claims to attach a PDF through `wa.me`.
+- The sale-posting flow and every scheduler/worker make **zero** outbound requests to Meta/Twilio and send **zero** SMS. Existing saved API credentials/toggles cannot reactivate those requests.
+- The reminder queue updates amounts after partial or full payment and does not draft reminders for paid, voided, or opted-out parties.
+- Tests cover transaction/party selection, tenant and permission boundaries, phone normalization, draft text, return-specific documents, paid-reminder suppression, and an HTTP fake asserting **no outbound messaging API calls**.
+
+Do not describe the feature as automatic WhatsApp delivery, free SMS, verified delivery, or ban-free messaging. This phase ends when manual sharing is reliable and the paid paths are dormant.

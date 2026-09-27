@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { Users, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Users, CreditCard, ArrowRight, ArrowLeft, MessageCircle } from 'lucide-react';
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 
 export default function PartyStatement({ party, transactions = [], openingBalance = 0, filters = {}, parties = [] }) {
     const {
         store
     } = usePage().props;
+    const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
 
     // Calculate Totals
     const totalDebit = transactions.reduce((sum, t) => sum + (Number(t.debit) || 0), 0);
@@ -176,15 +178,39 @@ export default function PartyStatement({ party, transactions = [], openingBalanc
                     </div>
                 </div>
             ) : (
-                <MasterReport
-                    title={`Statement: ${party.name}`}
-                    stats={reportStats}
-                    columns={columns}
-                    data={dataWithBalance}
-                    filters={filterDefs}
-                    filterValues={filters}
-                    onFilterChange={handleFilterChange}
-                    onExport={() => alert('Export feature coming soon')}
+                <div className="space-y-4">
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={() => setShowWhatsAppModal(true)}
+                            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-3 py-2 rounded-xl transition-all active:scale-95 shadow-sm"
+                        >
+                            <MessageCircle size={15} /> Share Statement on WhatsApp
+                        </button>
+                    </div>
+                    <MasterReport
+                        title={`Statement: ${party.name}`}
+                        stats={reportStats}
+                        columns={columns}
+                        data={dataWithBalance}
+                        filters={filterDefs}
+                        filterValues={filters}
+                        onFilterChange={handleFilterChange}
+                        onExport={() => alert('Export feature coming soon')}
+                    />
+                </div>
+            )}
+
+            {party && (
+                <WhatsAppShareModal
+                    isOpen={showWhatsAppModal}
+                    onClose={() => setShowWhatsAppModal(false)}
+                    documentType="party_statement"
+                    documentId={party?.id}
+                    partyName={party?.name}
+                    initialPhone={party?.phone}
+                    documentNumber={`Statement: ${party?.name || ''}`}
+                    amount={Math.abs(closingBalance || 0)}
                 />
             )}
         </ReportsLayout>
