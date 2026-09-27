@@ -18,10 +18,12 @@ function normalizePhone(phone, defaultCountryCode = '92') {
 function prepareWhatsAppDraft({
   documentType = 'sale',
   saleStatus = 'completed',
+  docId = '101',
   docNumber,
   total,
   customerName = 'Walk-in Customer',
   storeName = 'VenQore Store',
+  tenantSlug = 'venqore-store',
   currency = 'PKR',
   receiptLink = 'https://pos.venqore.com/r/test_token'
 }) {
@@ -77,6 +79,7 @@ function prepareWhatsAppDraft({
       document_type_label: 'Credit Note / Sale Return',
       document_number: docNumber,
       amount: Math.abs(Number(total)),
+      pdf_url: `https://pos.venqore.com/s/${tenantSlug}/v3/returns/${docId}/pdf`,
       message_text: message,
       action: 'open_whatsapp_draft',
     };
@@ -95,6 +98,7 @@ function prepareWhatsAppDraft({
     document_type_label: 'Sales Invoice',
     document_number: docNumber,
     amount: Number(total),
+    pdf_url: `https://pos.venqore.com/s/${tenantSlug}/v3/sales/${docId}/pdf`,
     message_text: message,
     action: 'open_whatsapp_draft',
   };
@@ -190,6 +194,29 @@ describe('WhatsApp Manual Sharing & Settings Safeguards', () => {
       expect(returnSale.document_type).toBe('sale_return');
       expect(returnSale.document_type_label).toBe('Credit Note / Sale Return');
       expect(returnSale.message_text).toContain('Credit Note / Sale Return');
+    });
+
+    it('routes returns strictly to dedicated returns.pdf endpoint and sales to sales.pdf endpoint', () => {
+      const returnDraft = prepareWhatsAppDraft({
+        documentType: 'sale_return',
+        docId: 'ret-777',
+        docNumber: 'RET-777',
+        total: -1200,
+        tenantSlug: 'demo-store',
+      });
+
+      const saleDraft = prepareWhatsAppDraft({
+        documentType: 'sale',
+        docId: 'inv-888',
+        docNumber: 'INV-888',
+        total: 3500,
+        tenantSlug: 'demo-store',
+      });
+
+      expect(returnDraft.pdf_url).toBe('https://pos.venqore.com/s/demo-store/v3/returns/ret-777/pdf');
+      expect(returnDraft.pdf_url).not.toContain('/sales/');
+      expect(saleDraft.pdf_url).toBe('https://pos.venqore.com/s/demo-store/v3/sales/inv-888/pdf');
+      expect(saleDraft.pdf_url).not.toContain('/returns/');
     });
 
     it('generates a Payment Receipt document for customer payments', () => {

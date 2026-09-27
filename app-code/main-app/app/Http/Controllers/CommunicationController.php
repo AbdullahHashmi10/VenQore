@@ -91,13 +91,13 @@ class CommunicationController extends Controller
             $partyName = $party?->name ?? 'Walk-in Customer';
             $partyPhone = $overridePhone ?: ($party?->phone ?? '');
             $docLink = PublicReceiptController::generateReceiptUrl($sale);
-            $pdfUrl = route('store.v3.sales.pdf', ['store_slug' => $tenantSlug, 'saleId' => $sale->id]);
 
             if ($isReturn) {
                 $documentType = 'sale_return';
                 $docLabel = 'Credit Note / Sale Return';
                 $docNumber = $sale->reference_number ?: "RET-{$sale->id}";
                 $docAmount = abs((float)$sale->total);
+                $pdfUrl = route('store.v3.returns.pdf', ['store_slug' => $tenantSlug, 'returnId' => $sale->id]);
 
                 $template = SettingsHelper::get('message_template_returns')
                     ?? 'Greetings from [Firm_Name]. Credit Note / Sale Return [Return_Number] for [Return_Amount] has been processed. Summary: [Link]';
@@ -117,6 +117,7 @@ class CommunicationController extends Controller
                 $docLabel = 'Sales Invoice';
                 $docNumber = $sale->reference_number ?: "INV-{$sale->id}";
                 $docAmount = (float)($sale->invoice_total ?? $sale->total ?? 0.0);
+                $pdfUrl = route('store.v3.sales.pdf', ['store_slug' => $tenantSlug, 'saleId' => $sale->id]);
 
                 $template = SettingsHelper::get('message_template_sales')
                     ?? 'Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready. Receipt: [Link]';

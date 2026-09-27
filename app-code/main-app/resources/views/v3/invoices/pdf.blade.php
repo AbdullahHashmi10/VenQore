@@ -109,19 +109,23 @@
             </div>
         </div>
         <div class="header-right">
-            <div class="invoice-title">INVOICE</div>
-            <div class="invoice-number">{{ $sale->reference_number }}</div>
+            <div class="invoice-title" @if(!empty($isReturn)) style="color: #dc2626;" @endif>
+                {{ $docTitle ?? (!empty($isReturn) ? 'CREDIT NOTE / SALE RETURN' : 'INVOICE') }}
+            </div>
+            <div class="invoice-number">
+                {{ !empty($isReturn) ? 'Credit Note #: ' : 'Invoice #: ' }}{{ $docRef ?? $sale->reference_number }}
+            </div>
             <div style="margin-top:8px; color:#555;">
-                Date: {{ \Carbon\Carbon::parse($sale->posted_at)->format('d M Y') }}
+                Date: {{ \Carbon\Carbon::parse($sale->posted_at ?? now())->format('d M Y') }}
             </div>
         </div>
     </div>
 
     {{-- ── Bill To ─────────────────────────────────────────────── --}}
     <div class="bill-to">
-        <div class="section-label">Bill To</div>
+        <div class="section-label">{{ !empty($isReturn) ? 'Credit To / Party' : 'Bill To' }}</div>
         <div style="font-weight:bold; font-size:13px;">
-            {{ $sale->customer_name }}
+            {{ $sale->customer_name ?: 'Walk-in Customer' }}
         </div>
         @if($sale->customer_address)
             <div style="color:#555; margin-top:2px;">
@@ -202,6 +206,36 @@
 
     {{-- ── Totals ──────────────────────────────────────────────── --}}
     <table class="totals-table">
+        @if(!empty($isReturn))
+        <tr>
+            <td>Return Gross</td>
+            <td class="text-right">
+                {{ number_format(abs($sale->subtotal_gross ?? $sale->total ?? 0), 2) }}
+            </td>
+        </tr>
+        @if(!empty($sale->total_tax) && $sale->total_tax != 0)
+        <tr>
+            <td>Tax Adjustment</td>
+            <td class="text-right">
+                {{ number_format(abs($sale->total_tax), 2) }}
+            </td>
+        </tr>
+        @endif
+        <tr class="grand-total">
+            <td><strong>Total Credit Amount</strong></td>
+            <td class="text-right">
+                <strong style="color: #dc2626;">Rs. {{ number_format(abs($sale->invoice_total ?? $sale->total ?? 0), 2) }}</strong>
+            </td>
+        </tr>
+        <tr>
+            <td style="color:#888; font-size:11px;">Document Type</td>
+            <td class="text-right">
+                <span style="font-weight: bold; font-size: 11px; color: #dc2626; text-transform: uppercase;">
+                    Credit Note / Return
+                </span>
+            </td>
+        </tr>
+        @else
         <tr>
             <td>Subtotal (Gross)</td>
             <td class="text-right">
@@ -252,6 +286,7 @@
                 </span>
             </td>
         </tr>
+        @endif
     </table>
 
     {{-- ── Footer ──────────────────────────────────────────────── --}}

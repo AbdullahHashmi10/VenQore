@@ -2461,6 +2461,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
 
     Route::post('sales', [\App\Http\Controllers\V3\SaleController::class, 'store'])->middleware('permission:sales.create,pos.checkout')->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.store');
     Route::get('sales/{saleId}/pdf', [\App\Http\Controllers\V3\InvoicePdfController::class, 'show'])->name('sales.pdf');
+    Route::get('returns/{returnId}/pdf', [\App\Http\Controllers\V3\InvoicePdfController::class, 'showReturn'])->name('returns.pdf');
     Route::post('sales/{saleId}/return', [\App\Http\Controllers\V3\SaleReturnController::class, 'store'])->middleware('permission:sales.returns,pos.refund')->name('sales.return.store');
     Route::post('customer-payments', [\App\Http\Controllers\V3\CustomerPaymentController::class, 'store'])->middleware('permission:finance.receive_payment')->name('customer-payments.store');
     Route::post('customer-payments/{journalEntryId}/bounce', [\App\Http\Controllers\V3\BounceController::class, 'store'])->middleware('permission:finance.receive_payment')->name('customer-payments.bounce');
