@@ -20,7 +20,8 @@ class FbrService
         $this->posId = $settings['fbr_pos_id'] ?? '';
         $this->usin = $settings['fbr_usin'] ?? '';
         $this->authToken = $settings['fbr_auth_token'] ?? config('services.fbr.token', '');
-        $this->environment = $settings['fbr_environment'] ?? (config('services.fbr.environment', 'sandbox'));
+        $rawEnv = strtolower((string) ($settings['fbr_environment'] ?? $settings['fbr_mode'] ?? config('services.fbr.environment', 'sandbox')));
+        $this->environment = in_array($rawEnv, ['live', 'production'], true) ? 'live' : 'sandbox';
         
         $defaultUrl = $this->environment === 'live'
             ? 'https://ims.fbr.gov.pk/api/Live/PostData'

@@ -129,6 +129,12 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         if (k === 'product_cost_update_policy') {
             return ['manual', 'latest_purchase', 'moving_average', 'fifo'].includes(v) ? v : 'latest_purchase';
         }
+        if (k === 'pos_return_mode') {
+            return ['reference', 'customer_or_reference', 'open'].includes(v) ? v : 'reference';
+        }
+        if (k === 'fbr_mode' || k === 'fbr_environment') {
+            return ['production', 'live', 'sandbox', 'disabled'].includes(v) ? v : 'sandbox';
+        }
         if (k.startsWith('approval_policy_')) {
             return ['inherit', 'maker_checker', 'owner_only', 'auto_approve', 'disabled'].includes(v) ? v : 'inherit';
         }
@@ -152,6 +158,13 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         expect(normalizeSettingValue('auto_logout', 2000)).toBe(1440);
         expect(normalizeSettingValue('product_cost_update_policy', 'invalid_policy')).toBe('latest_purchase');
         expect(normalizeSettingValue('product_cost_update_policy', 'moving_average')).toBe('moving_average');
+        expect(normalizeSettingValue('pos_return_mode', 'reference')).toBe('reference');
+        expect(normalizeSettingValue('pos_return_mode', 'customer_or_reference')).toBe('customer_or_reference');
+        expect(normalizeSettingValue('pos_return_mode', 'open')).toBe('open');
+        expect(normalizeSettingValue('pos_return_mode', 'within_window')).toBe('reference');
+        expect(normalizeSettingValue('fbr_environment', 'live')).toBe('live');
+        expect(normalizeSettingValue('fbr_mode', 'production')).toBe('production');
+        expect(normalizeSettingValue('fbr_mode', 'untrusted_mode')).toBe('sandbox');
         expect(normalizeSettingValue('approval_policy_sale', 'maker_checker')).toBe('maker_checker');
         expect(normalizeSettingValue('approval_policy_sale', 'malicious_mode')).toBe('inherit');
     });

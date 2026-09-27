@@ -580,7 +580,7 @@ class AdminController extends Controller
             'fiscal_year_start', 'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days',
             'reckoner.carrying_cost_pct', 'reckoner.stock_aging_buckets',
             'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
-            'fbr_integration', 'fbr_pos_id', 'fbr_usin', 'fbr_mode', 'fbr_auth_token',
+            'fbr_integration', 'fbr_pos_id', 'fbr_usin', 'fbr_mode', 'fbr_environment', 'fbr_api_url', 'fbr_auth_token',
             'stripe_enabled', 'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
             'woocommerce_enabled', 'woocommerce_url', 'woocommerce_consumer_key', 'woocommerce_consumer_secret',
             'approval_admin_enabled', 'approval_strict_owner_separation',
@@ -627,15 +627,15 @@ class AdminController extends Controller
             } elseif ($k === 'product_cost_update_policy') {
                 $v = in_array($v, ['manual', 'latest_purchase', 'moving_average', 'fifo'], true) ? $v : 'latest_purchase';
             } elseif ($k === 'pos_return_mode') {
-                $v = in_array($v, ['any_time', 'within_window', 'receipt_required', 'disabled', 'strict_receipt', 'same_day_only'], true) ? $v : 'within_window';
+                $v = in_array($v, ['reference', 'customer_or_reference', 'open'], true) ? $v : 'reference';
             } elseif ($k === 'default_print_type') {
                 $v = in_array($v, ['regular', 'thermal', 'standard', 'pdf', 'a4', 'a5'], true) ? $v : 'regular';
             } elseif ($k === 'paper_size') {
                 $v = in_array($v, ['A4', 'A5', 'Letter', 'Legal', 'Thermal', 'custom'], true) ? $v : 'A4';
             } elseif ($k === 'paper_orientation') {
                 $v = in_array(strtolower((string)$v), ['portrait', 'landscape'], true) ? ucfirst(strtolower((string)$v)) : 'Portrait';
-            } elseif ($k === 'fbr_mode') {
-                $v = in_array($v, ['production', 'sandbox', 'disabled'], true) ? $v : 'sandbox';
+            } elseif ($k === 'fbr_mode' || $k === 'fbr_environment') {
+                $v = in_array($v, ['production', 'live', 'sandbox', 'disabled'], true) ? $v : 'sandbox';
             } elseif ($k === 'ai_provider') {
                 $v = in_array($v, ['openai', 'anthropic', 'gemini', 'local', 'ollama', ''], true) ? $v : 'gemini';
             } elseif ($k === 'reckoner.heavy_discount_pct') {
