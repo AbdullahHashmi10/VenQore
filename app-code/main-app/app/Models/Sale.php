@@ -47,7 +47,15 @@ class Sale extends Model
     // NOTE: this model is $guarded = [] — there is no $fillable to extend, so the
     // two new columns are mass-assignable the moment the migration lands.
 
-    protected $appends = ['paid_amount', 'total_amount', 'net_amount'];
+    protected $appends = ['paid_amount', 'total_amount', 'net_amount', 'public_receipt_url'];
+
+    public function getPublicReceiptUrlAttribute(): ?string
+    {
+        if (empty($this->id)) {
+            return null;
+        }
+        return \App\Http\Controllers\PublicReceiptController::generateReceiptUrl($this);
+    }
 
     public function getNetAmountAttribute()
     {

@@ -59,9 +59,8 @@ Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marke
 Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.contact.submit');
 
-// Public Customer Digital Receipt (signed, time-limited, privacy-preserving)
+// Public Customer Digital Receipt (strictly signed, time-limited, privacy-preserving)
 Route::get('/r/{token}', [\App\Http\Controllers\PublicReceiptController::class, 'show'])->name('public.receipt.show');
-Route::get('/receipt/verify/{id}', [\App\Http\Controllers\PublicReceiptController::class, 'verifyById'])->name('public.receipt.verify');
 
 // Product lines & V6 showcases
 Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('marketing.vensynq');

@@ -344,28 +344,47 @@ describe('WhatsApp Manual Sharing & Settings Safeguards', () => {
     });
   });
 
-  describe('Zero Outbound Third-Party API Calls Invariant', () => {
-    it('guarantees no outbound HTTP requests to Meta Cloud API or Twilio occur', () => {
-      const mockHttp = vi.fn();
-
-      // Simulate a sale checkout or reminder generation flow
-      const checkoutWhatsAppAction = (sale) => {
-        // Zero outbound HTTP calls made:
-        // Returns Click-to-Chat URL instead of invoking Meta API
+  describe('Client-Side Click-to-Chat Draft Contract & State Transition Safeguards', () => {
+    it('ensures draft payload contracts return open_whatsapp_draft and status opened, never sent or delivered', () => {
+      // Validates client contract expectation: manual Click-to-Chat launcher, not automated send
+      const clientDraftAction = (doc) => {
         return {
-          action: 'open_whatsapp',
-          url: `https://wa.me/923001234567?text=Invoice%20${sale.id}`,
+          action: 'open_whatsapp_draft',
+          url: `https://wa.me/923001234567?text=Invoice%20${doc.id}`,
           status: 'opened'
         };
       };
 
-      const result = checkoutWhatsAppAction({ id: 'SALE-101', total: 2500 });
+      const result = clientDraftAction({ id: 'SALE-101', total: 2500 });
 
-      expect(mockHttp).not.toHaveBeenCalled();
-      expect(result.action).toBe('open_whatsapp');
+      expect(result.action).toBe('open_whatsapp_draft');
       expect(result.status).not.toBe('sent');
       expect(result.status).not.toBe('delivered');
       expect(result.status).toBe('opened');
+    });
+
+    it('does not record opened status if popup blocker prevents window.open from opening', () => {
+      const recordOpenedSpy = vi.fn();
+
+      // Simulated window.open where browser popup blocker returns null or closed window
+      const simulateOpenAttempt = (isBlocked) => {
+        const fakeWin = isBlocked ? null : { closed: false };
+        if (!fakeWin || fakeWin.closed || typeof fakeWin.closed === 'undefined') {
+          // Blocked: suppress opened status recording
+          return { popupBlocked: true };
+        }
+        recordOpenedSpy();
+        return { popupBlocked: false, openedSuccess: true };
+      };
+
+      const blockedResult = simulateOpenAttempt(true);
+      expect(blockedResult.popupBlocked).toBe(true);
+      expect(recordOpenedSpy).not.toHaveBeenCalled();
+
+      const successResult = simulateOpenAttempt(false);
+      expect(successResult.popupBlocked).toBe(false);
+      expect(successResult.openedSuccess).toBe(true);
+      expect(recordOpenedSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

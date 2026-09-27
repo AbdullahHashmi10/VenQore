@@ -69,22 +69,4 @@ class PublicReceiptController extends Controller
             'items' => $sale->items ?? [],
         ]);
     }
-
-    /**
-     * Customer verification by sale ID/UUID.
-     */
-    public function verifyById(string $id)
-    {
-        $sale = Sale::with(['tenant', 'customer', 'items.product'])->find($id);
-        if (!$sale || $sale->status !== 'posted') {
-            abort(404, 'Receipt not found, cancelled, or not yet posted.');
-        }
-
-        return view('invoices.public_receipt', [
-            'sale' => $sale,
-            'store' => $sale->tenant,
-            'customer' => $sale->customer,
-            'items' => $sale->items ?? [],
-        ]);
-    }
 }

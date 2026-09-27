@@ -11,8 +11,8 @@ class InvoicePdfController extends Controller
     public function show(string $saleId)
     {
         $sale = DB::table('sales as s')->where('s.tenant_id', app('current.tenant')->id)
-            ->join('parties as p', 's.party_id', '=', 'p.id')
-            ->join('warehouses as w', 's.warehouse_id', '=', 'w.id')
+            ->leftJoin('parties as p', 's.party_id', '=', 'p.id')
+            ->leftJoin('warehouses as w', 's.warehouse_id', '=', 'w.id')
             ->where('s.id', $saleId)
             ->select(
                 's.*',

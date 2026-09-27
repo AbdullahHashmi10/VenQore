@@ -33,6 +33,7 @@ export default function WhatsAppShareModal({
   const [phone, setPhone] = useState(initialPhone || '');
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [openedSuccess, setOpenedSuccess] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
     if (isOpen && documentId) {
@@ -97,10 +98,7 @@ export default function WhatsAppShareModal({
     }
   };
 
-  const handleOpenDraft = async () => {
-    if (!draftData?.wa_url) return;
-
-    // Record draft opened server-side (status: opened only)
+  const sendOpenedRecord = async () => {
     try {
       await axios.post(
         route('store.communication.whatsapp.opened', { store_slug: store?.slug }),
@@ -113,13 +111,19 @@ export default function WhatsAppShareModal({
     } catch (e) {
       console.warn('[WhatsApp opened status record failed]', e);
     }
+  };
 
-    // Attempt to open WhatsApp Click-to-Chat in new tab/app
+  const handleOpenDraft = () => {
+    if (!draftData?.wa_url) return;
+
+    // Synchronously open WhatsApp Click-to-Chat in new tab/app on user gesture
     const newWin = window.open(draftData.wa_url, '_blank', 'noopener,noreferrer');
     if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-      // Pop-up blocker triggered
+      // Pop-up blocker triggered: DO NOT record opened status yet!
       setPopupBlocked(true);
     } else {
+      // Window opened successfully: record opened status now
+      sendOpenedRecord();
       setOpenedSuccess(true);
       setTimeout(() => {
         onClose();
@@ -127,28 +131,58 @@ export default function WhatsAppShareModal({
     }
   };
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     if (!draftData?.pdf_url) return;
-    window.open(draftData.pdf_url, '_blank');
+    try {
+      setDownloadingPdf(true);
+      const res = await fetch(draftData.pdf_url, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('PDF download failed');
+      const blob = await res.blob();
+      const filename = `${draftData.document_type || 'document'}-${draftData.document_number || 'download'}.pdf`;
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+      console.warn('PDF blob download failed, falling back to direct navigation', e);
+      window.open(draftData.pdf_url, '_blank');
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   const handleNativeShare = async () => {
-    if (!navigator.canShare) {
-      handleDownloadPdf();
-      return;
-    }
-
+    if (!draftData?.pdf_url) return;
     try {
-      await navigator.share({
-        title: `${draftData?.document_type_label || 'Document'} #${draftData?.document_number || ''}`,
-        text: draftData?.message_text,
-        url: draftData?.pdf_url || window.location.href,
-      });
+      setDownloadingPdf(true);
+      const res = await fetch(draftData.pdf_url, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('Failed to fetch PDF for sharing');
+      const blob = await res.blob();
+      const filename = `${draftData.document_type || 'document'}-${draftData.document_number || 'receipt'}.pdf`;
+      const file = new File([blob], filename, { type: 'application/pdf' });
+
+      // Check if browser/device supports sharing actual files via Web Share API
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `${draftData?.document_type_label || 'Document'} #${draftData?.document_number || ''}`,
+          text: draftData?.message_text,
+        });
+      } else {
+        // Fall back to downloading the PDF file so user can attach it in WhatsApp
+        await handleDownloadPdf();
+      }
     } catch (e) {
       if (e.name !== 'AbortError') {
-        console.warn('Native share failed, falling back to PDF download', e);
-        handleDownloadPdf();
+        console.warn('Native file share failed, falling back to PDF download', e);
+        await handleDownloadPdf();
       }
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -286,6 +320,10 @@ export default function WhatsAppShareModal({
                     href={draftData.wa_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      sendOpenedRecord();
+                      setOpenedSuccess(true);
+                    }}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold"
                   >
                     <ExternalLink size={14} /> Open WhatsApp Draft Now
@@ -326,21 +364,23 @@ export default function WhatsAppShareModal({
                 {typeof navigator !== 'undefined' && navigator.canShare ? (
                   <button
                     type="button"
+                    disabled={downloadingPdf}
                     onClick={handleNativeShare}
-                    className="px-3.5 py-2 bg-surface hover:bg-interactive-hover border border-line text-ink font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
-                    title="Share PDF via Native Device Sheet"
+                    className="px-3.5 py-2 bg-surface hover:bg-interactive-hover border border-line text-ink font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                    title="Share PDF file via Native Device Sheet"
                   >
-                    <Share2 size={14} /> Share PDF
+                    <Share2 size={14} /> {downloadingPdf ? 'Preparing PDF...' : 'Share PDF'}
                   </button>
                 ) : null}
 
                 <button
                   type="button"
+                  disabled={downloadingPdf}
                   onClick={handleDownloadPdf}
-                  className="px-3.5 py-2 bg-surface hover:bg-interactive-hover border border-line text-ink font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
-                  title="Download PDF to attach manually"
+                  className="px-3.5 py-2 bg-surface hover:bg-interactive-hover border border-line text-ink font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                  title="Download PDF file to attach manually"
                 >
-                  <Download size={14} /> Download PDF
+                  <Download size={14} /> {downloadingPdf ? 'Downloading...' : 'Download PDF'}
                 </button>
               </>
             )}

@@ -61,12 +61,11 @@ class CommunicationController extends Controller
         $docLabel = 'Document';
         $docAmount = 0.0;
         $docLink = '';
-        $pdfUrl = '';
+        $pdfUrl = null;
         $template = '';
 
         $storeName = SettingsHelper::get('business_name', $tenant?->name ?? config('app.name'));
         $currency = SettingsHelper::get('currency_code', SettingsHelper::get('currency', 'PKR'));
-        $offerPdf = (bool)SettingsHelper::get('whatsapp_offer_pdf', true);
 
         if ($documentType === 'sale' || $documentType === 'sale_return') {
             $saleQuery = Sale::where('id', $documentId);
@@ -92,7 +91,7 @@ class CommunicationController extends Controller
             $partyName = $party?->name ?? 'Walk-in Customer';
             $partyPhone = $overridePhone ?: ($party?->phone ?? '');
             $docLink = PublicReceiptController::generateReceiptUrl($sale);
-            $pdfUrl = route('store.sales.show', ['store_slug' => $tenantSlug, 'sale' => $sale->id]);
+            $pdfUrl = route('store.v3.sales.pdf', ['store_slug' => $tenantSlug, 'saleId' => $sale->id]);
 
             if ($isReturn) {
                 $documentType = 'sale_return';
@@ -223,7 +222,7 @@ class CommunicationController extends Controller
             'message_text' => $messageText,
             'wa_url' => $waUrl,
             'pdf_url' => $pdfUrl,
-            'offer_pdf' => $offerPdf,
+            'offer_pdf' => (bool)SettingsHelper::get('whatsapp_offer_pdf', true) && !empty($pdfUrl),
         ]);
     }
 
