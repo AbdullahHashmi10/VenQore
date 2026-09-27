@@ -409,6 +409,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'smart_capture'              => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'hypersearch_byok'           => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'ai_credits_monthly'         => ['solo' => '100', 'starter' => '500', 'core' => '2000', 'scale' => '10000'],
+            'ai_credits_annual'          => ['solo' => '0', 'starter' => '0', 'core' => '0', 'scale' => '0', 'ltd_1' => '12000', 'ltd_2' => '30000', 'ltd_3' => '60000'],
             'ai_scans_monthly'           => ['solo' => '10', 'starter' => null, 'core' => null, 'scale' => null],
             'ai_system_builder'          => ['solo' => '1', 'starter' => '1', 'core' => '1', 'scale' => '1'],
             'growth_engine'              => ['solo' => '0', 'starter' => '0', 'core' => '1', 'scale' => '1', 'ltd_1' => '0', 'ltd_2' => '0', 'ltd_3' => '0'],

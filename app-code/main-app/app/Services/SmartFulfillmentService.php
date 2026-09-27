@@ -152,7 +152,8 @@ class SmartFulfillmentService
         int $userId,
         array $saleMeta = []
     ): Sale {
-        return DB::transaction(function () use ($items, $channelId, $tenantId, $userId, $saleMeta) {
+        return \App\Services\CanonicalPostingScope::run(function () use ($items, $channelId, $tenantId, $userId, $saleMeta) {
+            return DB::transaction(function () use ($items, $channelId, $tenantId, $userId, $saleMeta) {
 
             $channel = EcommerceChannel::find($channelId);
 
@@ -368,6 +369,7 @@ class SmartFulfillmentService
 
             return $sale->refresh();
         });
+    });
     }
 
     /**

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
 use App\Engines\AccountingService;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\Approval\ApprovalPolicyResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -34,6 +37,45 @@ class BankTransferController extends Controller
             ]);
         }
 
+        // ── Approval Interception ──────────────────────────────────────────────
+        $tenant = app('current.tenant');
+        $user   = auth()->user();
+        $amount = (float) $validated['amount'];
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_FUND_TRANSFER,
+            amount:       $amount,
+        );
+
+        if ($policy['requires_approval']) {
+            $fromType = ($validated['from_account'] === '1000') ? 'cash' : 'bank';
+            $toType   = ($validated['to_account'] === '1000') ? 'cash' : 'bank';
+
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_FUND_TRANSFER,
+                payload:        [
+                    'amount'        => $amount,
+                    'from_type'     => $fromType,
+                    'to_type'       => $toType,
+                    'from_account'  => $validated['from_account'],
+                    'to_account'    => $validated['to_account'],
+                    'transfer_date' => $validated['transfer_date'],
+                    'date'          => $validated['transfer_date'],
+                    'notes'         => $validated['description'],
+                    'description'   => $validated['description'],
+                ],
+                amount:         $amount,
+                description:    "Bank transfer — {$validated['description']}",
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+
+            return redirect()->back()->with('info', "Bank transfer submitted for approval (ref: {$doc->document_number}).");
+        }
+
         // 1011 ("Bank Account — Other") is an allowed leg but is not part of a
         // new store's default chart — make sure both legs exist before posting,
         // and post atomically (AccountingService::createEntry() does not open
@@ -44,9 +86,9 @@ class BankTransferController extends Controller
             }
 
             $this->accounting->createEntry([
-                'date'     => $validated['transfer_date'],
+                'date'           => $validated['transfer_date'],
                 'reference_type' => 'bank_transfer',
-                'reference'   => Str::uuid()->toString(),
+                'reference'      => Str::uuid()->toString(),
                 'description'    => "Bank transfer — {$validated['description']}",
             ], [
                 ['account_code' => $validated['to_account'],   'debit'  => $validated['amount'], 'credit' => 0],

@@ -64,10 +64,10 @@ class RuntimeRoleDashboardMatrixTest extends VenQoreTestCase
             'cashier',
             'accountant',
             'purchasing_officer',
+            'viewer',
             'inventory_controller',
             'sales_executive',
             'shift_supervisor',
-            'viewer'
         ];
 
         foreach ($rolesToTest as $role) {

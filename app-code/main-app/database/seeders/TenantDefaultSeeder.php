@@ -248,21 +248,30 @@ class TenantDefaultSeeder
         ];
 
         $now = now();
+        $hasRole = \Illuminate\Support\Facades\Schema::hasColumn('accounts', 'role');
+        $hasIsCurrent = \Illuminate\Support\Facades\Schema::hasColumn('accounts', 'is_current');
+
         foreach ($accounts as $account) {
+            $data = [
+                'id'             => (string) Str::uuid(),
+                'name'           => $account['name'],
+                'type'           => $account['type'],
+                'balance'        => $account['balance'],
+                'normal_balance' => $account['normal_balance'],
+                'is_active'      => true,
+                'created_at'     => $now,
+                'updated_at'     => $now,
+            ];
+            if ($hasRole) {
+                $data['role'] = $account['role'];
+            }
+            if ($hasIsCurrent) {
+                $data['is_current'] = $account['is_current'];
+            }
+
             DB::table('accounts')->updateOrInsert(
                 ['tenant_id' => $tenant->id, 'code' => $account['code']],
-                [
-                    'id'             => (string) Str::uuid(),
-                    'name'           => $account['name'],
-                    'type'           => $account['type'],
-                    'balance'        => $account['balance'],
-                    'normal_balance' => $account['normal_balance'],
-                    'role'           => $account['role'],
-                    'is_current'     => $account['is_current'],
-                    'is_active'      => true,
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
-                ]
+                $data
             );
         }
     }

@@ -137,8 +137,7 @@ test('the controller blocks a non-owner even when the permission gate lets them 
     $this->actingAsTenantUserModel($manager, $tenant);
 
     $this->post("/s/{$tenant->slug}/billing/cancel-subscription")
-        ->assertRedirect()
-        ->assertSessionHas('error');
+        ->assertForbidden();
 
     Http::assertNothingSent();
 

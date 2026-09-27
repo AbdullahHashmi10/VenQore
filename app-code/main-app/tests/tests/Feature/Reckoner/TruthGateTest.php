@@ -43,8 +43,8 @@ class TruthGateTest extends VenQoreTestCase
         $v6Catalog = ReckonerRegistry::v6Catalog();
         $catalogKeys = array_column($v6Catalog, 'key');
 
-        // All 349 canonical cards emitted in catalog
-        $this->assertCount(349, $v6Catalog);
+        // All canonical cards emitted in catalog (349 baseline + 8 approval cards + 7 cheque cards = 364)
+        $this->assertCount(364, $v6Catalog);
 
         // Platform-scoped readings must never be in V6 tenant dashboard catalog
         $this->assertNotContains('platform.active_tenant_count', $catalogKeys);
@@ -106,7 +106,7 @@ class TruthGateTest extends VenQoreTestCase
 
         $pageProps = $response->viewData('page')['props'] ?? [];
         $this->assertArrayHasKey('readings', $pageProps);
-        $this->assertCount(349, $pageProps['readings']);
+        $this->assertCount(364, $pageProps['readings']);
         $this->assertArrayHasKey('contract_state', $pageProps['readings'][0]);
     }
 }

@@ -386,24 +386,24 @@ class PlanGatingAndLimitsTest extends TestCase
         $user = User::factory()->create();
 
         // Insert a recent sale (within 30 days)
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'REF-' . uniqid(),
             'status'           => 'posted',
             'total'            => 100,
             'created_at'       => now()->subDays(5),
-        ]);
+        ]));
 
         // Insert an older sale (beyond 30 days)
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'REF-' . uniqid(),
             'status'           => 'posted',
             'total'            => 250,
             'created_at'       => now()->subDays(60),
-        ]);
+        ]));
 
         // Total in DB is 2 (never deleted)
         $this->assertEquals(2, Sale::where('tenant_id', $tenant->id)->count());
@@ -549,24 +549,24 @@ class PlanGatingAndLimitsTest extends TestCase
         $user = User::factory()->create();
 
         // Old sale (> 90 days)
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'REF-OLD-' . uniqid(),
             'status'           => 'posted',
             'total'            => 250,
             'created_at'       => now()->subDays(100),
-        ]);
+        ]));
 
         // Recent sale (< 90 days)
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'REF-NEW-' . uniqid(),
             'status'           => 'posted',
             'total'            => 100,
             'created_at'       => now()->subDays(5),
-        ]);
+        ]));
 
         // On Solo, visibleHistory gives 1
         $this->assertEquals(1, Sale::where('tenant_id', $tenant->id)->visibleHistory($tenant)->count());

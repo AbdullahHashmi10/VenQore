@@ -217,13 +217,13 @@ class RealFormHttpWorkflowTest extends VenQoreTestCase
         $res->assertStatus(202)->assertJsonPath('status', 'pending_approval');
         $docId = $res->json('approval_document_id');
 
-        // 2. Reviewer (Manager) views inbox
-        $inboxRes = $this->actingAsTenantUserModel($this->manager, $this->tenant)
+        // 2. Reviewer (Owner) views inbox
+        $inboxRes = $this->actingAsTenantUserModel($this->owner, $this->tenant)
             ->get("/s/{$this->tenant->slug}/approvals/inbox");
         $inboxRes->assertOk();
 
         // 3. Reviewer approves
-        $approveRes = $this->actingAsTenantUserModel($this->manager, $this->tenant)
+        $approveRes = $this->actingAsTenantUserModel($this->owner, $this->tenant)
             ->postJson("/s/{$this->tenant->slug}/approvals/{$docId}/approve", [
                 'expected_version' => 1,
             ]);
@@ -254,8 +254,8 @@ class RealFormHttpWorkflowTest extends VenQoreTestCase
         $submitRes->assertStatus(202);
         $docId = $submitRes->json('approval_document_id');
 
-        // 2. Manager returns with reason code and notes
-        $returnRes = $this->actingAsTenantUserModel($this->manager, $this->tenant)
+        // 2. Reviewer (Owner) returns with reason code and notes
+        $returnRes = $this->actingAsTenantUserModel($this->owner, $this->tenant)
             ->postJson("/s/{$this->tenant->slug}/approvals/{$docId}/return", [
                 'reason_codes'     => ['INCORRECT_AMOUNT'],
                 'reviewer_notes'   => 'The amount on the electricity bill is 750, not 800.',
@@ -304,7 +304,7 @@ class RealFormHttpWorkflowTest extends VenQoreTestCase
         $this->assertSame(4, (int)$doc->version);
 
         // 6. Reviewer cannot approve a withdrawn document
-        $tryApprove = $this->actingAsTenantUserModel($this->manager, $this->tenant)
+        $tryApprove = $this->actingAsTenantUserModel($this->owner, $this->tenant)
             ->postJson("/s/{$this->tenant->slug}/approvals/{$docId}/approve", [
                 'expected_version' => 4,
             ]);
@@ -383,7 +383,7 @@ class RealFormHttpWorkflowTest extends VenQoreTestCase
             );
 
             // Return for correction
-            $returnRes = $this->actingAsTenantUserModel($this->manager, $this->tenant)
+            $returnRes = $this->actingAsTenantUserModel($this->owner, $this->tenant)
                 ->postJson("/s/{$this->tenant->slug}/approvals/{$doc->id}/return", [
                     'reason_codes'     => ['INCORRECT_AMOUNT'],
                     'reviewer_notes'   => 'Please correct and resubmit.',

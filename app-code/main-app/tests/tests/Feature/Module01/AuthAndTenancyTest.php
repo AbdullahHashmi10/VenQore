@@ -156,13 +156,13 @@ test('regular user cannot access venqore routes', function () {
     
     $response = $this->get('/VenQore');
     
-    $response->assertStatus(404);
+    $response->assertNotFound();
 });
 
 test('guest cannot access venqore routes', function () {
     $response = $this->get('/VenQore');
     
-    $response->assertStatus(404);
+    $response->assertRedirect(route('platform.login'));
 });
 
 test('user can log in via POS PIN with valid credentials', function () {

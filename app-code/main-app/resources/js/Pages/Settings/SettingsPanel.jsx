@@ -113,6 +113,21 @@ export default function SettingsPanel({ settings }) {
  approval_threshold_operating_expense: settings.approval_threshold_operating_expense || '',
  approval_policy_sales_invoice: settings.approval_policy_sales_invoice || 'inherit',
  approval_threshold_sales_invoice: settings.approval_threshold_sales_invoice || '',
+ // Phase 1 new document types
+ approval_policy_supplier_refund: settings.approval_policy_supplier_refund || 'inherit',
+ approval_threshold_supplier_refund: settings.approval_threshold_supplier_refund || '',
+ approval_policy_purchase_posting: settings.approval_policy_purchase_posting || 'inherit',
+ approval_threshold_purchase_posting: settings.approval_threshold_purchase_posting || '',
+ approval_policy_sales_return: settings.approval_policy_sales_return || 'inherit',
+ approval_threshold_sales_return: settings.approval_threshold_sales_return || '',
+ approval_policy_purchase_return: settings.approval_policy_purchase_return || 'inherit',
+ approval_threshold_purchase_return: settings.approval_threshold_purchase_return || '',
+ approval_policy_capital_injection: settings.approval_policy_capital_injection || 'inherit',
+ approval_threshold_capital_injection: settings.approval_threshold_capital_injection || '',
+ approval_policy_owner_drawings: settings.approval_policy_owner_drawings || 'inherit',
+ approval_threshold_owner_drawings: settings.approval_threshold_owner_drawings || '',
+ approval_policy_fund_transfer: settings.approval_policy_fund_transfer || 'inherit',
+ approval_threshold_fund_transfer: settings.approval_threshold_fund_transfer || '',
  });
 
  const handleSubmit = (e) => {
@@ -161,6 +176,21 @@ export default function SettingsPanel({ settings }) {
  approval_threshold_operating_expense: data.approval_threshold_operating_expense,
  approval_policy_sales_invoice: data.approval_policy_sales_invoice,
  approval_threshold_sales_invoice: data.approval_threshold_sales_invoice,
+ // Phase 1 new document types
+ approval_policy_supplier_refund: data.approval_policy_supplier_refund,
+ approval_threshold_supplier_refund: data.approval_threshold_supplier_refund,
+ approval_policy_purchase_posting: data.approval_policy_purchase_posting,
+ approval_threshold_purchase_posting: data.approval_threshold_purchase_posting,
+ approval_policy_sales_return: data.approval_policy_sales_return,
+ approval_threshold_sales_return: data.approval_threshold_sales_return,
+ approval_policy_purchase_return: data.approval_policy_purchase_return,
+ approval_threshold_purchase_return: data.approval_threshold_purchase_return,
+ approval_policy_capital_injection: data.approval_policy_capital_injection,
+ approval_threshold_capital_injection: data.approval_threshold_capital_injection,
+ approval_policy_owner_drawings: data.approval_policy_owner_drawings,
+ approval_threshold_owner_drawings: data.approval_threshold_owner_drawings,
+ approval_policy_fund_transfer: data.approval_policy_fund_transfer,
+ approval_threshold_fund_transfer: data.approval_threshold_fund_transfer,
  };
 
  router.post(route("store.settings.update", {
@@ -769,6 +799,42 @@ export default function SettingsPanel({ settings }) {
  </div>
  </div>
  </div>
+ </div>
+ </div>
+
+ {/* Phase 1 — Additional Document Types */}
+ <div className="pt-4 border-t border-line space-y-4">
+ <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider">Phase 1 Additional Operations</h4>
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ {[
+ { key: 'supplier_refund', label: 'Supplier Refunds' },
+ { key: 'purchase_posting', label: 'Purchase/Bill Posting' },
+ { key: 'sales_return', label: 'Sales Returns' },
+ { key: 'purchase_return', label: 'Purchase Returns' },
+ { key: 'capital_injection', label: 'Capital Injection', sensitive: true },
+ { key: 'owner_drawings', label: 'Owner Drawings', sensitive: true },
+ { key: 'fund_transfer', label: 'Internal Fund Transfer', sensitive: true },
+ ].map(({ key, label, sensitive }) => (
+ <div key={key} className={`p-4 bg-sunken/50 rounded-xl border space-y-3 ${sensitive ? 'border-orange-200' : 'border-line'}`}>
+ <div className="flex items-center justify-between">
+ <span className="font-semibold text-sm text-ink-primary">{label}</span>
+ <select
+ value={data[`approval_policy_${key}`]}
+ onChange={e => setData(`approval_policy_${key}`, e.target.value)}
+ className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ >
+ <option value="inherit">Inherit Store Policy</option>
+ <option value="required">Always Required</option>
+ <option value="disabled">Disabled (Direct)</option>
+ </select>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({store?.currency_symbol || '$'}):</span>
+ <input type="number" min="0" step="0.01" value={data[`approval_threshold_${key}`]} onChange={e => setData(`approval_threshold_${key}`, e.target.value)} placeholder="Inherit store threshold" className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs" />
+ </div>
+ {sensitive && <p className="text-2xs text-amber-600">Owner / Admin access only by default</p>}
+ </div>
+ ))}
  </div>
  </div>
  </div>

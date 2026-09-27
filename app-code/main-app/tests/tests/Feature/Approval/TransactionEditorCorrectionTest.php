@@ -60,6 +60,37 @@ class TransactionEditorCorrectionTest extends VenQoreTestCase
         return $doc;
     }
 
+    public function test_universal_correction_screen_covers_every_supported_document_type(): void
+    {
+        $tenant = $this->createTenant('corr-all-' . uniqid(), 'ltd_3');
+        $tenant->update(['timezone' => 'UTC', 'setup_completed' => true]);
+        $this->seedTenantDefaults($tenant);
+
+        $maker = $this->createTenantUser($tenant, 'owner');
+        $reviewer = $this->createTenantUser($tenant, 'admin');
+        $this->actingAsTenantUserModel($maker, $tenant);
+
+        foreach (ApprovalDocument::SUPPORTED_TYPES as $type) {
+            $doc = $this->createReturnedDoc($tenant, $maker, $reviewer, $type, [
+                'amount' => 125.00,
+                'reference' => 'CORR-' . $type,
+                'items' => [['quantity' => 1, 'unit_price' => 125]],
+            ]);
+
+            $this->get($this->storeUrl($tenant, "/approvals/{$doc->id}/correct"))
+                ->assertStatus(200)
+                ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) =>
+                    $page->component('Approvals/Correct')
+                        ->where('document.id', $doc->id)
+                        ->where('document.document_type', $type)
+                        ->where('document.version', 1)
+                        ->where('document.return_notes', 'Please fix invoice breakdown and reference.')
+                        ->has('document.resubmit_url')
+                        ->has('document.payload')
+                );
+        }
+    }
+
     public function test_customer_receipt_editor_loads_returned_approval_correction(): void
     {
         $tenant = $this->createTenant('corr-cr-' . uniqid(), 'ltd_3');

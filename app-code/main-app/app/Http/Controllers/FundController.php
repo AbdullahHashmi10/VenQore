@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\Approval\ApprovalExecutionEngine;
 
 class FundController extends Controller
 {
@@ -276,6 +279,29 @@ class FundController extends Controller
             'passcode' => 'required|string|size:6',
         ]);
 
+        // ── Approval interception — capital injection ──────────────────────
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_CAPITAL_INJECTION,
+            amount:       (float) $request->amount,
+        );
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:       $tenant,
+                maker:        $user,
+                documentType: ApprovalDocument::TYPE_CAPITAL_INJECTION,
+                payload:      array_diff_key($request->all(), ['passcode' => '']),
+                amount:       (float) $request->amount,
+                description:  'Capital injection — ' . $request->reason,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            return back()->with('info', 'Capital injection submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+        // ── Direct path: verify PIN ───────────────────────────────────────────
+
         // Backend PIN verification
         $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
             ->where('user_id', Auth::id())
@@ -378,6 +404,29 @@ class FundController extends Controller
             'notes' => 'nullable|string|max:1000',
             'passcode' => 'required|string|size:6',
         ]);
+
+        // ── Approval interception — owner drawings ────────────────────────
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_OWNER_DRAWINGS,
+            amount:       (float) $request->amount,
+        );
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:       $tenant,
+                maker:        $user,
+                documentType: ApprovalDocument::TYPE_OWNER_DRAWINGS,
+                payload:      array_diff_key($request->all(), ['passcode' => '']),
+                amount:       (float) $request->amount,
+                description:  'Owner drawing — ' . $request->reason,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            return back()->with('info', 'Owner drawing submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+        // ── Direct path: verify PIN ───────────────────────────────────────────
 
         // Backend PIN verification
         $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
@@ -495,6 +544,29 @@ class FundController extends Controller
             'reason' => 'nullable|string|max:255',
             'passcode' => 'required|string|size:6',
         ]);
+
+        // ── Approval interception — internal fund transfer ────────────────
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_FUND_TRANSFER,
+            amount:       (float) $request->amount,
+        );
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:       $tenant,
+                maker:        $user,
+                documentType: ApprovalDocument::TYPE_FUND_TRANSFER,
+                payload:      array_diff_key($request->all(), ['passcode' => '']),
+                amount:       (float) $request->amount,
+                description:  'Fund transfer',
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            return back()->with('info', 'Fund transfer submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+        // ── Direct path: verify PIN ───────────────────────────────────────────
 
         // Backend PIN verification
         $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
@@ -627,6 +699,29 @@ class FundController extends Controller
             'notes' => 'nullable|string|max:1000',
             'passcode' => 'required|string|size:6',
         ]);
+
+        // ── Approval interception — balance adjustment ─────────────────────
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_BALANCE_ADJUSTMENT,
+            amount:       (float) $request->new_balance,
+        );
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:       $tenant,
+                maker:        $user,
+                documentType: ApprovalDocument::TYPE_BALANCE_ADJUSTMENT,
+                payload:      array_diff_key($request->all(), ['passcode' => '']),
+                amount:       (float) $request->new_balance,
+                description:  'Balance adjustment — ' . $request->reason,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            return back()->with('info', 'Balance adjustment submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+        // ── Direct path: verify PIN ──────────────────────────────────────────
 
         // Backend PIN verification
         $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)

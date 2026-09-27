@@ -1,0 +1,1236 @@
+{
+    "timestamp": "2026-09-26T10:31:56+02:00",
+    "database": "amd_pos_test_fresh_cheque",
+    "migration_forward_1": {
+        "exit_code": 0,
+        "stdout": "INFO  Preparing database.  \n\r\n  Creating migration table .............................................................................. 13.49ms DONE\r\n\r\n\ufeff\ufeff\ufeff\ufeff   INFO  Running migrations.  \n\r\n  0001_01_01_000000_create_users_table .................................................................. 52.74ms DONE\r\n  0001_01_01_000001_create_cache_table .................................................................. 12.35ms DONE\r\n  0001_01_01_000002_create_jobs_table ................................................................... 41.56ms DONE\r\n  2024_01_25_060000_create_activities_table ............................................................. 34.71ms DONE\r\n  2025_12_29_153358_create_amd_tables .................................................................. 237.62ms DONE\r\n  2025_12_29_161856_create_complete_amd_system_tables .................................................. 399.71ms DONE\r\n  2025_12_29_165000_add_missing_columns_to_products_table ............................................... 87.88ms DONE\r\n  2025_12_29_165404_create_activity_logs_table .......................................................... 40.13ms DONE\r\n  2025_12_29_234600_add_index_to_activity_logs_created_at ................................................ 7.20ms DONE\r\n  2025_12_31_142831_add_units_to_categories_table ........................................................ 9.54ms DONE\r\n  2025_12_31_150840_create_product_images_table ......................................................... 36.46ms DONE\r\n  2025_12_31_151942_add_short_description_to_products_table .............................................. 4.45ms DONE\r\n  2025_12_31_191500_create_inventory_management_tables ................................................. 158.44ms DONE\r\n  2026_01_01_083112_create_product_attributes_table ...................................................... 9.12ms DONE\r\n  2026_01_01_083120_create_product_variants_table ....................................................... 49.22ms DONE\r\n  2026_01_01_083127_create_variant_attributes_table ..................................................... 79.38ms DONE\r\n  2026_01_01_102909_add_barcode_fields_to_product_barcodes_table ........................................ 27.76ms DONE\r\n  2026_01_01_170244_add_contact_details_to_warehouses_table .............................................. 7.98ms DONE\r\n  2026_01_01_180647_add_deleted_at_to_products_table ..................................................... 4.31ms DONE\r\n  2026_01_01_181825_create_suppliers_table ............................................................... 6.16ms DONE\r\n  2026_01_01_181833_create_purchase_orders_table ....................................................... 108.16ms DONE\r\n  2026_01_01_181840_create_purchase_order_items_table ................................................... 64.95ms DONE\r\n  2026_01_02_000001_create_customers_table ............................................................... 6.04ms DONE\r\n  2026_01_02_000002_create_sales_table ................................................................. 105.73ms DONE\r\n  2026_01_02_000003_create_sale_items_table ............................................................ 147.55ms DONE\r\n  2026_01_02_000004_create_payments_table ............................................................... 39.06ms DONE\r\n  2026_01_02_071319_add_variant_id_to_stock_movements_table ............................................. 49.60ms DONE\r\n  2026_01_02_081323_add_expires_at_to_parked_sales_table ................................................. 5.29ms DONE\r\n  2026_01_02_093753_create_manufacturing_rules_table ................................................... 204.54ms DONE\r\n  2026_01_02_153000_create_settings_table ............................................................... 23.89ms DONE\r\n  2026_01_04_160915_add_due_date_to_sales_table .......................................................... 4.07ms DONE\r\n  2026_01_04_202712_create_staff_daily_summaries_table .................................................. 47.48ms DONE\r\n  2026_01_04_225546_add_role_to_users_table .............................................................. 5.18ms DONE\r\n  2026_01_04_225926_add_permissions_to_users_table ....................................................... 4.00ms DONE\r\n  2026_01_04_230000_create_staff_attendances_table ...................................................... 71.05ms DONE\r\n  2026_01_04_230100_add_last_active_at_to_staff_attendances_table ........................................ 4.70ms DONE\r\n  2026_01_04_233000_create_accounting_tables ........................................................... 172.07ms DONE\r\n  2026_01_04_234500_add_cost_price_to_sale_items_table ................................................... 4.71ms DONE\r\n  2026_01_04_235500_add_fbr_fields_to_sales_table ....................................................... 10.85ms DONE\r\n  2026_01_05_162604_add_passcode_to_users_table .......................................................... 9.43ms DONE\r\n  2026_01_05_174000_update_production_runs_table ........................................................ 24.23ms DONE\r\n  2026_01_05_175127_update_payments_table_structure ..................................................... 82.50ms DONE\r\n  2026_01_05_175623_add_sales_order_type_to_invoices ..................................................... 5.66ms DONE\r\n  2026_01_06_100822_add_indexes_for_performance ........................................................ 102.92ms DONE\r\n  2026_01_07_182807_create_recipes_table ................................................................ 77.76ms DONE\r\n  2026_01_07_182810_create_recipe_ingredients_table ..................................................... 71.66ms DONE\r\n  2026_01_08_170327_add_paid_amount_to_invoices_table .................................................... 6.54ms DONE\r\n  2026_01_08_181003_add_depreciation_rate_to_accounts_table .............................................. 5.78ms DONE\r\n  2026_01_08_181305_create_growth_engine_tables ........................................................ 459.57ms DONE\r\n  2026_01_09_000001_add_wholesale_price_to_products_table ................................................ 8.68ms DONE\r\n  2026_01_09_000002_add_wholesale_price_to_product_variants_table ........................................ 4.95ms DONE\r\n  2026_01_09_000003_add_grouping_to_parties_table ........................................................ 8.44ms DONE\r\n  2026_01_09_000004_add_round_off_to_sales_table ......................................................... 5.73ms DONE\r\n  2026_01_09_000005_add_type_to_customers_table .......................................................... 4.79ms DONE\r\n  2026_01_09_132438_create_notifications_table .......................................................... 16.89ms DONE\r\n  2026_01_10_133940_create_custom_charges_table .......................................................... 8.05ms DONE\r\n  2026_01_10_133940_create_fund_transactions_table ..................................................... 125.30ms DONE\r\n  2026_01_10_140258_add_bank_name_to_bank_accounts_table ................................................ 12.51ms DONE\r\n  2026_01_10_143130_create_expense_categories_table ..................................................... 41.75ms DONE\r\n  2026_01_10_143356_add_charity_settings ................................................................. 0.12ms DONE\r\n  2026_01_10_143940_create_proposals_table ............................................................. 145.58ms DONE\r\n  2026_01_10_145144_add_reserved_quantity_to_stocks_and_create_orders_tables ........................... 353.69ms DONE\r\n  2026_01_10_204900_add_extra_columns_to_parties_table .................................................. 13.57ms DONE\r\n  2026_01_10_205855_switch_sales_to_parties_table ....................................................... 75.34ms DONE\r\n  2026_01_10_220900_add_missing_columns_to_expenses_table ............................................... 17.84ms DONE\r\n  2026_01_11_231642_add_overpayment_action_to_sales_table ................................................ 4.72ms DONE\r\n  2026_01_14_214205_add_free_quantity_to_sale_items_table ................................................ 5.02ms DONE\r\n  2026_01_14_231819_add_cheque_date_to_payments_table .................................................... 4.23ms DONE\r\n  2026_01_15_120000_align_sales_orders_schema ........................................................... 28.91ms DONE\r\n  2026_01_19_060844_create_stock_transfers_table ......................................................... 5.80ms DONE\r\n  2026_01_19_060845_create_stock_transfer_items_table .................................................... 5.73ms DONE\r\n  2026_01_19_120000_recreate_stock_transfers_tables .................................................... 185.04ms DONE\r\n  2026_01_19_121500_create_stock_takes_table ........................................................... 141.91ms DONE\r\n  2026_01_19_123000_create_debit_notes_table ........................................................... 171.57ms DONE\r\n  2026_01_19_124500_create_product_batches_table ....................................................... 128.22ms DONE\r\n  2026_01_19_130000_create_product_serials_table ....................................................... 138.92ms DONE\r\n  2026_01_19_193351_create_units_table ................................................................... 6.51ms DONE\r\n  2026_01_20_000000_add_currency_settings ................................................................ 2.63ms DONE\r\n  2026_01_21_000000_add_tendered_amount_to_sales_table ................................................... 8.32ms DONE\r\n  2026_01_23_183106_add_source_to_sales_table ............................................................ 9.84ms DONE\r\n  2026_01_24_120000_add_party_id_to_suppliers_table ..................................................... 41.61ms DONE\r\n  2026_01_24_123320_add_discount_and_tax_to_invoices_table ............................................... 8.38ms DONE\r\n  2026_01_24_213800_add_reference_to_invoices_table ...................................................... 3.30ms DONE\r\n  2026_01_24_215300_modify_invoices_status_to_string .................................................... 40.55ms DONE\r\n  2026_01_24_221800_add_received_qty_to_invoice_items_table .............................................. 5.69ms DONE\r\n  2026_01_24_223400_add_stock_quantity_to_products_table ................................................. 4.11ms DONE\r\n  2026_01_26_191932_add_unit_to_products_table ........................................................... 6.48ms DONE\r\n  2026_01_26_212511_add_labor_overhead_to_recipes_table ................................................. 13.23ms DONE\r\n  2026_01_26_213106_add_expert_manufacturing_features .................................................. 285.26ms DONE\r\n  2026_01_28_151700_add_details_to_expenses_table ........................................................ 9.42ms DONE\r\n  2026_01_30_085617_create_terminals_table ............................................................... 6.10ms DONE\r\n  2026_01_30_090536_create_personal_access_tokens_table ................................................. 31.43ms DONE\r\n  2026_02_04_171548_add_landed_cost_to_expenses ......................................................... 43.52ms DONE\r\n  2026_02_04_171548_add_landed_cost_to_invoice_items ..................................................... 9.21ms DONE\r\n  2026_02_04_222418_add_landed_cost_fields_to_expenses_table ............................................. 2.10ms DONE\r\n  2026_02_04_222625_fix_purchase_id_column_type_on_expenses .............................................. 2.40ms DONE\r\n  2026_02_04_223012_change_stock_movements_id_to_uuid ................................................... 23.56ms DONE\r\n  2026_02_08_112810_add_indexes_to_sales_table .......................................................... 14.77ms DONE\r\n  2026_02_09_232309_add_default_discount_to_parties_table ................................................ 4.01ms DONE\r\n  2026_02_10_000001_add_status_to_staff_activity_gaps_table .............................................. 5.24ms DONE\r\n  2026_02_20_000001_add_financial_waterfall_to_sale_items_table ......................................... 35.41ms DONE\r\n  2026_02_20_000002_add_financial_waterfall_to_sales_table .............................................. 36.85ms DONE\r\n  2026_02_20_000003_create_fifo_infrastructure_tables .................................................. 201.95ms DONE\r\n  2026_02_20_000004_backfill_financial_waterfall_columns ................................................. 2.12ms DONE\r\n  2026_02_20_100001_phase_1_2_revenue_recognition_status ................................................. 4.94ms DONE\r\n  2026_02_20_100002_phase_1_2_seed_inventory_batches_from_purchases ...................................... 7.53ms DONE\r\n  2026_02_20_100003_add_reversal_audit_to_sale_item_batches ............................................. 18.25ms DONE\r\n  2026_02_20_120001_add_waterfall_columns_to_sale_items ................................................. 12.60ms DONE\r\n  2026_02_20_120002_add_waterfall_columns_to_sales ...................................................... 22.06ms DONE\r\n  2026_02_20_150001_add_audit_columns_to_journal_entries ................................................ 77.04ms DONE\r\n  2026_02_20_160000_add_variant_id_to_inventory_batches ................................................. 46.32ms DONE\r\n  2026_02_20_161000_add_product_variant_id_to_invoice_items ............................................. 37.33ms DONE\r\n  2026_02_20_162000_add_tax_rate_to_products_table ....................................................... 2.47ms DONE\r\n  2026_02_20_195120_create_historical_variance_account ................................................... 1.92ms DONE\r\n  2026_03_05_000001_v3_foundation_schema ............................................................... 329.08ms DONE\r\n  2026_03_05_160908_create_purchases_table .............................................................. 12.29ms DONE\r\n  2026_03_05_180000_update_production_runs_and_boms ..................................................... 45.03ms DONE\r\n  2026_03_05_180420_add_business_pct_to_purchase_items ................................................... 3.01ms DONE\r\n  2026_03_05_180828_create_purchase_returns_table ........................................................ 5.79ms DONE\r\n  2026_03_05_182418_add_opening_batch_cost_constraint_to_inventory_batches .............................. 58.75ms DONE\r\n  2026_03_06_163000_create_sales_orders_and_quotations_tables ........................................... 21.41ms DONE\r\n  2026_03_06_171402_add_allocations_trigger ............................................................. 13.24ms DONE\r\n  2026_03_06_172824_create_production_run_materials_table ................................................ 6.27ms DONE\r\n  2026_03_06_174755_add_labor_to_production_runs_table ................................................... 8.96ms DONE\r\n  2026_03_06_201514_add_remaining_qty_constraint_to_inventory_batches ................................... 52.62ms DONE\r\n  2026_03_07_000001_add_v3_performance_indexes .......................................................... 77.80ms DONE\r\n  2026_03_07_000002_create_audit_logs_table ............................................................. 31.52ms DONE\r\n  2026_03_07_231308_widen_idempotency_key_column ........................................................ 65.82ms DONE\r\n  2026_03_08_000000_seed_historical_party_balances ....................................................... 2.15ms DONE\r\n  2026_04_04_020537_add_soft_deletes_to_v3_tables ....................................................... 24.26ms DONE\r\n  2026_04_10_000001_create_tenants_table ................................................................ 38.56ms DONE\r\n  2026_04_10_000002_add_tenant_id_to_core_tables ....................................................... 454.32ms DONE\r\n  2026_04_10_100001_remodel_tenants_to_definitive_plan ....................................................... 1s DONE\r\n  2026_04_10_100002_create_tenant_users_table .......................................................... 122.06ms DONE\r\n  2026_04_10_100003_create_store_licenses_table ......................................................... 91.09ms DONE\r\n  2026_04_10_100005_update_users_to_definitive_plan ..................................................... 88.28ms DONE\r\n  2026_04_10_200000_create_support_tickets_table ....................................................... 247.38ms DONE\r\n  2026_04_11_000000_add_google_id_to_users_table ........................................................ 15.00ms DONE\r\n  2026_04_11_000000_role_architecture_finalization ...................................................... 49.37ms DONE\r\n  2026_04_11_004919_rename_god_admin_role ................................................................ 3.20ms DONE\r\n  2026_04_11_005056_rename_super_admin_column ............................................................ 4.18ms DONE\r\n  2026_04_11_100000_add_missing_tenant_ids ................................................................... 1s DONE\r\n  2026_04_11_200000_fix_settings_unique_constraint ...................................................... 15.88ms DONE\r\n  2026_04_11_200100_make_settings_tenant_aware ........................................................... 4.25ms DONE\r\n  2026_04_11_add_platform_pin_to_users ................................................................... 4.63ms DONE\r\n  2026_04_11_create_activity_logs ...................................................................... 177.32ms DONE\r\n  2026_04_11_create_invites_and_overrides .............................................................. 214.13ms DONE\r\n  2026_04_12_000000_add_logo_fields_to_tenants_table .................................................... 15.67ms DONE\r\n  2026_04_13_000000_add_demo_fields_to_tenants_table .................................................... 15.66ms DONE\r\n  2026_04_13_000001_harden_cascade_deletes_to_restrict ................................................. 396.55ms DONE\r\n  2026_04_13_000002_add_softdeletes_and_tenant_id_to_remaining_tables .................................. 108.96ms DONE\r\n  2026_04_13_000003_add_tenant_id_to_journal_and_inventory_batches ...................................... 46.61ms DONE\r\n  2026_04_13_000004_add_tenant_id_to_sale_item_batches ................................................... 2.74ms DONE\r\n  2026_04_13_000005_add_is_active_to_core_tables ........................................................ 50.00ms DONE\r\n  2026_04_13_051805_fix_products_sku_multi_tenant_index ................................................. 13.50ms DONE\r\n  2026_04_13_052350_add_tenant_id_to_missing_tables ..................................................... 26.81ms DONE\r\n  2026_04_13_052537_fix_multi_tenant_unique_indexes ..................................................... 53.62ms DONE\r\n  2026_04_13_100000_create_appsumo_codes_table .......................................................... 29.91ms DONE\r\n  2026_04_13_200000_fix_accounts_unique_index ........................................................... 13.74ms DONE\r\n  2026_04_13_210000_harden_tenant_isolation_on_remaining_tables ........................................ 347.72ms DONE\r\n  2026_04_14_000001_add_live_demo_fields_to_tenants_table ............................................... 12.16ms DONE\r\n  2026_04_14_130000_add_tenant_id_to_activities_and_logs ................................................ 30.34ms DONE\r\n  2026_04_14_130500_harden_orders_and_attendance_tenancy ................................................ 76.51ms DONE\r\n  2026_04_15_000001_complete_tenant_isolation_final .................................................... 242.94ms DONE\r\n  2026_04_15_063113_create_error_logs_and_contact_submissions_tables ................................... 102.86ms DONE\r\n  2026_04_16_000000_add_tenant_id_to_attendance_tables ................................................... 4.34ms DONE\r\n  2026_04_16_200000_fix_chart_of_accounts_code_alignment ................................................. 0.58ms DONE\r\n  2026_04_16_210000_add_multi_tenant_performance_indexes ............................................... 116.03ms DONE\r\n  2026_04_16_220000_fix_error_logs_tenant_id_type ....................................................... 38.28ms DONE\r\n  2026_04_17_072714_add_party_id_to_customers_table ...................................................... 4.61ms DONE\r\n  2026_04_18_020822_add_security_pin_to_tenant_user_table ................................................ 5.84ms DONE\r\n  2026_04_19_000001_upgrade_staff_invitations_v1 ........................................................ 47.52ms DONE\r\n  2026_04_19_111152_add_permissions_to_invitations_and_tenant_users ...................................... 9.43ms DONE\r\n  2026_04_21_000001_create_platforms_table .............................................................. 28.67ms DONE\r\n  2026_04_21_000002_create_plans_table ................................................................. 169.05ms DONE\r\n  2026_04_21_000003_create_plan_limits_table ................................................................. 1s DONE\r\n  2026_04_21_000004_create_plan_features_table .......................................................... 63.04ms DONE\r\n  2026_04_21_000005_create_tenant_plan_overrides_table .................................................. 69.49ms DONE\r\n  2026_04_21_000006_create_coupons_tables .............................................................. 296.41ms DONE\r\n  2026_04_21_000007_create_plan_change_notifications_table .............................................. 60.99ms DONE\r\n  2026_04_22_144601_add_has_variants_to_products_table ................................................... 6.36ms DONE\r\n  2026_05_20_103656_create_ecommerce_channels_table ..................................................... 19.01ms DONE\r\n  2026_05_20_103657_add_vensynq_fields_to_sales_table ................................................... 51.20ms DONE\r\n  2026_05_20_103658_add_jit_fields_to_purchases_table ................................................... 47.56ms DONE\r\n  2026_05_20_110423_add_vensynq_jit_fields_to_invoices_table ............................................ 18.49ms DONE\r\n  2026_05_20_130517_add_external_seller_id_to_ecommerce_channels_table ................................... 5.15ms DONE\r\n  2026_05_22_000001_create_woo_connections_table ....................................................... 307.92ms DONE\r\n  2026_05_22_090053_modify_woo_connections_table_for_zero_config ........................................ 90.23ms DONE\r\n  2026_05_22_171228_add_purchases_value_to_daily_snapshots_table ......................................... 0.53ms DONE\r\n  2026_05_22_213000_create_daily_snapshots_table ........................................................ 58.08ms DONE\r\n  2026_05_24_180000_add_tenant_id_to_purchases_and_purchase_returns .................................... 105.50ms DONE\r\n  2026_05_25_000000_make_products_tax_rate_nullable ..................................................... 45.40ms DONE\r\n  2026_05_25_000001_create_recurring_invoices_table ..................................................... 33.49ms DONE\r\n  2026_05_25_000002_add_track_serial_to_products ......................................................... 5.64ms DONE\r\n  2026_05_25_000003_add_last_online_at_to_tenants ........................................................ 4.74ms DONE\r\n  2026_05_25_000004_create_drm_licenses_table ........................................................... 25.88ms DONE\r\n  2026_05_29_000001_create_demo_visitor_logs_table ...................................................... 17.66ms DONE\r\n  2026_05_29_200300_add_onboarding_step_to_tenants_table ................................................. 3.60ms DONE\r\n  2026_05_30_100000_add_waybill_fields_to_sales_table ................................................... 18.87ms DONE\r\n  2026_05_31_000000_create_chat_tables ................................................................. 421.13ms DONE\r\n  2026_05_31_170000_add_source_to_support_tickets ....................................................... 16.53ms DONE\r\n  2026_05_31_194731_create_chat_learning_logs_table ..................................................... 84.23ms DONE\r\n  2026_06_01_000000_add_referral_and_status_to_chat_sessions ............................................ 59.71ms DONE\r\n  2026_06_01_000001_add_staff_role_to_users ............................................................. 13.73ms DONE\r\n  2026_06_01_000002_create_vena_knowledge_base_table .................................................... 34.46ms DONE\r\n  2026_06_01_101329_add_onboarding_completed_to_tenants_table ............................................ 4.32ms DONE\r\n  2026_06_02_103000_add_geo_pricing_columns_to_plans_table .............................................. 19.64ms DONE\r\n  2026_06_02_221000_add_subscription_addons_to_tenants .................................................. 28.57ms DONE\r\n  2026_06_03_000001_seed_missing_feature_gates_in_plan_limits .......................................... 124.77ms DONE\r\n  2026_06_03_033000_add_google_drive_to_tenants ......................................................... 21.77ms DONE\r\n  2026_06_03_124500_add_limit_grace_to_tenants ........................................................... 3.83ms DONE\r\n  2026_06_03_172900_add_onboarding_steps_done_to_tenants_table ........................................... 3.70ms DONE\r\n  2026_06_05_180000_create_terminal_activities_table .................................................... 47.49ms DONE\r\n  2026_06_06_130000_reconcile_users_legacy_fields ....................................................... 22.53ms DONE\r\n  2026_06_07_000000_add_tenant_id_to_ai_settings_table .................................................. 63.34ms DONE\r\n  2026_06_09_000000_sync_party_opening_balances .......................................................... 0.45ms DONE\r\n  2026_06_09_000001_fix_party_snapshots_account_id_type .................................................. 3.02ms DONE\r\n  2026_06_13_000000_add_bank_account_id_to_payments_table ............................................... 49.70ms DONE\r\n  2026_06_13_185000_create_transaction_sequences_table .................................................. 18.33ms DONE\r\n  2026_06_13_190000_fix_landed_cost_expense_categories ................................................... 4.05ms DONE\r\n  2026_06_16_000001_add_custom_role_name_to_tenant_users ................................................. 4.69ms DONE\r\n  2026_06_16_090824_add_custom_to_role_enum_in_tenant_users ............................................. 31.83ms DONE\r\n  2026_06_17_121723_add_tenant_id_to_stock_takes_table ................................................... 2.37ms DONE\r\n  2026_06_20_120619_add_returned_quantity_to_sale_items_table ............................................ 6.04ms DONE\r\n  2026_06_20_155327_add_decimal_quantity_to_sale_items_table ............................................ 77.37ms DONE\r\n  2026_06_20_171855_add_core_performance_indexes ....................................................... 101.68ms DONE\r\n  2026_06_21_103702_add_decimal_to_remaining_qty_columns ............................................... 206.27ms DONE\r\n  2026_06_21_130243_standardize_all_money_columns_to_20_4 .................................................... 5s DONE\r\n  2026_06_21_141706_harden_c3_cascade_deletes_to_restrict ............................................... 97.99ms DONE\r\n  2026_06_21_144911_harden_more_cascade_deletes ......................................................... 96.63ms DONE\r\n  2026_06_22_202844_add_seq_to_inventory_batches ........................................................ 37.16ms DONE\r\n  2026_06_26_114140_create_invoice_reminders_table ..................................................... 109.02ms DONE\r\n  2026_06_27_000000_create_newsletter_subscribers_table ................................................. 18.45ms DONE\r\n  2026_06_27_000001_add_interest_to_newsletter_subscribers_table ......................................... 4.20ms DONE\r\n  2026_06_27_000002_add_partner_details_to_support_tickets_table ........................................ 15.23ms DONE\r\n  2026_06_27_000003_create_digital_products_table ........................................................ 6.54ms DONE\r\n  2026_06_27_000004_add_status_to_digital_products_table ................................................. 4.86ms DONE\r\n  2026_06_30_180000_add_charges_to_sales_table .......................................................... 22.30ms DONE\r\n  2026_07_01_000001_add_is_internal_to_tenants_table ..................................................... 6.47ms DONE\r\n  2026_07_02_000001_create_platform_partners_table ...................................................... 47.16ms DONE\r\n  2026_07_02_000002_add_archived_at_to_plans_table ....................................................... 6.02ms DONE\r\n  2026_07_02_000003_create_pk_verifications_table ...................................................... 119.48ms DONE\r\n  2026_07_02_000004_create_platform_audit_logs_table ..................................................... 6.65ms DONE\r\n  2026_07_03_120000_sec1_hash_admin_passcodes_and_refresh_ltd_limits ..................................... 2.57ms DONE\r\n  2026_07_04_000936_add_seq_to_inventory_batches ......................................................... 6.46ms DONE\r\n  2026_07_04_060000_seed_plan_feature_matrix ................................................................. 1s DONE\r\n  2026_07_07_000001_add_client_sale_id_to_sales_table ................................................... 23.63ms DONE\r\n  2026_07_07_172856_add_two_factor_columns_to_users_table ............................................... 11.89ms DONE\r\n  2026_07_08_000000_update_plan_prices ................................................................... 9.22ms DONE\r\n  2026_07_08_000001_add_missing_v3_columns_to_sales_orders_table ........................................ 46.30ms DONE\r\n  2026_07_08_000002_add_detailed_fields_to_activity_logs_table .......................................... 22.89ms DONE\r\n  2026_07_11_000000_add_idempotency_key_to_sales_table .................................................. 14.62ms DONE\r\n  2026_07_11_000001_align_sales_order_items_quantity_columns ............................................ 85.14ms DONE\r\n  2026_07_11_000100_add_terminal_pairing ................................................................ 36.92ms DONE\r\n  2026_07_12_000000_create_access_grants_tables ........................................................ 224.53ms DONE\r\n  2026_07_21_000000_fix_chk_remaining_qty_positive_constraint ........................................... 64.55ms DONE\r\n  2026_07_24_000000_promote_platform_owner ............................................................... 1.47ms DONE\r\n  2026_07_26_000000_add_invoice_number_to_purchases_if_missing .......................................... 19.68ms DONE\r\n  2026_07_26_000001_add_missing_tax_and_purchases_columns ............................................... 19.88ms DONE\r\n  2026_07_26_000002_add_missing_purchase_items_columns ................................................... 8.84ms DONE\r\n  2026_08_01_000000_create_tool_leads_table ............................................................. 95.76ms DONE\r\n  2026_08_01_000001_create_blog_posts_table ............................................................. 19.03ms DONE\r\n  2026_08_01_000001_create_tool_lead_events_table ....................................................... 53.68ms DONE\r\n  2026_08_01_000001_growth_engine_v2_schema ............................................................ 622.54ms DONE\r\n  2026_08_01_000002_create_tool_usages_table ............................................................ 34.11ms DONE\r\n  2026_08_01_000003_create_email_suppressions_table ..................................................... 19.18ms DONE\r\n  2026_08_01_000010_create_qr_menus_table ............................................................... 25.84ms DONE\r\n  2026_08_01_090000_add_woocommerce_and_health_to_ecommerce_channels_table .............................. 29.89ms DONE\r\n  2026_08_01_100000_create_marketplace_settlement_tables ............................................... 125.81ms DONE\r\n  2026_08_01_100000_create_smart_capture_aliases_table .................................................. 34.47ms DONE\r\n  2026_08_01_100001_add_created_via_to_products_table ................................................... 17.38ms DONE\r\n  2026_08_02_000000_backfill_marketplace_clearing_accounts ............................................... 6.66ms DONE\r\n  2026_08_03_120000_backfill_vensync_command_overrides .................................................. 64.37ms DONE\r\n  2026_08_04_000001_create_ai_usage_events_table ........................................................ 57.27ms DONE\r\n  2026_08_04_000002_create_ai_rate_buckets_and_spend_counters_tables .................................... 24.31ms DONE\r\n  2026_08_04_000003_create_product_search_index_table ................................................... 98.52ms DONE\r\n  2026_08_04_000004_create_supplier_product_codes_table ................................................. 42.80ms DONE\r\n  2026_08_04_000005_rename_ai_scans_to_pages_in_tenants ................................................. 32.72ms DONE\r\n  2026_08_04_000006_fix_null_ai_page_limits .............................................................. 0.56ms DONE\r\n  2026_08_04_000007_add_counter_plan_to_plans_table .......................................................... 1s DONE\r\n  2026_08_05_000001_add_terms_consent_to_tenants ........................................................ 32.40ms DONE\r\n  2026_08_05_000001_seed_bulk_upload_plan_feature ............................................................ 1s DONE\r\n  2026_08_05_000002_create_restaurant_tables_and_orders ................................................. 86.89ms DONE\r\n  2026_08_05_000010_create_shared_products_table ........................................................ 79.00ms DONE\r\n  2026_08_05_000011_create_public_tool_requests_table ................................................... 32.57ms DONE\r\n  2026_08_05_000012_add_ai_description_columns_to_products .............................................. 29.97ms DONE\r\n  2026_08_05_000013_add_hosted_until_and_monthly_transaction_counter_to_tenants ......................... 18.23ms DONE\r\n  2026_08_05_000014_create_visitor_chat_cached_answers_table ............................................ 33.47ms DONE\r\n  2026_08_05_000015_create_scan_image_hashes_table ...................................................... 33.96ms DONE\r\n  2026_08_08_000001_create_experience_preference_tables ................................................. 75.99ms DONE\r\n  2026_08_09_000000_add_region_to_ecommerce_channels_table ............................................... 7.15ms DONE\r\n  2026_08_11_000001_add_legacy_parity_columns_to_purchases .............................................. 64.91ms DONE\r\n  2026_08_11_000001_fix_activity_logs_nullable_columns .................................................. 97.03ms DONE\r\n  2026_08_11_000002_repoint_expenses_purchase_fk_to_purchases ........................................... 47.18ms DONE\r\n  2026_08_11_100000_add_business_type_to_tenants_table .................................................. 17.49ms DONE\r\n  2026_08_12_062316_create_capabilities_tables .......................................................... 70.63ms DONE\r\n  2026_08_12_065156_create_occupancies_and_positions_tables ............................................. 57.68ms DONE\r\n  2026_08_12_073444_rename_kitchen_orders_to_work_orders ................................................ 15.07ms DONE\r\n  2026_08_12_075850_rename_custom_charges_to_ad_hoc_lines ................................................ 7.61ms DONE\r\n  2026_08_12_081131_rename_recipes_tables_to_compositions ............................................... 42.82ms DONE\r\n  2026_08_12_084955_unify_allocations_tables ............................................................ 38.32ms DONE\r\n  2026_08_12_092708_retire_dead_transactions_table ....................................................... 6.09ms DONE\r\n  2026_08_12_121240_rename_dashboard_layouts_to_layout_preferences ...................................... 25.04ms DONE\r\n  2026_08_12_125352_add_role_and_nullable_user_to_layout_preferences .................................... 42.54ms DONE\r\n  2026_08_12_200000_create_dashboards_tables ........................................................... 145.49ms DONE\r\n  2026_08_12_210000_create_services_engine_tables ...................................................... 180.58ms DONE\r\n  2026_08_13_000001_deploy_d_retire_legacy_occupancy_tables ............................................. 25.80ms DONE\r\n  2026_08_13_000002_create_customer_addresses_table ..................................................... 43.93ms DONE\r\n  2026_08_13_000003_add_payment_terms_to_suppliers_table ................................................. 4.82ms DONE\r\n  2026_08_13_000004_add_performance_to_suppliers_table ................................................... 8.66ms DONE\r\n  2026_08_13_000005_add_pricing_tier_to_customers_table .................................................. 5.36ms DONE\r\n  2026_08_13_000006_add_tax_exempt_to_customers_table .................................................... 3.57ms DONE\r\n  2026_08_13_000007_add_tax_inclusive_to_purchase_orders_table ........................................... 5.50ms DONE\r\n  2026_08_13_000008_add_refund_reason_to_sales_table ..................................................... 4.95ms DONE\r\n  2026_08_13_000009_add_credit_limit_and_milestones_to_customers_table .................................. 10.40ms DONE\r\n  2026_08_13_000010_add_credit_limit_to_suppliers_table .................................................. 3.54ms DONE\r\n  2026_08_13_000011_add_currency_code_to_customers_table ................................................. 3.60ms DONE\r\n  2026_08_13_000012_add_channel_to_expenses_table ........................................................ 4.71ms DONE\r\n  2026_08_13_000013_add_is_dropship_to_sales_table ....................................................... 2.38ms DONE\r\n  2026_08_13_000014_add_final_batch_fields_to_tables ..................................................... 8.17ms DONE\r\n  2026_08_16_000000_create_tenant_modules_table ......................................................... 28.14ms DONE\r\n  2026_08_16_000100_create_service_packages_and_rates_tables ............................................ 73.65ms DONE\r\n  2026_08_16_000200_create_tenant_config_versions_table ................................................. 25.75ms DONE\r\n  2026_08_16_000300_include_every_module_on_every_plan ....................................................... 1s DONE\r\n  2026_08_16_013903_backfill_plan_limits_features ........................................................ 0.04ms DONE\r\n  2026_08_21_000000_add_layout_law_geometry_to_dashboard_cards .......................................... 44.19ms DONE\r\n  2026_08_28_000001_create_modifier_tables .............................................................. 83.45ms DONE\r\n  2026_08_28_000002_add_ticket_routing_to_work_orders ................................................... 47.67ms DONE\r\n  2026_08_28_000003_add_service_charge_and_tip_to_sales ................................................. 13.98ms DONE\r\n  2026_08_28_000004_add_floor_plan_and_lane_tickets ..................................................... 62.20ms DONE\r\n  2026_08_29_120000_give_documents_somewhere_to_put_their_money ........................................ 309.11ms DONE\r\n  2026_08_30_090000_give_expenses_a_payee_and_lines ..................................................... 28.34ms DONE\r\n  2026_08_30_093000_give_proposals_a_date ................................................................ 7.33ms DONE\r\n  2026_09_04_000001_create_shared_product_contributions_table ........................................... 54.10ms DONE\r\n  2026_09_04_000002_widen_ai_rate_buckets_and_spend_counters ............................................ 38.33ms DONE\r\n\ufeff  2026_09_04_000003_create_feature_requests_table ....................................................... 26.82ms DONE\r\n\ufeff  2026_09_04_000004_fix_service_jobs_party_id_uuid ..................................................... 105.99ms DONE\r\n  2026_09_07_150000_services_tools_calendar_and_employee_fk_fix ........................................ 152.81ms DONE\r\n  2026_09_07_230352_fix_service_tools_product_id_uuid ................................................... 58.72ms DONE\r\n  2026_09_08_000000_backfill_employees_tenant_id ......................................................... 7.73ms DONE\r\n  2026_09_08_000001_create_registers_and_user_devices_tables ............................................ 85.79ms DONE\r\n  2026_09_10_000000_add_consent_fields_to_newsletter_subscribers_table .................................. 67.46ms DONE\r\n  2026_09_10_000001_widen_tenants_join_code .............................................................. 7.98ms DONE\r\n  2026_09_10_000002_add_device_secret_to_terminals ...................................................... 10.02ms DONE\r\n  2026_09_10_000003_create_email_otp_challenges_table ................................................... 27.81ms DONE\r\n  2026_09_10_100000_ensure_chk_remaining_qty_positive_on_mariadb ......................................... 1.83ms DONE\r\n  2026_09_10_100001_ensure_chk_opening_batch_cost_on_mariadb ............................................. 1.17ms DONE\r\n  2026_09_10_200000_point_debit_notes_at_purchases ...................................................... 47.52ms DONE\r\n  2026_09_10_200100_scope_product_serial_uniqueness_to_store ............................................ 14.44ms DONE\r\n  2026_09_11_120000_canonicalize_tenant_plan_slugs ....................................................... 4.98ms DONE\r\n  2026_09_13_000001_correct_plan_fences_and_reports .......................................................... 1s DONE\r\n\ufeff  2026_09_13_000002_register_collapsed_report_plan_keys ...................................................... 1s DONE\r\n\ufeff  2026_09_13_000003_register_tiered_report_plan_keys ......................................................... 1s DONE\r\n  2026_09_14_000001_cleanup_ghost_plan_limits ............................................................ 3.81ms DONE\r\n  2026_09_14_000002_widen_notifications_notifiable_id_to_varchar ........................................ 38.28ms DONE\r\n  2026_09_15_000001_add_frame_to_dashboards ............................................................. 10.83ms DONE\r\n  2026_09_15_000002_create_dashboard_frames_table ...................................................... 127.53ms DONE\r\n  2026_09_15_000003_add_frame_slot_to_dashboard_cards ................................................... 35.69ms DONE\r\n  2026_09_15_000004_migrate_ranking_charts_to_list ...................................................... 20.30ms DONE\r\n  2026_09_15_000005_backfill_frame_slots_for_existing_dashboards ......................................... 1.46ms DONE\r\n  2026_09_16_000010_add_role_and_is_current_to_accounts ................................................. 92.97ms DONE\r\n  2026_09_16_000011_add_bank_account_id_to_journal_items ................................................ 34.84ms DONE\r\n  2026_09_16_000012_create_reckoner_invariant_runs_table ................................................ 38.82ms DONE\r\n  2026_09_16_000013_create_reckoner_daily_table ......................................................... 19.79ms DONE\r\n  2026_09_16_000014_create_reckoner_dirty_days_table .................................................... 33.88ms DONE\r\n  2026_09_16_000015_add_reckoner_data_version_to_tenants ................................................ 16.10ms DONE\r\n  2026_09_16_000020_add_spec_to_dashboard_cards ......................................................... 15.90ms DONE\r\n  2026_09_16_000021_create_register_shifts_and_recon_tables ............................................ 186.37ms DONE\r\n  2026_09_16_000022_create_assets_loans_reports_tables ................................................. 280.85ms DONE\r\n  2026_09_16_000023_add_document_tracking_columns ...................................................... 429.99ms DONE\r\n  2026_09_22_000001_add_order_type_and_indexes_to_work_orders ........................................... 21.09ms DONE\r\n  2026_09_22_000001_ensure_sales_tenant_idempotency_index ................................................ 3.54ms DONE\r\n  2026_09_22_000002_add_kitchen_station_to_products ..................................................... 11.87ms DONE\r\n  2026_09_22_000002_create_approval_foundation_tables .................................................. 262.69ms DONE\r\n  2026_09_22_000003_add_permission_override_mode_to_tenant_users_table ................................... 6.86ms DONE\r\n  2026_09_22_000003_add_rider_flag_to_employees .......................................................... 7.25ms DONE\r\n  2026_09_22_000004_create_table_reservations_table ..................................................... 68.97ms DONE\r\n  2026_09_22_000004_set_default_permission_override_mode_on_tenant_users ................................. 9.77ms DONE\r\n  2026_09_22_000005_add_transaction_approval_mode_to_staff_invitations ................................... 7.57ms DONE\r\n  2026_09_22_000005_create_shift_cash_movements_table ................................................... 60.36ms DONE\r\n  2026_09_22_000006_enforce_permission_override_mode_not_null ........................................... 78.39ms DONE\r\n  2026_09_23_000001_backfill_approval_admin_enabled_for_existing_tenants ................................. 2.08ms DONE\r\n  2026_09_26_000001_create_cheque_management_tables .......................................................... 1s DONE"
+    },
+    "schema_forward": {
+        "assertions": {
+            "cheque_leaves_cheque_books_restrict": true,
+            "cheque_leaves_bank_accounts_restrict": true,
+            "cheque_leaves_approval_documents_set_null": true,
+            "received_cheques_bank_accounts_restrict": true,
+            "received_cheques_journal_entries_restrict": true,
+            "rcvd_chq_tenant_fingerprint_unique_exists": true,
+            "cheque_duplicate_audit_logs_exists": true
+        },
+        "tables": {
+            "cheque_books": {
+                "table_exists": true,
+                "columns": [
+                    {
+                        "COLUMN_NAME": "id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "tenant_id",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "bank_account_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "book_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(100)"
+                    },
+                    {
+                        "COLUMN_NAME": "prefix",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(20)"
+                    },
+                    {
+                        "COLUMN_NAME": "serial_start",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "serial_end",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "serial_padding",
+                        "DATA_TYPE": "smallint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": "6",
+                        "COLUMN_TYPE": "smallint(5) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "total_leaves",
+                        "DATA_TYPE": "int",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": "0",
+                        "COLUMN_TYPE": "int(10) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "received_date",
+                        "DATA_TYPE": "date",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "date"
+                    },
+                    {
+                        "COLUMN_NAME": "status",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": "'active'",
+                        "COLUMN_TYPE": "varchar(32)"
+                    },
+                    {
+                        "COLUMN_NAME": "notes",
+                        "DATA_TYPE": "text",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "text"
+                    },
+                    {
+                        "COLUMN_NAME": "series_prefix",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(20)"
+                    },
+                    {
+                        "COLUMN_NAME": "start_number",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "end_number",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "padding_zeros",
+                        "DATA_TYPE": "smallint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "smallint(5) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "description",
+                        "DATA_TYPE": "text",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "text"
+                    },
+                    {
+                        "COLUMN_NAME": "created_by",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "created_at",
+                        "DATA_TYPE": "timestamp",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "timestamp"
+                    },
+                    {
+                        "COLUMN_NAME": "updated_at",
+                        "DATA_TYPE": "timestamp",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "timestamp"
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "CONSTRAINT_NAME": "cheque_books_bank_account_id_foreign",
+                        "COLUMN_NAME": "bank_account_id",
+                        "REFERENCED_TABLE_NAME": "bank_accounts",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "RESTRICT",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_books_created_by_foreign",
+                        "COLUMN_NAME": "created_by",
+                        "REFERENCED_TABLE_NAME": "users",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_books_tenant_id_foreign",
+                        "COLUMN_NAME": "tenant_id",
+                        "REFERENCED_TABLE_NAME": "tenants",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "CASCADE",
+                        "UPDATE_RULE": "RESTRICT"
+                    }
+                ],
+                "indexes": [
+                    {
+                        "INDEX_NAME": "cheque_books_bank_account_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "bank_account_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_books_created_by_foreign",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "created_by",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_books_status_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "status",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_books_tenant_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "chq_books_tenant_bank_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "chq_books_tenant_bank_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "bank_account_id",
+                        "SEQ_IN_INDEX": 2
+                    },
+                    {
+                        "INDEX_NAME": "chq_books_tenant_bank_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "status",
+                        "SEQ_IN_INDEX": 3
+                    },
+                    {
+                        "INDEX_NAME": "PRIMARY",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "id",
+                        "SEQ_IN_INDEX": 1
+                    }
+                ]
+            },
+            "cheque_leaves": {
+                "table_exists": true,
+                "columns": [
+                    {
+                        "COLUMN_NAME": "id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "tenant_id",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "cheque_book_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "bank_account_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "normalized_serial_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "display_serial_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "numeric_serial",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "serial_number",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "cheque_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "status",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": "'available'",
+                        "COLUMN_TYPE": "varchar(32)"
+                    },
+                    {
+                        "COLUMN_NAME": "reserved_by_approval_document_id",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "payment_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "party_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "amount",
+                        "DATA_TYPE": "decimal",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "decimal(15,2)"
+                    },
+                    {
+                        "COLUMN_NAME": "issue_date",
+                        "DATA_TYPE": "date",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "date"
+                    },
+                    {
+                        "COLUMN_NAME": "cheque_date",
+                        "DATA_TYPE": "date",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "date"
+                    },
+                    {
+                        "COLUMN_NAME": "cleared_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "bounced_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "voided_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "stopped_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "status_reason",
+                        "DATA_TYPE": "text",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "text"
+                    },
+                    {
+                        "COLUMN_NAME": "journal_entry_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "created_by",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "updated_by",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "created_at",
+                        "DATA_TYPE": "timestamp",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "timestamp"
+                    },
+                    {
+                        "COLUMN_NAME": "updated_at",
+                        "DATA_TYPE": "timestamp",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "timestamp"
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_bank_account_id_foreign",
+                        "COLUMN_NAME": "bank_account_id",
+                        "REFERENCED_TABLE_NAME": "bank_accounts",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "RESTRICT",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_cheque_book_id_foreign",
+                        "COLUMN_NAME": "cheque_book_id",
+                        "REFERENCED_TABLE_NAME": "cheque_books",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "RESTRICT",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_created_by_foreign",
+                        "COLUMN_NAME": "created_by",
+                        "REFERENCED_TABLE_NAME": "users",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_journal_entry_id_foreign",
+                        "COLUMN_NAME": "journal_entry_id",
+                        "REFERENCED_TABLE_NAME": "journal_entries",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "RESTRICT",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_party_id_foreign",
+                        "COLUMN_NAME": "party_id",
+                        "REFERENCED_TABLE_NAME": "parties",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_payment_id_foreign",
+                        "COLUMN_NAME": "payment_id",
+                        "REFERENCED_TABLE_NAME": "payments",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_reserved_by_approval_document_id_foreign",
+                        "COLUMN_NAME": "reserved_by_approval_document_id",
+                        "REFERENCED_TABLE_NAME": "approval_documents",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_tenant_id_foreign",
+                        "COLUMN_NAME": "tenant_id",
+                        "REFERENCED_TABLE_NAME": "tenants",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "CASCADE",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_leaves_updated_by_foreign",
+                        "COLUMN_NAME": "updated_by",
+                        "REFERENCED_TABLE_NAME": "users",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    }
+                ],
+                "indexes": [
+                    {
+                        "INDEX_NAME": "cheque_leaves_bank_account_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "bank_account_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_cheque_book_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "cheque_book_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_created_by_foreign",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "created_by",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_journal_entry_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "journal_entry_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_numeric_serial_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "numeric_serial",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_party_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "party_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_payment_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "payment_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_reserved_by_approval_document_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "reserved_by_approval_document_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_status_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "status",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_tenant_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_leaves_updated_by_foreign",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "updated_by",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_bank_serial_uniq",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_bank_serial_uniq",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "bank_account_id",
+                        "SEQ_IN_INDEX": 2
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_bank_serial_uniq",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "normalized_serial_number",
+                        "SEQ_IN_INDEX": 3
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_bank_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_bank_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "bank_account_id",
+                        "SEQ_IN_INDEX": 2
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_bank_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "status",
+                        "SEQ_IN_INDEX": 3
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "chq_leaves_tenant_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "status",
+                        "SEQ_IN_INDEX": 2
+                    },
+                    {
+                        "INDEX_NAME": "PRIMARY",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "id",
+                        "SEQ_IN_INDEX": 1
+                    }
+                ]
+            },
+            "received_cheques": {
+                "table_exists": true,
+                "columns": [
+                    {
+                        "COLUMN_NAME": "id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "tenant_id",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "party_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "payment_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "sale_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "journal_entry_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "deposit_journal_entry_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "cheque_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "normalized_cheque_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "drawer_name",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(255)"
+                    },
+                    {
+                        "COLUMN_NAME": "drawer_bank",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(255)"
+                    },
+                    {
+                        "COLUMN_NAME": "normalized_drawer_bank",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(100)"
+                    },
+                    {
+                        "COLUMN_NAME": "drawer_branch",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(255)"
+                    },
+                    {
+                        "COLUMN_NAME": "received_date",
+                        "DATA_TYPE": "date",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "date"
+                    },
+                    {
+                        "COLUMN_NAME": "cheque_date",
+                        "DATA_TYPE": "date",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "date"
+                    },
+                    {
+                        "COLUMN_NAME": "amount",
+                        "DATA_TYPE": "decimal",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "decimal(15,2)"
+                    },
+                    {
+                        "COLUMN_NAME": "deposit_bank_account_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "status",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": "'received'",
+                        "COLUMN_TYPE": "varchar(32)"
+                    },
+                    {
+                        "COLUMN_NAME": "deposited_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "cleared_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "bounced_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "returned_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "duplicate_fingerprint",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "is_duplicate_override",
+                        "DATA_TYPE": "tinyint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": "0",
+                        "COLUMN_TYPE": "tinyint(1)"
+                    },
+                    {
+                        "COLUMN_NAME": "override_reason",
+                        "DATA_TYPE": "text",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "text"
+                    },
+                    {
+                        "COLUMN_NAME": "override_by",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "override_at",
+                        "DATA_TYPE": "datetime",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "datetime"
+                    },
+                    {
+                        "COLUMN_NAME": "status_reason",
+                        "DATA_TYPE": "text",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "text"
+                    },
+                    {
+                        "COLUMN_NAME": "notes",
+                        "DATA_TYPE": "text",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "text"
+                    },
+                    {
+                        "COLUMN_NAME": "created_by",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "updated_by",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "created_at",
+                        "DATA_TYPE": "timestamp",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "timestamp"
+                    },
+                    {
+                        "COLUMN_NAME": "updated_at",
+                        "DATA_TYPE": "timestamp",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "timestamp"
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_created_by_foreign",
+                        "COLUMN_NAME": "created_by",
+                        "REFERENCED_TABLE_NAME": "users",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_deposit_bank_account_id_foreign",
+                        "COLUMN_NAME": "deposit_bank_account_id",
+                        "REFERENCED_TABLE_NAME": "bank_accounts",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "RESTRICT",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_deposit_journal_entry_id_foreign",
+                        "COLUMN_NAME": "deposit_journal_entry_id",
+                        "REFERENCED_TABLE_NAME": "journal_entries",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "RESTRICT",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_journal_entry_id_foreign",
+                        "COLUMN_NAME": "journal_entry_id",
+                        "REFERENCED_TABLE_NAME": "journal_entries",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "RESTRICT",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_override_by_foreign",
+                        "COLUMN_NAME": "override_by",
+                        "REFERENCED_TABLE_NAME": "users",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_party_id_foreign",
+                        "COLUMN_NAME": "party_id",
+                        "REFERENCED_TABLE_NAME": "parties",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_payment_id_foreign",
+                        "COLUMN_NAME": "payment_id",
+                        "REFERENCED_TABLE_NAME": "payments",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_sale_id_foreign",
+                        "COLUMN_NAME": "sale_id",
+                        "REFERENCED_TABLE_NAME": "sales",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_tenant_id_foreign",
+                        "COLUMN_NAME": "tenant_id",
+                        "REFERENCED_TABLE_NAME": "tenants",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "CASCADE",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "received_cheques_updated_by_foreign",
+                        "COLUMN_NAME": "updated_by",
+                        "REFERENCED_TABLE_NAME": "users",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    }
+                ],
+                "indexes": [
+                    {
+                        "INDEX_NAME": "PRIMARY",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "rcvd_chq_bank_serial_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "rcvd_chq_bank_serial_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "normalized_drawer_bank",
+                        "SEQ_IN_INDEX": 2
+                    },
+                    {
+                        "INDEX_NAME": "rcvd_chq_bank_serial_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "normalized_cheque_number",
+                        "SEQ_IN_INDEX": 3
+                    },
+                    {
+                        "INDEX_NAME": "rcvd_chq_tenant_fingerprint_uniq",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "rcvd_chq_tenant_fingerprint_uniq",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "duplicate_fingerprint",
+                        "SEQ_IN_INDEX": 2
+                    },
+                    {
+                        "INDEX_NAME": "rcvd_chq_tenant_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "rcvd_chq_tenant_status_idx",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "status",
+                        "SEQ_IN_INDEX": 2
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_created_by_foreign",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "created_by",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_deposit_bank_account_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "deposit_bank_account_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_deposit_journal_entry_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "deposit_journal_entry_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_journal_entry_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "journal_entry_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_normalized_cheque_number_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "normalized_cheque_number",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_normalized_drawer_bank_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "normalized_drawer_bank",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_override_by_foreign",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "override_by",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_party_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "party_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_payment_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "payment_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_sale_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "sale_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_status_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "status",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_tenant_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "received_cheques_updated_by_foreign",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "updated_by",
+                        "SEQ_IN_INDEX": 1
+                    }
+                ]
+            },
+            "cheque_duplicate_audit_logs": {
+                "table_exists": true,
+                "columns": [
+                    {
+                        "COLUMN_NAME": "id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "tenant_id",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "cheque_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "normalized_cheque_number",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(64)"
+                    },
+                    {
+                        "COLUMN_NAME": "drawer_bank",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(255)"
+                    },
+                    {
+                        "COLUMN_NAME": "normalized_drawer_bank",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(100)"
+                    },
+                    {
+                        "COLUMN_NAME": "amount",
+                        "DATA_TYPE": "decimal",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "decimal(15,2)"
+                    },
+                    {
+                        "COLUMN_NAME": "action",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": null,
+                        "COLUMN_TYPE": "varchar(32)"
+                    },
+                    {
+                        "COLUMN_NAME": "reason",
+                        "DATA_TYPE": "text",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "text"
+                    },
+                    {
+                        "COLUMN_NAME": "existing_cheque_id",
+                        "DATA_TYPE": "char",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "char(36)"
+                    },
+                    {
+                        "COLUMN_NAME": "user_id",
+                        "DATA_TYPE": "bigint",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "bigint(20) unsigned"
+                    },
+                    {
+                        "COLUMN_NAME": "ip_address",
+                        "DATA_TYPE": "varchar",
+                        "IS_NULLABLE": "YES",
+                        "COLUMN_DEFAULT": "NULL",
+                        "COLUMN_TYPE": "varchar(45)"
+                    },
+                    {
+                        "COLUMN_NAME": "created_at",
+                        "DATA_TYPE": "timestamp",
+                        "IS_NULLABLE": "NO",
+                        "COLUMN_DEFAULT": "current_timestamp()",
+                        "COLUMN_TYPE": "timestamp"
+                    }
+                ],
+                "foreign_keys": [
+                    {
+                        "CONSTRAINT_NAME": "cheque_duplicate_audit_logs_tenant_id_foreign",
+                        "COLUMN_NAME": "tenant_id",
+                        "REFERENCED_TABLE_NAME": "tenants",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "CASCADE",
+                        "UPDATE_RULE": "RESTRICT"
+                    },
+                    {
+                        "CONSTRAINT_NAME": "cheque_duplicate_audit_logs_user_id_foreign",
+                        "COLUMN_NAME": "user_id",
+                        "REFERENCED_TABLE_NAME": "users",
+                        "REFERENCED_COLUMN_NAME": "id",
+                        "DELETE_RULE": "SET NULL",
+                        "UPDATE_RULE": "RESTRICT"
+                    }
+                ],
+                "indexes": [
+                    {
+                        "INDEX_NAME": "cheque_duplicate_audit_logs_action_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "action",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_duplicate_audit_logs_existing_cheque_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "existing_cheque_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_duplicate_audit_logs_tenant_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "tenant_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "cheque_duplicate_audit_logs_user_id_index",
+                        "NON_UNIQUE": 1,
+                        "COLUMN_NAME": "user_id",
+                        "SEQ_IN_INDEX": 1
+                    },
+                    {
+                        "INDEX_NAME": "PRIMARY",
+                        "NON_UNIQUE": 0,
+                        "COLUMN_NAME": "id",
+                        "SEQ_IN_INDEX": 1
+                    }
+                ]
+            }
+        }
+    },
+    "migration_rollback": {
+        "exit_code": 0,
+        "stdout": "\ufeff\ufeff\ufeff\ufeff\n   INFO  Rolling back migrations.  \n\r\n  2026_09_26_000001_create_cheque_management_tables ..................................................... 34.45ms DONE",
+        "assertions": {
+            "cheque_books_dropped": true,
+            "cheque_leaves_dropped": true,
+            "received_cheques_dropped": true,
+            "cheque_duplicate_audit_logs_dropped": true
+        }
+    },
+    "migration_forward_2": {
+        "exit_code": 0,
+        "stdout": "INFO  Running migrations.  \n\r\n  2026_09_26_000001_create_cheque_management_tables .......................................................... 1s DONE"
+    },
+    "cheque_test_suite_fresh_db": {
+        "exit_code": 0,
+        "stdout": "\n   PASS  Tests\\Feature\\Cheque\\ChequeApprovalIntegrationTest\r\n  \u2713 submitting cheque payment for approval reserves cheque leaf                                                  0.49s  \r\n  \u2713 approving document issues cheque leaf and posts accounting                                                   0.19s  \r\n  \u2713 rejecting document releases cheque leaf to available                                                         0.14s  \r\n  \u2713 withdrawing document releases cheque leaf to available                                                       0.16s  \r\n  \u2713 resubmitting with different cheque leaf swaps reservations atomically                                        0.16s  \r\n\n   PASS  Tests\\Feature\\Cheque\\ChequeBookManagementTest\r\n  \u2713 register chequebook creates correct number of leaves with padded serials                                     0.15s  \r\n  \u2713 single leaf chequebook allowed                                                                               0.12s  \r\n  \u2713 rejects when start number greater than end number                                                            0.14s  \r\n  \u2713 rejects when range exceeds 500 leaves                                                                        0.13s  \r\n  \u2713 rejects overlapping serial range on same bank account                                                        0.16s  \r\n  \u2713 allows same serial range on different bank account                                                           0.17s  \r\n  \u2713 close chequebook marks status closed                                                                         0.14s  \r\n  \u2713 delete completely unused chequebook                                                                          0.14s  \r\n  \u2713 rejects deleting chequebook with issued leaves                                                               0.13s  \r\n  \u2713 auto exhaust chequebook when all leaves used                                                                 0.12s  \r\n\n   PASS  Tests\\Feature\\Cheque\\ChequeLeafLifecycleTest\r\n  \u2713 leaf lifecycle available to reserved to issued                                                               0.15s  \r\n  \u2713 cannot reserve already reserved leaf                                                                         0.15s  \r\n  \u2713 cannot issue leaf reserved by different approval document                                                    0.15s  \r\n  \u2713 release reservation returns leaf to available                                                                0.14s  \r\n  \u2713 update reservation swaps leaves atomically                                                                   0.14s  \r\n  \u2713 clear issued cheque                                                                                          0.15s  \r\n  \u2713 stop issued cheque reverses payment journal entry                                                            0.16s  \r\n  \u2713 void unused cheque                                                                                           0.13s  \r\n  \u2713 database enforces unique normalized serial per bank account                                                  0.13s  \r\n\n   PASS  Tests\\Feature\\Cheque\\ChequePermissionsAndGovernanceTest\r\n  \u2713 owner holds all cheque permissions                                                                           0.19s  \r\n  \u2713 cashier cannot manage or create chequebooks                                                                  0.43s  \r\n  \u2713 multi tenant isolation on chequebooks and leaves                                                             0.38s  \r\n  \u2713 reckoner cheque source readings                                                                              0.23s  \r\n\n   PASS  Tests\\Feature\\Cheque\\ReceivedChequeLifecycleTest\r\n  \u2713 record received cheque with normalized data                                                                  0.13s  \r\n  \u2713 detects exact duplicate received cheque                                                                      0.13s  \r\n  \u2713 detects potential duplicate and allows override                                                              0.15s  \r\n  \u2713 deposit received cheque posts canonical accounting                                                           0.13s  \r\n  \u2713 clear deposited cheque                                                                                       0.14s  \r\n  \u2713 bounce deposited cheque reverses deposit journal entry                                                       0.17s  \r\n  \u2713 return bounced cheque to customer                                                                            0.13s  \r\n  \u2713 post dated cheque query identification                                                                       0.12s  \r\n\n   PASS  Tests\\Feature\\Reckoner\\ChequeCardsAndScopeTest\r\n  \u2713 all seven cheque cards are registered and resolve ok                                                         0.29s  \r\n  \u2713 two tenants and two users produce strictly isolated cache keys                                               0.41s  \r\n\r\n  Tests:    38 passed (189 assertions)\r\n  Duration: 7.18s\r\n\r\n",
+        "stderr": ""
+    }
+}

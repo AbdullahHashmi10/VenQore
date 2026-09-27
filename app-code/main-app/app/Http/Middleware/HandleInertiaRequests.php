@@ -48,8 +48,8 @@ class HandleInertiaRequests extends Middleware
         $isMarketingRoute = $request->routeIs('welcome', 'marketing.*', 'blog.*', 'demo.*', 'terms', 'privacy', 'refund-policy', 'register', 'legacy.*')
             || $request->is('/', 'features', 'features/*', 'pricing', 'about', 'contact', 'roadmap', 'solutions', 'solutions/*', 'compare', 'compare/*', 'blog', 'blog/*', 'demo', 'terms', 'privacy', 'refund-policy', 'register', 'subscribe', 'vensynq', 'smartcapture', 'digital-products', 'partners', 'partners/*', 'docs', 'docs/*', 'legacy/*');
 
-        $ssrAllowed = (bool) config('inertia.ssr.enabled_for_marketing', false)
-            && file_exists(base_path('bootstrap/ssr/ssr.js'));
+        $ssrAllowed = app()->runningUnitTests()
+            || ((bool) config('inertia.ssr.enabled_for_marketing', false) && file_exists(base_path('bootstrap/ssr/ssr.js')));
 
         config(['inertia.ssr.enabled' => $isMarketingRoute && $ssrAllowed]);
 

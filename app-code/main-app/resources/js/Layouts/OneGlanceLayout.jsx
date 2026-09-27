@@ -6,6 +6,8 @@ import OmniSearch from '@/Components/OmniSearch';
 import AiIsland from '@/Components/AiIsland';
 import OnboardingDriver from '@/Components/OnboardingDriver';
 import DemoBanner from '@/Components/DemoBanner';
+import HeaderCalculatorButton from '@/Components/Calculator/HeaderCalculatorButton';
+import CalculatorPopover from '@/Components/Calculator/CalculatorPopover';
 import {
  Activity,
  Monitor,
@@ -37,6 +39,7 @@ import {
  ShoppingCart,
  Users,
  Clock,
+ Calculator,
  Sparkles,
  MessageSquare,
  Check,
@@ -126,6 +129,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  // Store Switcher Modal State
  const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
+
+ // Header Calculator State
+ const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+ const calculatorButtonRef = useRef(null);
 
  // Live Header Clock State (Default off per Launch Readiness Mandate)
  const [showClock, setShowClock] = useState(() => {
@@ -1739,6 +1746,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   </div>
   )}
 
+  {/* Header Calculator */}
+  {(settings?.header_calculator_enabled === '1' || settings?.header_calculator_enabled === true) && (
+      <div className="relative">
+          <HeaderCalculatorButton
+              ref={calculatorButtonRef}
+              isOpen={isCalculatorOpen}
+              onClick={() => setIsCalculatorOpen(!isCalculatorOpen)}
+          />
+          <CalculatorPopover
+              isOpen={isCalculatorOpen}
+              onClose={() => setIsCalculatorOpen(false)}
+              buttonRef={calculatorButtonRef}
+          />
+      </div>
+  )}
+
   {/* Display & Dashboard Customization Settings Dropdown */}
   <div className="hidden lg:block relative" ref={displayMenuRef}>
       <button
@@ -1798,6 +1821,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                       <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${showClock ? 'left-4.5' : 'left-0.5'}`} />
                   </div>
               </button>
+
+              <div className="w-full flex items-center justify-between p-2 rounded-xl text-ink-secondary transition-all">
+                  <div className="flex items-center gap-2.5">
+                      <Calculator size={16} className="text-brand-500 shrink-0" />
+                      <span className="text-sm font-semibold">Header Calculator</span>
+                  </div>
+                  <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-sunken text-ink-muted">
+                      {(settings?.header_calculator_enabled === '1' || settings?.header_calculator_enabled === true) ? 'Enabled' : 'Managed in Store Settings'}
+                  </span>
+              </div>
 
               <button
                   onClick={() => {

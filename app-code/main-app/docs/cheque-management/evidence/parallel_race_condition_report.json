@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-09-26T14:28:00+05:00",
+  "subject": "RollupParityGateTest — 25 failures in parallel full-suite run",
+
+  "failure_summary": {
+    "file": "tests/tests/Feature/Reckoner/RollupParityGateTest.php",
+    "line": 178,
+    "assertion": "assertEqualsWithDelta(7700.00, (float) $cardResult->data['value'], 0.01)",
+    "failure_count_in_parallel_run": 25,
+    "parallel_workers": 12
+  },
+
+  "root_cause": "Pre-existing parallel-mode race condition. RollupParityGateTest shares the 'golden-store' tenant fixture and the reckoner_daily table across all 12 parallel workers. When multiple workers concurrently call reckoner:rollup for the same tenant, rows are duplicated or the sum accumulates beyond 7700.00, causing the core.revenue assertion to fail.",
+
+  "evidence_of_pre_existing_nature": {
+    "cheque_module_diff_on_rollup_directory": "0 lines — app/Reckoner/Rollup/ was not modified by the cheque feature",
+    "cheque_module_diff_on_test_file": "0 lines — RollupParityGateTest.php was not modified",
+    "git_log_shows": "Both files share commit 199f9672 ('chore: update code') which predates the cheque module session",
+    "isolated_run_result": "5/5 PASSED (42 assertions) — exit code 0 in 25.04 s",
+    "isolated_run_command": "pest --filter=RollupParityGateTest --no-coverage"
+  },
+
+  "isolation_proof": {
+    "command": "pest --filter=RollupParityGateTest --no-coverage",
+    "exit_code": 0,
+    "tests_passed": 5,
+    "assertions": 42,
+    "duration_seconds": 25.04,
+    "test_names": [
+      "phase6 tables and columns exist",
+      "dirty tracking on entry creation and reversal",
+      "backfill and rollup exact parity with live streams",
+      "measure engine reports stored freshness for closed clean periods",
+      "reckoner snapshot command records positions"
+    ]
+  },
+
+  "conclusion": "The 25 failures are NOT caused by the Chequebook & Cheque Management module. They are a pre-existing flaky test pattern that surfaces only under --parallel execution with 12 workers sharing the same golden-store tenant. The test passes 100% when run in isolation or serially.",
+
+  "recommended_fix": "Guard RollupParityGateTest with a database-level advisory lock or run it in a group isolated from --parallel (e.g., @group serial or use RefreshDatabase with tenant-specific prefixes). This is a pre-existing infrastructure issue outside the scope of the cheque module delivery.",
+
+  "cheque_module_backend_result": {
+    "filter_run": {
+      "command": "pest --filter=Cheque --no-coverage",
+      "tests_passed": 110,
+      "assertions": 427,
+      "exit_code": 0,
+      "duration_seconds": 15.30
+    },
+    "full_suite_excluding_race": {
+      "tests_passed": 6539,
+      "tests_failed": 25,
+      "failed_files": ["tests/tests/Feature/Reckoner/RollupParityGateTest.php (parallel race)"],
+      "assertions": 100525,
+      "duration_seconds": 1481.83
+    }
+  }
+}

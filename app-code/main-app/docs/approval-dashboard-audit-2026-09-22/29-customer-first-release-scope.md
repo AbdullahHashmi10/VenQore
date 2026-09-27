@@ -1,5 +1,7 @@
 # Customer-first approval release scope
 
+**Current verification status (24 September 2026): HOLD.** The scope below is unchanged. Read `33-consolidated-phase1-audit-and-repair-contract.md` for the consolidated, source-verified defects and implementation acceptance requirements. Earlier READY reports do not supersede that audit. Route and source snapshots are recorded alongside document 33.
+
 Read `30-permissions-first-customer-release.md` alongside this scope. It defines permission-first enforcement, owner/admin defaults for sensitive funds, and prerequisite permission repairs. Approval never grants business access.
 
 Date: 23 September 2026. Planning update only; no application implementation authorized by this document alone.
@@ -62,6 +64,14 @@ For every included group cover applicable alternate routes, modals and service c
 These eight groups are a backlog structure, not a verified count of remaining transaction types. Exact remaining kinds = audited unique kinds minus those actually covered in Phase 1. Never calculate 23 minus 14: the fourteen release groups include sales, purchases and returns, while the 23 counts money movement kinds.
 
 ## Build and verify
+
+### Approval dashboard visibility for the customer pilot
+
+The catalogue currently includes four approval cards: `approval.my_pending`, `approval.my_returned`, `approval.awaiting_review`, and `approval.pending_aging`. Before pilot handoff, verify that makers actually receive the first two in their effective role dashboards and that authorized reviewers receive the latter two. Current role presets include reviewer cards for some roles but omit maker cards from cashier, purchasing officer, and sales executive defaults. Add these where the role can submit approval work, subject to actual business permissions.
+
+Add or adapt small role-scoped cards for **my submitted total**, **my approved/posted total**, **review decisions completed**, and **returned to makers** if the existing dashboard cannot show those counts. Clarify that `my returned` means work the maker must fix, while `returned to makers` means decisions a reviewer has sent back. Show actionable pending and returned counts first; lifetime/history counts can be secondary. Provide a link from each card to a filtered approval inbox or own-submissions list.
+
+Reviewer counts must include only actions that reviewer is eligible to decide, not every pending document in the tenant merely because they can open the inbox. Personal counts must be tenant/user scoped and cache-separated. Counts over a selected period must use the relevant submitted/decision timestamps; if a card intentionally shows a live current queue, label it as current and do not imply it is limited to the selected period. Verify permissions, role presets, empty states and zero-data behavior with tests.
 
 Build the complete Phase 1 scope before the expensive final regression cycle. Write meaningful tests alongside implementation and run narrow checks for shared policy/atomicity behavior as needed. Do not rerun the full suite after each adapter. Reuse valid historical baseline evidence where applicable.
 

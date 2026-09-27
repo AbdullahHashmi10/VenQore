@@ -1647,6 +1647,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.index');
     Route::get('/expenses/create', [\App\Http\Controllers\ExpenseController::class, 'create'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.create');
     Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.store');
+    Route::post('/expenses/quick-add', [\App\Http\Controllers\ExpenseController::class, 'quickAdd'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.quick-add');
     Route::post('/expenses/category', [\App\Http\Controllers\ExpenseController::class, 'storeCategory'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.category.store');
     Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.destroy');
@@ -1718,6 +1719,80 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/payments', [\App\Http\Controllers\PaymentController::class, 'store'])->middleware('permission:finance.receive_payment,finance.send_payment')->name('payments.store');
     Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
 
+    // ── Cheque Management & Banking ──────────────────────────────────────
+    Route::prefix('banking')->group(function () {
+        // Cheque Books
+        Route::get('cheque-books', [\App\Http\Controllers\ChequeBookController::class, 'index'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.cheque-books.index');
+        Route::get('cheque-books/create', [\App\Http\Controllers\ChequeBookController::class, 'create'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.create');
+        Route::post('cheque-books', [\App\Http\Controllers\ChequeBookController::class, 'store'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.store');
+        Route::get('cheque-books/available-leaves', [\App\Http\Controllers\ChequeBookController::class, 'availableLeaves'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.cheque-books.available-leaves');
+        Route::get('cheque-books/{id}', [\App\Http\Controllers\ChequeBookController::class, 'show'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.cheque-books.show');
+        Route::post('cheque-books/{id}/close', [\App\Http\Controllers\ChequeBookController::class, 'close'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.close');
+        Route::delete('cheque-books/{id}', [\App\Http\Controllers\ChequeBookController::class, 'destroy'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.destroy');
+
+        // Cheque Leaves Actions
+        Route::post('cheque-leaves/{id}/void', [\App\Http\Controllers\ChequeLeafController::class, 'voidUnused'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-leaves.void');
+        Route::post('cheque-leaves/{id}/stop', [\App\Http\Controllers\ChequeLeafController::class, 'stopIssued'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.cheque-leaves.stop');
+        Route::post('cheque-leaves/{id}/clear', [\App\Http\Controllers\ChequeLeafController::class, 'clearIssued'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.cheque-leaves.clear');
+        Route::post('cheque-leaves/{id}/bounce', [\App\Http\Controllers\ChequeLeafController::class, 'bounceIssued'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.cheque-leaves.bounce');
+
+        // Received Cheques
+        Route::get('received-cheques', [\App\Http\Controllers\ReceivedChequeController::class, 'index'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.received-cheques.index');
+        Route::post('received-cheques', [\App\Http\Controllers\ReceivedChequeController::class, 'store'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.received-cheques.store');
+        Route::post('received-cheques/{id}/deposit', [\App\Http\Controllers\ReceivedChequeController::class, 'deposit'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.deposit');
+        Route::post('received-cheques/{id}/clear', [\App\Http\Controllers\ReceivedChequeController::class, 'clear'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.clear');
+        Route::post('received-cheques/{id}/bounce', [\App\Http\Controllers\ReceivedChequeController::class, 'bounce'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.bounce');
+        Route::post('received-cheques/{id}/return', [\App\Http\Controllers\ReceivedChequeController::class, 'returnToCustomer'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.return');
+
+        // Cheque Reports
+        Route::get('reports/outgoing-cheques', [\App\Http\Controllers\ChequeReportController::class, 'outgoingRegister'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.outgoing-cheques');
+        Route::get('reports/incoming-cheques', [\App\Http\Controllers\ChequeReportController::class, 'incomingRegister'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.incoming-cheques');
+        Route::get('reports/cheque-utilization', [\App\Http\Controllers\ChequeReportController::class, 'utilization'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.cheque-utilization');
+        Route::get('reports/post-dated-cheques', [\App\Http\Controllers\ChequeReportController::class, 'postDated'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.post-dated-cheques');
+    });
+
     // Purchases
     // V3 CONSOLIDATION Phase 5 — these point at PurchaseRouterController, which
     // forwards to legacy or V3 per tenant. Route NAMES are unchanged, so no
@@ -1764,10 +1839,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
     // Fund Management (Owner Capital, Transfers, Adjustments)
     Route::get('/funds', [FundController::class, 'index'])->middleware(['permission:finance.balances', 'plan.feature:fund_management'])->name('funds.index');
-    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.receive_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.add');
-    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.send_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.remove');
-    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.send_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.transfer');
-    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.journal')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.adjust');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.capital_add')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.owner_drawings')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.internal_transfer')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.balance_adjustment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.adjust');
 
     // Accounting Routes
     Route::get('/accounting', [\App\Http\Controllers\AccountingController::class, 'dashboard'])->middleware('plan.feature:double_entry_ledger')->name('accounting.dashboard');
@@ -1794,9 +1869,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Debit Notes
     Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.index');
     Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.create');
-    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.edit')->middleware('plan.feature:debit_credit_notes')->name('debit-notes.store');
+    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.returns')->middleware('plan.feature:debit_credit_notes')->name('debit-notes.store');
     Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.show');
-    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.refund');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:finance.supplier_refund')->middleware('plan.feature:debit_credit_notes')->name('debit-notes.refund');
 
     // Bank Reconciliation
     Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->middleware('plan.feature:bank_reconciliation')->name('bank-reconciliation.index');
@@ -1871,6 +1946,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/approvals/my-submissions', [\App\Http\Controllers\ApprovalDocumentController::class, 'mySubmissions'])
         ->middleware('permission:approvals.view_own,approvals.submit')
         ->name('approvals.my-submissions');
+    Route::get('/approvals/{id}/correct', [\App\Http\Controllers\ApprovalDocumentController::class, 'correct'])
+        ->middleware('permission:approvals.resubmit,approvals.view_own,approvals.submit')
+        ->name('approvals.correct');
     Route::get('/approvals/{id}', [\App\Http\Controllers\ApprovalDocumentController::class, 'show'])
         ->middleware('permission:approvals.view_own,approvals.submit,approvals.inbox,approvals.review')
         ->name('approvals.show');
@@ -1976,10 +2054,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
     // Fund Management (Owner Capital, Transfers, Adjustments)
     Route::get('/funds', [FundController::class, 'index'])->middleware('permission:finance.balances')->name('funds.index');
-    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.receive_payment')->middleware('throttle:10,1')->name('funds.add');
-    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.send_payment')->middleware('throttle:10,1')->name('funds.remove');
-    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.send_payment')->middleware('throttle:10,1')->name('funds.transfer');
-    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.journal')->middleware('throttle:10,1')->name('funds.adjust');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.capital_add')->middleware('throttle:10,1')->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.owner_drawings')->middleware('throttle:10,1')->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.internal_transfer')->middleware('throttle:10,1')->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.balance_adjustment')->middleware('throttle:10,1')->name('funds.adjust');
     Route::get('/funds/cash-history', [FundController::class, 'history'])->name('funds.history.ledger');
     Route::get('/funds/api/history', [FundController::class, 'getCashHistory'])->name('funds.cash-history');
 
@@ -2153,9 +2231,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Debit Notes
     Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->name('debit-notes.index');
     Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->name('debit-notes.create');
-    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.edit')->name('debit-notes.store');
+    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.returns')->name('debit-notes.store');
     Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->name('debit-notes.show');
-    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:purchases.edit')->name('debit-notes.refund');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:finance.supplier_refund')->name('debit-notes.refund');
 
     // Bank Reconciliation
     Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
@@ -2248,7 +2326,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     /* Both of these were abort(501) closures, so a debit note could be raised
        and then neither corrected nor printed. */
     Route::get('/debit-notes/{id}/print', [\App\Http\Controllers\DebitNoteController::class, 'print'])->name('debit-notes.print');
-    Route::put('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'update'])->middleware('permission:purchases.edit')->name('debit-notes.update');
+    Route::put('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'update'])->middleware('permission:purchases.returns')->name('debit-notes.update');
     Route::get('/purchases/{purchase}/print', fn() => \abort(501, 'Implement purchases.print'))->name('purchases.print');
     Route::get('/sales/create', fn() => \redirect()->route('store.new-invoice', ['store_slug' => app('current.tenant')->slug]))->name('sales.create');
     Route::get('/inventory/production/{run}/edit', fn() => \abort(501, 'Implement production.edit'))->name('production.edit');
@@ -2356,7 +2434,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
          ->name('purchases.destroy');
 
     Route::get('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'create'])->middleware('plan.feature:purchase_returns')->name('purchases.return.create');
-    Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->middleware('permission:purchases.edit')->middleware('plan.feature:purchase_returns')->name('purchases.return.store');
+    Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->middleware('permission:purchases.returns')->middleware('plan.feature:purchase_returns')->name('purchases.return.store');
 
     Route::post('supplier-payments', [\App\Http\Controllers\V3\SupplierPaymentController::class, 'store'])->middleware('permission:finance.send_payment')->name('supplier-payments.store');
 
@@ -2432,14 +2510,23 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('loans/repay', [\App\Http\Controllers\V3\LoanController::class, 'repay'])->middleware('permission:finance.journal')->name('loans.repay');
 
     Route::post('expenses', [\App\Http\Controllers\V3\ExpenseController::class, 'store'])->middleware('permission:finance.expenses')->middleware('plan.feature:expense_manager')->name('expenses.store');
-    Route::post('funds', [\App\Http\Controllers\V3\FundController::class, 'store'])->middleware('permission:finance.journal')->name('funds.store');
-    Route::post('bank-transfers', [\App\Http\Controllers\V3\BankTransferController::class, 'store'])->middleware('permission:finance.send_payment')->name('bank-transfers.store');
+    Route::post('funds', [\App\Http\Controllers\V3\FundController::class, 'store'])->middleware('permission:finance.capital_add,finance.owner_drawings')->name('funds.store');
+    Route::post('bank-transfers', [\App\Http\Controllers\V3\BankTransferController::class, 'store'])->middleware('permission:finance.internal_transfer')->name('bank-transfers.store');
     Route::post('donations', [\App\Http\Controllers\V3\DonationController::class, 'store'])->middleware('permission:finance.expenses')->name('donations.store');
 
     Route::put('users/{id}/role', [\App\Http\Controllers\V3\RoleController::class, 'update'])->middleware('permission:users.manage')->name('users.role.update');
     Route::post('settings/discount-limits', [\App\Http\Controllers\V3\RoleController::class, 'updateDiscountLimit'])->middleware('permission:users.manage')->name('settings.discount-limits');
 
-    Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.journal')->name('fiscal-year.close');
+    Route::get('fiscal-year', [\App\Http\Controllers\V3\FiscalYearController::class, 'index'])->middleware('permission:finance.fiscal_year.view,finance.journal')->name('fiscal-year.index');
+    Route::post('fiscal-year', [\App\Http\Controllers\V3\FiscalYearController::class, 'store'])->middleware('permission:finance.fiscal_year.manage,finance.journal')->name('fiscal-year.store');
+    Route::get('fiscal-year/{id}/preview', [\App\Http\Controllers\V3\FiscalYearController::class, 'preview'])->middleware('permission:finance.fiscal_year.view,finance.journal')->name('fiscal-year.preview');
+    Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.fiscal_year.close,finance.journal')->name('fiscal-year.close');
+    Route::post('v3/fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.fiscal_year.close,finance.journal');
+    Route::post('fiscal-year/{id}/reopen', [\App\Http\Controllers\V3\FiscalYearController::class, 'reopen'])->middleware('permission:finance.period_reopen,admin.settings_manage')->name('fiscal-year.reopen');
+    Route::post('fiscal-year/locks', [\App\Http\Controllers\V3\FiscalYearController::class, 'storeLock'])->middleware('permission:finance.period_lock,admin.settings_manage')->name('fiscal-year.locks.store');
+    Route::post('fiscal-year/exceptions', [\App\Http\Controllers\V3\FiscalYearController::class, 'storeException'])->middleware('permission:finance.period_exception,admin.settings_manage')->name('fiscal-year.exceptions.store');
+    Route::delete('fiscal-year/exceptions/{id}', [\App\Http\Controllers\V3\FiscalYearController::class, 'revokeException'])->middleware('permission:finance.period_exception,admin.settings_manage')->name('fiscal-year.exceptions.revoke');
+    Route::get('fiscal-year/{id}/report', [\App\Http\Controllers\V3\FiscalYearController::class, 'report'])->middleware('permission:finance.fiscal_year.view,finance.journal')->name('fiscal-year.report');
 
 
 

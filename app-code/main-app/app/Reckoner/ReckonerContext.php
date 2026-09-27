@@ -62,10 +62,9 @@ final class ReckonerContext
      */
     public function scopeFingerprint(string $metricKey): string
     {
-        $isPersonal = str_starts_with($metricKey, 'approval.my_')
+        $isPersonal = str_starts_with($metricKey, 'approval.')
             || str_starts_with($metricKey, 'cashier.')
-            || str_starts_with($metricKey, 'staff.my_')
-            || in_array($metricKey, ['approval.awaiting_review', 'approval.pending_aging'], true);
+            || str_starts_with($metricKey, 'staff.my_');
 
         if ($isPersonal) {
             return 'u_' . $this->user->id . '_' . $this->permissionHash;

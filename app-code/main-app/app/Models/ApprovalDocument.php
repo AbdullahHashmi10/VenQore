@@ -27,17 +27,36 @@ class ApprovalDocument extends Model
         self::STATUS_REJECTED,
         self::STATUS_WITHDRAWN,
     ];
+    public const SUPPORTED_STATUSES = self::VALID_STATUSES;
 
-    public const TYPE_CUSTOMER_RECEIPT  = 'customer_receipt';
-    public const TYPE_SUPPLIER_PAYMENT  = 'supplier_payment';
-    public const TYPE_SALES_INVOICE     = 'sales_invoice';
-    public const TYPE_OPERATING_EXPENSE = 'operating_expense';
+    public const TYPE_CUSTOMER_RECEIPT   = 'customer_receipt';
+    public const TYPE_SUPPLIER_PAYMENT   = 'supplier_payment';
+    public const TYPE_SALES_INVOICE      = 'sales_invoice';
+    public const TYPE_OPERATING_EXPENSE  = 'operating_expense';
+    public const TYPE_CUSTOMER_REFUND    = 'customer_refund';
+    public const TYPE_SUPPLIER_REFUND    = 'supplier_refund';
+    public const TYPE_PURCHASE_POSTING   = 'purchase_posting';
+    public const TYPE_SALES_RETURN       = 'sales_return';
+    public const TYPE_PURCHASE_RETURN    = 'purchase_return';
+    public const TYPE_CAPITAL_INJECTION  = 'capital_injection';
+    public const TYPE_OWNER_DRAWINGS     = 'owner_drawings';
+    public const TYPE_FUND_TRANSFER      = 'fund_transfer';
+    public const TYPE_BALANCE_ADJUSTMENT = 'balance_adjustment';
 
     public const SUPPORTED_TYPES = [
         self::TYPE_CUSTOMER_RECEIPT,
+        self::TYPE_CUSTOMER_REFUND,
         self::TYPE_SUPPLIER_PAYMENT,
         self::TYPE_SALES_INVOICE,
         self::TYPE_OPERATING_EXPENSE,
+        self::TYPE_SUPPLIER_REFUND,
+        self::TYPE_PURCHASE_POSTING,
+        self::TYPE_SALES_RETURN,
+        self::TYPE_PURCHASE_RETURN,
+        self::TYPE_CAPITAL_INJECTION,
+        self::TYPE_OWNER_DRAWINGS,
+        self::TYPE_FUND_TRANSFER,
+        self::TYPE_BALANCE_ADJUSTMENT,
     ];
 
     protected $guarded = ['id'];

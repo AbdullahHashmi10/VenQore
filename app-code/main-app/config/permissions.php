@@ -33,6 +33,8 @@
  *   finance.customer_refund, finance.supplier_refund, purchases.returns,
  *   finance.capital_add, finance.owner_drawings, finance.internal_transfer,
  *   approvals.configure
+ * Phase 6 (2026-09-23) added 1 new permission key:
+ *   finance.balance_adjustment (owner/admin only — most privileged fund operation)
  * Defaults: owner/admin get all 7. franchise_admin mirrors admin on the 3
  * refund/return keys only — NOT the 3 sensitive-funds keys or
  * approvals.configure, which stay owner/admin-only by design. manager and
@@ -69,6 +71,9 @@ return [
         // Phase 1: refunds, returns, sensitive funds (owner has full access)
         'finance.customer_refund', 'finance.supplier_refund', 'purchases.returns',
         'finance.capital_add', 'finance.owner_drawings', 'finance.internal_transfer',
+        'finance.balance_adjustment',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear', 'finance.cheques.override_duplicate',
+        'finance.fiscal_year.view', 'finance.fiscal_year.manage', 'finance.fiscal_year.close', 'finance.period_lock', 'finance.period_reopen', 'finance.period_exception',
     ],
 
     'admin' => [
@@ -95,6 +100,9 @@ return [
         // Phase 1: refunds, returns, sensitive funds (admin has full access, matching owner)
         'finance.customer_refund', 'finance.supplier_refund', 'purchases.returns',
         'finance.capital_add', 'finance.owner_drawings', 'finance.internal_transfer',
+        'finance.balance_adjustment',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear', 'finance.cheques.override_duplicate',
+        'finance.fiscal_year.view', 'finance.fiscal_year.manage', 'finance.fiscal_year.close', 'finance.period_lock', 'finance.period_reopen', 'finance.period_exception',
     ],
 
     'manager' => [
@@ -117,6 +125,7 @@ return [
         'data.export',
         // Phase 1: purchase returns (manager already holds full purchase authority)
         'purchases.returns',
+        'finance.cheque_books.view',
     ],
 
     'cashier' => [
@@ -139,6 +148,8 @@ return [
         'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
         // Granular split permissions
         'data.export',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear',
+        'finance.fiscal_year.view', 'finance.fiscal_year.manage', 'finance.fiscal_year.close',
     ],
 
     'purchasing_officer' => [
@@ -159,6 +170,7 @@ return [
         'reports.summary', 'reports.financial', 'reports.stock',
         // Read-only directories
         'sales.view', 'inventory.view', 'purchases.view', 'finance.transactions',
+        'finance.cheque_books.view',
     ],
 
 
@@ -181,6 +193,7 @@ return [
         // internal transfer) or approvals.configure — those stay owner/admin only regardless
         // of franchise_admin's usual "mirrors admin" pattern (release scope decision).
         'finance.customer_refund', 'finance.supplier_refund', 'purchases.returns',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear',
     ],
 
     'shift_supervisor' => [

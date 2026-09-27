@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\Approval\ApprovalExecutionEngine;
 use Carbon\Carbon;
 
 class SaleController extends Controller
@@ -358,13 +361,26 @@ class SaleController extends Controller
             );
 
             // ── Maker-Checker Approval Interception for Administrative Invoices ──
+            // R01 FIX: This is the admin invoice route (POST /sales), not the POS checkout
+            // route. POS clearance MUST NOT be granted here — ever.
+            //
+            // The correct POS checkout route is POST /pos/sales → PosSaleController, which
+            // server-verifies the register shift before passing isTrustedPos=true.
+            //
+            // The following client-controlled signals were incorrectly treated as POS trust:
+            //   - $hasActiveShift: a cashier's open shift does NOT exempt admin invoices
+            //   - $approvedBy !== null: manager PIN approves below-cost/discounted products
+            //     (PosSaleApprovalGuard), NOT the document-level approval workflow
+            //   - source === 'pos': client-supplied field, trivially forgeable
+            //
+            // isTrustedPos is always false on this route. The approval policy resolver's
+            // "trusted_pos_clearance" early return is only meaningful when called from
+            // PosSaleController with a server-verified shift.
             $user = auth()->user();
-            $hasActiveShift = DB::table('register_shifts')
-                ->where('tenant_id', $currentTenant?->id)
-                ->where('opened_by', $user?->id)
-                ->where('status', 'open')
-                ->exists();
-            $isTrustedPos = $hasActiveShift || ($approvedBy !== null) || ($request->input('source') === 'pos');
+            // Request attributes cannot be supplied by the client. Only
+            // PosSaleController sets this after verifying the current user's
+            // open register shift in the current tenant.
+            $isTrustedPos = $request->attributes->get('trusted_pos_verified') === true;
 
             $policyResolver = app(\App\Services\Approval\ApprovalPolicyResolver::class);
             $policy = $policyResolver->resolve(
@@ -1089,6 +1105,51 @@ class SaleController extends Controller
         // Determine if this is a full or partial return
         $isFullReturn = empty($itemsToReturn) || $this->isFullReturn($sale, $itemsToReturn);
 
+        // ── Approval interception ───────────────────────────────────────────────
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+        $amount = (float) ($sale->net_sales ?: $sale->total);
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_SALES_RETURN,
+            amount:       $amount,
+        );
+
+        if ($policy['requires_approval']) {
+            $engineItems = [];
+            if (!$isFullReturn) {
+                foreach ($itemsToReturn as $item) {
+                    if (!empty($item['id']) && (float) ($item['quantity'] ?? 0) > 0) {
+                        $engineItems[] = [
+                            'sale_item_id' => (string) $item['id'],
+                            'return_qty'   => (float) $item['quantity'],
+                        ];
+                    }
+                }
+            }
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_SALES_RETURN,
+                payload:        [
+                    '_path'   => $isFullReturn ? 'direct_reversal_full' : 'direct_reversal_partial',
+                    'sale_id' => $sale->id,
+                    'type'    => 'returned',
+                    'reason'  => $reason,
+                    'items'   => $engineItems,
+                ],
+                amount:         $amount,
+                description:    'Sale return — ' . $sale->reference_number,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            $storeSlug = $tenant?->slug ?? $request->route('store_slug') ?? 'default';
+            return redirect()->route('store.sales.index', ['store_slug' => $storeSlug])
+                ->with('info', 'Return submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
         try {
             $retVal = DB::transaction(function () use ($sale, $request, $refundMethod, $refundSource, $reason, $itemsToReturn, $isFullReturn, &$returnTotal) {
 
@@ -1741,7 +1802,7 @@ class SaleController extends Controller
                 }
             } else {
                 $pmMethod = strtolower($request->payment_method);
-                Payment::create([
+                $createdPayment = Payment::create([
                     'sale_id'         => $sale->id,
                     'amount'          => $recordedAmount,
                     'method'          => $pmMethod,
@@ -1755,6 +1816,23 @@ class SaleController extends Controller
                     'cheque_date'     => $request->input('cheque_date'),
                     'date'            => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
                 ]);
+
+                if ($pmMethod === 'cheque' && $request->filled('payment_reference')) {
+                    try {
+                        $rc = app(\App\Services\Cheque\ChequeDuplicateService::class)->recordReceivedCheque(
+                            tenant: $currentTenant,
+                            chequeNumber: $request->input('payment_reference'),
+                            amount: $recordedAmount,
+                            partyId: $sale->customer_id,
+                            bankName: $request->input('bank_name') ?? 'Bank',
+                            chequeDate: $request->input('cheque_date') ?? ($sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString()),
+                            paymentId: $createdPayment->id,
+                            notes: 'Sale POS receipt ' . ($sale->invoice_number ?? $sale->id)
+                        );
+                    } catch (\Exception $e) {
+                        Log::warning("Could not auto-record received cheque for sale {$sale->id}: " . $e->getMessage());
+                    }
+                }
             }
         }
 
@@ -1974,6 +2052,26 @@ class SaleController extends Controller
             return back()->with('error', "Only posted or partially-returned sales can be cancelled. Current status: {$sale->status}.");
         }
 
+        $tenant = app('current.tenant');
+        $user = auth()->user();
+        if ($tenant && $user) {
+            $policy = resolve(\App\Services\Approval\ApprovalPolicyResolver::class)->resolve(
+                tenant:       $tenant,
+                user:         $user,
+                documentType: \App\Models\ApprovalDocument::TYPE_SALES_RETURN,
+                amount:       (float) ($sale->total ?? 0),
+            );
+            if ($policy['requires_approval']) {
+                if (request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'When approval workflow is required, posted sales cannot be directly cancelled.',
+                    ], 422);
+                }
+                return back()->with('error', 'When approval workflow is required, posted sales cannot be directly cancelled.');
+            }
+        }
+
         try {
             DB::transaction(function () use ($sale) {
                 $reversal = new \App\Engines\SaleReversalService();
@@ -2018,6 +2116,31 @@ class SaleController extends Controller
             'ids.*' => 'exists:sales,id'
         ]);
 
+        $tenant = app('current.tenant');
+        if ($tenant && $user) {
+            $policyResolver = resolve(\App\Services\Approval\ApprovalPolicyResolver::class);
+            foreach ($request->ids as $id) {
+                $checkSale = Sale::find($id);
+                if ($checkSale) {
+                    $policy = $policyResolver->resolve(
+                        tenant:       $tenant,
+                        user:         $user,
+                        documentType: \App\Models\ApprovalDocument::TYPE_SALES_RETURN,
+                        amount:       (float) ($checkSale->total ?? 0),
+                    );
+                    if ($policy['requires_approval']) {
+                        if ($request->wantsJson()) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'When approval workflow is required, posted sales cannot be directly deleted.',
+                            ], 422);
+                        }
+                        return back()->with('error', 'When approval workflow is required, posted sales cannot be directly deleted.');
+                    }
+                }
+            }
+        }
+
         $count = 0;
         $errors = [];
 
@@ -2046,6 +2169,25 @@ class SaleController extends Controller
         if (!$user || !in_array($user->role, ['owner', 'admin', 'platform_admin'])) {
             Log::warning('Single Destroy Unauthorized', ['user_id' => auth()->id(), 'role' => optional($user)->role]);
             abort(403, 'Unauthorized action. Only Owners and Admins can delete sales.');
+        }
+
+        $tenant = app('current.tenant');
+        if ($tenant && $user) {
+            $policy = resolve(\App\Services\Approval\ApprovalPolicyResolver::class)->resolve(
+                tenant:       $tenant,
+                user:         $user,
+                documentType: \App\Models\ApprovalDocument::TYPE_SALES_RETURN,
+                amount:       (float) ($sale->total ?? 0),
+            );
+            if ($policy['requires_approval']) {
+                if (request()->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'When approval workflow is required, posted sales cannot be directly deleted.',
+                    ], 422);
+                }
+                return back()->with('error', 'When approval workflow is required, posted sales cannot be directly deleted.');
+            }
         }
 
         try {

@@ -1178,13 +1178,8 @@ class BillingController extends Controller
                 break;
 
             case 'fiscal_year_closing':
-                $entryIds = \DB::table('journal_entries')
-                    ->where('tenant_id', $tenant->id)
-                    ->where('reference_type', 'fiscal_year_close')
-                    ->pluck('id')
-                    ->toArray();
-                app(\App\Engines\AccountingService::class)->deleteEntries($entryIds);
-                $message = 'Fiscal year close postings cleared from ledger.';
+                // FY-03: Feature deactivation must NEVER delete accounting history or journal entries.
+                $message = 'Fiscal year close feature deactivated. Existing financial close history preserved.';
                 break;
 
             case 'chat_support':

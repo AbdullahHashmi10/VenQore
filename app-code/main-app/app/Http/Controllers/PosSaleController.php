@@ -2,24 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Engines\SaleService;
-use App\Http\Requests\V3\StoreSaleRequest;
-use App\Models\ApprovalDocument;
 use App\Models\RegisterShift;
-use App\Services\Approval\ApprovalExecutionEngine;
-use App\Services\Approval\ApprovalPolicyResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PosSaleController extends Controller
 {
-    public function __construct(
-        private SaleService $saleService,
-        private ApprovalExecutionEngine $approvalEngine,
-        private ApprovalPolicyResolver $policyResolver
-    ) {}
-
     /**
      * Dedicated POS sale checkout endpoint.
      * Enforces server-side register shift verification.
@@ -52,64 +40,32 @@ class PosSaleController extends Controller
             ], 422);
         }
 
-        // 2. Resolve Policy for Verified POS
-        $payload = $request->all();
-        $amount = (float)($payload['total'] ?? $payload['payable_amount'] ?? 0.0);
-        $policy = $this->policyResolver->resolve($tenant, $user, ApprovalDocument::TYPE_SALES_INVOICE, $amount, true);
+        // Reuse the canonical checkout implementation after adding only
+        // server-derived POS trust. This preserves discounts, split payments,
+        // taxes, serials, FIFO costing and manager-PIN validation in one path.
+        $items = collect((array) $request->input('items', []))->map(function (array $item) {
+            $item['quantity'] = $item['quantity'] ?? $item['qty'] ?? 1;
+            $item['price'] = $item['price'] ?? $item['unit_price'] ?? 0;
+            return $item;
+        })->all();
 
-        // 3. If POS Clearance passes, post directly to SaleService
-        if (!$policy['requires_approval']) {
-            $formattedItems = array_map(fn($item) => [
-                'product_id'       => $item['product_id'],
-                'qty'              => (float)($item['quantity'] ?? $item['qty'] ?? 1),
-                'unit_price'       => (float)($item['unit_price'] ?? $item['price'] ?? 0),
-                'discount_percent' => (float)($item['discount_percent'] ?? 0),
-                'tax_rate'         => (float)($item['tax_rate'] ?? 0),
-                'sale_uom'         => $item['sale_uom'] ?? 'pcs',
-            ], (array)($payload['items'] ?? []));
+        $request->merge([
+            'items' => $items,
+            'register_shift_id' => $openShift->id,
+            'register_id' => $openShift->register_id,
+            'source' => 'pos',
+        ]);
+        $request->attributes->set('trusted_pos_verified', true);
 
-            $saleData = [
-                'items'             => $formattedItems,
-                'customer_id'       => $payload['customer_id'] ?? null,
-                'payment_method'    => $payload['payment_method'] ?? 'cash',
-                'amount_received'   => (float)($payload['paid_amount'] ?? $amount),
-                'register_shift_id' => $openShift->id,
-                'register_id'       => $openShift->register_id,
-                'source'            => 'pos',
-                'idempotency_key'   => $payload['idempotency_key'] ?? null,
-            ];
-
-            $sale = $this->saleService->post($saleData);
-
-            return response()->json([
-                'success'        => true,
-                'status'         => 'posted',
-                'sale'           => $sale,
-                'sale_id'        => $sale->id,
-                'invoice_number' => $sale->reference_number ?? ($sale->invoice_number ?? null),
-                'message'        => 'POS sale completed successfully.',
-            ], 201);
+        $response = app(SaleController::class)->store($request);
+        if ($response instanceof JsonResponse && $response->getStatusCode() === 200) {
+            $data = $response->getData(true);
+            if (($data['success'] ?? false) === true) {
+                $data['status'] = 'posted';
+                $response->setData($data)->setStatusCode(201);
+            }
         }
 
-        // 4. Policy requires approval (e.g. amount escalation) -> Route to Maker-Checker Approval
-        $idempotencyKey = $request->input('idempotency_key');
-        $doc = $this->approvalEngine->submit(
-            tenant: $tenant,
-            maker: $user,
-            documentType: ApprovalDocument::TYPE_SALES_INVOICE,
-            payload: $payload,
-            amount: $amount,
-            description: 'POS sale routed to approval (' . $policy['reason'] . ')',
-            idempotencyKey: $idempotencyKey
-        );
-
-        return response()->json([
-            'success'              => true,
-            'status'               => 'pending_approval',
-            'approval_document_id' => $doc->id,
-            'document_number'      => $doc->document_number,
-            'reason'               => $policy['reason'],
-            'message'              => 'Transaction has been submitted for manager approval.',
-        ], 202);
+        return $response;
     }
 }

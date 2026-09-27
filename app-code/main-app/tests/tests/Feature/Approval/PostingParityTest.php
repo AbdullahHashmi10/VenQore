@@ -127,7 +127,7 @@ class PostingParityTest extends VenQoreTestCase
             description: 'Customer payment parity test'
         );
 
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
         $approvalResult = $engine->approve(
             tenant: $tenant,
             documentId: $doc->id,
@@ -213,7 +213,7 @@ class PostingParityTest extends VenQoreTestCase
 
         $engine = app(ApprovalExecutionEngine::class);
         $doc = $engine->submit($tenant, $owner, ApprovalDocument::TYPE_CUSTOMER_RECEIPT, $payloadApp, 700.00, 'Bank multi-allocation parity');
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
         $appResult = $engine->approve(
             documentId: $doc->id,
             tenant: $tenant,
@@ -307,7 +307,7 @@ class PostingParityTest extends VenQoreTestCase
             description: 'Supplier payment parity test'
         );
 
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
         $approvalResult = $engine->approve(
             tenant: $tenant,
             documentId: $doc->id,
@@ -368,7 +368,7 @@ class PostingParityTest extends VenQoreTestCase
             description: 'Expense parity test'
         );
 
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
         $approvalResult = $engine->approve(
             tenant: $tenant,
             documentId: $doc->id,

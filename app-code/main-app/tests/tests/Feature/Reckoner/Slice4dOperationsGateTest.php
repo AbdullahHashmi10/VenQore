@@ -236,7 +236,7 @@ class Slice4dOperationsGateTest extends TestCase
         }
 
         // Test with another tenant
-        $otherTenant = Tenant::where('slug', '!=', 'golden-store')->first();
+        $otherTenant = Tenant::factory()->create(['status' => 'active', 'plan' => 'scale', 'slug' => 'empty-isolation-store-' . \Illuminate\Support\Str::random(6)]);
         if ($otherTenant) {
             $otherUser = User::whereIn('id', DB::table('tenant_users')->where('tenant_id', $otherTenant->id)->pluck('user_id'))->first() ?? User::first();
             $ctx2 = new ReckonerContext($otherTenant, $otherUser, 'scale');

@@ -3048,8 +3048,6 @@ function draw(){
         window._vqOpenAddCardForSlot(slot);
       } else if (typeof window !== "undefined" && window._vqAddCard) {
         window._vqAddCard(0);
-      } else {
-        openPicker(0);
       }
     });
   });

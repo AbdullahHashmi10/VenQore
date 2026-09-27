@@ -32,7 +32,7 @@ class FourDocumentApprovalTest extends VenQoreTestCase
     {
         $tenant = $this->createTenant('appr-cr-' . uniqid(), 'ltd_3');
         $maker = $this->createTenantUser($tenant, 'cashier');
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
 
         $customer = Party::create([
             'tenant_id' => $tenant->id,
@@ -116,7 +116,7 @@ class FourDocumentApprovalTest extends VenQoreTestCase
     {
         $tenant = $this->createTenant('appr-sp-' . uniqid(), 'ltd_3');
         $maker = $this->createTenantUser($tenant, 'cashier');
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
 
         $supplier = Party::create([
             'tenant_id' => $tenant->id,
@@ -167,7 +167,7 @@ class FourDocumentApprovalTest extends VenQoreTestCase
     {
         $tenant = $this->createTenant('appr-exp-' . uniqid(), 'ltd_3');
         $maker = $this->createTenantUser($tenant, 'cashier');
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
 
         $category = ExpenseCategory::create([
             'tenant_id' => $tenant->id,

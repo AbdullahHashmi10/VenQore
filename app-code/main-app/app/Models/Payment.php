@@ -23,6 +23,20 @@ class Payment extends Model
         'date' => 'date',
     ];
 
+    protected $appends = [
+        'payment_method',
+    ];
+
+    public function getPaymentMethodAttribute(): ?string
+    {
+        return $this->method;
+    }
+
+    public function setPaymentMethodAttribute(?string $value): void
+    {
+        $this->attributes['method'] = $value;
+    }
+
     public function party()
     {
         return $this->belongsTo(Party::class);
@@ -31,6 +45,16 @@ class Payment extends Model
     public function sale()
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    public function chequeLeaf()
+    {
+        return $this->hasOne(ChequeLeaf::class, 'payment_id');
+    }
+
+    public function receivedCheque()
+    {
+        return $this->hasOne(ReceivedCheque::class, 'payment_id');
     }
 
     // Helper to update party balance when payment is created/updated

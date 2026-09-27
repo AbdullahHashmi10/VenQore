@@ -44,7 +44,7 @@ class InertiaPageRenderTest extends VenQoreTestCase
 
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
-            ->component('Dashboards/CashierDashboard')
+            ->component('NewDashboard')
         );
     }
 

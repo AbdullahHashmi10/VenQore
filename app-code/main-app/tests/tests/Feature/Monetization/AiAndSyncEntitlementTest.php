@@ -121,7 +121,7 @@ test('vensynq returns 404 when the platform switch is off', function () {
 });
 
 test('vensynq returns 403 when enabled but the tenant has no entitlement', function () {
-    $tenant = $this->createTenant('vensynq-unentitled');
+    $tenant = $this->createTenant('vensynq-unentitled', 'starter');
     setGlobalSetting('vensynq_enabled', '1');
     flushEntitlementCaches($tenant->id);
 
@@ -132,7 +132,7 @@ test('vensynq returns 403 when enabled but the tenant has no entitlement', funct
 });
 
 test('vensynq is reachable once the override is granted', function () {
-    $tenant = $this->createTenant('vensynq-entitled');
+    $tenant = $this->createTenant('vensynq-entitled', 'starter');
     setGlobalSetting('vensynq_enabled', '1');
 
     DB::table('tenant_plan_overrides')->insert([

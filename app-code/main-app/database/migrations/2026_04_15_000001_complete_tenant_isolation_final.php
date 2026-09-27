@@ -50,9 +50,11 @@ return new class extends Migration
             if (!Schema::hasTable($table)) continue;
             if (Schema::hasColumn($table, 'tenant_id')) continue;
 
-            Schema::table($table, function (Blueprint $t) use ($table) {
-                $t->uuid('tenant_id')->nullable()->after('id')->index();
-            });
+            try {
+                Schema::table($table, function (Blueprint $t) use ($table) {
+                    $t->uuid('tenant_id')->nullable()->after('id')->index();
+                });
+            } catch (\Throwable) {}
         }
     }
 

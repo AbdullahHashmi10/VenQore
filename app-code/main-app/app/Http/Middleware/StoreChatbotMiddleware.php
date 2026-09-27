@@ -15,10 +15,10 @@ class StoreChatbotMiddleware
             abort(403, 'Unauthorized.');
         }
 
-        if ($user->isPlatformStaff() || $user->isPlatformAdmin()) {
+        if ($user->isPlatformStaff() || $user->isPlatformAdmin() || $user->hasPermission('admin.settings_manage') || $user->hasRole('owner') || $user->hasRole('admin')) {
             return $next($request);
         }
 
-        abort(403, 'Unauthorized. The chatbot agent console is reserved strictly for Platform Administrators and Support Staff.');
+        abort(403, 'Unauthorized. The chatbot agent console is reserved strictly for Platform Administrators and Store Managers.');
     }
 }

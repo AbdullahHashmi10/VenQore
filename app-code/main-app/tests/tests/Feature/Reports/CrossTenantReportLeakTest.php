@@ -133,12 +133,10 @@ class CrossTenantReportLeakTest extends VenQoreTestCase
         // Each tenant needs its own AR account (code 1200) — Account uses
         // HasTenant, so these are naturally scoped per-tenant already.
         $this->bindTenantContext($tenantA);
-        $arAccountA = Account::create([
-            'tenant_id' => $tenantA->id,
-            'code'      => '1200',
-            'name'      => 'Accounts Receivable',
-            'type'      => 'asset',
-        ]);
+        $arAccountA = Account::firstOrCreate(
+            ['tenant_id' => $tenantA->id, 'code' => '1200'],
+            ['name' => 'Accounts Receivable', 'type' => 'asset']
+        );
         $partyA = Party::factory()->create(['tenant_id' => $tenantA->id, 'type' => 'customer']);
         $saleA = Sale::factory()->create([
             'tenant_id'      => $tenantA->id,
@@ -150,12 +148,10 @@ class CrossTenantReportLeakTest extends VenQoreTestCase
         ]);
 
         $this->bindTenantContext($tenantB);
-        $arAccountB = Account::create([
-            'tenant_id' => $tenantB->id,
-            'code'      => '1200',
-            'name'      => 'Accounts Receivable',
-            'type'      => 'asset',
-        ]);
+        $arAccountB = Account::firstOrCreate(
+            ['tenant_id' => $tenantB->id, 'code' => '1200'],
+            ['name' => 'Accounts Receivable', 'type' => 'asset']
+        );
         $partyB = Party::factory()->create(['tenant_id' => $tenantB->id, 'type' => 'customer']);
         $saleB = Sale::factory()->create([
             'tenant_id'      => $tenantB->id,

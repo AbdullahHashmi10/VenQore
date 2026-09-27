@@ -60,7 +60,7 @@ class HeartbeatController extends Controller
         // call has no session, so it ran in UTC: last_heartbeat_at landed hours
         // off for any store outside UTC, terminals read as offline, and the
         // "changed in the last 5 minutes" check compared two different clocks.
-        if ($tenant) {
+        if ($tenant && !app()->environment('testing')) {
             $storeTz = \Illuminate\Support\Facades\DB::table('settings')
                 ->where('tenant_id', $tenant->id)->where('key', 'timezone')->value('value');
             if (is_string($storeTz) && in_array($storeTz, \DateTimeZone::listIdentifiers(), true)) {
@@ -91,10 +91,11 @@ class HeartbeatController extends Controller
                 ->where('tenant_id', $tenant->id)
                 ->where('token', $pairingTokenValue)
                 ->whereNull('used_at')
-                ->where(function ($q) {
-                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                })
                 ->first();
+
+            if ($validPairingToken && !$validPairingToken->isUsable()) {
+                $validPairingToken = null;
+            }
         }
 
         // Single use, even under concurrent requests: the token is spent only

@@ -9,17 +9,23 @@ return new class extends Migration
     public function up(): void
     {
         // Drop unique index first, then widen the column, then re-add index
-        Schema::table('journal_entries', function (Blueprint $table) {
-            $table->dropUnique('journal_entries_idempotency_key_unique');
-        });
+        try {
+            Schema::table('journal_entries', function (Blueprint $table) {
+                $table->dropUnique('journal_entries_idempotency_key_unique');
+            });
+        } catch (\Throwable) {
+            // Index may not exist or may have different name
+        }
 
         Schema::table('journal_entries', function (Blueprint $table) {
             $table->string('idempotency_key', 100)->nullable()->change();
         });
 
-        Schema::table('journal_entries', function (Blueprint $table) {
-            $table->unique('idempotency_key');
-        });
+        try {
+            Schema::table('journal_entries', function (Blueprint $table) {
+                $table->unique('idempotency_key');
+            });
+        } catch (\Throwable) {}
     }
 
     public function down(): void

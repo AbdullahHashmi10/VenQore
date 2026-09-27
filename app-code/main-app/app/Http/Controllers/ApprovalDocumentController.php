@@ -19,6 +19,58 @@ class ApprovalDocumentController extends Controller
     ) {}
 
     /**
+     * Universal correction screen for every approval document type.
+     *
+     * Some transaction editors have richer native correction support. This
+     * endpoint is the complete fallback and ensures every returned Phase 1
+     * document can be corrected and resubmitted by its maker.
+     */
+    public function correct(Request $request, $id): Response
+    {
+        $tenant = app('current.tenant');
+        $user = auth()->user();
+
+        $doc = ApprovalDocument::where('tenant_id', $tenant->id)
+            ->where('id', $id)
+            ->with(['currentRevision', 'transitions'])
+            ->firstOrFail();
+
+        if ((int) $doc->maker_id !== (int) $user->id) {
+            abort(403, 'Only the original creator can correct this document.');
+        }
+
+        if ($doc->status !== ApprovalDocument::STATUS_RETURNED) {
+            abort(422, 'Only a returned document can be corrected.');
+        }
+
+        $latestReturn = $doc->transitions
+            ->where('to_status', ApprovalDocument::STATUS_RETURNED)
+            ->sortByDesc('id')
+            ->first();
+
+        return Inertia::render('Approvals/Correct', [
+            'document' => [
+                'id' => $doc->id,
+                'document_number' => $doc->document_number,
+                'document_type' => $doc->document_type,
+                'amount' => (float) $doc->amount,
+                'version' => (int) $doc->version,
+                'payload' => $doc->currentRevision?->payload ?? [],
+                'return_notes' => $latestReturn?->notes ?? '',
+                'return_reason_codes' => $latestReturn?->reason_codes ?? [],
+                'resubmit_url' => route('store.approvals.resubmit', [
+                    'store_slug' => $tenant->slug,
+                    'id' => $doc->id,
+                ]),
+                'show_url' => route('store.approvals.show', [
+                    'store_slug' => $tenant->slug,
+                    'id' => $doc->id,
+                ]),
+            ],
+        ]);
+    }
+
+    /**
      * Reviewer queue: List all documents awaiting review.
      */
     public function inbox(Request $request): Response|JsonResponse
@@ -32,8 +84,42 @@ class ApprovalDocumentController extends Controller
         }
 
         $query = ApprovalDocument::where('tenant_id', $tenant->id)
-            ->where('status', ApprovalDocument::STATUS_PENDING)
             ->with(['maker:id,name,email', 'currentRevision']);
+
+        // R14 FIX: Allow status filtering (defaults to pending for inbox, but permits
+        // history drilldown when navigating from reviewer decisions cards).
+        $status = $request->input('status', ApprovalDocument::STATUS_PENDING);
+        if ($status !== 'all' && in_array($status, ApprovalDocument::SUPPORTED_STATUSES, true)) {
+            $query->where('status', $status);
+        }
+
+        // R14 FIX: Apply reviewer document eligibility filter so reviewers only see
+        // documents for which they hold the required business authorities.
+        $membership = TenantUser::where('tenant_id', $tenant->id)->where('user_id', $user->id)->first();
+        $isOwner = ($membership?->role === 'owner');
+        $isAdmin = ($membership?->role === 'admin');
+
+        if (!$isOwner && !$isAdmin && !$user->isPlatformAdmin()) {
+            $eligibleTypes = $this->approvalEngine->getEligibleDocumentTypes($tenant, $user);
+            $query->whereIn('document_type', $eligibleTypes);
+        }
+
+        // R14 FIX: Strict owner separation — makers cannot review their own submissions.
+        $strictOwnerSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_strict_owner_separation')
+            ->value('value');
+        $strictOwnerSeparation = filter_var($strictOwnerSetting, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$isOwner || $strictOwnerSeparation) {
+            $query->where('maker_id', '!=', $user->id);
+        }
+
+        // R14 FIX: Reviewer history drilldown support by actor_id/reviewer_id
+        if ($request->filled('actor_id') || $request->filled('reviewer_id')) {
+            $actorId = (int)($request->input('actor_id') ?: $request->input('reviewer_id'));
+            $query->whereHas('transitions', fn($tq) => $tq->where('actor_id', $actorId));
+        }
 
         if ($request->filled('type')) {
             $query->where('document_type', $request->input('type'));
@@ -60,7 +146,7 @@ class ApprovalDocumentController extends Controller
 
         return Inertia::render('Approvals/Inbox', [
             'documents'     => $documents,
-            'filters'       => $request->only(['type', 'maker_id', 'search']),
+            'filters'       => $request->only(['status', 'type', 'maker_id', 'actor_id', 'reviewer_id', 'search']),
             'returnReasons' => ApprovalReturnReason::where('is_active', true)
                 ->where(fn($q) => $q->whereNull('tenant_id')->orWhere('tenant_id', $tenant->id))
                 ->get(),
@@ -156,7 +242,12 @@ class ApprovalDocumentController extends Controller
         $membership = TenantUser::where('tenant_id', $tenant->id)->where('user_id', $user->id)->first();
         $isOwner = ($membership?->role === 'owner');
 
-        $canApprove = $hasReviewPerm && $doc->status === ApprovalDocument::STATUS_PENDING && (!$strictOwnerSeparation || !$isMaker || $isOwner && !$strictOwnerSeparation) && ($isOwner || !$isMaker);
+        // R14 FIX: canApprove requires business eligibility for this document type,
+        // matching assertReviewerEligible() in the engine. Holding approvals.review
+        // alone is not sufficient if the reviewer lacks the business authority.
+        $isBusinessEligible = in_array($doc->document_type, $this->approvalEngine->getEligibleDocumentTypes($tenant, $user), true);
+
+        $canApprove = $hasReviewPerm && $isBusinessEligible && $doc->status === ApprovalDocument::STATUS_PENDING && (!$strictOwnerSeparation || !$isMaker || ($isOwner && !$strictOwnerSeparation)) && ($isOwner || !$isMaker);
         $canWithdraw = $isMaker && in_array($doc->status, [ApprovalDocument::STATUS_DRAFT, ApprovalDocument::STATUS_PENDING, ApprovalDocument::STATUS_RETURNED], true);
         $canResubmit = $isMaker && ($doc->status === ApprovalDocument::STATUS_RETURNED);
 

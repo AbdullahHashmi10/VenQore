@@ -99,4 +99,18 @@ class CustomerReceiptApprovalAdapter implements ApprovalAdapterInterface
             'journal_entry_id' => $result['journal_entry_id'],
         ];
     }
+
+    public function reviewerEligibilityPermissions(): array
+    {
+        return ['finance.receive_payment'];
+    }
+
+    /**
+     * R10: No AND-semantics permission requirements for this adapter type.
+     * The OR list in reviewerEligibilityPermissions() is sufficient.
+     */
+    public function reviewerEligibilityPermissionsAll(): array
+    {
+        return [];
+    }
 }

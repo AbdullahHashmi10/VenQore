@@ -137,6 +137,16 @@ class AccountingService
 
         $tenantId = $this->getTenantId();
 
+        $entryDate = $data['entry_date'] ?? $data['date'] ?? now()->toDateString();
+        $refType   = $data['reference_type'] ?? 'manual';
+        app(\App\Services\Accounting\AccountingPeriodGuard::class)->enforce(
+            tenantId: $tenantId,
+            accountingDate: $entryDate,
+            operationType: 'create',
+            actor: auth()->user(),
+            postingSource: $refType
+        );
+
         // ── Resolve EVERY account before writing anything ────────────────
         // Previously the header was inserted first and accounts were resolved
         // line-by-line afterwards, so a missing account code threw half-way
@@ -270,6 +280,14 @@ class AccountingService
             if ($original->is_reversed) {
                 throw new \LogicException("Journal entry {$journalEntryId} is already reversed.");
             }
+
+            app(\App\Services\Accounting\AccountingPeriodGuard::class)->enforce(
+                tenantId: $tid,
+                accountingDate: $original->date,
+                operationType: 'reverse_original',
+                actor: auth()->user(),
+                postingSource: 'reversal'
+            );
 
             app(PaymentService::class)->voidAllocations($journalEntryId);
 

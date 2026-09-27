@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { ArrowDownCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2 } from 'lucide-react';
+import { ArrowDownCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2, BookOpen } from 'lucide-react';
 import axios from 'axios';
 
 const formatCurrency = (v, symbol = 'Rs') => (symbol) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v || 0);
@@ -190,6 +190,7 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, accentClass
 const METHODS = [
     { value: 'cash', label: 'Cash', icon: Banknote, color: 'emerald' },
     { value: 'bank', label: 'Bank', icon: Building2, color: 'blue' },
+    { value: 'cheque', label: 'Cheque', icon: BookOpen, color: 'amber' },
     { value: 'card', label: 'Card', icon: CreditCard, color: 'purple' },
     { value: 'upi', label: 'UPI/JazzCash', icon: Smartphone, color: 'orange' },
 ];
@@ -208,6 +209,9 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
         amount: '',
         payment_method: 'cash',
         bank_account_id: '',
+        cheque_number: '',
+        bank_name: '',
+        cheque_date: new Date().toISOString().split('T')[0],
         reference: '',
         description: ''
     });
@@ -387,7 +391,7 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                                     Payment Method <span className="text-red-500">*</span>
                                 </label>
-                                <div className="grid grid-cols-4 gap-2">
+                                <div className="grid grid-cols-5 gap-2">
                                     {METHODS.map(m => {
                                         const isSelected = formData.payment_method === m.value;
                                         return (
@@ -420,6 +424,57 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
                                         <option value="">Select account...</option>
                                         {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                                     </select>
+                                </div>
+                            )}
+
+                            {/* Cheque Received Details (conditional) */}
+                            {formData.payment_method === 'cheque' && (
+                                <div className="space-y-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                                Cheque Number <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. 100452"
+                                                value={formData.cheque_number}
+                                                onChange={e => setFormData(p => ({ ...p, cheque_number: e.target.value }))}
+                                                className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink font-mono outline-none"
+                                                required
+                                            />
+                                            {errors.cheque_number && <p className="mt-1 text-xs text-red-500">{errors.cheque_number[0]}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                                Drawer Bank Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. HBL, Meezan"
+                                                value={formData.bank_name}
+                                                onChange={e => setFormData(p => ({ ...p, bank_name: e.target.value }))}
+                                                className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none"
+                                                required
+                                            />
+                                            {errors.bank_name && <p className="mt-1 text-xs text-red-500">{errors.bank_name[0]}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                            Cheque Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={formData.cheque_date || formData.date}
+                                            onChange={e => setFormData(p => ({ ...p, cheque_date: e.target.value }))}
+                                            className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none"
+                                            required
+                                        />
+                                        <p className="text-2xs text-ink-muted mt-1">This cheque will be held in "Cheques in Hand" (GL 1020) until deposited into a bank account.</p>
+                                    </div>
                                 </div>
                             )}
 

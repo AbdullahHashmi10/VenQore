@@ -21,11 +21,11 @@ class PurchasesImportTest extends VenQoreTestCase
         $tenant = $this->createTenant();
         $this->actingAsTenantUser($tenant, 'owner');
 
-        // Create a default warehouse
-        $warehouse = Warehouse::create([
-            'name' => 'Main Warehouse',
-            'is_default' => true,
-        ]);
+        // Get or create a default warehouse
+        $warehouse = Warehouse::firstOrCreate(
+            ['is_default' => true, 'tenant_id' => $tenant->id],
+            ['name' => 'Main Warehouse']
+        );
 
         // Create a product
         $product = Product::create([

@@ -21,18 +21,36 @@ class ExpensePostingService
         $tenantId = $tenant->id;
         $amount = (float) $payload['amount'];
         $inputTax = (float) ($payload['input_tax'] ?? $payload['tax_amount'] ?? 0);
-        $totalPaid = round($amount + $inputTax, 2);
+        $totalDue = round($amount + $inputTax, 2);
         $paymentMethod = $payload['payment_method'] ?? 'cash';
         $expenseDate = $payload['expense_date'] ?? $payload['date'] ?? now()->toDateString();
         $description = $payload['description'] ?? $payload['category'] ?? $payload['notes'] ?? 'Operating expense';
         $reference = $payload['reference'] ?? ('EXP-' . strtoupper(uniqid()));
 
-        return CanonicalPostingScope::run(function () use ($tenantId, $amount, $inputTax, $totalPaid, $paymentMethod, $expenseDate, $description, $reference, $payload, $user) {
-            return DB::transaction(function () use ($tenantId, $amount, $inputTax, $totalPaid, $paymentMethod, $expenseDate, $description, $reference, $payload, $user) {
-                $cashAccount = $paymentMethod === 'bank' ? '1010' : '1000';
+        // R07 FIX: Support partial payment.
+        // When amount_paid is explicitly provided, honour it; the remaining balance
+        // goes to AP (2000). This matches the legacy direct path which stored
+        // amount_paid on the Expense record without altering the GL posting logic.
+        // If amount_paid is null or not provided, default to paying the full total
+        // (backward-compatible behaviour).
+        $amountPaid = isset($payload['amount_paid']) && $payload['amount_paid'] !== null
+            ? round((float)$payload['amount_paid'], 2)
+            : $totalDue;
+        $amountPaid = max(0.0, min($amountPaid, $totalDue));
+        $amountCredit = round($totalDue - $amountPaid, 2); // balance posted to AP
+
+        return CanonicalPostingScope::run(function () use (
+            $tenantId, $amount, $inputTax, $totalDue, $amountPaid, $amountCredit,
+            $paymentMethod, $expenseDate, $description, $reference, $payload, $user
+        ) {
+            return DB::transaction(function () use (
+                $tenantId, $amount, $inputTax, $totalDue, $amountPaid, $amountCredit,
+                $paymentMethod, $expenseDate, $description, $reference, $payload, $user
+            ) {
+                $cashAccount = in_array($paymentMethod, ['bank', 'cheque'], true) ? '1010' : '1000';
                 $bankAccountId = $payload['bank_account_id'] ?? null;
 
-                if ($paymentMethod === 'bank' && empty($bankAccountId)) {
+                if (in_array($paymentMethod, ['bank', 'cheque'], true) && empty($bankAccountId)) {
                     $firstBank = BankAccount::where('tenant_id', $tenantId)
                         ->where('type', 'bank')
                         ->first();
@@ -45,28 +63,31 @@ class ExpensePostingService
                     'expense_category_id' => $payload['expense_category_id'] ?? $payload['category_id'] ?? null,
                     'amount'              => $amount,
                     'tax_amount'          => $inputTax,
-                    'grand_total'         => $totalPaid,
-                    'amount_paid'         => $totalPaid,
+                    'grand_total'         => $totalDue,
+                    'amount_paid'         => $amountPaid,
                     'date'                => $expenseDate,
                     'payment_method'      => $paymentMethod,
                     'bank_account_id'     => $bankAccountId,
                     'notes'               => $description,
                     'description'         => $description,
                     'reference'           => $reference,
+                    // R07 FIX: preserve payee, party_id and service_job_id
+                    'payee'               => $payload['payee'] ?? null,
+                    'party_id'            => $payload['party_id'] ?? null,
+                    'service_job_id'      => $payload['service_job_id'] ?? null,
                 ]);
 
+                // Build journal lines:
+                //   DR 6000  Expense (full amount)
+                //   DR 2300  Input Tax Recoverable (if any)
+                //   CR 1000/1010  Cash/Bank (amount actually paid)
+                //   CR 2000  Accounts Payable (unpaid balance, if partial payment)
                 $lines = [
                     [
                         'account_code' => '6000',
                         'debit'        => $amount,
                         'credit'       => 0,
                         'description'  => $description,
-                    ],
-                    [
-                        'account_code'    => $cashAccount,
-                        'debit'           => 0,
-                        'credit'          => $totalPaid,
-                        'bank_account_id' => $paymentMethod === 'bank' ? $bankAccountId : null,
                     ],
                 ];
 
@@ -76,6 +97,25 @@ class ExpensePostingService
                         'debit'        => $inputTax,
                         'credit'       => 0,
                         'description'  => 'Input Tax — ' . $description,
+                    ];
+                }
+
+                if ($amountPaid > 0) {
+                    $lines[] = [
+                        'account_code'    => $cashAccount,
+                        'debit'           => 0,
+                        'credit'          => $amountPaid,
+                        'bank_account_id' => in_array($paymentMethod, ['bank', 'cheque'], true) ? $bankAccountId : null,
+                    ];
+                }
+
+                if ($amountCredit > 0) {
+                    // Unpaid balance → Accounts Payable
+                    $lines[] = [
+                        'account_code' => '2000',
+                        'debit'        => 0,
+                        'credit'       => $amountCredit,
+                        'description'  => 'AP balance — ' . $description,
                     ];
                 }
 
@@ -94,7 +134,8 @@ class ExpensePostingService
                     'reference'        => $reference,
                     'amount'           => $amount,
                     'tax_amount'       => $inputTax,
-                    'total_paid'       => $totalPaid,
+                    'total_paid'       => $amountPaid,
+                    'ap_balance'       => $amountCredit,
                 ];
             });
         });

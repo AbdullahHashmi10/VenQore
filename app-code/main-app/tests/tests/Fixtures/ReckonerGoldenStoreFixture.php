@@ -101,39 +101,30 @@ class ReckonerGoldenStoreFixture
      * @param Tenant|null $tenant Existing tenant to reuse or null to create fresh via StoreProvisioner
      * @param mixed|null $http TestCase instance for test runner dispatch, or null for direct kernel dispatch
      */
-    public static function build(?Tenant $tenant = null, $http = null): array
+    public static function build(?Tenant $tenant = null, $http = null, ?User $user = null): array
     {
         $tz = 'Asia/Karachi';
 
         // 1. Owner User
-        $user = User::firstOrCreate(
-            ['email' => 'golden-owner@venqore.com'],
-            [
-                'name'              => 'Golden Owner',
+        if (!$user) {
+            $user = new User([
+                'name'              => 'Golden Owner ' . Str::random(4),
+                'email'             => 'golden-' . Str::lower(Str::random(10)) . '@venqore.com',
                 'password'          => Hash::make('secret123'),
                 'role'              => 'owner',
-                'email_verified_at' => now(),
-            ]
-        );
-        if (!$user->email_verified_at) {
+                'is_platform_admin' => false,
+            ]);
             $user->email_verified_at = now();
             $user->save();
         }
 
         // 2. Store Provisioning via StoreProvisioner
         if (!$tenant) {
-            $existing = Tenant::where('slug', 'golden-store')->first();
-            if ($existing) {
-                self::purgeTenant($existing);
-                $tenant = $existing;
-            }
-        }
-
-        if (!$tenant) {
             $allLiveModules = array_keys(config('modules', []));
             $provisioner = app(StoreProvisioner::class);
+            $slug = 'gs-' . Str::lower(Str::random(12));
             $tenant = $provisioner->create($user, [
-                'name'            => 'Reckoner Golden Store',
+                'name'            => 'Golden Store ' . Str::lower(Str::random(10)),
                 'business_type'   => 'retail',
                 'country'         => 'PK',
                 'currency'        => 'PKR',
@@ -143,8 +134,7 @@ class ReckonerGoldenStoreFixture
                 'modules'         => $allLiveModules,
             ]);
 
-            // Ensure deterministic slug for tests & routes
-            $tenant->slug = 'golden-store';
+            $tenant->slug = $slug;
             $tenant->plan = 'scale';
             $tenant->status = 'active';
             $tenant->timezone = $tz;
@@ -152,7 +142,7 @@ class ReckonerGoldenStoreFixture
         } else {
             self::purgeTenant($tenant);
             $tenant->update([
-                'name'     => 'Reckoner Golden Store',
+                'name'     => $tenant->name ?: 'Reckoner Golden Store',
                 'timezone' => $tz,
                 'plan'     => 'scale',
                 'status'   => 'active',
@@ -174,16 +164,21 @@ class ReckonerGoldenStoreFixture
         app()->instance('current.tenant_user', $membership);
 
         // 3. Bank Account for transactions
-        $bankAccount = BankAccount::firstOrCreate(
-            ['tenant_id' => $tenant->id, 'type' => 'bank'],
-            [
+        $bankAccount = BankAccount::where('tenant_id', $tenant->id)->first();
+        if (!$bankAccount) {
+            $bankAccount = BankAccount::create([
+                'tenant_id'       => $tenant->id,
                 'name'            => 'Main Bank',
                 'bank_name'       => 'Main Bank',
                 'account_number'  => '12345678',
+                'type'            => 'bank',
                 'account_type'    => 'bank',
                 'current_balance' => 0.00,
-            ]
-        );
+            ]);
+        } else {
+            $bankAccount->type = 'bank';
+            $bankAccount->save();
+        }
 
         // 4. Warehouse (created by provisioner/seeder or ensured here)
         $warehouse = Warehouse::where('tenant_id', $tenant->id)->first();
@@ -501,53 +496,76 @@ class ReckonerGoldenStoreFixture
     {
         $method = strtoupper($method);
 
-        if ($http && method_exists($http, 'actingAs')) {
-            $testResponse = match ($method) {
-                'POST'   => $http->actingAs($user)->postJson($uri, $data),
-                'PUT'    => $http->actingAs($user)->putJson($uri, $data),
-                'DELETE' => $http->actingAs($user)->deleteJson($uri, $data),
-                'GET'    => $http->actingAs($user)->getJson($uri),
-                default  => throw new \InvalidArgumentException("Unsupported HTTP method {$method}"),
-            };
+        $maxAttempts = 3;
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                if ($http && method_exists($http, 'actingAs')) {
+                    $testResponse = match ($method) {
+                        'POST'   => $http->actingAs($user)->postJson($uri, $data),
+                        'PUT'    => $http->actingAs($user)->putJson($uri, $data),
+                        'DELETE' => $http->actingAs($user)->deleteJson($uri, $data),
+                        'GET'    => $http->actingAs($user)->getJson($uri),
+                        default  => throw new \InvalidArgumentException("Unsupported HTTP method {$method}"),
+                    };
 
-            $status = $testResponse->getStatusCode();
-            if ($status >= 400) {
-                $err = $testResponse->json('message') ?? substr($testResponse->getContent(), 0, 500);
-                throw new \RuntimeException("HTTP {$method} to {$uri} failed ({$status}): {$err}");
+                    $status = $testResponse->getStatusCode();
+                    if ($status >= 400) {
+                        $err = $testResponse->json('message') ?? substr($testResponse->getContent(), 0, 500);
+                        if (str_contains($err, '40001') || str_contains($err, 'Deadlock')) {
+                            if ($attempt < $maxAttempts) {
+                                usleep(50000 * $attempt);
+                                continue;
+                            }
+                        }
+                        throw new \RuntimeException("HTTP {$method} to {$uri} failed ({$status}): {$err}");
+                    }
+
+                    return $testResponse;
+                }
+
+                // Direct kernel dispatch (e.g. from Artisan command)
+                if (class_exists(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)) {
+                    app()->singleton(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class, fn () => new class extends \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken {
+                        public function __construct() {}
+                        public function handle($request, \Closure $next) { return $next($request); }
+                    });
+                }
+
+                Auth::login($user);
+                $server = [
+                    'CONTENT_TYPE' => 'application/json',
+                    'HTTP_ACCEPT'  => 'application/json',
+                ];
+                $req = \Illuminate\Http\Request::create($uri, $method, [], [], [], $server, json_encode($data));
+                $req->setUserResolver(fn () => $user);
+
+                /** @var \Illuminate\Contracts\Http\Kernel $kernel */
+                $kernel = app(\Illuminate\Contracts\Http\Kernel::class);
+                $response = $kernel->handle($req);
+                $kernel->terminate($req, $response);
+
+                $testResponse = new \Illuminate\Testing\TestResponse($response);
+                $status = $testResponse->getStatusCode();
+                if ($status >= 400) {
+                    $err = $testResponse->json('message') ?? substr($testResponse->getContent(), 0, 500);
+                    if (str_contains($err, '40001') || str_contains($err, 'Deadlock')) {
+                        if ($attempt < $maxAttempts) {
+                            usleep(50000 * $attempt);
+                            continue;
+                        }
+                    }
+                    throw new \RuntimeException("HTTP {$method} to {$uri} failed ({$status}): {$err}");
+                }
+
+                return $testResponse;
+            } catch (\Throwable $e) {
+                if ((str_contains($e->getMessage(), '40001') || str_contains($e->getMessage(), 'Deadlock')) && $attempt < $maxAttempts) {
+                    usleep(50000 * $attempt);
+                    continue;
+                }
+                throw $e;
             }
-
-            return $testResponse;
         }
-
-        // Direct kernel dispatch (e.g. from Artisan command)
-        if (class_exists(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)) {
-            app()->singleton(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class, fn () => new class extends \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken {
-                public function __construct() {}
-                public function handle($request, \Closure $next) { return $next($request); }
-            });
-        }
-
-        Auth::login($user);
-        $server = [
-            'CONTENT_TYPE' => 'application/json',
-            'HTTP_ACCEPT'  => 'application/json',
-        ];
-        $req = \Illuminate\Http\Request::create($uri, $method, [], [], [], $server, json_encode($data));
-        $req->setUserResolver(fn () => $user);
-
-        /** @var \Illuminate\Contracts\Http\Kernel $kernel */
-        $kernel = app(\Illuminate\Contracts\Http\Kernel::class);
-        $response = $kernel->handle($req);
-        $kernel->terminate($req, $response);
-
-        $testResponse = new \Illuminate\Testing\TestResponse($response);
-        $status = $testResponse->getStatusCode();
-        if ($status >= 400) {
-            $err = $testResponse->json('message') ?? substr($testResponse->getContent(), 0, 500);
-            throw new \RuntimeException("HTTP {$method} to {$uri} failed ({$status}): {$err}");
-        }
-
-        return $testResponse;
     }
 
     /**

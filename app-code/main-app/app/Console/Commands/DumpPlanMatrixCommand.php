@@ -28,10 +28,6 @@ class DumpPlanMatrixCommand extends Command
             $dump[$slug] = [];
 
             foreach ($matrix as $key => $values) {
-                // Under V11 §1.1 / F4, reports are universal and excluded from tier-specific config fallback
-                if (str_starts_with($key, 'report_') && $key !== 'reports') {
-                    continue;
-                }
 
                 $val = PlanFeatureMatrixSeeder::resolveLimitValue($slug, $key, $values);
 

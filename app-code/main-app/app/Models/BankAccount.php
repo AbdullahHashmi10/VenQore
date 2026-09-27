@@ -21,6 +21,21 @@ class BankAccount extends Model
         return $this->hasMany(Expense::class);
     }
 
+    public function chequeBooks()
+    {
+        return $this->hasMany(ChequeBook::class, 'bank_account_id');
+    }
+
+    public function chequeLeaves()
+    {
+        return $this->hasMany(ChequeLeaf::class, 'bank_account_id');
+    }
+
+    public function receivedCheques()
+    {
+        return $this->hasMany(ReceivedCheque::class, 'deposit_bank_account_id');
+    }
+
     /**
      * Get the true balance.
      * For Cash, the single source of truth is the V3 GL Ledger (Account 1000).

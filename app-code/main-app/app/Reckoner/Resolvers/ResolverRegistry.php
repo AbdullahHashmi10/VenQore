@@ -359,6 +359,21 @@ final class ResolverRegistry
         'staff.attendance_rate' => \App\Reckoner\Resolvers\StaffAttendanceRateResolver::class,
         'staff.sales_by_staff' => \App\Reckoner\Resolvers\StaffSalesByStaffResolver::class,
         'staff.revenue_per_staff' => \App\Reckoner\Resolvers\StaffRevenuePerStaffResolver::class,
+        'approval.my_pending' => \App\Reckoner\Resolvers\ApprovalMyPendingResolver::class,
+        'approval.my_returned' => \App\Reckoner\Resolvers\ApprovalMyReturnedResolver::class,
+        'approval.my_submitted' => \App\Reckoner\Resolvers\ApprovalMySubmittedResolver::class,
+        'approval.my_approved' => \App\Reckoner\Resolvers\ApprovalMyApprovedResolver::class,
+        'approval.awaiting_review' => \App\Reckoner\Resolvers\ApprovalAwaitingReviewResolver::class,
+        'approval.pending_aging' => \App\Reckoner\Resolvers\ApprovalPendingAgingResolver::class,
+        'approval.reviewer_decisions_completed' => \App\Reckoner\Resolvers\ApprovalReviewerDecisionsCompletedResolver::class,
+        'approval.reviewer_returned_to_maker' => \App\Reckoner\Resolvers\ApprovalReviewerReturnedToMakerResolver::class,
+        'cheque.available_leaves' => \App\Reckoner\Resolvers\ChequeAvailableLeavesResolver::class,
+        'cheque.issued_uncleared' => \App\Reckoner\Resolvers\ChequeIssuedUnclearedResolver::class,
+        'cheque.cheques_in_hand' => \App\Reckoner\Resolvers\ChequeChequesInHandResolver::class,
+        'cheque.deposited_uncleared' => \App\Reckoner\Resolvers\ChequeDepositedUnclearedResolver::class,
+        'cheque.bounced_total' => \App\Reckoner\Resolvers\ChequeBouncedTotalResolver::class,
+        'cheque.stopped_total' => \App\Reckoner\Resolvers\ChequeStoppedTotalResolver::class,
+        'cheque.post_dated_due' => \App\Reckoner\Resolvers\ChequePostDatedDueResolver::class,
     ];
 
     /**

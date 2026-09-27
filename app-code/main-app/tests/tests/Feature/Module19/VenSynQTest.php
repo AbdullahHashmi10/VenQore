@@ -140,11 +140,10 @@ test('cross_store_transfer_updates_both_inventories', function () {
     ]);
 
     // Create warehouse for Tenant A
-    $warehouseA = Warehouse::create([
-        'tenant_id' => $tenantA->id,
-        'name'      => 'Warehouse A',
-        'is_active' => true,
-    ]);
+    $warehouseA = Warehouse::firstOrCreate(
+        ['tenant_id' => $tenantA->id, 'is_default' => true],
+        ['name' => 'Warehouse A', 'is_active' => true]
+    );
 
     // Seed stock for Tenant A
     $stockA = Stock::create([
@@ -165,11 +164,10 @@ test('cross_store_transfer_updates_both_inventories', function () {
     ]);
 
     // Create warehouse for Tenant B
-    $warehouseB = Warehouse::create([
-        'tenant_id' => $tenantB->id,
-        'name'      => 'Warehouse B',
-        'is_active' => true,
-    ]);
+    $warehouseB = Warehouse::firstOrCreate(
+        ['tenant_id' => $tenantB->id, 'is_default' => true],
+        ['name' => 'Warehouse B', 'is_active' => true]
+    );
 
     // 3. Perform stock transfer from Warehouse A to Warehouse B
     $service = new VenSynQService();

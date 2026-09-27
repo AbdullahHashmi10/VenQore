@@ -1,13 +1,13 @@
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 2413
+  phpunit_test_methods_total: 2414
   note: 'total = SUM of member test_methods (testX(), @test,'
 suites:
   -
     id: Feature
     path: tests/Feature
-    test_methods: 979
+    test_methods: 980
     files: 169
     members:
       -
@@ -56,7 +56,7 @@ suites:
         oracle_tier: T1
       -
         file: tests/Feature/Approval/OwnerEmployeeWalkthroughTest.php
-        test_methods: 7
+        test_methods: 8
         oracle_tier: T1
       -
         file: tests/Feature/Approval/PostingBoundaryGuardTest.php

@@ -58,10 +58,14 @@ class ApprovalStateMachine
         return DB::transaction(function () use (
             $tenantId, $documentType, $maker, $payload, $amount, $description, $idempotencyKey, $entityType, $entityId, $metadata
         ) {
-            // Check idempotency if key provided
+            // Check idempotency if key provided.
+            // R11 FIX: also require document_type and maker_id to match — a key
+            // must not return another maker's or another type's document.
             if ($idempotencyKey) {
                 $existing = ApprovalDocument::where('tenant_id', $tenantId)
                     ->where('idempotency_key', $idempotencyKey)
+                    ->where('document_type', $documentType)
+                    ->where('maker_id', $maker->id)
                     ->first();
                 if ($existing) {
                     return $existing;
@@ -114,6 +118,13 @@ class ApprovalStateMachine
 
     /**
      * Resubmit a returned document with a new immutable revision.
+     *
+     * R11 FIX: Status and version checks moved INSIDE the DB transaction with
+     * lockForUpdate(). Previously these were checked against the pre-loaded
+     * $document before the transaction, making them a TOCTOU race: two concurrent
+     * resubmit calls could both pass the check, then both enter the transaction
+     * and create duplicate revisions against the same document. With lockForUpdate
+     * the second concurrent caller is serialized and will see the post-update state.
      */
     public function resubmit(
         ApprovalDocument $document,
@@ -123,21 +134,26 @@ class ApprovalStateMachine
         ?string $makerNotes = null,
         ?int $expectedVersion = null
     ): ApprovalDocument {
-        if ($document->status !== ApprovalDocument::STATUS_RETURNED) {
-            throw new RuntimeException("Only returned documents can be resubmitted. Current status: '{$document->status}'.");
-        }
+        return DB::transaction(function () use ($document, $maker, $updatedPayload, $updatedAmount, $makerNotes, $expectedVersion) {
+            // Re-read under lock — this is the race-safe status/version check.
+            $fresh = ApprovalDocument::where('id', $document->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($expectedVersion !== null && (int)$document->version !== (int)$expectedVersion) {
-            throw new RuntimeException("Version conflict: document has been modified by another transition.");
-        }
+            if ($fresh->status !== ApprovalDocument::STATUS_RETURNED) {
+                throw new RuntimeException("Only returned documents can be resubmitted. Current status: '{$fresh->status}'.");
+            }
 
-        return DB::transaction(function () use ($document, $maker, $updatedPayload, $updatedAmount, $makerNotes) {
-            $latestRevision = $document->latestRevision();
+            if ($expectedVersion !== null && (int)$fresh->version !== (int)$expectedVersion) {
+                throw new RuntimeException("Version conflict: document has been modified by another transition.");
+            }
+
+            $latestRevision = $fresh->latestRevision();
             $nextRevisionNumber = ($latestRevision ? $latestRevision->revision_number : 0) + 1;
             $summaryHash = hash('sha256', json_encode($updatedPayload));
 
             $newRevision = ApprovalRevision::create([
-                'approval_document_id' => $document->id,
+                'approval_document_id' => $fresh->id,
                 'revision_number'      => $nextRevisionNumber,
                 'maker_id'             => $maker->id,
                 'payload'              => $updatedPayload,
@@ -145,15 +161,15 @@ class ApprovalStateMachine
                 'notes'                => $makerNotes,
             ]);
 
-            $previousStatus = $document->status;
-            $document->status = ApprovalDocument::STATUS_PENDING;
-            $document->current_revision_id = $newRevision->id;
-            $document->amount = $updatedAmount;
-            $document->version = (int)$document->version + 1;
-            $document->save();
+            $previousStatus = $fresh->status;
+            $fresh->status = ApprovalDocument::STATUS_PENDING;
+            $fresh->current_revision_id = $newRevision->id;
+            $fresh->amount = $updatedAmount;
+            $fresh->version = (int)$fresh->version + 1;
+            $fresh->save();
 
             ApprovalTransition::create([
-                'approval_document_id' => $document->id,
+                'approval_document_id' => $fresh->id,
                 'actor_id'             => $maker->id,
                 'source_revision_id'   => $newRevision->id,
                 'from_status'          => $previousStatus,
@@ -163,7 +179,7 @@ class ApprovalStateMachine
                 'metadata'             => ['revision_number' => $nextRevisionNumber],
             ]);
 
-            return $document->fresh(['currentRevision', 'revisions', 'transitions']);
+            return $fresh->fresh(['currentRevision', 'revisions', 'transitions']);
         });
     }
 

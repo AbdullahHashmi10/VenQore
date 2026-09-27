@@ -34,6 +34,9 @@ return array (
       21 => 'inventory.stock_value',
       22 => 'inventory.low_stock_count',
       23 => 'approval.awaiting_review',
+      24 => 'approval.pending_aging',
+      25 => 'approval.reviewer_decisions_completed',
+      26 => 'approval.reviewer_returned_to_maker',
     ),
     'admin' =>
     array (
@@ -61,6 +64,9 @@ return array (
       21 => 'inventory.stock_value',
       22 => 'inventory.low_stock_count',
       23 => 'approval.awaiting_review',
+      24 => 'approval.pending_aging',
+      25 => 'approval.reviewer_decisions_completed',
+      26 => 'approval.reviewer_returned_to_maker',
     ),
     'manager' =>
     array (
@@ -84,6 +90,8 @@ return array (
       17 => 'invoicing.unpaid_value',
       18 => 'approval.awaiting_review',
       19 => 'approval.pending_aging',
+      20 => 'approval.reviewer_decisions_completed',
+      21 => 'approval.reviewer_returned_to_maker',
     ),
     'accountant' =>
     array (
@@ -105,6 +113,8 @@ return array (
       15 => 'core.balance_sheet_ok',
       16 => 'approval.awaiting_review',
       17 => 'approval.pending_aging',
+      18 => 'approval.reviewer_decisions_completed',
+      19 => 'approval.reviewer_returned_to_maker',
     ),
     'inventory_controller' =>
     array (
@@ -154,6 +164,10 @@ return array (
       9 => 'suppliers.owed_list',
       10 => 'inventory.low_stock_count',
       11 => 'inventory.low_stock_list',
+      12 => 'approval.my_pending',
+      13 => 'approval.my_returned',
+      14 => 'approval.my_submitted',
+      15 => 'approval.my_approved',
     ),
     'sales_executive' =>
     array (
@@ -169,6 +183,10 @@ return array (
       9 => 'quotations.win_rate',
       10 => 'sales_orders.open_count',
       11 => 'sales_orders.open_value',
+      12 => 'approval.my_pending',
+      13 => 'approval.my_returned',
+      14 => 'approval.my_submitted',
+      15 => 'approval.my_approved',
     ),
     'cashier' =>
     array (
@@ -182,6 +200,10 @@ return array (
       7 => 'pos.live_feed',
       8 => 'products.count',
       9 => 'customers.count',
+      10 => 'approval.my_pending',
+      11 => 'approval.my_returned',
+      12 => 'approval.my_submitted',
+      13 => 'approval.my_approved',
     ),
     'viewer' =>
     array (

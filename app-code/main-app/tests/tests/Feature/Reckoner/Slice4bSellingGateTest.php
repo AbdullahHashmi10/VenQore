@@ -137,7 +137,7 @@ class Slice4bSellingGateTest extends TestCase
         }
 
         // Ensure a different tenant gets different (isolated) data
-        $otherTenant = Tenant::where('slug', '!=', 'golden-store')->first();
+        $otherTenant = Tenant::factory()->create(['status' => 'active', 'plan' => 'scale', 'slug' => 'empty-isolation-store-' . \Illuminate\Support\Str::random(6)]);
         if ($otherTenant) {
             $otherUser = User::whereIn('id', DB::table('tenant_users')->where('tenant_id', $otherTenant->id)->pluck('user_id'))->first() ?? User::first();
             if ($otherUser) {

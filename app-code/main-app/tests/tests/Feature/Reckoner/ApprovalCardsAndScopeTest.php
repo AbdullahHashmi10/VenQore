@@ -40,7 +40,7 @@ class ApprovalCardsAndScopeTest extends VenQoreTestCase
         $tenant = $this->createTenant('reck-appr-' . uniqid(), 'ltd_3');
         $makerA = $this->createTenantUser($tenant, 'cashier');
         $makerB = $this->createTenantUser($tenant, 'cashier');
-        $reviewer = $this->createTenantUser($tenant, 'manager');
+        $reviewer = $this->createTenantUser($tenant, 'accountant');
 
         // Create 2 pending docs for maker A ($500 each)
         $doc1 = $this->engine->submit(
@@ -78,52 +78,82 @@ class ApprovalCardsAndScopeTest extends VenQoreTestCase
             notes: 'Please verify receipt total'
         );
 
+        // Approve doc1 by reviewer
+        $this->engine->approve(
+            documentId: $doc1->id,
+            tenant: $tenant,
+            reviewer: $reviewer,
+            reviewerNotes: 'Approved expense'
+        );
+
         // 1. Resolve cards for Maker A
         $this->bindTenantContext($tenant, $makerA);
         $requestsMakerA = [
             new ReckonerRequest('approval.my_pending', 'today'),
             new ReckonerRequest('approval.my_returned', 'today'),
+            new ReckonerRequest('approval.my_submitted', 'today'),
+            new ReckonerRequest('approval.my_approved', 'today'),
         ];
 
         $idPendingA = $requestsMakerA[0]->getCompositeId();
         $idReturnedA = $requestsMakerA[1]->getCompositeId();
+        $idSubmittedA = $requestsMakerA[2]->getCompositeId();
+        $idApprovedA = $requestsMakerA[3]->getCompositeId();
 
         $resultsMakerA = $this->reckoner->readMany($requestsMakerA, $makerA, $tenant);
         $this->assertTrue($resultsMakerA[$idPendingA]->ok);
-        $this->assertSame(1, $resultsMakerA[$idPendingA]->data['count']); // doc1 is pending
-        $this->assertEquals(500.00, $resultsMakerA[$idPendingA]->data['amount']);
+        $this->assertSame(0, $resultsMakerA[$idPendingA]->data['count']); // doc1 is approved, doc2 is returned -> 0 pending
+        $this->assertEquals(0.00, $resultsMakerA[$idPendingA]->data['amount']);
 
         $this->assertTrue($resultsMakerA[$idReturnedA]->ok);
         $this->assertSame(1, $resultsMakerA[$idReturnedA]->data['count']); // doc2 is returned
         $this->assertEquals(500.00, $resultsMakerA[$idReturnedA]->data['amount']);
+
+        $this->assertTrue($resultsMakerA[$idSubmittedA]->ok);
+        $this->assertSame(2, $resultsMakerA[$idSubmittedA]->data['count']); // doc1 + doc2 = 2 submitted
+
+        $this->assertTrue($resultsMakerA[$idApprovedA]->ok);
+        $this->assertSame(1, $resultsMakerA[$idApprovedA]->data['count']); // doc1 is approved
 
         // 2. Resolve cards for Maker B (Isolation from Maker A)
         $this->bindTenantContext($tenant, $makerB);
         $requestsMakerB = [
             new ReckonerRequest('approval.my_pending', 'today'),
             new ReckonerRequest('approval.my_returned', 'today'),
+            new ReckonerRequest('approval.my_submitted', 'today'),
+            new ReckonerRequest('approval.my_approved', 'today'),
         ];
         $idPendingB = $requestsMakerB[0]->getCompositeId();
         $idReturnedB = $requestsMakerB[1]->getCompositeId();
+        $idSubmittedB = $requestsMakerB[2]->getCompositeId();
+        $idApprovedB = $requestsMakerB[3]->getCompositeId();
 
         $resultsMakerB = $this->reckoner->readMany($requestsMakerB, $makerB, $tenant);
         $this->assertSame(1, $resultsMakerB[$idPendingB]->data['count']); // doc3 only
         $this->assertEquals(1200.00, $resultsMakerB[$idPendingB]->data['amount']);
         $this->assertSame(0, $resultsMakerB[$idReturnedB]->data['count']);
+        $this->assertSame(1, $resultsMakerB[$idSubmittedB]->data['count']);
+        $this->assertSame(0, $resultsMakerB[$idApprovedB]->data['count']);
 
         // 3. Resolve store review queue for Reviewer
         $this->bindTenantContext($tenant, $reviewer);
         $requestsReviewer = [
             new ReckonerRequest('approval.awaiting_review', 'today'),
             new ReckonerRequest('approval.pending_aging', 'today'),
+            new ReckonerRequest('approval.reviewer_decisions_completed', 'today'),
+            new ReckonerRequest('approval.reviewer_returned_to_maker', 'today'),
         ];
         $idReview = $requestsReviewer[0]->getCompositeId();
         $idAging = $requestsReviewer[1]->getCompositeId();
+        $idDecisions = $requestsReviewer[2]->getCompositeId();
+        $idReturnedByMe = $requestsReviewer[3]->getCompositeId();
 
         $resultsReviewer = $this->reckoner->readMany($requestsReviewer, $reviewer, $tenant);
-        $this->assertSame(2, $resultsReviewer[$idReview]->data['count']); // doc1 + doc3 are pending
-        $this->assertEquals(1700.00, $resultsReviewer[$idReview]->data['amount']);
-        $this->assertSame(2, $resultsReviewer[$idAging]->data['under_24h']);
+        $this->assertSame(1, $resultsReviewer[$idReview]->data['count']); // only doc3 is pending now
+        $this->assertEquals(1200.00, $resultsReviewer[$idReview]->data['amount']);
+        $this->assertSame(1, $resultsReviewer[$idAging]->data['under_24h']);
+        $this->assertSame(2, $resultsReviewer[$idDecisions]->data['count']); // approved doc1 + returned doc2
+        $this->assertSame(1, $resultsReviewer[$idReturnedByMe]->data['count']); // returned doc2
     }
 
     public function test_personal_card_cache_is_strictly_scoped_per_user(): void
@@ -198,5 +228,70 @@ class ApprovalCardsAndScopeTest extends VenQoreTestCase
             $ctxB->scopeFingerprint('sales.daily_volume'),
             'Identical data scopes in different key orders must produce the exact same fingerprint.'
         );
+    }
+
+    public function test_reviewer_cards_respect_adapter_permissions_and_self_submission_rules(): void
+    {
+        $tenant = $this->createTenant('reck-perm-' . uniqid(), 'ltd_3');
+        $maker = $this->createTenantUser($tenant, 'cashier');
+        
+        // Reviewer who has review permission and finance.expenses, but NOT finance.send_payment
+        $reviewer = $this->createTenantUser($tenant, 'cashier');
+        $tenantUser = \App\Models\TenantUser::where('tenant_id', $tenant->id)->where('user_id', $reviewer->id)->first();
+        $tenantUser->update([
+            'role' => 'custom',
+            'permission_override_mode' => 'custom',
+            'permissions' => ['approvals.review', 'finance.expenses'],
+        ]);
+        $reviewer = $reviewer->fresh();
+
+        $supplier = \App\Models\Party::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Test Supplier',
+            'type' => 'supplier',
+        ]);
+
+        // Submit expense (eligible for reviewer)
+        $this->engine->submit(
+            tenant: $tenant,
+            maker: $maker,
+            documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+            payload: ['amount' => 150.00, 'payment_method' => 'cash'],
+            amount: 150.00
+        );
+
+        // Submit supplier payment (requires finance.send_payment -> ineligible for reviewer)
+        $this->engine->submit(
+            tenant: $tenant,
+            maker: $maker,
+            documentType: ApprovalDocument::TYPE_SUPPLIER_PAYMENT,
+            payload: ['supplier_id' => $supplier->id, 'amount' => 450.00, 'payment_method' => 'cash'],
+            amount: 450.00
+        );
+
+        // Submit an expense where reviewer is the maker (self-submission)
+        $this->engine->submit(
+            tenant: $tenant,
+            maker: $reviewer,
+            documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+            payload: ['amount' => 200.00, 'payment_method' => 'cash'],
+            amount: 200.00
+        );
+
+        $this->bindTenantContext($tenant, $reviewer);
+        $req = [
+            new ReckonerRequest('approval.awaiting_review', 'today'),
+            new ReckonerRequest('approval.pending_aging', 'today'),
+        ];
+        $idReview = $req[0]->getCompositeId();
+        $idAging = $req[1]->getCompositeId();
+
+        $results = $this->reckoner->readMany($req, $reviewer, $tenant);
+        
+        // Reviewer should only see the 1 expense submitted by maker (not the supplier payment, not their own expense)
+        $this->assertTrue($results[$idReview]->ok);
+        $this->assertSame(1, $results[$idReview]->data['count']);
+        $this->assertEquals(150.00, $results[$idReview]->data['amount']);
+        $this->assertSame(1, $results[$idAging]->data['under_24h']);
     }
 }

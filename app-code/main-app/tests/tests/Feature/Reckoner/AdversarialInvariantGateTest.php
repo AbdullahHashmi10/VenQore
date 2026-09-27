@@ -32,8 +32,9 @@ class AdversarialInvariantGateTest extends TestCase
         parent::setUp();
 
         $this->tenant = Tenant::where('slug', 'golden-store')->first();
-        if (!$this->tenant) {
-            $built = ReckonerGoldenStoreFixture::build(http: $this);
+        $hasEntries = $this->tenant && DB::table('journal_entries')->where('tenant_id', $this->tenant->id)->exists();
+        if (!$this->tenant || !$hasEntries) {
+            $built = ReckonerGoldenStoreFixture::build($this->tenant, $this);
             $this->tenant = $built['tenant'];
             $this->user   = $built['user'];
         } else {
@@ -202,7 +203,7 @@ class AdversarialInvariantGateTest extends TestCase
         $runsBefore = DB::table('reckoner_invariant_runs')->where('tenant_id', $this->tenant->id)->count();
 
         $exitCode = Artisan::call('reckoner:probe', [
-            '--tenant' => 'golden-store',
+            '--tenant' => (string) $this->tenant->id,
             '--from'   => '2026-08-01',
             '--to'     => '2026-08-31',
         ]);

@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Engines\AccountingService;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\PosReturnService;
 
 class PosReturnController extends Controller
 {
@@ -39,6 +43,50 @@ class PosReturnController extends Controller
         $ownWarehouse = DB::table('warehouses')->where('tenant_id', $tenant->id)->where('id', $warehouseId)->exists();
         if ($ownProducts !== $productIds->count() || !$ownWarehouse) {
             return response()->json(['error' => 'Unknown product or warehouse for this store.'], 422);
+        }
+
+        // ── Approval interception ───────────────────────────────────────────────
+        $user           = Auth::user();
+        $estimatedTotal = (float) collect($request->input('items', []))->sum(
+            fn ($i) => (float)($i['price'] ?? 0) * (float)($i['quantity'] ?? 0)
+        );
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_SALES_RETURN,
+            amount:       $estimatedTotal,
+        );
+
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_SALES_RETURN,
+                payload:        array_merge($request->all(), ['_path' => 'pos_return']),
+                amount:         $estimatedTotal,
+                description:    'POS return — ' . $idempotencyKey,
+                idempotencyKey: $idempotencyKey,
+            );
+            return response()->json([
+                'success'         => true,
+                'pending_approval' => true,
+                'document_number'  => $doc->document_number,
+                'message'          => 'Return submitted for approval (ref: ' . $doc->document_number . ').',
+            ], 202);
+        }
+
+        // ── Direct path: delegate to PosReturnService ───────────────────────────
+        try {
+            $result = resolve(PosReturnService::class)->process($request->all(), $tenant, $user);
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Return processed successfully',
+                'reference' => $result['reference'],
+                'total'     => $result['total'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
 
         $lock = \Illuminate\Support\Facades\Cache::lock("pos-return-lock-{$idempotencyKey}", 10);

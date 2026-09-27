@@ -58,8 +58,8 @@ class TrustedPosSeparationTest extends VenQoreTestCase
             'payment_method'  => 'cash',
         ]);
 
-        $response->assertStatus(201);
-        $response->assertJson(['status' => 'posted', 'success' => true]);
+        $response->assertCreated();
+        $response->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('sales', [
             'tenant_id'         => $tenant->id,

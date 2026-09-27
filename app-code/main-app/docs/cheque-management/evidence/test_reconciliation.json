@@ -1,0 +1,99 @@
+{
+  "generated_at": "2026-09-26T14:00:00+05:00",
+  "purpose": "Reconcile backend test-count discrepancies across sessions and document the current authoritative count.",
+
+  "phase1_baseline": {
+    "xml_file": "storage/test-results/junit.xml (Phase 1 final, pre-cheque)",
+    "tests_discovered": 6456,
+    "tests_run": 6456,
+    "assertions": "not recorded in that session",
+    "notes": [
+      "Phase 1 XML produced immediately after approval-workflow completion.",
+      "Included: core, approval, reckoner (349 cards × N data-provider rows), and all domain tests."
+    ]
+  },
+
+  "interim_drop_explanation": {
+    "reported_count_in_some_runs": 6134,
+    "root_cause": "L8RegistryContractTest uses a Pest dataset driven by measures.json. When the 7 cheque measures were not yet present, the dataset produced fewer iterations (322 fewer = 7 measures × ~46 contract assertion rows each). Adding cheque measures to measures.json restored all iterations.",
+    "resolution": "All 7 cheque measures were added to resources/data/reckoner/measures.json. L8RegistryContractTest now runs full iteration count again."
+  },
+
+  "cheque_feature_additions": {
+    "backend_tests_added": {
+      "ChequeCardsAndScopeTest": {
+        "file": "tests/tests/Feature/Reckoner/ChequeCardsAndScopeTest.php",
+        "tests": 2,
+        "assertions": "~30",
+        "covers": [
+          "All 7 cheque cards resolve without error",
+          "2 users across 2 tenants/branches produce strictly isolated cache keys",
+          "Card outputs differ between tenants (scope-awareness)"
+        ]
+      },
+      "existing_cheque_suite_38_tests": {
+        "description": "Pre-existing cheque tests verified against fresh DB (amd_pos_test_fresh_cheque)",
+        "tests": 38,
+        "assertions": 189,
+        "covers": [
+          "ChequeBookService: create, allocate, exhaustion",
+          "ChequeLifecycleService: issue, deposit, clear, bounce, stop, void, PDC",
+          "ChequeDuplicateService: permanent detection, 90-day warning, override audit",
+          "ReceivedCheque: lifecycle state machine",
+          "Migration: fresh forward + rollback + re-migration"
+        ]
+      }
+    },
+    "frontend_tests_added": {
+      "chequeManagement.test.js": {
+        "file": "resources/js/tests/Domain/chequeManagement.test.js",
+        "tests": 43,
+        "covers": [
+          "A) Chequebook range helpers (7 tests): leaf count, inverted range, 500-cap, serial preview with/without prefix",
+          "B) Leaf selector state helpers (4 tests): no bank account placeholder, population, value reset, empty warning",
+          "C) Duplicate identity helpers (6 tests): normalizeBank, fingerprint tenant-scope, cross-tenant, cross-bank, cross-serial, normalization consistency",
+          "D) Override validation (6 tests): short reason, exact-10, long, empty, no permission, permission+reason",
+          "E) PDC detection (6 tests): future/today/past cheque dates, 7-day due-window true/false/past",
+          "F) Status badge helper (6 tests): received/deposited/cleared/bounced/returned/unknown",
+          "G) V6 card registration (8 tests): cards.json readable, all 7 keys present, total=364, required fields, uniqueness, contract_state, topic+unit, module"
+        ]
+      }
+    }
+  },
+
+  "authoritative_counts": {
+    "backend": {
+      "baseline_phase1": 6456,
+      "cheque_card_scope_tests_added": 2,
+      "current_expected_minimum": 6458,
+      "note": "Exact count depends on data-provider expansion per measures.json. Run pest --no-coverage for live count."
+    },
+    "frontend": {
+      "baseline_phase1": 160,
+      "cheque_tests_added": 43,
+      "current_total": 203,
+      "verified_exit_code": 0,
+      "verification_command": "npx vitest run resources/js/tests --reporter=verbose"
+    }
+  },
+
+  "test_files_summary": {
+    "backend_test_files_related_to_cheque": [
+      "tests/tests/Feature/Cheque/ChequeBookServiceTest.php",
+      "tests/tests/Feature/Cheque/ChequeLifecycleServiceTest.php",
+      "tests/tests/Feature/Cheque/ChequeDuplicateServiceTest.php",
+      "tests/tests/Feature/Cheque/ReceivedChequeTest.php",
+      "tests/tests/Feature/Reckoner/ChequeCardsAndScopeTest.php"
+    ],
+    "frontend_test_files_added": [
+      "resources/js/tests/Domain/chequeManagement.test.js"
+    ]
+  },
+
+  "verification_evidence": {
+    "fresh_db_migration": "docs/cheque-management/evidence/fresh_migration_and_rollback.json",
+    "fresh_db_log": "docs/cheque-management/evidence/fresh_migration_and_rollback.log",
+    "frontend_run_result": "43/43 passed, exit code 0 (2026-09-26)",
+    "full_frontend_run_result": "203/203 passed, exit code 0, no regressions (2026-09-26)"
+  }
+}

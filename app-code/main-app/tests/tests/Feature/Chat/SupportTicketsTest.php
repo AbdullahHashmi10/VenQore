@@ -210,7 +210,7 @@ test('unauthorized store user cannot update feature flags', function () {
         'features' => ['woocommerce' => true]
     ]);
 
-    $response->assertRedirect(route('platform.login'));
+    $response->assertNotFound();
 });
 
 test('feature flags update returns 404 for nonexistent tenant', function () {

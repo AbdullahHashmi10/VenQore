@@ -11,7 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * `before_or_equal:today` is dropped, because editing a purchase recorded
  * yesterday must not fail validation simply because the clock moved.
  */
-class UpdatePurchaseRequest extends FormRequest
+class UpdatePurchaseRequest extends StorePurchaseRequest
 {
     public function authorize(): bool { return true; }
 

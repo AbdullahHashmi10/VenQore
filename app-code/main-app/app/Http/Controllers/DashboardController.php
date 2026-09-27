@@ -13,6 +13,7 @@ use App\Services\FinancialReportingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use App\Services\Dashboard\DashboardPresenter;
 use App\Models\AiRecommendation;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +25,9 @@ class DashboardController extends Controller
         $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
         $user = auth()->user();
 
+        // The default dashboard is the permission-filtered V6 card engine for
+        // every role. Role presets and card permissions decide what is shown.
+        // The old role-specific pages remain available through /dashboard-v1.
         return $this->fullDashboardExperimental($now, $user);
     }
 
@@ -142,7 +146,6 @@ class DashboardController extends Controller
         $cashAccounts = \App\Models\BankAccount::where('account_type', 'cash')
             ->get()->map(fn($a) => ['name' => $a->bank_name ?? 'Cash', 'current_balance' => $a->v3Balance()]);
 
-        // Aging — honest unavailable state (B06)
         $receivables = [
             'total'          => $outstanding['receivables'],
             'overdue_30'     => null,
@@ -712,8 +715,27 @@ class DashboardController extends Controller
                 });
         }
 
+        // Backward-compatible props for widgets that still consume the legacy contract.
+        $plSummary = $canSeeFinancials ? [
+            'Today' => $this->getPLSummary($now->copy()->startOfDay(), $now->copy()->endOfDay()),
+            'Month' => $this->getPLSummary($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
+            'Year' => $this->getPLSummary($now->copy()->startOfYear(), $now->copy()->endOfYear()),
+            'All Time' => $this->getPLSummary(null, null),
+        ] : null;
+        $session = null;
+        if ($user->hasRole('cashier')) {
+            $sessionQuery = \App\Models\Sale::where('tenant_id', $tenantId)
+                ->where('user_id', $user->id)
+                ->where('status', 'posted')
+                ->whereDate('posted_at', $now->toDateString());
+            $session = [
+                'transaction_count' => (int) (clone $sessionQuery)->count(),
+                'session_total' => (float) (clone $sessionQuery)->sum('net_sales'),
+            ];
+        }
+
         return Inertia::render('NewDashboard', [
-            'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+            'readings'           => app(DashboardPresenter::class)->filterCatalog(\App\Reckoner\ReckonerRegistry::v6Catalog(), $user, $tenant),
             'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
             ...$this->dashboardFrameProps($tenant, $user),
             'revenue'            => $performance['Month']['sales'] ?? 0.0,
@@ -730,6 +752,8 @@ class DashboardController extends Controller
             'inventoryValue'     => $inventoryValue,
             'charityStats'       => $charityStats,
             'debtors'            => $debtors,
+            'plSummary'         => $plSummary,
+            'session'           => $session,
         ]);
     }
 
@@ -827,15 +851,35 @@ class DashboardController extends Controller
             ];
         }
 
-        $reportingSvc = app(\App\Services\FinancialReportingService::class);
-        $pl = $reportingSvc->getProfitAndLoss($startStr, $endStr);
-        $sales = (float) ($pl['revenue'] ?? 0.0);
-        $cashFlow = $reportingSvc->getCashFlowReport($startStr, $endStr);
-        $cogs = (float) ($pl['cogs'] ?? 0.0);
-        $grossProfit = (float) ($pl['gross_profit'] ?? ($sales - $cogs));
-        $expenses = (float) ($pl['operating_expenses'] ?? ($pl['total_expenses'] ?? 0.0));
-        $moneyIn = (float) ($cashFlow['operating_inflow'] ?? 0.0);
-        $moneyOut = (float) ($cashFlow['operating_outflow'] ?? 0.0);
+        $sales = 0.0;
+        $grossProfit = 0.0;
+        $cogs = 0.0;
+        $expenses = 0.0;
+        $moneyIn = 0.0;
+        $moneyOut = 0.0;
+
+        try {
+            $reportingSvc = app(\App\Services\FinancialReportingService::class);
+            $pl = $reportingSvc->getProfitAndLoss($startStr, $endStr);
+            $sales = (float) ($pl['revenue'] ?? 0.0);
+            if ($sales == 0.0) {
+                $sales = (float) \App\Models\Sale::where('tenant_id', app('current.tenant')->id)
+                    ->where('status', 'posted')
+                    ->whereBetween('posted_at', [$startStr . ' 00:00:00', $endStr . ' 23:59:59'])
+                    ->sum('net_sales');
+            }
+            $cashFlow = $reportingSvc->getCashFlowReport($startStr, $endStr);
+            $cogs = (float) ($pl['cogs'] ?? 0.0);
+            $grossProfit = (float) ($pl['gross_profit'] ?? ($sales - $cogs));
+            $expenses = (float) ($pl['operating_expenses'] ?? ($pl['total_expenses'] ?? 0.0));
+            $moneyIn = (float) ($cashFlow['operating_inflow'] ?? 0.0);
+            $moneyOut = (float) ($cashFlow['operating_outflow'] ?? 0.0);
+        } catch (\App\Exceptions\MissingFinancialAccountException|\Throwable) {
+            $sales = (float) \App\Models\Sale::where('tenant_id', app('current.tenant')->id)
+                ->where('status', 'posted')
+                ->whereBetween('posted_at', [$startStr . ' 00:00:00', $endStr . ' 23:59:59'])
+                ->sum('net_sales');
+        }
 
         return [
             'sales'        => $sales,
@@ -910,12 +954,20 @@ class DashboardController extends Controller
         $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
         $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
-        // C3.2: single read-engine (was V3\ReportService).
-        $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
+        $income = 0.0;
+        $expense = 0.0;
+        $profit = 0.0;
 
-        $income  = (float) $pl['revenue'];
-        $expense = (float) $pl['total_expenses']; // cogs + operating expenses (combined)
-        $profit  = (float) $pl['net_profit'];
+        try {
+            // C3.2: single read-engine (was V3\ReportService).
+            $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
+
+            $income  = (float) ($pl['revenue'] ?? 0.0);
+            $expense = (float) ($pl['total_expenses'] ?? 0.0); // cogs + operating expenses (combined)
+            $profit  = (float) ($pl['net_profit'] ?? 0.0);
+        } catch (\App\Exceptions\MissingFinancialAccountException|\Throwable) {
+            // Uninitialized or empty state
+        }
 
         return [
             'value'   => $profit,
@@ -931,12 +983,20 @@ class DashboardController extends Controller
         $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
         $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
-        // C3.2: single read-engine (was V3\ReportService).
-        $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
+        $income = 0.0;
+        $expense = 0.0;
+        $profit = 0.0;
 
-        $income  = (float) $pl['revenue'];
-        $expense = (float) $pl['total_expenses'];
-        $profit  = (float) $pl['net_profit'];
+        try {
+            // C3.2: single read-engine (was V3\ReportService).
+            $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
+
+            $income  = (float) ($pl['revenue'] ?? 0.0);
+            $expense = (float) ($pl['total_expenses'] ?? 0.0);
+            $profit  = (float) ($pl['net_profit'] ?? 0.0);
+        } catch (\App\Exceptions\MissingFinancialAccountException|\Throwable) {
+            // Uninitialized or empty state
+        }
 
         return [
             'income'  => $income,
@@ -1023,10 +1083,24 @@ class DashboardController extends Controller
             return ['Today' => $today, 'Month' => $month, 'Year' => $year];
         }
 
-        $frs = app(\App\Services\FinancialReportingService::class);
+        $todayMap = [];
+        $monthMap = [];
+        $yearMap  = [];
 
-        // Today (hourly)
-        $todayMap = $frs->getProfitByPeriod(Carbon::today()->startOfDay(), Carbon::today()->endOfDay(), 'hourly');
+        try {
+            $frs = app(\App\Services\FinancialReportingService::class);
+            // Today (hourly)
+            $todayMap = $frs->getProfitByPeriod(Carbon::today()->startOfDay(), Carbon::today()->endOfDay(), 'hourly');
+            // Month (daily, current calendar month: 1st through today)
+            $monthStart = Carbon::now()->startOfMonth();
+            $monthToday = Carbon::now();
+            $monthMap = $frs->getProfitByPeriod($monthStart->copy()->startOfDay(), $monthToday->copy()->endOfDay(), 'daily');
+            // Year (monthly, last 12 months)
+            $yearMap = $frs->getProfitByPeriod(Carbon::now()->subMonths(11)->startOfMonth(), Carbon::now()->endOfMonth(), 'monthly');
+        } catch (\App\Exceptions\MissingFinancialAccountException|\Throwable) {
+            // Uninitialized or empty state
+        }
+
         $today = [];
         for ($i = 0; $i < 24; $i++) {
             $h = str_pad($i, 2, '0', STR_PAD_LEFT);
@@ -1038,10 +1112,8 @@ class DashboardController extends Controller
             ];
         }
 
-        // Month (daily, current calendar month: 1st through today)
         $monthStart = Carbon::now()->startOfMonth();
         $monthToday = Carbon::now();
-        $monthMap = $frs->getProfitByPeriod($monthStart->copy()->startOfDay(), $monthToday->copy()->endOfDay(), 'daily');
         $month = [];
         $daysElapsed = $monthStart->diffInDays($monthToday);
         for ($i = $daysElapsed; $i >= 0; $i--) {
@@ -1054,8 +1126,6 @@ class DashboardController extends Controller
             ];
         }
 
-        // Year (monthly, last 12 months)
-        $yearMap = $frs->getProfitByPeriod(Carbon::now()->subMonths(11)->startOfMonth(), Carbon::now()->endOfMonth(), 'monthly');
         $year = [];
         for ($i = 11; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);

@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { ArrowUpCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2 } from 'lucide-react';
+import { ArrowUpCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2, BookOpen } from 'lucide-react';
 import axios from 'axios';
+import ChequeSelector from '@/Components/Cheque/ChequeSelector';
 
 const formatCurrency = (v, symbol = 'Rs') => (symbol) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v || 0);
 
@@ -186,6 +187,7 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
 const METHODS = [
     { value: 'cash', label: 'Cash', icon: Banknote },
     { value: 'bank', label: 'Bank', icon: Building2 },
+    { value: 'cheque', label: 'Cheque', icon: BookOpen },
     { value: 'card', label: 'Card', icon: CreditCard },
     { value: 'upi', label: 'UPI/JazzCash', icon: Smartphone },
 ];
@@ -204,6 +206,8 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
         amount: '',
         payment_method: 'cash',
         bank_account_id: '',
+        cheque_leaf_id: '',
+        cheque_date: new Date().toISOString().split('T')[0],
         reference: '',
         description: ''
     });
@@ -380,7 +384,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                                     Payment Method <span className="text-red-500">*</span>
                                 </label>
-                                <div className="grid grid-cols-4 gap-2">
+                                <div className="grid grid-cols-5 gap-2">
                                     {METHODS.map(m => {
                                         const isSelected = formData.payment_method === m.value;
                                         return (
@@ -401,7 +405,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                 </div>
                             </div>
 
-                            {/* Bank Account (conditional) */}
+                            {/* Bank Account (conditional for Bank) */}
                             {formData.payment_method === 'bank' && (
                                 <div>
                                     <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Bank Account</label>
@@ -413,6 +417,46 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                         <option value="">Select account...</option>
                                         {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                                     </select>
+                                </div>
+                            )}
+
+                            {/* Cheque Details & Selector (conditional for Cheque) */}
+                            {formData.payment_method === 'cheque' && (
+                                <div className="space-y-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                                    <div>
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                            Bank Account <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={formData.bank_account_id}
+                                            onChange={e => setFormData(p => ({ ...p, bank_account_id: e.target.value, cheque_leaf_id: '' }))}
+                                            className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none focus:ring-2 ring-rose-500/20 focus:border-rose-500 transition"
+                                            required
+                                        >
+                                            <option value="">Select bank account...</option>
+                                            {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({acc.bank_name})</option>)}
+                                        </select>
+                                        {errors.bank_account_id && <p className="mt-1 text-xs text-red-500">{errors.bank_account_id[0]}</p>}
+                                    </div>
+
+                                    <ChequeSelector
+                                        bankAccountId={formData.bank_account_id}
+                                        value={formData.cheque_leaf_id}
+                                        onChange={(leafId) => setFormData(p => ({ ...p, cheque_leaf_id: leafId }))}
+                                        error={errors.cheque_leaf_id?.[0]}
+                                    />
+
+                                    <div>
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                            Cheque Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={formData.cheque_date || formData.date}
+                                            onChange={e => setFormData(p => ({ ...p, cheque_date: e.target.value }))}
+                                            className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none"
+                                        />
+                                    </div>
                                 </div>
                             )}
 

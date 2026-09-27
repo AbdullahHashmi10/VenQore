@@ -173,7 +173,8 @@ final class Reckoner
             }
 
             // 3. Permission (ANY-of)
-            if (! $this->passesPermissions($u, $definition['permissions'] ?? [])) {
+            $passes = $this->passesPermissions($u, $definition['permissions'] ?? []);
+            if (! $passes) {
                 $results[$id] = ReckonerResult::failure($id, $key, 'forbidden', 'You do not have permission to view this.');
 
                 continue;
@@ -319,9 +320,10 @@ final class Reckoner
             }
 
             // MeasureEngine dispatch for contract cards (§4, §7.4)
+            $sourceClass = $definition['source'] ?? null;
             $cardContract = \App\Reckoner\CardRegistry::get($key);
             $contractState = $cardContract['contract_state'] ?? 'unimplemented';
-            if ($cardContract && in_array($contractState, ['verified', 'implemented_unverified'], true)) {
+            if ((!$sourceClass || $sourceClass === \App\Reckoner\Sources\MeasureEngineSource::class) && $cardContract && in_array($contractState, ['verified', 'implemented_unverified'], true)) {
                 $ctx = new ReckonerContext($t, $u);
                 $engine = app(\App\Reckoner\Engine\MeasureEngine::class);
                 $engineResults = $engine->resolve([$request], $ctx);

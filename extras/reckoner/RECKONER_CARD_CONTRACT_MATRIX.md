@@ -628,3 +628,28 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 347 | `staff.attendance_rate` · gauge | FAKE: success, value 0 | = | Present person-days ÷ (expected staff × working days elapsed). | On-demand | READY | AT | — |
 | 348 | `staff.sales_by_staff` · breakdown | FAKE: success, value 0, no segments | = | Net revenue grouped by sales.user_id. | Flow | READY | SH | breakdown_sums_to_parent |
 | 349 | `staff.revenue_per_staff` · stat | COUNT(*) of tenant_users rows (not the measure) — EMPTY if store has no tenant_users rows | = | Net revenue ÷ distinct selling users in window. | Derived | READY | SH | — |
+
+## approval (8)
+
+| # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
+|---|---|---|---|---|---|---|---|---|
+| 350 | `approval.my_pending` · stat | Count of pending approval_documents submitted by the current user | count | approval_documents.status = pending AND submitted_by = auth_user | Operational | READY | AQ | pending_count_non_negative |
+| 351 | `approval.my_returned` · stat | Count of returned approval_documents for the current user | count | approval_documents.status = returned AND submitted_by = auth_user | Operational | READY | AQ | returned_count_non_negative |
+| 352 | `approval.awaiting_review` · stat | Count of all pending approval_documents in the store queue (reviewer view) | count | approval_documents.status = pending AND tenant_id = current_store | Operational | READY | AQ | queue_count_non_negative |
+| 353 | `approval.pending_aging` · breakdown | Aging breakdown of pending approval_documents in store queue: <24h, 24-48h, >48h | count | Pending docs bucketed by (now - submitted_at): fresh/<24h, aging/24-48h, stale/>48h | Operational | READY | AQ | aging_buckets_sum_to_total |
+| 354 | `approval.my_submitted` · stat | Count of all approval_documents submitted by the current user | count | submitted_by = auth_user | Operational | READY | AQ | submitted_count_non_negative |
+| 355 | `approval.my_approved` · stat | Count of approved approval_documents submitted by current user | count | approval_documents.status IN (approved, posted) AND submitted_by = auth_user | Operational | READY | AQ | approved_count_non_negative |
+| 356 | `approval.reviewer_decisions_completed` · stat | Count of approval decisions reviewed by the current user | count | approval_documents.reviewed_by = auth_user | Operational | READY | AQ | decisions_completed_non_negative |
+| 357 | `approval.reviewer_returned_to_maker` · stat | Count of documents returned to maker by the current reviewer | count | approval_documents.reviewed_by = auth_user AND status = returned | Operational | READY | AQ | reviewer_returned_count_non_negative |
+
+## cheque (7)
+
+| # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
+|---|---|---|---|---|---|---|---|---|
+| 358 | `cheque.available_leaves` · stat | Count of available unused cheque leaves across active books | count | cheque_leaves.status = available | Operational | READY | CL | available_leaves_non_negative |
+| 359 | `cheque.issued_uncleared` · stat | Total value of issued cheques not yet marked cleared | currency | cheque_leaves.status = issued AND cleared_at IS NULL | Operational | READY | CL | issued_uncleared_non_negative |
+| 360 | `cheque.cheques_in_hand` · stat | Total value of undeposited cheques in hand (GL 1020) | currency | received_cheques.status = received | Operational | READY | CR | cheques_in_hand_non_negative |
+| 361 | `cheque.deposited_uncleared` · stat | Total value of customer cheques deposited awaiting bank clearance | currency | received_cheques.status = deposited | Operational | READY | CR | deposited_uncleared_non_negative |
+| 362 | `cheque.bounced_total` · stat | Total value of bounced issued and received cheques | currency | cheque_leaves.status = bounced OR received_cheques.status = bounced | Operational | READY | CL | bounced_total_non_negative |
+| 363 | `cheque.stopped_total` · stat | Total value of stopped issued cheques | currency | cheque_leaves.status = stopped | Operational | READY | CL | stopped_total_non_negative |
+| 364 | `cheque.post_dated_due` · stat | Total value of post-dated cheques maturing within 7 days | currency | cheque_date BETWEEN today AND today + 7 days | Operational | READY | CL | post_dated_due_non_negative |

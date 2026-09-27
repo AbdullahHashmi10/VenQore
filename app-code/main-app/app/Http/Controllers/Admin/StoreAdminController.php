@@ -152,17 +152,20 @@ class StoreAdminController extends Controller
             ->orderBy('status')
             ->get()
             ->map(fn($m) => [
-                'id'            => $m->user_id,
-                'membership_id' => $m->id,
-                'name'          => $m->user?->name ?? $m->display_name,
-                'display_name'  => $m->display_name,
-                'email'         => $m->user?->email,
-                'role'          => $m->role,
-                'status'        => $m->status,
-                'pos_pin_set'   => !is_null($m->pos_pin),
-                'permissions'   => $m->permissions ?? [],
-                'joined_at'     => $m->joined_at,
-                'created_at'    => $m->joined_at ?? $m->created_at,
+                'id'                        => $m->user_id,
+                'membership_id'             => $m->id,
+                'name'                      => $m->user?->name ?? $m->display_name,
+                'display_name'              => $m->display_name,
+                'email'                     => $m->user?->email,
+                'role'                      => $m->role,
+                'custom_role_name'          => $m->custom_role_name,
+                'status'                    => $m->status,
+                'pos_pin_set'               => !is_null($m->pos_pin),
+                'permissions'               => $m->permissions ?? [],
+                'transaction_approval_mode' => $m->transaction_approval_mode ?? 'inherit',
+                'permission_override_mode'  => $m->permission_override_mode ?? 'inherit',
+                'joined_at'                 => $m->joined_at,
+                'created_at'                => $m->joined_at ?? $m->created_at,
             ])
             ->toArray();
 

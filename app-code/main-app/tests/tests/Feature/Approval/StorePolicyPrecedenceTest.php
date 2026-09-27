@@ -157,4 +157,136 @@ class StorePolicyPrecedenceTest extends VenQoreTestCase
         $this->assertFalse($res['requires_approval']);
         $this->assertSame('trusted_pos_clearance', $res['reason']);
     }
+
+    public function test_per_employee_per_action_override_required_forces_approval(): void
+    {
+        $tenant = $this->createTenant();
+        $manager = $this->createTenantUser($tenant, 'manager');
+        $this->bindTenantContext($tenant, $manager);
+
+        // Manager normally posts directly, but has per-action override 'required' for customer_receipt
+        Setting::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'key' => "approval_user_{$manager->id}_" . ApprovalDocument::TYPE_CUSTOMER_RECEIPT],
+            ['value' => 'required']
+        );
+
+        $resReceipt = $this->resolver->resolve($tenant, $manager, ApprovalDocument::TYPE_CUSTOMER_RECEIPT, 50.00);
+        $this->assertTrue($resReceipt['requires_approval']);
+        $this->assertSame('user_document_override_required', $resReceipt['reason']);
+
+        // Other documents still use manager direct default
+        $resSupplier = $this->resolver->resolve($tenant, $manager, ApprovalDocument::TYPE_SUPPLIER_PAYMENT, 50.00);
+        $this->assertFalse($resSupplier['requires_approval']);
+        $this->assertSame('role_default_direct', $resSupplier['reason']);
+    }
+
+    public function test_per_employee_per_action_override_direct_bypasses_document_and_global_required(): void
+    {
+        $tenant = $this->createTenant();
+        $cashier = $this->createTenantUser($tenant, 'cashier');
+        $this->bindTenantContext($tenant, $cashier);
+
+        // Cashier has global required mode AND document policy is required
+        TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $cashier->id)
+            ->update(['transaction_approval_mode' => 'required']);
+
+        Setting::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'key' => 'approval_policy_' . ApprovalDocument::TYPE_SALES_INVOICE],
+            ['value' => 'required']
+        );
+
+        // Explicit per-employee per-action override to 'direct' for sales_invoice
+        Setting::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'key' => "approval_user_{$cashier->id}_" . ApprovalDocument::TYPE_SALES_INVOICE],
+            ['value' => 'direct']
+        );
+
+        $resInvoice = $this->resolver->resolve($tenant, $cashier, ApprovalDocument::TYPE_SALES_INVOICE, 250.00);
+        $this->assertFalse($resInvoice['requires_approval']);
+        $this->assertSame('user_document_override_direct', $resInvoice['reason']);
+    }
+
+    public function test_per_employee_per_action_override_direct_exceeding_threshold_requires_approval(): void
+    {
+        $tenant = $this->createTenant();
+        $cashier = $this->createTenantUser($tenant, 'cashier');
+        $this->bindTenantContext($tenant, $cashier);
+
+        Setting::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'key' => 'approval_amount_threshold'],
+            ['value' => '1000.00']
+        );
+
+        // Explicit per-employee per-action override to 'direct'
+        Setting::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'key' => "approval_user_{$cashier->id}_" . ApprovalDocument::TYPE_OPERATING_EXPENSE],
+            ['value' => 'direct']
+        );
+
+        // Under threshold: direct
+        $resUnder = $this->resolver->resolve($tenant, $cashier, ApprovalDocument::TYPE_OPERATING_EXPENSE, 500.00);
+        $this->assertFalse($resUnder['requires_approval']);
+        $this->assertSame('user_document_override_direct', $resUnder['reason']);
+
+        // Over threshold: required by threshold
+        $resOver = $this->resolver->resolve($tenant, $cashier, ApprovalDocument::TYPE_OPERATING_EXPENSE, 1500.00);
+        $this->assertTrue($resOver['requires_approval']);
+        $this->assertSame('amount_threshold_exceeded', $resOver['reason']);
+    }
+
+    public function test_admin_can_update_and_retrieve_employee_action_approval_overrides(): void
+    {
+        $tenant = $this->createTenant();
+        $owner = $this->createTenantUser($tenant, 'owner');
+        $cashier = $this->createTenantUser($tenant, 'cashier');
+        $this->bindTenantContext($tenant, $owner);
+
+        $membership = TenantUser::where('tenant_id', $tenant->id)->where('user_id', $cashier->id)->firstOrFail();
+
+        // 1. Owner updates cashier with action-specific overrides
+        $response = $this->actingAs($owner)->patch(
+            "/s/{$tenant->slug}/admin/users/{$membership->id}",
+            [
+                'role'                      => 'cashier',
+                'transaction_approval_mode' => 'inherit',
+                'approval_overrides'        => [
+                    ApprovalDocument::TYPE_CUSTOMER_RECEIPT => 'direct',
+                    ApprovalDocument::TYPE_OPERATING_EXPENSE => 'required',
+                ],
+            ]
+        );
+
+        $response->assertSessionHasNoErrors();
+
+        // Verify persisted settings
+        $receiptSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_user_{$cashier->id}_" . ApprovalDocument::TYPE_CUSTOMER_RECEIPT)
+            ->value('value');
+        $expenseSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_user_{$cashier->id}_" . ApprovalDocument::TYPE_OPERATING_EXPENSE)
+            ->value('value');
+
+        $this->assertSame('direct', $receiptSetting);
+        $this->assertSame('required', $expenseSetting);
+
+        // 2. Clear one override by setting to inherit
+        $this->actingAs($owner)->patch(
+            "/s/{$tenant->slug}/admin/users/{$membership->id}",
+            [
+                'role'               => 'cashier',
+                'approval_overrides' => [
+                    ApprovalDocument::TYPE_CUSTOMER_RECEIPT => 'inherit',
+                ],
+            ]
+        );
+
+        $receiptSettingAfter = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_user_{$cashier->id}_" . ApprovalDocument::TYPE_CUSTOMER_RECEIPT)
+            ->first();
+        $this->assertNull($receiptSettingAfter);
+    }
 }

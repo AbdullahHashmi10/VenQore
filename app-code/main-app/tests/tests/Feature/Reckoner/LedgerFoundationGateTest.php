@@ -13,13 +13,20 @@ use Tests\TestCase;
 
 class LedgerFoundationGateTest extends TestCase
 {
+    protected ?array $fixture = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->fixture = ReckonerGoldenStoreFixture::build(http: $this);
+    }
+
     /**
      * 1. Assert all accounts have non-null role and is_current.
      */
     public function test_all_accounts_have_non_null_role_and_is_current(): void
     {
-        $fixture = ReckonerGoldenStoreFixture::build(http: $this);
-        $tenantId = $fixture['tenant']->id;
+        $tenantId = $this->fixture['tenant']->id;
 
         $nullRoleCount = DB::table('accounts')
             ->where('tenant_id', $tenantId)
@@ -39,8 +46,7 @@ class LedgerFoundationGateTest extends TestCase
      */
     public function test_golden_values_match_via_ledger_stream(): void
     {
-        $fixture = ReckonerGoldenStoreFixture::build(http: $this);
-        $tenantId = $fixture['tenant']->id;
+        $tenantId = $this->fixture['tenant']->id;
         $stream = new LedgerStream();
 
         $flows = $stream->flows(
@@ -93,8 +99,7 @@ class LedgerFoundationGateTest extends TestCase
      */
     public function test_bank_subledger_control_invariant(): void
     {
-        $fixture = ReckonerGoldenStoreFixture::build(http: $this);
-        $tenantId = $fixture['tenant']->id;
+        $tenantId = $this->fixture['tenant']->id;
         $bankAccount = \App\Models\BankAccount::where('tenant_id', $tenantId)->where('type', 'bank')->first();
 
         // Run backfill to ensure historical rows carry bank_account_id
@@ -117,8 +122,7 @@ class LedgerFoundationGateTest extends TestCase
      */
     public function test_tenant_id_in_every_statement_during_reads(): void
     {
-        $fixture = ReckonerGoldenStoreFixture::build(http: $this);
-        $tenantId = (string) $fixture['tenant']->id;
+        $tenantId = (string) $this->fixture['tenant']->id;
         $stream = new LedgerStream();
 
         DB::enableQueryLog();

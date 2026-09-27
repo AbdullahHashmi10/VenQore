@@ -14,8 +14,9 @@ class ParkedSale extends Model
     protected $fillable = [
         'cart_data',
         'user_id',
-        'customer_name',
-        'expires_at',
+        'customer_id',
+        'status',
+        'resolved_at',
         'tenant_id',
     ];
 

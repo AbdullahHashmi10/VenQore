@@ -2,6 +2,18 @@
 
 use Illuminate\Support\Str;
 
+$resolveTestDatabase = function () {
+    $db = env('DB_DATABASE', 'laravel');
+    $token = env('TEST_TOKEN');
+    if ($token !== null && $token !== '') {
+        $suffix = '_test_' . $token;
+        if (!str_ends_with($db, $suffix)) {
+            $db .= $suffix;
+        }
+    }
+    return $db;
+};
+
 return [
 
     /*
@@ -51,7 +63,7 @@ return [
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => $resolveTestDatabase(),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
@@ -71,7 +83,7 @@ return [
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => $resolveTestDatabase(),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),

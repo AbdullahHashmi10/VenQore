@@ -61,8 +61,8 @@ class FiscalYearTest extends TestCase
             'email'             => 'ownerA@store.com',
             'password'          => bcrypt('password'),
             'passcode'          => bcrypt('1234'),
-            'email_verified_at' => now(),
         ]);
+        $this->ownerA->forceFill(['email_verified_at' => now()])->save();
         TenantUser::create([
             'tenant_id'    => $this->tenantA->id,
             'user_id'      => $this->ownerA->id,
@@ -77,8 +77,8 @@ class FiscalYearTest extends TestCase
             'email'             => 'adminA@store.com',
             'password'          => bcrypt('password'),
             'passcode'          => bcrypt('4321'),
-            'email_verified_at' => now(),
         ]);
+        $this->adminA->forceFill(['email_verified_at' => now()])->save();
         TenantUser::create([
             'tenant_id'    => $this->tenantA->id,
             'user_id'      => $this->adminA->id,
@@ -92,8 +92,8 @@ class FiscalYearTest extends TestCase
             'name'              => 'Accountant A',
             'email'             => 'accountantA@store.com',
             'password'          => bcrypt('password'),
-            'email_verified_at' => now(),
         ]);
+        $this->accountantA->forceFill(['email_verified_at' => now()])->save();
         TenantUser::create([
             'tenant_id' => $this->tenantA->id,
             'user_id'   => $this->accountantA->id,
@@ -105,8 +105,8 @@ class FiscalYearTest extends TestCase
             'name'              => 'Cashier A',
             'email'             => 'cashierA@store.com',
             'password'          => bcrypt('password'),
-            'email_verified_at' => now(),
         ]);
+        $this->cashierA->forceFill(['email_verified_at' => now()])->save();
         TenantUser::create([
             'tenant_id' => $this->tenantA->id,
             'user_id'   => $this->cashierA->id,
@@ -127,8 +127,8 @@ class FiscalYearTest extends TestCase
             'name'              => 'User B',
             'email'             => 'userB@store.com',
             'password'          => bcrypt('password'),
-            'email_verified_at' => now(),
         ]);
+        $this->userB->forceFill(['email_verified_at' => now()])->save();
         TenantUser::create([
             'tenant_id' => $this->tenantB->id,
             'user_id'   => $this->userB->id,

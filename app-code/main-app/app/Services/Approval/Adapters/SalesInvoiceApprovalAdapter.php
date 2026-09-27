@@ -65,9 +65,21 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
         $tax = (float)($payload['tax'] ?? $payload['tax_amount'] ?? 0);
         $total = round(max(0, $calcSubtotal - $discount + $tax), 2);
 
+        // Direct-vs-approved posting parity (audited 2026-09-23): the maker's
+        // chosen warehouse must carry through to the approved post, or SaleService
+        // silently defaults to the tenant's first warehouse — wrong stock location.
+        $warehouseId = $payload['warehouse_id'] ?? null;
+        if ($warehouseId) {
+            $warehouseExists = \App\Models\Warehouse::where('tenant_id', $tenant->id)->where('id', $warehouseId)->exists();
+            if (!$warehouseExists) {
+                throw ValidationException::withMessages(['warehouse_id' => 'Warehouse does not belong to the current store.']);
+            }
+        }
+
         return [
             'party_id'        => $customerId,
             'customer_id'     => $customerId,
+            'warehouse_id'    => $warehouseId,
             'items'           => $items,
             'subtotal'        => round($calcSubtotal, 2),
             'discount_amount' => $discount,
@@ -106,6 +118,7 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
 
         $saleData = [
             'customer_id'     => $payload['customer_id'] ?? $payload['party_id'] ?? null,
+            'warehouse_id'    => $payload['warehouse_id'] ?? null,
             'user_id'         => $doc->maker_id ?? $reviewer->id,
             'items'           => $formattedItems,
             'payment_method'  => $payload['payment_method'] ?? 'credit',
@@ -124,5 +137,19 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
             'invoice_number'  => $sale->reference_number ?? ($sale->invoice_number ?? null),
             'total'           => (float)($sale->net_sales ?? ($sale->total ?? ($sale->invoice_total ?? 0))),
         ];
+    }
+
+    public function reviewerEligibilityPermissions(): array
+    {
+        return ['sales.create', 'sales.edit'];
+    }
+
+    /**
+     * R10: No AND-semantics permission requirements for this adapter type.
+     * The OR list in reviewerEligibilityPermissions() is sufficient.
+     */
+    public function reviewerEligibilityPermissionsAll(): array
+    {
+        return [];
     }
 }

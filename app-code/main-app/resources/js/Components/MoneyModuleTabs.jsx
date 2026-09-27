@@ -51,6 +51,8 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             items: [
                 { id: 'funds', label: 'Fund Management', href: getRoute('funds.index'), icon: Wallet },
                 { id: 'accounts', label: 'Bank Accounts', href: getRoute('bank-accounts.index'), icon: Wallet },
+                { id: 'cheque-books', label: 'Chequebooks', href: getRoute('banking.cheque-books.index'), icon: BookOpen },
+                { id: 'received-cheques', label: 'Received Cheques', href: getRoute('banking.received-cheques.index'), icon: FileText },
                 { id: 'reconciliation', label: 'Bank Reconciliation', href: getRoute('bank-reconciliation.index'), icon: Check },
             ]
         },
@@ -65,6 +67,8 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
         'all': ['payments', 'expenses'],
         'funds': ['bank_accounts'],
         'accounts': ['bank_accounts'],
+        'cheque-books': ['bank_accounts'],
+        'received-cheques': ['bank_accounts', 'payments'],
         'reconciliation': ['bank_reconciliation', 'bank_accounts'],
     };
 

@@ -7,17 +7,25 @@ use App\Http\Requests\V3\StoreSaleRequest;
 use App\Engines\SaleService;
 use App\Services\PlanGate;
 use App\Models\Sale;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\Approval\ApprovalExecutionEngine;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class SaleController extends Controller
 {
     public function __construct(
-        private SaleService $sales
+        private SaleService $sales,
+        private ApprovalPolicyResolver $policyResolver,
+        private ApprovalExecutionEngine $approvalEngine
     ) {}
 
     public function store(StoreSaleRequest $request)
     {
         $tenantId = app('current.tenant')->id;
+        $tenant   = app('current.tenant');
         $lock = \Illuminate\Support\Facades\Cache::lock("tenant_{$tenantId}_checkout_lock", 10);
 
         try {
@@ -46,6 +54,74 @@ class SaleController extends Controller
                 }
             }
             $data['items'] = $items;
+
+            // ── Maker-Checker Approval Interception for Administrative/V3 Sales ──
+            // R01 FIX: The V3 sales API (POST s/{slug}/v3/sales) is an administrative
+            // endpoint, not the POS checkout route. POS clearance MUST NOT be granted here.
+            //
+            // The correct POS checkout route is POST /pos/sales → PosSaleController, which
+            // server-verifies the register shift and passes isTrustedPos=true from a
+            // server-controlled source.
+            //
+            // The following client-controlled signals were incorrectly treated as POS trust:
+            //   - $isPosRequest (Referer header containing '/pos'): trivially forgeable HTTP
+            //     header that any client can set to any value
+            //   - !empty($data['approved_by']): manager PIN approves below-cost/discounted
+            //     products at the line level, NOT the document-level approval workflow
+            //   - $hasActiveShift: a cashier's open shift does NOT exempt admin API invoices
+            //     from the approval policy
+            //
+            // isTrustedPos is always false on this route.
+            $user = auth()->user();
+            $isTrustedPos = false; // Admin V3 API route: never POS-cleared
+
+            // Best-effort pre-post total for the threshold check. SaleService::post()
+            // remains the single source of truth for the actual posted total; this
+            // estimate is only used to decide whether approval is required.
+            $estimatedTotal = 0.0;
+            foreach ($items as $item) {
+                $qty        = (float)($item['qty'] ?? 0);
+                $unitPrice  = (float)($item['unit_price'] ?? 0);
+                $discountPc = (float)($item['discount_percent'] ?? 0);
+                $taxRate    = (float)($item['tax_rate'] ?? 0);
+                $gross      = $qty * $unitPrice;
+                $net        = max(0, $gross - ($gross * $discountPc / 100));
+                $estimatedTotal += $net + ($net * $taxRate / 100);
+            }
+
+            $policy = $this->policyResolver->resolve(
+                tenant: $tenant,
+                user: $user,
+                documentType: ApprovalDocument::TYPE_SALES_INVOICE,
+                amount: $estimatedTotal,
+                isTrustedPos: $isTrustedPos
+            );
+
+            if ($policy['requires_approval']) {
+                $doc = $this->approvalEngine->submit(
+                    tenant: $tenant,
+                    maker: $user,
+                    documentType: ApprovalDocument::TYPE_SALES_INVOICE,
+                    payload: array_diff_key($data, ['approval_pin' => '']),
+                    amount: $estimatedTotal,
+                    description: 'Sales invoice — ' . ($data['client_sale_id'] ?? ''),
+                    idempotencyKey: $request->header('Idempotency-Key') ?: ($data['idempotency_key'] ?? null)
+                );
+
+                if ($request->wantsJson() || $request->expectsJson()) {
+                    return response()->json([
+                        'status'               => 'pending_approval',
+                        'approval_document_id' => $doc->id,
+                        'document_number'      => $doc->document_number,
+                        'message'              => 'Sale submitted for approval.',
+                    ], 202);
+                }
+
+                return redirect()->back()->with([
+                    'info'    => 'Sale submitted for approval (ref: ' . $doc->document_number . ').',
+                    'status'  => 'pending_approval',
+                ]);
+            }
 
             // The approval PIN is verified by StoreSaleRequest; it never travels further.
             $sale = $this->sales->post(\Illuminate\Support\Arr::except($data, ['approval_pin']));

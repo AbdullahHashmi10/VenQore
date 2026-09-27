@@ -529,9 +529,15 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                 </div>
                             </div>
 
-                            <div className="p-6 bg-surface rounded-2xl border border-line">
+                            <div className="p-6 bg-surface rounded-2xl border border-line space-y-4">
                                 <h4 className="font-bold text-ink mb-4">Appearance</h4>
                                 <Toggle enabled={data.dark_mode_default} onChange={v => setData('dark_mode_default', v)} label="Force Dark Mode" description="Use dark theme by default" />
+                                <Toggle
+                                    enabled={data.header_calculator_enabled === '1'}
+                                    onChange={v => setData('header_calculator_enabled', v ? '1' : '0')}
+                                    label="Header Calculator"
+                                    description="Show a calculator in the application header for everyone in this store."
+                                />
                             </div>
                         </div>
                     </div>

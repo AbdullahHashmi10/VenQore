@@ -407,6 +407,11 @@ class AdminController extends Controller
 
     public function updateSettings(\Illuminate\Http\Request $request)
     {
+        $request->validate([
+            'header_calculator_enabled' => ['nullable', 'string', 'in:0,1'],
+            'settings.header_calculator_enabled' => ['nullable', 'string', 'in:0,1'],
+        ]);
+
         $settingsData = $request->except(['_token', 'print_logo_file']);
 
         // Support both flat key-value pairs and nested ['settings' => [...]] payloads
@@ -435,6 +440,47 @@ class AdminController extends Controller
             
             // IMPORTANT: Remove from loop data so we don't overwrite with local blob URL
             unset($settingsData['print_logo_path']); 
+        }
+
+        // R03 FIX: Gate approval-related settings behind approvals.configure.
+        // Previously any user who could reach updateSettings() (admin or owner)
+        // could silently overwrite approval policies, thresholds, and enabled flags.
+        // A dedicated permission prevents even admins from changing approval rules
+        // unless they've been explicitly granted that authority.
+        $approvalKeys = [
+            'approval_admin_enabled',
+            'approval_strict_owner_separation',
+            'approval_amount_threshold',
+            'approval_default_employee_mode',
+        ];
+        $containsApprovalKey = false;
+        foreach (array_keys($settingsData) as $k) {
+            if (
+                in_array($k, $approvalKeys, true) ||
+                str_starts_with($k, 'approval_policy_') ||
+                str_starts_with($k, 'approval_threshold_') ||
+                str_starts_with($k, 'approval_user_')
+            ) {
+                $containsApprovalKey = true;
+                break;
+            }
+        }
+
+        if ($containsApprovalKey) {
+            $user = auth()->user();
+            if (!$user || (!$user->hasPermission('approvals.configure') && !$user->isPlatformAdmin())) {
+                // Allow tenant owners as they have full store authority;
+                // staff without approvals.configure are blocked.
+                $tenantMembership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')?->id)
+                    ->where('user_id', $user?->id)
+                    ->first();
+                if (($tenantMembership?->role ?? '') !== 'owner') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You do not have permission to modify approval settings. The approvals.configure permission is required.',
+                    ], 403);
+                }
+            }
         }
 
         foreach ($settingsData as $key => $value) {
@@ -573,7 +619,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'nullable|string|in:admin,manager,cashier,inventory_staff,accountant,custom',
+            'role' => 'nullable|string|in:owner,admin,franchise_admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,production_supervisor,kitchen_manager,dispenser,sales_executive,fulfillment_lead,delivery_driver,cashier,viewer,custom,inventory_staff,support',
             'permissions' => 'nullable|array',
             'passcode' => [
                 'nullable',
@@ -788,6 +834,7 @@ class AdminController extends Controller
                 'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
                 'display_name'     => 'nullable|string|max:50',
                 'transaction_approval_mode' => 'nullable|in:inherit,required,direct',
+                'permission_override_mode'  => 'nullable|in:inherit,custom',
                 'custom_role_name' => 'nullable|string|max:30',
                 'status'           => 'nullable|in:active,suspended',
                 'permissions'  => 'nullable|array',
@@ -842,6 +889,32 @@ class AdminController extends Controller
                 $updateData['approval_mode_changed_by'] = Auth::id();
                 $updateData['approval_mode_changed_at'] = now();
             }
+
+            if ($request->has('approval_overrides')) {
+                abort_unless($isAdmin, 403, 'Only store owners and admins can modify employee transaction approval overrides.');
+                if ($member->user_id === Auth::id() && !$isOwner) {
+                    abort(403, 'Employees cannot change their own approval overrides.');
+                }
+                $overrides = $request->input('approval_overrides', []);
+                if (is_array($overrides)) {
+                    foreach ($overrides as $docType => $mode) {
+                        if (in_array($docType, \App\Models\ApprovalDocument::SUPPORTED_TYPES, true)) {
+                            $settingKey = "approval_user_{$member->user_id}_{$docType}";
+                            if ($mode === 'inherit' || empty($mode)) {
+                                \App\Models\Setting::withoutGlobalScopes()
+                                    ->where('tenant_id', $member->tenant_id)
+                                    ->where('key', $settingKey)
+                                    ->delete();
+                            } elseif (in_array($mode, ['required', 'direct'], true)) {
+                                \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+                                    ['tenant_id' => $member->tenant_id, 'key' => $settingKey],
+                                    ['value' => $mode]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
             
             if ($request->has('permissions')) {
                 $permissions = $request->input('permissions') ?? [];
@@ -853,6 +926,10 @@ class AdminController extends Controller
                     $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
                 }
                 $updateData['permissions'] = array_values($permissions);
+            }
+
+            if ($request->has('permission_override_mode')) {
+                $updateData['permission_override_mode'] = $request->input('permission_override_mode');
             }
             $wasActive = $member->status === 'active';
             $member->update($updateData);

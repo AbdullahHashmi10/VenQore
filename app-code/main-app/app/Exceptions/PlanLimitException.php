@@ -68,6 +68,8 @@ class PlanLimitException extends \Symfony\Component\HttpKernel\Exception\HttpExc
             'sku_limit'                => 'You\'ve reached the maximum number of catalogue items for your plan.',
             'locations'                => 'You\'ve reached the maximum number of store locations for your plan.',
             'location_limit'           => 'You\'ve reached the maximum number of store locations for your plan.',
+            'registers'                => 'You\'ve reached the maximum number of POS registers for your plan.',
+            'staff_limit'              => 'You\'ve reached the maximum number of full staff seats for your plan.',
             'invoice_reminders'        => 'Automated Invoice Reminders are available on paid plans.',
             'fiscal_year_closing'      => 'Fiscal Year Closing is available on paid plans.',
             'fixed_asset_depreciation' => 'Fixed Asset Depreciation is available on paid plans.',

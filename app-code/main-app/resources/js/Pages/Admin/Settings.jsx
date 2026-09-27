@@ -267,6 +267,7 @@ export default function AdminSettings({ settings = {} }) {
  two_factor_auth: settings.two_factor_auth === '1' || settings.two_factor_auth === true,
  auto_backup: settings.auto_backup !== '0',
  dark_mode_default: settings.dark_mode_default === '1' || settings.dark_mode_default === true,
+ header_calculator_enabled: settings.header_calculator_enabled === '1' ? '1' : '0',
  low_stock_alerts: settings.low_stock_alerts !== '0',
  daily_sales_summary: settings.daily_sales_summary === '1',
  fiscal_year_start: settings.fiscal_year_start || '2025-01-01',

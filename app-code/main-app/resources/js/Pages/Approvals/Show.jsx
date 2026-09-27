@@ -307,18 +307,7 @@ export default function ApprovalDetail({
 
     const getOriginalEditorUrl = () => {
         if (!storeSlug || !document.id) return null;
-        switch (document.document_type) {
-            case 'customer_receipt':
-                return `/s/${storeSlug}/v3/customer-payments?edit_approval=${document.id}`;
-            case 'supplier_payment':
-                return `/s/${storeSlug}/v3/supplier-payments?edit_approval=${document.id}`;
-            case 'operating_expense':
-                return `/s/${storeSlug}/expenses?edit_approval=${document.id}`;
-            case 'sales_invoice':
-                return `/s/${storeSlug}/sales?edit_approval=${document.id}`;
-            default:
-                return null;
-        }
+        return `/s/${storeSlug}/approvals/${document.id}/correct`;
     };
 
     const handleAction = (action) => {

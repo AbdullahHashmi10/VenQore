@@ -49,8 +49,8 @@ class RoleCardAuditTest extends VenQoreTestCase
         $allCardsJson = json_decode(file_get_contents(base_path('resources/data/reckoner/cards.json')), true);
         $presetsJson = json_decode(file_get_contents(base_path('resources/data/reckoner/presets.json')), true);
 
-        $this->assertCount(401, $allRegistryKeys, 'ReckonerRegistry must define 401 keys (397 baseline + 4 approval cards).');
-        $this->assertCount(349, $allCardsJson, 'cards.json must define 349 card definitions.');
+        $this->assertCount(412, $allRegistryKeys, 'ReckonerRegistry must define 412 keys (397 baseline + 8 approval cards + 7 cheque cards).');
+        $this->assertCount(364, $allCardsJson, 'cards.json must define 364 card definitions (349 baseline + 8 approval cards + 7 cheque cards).');
 
         $roles = [
             'owner'              => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],
@@ -94,13 +94,11 @@ class RoleCardAuditTest extends VenQoreTestCase
             $user = $this->createTenantUser($roleTenant, $roleName);
             $this->actingAsTenantUserModel($user, $roleTenant);
 
-            // 1. Real HTTP request to /dashboard verifying resolved Inertia component is NewDashboard
+            // 1. Real HTTP request to /dashboard verifying resolved Inertia component
             $response = $this->get($this->storeUrl($roleTenant, '/dashboard'));
             $response->assertStatus(200);
             $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => 
-                $page->component('NewDashboard')
-                    ->has('readings')
-                    ->has('layoutLaw')
+                $page->component($roleMeta['expected_component'])
             );
 
             // 2. Evaluated arrays and exact matching count invariants

@@ -4,6 +4,8 @@ namespace Tests\Feature\Production;
 
 use App\Models\Party;
 use App\Models\Product;
+use App\Models\Register;
+use App\Models\RegisterShift;
 use App\Models\Sale;
 use App\Models\Stock;
 use Illuminate\Support\Facades\DB;
@@ -46,17 +48,29 @@ class LegacyPosCogsPinningTest extends VenQoreTestCase
         ]);
         $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
 
-        $response = $this->postJson("/s/{$tenant->slug}/sales", [
+        $register = Register::create(['tenant_id' => $tenant->id, 'name' => 'FIFO Till', 'status' => 'active']);
+        RegisterShift::create([
+            'tenant_id' => $tenant->id,
+            'register_id' => $register->id,
+            'opened_by' => $cashier->id,
+            'opening_balance' => 0,
+            'status' => 'open',
+            'opened_at' => now(),
+        ]);
+
+        $response = $this->postJson("/s/{$tenant->slug}/pos/sales", [
+            'register_id'    => $register->id,
             'customer_id'    => $party->id,
             'warehouse_id'   => $warehouseId,
             'items'          => [['product_id' => $product->id, 'quantity' => 2, 'price' => 150.00, 'discount' => 0]],
             'discount'       => 0,
             'amount_paid'    => 300.00,
             'payment_method' => 'cash',
-        ]);
+            'source'         => 'pos',
+        ], ['Referer' => "http://localhost/s/{$tenant->slug}/pos"]);
 
         // A cashier (pos.checkout) must be able to ring a sale.
-        $response->assertStatus(200);
+        $response->assertCreated();
 
         $sale = Sale::findOrFail($response->json('sale_id'));
         $item = $sale->items()->firstOrFail();

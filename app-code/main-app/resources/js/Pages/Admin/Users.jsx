@@ -37,7 +37,12 @@ const ROLE_PERMISSIONS = {
         'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers',
         'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
         'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
-        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery'
+        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery',
+        // Phase 1 — granular refund / fund-movement permissions
+        'finance.customer_refund', 'finance.supplier_refund', 'purchases.returns',
+        'finance.capital_add', 'finance.owner_drawings', 'finance.internal_transfer', 'approvals.configure',
+        'finance.balance_adjustment',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear', 'finance.cheques.override_duplicate',
     ],
     manager: [
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
@@ -45,7 +50,10 @@ const ROLE_PERMISSIONS = {
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
         'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers',
         'reports.summary', 'reports.stock', 'reports.performance',
-        'admin.staff_view', 'admin.settings_view', 'admin.receipt_print'
+        'admin.staff_view', 'admin.settings_view', 'admin.receipt_print',
+        // Phase 1 — purchase returns
+        'purchases.returns',
+        'finance.cheque_books.view',
     ],
     cashier: [
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.close_session',
@@ -59,7 +67,8 @@ const ROLE_PERMISSIONS = {
     accountant: [
         'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
         'reports.summary', 'reports.financial', 'reports.audit',
-        'sales.view', 'purchases.view', 'inventory.view'
+        'sales.view', 'purchases.view', 'inventory.view',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear',
     ],
     support: [
         'reports.audit',
@@ -67,7 +76,8 @@ const ROLE_PERMISSIONS = {
     ],
     viewer: [
         'reports.summary', 'reports.financial', 'reports.stock',
-        'sales.view', 'inventory.view', 'purchases.view', 'finance.transactions'
+        'sales.view', 'inventory.view', 'purchases.view', 'finance.transactions',
+        'finance.cheque_books.view',
     ],
     custom: []
 };
@@ -125,6 +135,7 @@ const PERMISSION_CATEGORIES = [
             { id: 'purchases.void', name: 'Void Purchase Orders', desc: 'Cancel or delete purchase orders' },
             { id: 'purchases.costs', name: 'Wholesale Cost Viewer', desc: 'View wholesale purchase prices & cost histories' },
             { id: 'purchases.suppliers', name: 'Manage Suppliers', desc: 'Create supplier directories and log ledgers' },
+            { id: 'purchases.returns', name: 'Purchase Returns', desc: 'Return goods to suppliers and reverse AP/inventory entries' },
         ]
     },
     {
@@ -139,6 +150,16 @@ const PERMISSION_CATEGORIES = [
             { id: 'finance.send_payment', name: 'Record Vendor Payments', desc: 'Record payouts & pay outstanding supplier balances' },
             { id: 'finance.expenses', name: 'Record Business Expenses', desc: 'Record operational expenses (bills, rent, electricity)' },
             { id: 'finance.journal', name: 'Accounting Journal Entries', desc: 'Create debit/credit adjustments (bookkeeper overrides)' },
+            { id: 'finance.customer_refund', name: 'Issue Customer Refunds', desc: 'Approve and post refund payments back to customers' },
+            { id: 'finance.supplier_refund', name: 'Receive Supplier Refunds', desc: 'Approve and record refunds received from suppliers' },
+            { id: 'finance.capital_add', name: 'Capital Injection', desc: 'Record owner injecting personal funds into the business' },
+            { id: 'finance.owner_drawings', name: 'Owner Drawings', desc: 'Record owner withdrawing funds from the business for personal use' },
+            { id: 'finance.internal_transfer', name: 'Internal Fund Transfers', desc: 'Move money between cash and bank accounts within the store' },
+            { id: 'finance.balance_adjustment', name: 'Cash/Bank Balance Adjustment', desc: 'Adjust physical cash or bank balance to correct figure (high-privilege override)' },
+            { id: 'finance.cheque_books.view', name: 'View Chequebooks & Cheques', desc: 'View bank chequebooks, cheque registers, and statuses' },
+            { id: 'finance.cheque_books.manage', name: 'Manage Chequebooks', desc: 'Register new chequebooks, void unused leaves, and manage books' },
+            { id: 'finance.cheques.clear', name: 'Clear & Bounce Cheques', desc: 'Mark issued or received cheques as cleared or bounced' },
+            { id: 'finance.cheques.override_duplicate', name: 'Override Duplicate Cheques', desc: 'Authorize recording of cheques flagged as duplicates' },
         ]
     },
     {
@@ -168,6 +189,7 @@ const PERMISSION_CATEGORIES = [
             { id: 'admin.taxes_methods', name: 'Manage Taxes & Payments', desc: 'Configure VAT sales tax rates & store payment modes' },
             { id: 'admin.warehouses', name: 'Manage Warehouses', desc: 'Create new branches and inventory warehouses' },
             { id: 'admin.data_recovery', name: 'Data & Disaster Recovery', desc: 'Restore voided items via recycle bin, or export tables' },
+            { id: 'approvals.configure', name: 'Configure Approval Workflows', desc: 'Enable/disable approval requirements and set thresholds per document type' },
             { id: 'admin.billing_store', name: 'Billing & Store Deletion', desc: 'Upgrade subscriptions, change cards, or delete store database (owner)' },
         ]
     }
@@ -879,7 +901,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
 
                             <PermissionsSelector
                                 selectedPermissions={data.permissions}
-                                onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
+                                onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms, permission_override_mode: 'custom' }))}
                             />
 
                             {/* Bottom Footer Actions inside Right Panel */}
@@ -1341,13 +1363,17 @@ function EditMemberModal({ member, onClose }) {
         status: member.status,
         permissions: member.permissions ?? ROLE_PERMISSIONS[member.role] ?? [],
         passcode: '',
+        transaction_approval_mode: member.transaction_approval_mode ?? 'inherit',
+        permission_override_mode: member.permission_override_mode ?? 'inherit',
+        approval_overrides: member.approval_overrides ?? {},
     });
 
     const toggleRole = (roleKey) => {
         setData(d => ({
             ...d,
             role: roleKey,
-            permissions: ROLE_PERMISSIONS[roleKey] || []
+            permissions: ROLE_PERMISSIONS[roleKey] || [],
+            permission_override_mode: 'inherit',
         }));
     };
 
@@ -1468,6 +1494,105 @@ function EditMemberModal({ member, onClose }) {
                             )}
                             {errors.role && <p className="text-2xs text-red-400 ml-1">{errors.role}</p>}
                         </div>
+
+                        {/* Approval Mode — owners/admins only */}
+                        {(member.role !== 'owner') && (
+                            <div className="space-y-4">
+                                <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
+                                    <Shield size={14} /> TRANSACTION APPROVAL
+                                </h4>
+                                <p className="text-2xs text-ink-muted leading-relaxed">
+                                    Controls whether this employee's transactions require a supervisor to approve before they post.
+                                </p>
+                                <div className="space-y-2">
+                                    {[
+                                        {
+                                            value: 'inherit',
+                                            label: 'Follow store policy',
+                                            description: 'Uses the store-wide approval setting',
+                                        },
+                                        {
+                                            value: 'required',
+                                            label: 'Always require approval',
+                                            description: 'Every transaction this employee creates goes to the approval queue',
+                                        },
+                                        {
+                                            value: 'direct',
+                                            label: 'Always post directly',
+                                            description: 'Bypasses the approval queue regardless of store policy',
+                                        },
+                                    ].map(opt => (
+                                        <label key={opt.value}
+                                            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                                                data.transaction_approval_mode === opt.value
+                                                    ? 'bg-brand-600/20 border-brand-500'
+                                                    : 'bg-sunken border-neutral-700 hover:border-neutral-600'
+                                            }`}>
+                                            <input
+                                                type="radio"
+                                                name="transaction_approval_mode"
+                                                value={opt.value}
+                                                checked={data.transaction_approval_mode === opt.value}
+                                                onChange={() => setData('transaction_approval_mode', opt.value)}
+                                                className="mt-0.5 accent-brand-500 shrink-0"
+                                            />
+                                            <div>
+                                                <div className="text-xs font-bold text-white">{opt.label}</div>
+                                                <div className="text-2xs text-ink-muted mt-0.5">{opt.description}</div>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                                {errors.transaction_approval_mode && (
+                                    <p className="text-2xs text-red-400 ml-1">{errors.transaction_approval_mode}</p>
+                                )}
+
+                                {/* Action-Specific Approval Overrides */}
+                                <div className="pt-3 border-t border-neutral-700/40 space-y-2">
+                                    <div className="text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                        Action-Specific Approval Overrides
+                                    </div>
+                                    <p className="text-2xs text-ink-muted">
+                                        Override default store and role policy for specific operations:
+                                    </p>
+                                    <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+                                        {[
+                                            { key: 'customer_receipt', label: 'Customer Receipts' },
+                                            { key: 'supplier_payment', label: 'Supplier Payments' },
+                                            { key: 'sales_invoice', label: 'Admin Sales Invoices' },
+                                            { key: 'operating_expense', label: 'Operating Expenses' },
+                                            { key: 'supplier_refund', label: 'Supplier Refunds' },
+                                            { key: 'purchase_posting', label: 'Purchase & Bills' },
+                                            { key: 'sales_return', label: 'Sales Returns & Refunds' },
+                                            { key: 'purchase_return', label: 'Purchase Returns (Debit Notes)' },
+                                            { key: 'capital_injection', label: 'Owner Capital Injection' },
+                                            { key: 'owner_drawings', label: 'Owner Drawings' },
+                                            { key: 'fund_transfer', label: 'Internal Fund Transfers' },
+                                            { key: 'balance_adjustment', label: 'Balance Adjustments' },
+                                        ].map(action => {
+                                            const currentVal = data.approval_overrides?.[action.key] || 'inherit';
+                                            return (
+                                                <div key={action.key} className="flex items-center justify-between p-2 rounded-lg bg-neutral-800/60 border border-neutral-700/50">
+                                                    <span className="text-xs text-neutral-200">{action.label}</span>
+                                                    <select
+                                                        value={currentVal}
+                                                        onChange={e => setData('approval_overrides', {
+                                                            ...data.approval_overrides,
+                                                            [action.key]: e.target.value,
+                                                        })}
+                                                        className="bg-neutral-900 border border-neutral-600 rounded px-2 py-1 text-2xs text-white focus:outline-none focus:border-brand-500"
+                                                    >
+                                                        <option value="inherit">Inherit</option>
+                                                        <option value="direct">Direct</option>
+                                                        <option value="required">Required</option>
+                                                    </select>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                     </form>
                 </div>

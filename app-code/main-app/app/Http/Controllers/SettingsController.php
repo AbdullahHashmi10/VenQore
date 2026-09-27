@@ -71,6 +71,22 @@ class SettingsController extends Controller
             'settings.approval_threshold_operating_expense'     => 'nullable|numeric|min:0',
             'settings.approval_policy_sales_invoice'            => 'nullable|string|in:disabled,threshold,required,inherit',
             'settings.approval_threshold_sales_invoice'         => 'nullable|numeric|min:0',
+            'settings.approval_policy_supplier_refund'          => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_supplier_refund'       => 'nullable|numeric|min:0',
+            'settings.approval_policy_purchase_posting'         => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_purchase_posting'      => 'nullable|numeric|min:0',
+            'settings.approval_policy_sales_return'             => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_sales_return'          => 'nullable|numeric|min:0',
+            'settings.approval_policy_purchase_return'          => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_purchase_return'       => 'nullable|numeric|min:0',
+            'settings.approval_policy_capital_injection'        => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_capital_injection'     => 'nullable|numeric|min:0',
+            'settings.approval_policy_owner_drawings'           => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_owner_drawings'        => 'nullable|numeric|min:0',
+            'settings.approval_policy_fund_transfer'            => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_fund_transfer'         => 'nullable|numeric|min:0',
+            'settings.approval_policy_balance_adjustment'       => 'nullable|string|in:disabled,threshold,required,inherit',
+            'settings.approval_threshold_balance_adjustment'    => 'nullable|numeric|min:0',
         ]);
 
         foreach ($data['settings'] as $key => $value) {

@@ -1,0 +1,131 @@
+{
+  "audit_date": "2026-09-24",
+  "root": "E:/AMD POS/AMD POS/app-code/main-app",
+  "method": "Source inspection plus read-only PHP probes; no full suite or browser acceptance rerun",
+  "resolved_route_count": 140,
+  "probes": {
+    "capital_bank_form_normalized_method": "cash",
+    "age_of_72_hour_old_item": -72,
+    "cashier_approval_presets": [
+      "approval.my_pending",
+      "approval.my_returned"
+    ],
+    "owner_approval_presets": [
+      "approval.awaiting_review"
+    ]
+  },
+  "source_hashes": [
+    {
+      "path": "routes/web.php",
+      "sha256": "011B299038B1D6B3168B661C062F570F9128B7F9A9CC745B368391A94A16A722"
+    },
+    {
+      "path": "app/Services/Approval/ApprovalPolicyResolver.php",
+      "sha256": "DCB965A3508EA2B815179C3CA6BAB99F967BB38F4EDF3D54F473C80531FEE330"
+    },
+    {
+      "path": "app/Services/Approval/ApprovalExecutionEngine.php",
+      "sha256": "B9A4326D9BFE4585518D2F276ACBD7F8B0E54C0AFC7CA1A7F5D7CCAEF43A8909"
+    },
+    {
+      "path": "app/Services/Approval/ApprovalStateMachine.php",
+      "sha256": "4DCA24ED1347C182C99F2C6D4C9E9E652D81B15CC0584FC8092A9457421FACBA"
+    },
+    {
+      "path": "app/Http/Controllers/SaleController.php",
+      "sha256": "62285027B0737C8590A8416F1DB03391E2BFF73BA97614335DEE61605508AD5E"
+    },
+    {
+      "path": "app/Http/Controllers/V3/SaleController.php",
+      "sha256": "A0CC0FF70A42E11CE39CEB87BB839D073BA21C1AF37E5C534CEB1BE679D98E1D"
+    },
+    {
+      "path": "app/Http/Controllers/V3/BankTransferController.php",
+      "sha256": "96DB1840CBE7B5B854AC58A595807A4F92821BBD600FABC57923C6B4DE58061A"
+    },
+    {
+      "path": "app/Http/Controllers/DebitNoteController.php",
+      "sha256": "00B4F666C30CE1A7C17EA08E51D79719C55147D4BC667F1D55444EFF43673200"
+    },
+    {
+      "path": "app/Http/Controllers/FundController.php",
+      "sha256": "7FE1E281A577B7FAB34C8373EFC00C5D1B40C93DAA167BC43D63F9754AA78CE3"
+    },
+    {
+      "path": "app/Http/Controllers/AdminController.php",
+      "sha256": "ACFE6815EC577A988ECD5FEA884B715A50C60F5680E2BB0CEC3BA965D8E69130"
+    },
+    {
+      "path": "app/Http/Controllers/ApprovalDocumentController.php",
+      "sha256": "49FF81A8263AAB806D215B7F955962CDBC121405ED0664671653131A94D8D464"
+    },
+    {
+      "path": "app/Http/Controllers/DashboardController.php",
+      "sha256": "19C46073139FFB5E5065B1F7CB53258BAAD52D72AC0CB3855B5088C5E429280C"
+    },
+    {
+      "path": "app/Models/BankAccount.php",
+      "sha256": "9D5F78850E1129F44F72C798FF822AD21C7BAC204E08F6374F49618B40911BFA"
+    },
+    {
+      "path": "config/dashboard_pool.php",
+      "sha256": "E442DAFF9AAB0B5EE5C5F25D73D3355D21C141820F3B6A0E6CF880C8C4ED7BEB"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/ApprovalAdapterInterface.php",
+      "sha256": "FC79C7FC583DF06BFA1DA27E4D2C4DC48DB4F2E72A512C62A7BD7869E9F66EDD"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/BalanceAdjustmentApprovalAdapter.php",
+      "sha256": "A11278E8120FBCB85326D5F3EF1E42701E776CC48C14ECF87B82F6B813706DF0"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/CapitalInjectionApprovalAdapter.php",
+      "sha256": "AB3E64001B6D134C6E973AD4C937763A51B07EF717164974780543D254142E50"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/CustomerReceiptApprovalAdapter.php",
+      "sha256": "9937A24B86C3075193243F44E72E39AD2756E24BEEF130D166E500F17060E776"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/CustomerRefundApprovalAdapter.php",
+      "sha256": "FB92336E416FE9BF0684DF11180932390F313DB25E930D663C5A6BD7A8D75155"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/FundTransferApprovalAdapter.php",
+      "sha256": "2AFDFACA490E41E7781866B5552FDE059E67D67F6F3333B331580BB5B5002DCC"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/OperatingExpenseApprovalAdapter.php",
+      "sha256": "DDF4CBF227D1032D20D5910223DD6704C29F2583A503C9152F02BB0F7180EF4F"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/OwnerDrawingsApprovalAdapter.php",
+      "sha256": "120A83150449B5040E4B4AE9B0DF2BD22764A5812E638E6F13F3B71326380D40"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/PurchasePostingApprovalAdapter.php",
+      "sha256": "9ACBB1E4C568060A129E275521F0DCB9E6D4C647C65C6A1937069E2CD4372D59"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/PurchaseReturnApprovalAdapter.php",
+      "sha256": "B3033E33BE9D1D8E950C9BB400B984FF35D357167F2715735A812402DFFF5B28"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/SalesInvoiceApprovalAdapter.php",
+      "sha256": "763B18C10D92148F067B65245B8F0320409203D23BF5AA3C6DE070CEF8A2CBFA"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/SalesReturnApprovalAdapter.php",
+      "sha256": "94EB030E681DE579FF8B37B2AC856490F4DB5CF1926CDC4AF9D6C0BFE5F13303"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/SupplierPaymentApprovalAdapter.php",
+      "sha256": "6E5E14B6113F93FDB5734D1FDCD245B32EAE14C3EDF07D4BD966539568A171E2"
+    },
+    {
+      "path": "app/Services/Approval/Adapters/SupplierRefundApprovalAdapter.php",
+      "sha256": "8A38DE5295A6E100CB5314F371DD11DCEF49BBF697F7680DB46532A55B1668FD"
+    }
+  ]
+}

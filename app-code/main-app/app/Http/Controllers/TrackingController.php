@@ -108,7 +108,7 @@ class TrackingController extends Controller
         }
 
         // Expire 24 hours after ticket was opened regardless of status
-        if ($occ->opened_at && now()->diffInHours($occ->opened_at) > 24) {
+        if ($occ->opened_at && abs(now()->diffInHours($occ->opened_at, false)) > 24) {
             return true;
         }
 

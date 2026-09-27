@@ -33,12 +33,10 @@ class SaleObserverCanonicalGuardTest extends VenQoreTestCase
         $this->owner = $this->createTenantUser($this->tenant, 'owner');
         $this->bindTenantContext($this->tenant, $this->owner);
 
-        $this->warehouse = Warehouse::create([
-            'tenant_id' => $this->tenant->id,
-            'name' => 'Main Warehouse',
-            'code' => 'WH-' . uniqid(),
-            'status' => 'active',
-        ]);
+        $this->warehouse = Warehouse::firstOrCreate(
+            ['is_default' => true, 'tenant_id' => $this->tenant->id],
+            ['name' => 'Main Warehouse', 'code' => 'WH-' . uniqid(), 'status' => 'active']
+        );
 
         $this->customer = Party::create([
             'tenant_id' => $this->tenant->id,

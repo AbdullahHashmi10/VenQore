@@ -49,10 +49,12 @@ return new class extends Migration
             if (!Schema::hasTable($table)) continue;
             if (Schema::hasColumn($table, 'tenant_id')) continue;
 
-            Schema::table($table, function (Blueprint $t) {
-                // Using foreignId for consistency with newer migrations
-                $t->foreignId('tenant_id')->nullable()->after('id')->index()->constrained('tenants')->cascadeOnDelete();
-            });
+            try {
+                Schema::table($table, function (Blueprint $t) {
+                    // Using foreignId for consistency with newer migrations
+                    $t->foreignId('tenant_id')->nullable()->after('id')->index()->constrained('tenants')->cascadeOnDelete();
+                });
+            } catch (\Throwable) {}
         }
     }
 

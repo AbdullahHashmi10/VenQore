@@ -41,7 +41,7 @@ class PlanRepository
         $planSlug = self::normalizePlanSlug($planSlug);
         $ttl = 3600;
 
-        return self::$limitsMemo[$planSlug] ??= Cache::remember("plan_limits:{$planSlug}", $ttl, function () use ($planSlug) {
+        return Cache::remember("plan_limits:{$planSlug}", $ttl, function () use ($planSlug) {
             /** @var \App\Models\Plan|null $plan */
             $plan = Plan::with('limits')->where('slug', $planSlug)->first();
 
@@ -259,7 +259,7 @@ class PlanRepository
     public static function featuresFor(Tenant $tenant): array
     {
         $cacheKey = "tenant_features_map:{$tenant->id}";
-        return self::$featuresMemo[$tenant->id] ??= Cache::remember($cacheKey, 300, function () use ($tenant) {
+        return Cache::remember($cacheKey, 300, function () use ($tenant) {
             $planSlug = $tenant->plan === 'ltd' && method_exists($tenant, 'effectivePlan')
                 ? $tenant->effectivePlan()
                 : ($tenant->plan ?? 'starter');

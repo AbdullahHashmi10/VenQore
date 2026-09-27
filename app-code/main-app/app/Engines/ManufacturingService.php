@@ -109,7 +109,7 @@ class ManufacturingService
                     'type'         => 'production_consume',
                     'reference_id' => $runId,
                     'description'  => "Production Run Ingredient Consumption — Run #{$runId}",
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
@@ -189,7 +189,7 @@ class ManufacturingService
                 'total_cost'       => $materialCost + $laborCost,
                 'wip_balance'      => $materialCost + $laborCost,
                 'journal_entry_id' => $step1Entry->id,
-                'created_by'       => auth()->id() ?? 1,
+                'created_by'       => auth()->id(),
                 'created_at'       => now(),
                 'updated_at'       => now(),
             ]);
@@ -288,7 +288,7 @@ class ManufacturingService
                     'type'         => 'production_produce',
                     'reference_id' => $runId,
                     'description'  => "Production Run By-Product Production — Run #{$runId}",
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
@@ -383,7 +383,7 @@ class ManufacturingService
                 'type'         => 'production_produce',
                 'reference_id' => $runId,
                 'description'  => "Production Run Finished Goods Production — Run #{$runId}",
-                'user_id'      => auth()->id() ?? 1,
+                'user_id'      => auth()->id(),
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ]);
@@ -484,7 +484,7 @@ class ManufacturingService
                 'type'         => 'production_reversal',
                 'reference_id' => $runId,
                 'description'  => "Production Run Reversal — Run #{$runId}",
-                'user_id'      => auth()->id() ?? 1,
+                'user_id'      => auth()->id(),
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ]);
@@ -582,7 +582,7 @@ class ManufacturingService
                 'type'         => 'disassembly_out',
                 'reference_id' => $disassemblyBom->id,
                 'description'  => "Disassembly Parent Out — Product {$productId}",
-                'user_id'      => auth()->id() ?? 1,
+                'user_id'      => auth()->id(),
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ]);
@@ -645,7 +645,7 @@ class ManufacturingService
                     'type'         => 'disassembly_in',
                     'reference_id' => $disassemblyBom->id,
                     'description'  => "Disassembly Component In — Product {$component->component_product_id}",
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);

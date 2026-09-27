@@ -37,6 +37,9 @@ trait HasTenant
     {
         // ── Auto-assign tenant_id on model creation ──────────────────────
         static::creating(function ($model) {
+            if ($model instanceof \App\Models\Setting && array_key_exists('tenant_id', $model->getAttributes()) && $model->getAttributes()['tenant_id'] === null) {
+                return;
+            }
             if (empty($model->tenant_id)) {
                 if (app()->bound('current.tenant')) {
                     $model->tenant_id = app('current.tenant')->id;
