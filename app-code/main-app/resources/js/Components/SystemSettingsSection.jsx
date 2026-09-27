@@ -340,12 +340,25 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                 </div>
                             </div>
 
+                            {/* S06: Honest availability notice — SAML login flow is not implemented yet */}
+                            <div className="mb-5 flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-xl text-sm text-amber-800 dark:text-amber-300">
+                                <span className="shrink-0 mt-0.5 font-bold text-base">⚠</span>
+                                <div>
+                                    <p className="font-bold">Configuration saved, but SSO login is not yet active.</p>
+                                    <p className="text-xs mt-1 text-amber-700 dark:text-amber-400">
+                                        SAML 2.0 metadata, signature validation and tenant-bound callback are under development.
+                                        Enabling this toggle saves your IdP details but does not redirect any login attempts through your provider.
+                                        Users will continue to log in with their email and password until this feature ships.
+                                    </p>
+                                </div>
+                            </div>
+
                             <div className="mb-6">
                                 <Toggle
                                     enabled={data.sso_enabled === '1' || data.sso_enabled === true}
                                     onChange={v => setData('sso_enabled', v)}
-                                    label="Enable SSO"
-                                    description="Enterprise feature: SAML 2.0 Identity Provider integration (requires Enterprise tier)"
+                                    label="Enable SSO (pre-configure)"
+                                    description="Enterprise feature: SAML 2.0 Identity Provider integration — saves configuration for when the feature is available"
                                 />
                             </div>
 

@@ -571,7 +571,7 @@ export default function AdminSettings({ settings = {} }) {
  <div className="divide-y divide-line">
  <Toggle enabled={data.pos_auto_fill_cash} onChange={v => setData('pos_auto_fill_cash', v)} label="Auto-Fill Cash Received" description="Automatically populate the 'Cash Received' field with the total amount" />
  <Toggle enabled={data.senior_mode} onChange={v => setData('senior_mode', v)} label="Senior Mode (Accessibility)" description="Enable larger fonts and high-contrast UI for easier reading" />
- <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description="Automatically report sales to FBR and print QR codes" />
+ <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description={<span>Enable FBR sales reporting. <a href="#" onClick={e => { e.preventDefault(); setActiveSection('ai_integrations'); }} className="text-brand-600 dark:text-brand-400 underline font-bold">Configure POS ID & USIN →</a></span>} />
  <Toggle enabled={data.show_margin_percentage} onChange={v => setData('show_margin_percentage', v)} label="Show Margin Percentage" description="Display profit margin in sales overview" />
  <div className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
  <div>

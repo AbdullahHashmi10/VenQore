@@ -278,6 +278,26 @@ export default function SalesIndex({ sales, filters, stats }) {
  applyFilters({ filter: type });
  };
 
+ // WhatsApp share for quick-view sale
+ const [whatsAppSending, setWhatsAppSending] = useState(false);
+ const handleSendWhatsApp = async (sale) => {
+ if (!sale) return;
+ setWhatsAppSending(true);
+ try {
+ const res = await axios.post(
+ route('store.sales.send-whatsapp', { store_slug: store?.slug, id: sale.id }),
+ { phone: sale.customer?.phone }
+ );
+ if (res.data?.action === 'open_whatsapp' && res.data?.url) {
+ window.open(res.data.url, '_blank', 'noopener,noreferrer');
+ }
+ } catch (err) {
+ console.error('[WhatsApp share failed]', err);
+ } finally {
+ setWhatsAppSending(false);
+ }
+ };
+
  const handleDateChange = (e) => {
  const { name, value } = e.target;
  const newRange = { ...dateRange, [name]: value };
@@ -1254,10 +1274,11 @@ export default function SalesIndex({ sales, filters, stats }) {
  </div>
  <div className="flex gap-2 w-full sm:w-auto justify-end">
  <button
- onClick={() => { /* TODO: WhatsApp share */ }}
- className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 text-xs font-bold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors flex items-center gap-1"
+ onClick={() => handleSendWhatsApp(quickViewSale)}
+ disabled={whatsAppSending}
+ className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 text-xs font-bold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors flex items-center gap-1 disabled:opacity-50"
  >
- <MessageCircle size={14} /> Share
+ <MessageCircle size={14} /> {whatsAppSending ? 'Sending…' : 'Share'}
  </button>
  <Link
  href={route('store.sales.show', { store_slug: store?.slug, sale: quickViewSale.id }) + '?action=return'}

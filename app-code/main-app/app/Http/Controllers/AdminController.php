@@ -535,18 +535,24 @@ class AdminController extends Controller
 
         // S03: Comprehensive Typed Allowlist Filter
         $allowlist = [
+            // Business identity
             'business_name', 'store_name', 'business_address', 'store_address',
             'business_phone', 'store_phone', 'business_email', 'tax_number',
             'currency', 'currency_code', 'currency_symbol', 'timezone',
             'decimal_places', 'custom_domain', 'product_cost_update_policy',
             'shared_catalog_opt_out', 'ai_accuracy_opt_in',
+            // General preferences
             'enable_passcode', 'admin_passcode', 'ui_scale', 'language',
             'date_format', 'auto_logout', 'dark_mode_default', 'senior_mode',
-            'header_calculator_enabled', 'stop_sale_negative_stock', 'cash_sale_default',
+            'header_calculator_enabled', 'multi_firm_enabled',
+            // Sales / transaction
+            'invoice_number_enabled', 'stop_sale_negative_stock', 'cash_sale_default',
             'round_off_total', 'billing_type', 'sale_prefix', 'purchase_prefix',
-            'quotation_prefix', 'return_prefix', 'pos_auto_fill_cash', 'show_margin_percentage',
+            'quotation_prefix', 'return_prefix', 'pos_auto_fill_cash',
+            'show_margin_percentage', 'show_margin_on_invoice',
             'charity_enabled', 'pos_return_mode', 'pos_return_window', 'pos_return_window_behavior',
             'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id',
+            // Print: regular
             'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
             'print_logo', 'print_logo_path', 'print_signature_text', 'print_original_copy',
             'print_company_text_size', 'print_invoice_text_size',
@@ -561,7 +567,10 @@ class AdminController extends Controller
             'print_amount_words', 'print_description', 'print_terms',
             'print_received_by', 'print_delivered_by', 'print_payment_mode',
             'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
-            'print_min_item_rows', 'invoice_theme', 'invoice_primary_color',
+            'print_min_item_rows',
+            // Print: invoice styling
+            'invoice_theme', 'invoice_primary_color',
+            // Print: thermal
             'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
             'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
             'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
@@ -570,19 +579,33 @@ class AdminController extends Controller
             'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
             'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
             'thermal_custom_footer',
+            // Messaging / WhatsApp
             'whatsapp_enabled', 'sms_to_party', 'auto_send_sales', 'message_template_sales',
             'whatsapp_api_url', 'whatsapp_access_token', 'whatsapp_phone_number_id',
+            // Party / loyalty / credit
             'party_grouping', 'loyalty_enabled', 'enable_credit_limit',
             'payment_reminders', 'payment_reminder_days',
+            // Inventory
             'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
             'wholesale_price_enabled', 'low_stock_threshold', 'low_stock_alerts',
+            // Reminders / system
             'service_reminders', 'email_notifications', 'daily_sales_summary',
-            'fiscal_year_start', 'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days',
+            'fiscal_year_start',
+            // Security & personal
+            'two_factor_auth', 'auto_backup',
+            // SSO (saved but labeled disabled until SAML is implemented)
+            'sso_enabled', 'sso_idp_entity_id', 'sso_url', 'sso_certificate',
+            // Reckoner
+            'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days',
             'reckoner.carrying_cost_pct', 'reckoner.stock_aging_buckets',
+            // AI
             'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
+            // FBR
             'fbr_integration', 'fbr_pos_id', 'fbr_usin', 'fbr_mode', 'fbr_environment', 'fbr_api_url', 'fbr_auth_token',
+            // Payments / integrations
             'stripe_enabled', 'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
             'woocommerce_enabled', 'woocommerce_url', 'woocommerce_consumer_key', 'woocommerce_consumer_secret',
+            // Approvals
             'approval_admin_enabled', 'approval_strict_owner_separation',
             'approval_amount_threshold', 'approval_default_employee_mode',
         ];
