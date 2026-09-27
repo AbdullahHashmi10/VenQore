@@ -91,7 +91,7 @@ export default function SettingsPanel({ settings }) {
 
  // Invoice styling & Custom domain
  invoice_theme: settings.invoice_theme || 'classic',
- invoice_primary_color: settings.invoice_primary_color || 'rgb(var(--vq-indigo-600))',
+ invoice_primary_color: settings.invoice_primary_color && !settings.invoice_primary_color.includes('var(') ? settings.invoice_primary_color : '#4f46e5',
  show_margin_on_invoice: settings.show_margin_on_invoice === '1',
  custom_domain: store.custom_domain || '',
  tax_rates: typeof settings.tax_rates === 'string' ? settings.tax_rates : JSON.stringify(settings.tax_rates || [{ id: 1, name: 'GST 18%', rate: 18, type: 'percentage' }, { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }], null, 2),

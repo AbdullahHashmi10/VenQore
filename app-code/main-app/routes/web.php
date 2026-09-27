@@ -485,6 +485,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // Store settings (Unified store & admin settings hub)
         Route::get('/settings',                    [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:admin.settings_view,admin.settings_manage')->name('settings');
         Route::post('/settings',                   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('settings.update');
+        Route::post('/settings/data-privacy',      [\App\Http\Controllers\SettingsController::class, 'updateDataPrivacy'])->middleware('permission:admin.settings_manage')->name('settings.data-privacy.update');
 
         // SmartCapture (AI Scan) API
         // NOTE: /extract costs exactly one upstream AI request per call. The

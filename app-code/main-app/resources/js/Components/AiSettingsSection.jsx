@@ -6,6 +6,7 @@ import { useTermText } from '@/lib/terms';
 
 export default function AiSettingsSection({ data, setData, handleVerifyKey, verifyingKey, verificationResult }) {
  const tt = useTermText();
+  const { store } = usePage().props;
  return (
  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
  {/* Compact Banner */}
@@ -199,7 +200,7 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
  const checked = e.target.checked;
  setData('shared_catalog_opt_out', checked);
  // router is imported at top level
- router.post(route('store.settings.data-privacy.update'), {
+ router.post(route('store.settings.data-privacy.update', { store_slug: store?.slug }), {
  shared_catalog_opt_out: checked,
  ai_accuracy_opt_in: !!data.ai_accuracy_opt_in
  }, { preserveScroll: true });
@@ -220,7 +221,7 @@ export default function AiSettingsSection({ data, setData, handleVerifyKey, veri
  const checked = e.target.checked;
  setData('ai_accuracy_opt_in', checked);
  // router is imported at top level
- router.post(route('store.settings.data-privacy.update'), {
+ router.post(route('store.settings.data-privacy.update', { store_slug: store?.slug }), {
  shared_catalog_opt_out: !!data.shared_catalog_opt_out,
  ai_accuracy_opt_in: checked
  }, { preserveScroll: true });
