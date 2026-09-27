@@ -34,6 +34,19 @@ export default function TransactionSettingsSection({ data, setData }) {
                         label="Default to 'Cash Sale'"
                         description="Pre-select Cash mode during quick register checkout"
                     />
+                    <div className="space-y-1.5 col-span-1 md:col-span-2 pt-2 border-t border-line">
+                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Default Invoice Billing Mode</label>
+                        <select
+                            value={data.billing_type || 'full'}
+                            onChange={e => setData('billing_type', e.target.value)}
+                            className="w-full px-3.5 py-2.5 bg-app border border-line rounded-xl text-sm font-bold text-ink focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+                        >
+                            <option value="full">Standard Full Invoice (Default)</option>
+                            <option value="quick">Quick Retail Slip</option>
+                            <option value="tax_invoice">Formal Tax Invoice (FBR/VAT Compliant)</option>
+                        </select>
+                        <p className="text-3xs text-ink-muted">Selects default layout and compliance rules during sales invoicing.</p>
+                    </div>
                 </div>
             </div>
 

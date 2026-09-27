@@ -141,6 +141,15 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         if (k.startsWith('approval_policy_')) {
             return ['inherit', 'maker_checker', 'owner_only', 'auto_approve', 'disabled'].includes(v) ? v : 'inherit';
         }
+        if (k === 'billing_type') {
+            return ['full', 'quick', 'tax_invoice'].includes(v) ? v : 'full';
+        }
+        if (k === 'invoice_theme') {
+            return ['classic', 'modern', 'elegant'].includes(v) ? v : 'classic';
+        }
+        if (k === 'default_tax_basis') {
+            return ['inclusive', 'exclusive'].includes(v) ? v : 'exclusive';
+        }
         return v;
     };
 
@@ -173,6 +182,13 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         expect(normalizeSettingValue('fbr_mode', 'untrusted_mode')).toBe('sandbox');
         expect(normalizeSettingValue('approval_policy_sale', 'maker_checker')).toBe('maker_checker');
         expect(normalizeSettingValue('approval_policy_sale', 'malicious_mode')).toBe('inherit');
+        expect(normalizeSettingValue('billing_type', 'quick')).toBe('quick');
+        expect(normalizeSettingValue('billing_type', 'tax_invoice')).toBe('tax_invoice');
+        expect(normalizeSettingValue('billing_type', 'invalid_billing')).toBe('full');
+        expect(normalizeSettingValue('invoice_theme', 'elegant')).toBe('elegant');
+        expect(normalizeSettingValue('invoice_theme', 'unknown_theme')).toBe('classic');
+        expect(normalizeSettingValue('default_tax_basis', 'inclusive')).toBe('inclusive');
+        expect(normalizeSettingValue('default_tax_basis', 'unknown_basis')).toBe('exclusive');
     });
 
     it('computes tax correctly for both percentage and fixed tax modes (S09/M09)', () => {

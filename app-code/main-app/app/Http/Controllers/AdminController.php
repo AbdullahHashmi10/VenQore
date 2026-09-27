@@ -682,6 +682,12 @@ class AdminController extends Controller
                 $v = in_array($v, ['inherit', 'maker_checker', 'owner_only', 'auto_approve', 'disabled'], true) ? $v : 'inherit';
             } elseif (str_starts_with($k, 'approval_threshold_')) {
                 $v = (is_numeric($v) && (float)$v >= 0) ? (float)$v : null;
+            } elseif ($k === 'billing_type') {
+                $v = in_array($v, ['full', 'quick', 'tax_invoice'], true) ? $v : 'full';
+            } elseif ($k === 'invoice_theme') {
+                $v = in_array($v, ['classic', 'modern', 'elegant'], true) ? $v : 'classic';
+            } elseif ($k === 'default_tax_basis') {
+                $v = in_array($v, ['inclusive', 'exclusive'], true) ? $v : 'exclusive';
             }
 
             $filteredData[$k] = $v;

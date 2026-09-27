@@ -18,6 +18,7 @@ import { createPortal } from 'react-dom';
 
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
+import { useAMDStation, AMDStation, isAMDStationAvailable } from '@/Utils/AMDStation';
 // ... (imports remain the same, ensuring createPortal is added)
 
 export default function PrintSettingsSection({ data, setData, saveSettings }) {
@@ -28,7 +29,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  // Persist printer sub-tab selection (thermal vs regular) across refreshes
  useEffect(() => {
  const storedTab = localStorage.getItem('active_printer_subtab');
- if (storedTab && (storedTab === 'thermal' || storedTab === 'regular')) {
+ if (storedTab && ['thermal', 'regular', 'b2b', 'hardware'].includes(storedTab)) {
  setData('_print_tab', storedTab);
  }
  }, []);
@@ -226,6 +227,15 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  >
  Invoice &amp; PDF (B2B)
  </button>
+ <button
+ type="button"
+ onClick={() => handleSubtabChange('hardware')}
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'hardware'
+ ? 'bg-sunken text-amber-600 shadow-sm'
+ : 'text-ink-muted hover:text-ink-secondary'}`}
+ >
+ Hardware &amp; Station
+ </button>
  </div>
  </div>
 
@@ -320,6 +330,8 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  ? <ThermalSettings data={data} setData={setData} />
  : data._print_tab === 'b2b'
  ? <B2BSettings data={data} setData={setData} />
+ : data._print_tab === 'hardware'
+ ? <HardwareSettings data={data} setData={setData} />
  : <RegularSettings data={data} setData={setData} />
  }
  </div>
@@ -902,4 +914,138 @@ const B2BSettings = ({ data, setData }) => {
       </div>
     </div>
   );
+};
+
+
+const HardwareSettings = ({ data, setData }) => {
+	const { isConnected, printers, defaultPrinter, setDefaultPrinter, openDrawer } = useAMDStation();
+	const [pulsing, setPulsing] = useState(false);
+
+	const handlePulseDrawer = async () => {
+		setPulsing(true);
+		try {
+			if (isAMDStationAvailable()) {
+				const res = await openDrawer();
+				if (res?.success !== false) {
+					Swal.fire({
+						title: 'Drawer Signal Sent',
+						text: 'Trigger pulse sent to cash drawer kickout port.',
+						icon: 'success',
+						timer: 1500,
+						showConfirmButton: false,
+					});
+				} else {
+					Swal.fire({
+						title: 'Drawer Trigger Failed',
+						text: 'VenQore Station could not reach the printer kickout port.',
+						icon: 'error',
+					});
+				}
+			} else {
+				Swal.fire({
+					title: 'Direct Hardware Required',
+					text: 'Hardware drawer kickout requires VenQore Station companion app to be active.',
+					icon: 'info',
+				});
+			}
+		} finally {
+			setPulsing(false);
+		}
+	};
+
+	return (
+		<div className="space-y-6 animate-in fade-in duration-fast">
+			<div>
+				<h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">Hardware Devices &amp; Routing</h4>
+				<div className="space-y-4">
+					{/* Connection Status Card */}
+					<div className="p-4 rounded-xl bg-app border border-line space-y-2">
+						<div className="flex items-center justify-between">
+							<span className="text-xs font-bold text-ink">VenQore Station Status</span>
+							<span className={`px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider ${isConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-sunken text-ink-muted'}`}>
+								{isConnected ? 'Connected & Active' : 'Standalone Browser Mode'}
+							</span>
+						</div>
+						<p className="text-2xs text-ink-muted leading-relaxed">
+							{isConnected
+								? 'Desktop companion connected. Silent high-speed ESC/POS thermal printing and hardware cash drawer triggers are active.'
+								: 'Running directly in browser. Printing opens the system print dialog. Connect VenQore Station desktop companion for silent receipts and automated drawer kicks.'}
+						</p>
+					</div>
+
+					{/* Printer Device Selection */}
+					<div className="space-y-2">
+						<label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Device Receipt Printer</label>
+						{printers && printers.length > 0 ? (
+							<select
+								value={defaultPrinter || ''}
+								onChange={(e) => setDefaultPrinter(e.target.value)}
+								className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+							>
+								{printers.map((p) => (
+									<option key={p.name} value={p.name}>
+										{p.name} {p.isDefault ? '(System Default)' : ''}
+									</option>
+								))}
+							</select>
+						) : (
+							<div className="p-3 bg-sunken rounded-xl text-2xs text-ink-muted">
+								System default printer selected. Launch VenQore Station to detect named thermal hardware.
+							</div>
+						)}
+						<p className="text-2xs text-ink-muted">Physical printer assigned specifically to this cash register station.</p>
+					</div>
+
+					{/* Cash Drawer Configuration */}
+					<div className="pt-3 border-t border-line space-y-3">
+						<label className="flex items-center justify-between cursor-pointer">
+							<div>
+								<span className="text-xs font-bold text-ink block">Pulse Drawer on Cash Sale</span>
+								<span className="text-2xs text-ink-muted">Send 24V kickout pulse via RJ11/RJ12 printer port</span>
+							</div>
+							<input
+								type="checkbox"
+								checked={data.thermal_open_drawer === '1' || data.thermal_open_drawer === true}
+								onChange={(e) => setData('thermal_open_drawer', e.target.checked)}
+								className="w-4 h-4 accent-brand-500 rounded border-line focus:ring-brand-500 cursor-pointer"
+							/>
+						</label>
+
+						<button
+							type="button"
+							disabled={pulsing}
+							onClick={handlePulseDrawer}
+							className="w-full py-2 px-3 bg-sunken hover:bg-interactive-hover border border-line rounded-xl text-xs font-bold text-ink transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+						>
+							<span>{pulsing ? 'Pulsing...' : 'Test Cash Drawer Kickout'}</span>
+						</button>
+					</div>
+
+					{/* Auto-Cut Configuration */}
+					<div className="pt-3 border-t border-line space-y-2">
+						<label className="flex items-center justify-between cursor-pointer">
+							<div>
+								<span className="text-xs font-bold text-ink block">Automatic Paper Cut</span>
+								<span className="text-2xs text-ink-muted">Trigger guillotine paper knife at end of thermal receipt</span>
+							</div>
+							<input
+								type="checkbox"
+								checked={data.thermal_auto_cut !== '0' && data.thermal_auto_cut !== false}
+								onChange={(e) => setData('thermal_auto_cut', e.target.checked)}
+								className="w-4 h-4 accent-brand-500 rounded border-line focus:ring-brand-500 cursor-pointer"
+							/>
+						</label>
+					</div>
+
+					{/* Fallback Reliability Guarantee (M17) */}
+					<div className="p-3 bg-brand-50 dark:bg-brand-950/20 border border-brand-200 dark:border-brand-800 rounded-xl space-y-1">
+						<span className="text-xs font-bold text-brand-700 dark:text-brand-300 block">Print Fault Protection (M17)</span>
+						<p className="text-3xs text-brand-600 dark:text-brand-400 leading-relaxed">
+							If the hardware station drops offline, AMD POS automatically routes receipt jobs through the browser print dialog. No receipt or transaction proof is ever silently dropped.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 };

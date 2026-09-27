@@ -316,6 +316,18 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
         <span>Manage in Profile</span>
       </a>
     </div>
+                                <div className="p-4 bg-surface rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
+                                    <div>
+                                        <h4 className="text-sm font-bold text-ink">Staff Roles &amp; Discount Authority</h4>
+                                        <p className="text-xs text-ink-muted">Configure staff roles (admin, manager, cashier), per-role maximum discount limits, and team access.</p>
+                                    </div>
+                                    <a
+                                        href="/users"
+                                        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+                                    >
+                                        <span>Manage Staff &amp; Roles</span>
+                                    </a>
+                                </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase tracking-wider text-ink-muted ml-1">Auto-Logout Timer (Minutes)</label>
                                     <input
