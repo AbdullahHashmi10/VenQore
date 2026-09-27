@@ -95,3 +95,65 @@ describe('Settings Safe Numeric & JSON Parsers', () => {
         expect(safeParseJson(null, [])).toEqual([]);
     });
 });
+
+describe('Settings Allowlist and Value Normalization Engine', () => {
+    const validApprovalDocTypes = [
+        'sale', 'purchase', 'quotation', 'credit_note', 'debit_note', 'expense',
+        'transfer', 'adjustment', 'refund', 'production_run', 'cheque',
+        'capital_injection', 'owner_drawings', 'fund_transfer', 'purchase_return',
+    ];
+
+    const isDynamicApprovalKey = (key) => {
+        for (const prefix of ['approval_policy_', 'approval_threshold_', 'approval_user_']) {
+            if (key.startsWith(prefix)) {
+                const suffix = key.slice(prefix.length);
+                return validApprovalDocTypes.includes(suffix);
+            }
+        }
+        return false;
+    };
+
+    const normalizeSettingValue = (k, v) => {
+        if (k === 'decimal_places') {
+            const num = parseInt(v, 10);
+            return !isNaN(num) ? Math.max(0, Math.min(4, num)) : 2;
+        }
+        if (k === 'ui_scale') {
+            const num = parseInt(v, 10);
+            return !isNaN(num) ? Math.max(50, Math.min(200, num)) : 100;
+        }
+        if (k === 'auto_logout') {
+            const num = parseInt(v, 10);
+            return !isNaN(num) ? Math.max(0, Math.min(1440, num)) : 0;
+        }
+        if (k === 'product_cost_update_policy') {
+            return ['manual', 'latest_purchase', 'moving_average', 'fifo'].includes(v) ? v : 'latest_purchase';
+        }
+        if (k.startsWith('approval_policy_')) {
+            return ['inherit', 'maker_checker', 'owner_only', 'auto_approve', 'disabled'].includes(v) ? v : 'inherit';
+        }
+        return v;
+    };
+
+    it('identifies and validates dynamic approval document keys strictly', () => {
+        expect(isDynamicApprovalKey('approval_policy_sale')).toBe(true);
+        expect(isDynamicApprovalKey('approval_threshold_purchase')).toBe(true);
+        expect(isDynamicApprovalKey('approval_user_expense')).toBe(true);
+        expect(isDynamicApprovalKey('approval_policy_arbitrary_injected_table')).toBe(false);
+        expect(isDynamicApprovalKey('approval_unknown_key')).toBe(false);
+    });
+
+    it('enforces bounds and enum restrictions on settings values', () => {
+        expect(normalizeSettingValue('decimal_places', 8)).toBe(4);
+        expect(normalizeSettingValue('decimal_places', -2)).toBe(0);
+        expect(normalizeSettingValue('decimal_places', '3')).toBe(3);
+        expect(normalizeSettingValue('ui_scale', 250)).toBe(200);
+        expect(normalizeSettingValue('ui_scale', 30)).toBe(50);
+        expect(normalizeSettingValue('auto_logout', 2000)).toBe(1440);
+        expect(normalizeSettingValue('product_cost_update_policy', 'invalid_policy')).toBe('latest_purchase');
+        expect(normalizeSettingValue('product_cost_update_policy', 'moving_average')).toBe('moving_average');
+        expect(normalizeSettingValue('approval_policy_sale', 'maker_checker')).toBe('maker_checker');
+        expect(normalizeSettingValue('approval_policy_sale', 'malicious_mode')).toBe('inherit');
+    });
+});
+

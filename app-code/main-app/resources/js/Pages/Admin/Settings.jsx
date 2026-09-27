@@ -167,7 +167,7 @@ export default function AdminSettings({ settings = {} }) {
  }
  };
 
- const { data, setData, post, processing, isDirty, reset } = useForm({
+ const { data, setData, post, processing, isDirty, reset, transform } = useForm({
     // Business
     business_name: settings.business_name || 'VENQORE',
     business_email: settings.business_email || '',
@@ -396,7 +396,10 @@ export default function AdminSettings({ settings = {} }) {
 
   const saveSettings = (code) => {
     if (code) {
-      data.passcode_challenge = code;
+      transform((currentData) => ({
+        ...currentData,
+        passcode_challenge: code,
+      }));
     }
     post(route('store.settings.update', { store_slug: store?.slug }), {
       preserveScroll: true,
@@ -417,6 +420,12 @@ export default function AdminSettings({ settings = {} }) {
  };
 
  const handleSaveAndSwitch = () => {
+ const isPasscodeEnabled = settings.enable_passcode === '1' || settings.enable_passcode === true;
+ if (isPasscodeEnabled) {
+   setShowUnsavedModal(false);
+   setIsPasscodeModalOpen(true);
+   return;
+ }
  const targetSection = pendingSectionId;
  setShowUnsavedModal(false);
  post(route('store.settings.update', { store_slug: store?.slug }), {

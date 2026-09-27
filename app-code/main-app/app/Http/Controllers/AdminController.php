@@ -587,17 +587,70 @@ class AdminController extends Controller
             'approval_amount_threshold', 'approval_default_employee_mode',
         ];
 
-        // Filter submitted data strictly to allowed keys (or dynamic approval keys)
+        $validApprovalDocTypes = [
+            'sale', 'purchase', 'quotation', 'credit_note', 'debit_note', 'expense',
+            'transfer', 'adjustment', 'refund', 'production_run', 'cheque',
+            'capital_injection', 'owner_drawings', 'fund_transfer', 'purchase_return',
+        ];
+
+        // Filter and strictly validate submitted data
         $filteredData = [];
         foreach ($settingsData as $k => $v) {
-            if (
-                in_array($k, $allowlist, true) ||
-                str_starts_with($k, 'approval_policy_') ||
-                str_starts_with($k, 'approval_threshold_') ||
-                str_starts_with($k, 'approval_user_')
-            ) {
-                $filteredData[$k] = $v;
+            $isAllowed = in_array($k, $allowlist, true);
+            if (!$isAllowed) {
+                foreach (['approval_policy_', 'approval_threshold_', 'approval_user_'] as $prefix) {
+                    if (str_starts_with($k, $prefix)) {
+                        $suffix = substr($k, strlen($prefix));
+                        if (in_array($suffix, $validApprovalDocTypes, true)) {
+                            $isAllowed = true;
+                        }
+                        break;
+                    }
+                }
             }
+
+            if (!$isAllowed) {
+                continue;
+            }
+
+            // Value normalization & bounds enforcement
+            if ($k === 'decimal_places') {
+                $v = is_numeric($v) ? max(0, min(4, (int)$v)) : 2;
+            } elseif ($k === 'ui_scale') {
+                $v = is_numeric($v) ? max(50, min(200, (int)$v)) : 100;
+            } elseif ($k === 'auto_logout') {
+                $v = is_numeric($v) ? max(0, min(1440, (int)$v)) : 0;
+            } elseif ($k === 'low_stock_threshold') {
+                $v = is_numeric($v) ? max(0, (float)$v) : 0;
+            } elseif ($k === 'pos_return_window') {
+                $v = is_numeric($v) ? max(0, min(365, (int)$v)) : 30;
+            } elseif ($k === 'product_cost_update_policy') {
+                $v = in_array($v, ['manual', 'latest_purchase', 'moving_average', 'fifo'], true) ? $v : 'latest_purchase';
+            } elseif ($k === 'pos_return_mode') {
+                $v = in_array($v, ['any_time', 'within_window', 'receipt_required', 'disabled', 'strict_receipt', 'same_day_only'], true) ? $v : 'within_window';
+            } elseif ($k === 'default_print_type') {
+                $v = in_array($v, ['regular', 'thermal', 'standard', 'pdf', 'a4', 'a5'], true) ? $v : 'regular';
+            } elseif ($k === 'paper_size') {
+                $v = in_array($v, ['A4', 'A5', 'Letter', 'Legal', 'Thermal', 'custom'], true) ? $v : 'A4';
+            } elseif ($k === 'paper_orientation') {
+                $v = in_array(strtolower((string)$v), ['portrait', 'landscape'], true) ? ucfirst(strtolower((string)$v)) : 'Portrait';
+            } elseif ($k === 'fbr_mode') {
+                $v = in_array($v, ['production', 'sandbox', 'disabled'], true) ? $v : 'sandbox';
+            } elseif ($k === 'ai_provider') {
+                $v = in_array($v, ['openai', 'anthropic', 'gemini', 'local', 'ollama', ''], true) ? $v : 'gemini';
+            } elseif ($k === 'reckoner.heavy_discount_pct') {
+                $v = is_numeric($v) ? max(0, min(100, (float)$v)) : 25;
+            } elseif ($k === 'reckoner.expiry_warning_days') {
+                $v = is_numeric($v) ? max(1, min(365, (int)$v)) : 30;
+            } elseif ($k === 'reckoner.carrying_cost_pct') {
+                $v = is_numeric($v) ? max(0, min(100, (float)$v)) : 15;
+            } elseif (str_starts_with($k, 'approval_policy_')) {
+                $v = in_array($v, ['inherit', 'maker_checker', 'owner_only', 'auto_approve', 'disabled'], true) ? $v : 'inherit';
+            } elseif (str_starts_with($k, 'approval_threshold_')) {
+                $v = (is_numeric($v) && (float)$v >= 0) ? (float)$v : null;
+            }
+
+            $filteredData[$k] = $v;
         }
         $settingsData = $filteredData;
 

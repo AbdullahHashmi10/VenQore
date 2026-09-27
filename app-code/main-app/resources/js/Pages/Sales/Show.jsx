@@ -107,8 +107,13 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
         try {
             const response = await axios.post(route('store.sales.send-whatsapp', { store_slug: store?.slug, id: sale.id }), { phone });
             if (response.data.success) {
-                showAlert({ title: 'Success', message: 'WhatsApp message queued!', type: 'success' });
-                if (response.data.mock_url) window.open(response.data.mock_url, '_blank');
+                const waUrl = response.data.url || response.data.mock_url;
+                if (response.data.action === 'open_whatsapp' || waUrl) {
+                    window.open(waUrl, '_blank');
+                    showAlert({ title: 'WhatsApp Draft Opened', message: response.data.message || 'Opening WhatsApp with receipt draft...', type: 'info' });
+                } else {
+                    showAlert({ title: 'Success', message: response.data.message || 'WhatsApp message sent successfully via API!', type: 'success' });
+                }
             }
         } catch (error) {
             showAlert({ title: 'Failed', message: 'Failed to send WhatsApp: ' + (error.response?.data?.message || error.message), type: 'error' });

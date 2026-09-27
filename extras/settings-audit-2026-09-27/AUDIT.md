@@ -2,6 +2,8 @@
 
 Date: 27 September 2026. Application inspected: `app-code/main-app`, including the user's signed-in local store at `http://127.0.0.1:8000/s/golden-co/settings`.
 
+Additional communication-path audit: [WHATSAPP_FEASIBILITY.md](WHATSAPP_FEASIBILITY.md). It traces the sale share button, invoice reminders, scheduled email reminders, Vyapar's public workflow, and WhatsApp's current policy. It identifies success messages for simulated/unsent WhatsApp attempts and an `email` option that routes to SMS.
+
 ## Verdict
 
 The settings experience is partially consolidated, but it is not yet a trustworthy single settings center. There are genuine implementations, disconnected controls, obsolete form fields, competing defaults, missing configuration screens, and significant printing inconsistencies. Fix the binding and policy problems alongside the layout; a visual redesign alone would conceal the same defects.
