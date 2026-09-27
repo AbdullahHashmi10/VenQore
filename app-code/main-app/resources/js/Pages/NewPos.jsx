@@ -481,7 +481,8 @@ export default function NewPos({
         // Check negative stock
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
         const stock = isService ? 999999 : Number(variant ? (variant.stock ?? variant.stock_quantity ?? product.stock_quantity ?? product.stock) : (product.stock_quantity ?? product.stock ?? 999));
-        if (!isService && stock <= 0 && settings?.prevent_negative_stock === '1') {
+        const stopNegative = settings?.stop_sale_negative_stock === '1' || settings?.stop_sale_negative_stock === true || settings?.prevent_negative_stock === '1';
+        if (!isService && stock <= 0 && stopNegative) {
             toast(`"${product.name}" is out of stock.`, { tone: 'bad' });
             return;
         }
@@ -492,15 +493,20 @@ export default function NewPos({
             const existingIdx = t.lines.findIndex((l) => (variant ? l.variant_id === variant.id : l.product_id === product.id && !l.variant_id) || (targetSku && l.sku === targetSku));
 
             if (existingIdx >= 0) {
+                const currentQty = t.lines[existingIdx].qty;
+                if (!isService && stopNegative && currentQty + 1 > stock) {
+                    toast(`Cannot add more. Only ${stock} available in stock.`, { tone: 'bad' });
+                    return t;
+                }
                 const lines = [...t.lines];
-                lines[existingIdx] = { ...lines[existingIdx], qty: lines[existingIdx].qty + 1 };
+                lines[existingIdx] = { ...lines[existingIdx], qty: currentQty + 1 };
                 return { ...t, lines };
             }
             return { ...t, lines: [newLine(product, 1, variant), ...t.lines] };
         }));
         setSel(0);
         toast(`Added ${variant ? `${product.name} (${variant.name})` : product.name}`, { tone: 'good', ms: 1600 });
-    }, [active, settings?.prevent_negative_stock, toast]);
+    }, [active, settings?.stop_sale_negative_stock, settings?.prevent_negative_stock, toast]);
 
     const removeLine = useCallback((line) => {
         patchTab({ lines: tab.lines.filter((l) => l.u !== line.u) });

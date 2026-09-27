@@ -186,6 +186,8 @@ export default function AdminSettings({ settings = {} }) {
     billing_type: settings.billing_type || 'full',
     sale_prefix: settings.sale_prefix || 'INV-',
     purchase_prefix: settings.purchase_prefix || 'PUR-',
+    quotation_prefix: settings.quotation_prefix || 'QTN-',
+    return_prefix: settings.return_prefix || 'RET-',
 
     // Print - Regular Printer Settings
     print_header_all_pages: settings.print_header_all_pages !== '0',
