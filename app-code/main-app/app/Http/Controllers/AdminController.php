@@ -393,6 +393,7 @@ class AdminController extends Controller
             'stripe_webhook_secret',
             'woocommerce_consumer_secret',
             'whatsapp_access_token',
+            'fbr_auth_token',
         ];
 
         foreach ($secretKeys as $secretKey) {
@@ -611,9 +612,12 @@ class AdminController extends Controller
         ];
 
         $validApprovalDocTypes = [
-            'sale', 'purchase', 'quotation', 'credit_note', 'debit_note', 'expense',
-            'transfer', 'adjustment', 'refund', 'production_run', 'cheque',
-            'capital_injection', 'owner_drawings', 'fund_transfer', 'purchase_return',
+            'customer_receipt', 'customer_refund', 'supplier_payment', 'sales_invoice',
+            'operating_expense', 'supplier_refund', 'purchase_posting', 'sales_return',
+            'purchase_return', 'capital_injection', 'owner_drawings', 'fund_transfer',
+            'balance_adjustment', 'sale', 'purchase', 'quotation', 'credit_note',
+            'debit_note', 'expense', 'transfer', 'adjustment', 'refund',
+            'production_run', 'cheque',
         ];
 
         // Filter and strictly validate submitted data

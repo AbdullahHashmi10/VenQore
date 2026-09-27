@@ -327,6 +327,8 @@ export default function AdminSettings({ settings = {} }) {
     pos_return_window: settings.pos_return_window || '',
     pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
     default_tax_rate: settings.default_tax_rate || '0',
+    default_tax_basis: settings.default_tax_basis || settings.tax_type || 'exclusive',
+    default_tax_id: settings.default_tax_id || '',
 
     // Third Party Integrations
     whatsapp_api_url: settings.whatsapp_api_url || '',

@@ -193,6 +193,7 @@ class SaleController extends Controller
                     'discount_type' => $item['discount_type'] ?? 'fixed',
                     'net'           => $net,
                     'tax_rate'      => $taxRate,
+                    'tax_type'      => $item['tax_type'] ?? $request->input('tax_type', 'percentage'),
                     'tax_amt'       => 0.0, // filled in pass 2 below
                     'serials'       => $item['serials'] ?? [],
                 ];
@@ -220,7 +221,10 @@ class SaleController extends Controller
                     : 0.0;
                 $lineTaxable   = max(0.0, $ld['net'] - $lineShare);
                 
-                if ($taxInclusive) {
+                $isFixedTax = ($ld['tax_type'] ?? 'percentage') === 'fixed';
+                if ($isFixedTax) {
+                    $taxAmt = round(min($lineTaxable, (float)$ld['tax_rate']), 2);
+                } elseif ($taxInclusive) {
                     $taxAmt = round($lineTaxable - ($lineTaxable / (1 + $ld['tax_rate'] / 100)), 2);
                 } else {
                     $taxAmt = round($lineTaxable * ($ld['tax_rate'] / 100), 2);

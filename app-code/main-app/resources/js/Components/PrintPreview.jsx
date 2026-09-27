@@ -539,8 +539,19 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
 
                 {data.print_qr_code && (
                     <div className="flex flex-col items-center justify-center my-4">
-                        <QRCodeSVG value={sale?.qr_payload || sale?.qr_code || (sale?.id ? `${typeof window !== 'undefined' ? window.location.origin : ''}/s/${sale.store?.slug || 'store'}/sales/${sale.id}/verify` : `https://verify.venqore.com/receipt/${data.sale_prefix || 'INV-'}1001`)} size={64} />
-                        <div className="text-3xs text-ink-muted mt-1">Scan to Verify</div>
+                        <QRCodeSVG
+                            value={
+                                sale?.fbr_qr_data ||
+                                sale?.qr_payload ||
+                                (sale?.id
+                                    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/s/${sale.store?.slug || 'store'}/sales/${sale.id}`
+                                    : `https://venqore.com/receipt/sample`)
+                            }
+                            size={64}
+                        />
+                        <div className="text-3xs text-ink-muted mt-1">
+                            {sale?.fbr_invoice_number ? 'FBR Verified Invoice' : 'Scan for Digital Receipt'}
+                        </div>
                     </div>
                 )}
 

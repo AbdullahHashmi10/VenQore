@@ -41,7 +41,24 @@ class CommunicationController extends Controller
         $metaPhoneId = \App\Helpers\SettingsHelper::get('whatsapp_phone_number_id');
         $metaApiUrl = \App\Helpers\SettingsHelper::get('whatsapp_api_url', 'https://graph.facebook.com/v17.0');
 
-        $messageText = "Your receipt for Order #{$sale->reference_number} is ready. Total: {$sale->total}";
+        $templateRaw = \App\Helpers\SettingsHelper::get('message_template_sales')
+            ?? 'Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready.';
+
+        $storeName = \App\Helpers\SettingsHelper::get('business_name', config('app.name'));
+        $currency = \App\Helpers\SettingsHelper::get('currency', 'PKR');
+        $tenantSlug = app('current.tenant')?->slug ?? '';
+        $receiptLink = route('store.sales.show', ['store_slug' => $tenantSlug, 'sale' => $sale->id]);
+
+        $messageText = str_replace(
+            ['[Firm_Name]', '[Invoice_Number]', '[Invoice_Amount]', '[Link]'],
+            [
+                $storeName,
+                $sale->reference_number,
+                $currency . ' ' . number_format((float)$sale->total, 2),
+                $receiptLink,
+            ],
+            $templateRaw
+        );
 
         // If automated Meta Cloud API is configured:
         if (!empty($metaToken) && !empty($metaPhoneId)) {

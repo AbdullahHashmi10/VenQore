@@ -79,8 +79,8 @@ export default function GeneralSettingsSection({ data, setData }) {
                     </div>
 
                     <SettingToggle
-                        label="Multi-Firm Mode"
-                        description="manage multiple business entities."
+                        label="Multi-Firm Mode (Preview)"
+                        description="Configure multiple legal business entities and branch books (Enterprise preview)."
                         checked={data.multi_firm_enabled === '1' || data.multi_firm_enabled === true}
                         onChange={(v) => setData('multi_firm_enabled', v)}
                         icon={Box}

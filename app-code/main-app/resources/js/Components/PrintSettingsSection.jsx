@@ -38,14 +38,23 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  localStorage.setItem('active_printer_subtab', tabName);
  };
 
- // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background
+ // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background & listens for Escape (U05)
  useEffect(() => {
  if (isFullScreen) {
  document.body.style.overflow = 'hidden';
+ const handleKeyDown = (e) => {
+ if (e.key === 'Escape') {
+ setIsFullScreen(false);
+ }
+ };
+ window.addEventListener('keydown', handleKeyDown);
+ return () => {
+ document.body.style.overflow = '';
+ window.removeEventListener('keydown', handleKeyDown);
+ };
  } else {
  document.body.style.overflow = '';
  }
- return () => { document.body.style.overflow = ''; };
  }, [isFullScreen]);
 
  /**
@@ -179,7 +188,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  };
 
  const content = (
- <div id="fullscreen-portal-root" className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'h-[calc(100vh-12rem)]'}`}>
+ <div id="fullscreen-portal-root" role={isFullScreen ? 'dialog' : undefined} aria-modal={isFullScreen ? 'true' : undefined} aria-label={isFullScreen ? 'Fullscreen Print Designer' : undefined} className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'min-h-[560px] h-[calc(100vh-14rem)]'}`}>
  {/* Header Toolbar */}
  <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-line bg-surface z-10">
  <div className="flex items-center gap-4">
@@ -188,12 +197,12 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <span className="font-bold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
  </div>
 
- {/* Format Tabs (Thermal vs Regular) */}
+ {/* Format Tabs (Thermal vs Regular vs B2B) */}
  <div className="flex bg-sunken rounded-lg p-1">
  <button
  type="button"
  onClick={() => handleSubtabChange('regular')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab !== 'thermal'
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${(!data._print_tab || data._print_tab === 'regular')
  ? 'bg-sunken text-brand-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -207,6 +216,15 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
  Thermal / POS
+ </button>
+ <button
+ type="button"
+ onClick={() => handleSubtabChange('b2b')}
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'b2b'
+ ? 'bg-sunken text-indigo-600 shadow-sm'
+ : 'text-ink-muted hover:text-ink-secondary'}`}
+ >
+ Invoice &amp; PDF (B2B)
  </button>
  </div>
  </div>
@@ -298,9 +316,11 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  {/* Scrollable Settings Sidebar */}
  <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
  <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
- {data._print_tab !== 'thermal'
- ? <RegularSettings data={data} setData={setData} />
- : <ThermalSettings data={data} setData={setData} />
+ {data._print_tab === 'thermal'
+ ? <ThermalSettings data={data} setData={setData} />
+ : data._print_tab === 'b2b'
+ ? <B2BSettings data={data} setData={setData} />
+ : <RegularSettings data={data} setData={setData} />
  }
  </div>
  </div>
@@ -824,3 +844,62 @@ const LogoUploader = ({ data, setData }) => (
  </div>
  </div>
 );
+
+const B2BSettings = ({ data, setData }) => {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-fast">
+      <div>
+        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">Invoice &amp; PDF Styling (B2B)</h4>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Invoice Template Theme</label>
+            <select
+              value={data.invoice_theme || 'classic'}
+              onChange={(e) => setData('invoice_theme', e.target.value)}
+              className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+            >
+              <option value="classic">Classic Minimalist</option>
+              <option value="modern">Modern Professional</option>
+              <option value="elegant">Elegant Serif</option>
+            </select>
+            <p className="text-2xs text-ink-muted">Choose the layout aesthetic for downloadable B2B invoices and statements.</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Primary Brand Color</label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="color"
+                value={data.invoice_primary_color || '#4f46e5'}
+                onChange={(e) => setData('invoice_primary_color', e.target.value)}
+                className="h-9 w-12 bg-app border border-line rounded-lg cursor-pointer p-0.5"
+              />
+              <input
+                type="text"
+                value={data.invoice_primary_color || '#4f46e5'}
+                onChange={(e) => setData('invoice_primary_color', e.target.value)}
+                className="flex-1 px-3 py-2 bg-app border border-line rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-brand-500 outline-none"
+              />
+            </div>
+            <p className="text-2xs text-ink-muted">Applied to header accents, table headers, and primary totals.</p>
+          </div>
+
+          <div className="pt-4 border-t border-line">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <span className="text-xs font-bold text-ink block">Show Margin on Invoices</span>
+                <span className="text-2xs text-ink-muted">Display item cost profit margin on generated B2B invoices</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={data.show_margin_on_invoice === '1' || data.show_margin_on_invoice === true}
+                onChange={(e) => setData('show_margin_on_invoice', e.target.checked)}
+                className="w-4 h-4 accent-brand-500 rounded border-line focus:ring-brand-500"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

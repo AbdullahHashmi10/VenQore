@@ -49,24 +49,69 @@ export default function TaxSettingsSection({ data, setData }) {
                 </button>
             </div>
 
-            {/* Default Tax Rate Selector */}
-            <div className="p-6 bg-surface rounded-xl border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h3 className="text-base font-bold text-ink">Default Tax Rate</h3>
-                    <p className="text-xs text-ink-muted">Choose which tax rate is automatically applied to new sales and invoices.</p>
+            {/* Default Tax Rate & Basis Selectors (M09) */}
+            <div className="p-6 bg-surface rounded-xl border border-line space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 className="text-base font-bold text-ink">Default Tax Rate</h3>
+                        <p className="text-xs text-ink-muted">Choose which tax rate is automatically applied to new sales and invoices.</p>
+                    </div>
+                    <select
+                        value={data.default_tax_id ? String(data.default_tax_id) : (data.default_tax_rate || '0')}
+                        onChange={(e) => {
+                            const selectedId = e.target.value;
+                            if (selectedId === '0') {
+                                setData(d => ({ ...d, default_tax_rate: '0', default_tax_id: '' }));
+                            } else {
+                                const found = (data.tax_rates || []).find(t => String(t.id) === selectedId || String(t.rate) === selectedId);
+                                setData(d => ({
+                                    ...d,
+                                    default_tax_rate: found ? String(found.rate) : selectedId,
+                                    default_tax_id: found ? String(found.id) : selectedId
+                                }));
+                            }
+                        }}
+                        className="px-4 py-2.5 bg-app border border-line rounded-xl font-bold text-sm text-ink focus:ring-2 focus:ring-emerald-500 outline-none w-full md:w-64 cursor-pointer"
+                    >
+                        <option value="0">No Default Tax (0%)</option>
+                        {(data.tax_rates || []).map((t) => (
+                            <option key={t.id} value={String(t.id)}>
+                                {t.name} ({t.type === 'fixed' ? `${t.rate} Fixed` : `${t.rate}%`})
+                            </option>
+                        ))}
+                    </select>
                 </div>
-                <select
-                    value={data.default_tax_rate || '0'}
-                    onChange={(e) => setData('default_tax_rate', e.target.value)}
-                    className="px-4 py-2.5 bg-app border border-line rounded-xl font-bold text-sm text-ink focus:ring-2 focus:ring-emerald-500 outline-none w-full md:w-64 cursor-pointer"
-                >
-                    <option value="0">No Default Tax (0%)</option>
-                    {(data.tax_rates || []).map((t) => (
-                        <option key={t.id} value={String(t.rate)}>
-                            {t.name} ({t.type === 'fixed' ? `${t.rate} Fixed` : `${t.rate}%`})
-                        </option>
-                    ))}
-                </select>
+
+                <div className="pt-4 border-t border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 className="text-base font-bold text-ink">Default Pricing Tax Basis</h3>
+                        <p className="text-xs text-ink-muted">Specify whether catalog item prices are treated as tax-exclusive or tax-inclusive by default.</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setData('default_tax_basis', 'exclusive')}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                (data.default_tax_basis || 'exclusive') === 'exclusive'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-app text-ink-muted hover:text-ink border border-line'
+                            }`}
+                        >
+                            Exclusive (Added on top)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setData('default_tax_basis', 'inclusive')}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                                data.default_tax_basis === 'inclusive'
+                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                    : 'bg-app text-ink-muted hover:text-ink border border-line'
+                            }`}
+                        >
+                            Inclusive (Included in price)
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Tax Grid */}

@@ -98,9 +98,12 @@ describe('Settings Safe Numeric & JSON Parsers', () => {
 
 describe('Settings Allowlist and Value Normalization Engine', () => {
     const validApprovalDocTypes = [
-        'sale', 'purchase', 'quotation', 'credit_note', 'debit_note', 'expense',
-        'transfer', 'adjustment', 'refund', 'production_run', 'cheque',
-        'capital_injection', 'owner_drawings', 'fund_transfer', 'purchase_return',
+        'customer_receipt', 'customer_refund', 'supplier_payment', 'sales_invoice',
+        'operating_expense', 'supplier_refund', 'purchase_posting', 'sales_return',
+        'purchase_return', 'capital_injection', 'owner_drawings', 'fund_transfer',
+        'balance_adjustment', 'sale', 'purchase', 'quotation', 'credit_note',
+        'debit_note', 'expense', 'transfer', 'adjustment', 'refund',
+        'production_run', 'cheque',
     ];
 
     const isDynamicApprovalKey = (key) => {
@@ -143,7 +146,10 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
 
     it('identifies and validates dynamic approval document keys strictly', () => {
         expect(isDynamicApprovalKey('approval_policy_sale')).toBe(true);
+        expect(isDynamicApprovalKey('approval_policy_sales_invoice')).toBe(true);
+        expect(isDynamicApprovalKey('approval_policy_customer_receipt')).toBe(true);
         expect(isDynamicApprovalKey('approval_threshold_purchase')).toBe(true);
+        expect(isDynamicApprovalKey('approval_threshold_supplier_payment')).toBe(true);
         expect(isDynamicApprovalKey('approval_user_expense')).toBe(true);
         expect(isDynamicApprovalKey('approval_policy_arbitrary_injected_table')).toBe(false);
         expect(isDynamicApprovalKey('approval_unknown_key')).toBe(false);
@@ -167,6 +173,50 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         expect(normalizeSettingValue('fbr_mode', 'untrusted_mode')).toBe('sandbox');
         expect(normalizeSettingValue('approval_policy_sale', 'maker_checker')).toBe('maker_checker');
         expect(normalizeSettingValue('approval_policy_sale', 'malicious_mode')).toBe('inherit');
+    });
+
+    it('computes tax correctly for both percentage and fixed tax modes (S09/M09)', () => {
+        const computeTax = (taxable, rate, type, mode) => {
+            if (rate <= 0) return 0;
+            if (type === 'fixed') {
+                return Math.min(taxable, Number(rate));
+            }
+            if (mode === 'inclusive') {
+                return Math.round((taxable - (taxable / (1 + rate / 100))) * 100) / 100;
+            }
+            return Math.round(((taxable * rate) / 100) * 100) / 100;
+        };
+
+        // Percentage exclusive
+        expect(computeTax(100, 18, 'percentage', 'exclusive')).toBe(18);
+        // Percentage inclusive: 118 with 18% inclusive tax gives 18 tax
+        expect(computeTax(118, 18, 'percentage', 'inclusive')).toBe(18);
+        // Fixed tax: fixed $15 levy on $100 taxable gives $15
+        expect(computeTax(100, 15, 'fixed', 'exclusive')).toBe(15);
+        // Fixed tax cannot exceed taxable base
+        expect(computeTax(10, 50, 'fixed', 'exclusive')).toBe(10);
+    });
+
+    it('scopes preferences and rescue keys per tenant (S15)', () => {
+        const buildKey = (base, tenant, user, device) => `${base}.${tenant || 'default'}.${user || 'anon'}.${device || 'this'}`;
+
+        const storeAKey = buildKey('venqore.newpos.prefs.v1', 'store-a', 'user-1', 'dev-1');
+        const storeBKey = buildKey('venqore.newpos.prefs.v1', 'store-b', 'user-1', 'dev-1');
+
+        expect(storeAKey).toBe('venqore.newpos.prefs.v1.store-a.user-1.dev-1');
+        expect(storeBKey).toBe('venqore.newpos.prefs.v1.store-b.user-1.dev-1');
+        expect(storeAKey).not.toBe(storeBKey);
+    });
+
+    it('replaces WhatsApp message template variables accurately', () => {
+        const template = 'Greetings from [Firm_Name]. Invoice [Invoice_Number] for [Invoice_Amount] is ready. Link: [Link]';
+        const rendered = template
+            .replace('[Firm_Name]', 'AMD Store')
+            .replace('[Invoice_Number]', 'INV-1002')
+            .replace('[Invoice_Amount]', 'PKR 2,500.00')
+            .replace('[Link]', 'https://pos.test/s/amd/sales/5');
+
+        expect(rendered).toBe('Greetings from AMD Store. Invoice INV-1002 for PKR 2,500.00 is ready. Link: https://pos.test/s/amd/sales/5');
     });
 });
 
