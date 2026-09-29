@@ -175,7 +175,8 @@ export default function MarginCalculator({ toolGroups = [] }) {
         return { cost: outCost, price: outPrice, margin: outMargin, markup: outMarkup, error, drivers };
     }, [cost, price, margin, markup, lastEdited]);
 
-    const fmtMoney = (v) => (v === null || v === undefined || Number.isNaN(v) || !Number.isFinite(v)) ? '—' : `${sym}${round2(v).toFixed(2)}`;
+    const dec = Number(window?.amdSettings?.decimal_places ?? 2);
+    const fmtMoney = (v) => (v === null || v === undefined || Number.isNaN(v) || !Number.isFinite(v)) ? '—' : `${sym}${Number(round2(v)).toFixed(dec)}`;
     const fmtPct = (v) => (v === null || v === undefined || Number.isNaN(v) || !Number.isFinite(v)) ? '—' : `${round2(v).toFixed(2)}%`;
 
     /* ── Target price mode ───────────────────────────────────────────── */

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
-import { getCurrencySymbol } from '@/Utils/format';
+import PremiumSelect from '@/Components/PremiumSelect';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import {
     FileText, ArrowLeft, Download, Search, Building2
 } from 'lucide-react';
 
-const formatCurrency = (val) =>
-    (getCurrencySymbol()) + ' ' + (new Intl.NumberFormat('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0));
-
 export default function IncomingRegister({ cheques, bankAccounts = [], parties = [], filters = {} }) {
+    const { store } = usePage().props;
+    const storeSlug = store?.slug;
     const [search, setSearch] = useState(filters.search || '');
     const [selectedBank, setSelectedBank] = useState(filters.deposit_bank_account_id || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || '');
@@ -19,7 +19,7 @@ export default function IncomingRegister({ cheques, bankAccounts = [], parties =
     const [toDate, setToDate] = useState(filters.to_date || '');
 
     const handleFilterChange = (newFilters) => {
-        router.get(route('store.banking.reports.incoming-cheques'), {
+        router.get(route('store.banking.reports.incoming-cheques', { store_slug: storeSlug }), {
             search: newFilters.search !== undefined ? newFilters.search : search,
             deposit_bank_account_id: newFilters.deposit_bank_account_id !== undefined ? newFilters.deposit_bank_account_id : selectedBank,
             status: newFilters.status !== undefined ? newFilters.status : selectedStatus,
@@ -39,126 +39,114 @@ export default function IncomingRegister({ cheques, bankAccounts = [], parties =
             from_date: fromDate,
             to_date: toDate,
         });
-        window.location.href = `${route('store.banking.reports.incoming-cheques')}?${params.toString()}`;
+        window.location.href = `${route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}?${params.toString()}`;
     };
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout title="Incoming Cheque Register" activeMenu="Money">
             <Head title="Incoming Cheque Register" />
 
-            <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href={route('store.banking.received-cheques.index')}
-                            className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 text-neutral-600 dark:text-neutral-300"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                                <FileText className="w-6 h-6 text-brand-600" />
-                                Incoming Cheque Register
-                            </h1>
-                            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                Detailed chronological log of all cheques received from customers.
-                            </p>
-                        </div>
-                    </div>
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                {/* Line 1: Module Navigation Tabs */}
+                <MoneyModuleTabs activeTab="received-cheques" className="!mb-0" />
 
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={handleExport}
-                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-neutral-700 dark:text-neutral-200 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 shadow-sm transition-colors"
-                        >
-                            <Download className="w-4 h-4" />
-                            Export CSV
-                        </button>
-                    </div>
-                </div>
-
-                {/* Subnavigation Tabs */}
-                <MoneyModuleTabs activeTab="received-cheques" />
-
-                {/* Secondary navigation for Cheque reports */}
-                <div className="flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-700 pb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-2">Reports:</span>
+                {/* Line 2: Reports Sub-nav pills */}
+                <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex items-center gap-2 overflow-x-auto shrink-0">
+                    <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted shrink-0">Reports:</span>
                     <Link
-                        href={route('store.banking.reports.outgoing-cheques')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Outgoing Register
                     </Link>
                     <Link
-                        href={route('store.banking.reports.incoming-cheques')}
-                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                        href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 shrink-0"
                     >
                         Incoming Register
                     </Link>
                     <Link
-                        href={route('store.banking.reports.cheque-utilization')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.cheque-utilization', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Chequebook Utilization
                     </Link>
                     <Link
-                        href={route('store.banking.reports.post-dated-cheques')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.post-dated-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Post-Dated Cheques
                     </Link>
                 </div>
 
-                {/* Filter Controls */}
-                <div className="bg-white dark:bg-neutral-800 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                    <div className="relative sm:col-span-2">
-                        <Search className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
-                        <input
-                            type="text"
-                            placeholder="Search cheque #, drawer bank..."
-                            value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
-                                handleFilterChange({ search: e.target.value });
+                {/* Line 3: Compact Header & Filter Row */}
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={route('store.banking.received-cheques.index', { store_slug: storeSlug })}
+                            className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                        </Link>
+                        <h1 className="text-base font-bold text-ink uppercase tracking-tight">
+                            Incoming <span className="text-brand-600">Register</span>
+                        </h1>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative w-40 sm:w-56">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                            <input
+                                type="text"
+                                placeholder="Search cheque #, bank..."
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    handleFilterChange({ search: e.target.value });
+                                }}
+                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
+                            />
+                        </div>
+
+                    <div>
+                        <PremiumSelect
+                            value={selectedStatus}
+                            onChange={(val) => {
+                                setSelectedStatus(val);
+                                handleFilterChange({ status: val });
                             }}
-                            className="w-full pl-9 pr-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm"
+                            options={[
+                                { value: '', label: 'All Statuses' },
+                                { value: 'received', label: 'In Hand' },
+                                { value: 'deposited', label: 'Deposited' },
+                                { value: 'cleared', label: 'Cleared' },
+                                { value: 'bounced', label: 'Bounced' },
+                                { value: 'returned', label: 'Returned' }
+                            ]}
+                            placeholder="All Statuses"
+                            inputClassName="!rounded-full !py-2 !px-4 !bg-neutral-50 dark:!bg-neutral-900/50 !border-neutral-200 dark:!border-neutral-700 text-xs sm:text-sm font-medium"
+                            className="w-full"
                         />
                     </div>
 
                     <div>
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => {
-                                setSelectedStatus(e.target.value);
-                                handleFilterChange({ status: e.target.value });
-                            }}
-                            className="w-full py-2 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm"
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="received">In Hand</option>
-                            <option value="deposited">Deposited</option>
-                            <option value="cleared">Cleared</option>
-                            <option value="bounced">Bounced</option>
-                            <option value="returned">Returned</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <select
+                        <PremiumSelect
                             value={selectedParty}
-                            onChange={(e) => {
-                                setSelectedParty(e.target.value);
-                                handleFilterChange({ party_id: e.target.value });
+                            onChange={(val) => {
+                                setSelectedParty(val);
+                                handleFilterChange({ party_id: val });
                             }}
-                            className="w-full py-2 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 text-sm"
-                        >
-                            <option value="">All Customers</option>
-                            {parties.map((p) => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
+                            options={[
+                                { value: '', label: 'All Customers' },
+                                ...parties.map((p) => ({
+                                    value: String(p.id),
+                                    label: p.name
+                                }))
+                            ]}
+                            placeholder="All Customers"
+                            inputClassName="!rounded-full !py-2 !px-4 !bg-neutral-50 dark:!bg-neutral-900/50 !border-neutral-200 dark:!border-neutral-700 text-xs sm:text-sm font-medium"
+                            className="w-full"
+                        />
                     </div>
 
                     <div className="sm:col-span-2 flex items-center gap-1">
@@ -186,8 +174,8 @@ export default function IncomingRegister({ cheques, bankAccounts = [], parties =
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+                {/* Line 4: Full Width Table */}
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-300">
                             <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
@@ -247,6 +235,7 @@ export default function IncomingRegister({ cheques, bankAccounts = [], parties =
                         </table>
                     </div>
                 </div>
+            </div>
             </div>
         </OneGlanceLayout>
     );

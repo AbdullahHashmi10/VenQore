@@ -1402,7 +1402,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  <label className="block text-2xs font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Current Liquidity</label>
  <div className="flex items-center justify-between h-12 px-4 rounded-xl bg-surface border border-line shadow-sm">
  <span className="text-sm font-bold text-ink-secondary">Cash in Hand</span>
- <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{getCurrencySymbol()} {cashBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+ <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(cashBalance || 0)}</span>
  </div>
  </div>
  )}

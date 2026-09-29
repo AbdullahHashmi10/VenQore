@@ -25,17 +25,14 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
  const [isFullScreen, setIsFullScreen] = useState(false);
  const [previewMode, setPreviewMode] = useState('light'); // 'light' | 'dark'
+ const [activePrintTab, setActivePrintTab] = useState(() => {
+   const saved = typeof window !== 'undefined' ? window.localStorage.getItem('active_printer_subtab') : null;
+   return ['thermal', 'regular', 'b2b', 'hardware'].includes(saved) ? saved : 'regular';
+ });
 
  // Persist printer sub-tab selection (thermal vs regular) across refreshes
- useEffect(() => {
- const storedTab = localStorage.getItem('active_printer_subtab');
- if (storedTab && ['thermal', 'regular', 'b2b', 'hardware'].includes(storedTab)) {
- setData('_print_tab', storedTab);
- }
- }, []);
-
  const handleSubtabChange = (tabName) => {
- setData('_print_tab', tabName);
+ setActivePrintTab(tabName);
  localStorage.setItem('active_printer_subtab', tabName);
  };
 
@@ -65,7 +62,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  * This guarantees 100% identical output between what you see in the preview and what prints.
  */
  const handleTestPrint = (currentData) => {
- const type = currentData._print_tab === 'thermal' ? 'thermal' : 'regular';
+ const type = activePrintTab === 'thermal' ? 'thermal' : 'regular';
  const isThermal = type === 'thermal';
 
  // Determine paper/window dimensions (mirrors PrintPreview logic)
@@ -195,7 +192,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <div className="flex items-center gap-4">
  <div className="flex items-center gap-2 text-ink">
  <Printer size={18} className="text-brand-500" />
- <span className="font-bold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
+ <span className="font-bold text-sm tracking-tight">Print preview</span>
  </div>
 
  {/* Format Tabs (Thermal vs Regular vs B2B) */}
@@ -203,7 +200,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('regular')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${(!data._print_tab || data._print_tab === 'regular')
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'regular'
  ? 'bg-sunken text-brand-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -212,7 +209,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('thermal')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'thermal'
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'thermal'
  ? 'bg-sunken text-emerald-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -221,7 +218,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('b2b')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'b2b'
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'b2b'
  ? 'bg-sunken text-indigo-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -230,7 +227,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('hardware')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'hardware'
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'hardware'
  ? 'bg-sunken text-amber-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -326,11 +323,11 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  {/* Scrollable Settings Sidebar */}
  <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
  <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
- {data._print_tab === 'thermal'
+ {activePrintTab === 'thermal'
  ? <ThermalSettings data={data} setData={setData} />
- : data._print_tab === 'b2b'
+ : activePrintTab === 'b2b'
  ? <B2BSettings data={data} setData={setData} />
- : data._print_tab === 'hardware'
+ : activePrintTab === 'hardware'
  ? <HardwareSettings data={data} setData={setData} />
  : <RegularSettings data={data} setData={setData} />
  }
@@ -342,7 +339,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <div className={`transform transition-all duration-slow ${sidebarCollapsed ? 'scale-100' : 'scale-95 origin-top'}`}>
  <PrintPreview
  data={data}
- type={data._print_tab === 'thermal' ? 'thermal' : 'regular'}
+ type={activePrintTab === 'thermal' ? 'thermal' : 'regular'}
  mode={previewMode}
  />
  </div>
@@ -455,7 +452,7 @@ const RegularSettings = ({ data, setData }) => {
  </Section>
 
  <Section title="Header Content" icon={FileText}>
- <TextInput label="Company Name" value={data.business_name} onChange={v => setData('business_name', v)} />
+ <div className="text-xs text-ink-muted">Business name: <strong className="text-ink">{data.business_name}</strong>. Change it in Business Profile.</div>
  <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} />
  <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} />
 

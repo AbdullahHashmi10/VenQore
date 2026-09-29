@@ -62,9 +62,11 @@ function round2(n) {
     return Math.round(n * 100) / 100;
 }
 
-function formatMoney(amount, currencySym) {
-    if (!Number.isFinite(amount)) return `${currencySym}0.00`;
-    return `${currencySym}${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatMoney(amount, currencySym, decimals = null) {
+    const d = decimals !== null ? decimals : parseInt(typeof window !== 'undefined' ? window.amdSettings?.decimal_places ?? 2 : 2, 10);
+    const validD = isNaN(d) ? 2 : d;
+    if (!Number.isFinite(amount)) return `${currencySym}${(0).toFixed(validD)}`;
+    return `${currencySym}${amount.toLocaleString(undefined, { minimumFractionDigits: validD, maximumFractionDigits: validD })}`;
 }
 
 /**

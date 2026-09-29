@@ -1,101 +1,77 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
-import { getCurrencySymbol } from '@/Utils/format';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import {
     Calendar, ArrowLeft, ArrowUpRight, ArrowDownLeft
 } from 'lucide-react';
 
-const formatCurrency = (val) =>
-    (getCurrencySymbol()) + ' ' + (new Intl.NumberFormat('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0));
-
 export default function PostDatedCheques({ outgoing = [], incoming = [] }) {
+    const { store } = usePage().props;
+    const storeSlug = store?.slug;
     const [activeTab, setActiveTab] = useState('all'); // 'all' | 'outgoing' | 'incoming'
 
     const totalOutgoing = outgoing.reduce((sum, o) => sum + (parseFloat(o.amount) || 0), 0);
     const totalIncoming = incoming.reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
 
     return (
-        <OneGlanceLayout>
-            <Head title="Post-Dated Cheques (PDC) Schedule" />
+        <OneGlanceLayout title="Post-Dated Cheques" activeMenu="Money">
+            <Head title="Post-Dated Cheques" />
 
-            <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Header */}
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                {/* Line 1: Module Navigation Tabs */}
+                <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
+
+                {/* Line 2: Reports Sub-nav pills */}
+                <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex items-center gap-2 overflow-x-auto shrink-0">
+                    <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted shrink-0">Reports:</span>
                     <Link
-                        href={route('store.banking.cheque-books.index')}
-                        className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 text-neutral-600 dark:text-neutral-300"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                            <Calendar className="w-6 h-6 text-brand-600" />
-                            Post-Dated Cheques (PDC) Schedule
-                        </h1>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                            Upcoming liquidity commitments and receivables maturing in the future.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Subnavigation Tabs */}
-                <MoneyModuleTabs activeTab="cheque-books" />
-
-                {/* Secondary navigation for Cheque reports */}
-                <div className="flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-700 pb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-2">Reports:</span>
-                    <Link
-                        href={route('store.banking.reports.outgoing-cheques')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Outgoing Register
                     </Link>
                     <Link
-                        href={route('store.banking.reports.incoming-cheques')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Incoming Register
                     </Link>
                     <Link
-                        href={route('store.banking.reports.cheque-utilization')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.cheque-utilization', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Chequebook Utilization
                     </Link>
                     <Link
-                        href={route('store.banking.reports.post-dated-cheques')}
-                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                        href={route('store.banking.reports.post-dated-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 shrink-0"
                     >
                         Post-Dated Cheques
                     </Link>
                 </div>
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-white dark:bg-neutral-800 border border-blue-200 dark:border-blue-800/40 shadow-sm flex items-center justify-between">
+                {/* Line 3: 2 Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 shrink-0">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-                                <ArrowUpRight className="w-4 h-4" /> Outgoing PDCs (Due to Vendors)
+                            <p className="text-2xs font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1">
+                                <ArrowUpRight size={14} /> Outgoing PDCs (Vendor Obligations)
                             </p>
-                            <p className="text-2xl font-mono font-bold text-neutral-900 dark:text-neutral-100 mt-1">
-                                {formatCurrency(totalOutgoing)}
-                            </p>
-                            <p className="text-xs text-neutral-500 mt-0.5">{outgoing.length} cheques pending maturity</p>
+                            <p className="text-base font-bold text-ink mt-0.5">{formatCurrency(totalOutgoing)}</p>
                         </div>
+                        <span className="text-xs font-bold text-ink-muted">{outgoing.length} cheques</span>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-white dark:bg-neutral-800 border border-emerald-200 dark:border-emerald-800/40 shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                                <ArrowDownLeft className="w-4 h-4" /> Incoming PDCs (Due from Customers)
+                            <p className="text-2xs font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
+                                <ArrowDownLeft size={14} /> Incoming PDCs (Customer Receivables)
                             </p>
-                            <p className="text-2xl font-mono font-bold text-neutral-900 dark:text-neutral-100 mt-1">
-                                {formatCurrency(totalIncoming)}
-                            </p>
-                            <p className="text-xs text-neutral-500 mt-0.5">{incoming.length} cheques awaiting deposit/clearance</p>
+                            <p className="text-base font-bold text-ink mt-0.5">{formatCurrency(totalIncoming)}</p>
                         </div>
+                        <span className="text-xs font-bold text-ink-muted">{incoming.length} cheques</span>
                     </div>
                 </div>
 

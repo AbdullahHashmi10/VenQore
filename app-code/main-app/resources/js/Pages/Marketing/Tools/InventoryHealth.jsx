@@ -51,7 +51,8 @@ export default function InventoryHealth({ toolGroups = [] }) {
     const resultCardCls = 'p-4 rounded-2xl vq-tool-inset text-center';
 
     const fmtNum = (v, digits = 0) => (v === null || v === undefined || !Number.isFinite(v)) ? '—' : v.toLocaleString(undefined, { maximumFractionDigits: digits });
-    const fmtMoney = (v) => (v === null || v === undefined || !Number.isFinite(v)) ? '—' : `${sym}${round2(v).toFixed(2)}`;
+    const dec = Number(window?.amdSettings?.decimal_places ?? 2);
+    const fmtMoney = (v) => (v === null || v === undefined || !Number.isFinite(v)) ? '—' : `${sym}${Number(round2(v)).toFixed(dec)}`;
 
     /* ── 2. Safety Stock (computed first so Reorder Point can carry it over) ── */
     const [maxDailySales, setMaxDailySales] = useState('35');

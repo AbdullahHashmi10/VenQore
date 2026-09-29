@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
-import { getCurrencySymbol } from '@/Utils/format';
+import PremiumSelect from '@/Components/PremiumSelect';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import {
     BookOpen, ArrowLeft, Building2, Search, CheckCircle2,
     Clock, AlertTriangle, XCircle, Ban, Filter, ShieldCheck
 } from 'lucide-react';
 
-const formatCurrency = (val) =>
-    (getCurrencySymbol()) + ' ' + (new Intl.NumberFormat('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0));
-
 export default function ChequeBookShow({ chequeBook, leaves, filters = {} }) {
+    const { store } = usePage().props;
+    const storeSlug = store?.slug;
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || '');
     const [modalAction, setModalAction] = useState(null); // { type: 'void'|'stop'|'bounce'|'clear', leaf }
@@ -20,7 +20,7 @@ export default function ChequeBookShow({ chequeBook, leaves, filters = {} }) {
     const [submitting, setSubmitting] = useState(false);
 
     const handleFilterChange = (newFilters) => {
-        router.get(route('store.banking.cheque-books.show', chequeBook.id), {
+        router.get(route('store.banking.cheque-books.show', { store_slug: storeSlug, id: chequeBook.id }), {
             search: newFilters.search !== undefined ? newFilters.search : search,
             status: newFilters.status !== undefined ? newFilters.status : statusFilter,
         }, { preserveState: true, replace: true });
@@ -37,16 +37,16 @@ export default function ChequeBookShow({ chequeBook, leaves, filters = {} }) {
         let payload = {};
 
         if (type === 'void') {
-            url = route('store.banking.cheque-leaves.void', leaf.id);
+            url = route('store.banking.cheque-leaves.void', { store_slug: storeSlug, id: leaf.id });
             payload = { reason: actionReason };
         } else if (type === 'stop') {
-            url = route('store.banking.cheque-leaves.stop', leaf.id);
+            url = route('store.banking.cheque-leaves.stop', { store_slug: storeSlug, id: leaf.id });
             payload = { reason: actionReason };
         } else if (type === 'clear') {
-            url = route('store.banking.cheque-leaves.clear', leaf.id);
+            url = route('store.banking.cheque-leaves.clear', { store_slug: storeSlug, id: leaf.id });
             payload = { clear_date: actionDate };
         } else if (type === 'bounce') {
-            url = route('store.banking.cheque-leaves.bounce', leaf.id);
+            url = route('store.banking.cheque-leaves.bounce', { store_slug: storeSlug, id: leaf.id });
             payload = { reason: actionReason, bounce_date: actionDate };
         }
 
@@ -81,129 +81,116 @@ export default function ChequeBookShow({ chequeBook, leaves, filters = {} }) {
     };
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout title={`Chequebook ${chequeBook.series_prefix ? chequeBook.series_prefix + '-' : ''}${chequeBook.start_number}`} activeMenu="Money">
             <Head title={`Chequebook ${chequeBook.series_prefix ? chequeBook.series_prefix + '-' : ''}${chequeBook.start_number}`} />
 
-            <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href={route('store.banking.cheque-books.index')}
-                            className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 text-neutral-600 dark:text-neutral-300 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                                <BookOpen className="w-6 h-6 text-brand-600" />
-                                Chequebook: {chequeBook.series_prefix ? `${chequeBook.series_prefix}-` : ''}
-                                {String(chequeBook.start_number).padStart(chequeBook.padding_zeros || 6, '0')} ... {String(chequeBook.end_number).padStart(chequeBook.padding_zeros || 6, '0')}
-                            </h1>
-                            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                                {chequeBook.bank_account?.name} ({chequeBook.bank_account?.bank_name})
-                                {chequeBook.bank_account?.account_number ? ` • Account #${chequeBook.bank_account.account_number}` : ''}
-                            </p>
-                        </div>
-                    </div>
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                {/* Line 1: Navigation Tabs */}
+                <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
 
-                    <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                            chequeBook.status === 'active'
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-300'
-                        }`}>
-                            {chequeBook.status}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Subnavigation Tabs */}
-                <MoneyModuleTabs activeTab="cheque-books" />
-
-                {/* Metric Summary Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-                        <p className="text-2xs font-bold uppercase tracking-wider text-neutral-500">Total Leaves</p>
-                        <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mt-1">
+                {/* Line 2: Metric Summary Cards Row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1 shrink-0">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                        <p className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Total Leaves</p>
+                        <p className="text-base font-bold text-ink mt-0.5">
                             {chequeBook.total_leaves_count || chequeBook.total_leaves}
                         </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-emerald-200 dark:border-emerald-800/40 shadow-sm">
-                        <p className="text-2xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Available</p>
-                        <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                        <p className="text-2xs font-bold uppercase tracking-wider text-emerald-600">Available</p>
+                        <p className="text-base font-bold text-emerald-600 mt-0.5">
                             {chequeBook.available_leaves_count || 0}
                         </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-800/40 shadow-sm">
-                        <p className="text-2xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Reserved</p>
-                        <p className="text-xl font-bold text-amber-700 dark:text-amber-300 mt-1">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                        <p className="text-2xs font-bold uppercase tracking-wider text-amber-600">Reserved</p>
+                        <p className="text-base font-bold text-amber-600 mt-0.5">
                             {chequeBook.reserved_leaves_count || 0}
                         </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-blue-200 dark:border-blue-800/40 shadow-sm">
-                        <p className="text-2xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Issued</p>
-                        <p className="text-xl font-bold text-blue-700 dark:text-blue-300 mt-1">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                        <p className="text-2xs font-bold uppercase tracking-wider text-blue-600">Issued</p>
+                        <p className="text-base font-bold text-blue-600 mt-0.5">
                             {chequeBook.issued_leaves_count || 0}
                         </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-purple-200 dark:border-purple-800/40 shadow-sm">
-                        <p className="text-2xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Cleared</p>
-                        <p className="text-xl font-bold text-purple-700 dark:text-purple-300 mt-1">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                        <p className="text-2xs font-bold uppercase tracking-wider text-purple-600">Cleared</p>
+                        <p className="text-base font-bold text-purple-600 mt-0.5">
                             {chequeBook.cleared_leaves_count || 0}
                         </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-red-200 dark:border-red-800/40 shadow-sm">
-                        <p className="text-2xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">Bounced</p>
-                        <p className="text-xl font-bold text-red-700 dark:text-red-300 mt-1">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                        <p className="text-2xs font-bold uppercase tracking-wider text-rose-600">Bounced</p>
+                        <p className="text-base font-bold text-rose-600 mt-0.5">
                             {chequeBook.bounced_leaves_count || 0}
                         </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-sm">
-                        <p className="text-2xs font-bold uppercase tracking-wider text-neutral-500">Void / Stopped</p>
-                        <p className="text-xl font-bold text-neutral-700 dark:text-neutral-300 mt-1">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                        <p className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Void / Stop</p>
+                        <p className="text-base font-bold text-ink-muted mt-0.5">
                             {(chequeBook.void_leaves_count || 0) + (chequeBook.stopped_leaves_count || 0)}
                         </p>
                     </div>
                 </div>
 
-                {/* Filters */}
-                <div className="bg-white dark:bg-neutral-800 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm flex flex-col md:flex-row items-center gap-3">
-                    <div className="relative flex-1 w-full">
-                        <Search className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
-                        <input
-                            type="text"
-                            placeholder="Search cheque number, payee name, notes..."
-                            value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
-                                handleFilterChange({ search: e.target.value });
-                            }}
-                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50 text-sm text-neutral-900 dark:text-neutral-100"
-                        />
+                {/* Line 3: Header & Filter Controls Row */}
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={route('store.banking.cheque-books.index', { store_slug: storeSlug })}
+                            className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                        </Link>
+                        <div>
+                            <h1 className="text-base font-bold text-ink uppercase tracking-tight">
+                                Book: <span className="text-brand-600">{chequeBook.series_prefix ? `${chequeBook.series_prefix}-` : ''}
+                                {String(chequeBook.start_number).padStart(chequeBook.padding_zeros || 6, '0')} ... {String(chequeBook.end_number).padStart(chequeBook.padding_zeros || 6, '0')}</span>
+                            </h1>
+                        </div>
                     </div>
 
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => {
-                            setStatusFilter(e.target.value);
-                            handleFilterChange({ status: e.target.value });
-                        }}
-                        className="py-2 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50 text-sm text-neutral-900 dark:text-neutral-100 w-full md:w-auto"
-                    >
-                        <option value="">All Leaf Statuses</option>
-                        <option value="available">Available</option>
-                        <option value="reserved">Reserved</option>
-                        <option value="issued">Issued</option>
-                        <option value="cleared">Cleared</option>
-                        <option value="bounced">Bounced</option>
-                        <option value="stopped">Stopped</option>
-                        <option value="void">Void</option>
-                    </select>
+                    <div className="flex items-center gap-2">
+                        <div className="relative w-48 sm:w-64">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                            <input
+                                type="text"
+                                placeholder="Search leaf #, payee..."
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    handleFilterChange({ search: e.target.value });
+                                }}
+                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
+                            />
+                        </div>
+
+                        <PremiumSelect
+                            value={statusFilter}
+                            onChange={(val) => {
+                                setStatusFilter(val);
+                                handleFilterChange({ status: val });
+                            }}
+                            options={[
+                                { value: '', label: 'All Leaf Statuses' },
+                                { value: 'available', label: 'Available' },
+                                { value: 'reserved', label: 'Reserved' },
+                                { value: 'issued', label: 'Issued' },
+                                { value: 'cleared', label: 'Cleared' },
+                                { value: 'bounced', label: 'Bounced' },
+                                { value: 'stopped', label: 'Stopped' },
+                                { value: 'void', label: 'Void' }
+                            ]}
+                            placeholder="All Leaf Statuses"
+                            inputClassName="!py-1.5 !px-3 !bg-app !border-none text-xs font-bold"
+                            className="w-auto"
+                        />
+                    </div>
                 </div>
 
-                {/* Leaves Table */}
-                <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+                {/* Line 4: Edge-to-Edge Full-Width Table */}
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-300">
                             <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">

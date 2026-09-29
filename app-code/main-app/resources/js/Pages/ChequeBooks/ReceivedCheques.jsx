@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
-import { getCurrencySymbol } from '@/Utils/format';
+import PremiumSelect from '@/Components/PremiumSelect';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import {
     FileText, Plus, Search, Building2, CheckCircle2,
     Clock, AlertTriangle, XCircle, ArrowUpRight, RotateCcw,
     X, AlertCircle
 } from 'lucide-react';
-
-const formatCurrency = (val) =>
-    (getCurrencySymbol()) + ' ' + (new Intl.NumberFormat('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0));
 
 export default function ReceivedChequesIndex({
     receivedCheques,
@@ -19,6 +17,8 @@ export default function ReceivedChequesIndex({
     stats = {},
     filters = {}
 }) {
+    const { store } = usePage().props;
+    const storeSlug = store?.slug;
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || '');
     const [partyFilter, setPartyFilter] = useState(filters.party_id || '');
@@ -43,7 +43,7 @@ export default function ReceivedChequesIndex({
     });
 
     const handleFilterChange = (newFilters) => {
-        router.get(route('store.banking.received-cheques.index'), {
+        router.get(route('store.banking.received-cheques.index', { store_slug: storeSlug }), {
             search: newFilters.search !== undefined ? newFilters.search : search,
             status: newFilters.status !== undefined ? newFilters.status : statusFilter,
             party_id: newFilters.party_id !== undefined ? newFilters.party_id : partyFilter,
@@ -52,7 +52,7 @@ export default function ReceivedChequesIndex({
 
     const handleCreateSubmit = (e) => {
         e.preventDefault();
-        postCreate(route('store.banking.received-cheques.store'), {
+        postCreate(route('store.banking.received-cheques.store', { store_slug: storeSlug }), {
             onSuccess: () => {
                 setIsCreateOpen(false);
                 resetCreate();
@@ -65,7 +65,7 @@ export default function ReceivedChequesIndex({
         if (!depositModal || !depositBankId) return;
 
         setSubmitting(true);
-        router.post(route('store.banking.received-cheques.deposit', depositModal.id), {
+        router.post(route('store.banking.received-cheques.deposit', { store_slug: storeSlug, id: depositModal.id }), {
             bank_account_id: depositBankId,
             deposit_date: actionDate,
         }, {
@@ -85,13 +85,13 @@ export default function ReceivedChequesIndex({
         let payload = {};
 
         if (type === 'clear') {
-            url = route('store.banking.received-cheques.clear', cheque.id);
+            url = route('store.banking.received-cheques.clear', { store_slug: storeSlug, id: cheque.id });
             payload = { clear_date: actionDate };
         } else if (type === 'bounce') {
-            url = route('store.banking.received-cheques.bounce', cheque.id);
+            url = route('store.banking.received-cheques.bounce', { store_slug: storeSlug, id: cheque.id });
             payload = { reason: actionReason, bounce_date: actionDate };
         } else if (type === 'return') {
-            url = route('store.banking.received-cheques.return', cheque.id);
+            url = route('store.banking.received-cheques.return', { store_slug: storeSlug, id: cheque.id });
             payload = { reason: actionReason };
         }
 
@@ -122,123 +122,142 @@ export default function ReceivedChequesIndex({
     };
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout title="Received Customer Cheques" activeMenu="Money">
             <Head title="Received Customer Cheques" />
 
-            <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2.5">
-                            <FileText className="w-7 h-7 text-brand-600 dark:text-brand-400" />
-                            Received Customer Cheques
-                        </h1>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                            Track cheques received from customers, deposit into bank accounts, and manage clearances.
-                        </p>
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                {/* Line 1: Module Navigation Tabs */}
+                <MoneyModuleTabs activeTab="received-cheques" className="!mb-0" />
+
+                {/* Line 2: 4 Compact KPI Cards Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
+                                <Clock size={16} />
+                            </div>
+                            <p className="text-xs font-bold text-ink-muted uppercase">In Hand</p>
+                        </div>
+                        <p className="text-base font-bold text-amber-600">{formatCurrency(stats.total_received || 0)}</p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                                <Building2 size={16} />
+                            </div>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Deposited</p>
+                        </div>
+                        <p className="text-base font-bold text-blue-600">{formatCurrency(stats.total_deposited || 0)}</p>
+                    </div>
+
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                <CheckCircle2 size={16} />
+                            </div>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Cleared</p>
+                        </div>
+                        <p className="text-base font-bold text-emerald-600">{formatCurrency(stats.total_cleared || 0)}</p>
+                    </div>
+
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
+                                <AlertTriangle size={16} />
+                            </div>
+                            <p className="text-xs font-bold text-ink-muted uppercase">Bounced</p>
+                        </div>
+                        <p className="text-base font-bold text-rose-600">{formatCurrency(stats.total_bounced || 0)}</p>
+                    </div>
+                </div>
+
+                {/* Line 3: Compact Header & Filter Controls Row */}
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+                    {/* Left Title */}
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
+                            Received <span className="text-brand-600">Cheques</span>
+                        </h1>
+                        <div className="h-4 w-px bg-sunken mx-1"></div>
+                        <span className="text-xs font-bold text-ink-muted">{receivedCheques.data?.length || 0} Cheques</span>
+                    </div>
+
+                    {/* Right Controls */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative w-48 sm:w-64">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                            <input
+                                type="text"
+                                placeholder="Search cheque #, bank..."
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    handleFilterChange({ search: e.target.value });
+                                }}
+                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
+                            />
+                        </div>
+
+                        <PremiumSelect
+                            value={statusFilter}
+                            onChange={(val) => {
+                                setStatusFilter(val);
+                                handleFilterChange({ status: val });
+                            }}
+                            options={[
+                                { value: '', label: 'All Statuses' },
+                                { value: 'received', label: 'In Hand (Received)' },
+                                { value: 'deposited', label: 'Deposited' },
+                                { value: 'cleared', label: 'Cleared' },
+                                { value: 'bounced', label: 'Bounced' },
+                                { value: 'returned', label: 'Returned' }
+                            ]}
+                            placeholder="All Statuses"
+                            inputClassName="!py-1.5 !px-3 !bg-app !border-none text-xs font-bold"
+                            className="w-auto"
+                        />
+
+                        <PremiumSelect
+                            value={partyFilter}
+                            onChange={(val) => {
+                                setPartyFilter(val);
+                                handleFilterChange({ party_id: val });
+                            }}
+                            options={[
+                                { value: '', label: 'All Customers' },
+                                ...parties.map((p) => ({
+                                    value: String(p.id),
+                                    label: p.name
+                                }))
+                            ]}
+                            placeholder="All Customers"
+                            inputClassName="!py-1.5 !px-3 !bg-app !border-none text-xs font-bold"
+                            className="w-auto"
+                        />
+
                         <Link
-                            href={route('store.banking.reports.incoming-cheques')}
-                            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 shadow-sm"
+                            href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
+                            className="px-3 py-1.5 bg-app hover:bg-interactive-hover text-ink rounded-lg text-xs font-bold flex items-center gap-1.5 border border-line shadow-xs transition-colors"
                         >
-                            <FileText className="w-4 h-4 text-neutral-500" />
-                            Incoming Register
+                            <FileText size={14} className="text-ink-muted" />
+                            <span>Incoming Register</span>
                         </Link>
+
                         <button
                             type="button"
                             onClick={() => setIsCreateOpen(true)}
-                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm transition-colors"
+                            className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                            style={{ color: '#ffffff' }}
                         >
-                            <Plus className="w-4 h-4" />
-                            Record Received Cheque
+                            <Plus size={14} className="text-white shrink-0" />
+                            <span className="text-white">Record Cheque</span>
                         </button>
                     </div>
                 </div>
 
-                {/* Subnavigation Tabs */}
-                <MoneyModuleTabs activeTab="received-cheques" />
-
-                {/* Stat Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-xl bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-800/40 shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">In Hand (Undeposited)</p>
-                        <p className="text-2xl font-mono font-bold text-neutral-900 dark:text-neutral-100 mt-1">
-                            {formatCurrency(stats.total_received || 0)}
-                        </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white dark:bg-neutral-800 border border-blue-200 dark:border-blue-800/40 shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Deposited in Bank (Pending)</p>
-                        <p className="text-2xl font-mono font-bold text-neutral-900 dark:text-neutral-100 mt-1">
-                            {formatCurrency(stats.total_deposited || 0)}
-                        </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white dark:bg-neutral-800 border border-emerald-200 dark:border-emerald-800/40 shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Cleared & Credited</p>
-                        <p className="text-2xl font-mono font-bold text-neutral-900 dark:text-neutral-100 mt-1">
-                            {formatCurrency(stats.total_cleared || 0)}
-                        </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white dark:bg-neutral-800 border border-red-200 dark:border-red-800/40 shadow-sm">
-                        <p className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">Bounced</p>
-                        <p className="text-2xl font-mono font-bold text-neutral-900 dark:text-neutral-100 mt-1">
-                            {formatCurrency(stats.total_bounced || 0)}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Filters */}
-                <div className="bg-white dark:bg-neutral-800 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm flex flex-col md:flex-row items-center gap-3">
-                    <div className="relative flex-1 w-full">
-                        <Search className="w-4 h-4 absolute left-3 top-3 text-neutral-400" />
-                        <input
-                            type="text"
-                            placeholder="Search cheque number, drawer bank, notes..."
-                            value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
-                                handleFilterChange({ search: e.target.value });
-                            }}
-                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50 text-sm"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                handleFilterChange({ status: e.target.value });
-                            }}
-                            className="py-2 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50 text-sm"
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="received">In Hand (Received)</option>
-                            <option value="deposited">Deposited</option>
-                            <option value="cleared">Cleared</option>
-                            <option value="bounced">Bounced</option>
-                            <option value="returned">Returned</option>
-                        </select>
-
-                        <select
-                            value={partyFilter}
-                            onChange={(e) => {
-                                setPartyFilter(e.target.value);
-                                handleFilterChange({ party_id: e.target.value });
-                            }}
-                            className="py-2 px-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50 text-sm"
-                        >
-                            <option value="">All Customers</option>
-                            {parties.map((p) => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Table */}
-                <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+                {/* Line 4: Edge-to-Edge Full-Width Table */}
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-300">
                             <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
@@ -421,16 +440,19 @@ export default function ReceivedChequesIndex({
 
                                     <div className="col-span-2">
                                         <label className="block text-xs font-semibold mb-1">Customer / Party</label>
-                                        <select
+                                        <PremiumSelect
                                             value={createData.party_id}
-                                            onChange={(e) => setCreateData('party_id', e.target.value)}
-                                            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 py-2 px-3 text-sm"
-                                        >
-                                            <option value="">-- Walk-in / General Customer --</option>
-                                            {parties.map((p) => (
-                                                <option key={p.id} value={p.id}>{p.name}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => setCreateData('party_id', val)}
+                                            options={[
+                                                { value: '', label: '-- Walk-in / General Customer --' },
+                                                ...parties.map((p) => ({
+                                                    value: String(p.id),
+                                                    label: p.name
+                                                }))
+                                            ]}
+                                            placeholder="-- Walk-in / General Customer --"
+                                            className="w-full"
+                                        />
                                     </div>
 
                                     <div className="col-span-2">
@@ -480,17 +502,19 @@ export default function ReceivedChequesIndex({
                             <form onSubmit={handleDepositSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-semibold mb-1">Company Bank Account <span className="text-red-500">*</span></label>
-                                    <select
+                                    <PremiumSelect
                                         value={depositBankId}
-                                        onChange={(e) => setDepositBankId(e.target.value)}
-                                        className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 py-2 px-3 text-sm"
-                                        required
-                                    >
-                                        <option value="">-- Select Bank Account --</option>
-                                        {bankAccounts.map((b) => (
-                                            <option key={b.id} value={b.id}>{b.name} ({b.bank_name})</option>
-                                        ))}
-                                    </select>
+                                        onChange={(val) => setDepositBankId(val)}
+                                        options={[
+                                            { value: '', label: '-- Select Bank Account --' },
+                                            ...bankAccounts.map((b) => ({
+                                                value: String(b.id),
+                                                label: `${b.name} (${b.bank_name})`
+                                            }))
+                                        ]}
+                                        placeholder="-- Select Bank Account --"
+                                        className="w-full"
+                                    />
                                 </div>
 
                                 <div>

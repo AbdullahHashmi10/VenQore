@@ -1,3 +1,8 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals($store->decimal_places ?? 2);
+    $currSymbol = \App\Helpers\SettingsHelper::get('currency_symbol') ?? ($store->currency_symbol ?? 'Rs.');
+    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
@@ -112,9 +117,11 @@
             <div class="invoice-title" @if(!empty($isReturn)) style="color: #dc2626;" @endif>
                 {{ $docTitle ?? (!empty($isReturn) ? 'CREDIT NOTE / SALE RETURN' : 'INVOICE') }}
             </div>
+            @if($showInvoiceNumber)
             <div class="invoice-number">
                 {{ !empty($isReturn) ? 'Credit Note #: ' : 'Invoice #: ' }}{{ $docRef ?? $sale->reference_number }}
             </div>
+            @endif
             <div style="margin-top:8px; color:#555;">
                 Date: {{ \Carbon\Carbon::parse($sale->posted_at ?? now())->format('d M Y') }}
             </div>
@@ -174,10 +181,10 @@
                 </td>
                 <td>{{ $item->sale_uom }}</td>
                 <td class="text-right">
-                    {{ number_format($item->quantity, 2) }}
+                    {{ \App\Helpers\SettingsHelper::formatQuantity($item->quantity, $decimals) }}
                 </td>
                 <td class="text-right">
-                    {{ number_format($item->unit_price, 2) }}
+                    {{ number_format($item->unit_price, $decimals) }}
                 </td>
                 <td class="text-right">
                     {{ $item->discount_amount > 0 && $item->gross_amount > 0
@@ -197,7 +204,7 @@
                 </td>
                 @endif
                 <td class="text-right">
-                    {{ number_format($item->line_total, 2) }}
+                    {{ number_format($item->line_total, $decimals) }}
                 </td>
             </tr>
             @endforeach
@@ -210,21 +217,21 @@
         <tr>
             <td>Return Gross</td>
             <td class="text-right">
-                {{ number_format(abs($sale->subtotal_gross ?? $sale->total ?? 0), 2) }}
+                {{ number_format(abs($sale->subtotal_gross ?? $sale->total ?? 0), $decimals) }}
             </td>
         </tr>
         @if(!empty($sale->total_tax) && $sale->total_tax != 0)
         <tr>
             <td>Tax Adjustment</td>
             <td class="text-right">
-                {{ number_format(abs($sale->total_tax), 2) }}
+                {{ number_format(abs($sale->total_tax), $decimals) }}
             </td>
         </tr>
         @endif
         <tr class="grand-total">
             <td><strong>Total Credit Amount</strong></td>
             <td class="text-right">
-                <strong style="color: #dc2626;">Rs. {{ number_format(abs($sale->invoice_total ?? $sale->total ?? 0), 2) }}</strong>
+                <strong style="color: #dc2626;">{{ $currSymbol }} {{ number_format(abs($sale->invoice_total ?? $sale->total ?? 0), $decimals) }}</strong>
             </td>
         </tr>
         <tr>
@@ -239,35 +246,35 @@
         <tr>
             <td>Subtotal (Gross)</td>
             <td class="text-right">
-                {{ number_format($sale->subtotal_gross, 2) }}
+                {{ number_format($sale->subtotal_gross, $decimals) }}
             </td>
         </tr>
         @if($sale->total_item_discounts > 0)
         <tr>
             <td>Discounts</td>
             <td class="text-right" style="color:#dc2626;">
-                ({{ number_format($sale->total_item_discounts, 2) }})
+                ({{ number_format($sale->total_item_discounts, $decimals) }})
             </td>
         </tr>
         @endif
         <tr>
             <td>Net Sales</td>
             <td class="text-right">
-                {{ number_format($sale->net_sales, 2) }}
+                {{ number_format($sale->net_sales, $decimals) }}
             </td>
         </tr>
         @if($sale->total_tax > 0)
         <tr>
             <td>Tax</td>
             <td class="text-right">
-                {{ number_format($sale->total_tax, 2) }}
+                {{ number_format($sale->total_tax, $decimals) }}
             </td>
         </tr>
         @endif
         <tr class="grand-total">
             <td><strong>Total</strong></td>
             <td class="text-right">
-                <strong>Rs. {{ number_format($sale->invoice_total, 2) }}</strong>
+                <strong>{{ $currSymbol }} {{ number_format($sale->invoice_total, $decimals) }}</strong>
             </td>
         </tr>
         <tr>

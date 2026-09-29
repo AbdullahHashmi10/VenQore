@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
 import {
@@ -7,64 +7,48 @@ import {
 } from 'lucide-react';
 
 export default function ChequeUtilization({ books = [] }) {
+    const { store } = usePage().props;
+    const storeSlug = store?.slug;
+
     return (
-        <OneGlanceLayout>
-            <Head title="Chequebook Utilization Report" />
+        <OneGlanceLayout title="Chequebook Utilization" activeMenu="Money">
+            <Head title="Chequebook Utilization" />
 
-            <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Header */}
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                {/* Line 1: Module Navigation Tabs */}
+                <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
+
+                {/* Line 2: Reports Sub-nav pills */}
+                <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex items-center gap-2 overflow-x-auto shrink-0">
+                    <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted shrink-0">Reports:</span>
                     <Link
-                        href={route('store.banking.cheque-books.index')}
-                        className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 text-neutral-600 dark:text-neutral-300"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                            <BarChart3 className="w-6 h-6 text-brand-600" />
-                            Chequebook Utilization & Lifecycle Report
-                        </h1>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                            Monitor leaf consumption, clearance velocity, and remaining inventory across bank accounts.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Subnavigation Tabs */}
-                <MoneyModuleTabs activeTab="cheque-books" />
-
-                {/* Secondary navigation for Cheque reports */}
-                <div className="flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-700 pb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 mr-2">Reports:</span>
-                    <Link
-                        href={route('store.banking.reports.outgoing-cheques')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Outgoing Register
                     </Link>
                     <Link
-                        href={route('store.banking.reports.incoming-cheques')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Incoming Register
                     </Link>
                     <Link
-                        href={route('store.banking.reports.cheque-utilization')}
-                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                        href={route('store.banking.reports.cheque-utilization', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 shrink-0"
                     >
                         Chequebook Utilization
                     </Link>
                     <Link
-                        href={route('store.banking.reports.post-dated-cheques')}
-                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                        href={route('store.banking.reports.post-dated-cheques', { store_slug: storeSlug })}
+                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
                     >
                         Post-Dated Cheques
                     </Link>
                 </div>
 
-                {/* Table */}
-                <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+                {/* Line 3: Full Width Table */}
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-300">
                             <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">

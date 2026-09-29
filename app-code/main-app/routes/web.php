@@ -1966,6 +1966,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/pos/sales', [\App\Http\Controllers\PosSaleController::class, 'store'])->middleware(['permission:pos.checkout,sales.create', \App\Http\Middleware\EnforceTransactionLimit::class])->name('pos.sales.store');
 
     // Approval Workflow Routes
+    Route::get('/approvals', [\App\Http\Controllers\ApprovalDocumentController::class, 'index'])
+        ->middleware('permission:approvals.view,approvals.view_own,approvals.submit,approvals.inbox,approvals.review')
+        ->name('approvals.index');
     Route::get('/approvals/inbox', [\App\Http\Controllers\ApprovalDocumentController::class, 'inbox'])
         ->middleware('permission:approvals.inbox,approvals.review')
         ->name('approvals.inbox');

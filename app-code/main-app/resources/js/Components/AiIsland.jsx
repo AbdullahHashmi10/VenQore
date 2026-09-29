@@ -602,7 +602,7 @@ export default function AiIsland({
     setAiAnswer(null);
     saveRecent(text);
     if (onAskAi) onAskAi(text);
-    window.axios?.post(route('store.ai.query', { store_slug: store.slug }), { message: text })
+    window.axios?.get(route('store.ai.query', { store_slug: store.slug }), { params: { query: text } })
       .then(res => {
         const d = res.data || {};
         const body = d.response || d.answer || d.summary;

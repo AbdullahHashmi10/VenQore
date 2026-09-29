@@ -19,6 +19,22 @@ class ApprovalDocumentController extends Controller
     ) {}
 
     /**
+     * Approvals landing: routes approvers to inbox and submitters/cashiers to my-submissions.
+     */
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $slug = $tenant?->slug ?? '';
+
+        if ($user && ($user->isPlatformAdmin() || $user->role === 'owner' || $user->role === 'admin' || $user->hasPermission('approvals.inbox') || $user->hasPermission('approvals.review'))) {
+            return redirect()->to('/s/' . $slug . '/approvals/inbox');
+        }
+
+        return redirect()->to('/s/' . $slug . '/approvals/my-submissions');
+    }
+
+    /**
      * Universal correction screen for every approval document type.
      *
      * Some transaction editors have richer native correction support. This

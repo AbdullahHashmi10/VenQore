@@ -162,11 +162,31 @@ class SettingsHelper
     }
 
     /**
+     * Get the decimal precision for printed documents (A4, thermal, PDFs).
+     * If print_amount_decimal is disabled ('0' or false), printed amounts use 0 decimals.
+     * Otherwise, falls back to the store's global decimal_places setting.
+     */
+    public static function getPrintDecimals(?int $default = null): int
+    {
+        $printDec = self::get('print_amount_decimal', '1');
+        if ($printDec === '0' || $printDec === 0 || $printDec === false || $printDec === 'false') {
+            return 0;
+        }
+
+        $globalDec = self::get('decimal_places');
+        if ($globalDec !== null && $globalDec !== '') {
+            return (int) $globalDec;
+        }
+
+        return $default ?? 2;
+    }
+
+    /**
      * Format currency with the configured currency symbol
      */
     public static function formatCurrency($amount, bool $includeSymbol = true): string
     {
-        $decimals = (int) self::get('decimal_places', 2);
+        $decimals = self::getPrintDecimals();
         $useGrouping = self::get('print_amount_grouping', '1') !== '0';
         if ($useGrouping) {
             $formatted = number_format((float) $amount, $decimals);
@@ -238,6 +258,61 @@ class SettingsHelper
     public static function getPurchasePrefix(): string
     {
         return self::get('purchase_prefix', 'PUR-');
+    }
+
+    /**
+     * Get prefix for quotations / pre-sales
+     */
+    public static function getQuotationPrefix(): string
+    {
+        return self::get('quotation_prefix', 'QTN-');
+    }
+
+    /**
+     * Get prefix for sales/purchase returns
+     */
+    public static function getReturnPrefix(): string
+    {
+        return self::get('return_prefix', 'RET-');
+    }
+
+    /**
+     * Check if sequential invoice numbering is enabled (enabled by default)
+     */
+    public static function isInvoiceNumberEnabled(): bool
+    {
+        $val = self::get('invoice_number_enabled');
+        if ($val === null || $val === '') {
+            return true; // Enabled by default unless explicitly disabled
+        }
+        return $val === '1' || $val === true || $val === 1 || $val === 'true';
+    }
+
+    /**
+     * Format a quantity without losing whole-integer digits.
+     * Trims trailing fractional zeroes ONLY when a decimal separator exists.
+     * E.g. 10 -> '10', 100 -> '100', 10.50 -> '10.5', 10.25 -> '10.25'
+     */
+    public static function formatQuantity($qty, ?int $maxDecimals = null): string
+    {
+        $num = (float) $qty;
+        if (floor($num) == $num) {
+            return (string) (int) $num;
+        }
+        $decimals = $maxDecimals !== null ? $maxDecimals : (int) self::get('decimal_places', 2);
+        if ($decimals < 1) {
+            $decimals = 2; // Keep fractional precision for non-integer quantities
+        }
+        $formatted = number_format($num, $decimals);
+        return str_contains($formatted, '.') ? rtrim(rtrim($formatted, '0'), '.') : $formatted;
+    }
+
+    /**
+     * Check if multi-firm mode is enabled
+     */
+    public static function isMultiFirmEnabled(): bool
+    {
+        return self::isEnabled('multi_firm_enabled');
     }
 
     /**

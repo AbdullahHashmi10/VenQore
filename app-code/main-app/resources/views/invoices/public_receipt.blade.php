@@ -1,9 +1,13 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals($store->decimal_places ?? 2);
+    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt #{{ $sale->reference_number ?? $sale->invoice_no ?? $sale->id }}</title>
+    <title>{{ $showInvoiceNumber ? 'Receipt #' . ($sale->reference_number ?? $sale->invoice_no ?? $sale->id) : 'Receipt' }}</title>
     <style>
         :root {
             --bg: #f8fafc;
@@ -161,10 +165,12 @@
         </div>
 
         <div class="meta-section">
+            @if($showInvoiceNumber)
             <div class="meta-row">
                 <span>Receipt Number</span>
                 <span class="val">{{ $sale->reference_number ?? $sale->invoice_no ?? $sale->id }}</span>
             </div>
+            @endif
             <div class="meta-row">
                 <span>Date & Time</span>
                 <span class="val">{{ $sale->created_at ? $sale->created_at->format('M d, Y h:i A') : date('M d, Y h:i A') }}</span>
@@ -194,10 +200,10 @@
                     <tr>
                         <td>
                             <div>{{ $item->product->name ?? $item->item_name ?? 'Item' }}</div>
-                            <div class="item-qty">@ {{ number_format((float)($item->unit_price ?? 0), 2) }}</div>
+                            <div class="item-qty">@ {{ number_format((float)($item->unit_price ?? 0), $decimals) }}</div>
                         </td>
                         <td style="text-align:center; font-weight:600;">{{ (float)($item->quantity ?? 1) }}</td>
-                        <td style="text-align:right; font-weight:600;">{{ number_format((float)(($item->quantity ?? 1) * ($item->unit_price ?? 0)), 2) }}</td>
+                        <td style="text-align:right; font-weight:600;">{{ number_format((float)(($item->quantity ?? 1) * ($item->unit_price ?? 0)), $decimals) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -206,27 +212,27 @@
         <div class="totals-section">
             <div class="total-row">
                 <span>Subtotal</span>
-                <span>{{ number_format((float)($sale->subtotal ?? $sale->total ?? 0), 2) }}</span>
+                <span>{{ number_format((float)($sale->subtotal ?? $sale->total ?? 0), $decimals) }}</span>
             </div>
             @if((float)($sale->tax ?? 0) > 0)
                 <div class="total-row">
                     <span>Tax</span>
-                    <span>{{ number_format((float)$sale->tax, 2) }}</span>
+                    <span>{{ number_format((float)$sale->tax, $decimals) }}</span>
                 </div>
             @endif
             @if((float)($sale->discount ?? 0) > 0)
                 <div class="total-row">
                     <span>Discount</span>
-                    <span>-{{ number_format((float)$sale->discount, 2) }}</span>
+                    <span>-{{ number_format((float)$sale->discount, $decimals) }}</span>
                 </div>
             @endif
             <div class="total-row grand-total">
                 <span>Total</span>
-                <span>{{ number_format((float)($sale->total ?? 0), 2) }}</span>
+                <span>{{ number_format((float)($sale->total ?? 0), $decimals) }}</span>
             </div>
             <div class="total-row" style="margin-top: 4px;">
                 <span>Paid</span>
-                <span>{{ number_format((float)($sale->paid ?? $sale->total ?? 0), 2) }}</span>
+                <span>{{ number_format((float)($sale->paid ?? $sale->total ?? 0), $decimals) }}</span>
             </div>
         </div>
 

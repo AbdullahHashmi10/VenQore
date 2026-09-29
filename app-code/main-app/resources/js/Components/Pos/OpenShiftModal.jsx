@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePage } from '@inertiajs/react';
 import { PlayCircle, DollarSign, X, Check, Loader2, Sparkles } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
@@ -50,8 +51,8 @@ export default function OpenShiftModal({
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
             <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-900/60 to-purple-900/60 p-5 border-b border-slate-700 flex justify-between items-center">
@@ -160,6 +161,7 @@ export default function OpenShiftModal({
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

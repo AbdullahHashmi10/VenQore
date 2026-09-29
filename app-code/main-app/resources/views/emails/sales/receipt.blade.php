@@ -1,3 +1,7 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+    $currencySymbol = $settings['currency_symbol'] ?? \App\Helpers\SettingsHelper::get('currency_symbol') ?? 'Rs';
+@endphp
 <x-mail::message>
     # Thank you for your purchase!
 
@@ -13,10 +17,9 @@
         | Item | Qty | Price | Total |
         | :--- | :---: | :---: | :---: |
         @foreach($sale->items as $item)
-            | {{ $item->product->name }} | {{ $item->quantity }} | {{ number_format($item->unit_price, 2) }} |
-            {{ number_format($item->subtotal, 2) }} |
+            | {{ $item->product->name }} | {{ \App\Helpers\SettingsHelper::formatQuantity($item->quantity, $decimals) }} | {{ $currencySymbol }} {{ number_format($item->unit_price, $decimals) }} | {{ $currencySymbol }} {{ number_format($item->subtotal, $decimals) }} |
         @endforeach
-        | **Total** | | | **Rs {{ number_format($sale->total, 2) }}** |
+        | **Total** | | | **{{ $currencySymbol }} {{ number_format($sale->total, $decimals) }}** |
     </x-mail::table>
 
     If you have any questions, feel free to contact us at {{ $settings['store_phone'] ?? '' }}.

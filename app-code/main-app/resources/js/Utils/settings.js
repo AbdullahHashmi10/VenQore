@@ -11,7 +11,8 @@
  * @returns {string} Formatted number string
  */
 export function formatNumber(value, settings, decimalOverride = null) {
-    const decimals = decimalOverride ?? (parseInt(settings?.decimal_places) || 2);
+    const raw = decimalOverride ?? settings?.decimal_places;
+    const decimals = (raw !== undefined && raw !== null && raw !== '') ? parseInt(raw, 10) : 2;
     return parseFloat(value || 0).toFixed(decimals);
 }
 
@@ -23,7 +24,8 @@ export function formatNumber(value, settings, decimalOverride = null) {
  * @returns {string} Formatted currency string
  */
 export function formatCurrency(value, settings, includeSymbol = true) {
-    const decimals = parseInt(settings?.decimal_places) || 2;
+    const raw = settings?.decimal_places;
+    const decimals = (raw !== undefined && raw !== null && raw !== '') ? parseInt(raw, 10) : 2;
     const formatted = parseFloat(value || 0).toLocaleString('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,

@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import PremiumSelect from '@/Components/PremiumSelect';
 import { BookOpen, ArrowLeft, Building2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function ChequeBookCreate({ bankAccounts = [] }) {
+    const { store } = usePage().props;
+    const storeSlug = store?.slug;
     const { data, setData, post, processing, errors } = useForm({
         bank_account_id: bankAccounts.length === 1 ? bankAccounts[0].id : '',
         series_prefix: '',
@@ -39,40 +42,37 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('store.banking.cheque-books.store'));
+        post(route('store.banking.cheque-books.store', { store_slug: storeSlug }));
     };
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout title="Register Chequebook" activeMenu="Money">
             <Head title="Register Chequebook" />
 
-            <div className="space-y-6 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Link
-                        href={route('store.banking.cheque-books.index')}
-                        className="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 text-neutral-600 dark:text-neutral-300 transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-                            <BookOpen className="w-6 h-6 text-brand-600" />
-                            Register Bank Chequebook
+            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                {/* Line 1: Navigation Tabs */}
+                <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
+
+                {/* Line 2: Compact Header */}
+                <div className="flex items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={route('store.banking.cheque-books.index', { store_slug: storeSlug })}
+                            className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                        </Link>
+                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight">
+                            Register <span className="text-brand-600">Chequebook</span>
                         </h1>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                            Register a new physical chequebook received from your bank.
-                        </p>
                     </div>
                 </div>
 
-                {/* Subnavigation Tabs */}
-                <MoneyModuleTabs activeTab="cheque-books" />
-
-                {/* Form Card */}
-                <form onSubmit={handleSubmit} className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 shadow-sm space-y-6">
+                {/* Line 3: Full-width Form Card */}
+                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface p-4 sm:p-6">
+                    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
                     {errors.error && (
-                        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/40 text-sm text-red-700 dark:text-red-300 flex items-start gap-2">
+                        <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/40 text-sm text-red-700 dark:text-red-300 flex items-start gap-2.5">
                             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
                             <div>
                                 <p className="font-semibold">Unable to register chequebook</p>
@@ -84,24 +84,24 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Bank Account */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1.5">
+                            <label className="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-2">
                                 Bank Account <span className="text-red-500">*</span>
                             </label>
-                            <select
+                            <PremiumSelect
                                 value={data.bank_account_id}
-                                onChange={(e) => setData('bank_account_id', e.target.value)}
-                                className={`w-full rounded-lg border py-2.5 px-3 text-sm bg-neutral-50 dark:bg-neutral-900/50 ${
-                                    errors.bank_account_id ? 'border-red-500' : 'border-neutral-300 dark:border-neutral-700'
+                                onChange={(val) => setData('bank_account_id', val)}
+                                options={[
+                                    { value: '', label: '-- Select Bank Account --' },
+                                    ...bankAccounts.map((b) => ({
+                                        value: String(b.id),
+                                        label: `${b.name} (${b.bank_name}) ${b.account_number ? `— #${b.account_number}` : ''}`
+                                    }))
+                                ]}
+                                placeholder="-- Select Bank Account --"
+                                inputClassName={`!rounded-2xl !py-3 !px-4 !bg-neutral-50/70 dark:!bg-neutral-900/50 text-neutral-900 dark:text-neutral-100 ${
+                                    errors.bank_account_id ? '!border-red-500' : '!border-neutral-200 dark:!border-neutral-700'
                                 }`}
-                                required
-                            >
-                                <option value="">-- Select Bank Account --</option>
-                                {bankAccounts.map((b) => (
-                                    <option key={b.id} value={b.id}>
-                                        {b.name} ({b.bank_name}) {b.account_number ? `— #${b.account_number}` : ''}
-                                    </option>
-                                ))}
-                            </select>
+                            />
                             {errors.bank_account_id && (
                                 <p className="text-xs text-red-500 mt-1">{errors.bank_account_id}</p>
                             )}
@@ -109,40 +109,42 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
 
                         {/* Series Prefix */}
                         <div>
-                            <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1.5">
+                            <label className="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-2">
                                 Series Prefix <span className="text-xs font-normal text-neutral-400">(Optional)</span>
                             </label>
                             <input
                                 type="text"
-                                placeholder="e.g. CHK, HBL"
+                                placeholder="E.G. CHK, HBL"
                                 value={data.series_prefix}
                                 onChange={(e) => setData('series_prefix', e.target.value.toUpperCase())}
                                 maxLength={10}
-                                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 py-2 px-3 text-sm uppercase bg-neutral-50 dark:bg-neutral-900/50"
+                                className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-700 py-3 px-4 text-sm uppercase bg-neutral-50/70 dark:bg-neutral-900/50 text-neutral-900 dark:text-neutral-100"
                             />
-                            <p className="text-2xs text-neutral-400 mt-1">Leading letters printed on the cheque leaves.</p>
+                            <p className="text-xs text-neutral-400 mt-1.5">Leading letters printed on the cheque leaves.</p>
                         </div>
 
                         {/* Padding Zeros */}
                         <div>
-                            <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1.5">
+                            <label className="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-2">
                                 Display Digit Length (Padding)
                             </label>
-                            <select
+                            <PremiumSelect
                                 value={data.padding_zeros}
-                                onChange={(e) => setData('padding_zeros', e.target.value)}
-                                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 py-2 px-3 text-sm bg-neutral-50 dark:bg-neutral-900/50"
-                            >
-                                <option value="4">4 Digits (e.g. 0001)</option>
-                                <option value="6">6 Digits (e.g. 000001) - Standard</option>
-                                <option value="8">8 Digits (e.g. 00000001)</option>
-                                <option value="10">10 Digits (e.g. 0000000001)</option>
-                            </select>
+                                onChange={(val) => setData('padding_zeros', val)}
+                                options={[
+                                    { value: '4', label: '4 Digits (e.g. 0001)' },
+                                    { value: '6', label: '6 Digits (e.g. 000001) - Standard' },
+                                    { value: '8', label: '8 Digits (e.g. 00000001)' },
+                                    { value: '10', label: '10 Digits (e.g. 0000000001)' }
+                                ]}
+                                placeholder="Select digit length"
+                                inputClassName="!rounded-2xl !py-3 !px-4 !bg-neutral-50/70 dark:!bg-neutral-900/50 !border-neutral-200 dark:!border-neutral-700 text-neutral-900 dark:text-neutral-100"
+                            />
                         </div>
 
                         {/* Start Number */}
                         <div>
-                            <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1.5">
+                            <label className="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-2">
                                 Starting Serial Number <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -151,8 +153,8 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
                                 min="0"
                                 value={data.start_number}
                                 onChange={(e) => setData('start_number', e.target.value)}
-                                className={`w-full rounded-lg border py-2 px-3 text-sm font-mono bg-neutral-50 dark:bg-neutral-900/50 ${
-                                    errors.start_number ? 'border-red-500' : 'border-neutral-300 dark:border-neutral-700'
+                                className={`w-full rounded-2xl border py-3 px-4 text-sm font-mono bg-neutral-50/70 dark:bg-neutral-900/50 text-neutral-900 dark:text-neutral-100 ${
+                                    errors.start_number ? 'border-red-500' : 'border-neutral-200 dark:border-neutral-700'
                                 }`}
                                 required
                             />
@@ -163,7 +165,7 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
 
                         {/* End Number */}
                         <div>
-                            <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1.5">
+                            <label className="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-2">
                                 Ending Serial Number <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -172,8 +174,8 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
                                 min="0"
                                 value={data.end_number}
                                 onChange={(e) => setData('end_number', e.target.value)}
-                                className={`w-full rounded-lg border py-2 px-3 text-sm font-mono bg-neutral-50 dark:bg-neutral-900/50 ${
-                                    errors.end_number ? 'border-red-500' : 'border-neutral-300 dark:border-neutral-700'
+                                className={`w-full rounded-2xl border py-3 px-4 text-sm font-mono bg-neutral-50/70 dark:bg-neutral-900/50 text-neutral-900 dark:text-neutral-100 ${
+                                    errors.end_number ? 'border-red-500' : 'border-neutral-200 dark:border-neutral-700'
                                 }`}
                                 required
                             />
@@ -184,7 +186,7 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
 
                         {/* Description */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-1.5">
+                            <label className="block text-sm font-bold text-neutral-800 dark:text-neutral-200 mb-2">
                                 Notes / Purpose <span className="text-xs font-normal text-neutral-400">(Optional)</span>
                             </label>
                             <input
@@ -192,14 +194,14 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
                                 placeholder="e.g. Operational expense chequebook issued Sept 2026"
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
-                                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 py-2 px-3 text-sm bg-neutral-50 dark:bg-neutral-900/50"
+                                className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-700 py-3 px-4 text-sm bg-neutral-50/70 dark:bg-neutral-900/50 text-neutral-900 dark:text-neutral-100"
                             />
                         </div>
                     </div>
 
                     {/* Preview Box */}
                     {previewSerials && (
-                        <div className="p-4 rounded-xl bg-brand-50 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-800/40">
+                        <div className="p-4 rounded-2xl bg-brand-50/80 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-800/40">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300 flex items-center gap-1.5">
                                     <CheckCircle2 className="w-4 h-4 text-brand-600" />
@@ -221,23 +223,24 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
                     )}
 
                     {/* Form Actions */}
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+                    <div className="flex items-center justify-end gap-4 pt-6 border-t border-neutral-100 dark:border-neutral-700/60">
                         <Link
-                            href={route('store.banking.cheque-books.index')}
-                            className="px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                            href={route('store.banking.cheque-books.index', { store_slug: storeSlug })}
+                            className="text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
                             disabled={processing || totalLeaves <= 0 || totalLeaves > 500}
-                            className="px-6 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-lg shadow-sm transition-colors"
+                            className="px-6 py-3 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 rounded-full shadow-sm transition-colors"
                         >
                             {processing ? 'Registering...' : `Register Chequebook (${totalLeaves} Leaves)`}
                         </button>
                     </div>
                 </form>
             </div>
-        </OneGlanceLayout>
+        </div>
+    </OneGlanceLayout>
     );
 }

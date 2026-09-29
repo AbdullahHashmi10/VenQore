@@ -49,6 +49,20 @@ describe('settings save contracts', () => {
         }
     });
 
+    it('covers controls in the shared tax, print and AI editors', () => {
+        const components = {
+            TaxSettingsSection: ['taxes'],
+            PrintSettingsSection: ['document_layouts', 'printer_device'],
+            AiSettingsSection: ['features_connections'],
+        };
+        for (const [component, sections] of Object.entries(components)) {
+            const body = read(`resources/js/Components/${component}.jsx`);
+            const visibleKeys = [...body.matchAll(/setData\('([^']+)'/g)].map((match) => match[1]);
+            const allowed = sections.flatMap((section) => clientSections[section]);
+            expect(visibleKeys.filter((key) => !allowed.includes(key)), `${component} has unsaved controls`).toEqual([]);
+        }
+    });
+
     it('uses saved global decimal places when a page supplies store identity only', () => {
         const previousWindow = globalThis.window;
         try {

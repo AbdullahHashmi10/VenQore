@@ -70,8 +70,8 @@ export default function RemindersAlertsSection({ data, setData }) {
             <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden flex flex-col">
                 <div className="p-5 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface">
                     <div>
-                        <h3 className="text-sm font-bold text-ink">Service follow-ups</h3>
-                        <p className="text-xs text-ink-muted">Set how often to remind customers about services such as oil changes.</p>
+                        <h3 className="text-sm font-bold text-ink">Service schedules</h3>
+                        <p className="text-xs text-ink-muted">Save repeat intervals for services such as oil changes. Customer messages are not sent automatically.</p>
                     </div>
                     <button
                         type="button"
@@ -156,7 +156,7 @@ export default function RemindersAlertsSection({ data, setData }) {
                         <div className="py-10 flex flex-col items-center justify-center text-ink-muted">
                             <Clock size={32} className="mb-2 opacity-30" />
                             <p className="font-bold text-xs text-ink">No Service Cycles Configured</p>
-                            <p className="text-3xs text-ink-muted mt-0.5">Click "Add Service Cycle" to configure automated recurring maintenance prompts.</p>
+                            <p className="text-3xs text-ink-muted mt-0.5">Add a service schedule to keep its repeat interval on record.</p>
                         </div>
                     )}
                 </div>

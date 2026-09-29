@@ -50,8 +50,9 @@ export default function Dashboard({
  const canInventory = hasPerm('inventory');
  const canReports = hasPerm('reports');
  const canPurchases = hasPerm('purchases');
-
- const showRightPanel = isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant';
+ const canSeeBalances = hasPerm('finance.balances') || isAdmin || auth?.user?.role === 'owner';
+ const canSeeTransactions = hasPerm('finance.transactions') || isAdmin || auth?.user?.role === 'owner';
+ const showRightPanel = canSeeBalances || canSeeTransactions;
 
  const [performancePeriod, setPerformancePeriod] = useState('Today');
  const [grossProfitPeriod, setGrossProfitPeriod] = useState('Today');

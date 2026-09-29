@@ -338,14 +338,14 @@ export default function PurchaseShow({
                                             <span className="font-mono text-ink-muted mr-2">{line.code}</span>
                                             {line.account_name}
                                         </td>
-                                        <td className="px-4 py-2 text-right text-sm">
+                                        <td className="px-4 py-2 text-right text-sm font-mono">
                                             {parseFloat(line.debit) > 0
-                                                ? `${getCurrencySymbol(store)} ${parseFloat(line.debit).toFixed(2)}`
+                                                ? formatCurrency(line.debit, store)
                                                 : '—'}
                                         </td>
-                                        <td className="px-4 py-2 text-right text-sm">
+                                        <td className="px-4 py-2 text-right text-sm font-mono">
                                             {parseFloat(line.credit) > 0
-                                                ? `${getCurrencySymbol(store)} ${parseFloat(line.credit).toFixed(2)}`
+                                                ? formatCurrency(line.credit, store)
                                                 : '—'}
                                         </td>
                                     </tr>

@@ -1,3 +1,6 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+@endphp
 <!DOCTYPE html>
 <html>
 
@@ -155,10 +158,10 @@
                     <td>{{ \Carbon\Carbon::parse($txn['date'])->format('d M Y') }}</td>
                     <td>{{ $txn['reference'] }}</td>
                     <td>{{ $txn['description'] }}</td>
-                    <td class="text-right">{{ $txn['debit'] > 0 ? number_format($txn['debit'], 2) : '-' }}</td>
-                    <td class="text-right">{{ $txn['credit'] > 0 ? number_format($txn['credit'], 2) : '-' }}</td>
+                    <td class="text-right">{{ $txn['debit'] > 0 ? number_format($txn['debit'], $decimals) : '-' }}</td>
+                    <td class="text-right">{{ $txn['credit'] > 0 ? number_format($txn['credit'], $decimals) : '-' }}</td>
                     <td class="text-right font-bold {{ $txn['balance'] >= 0 ? 'text-green' : 'text-red' }}">
-                        {{ number_format($txn['balance'], 2) }}
+                        {{ number_format($txn['balance'], $decimals) }}
                     </td>
                 </tr>
             @endforeach
@@ -169,7 +172,7 @@
         <div class="summary-row total">
             <span>Closing Balance:</span>
             <span class="{{ $party->current_balance >= 0 ? 'text-green' : 'text-red' }}">
-                {{ number_format($party->current_balance, 2) }}
+                {{ number_format($party->current_balance, $decimals) }}
             </span>
         </div>
     </div>

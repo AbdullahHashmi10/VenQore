@@ -1,8 +1,12 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Receipt {{ $meta['receipt_number'] ?? '' }}</title>
+    <title>Receipt {{ (!empty($meta['receipt_number']) && $showInvoiceNumber) ? $meta['receipt_number'] : '' }}</title>
     <style>
         @if($paperPreset === 'thermal_80mm')
             @page { margin: 4mm 3mm; }
@@ -57,10 +61,16 @@
         <div class="divider"></div>
 
         <table>
+            @if($showInvoiceNumber)
             <tr>
                 <td>Receipt #: <span class="bold">{{ $meta['receipt_number'] ?? '—' }}</span></td>
                 <td class="right">{{ $meta['date_time'] ?? now()->format('Y-m-d H:i') }}</td>
             </tr>
+            @else
+            <tr>
+                <td colspan="2" class="right">{{ $meta['date_time'] ?? now()->format('Y-m-d H:i') }}</td>
+            </tr>
+            @endif
             @if(!empty($meta['cashier']))
                 <tr>
                     <td colspan="2">Cashier: {{ $meta['cashier'] }}</td>
@@ -83,10 +93,10 @@
                     <tr>
                         <td>
                             <div>{{ $line['name'] }}</div>
-                            <div class="muted" style="font-size: 8px;">{{ rtrim(rtrim(number_format($line['quantity'], 2), '0'), '.') }} @ {{ $symbol }}{{ number_format($line['unit_price'], 2) }}</div>
+                            <div class="muted" style="font-size: 8px;">{{ \App\Helpers\SettingsHelper::formatQuantity($line['quantity'], $decimals) }} @ {{ $symbol }}{{ number_format($line['unit_price'], $decimals) }}</div>
                         </td>
-                        <td class="right">{{ rtrim(rtrim(number_format($line['quantity'], 2), '0'), '.') }}</td>
-                        <td class="right bold">{{ $symbol }}{{ number_format($line['amount'], 2) }}</td>
+                        <td class="right">{{ \App\Helpers\SettingsHelper::formatQuantity($line['quantity'], $decimals) }}</td>
+                        <td class="right bold">{{ $symbol }}{{ number_format($line['amount'], $decimals) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -97,23 +107,23 @@
         <table class="totals-table">
             <tr>
                 <td>Subtotal</td>
-                <td class="right">{{ $symbol }}{{ number_format($subtotal, 2) }}</td>
+                <td class="right">{{ $symbol }}{{ number_format($subtotal, $decimals) }}</td>
             </tr>
             @if($discount > 0)
                 <tr>
                     <td>Discount</td>
-                    <td class="right">-{{ $symbol }}{{ number_format($discount, 2) }}</td>
+                    <td class="right">-{{ $symbol }}{{ number_format($discount, $decimals) }}</td>
                 </tr>
             @endif
             @if($tax > 0)
                 <tr>
                     <td>Tax ({{ (float)($meta['tax_rate'] ?? 0) }}%)</td>
-                    <td class="right">{{ $symbol }}{{ number_format($tax, 2) }}</td>
+                    <td class="right">{{ $symbol }}{{ number_format($tax, $decimals) }}</td>
                 </tr>
             @endif
             <tr class="grand-total">
                 <td>TOTAL</td>
-                <td class="right">{{ $symbol }}{{ number_format($total, 2) }}</td>
+                <td class="right">{{ $symbol }}{{ number_format($total, $decimals) }}</td>
             </tr>
             <tr>
                 <td style="padding-top: 1.5mm;">Payment Method</td>
@@ -122,11 +132,11 @@
             @if($paymentMethod === 'Cash')
                 <tr>
                     <td>Amount Tendered</td>
-                    <td class="right">{{ $symbol }}{{ number_format($tendered, 2) }}</td>
+                    <td class="right">{{ $symbol }}{{ number_format($tendered, $decimals) }}</td>
                 </tr>
                 <tr>
                     <td class="bold">Change Due</td>
-                    <td class="right bold">{{ $symbol }}{{ number_format($changeDue, 2) }}</td>
+                    <td class="right bold">{{ $symbol }}{{ number_format($changeDue, $decimals) }}</td>
                 </tr>
             @endif
         </table>

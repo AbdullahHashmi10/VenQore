@@ -87,8 +87,8 @@ export default function PaymentFeeCalculator({ toolGroups = [] }) {
     };
 
     const inputCls = 'w-full px-3.5 py-2.5 rounded-[14px] text-ink focus:outline-none';
-    const labelCls = 'block text-sm font-semibold text-ink mb-2';
-    const fmtMoney = (v) => (v === null || v === undefined || Number.isNaN(v) || !Number.isFinite(v)) ? '—' : `$${round2(v).toFixed(2)}`;
+    const dec = Number(window?.amdSettings?.decimal_places ?? 2);
+    const fmtMoney = (v) => (v === null || v === undefined || Number.isNaN(v) || !Number.isFinite(v)) ? '—' : `$${Number(round2(v)).toFixed(dec)}`;
 
     /* ── Single transaction mode ─────────────────────────────────────── */
     const singleResults = useMemo(() => {

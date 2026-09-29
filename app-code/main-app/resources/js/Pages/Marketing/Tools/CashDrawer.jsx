@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Trash2, Download, Loader2, DollarSign, Calculator, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import ToolShell from './Shared/ToolShell';
 import Select from './Shared/Select';
+import { formatNumber } from '@/Utils/format';
 
 const STORAGE_KEY = 'venqore_cash_drawer_store_v1';
 
@@ -303,7 +304,7 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                                     />
                                 </div>
                                 <div className="w-28 text-right font-bold text-sm text-ink shrink-0">
-                                    {symbol}{subtotal.toFixed(2)}
+                                    {symbol}{formatNumber(subtotal)}
                                 </div>
                                 <button
                                     type="button"
@@ -344,20 +345,20 @@ export default function CashDrawerTool({ currencies = {}, defaultDenominations =
                 <div className="grid sm:grid-cols-4 gap-4 text-center">
                     <div className="p-3 rounded-xl vq-tool-inset">
                         <span className="block text-2xs font-bold uppercase text-ink-muted">Bills Total</span>
-                        <span className="text-lg font-bold text-ink">{symbol}{totals.totalBills.toFixed(2)}</span>
+                        <span className="text-lg font-bold text-ink">{symbol}{formatNumber(totals.totalBills)}</span>
                     </div>
                     <div className="p-3 rounded-xl vq-tool-inset">
                         <span className="block text-2xs font-bold uppercase text-ink-muted">Coins Total</span>
-                        <span className="text-lg font-bold text-ink">{symbol}{totals.totalCoins.toFixed(2)}</span>
+                        <span className="text-lg font-bold text-ink">{symbol}{formatNumber(totals.totalCoins)}</span>
                     </div>
                     <div className="p-3 rounded-xl vq-tool-inset">
                         <span className="block text-2xs font-bold uppercase text-ink-muted">Total Counted Cash</span>
-                        <span className="text-xl font-bold text-brand-600 dark:text-brand-400">{symbol}{totals.totalCounted.toFixed(2)}</span>
+                        <span className="text-xl font-bold text-brand-600 dark:text-brand-400">{symbol}{formatNumber(totals.totalCounted)}</span>
                     </div>
                     <div className={`p-3 rounded-xl border ${totals.status === 'exact' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : totals.status === 'over' ? 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'}`}>
                         <span className="block text-2xs font-bold uppercase">Variance (Over/Short)</span>
                         <span className="text-xl font-bold">
-                            {totals.variance > 0 ? `+${symbol}${totals.variance.toFixed(2)} OVER` : totals.variance < 0 ? `-${symbol}${Math.abs(totals.variance).toFixed(2)} SHORT` : `${symbol}0.00 BALANCED`}
+                            {totals.variance > 0 ? `+${symbol}${formatNumber(totals.variance)} OVER` : totals.variance < 0 ? `-${symbol}${formatNumber(Math.abs(totals.variance))} SHORT` : `${symbol}${formatNumber(0)} BALANCED`}
                         </span>
                     </div>
                 </div>

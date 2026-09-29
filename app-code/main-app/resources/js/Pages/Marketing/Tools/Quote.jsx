@@ -102,7 +102,11 @@ export default function QuotationTool({ templates = {}, currencies = {}, maxItem
     }, [meta.issue_date, meta.validity_days, validUntilTouched]);
 
     const symbol = currencies[meta.currency] || meta.currency;
-    const fmtMoney = (n) => `${symbol}${(parseFloat(n) || 0).toFixed(2)}`;
+    const fmtMoney = (n, decimals = null) => {
+        const d = decimals !== null ? decimals : parseInt(typeof window !== 'undefined' ? window.amdSettings?.decimal_places ?? 2 : 2, 10);
+        const validD = isNaN(d) ? 2 : d;
+        return `${symbol}${(parseFloat(n) || 0).toFixed(validD)}`;
+    };
 
     const lineTotals = useMemo(() => items.map((it) => {
         const qty = parseFloat(it.quantity) || 0;

@@ -5,6 +5,7 @@ import {
     Calendar, Lock, Unlock, ShieldAlert, CheckCircle2, AlertTriangle, 
     FileText, Plus, UserCheck, Key, RefreshCw, FileDown
 } from 'lucide-react';
+import { formatNumber } from '@/Utils/format';
 
 export default function FiscalYears({ auth, fiscal_years = [], active_lock = null, active_exceptions = [], retained_accounts = [] }) {
     const [selectedFy, setSelectedFy] = useState(null);
@@ -396,8 +397,8 @@ export default function FiscalYears({ auth, fiscal_years = [], active_lock = nul
                                                     <tr key={idx}>
                                                         <td className="px-4 py-2 font-mono">{line.account_code}</td>
                                                         <td className="px-4 py-2 font-medium">{line.account_name}</td>
-                                                        <td className="px-4 py-2 text-right">{line.debit > 0 ? line.debit.toFixed(2) : '-'}</td>
-                                                        <td className="px-4 py-2 text-right">{line.credit > 0 ? line.credit.toFixed(2) : '-'}</td>
+                                                        <td className="px-4 py-2 text-right">{line.debit > 0 ? formatNumber(line.debit) : '-'}</td>
+                                                        <td className="px-4 py-2 text-right">{line.credit > 0 ? formatNumber(line.credit) : '-'}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>

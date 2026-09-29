@@ -1,6 +1,7 @@
 import React from 'react';
-import { BookOpen, Lock, Sparkles, AlertTriangle } from 'lucide-react';
+import { BookOpen, Lock, Sparkles, AlertTriangle, Building2 } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
+import Toggle from '@/Components/Toggle';
 
 export default function AccountingSection({ data, setData }) {
     const { store } = usePage().props;
@@ -10,9 +11,20 @@ export default function AccountingSection({ data, setData }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Left Card: Financial Cycles */}
                 <div className="space-y-4 bg-surface rounded-2xl border border-line p-6 shadow-xs">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Financial Cycles</h3>
+                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Financial Cycles &amp; Branches</h3>
 
-                    <div className="space-y-1.5">
+                    <div className="p-4 rounded-xl border border-dashed border-line bg-app/50 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-ink flex items-center gap-2">
+                                <Building2 size={14} className="text-amber-500" />
+                                Multi-Firm Branch Accounting
+                            </span>
+                            <span className="px-2 py-0.5 text-3xs font-bold bg-amber-500/10 text-amber-600 rounded">In Development</span>
+                        </div>
+                        <p className="text-2xs text-ink-muted">Dedicated legal entity separation and branch-isolated journal posting are currently in development. Transactions are tracked within the primary store ledger.</p>
+                    </div>
+
+                    <div className="space-y-1.5 pt-2 border-t border-line">
                         <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Fiscal Year Start Date</label>
                         <input
                             type="date"

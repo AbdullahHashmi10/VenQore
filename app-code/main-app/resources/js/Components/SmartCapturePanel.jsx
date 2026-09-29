@@ -11,6 +11,7 @@ import axios from 'axios';
 import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
 import { preprocessImage } from '@/lib/imagePreprocess';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
+import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
 /**
@@ -816,7 +817,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     { value: '', label: '-- Select an open document --' },
                                     ...openDocs.map(doc => ({
                                         value: doc.id,
-                                        label: `${doc.reference || doc.id?.slice(0, 8)} — ${doc.party || 'No party'}${doc.total !== undefined && doc.total !== null ? ` — ${parseFloat(doc.total).toFixed(2)}` : ''} (${doc.status})`
+                                        label: `${doc.reference || doc.id?.slice(0, 8)} — ${doc.party || 'No party'}${doc.total !== undefined && doc.total !== null ? ` — ${formatCurrency(doc.total, store)}` : ''} (${doc.status})`
                                     }))
                                 ]}
                             />
@@ -1355,7 +1356,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 ) : null}
                                 <div className="flex justify-between text-xs font-semibold text-[rgba(241,245,242,0.55)]">
                                     <span>Total:</span>
-                                    <span className="text-[#23C4A6] font-bold" style={{ fontFamily: 'var(--vq-font-numeric)' }}>Rs. {Math.abs(successData.total || 0).toFixed(2)}</span>
+                                    <span className="text-[#23C4A6] font-bold" style={{ fontFamily: 'var(--vq-font-numeric)' }}>{formatCurrency(Math.abs(successData.total || 0), store)}</span>
                                 </div>
                             </div>
 

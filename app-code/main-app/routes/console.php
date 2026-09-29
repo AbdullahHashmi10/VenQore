@@ -64,6 +64,11 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+\Illuminate\Support\Facades\Schedule::command('services:send-reminders')
+    ->dailyAt('08:30')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // V3 consolidation, Phase 0 step 2 -- see V3_CONSOLIDATION_PLAN.md
 // Read-only daily count of rows still in the legacy purchase island
 // (invoices type=purchase/purchase_return). Must go FLAT after Phase 5

@@ -1,8 +1,12 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Invoice {{ $meta['invoice_number'] ?? '' }}</title>
+    <title>Invoice {{ (!empty($meta['invoice_number']) && $showInvoiceNumber) ? $meta['invoice_number'] : '' }}</title>
     <style>
         @page { margin: 18mm 16mm; }
         body { margin: 0; font-family: 'Helvetica', Arial, sans-serif; font-size: 10.5px; color: #1c1c28; }
@@ -89,7 +93,9 @@
             <td style="width:45%;" class="right">
                 <div class="invoice-title">INVOICE</div>
                 <table class="meta-table" style="margin-left:auto; margin-top:3mm;">
+                    @if($showInvoiceNumber)
                     <tr><td class="label right">Invoice #</td><td class="bold">{{ $meta['invoice_number'] ?? '—' }}</td></tr>
+                    @endif
                     <tr><td class="label right">Issue date</td><td>{{ $meta['issue_date'] ?? '—' }}</td></tr>
                     <tr><td class="label right">Due date</td><td>{{ $meta['due_date'] ?? '—' }}</td></tr>
                 </table>
@@ -127,25 +133,25 @@
             @foreach($lines as $line)
                 <tr>
                     <td>{{ $line['description'] }}</td>
-                    <td class="num">{{ rtrim(rtrim(number_format($line['quantity'], 2), '0'), '.') }}</td>
-                    <td class="num">{{ $symbol }}{{ number_format($line['unit_price'], 2) }}</td>
+                    <td class="num">{{ \App\Helpers\SettingsHelper::formatQuantity($line['quantity'], $decimals) }}</td>
+                    <td class="num">{{ $symbol }}{{ number_format($line['unit_price'], $decimals) }}</td>
                     <td class="num">{{ $line['discount_pct'] > 0 ? $line['discount_pct'].'%' : '—' }}</td>
                     <td class="num">{{ $line['tax_rate'] > 0 ? $line['tax_rate'].'%' : '—' }}</td>
-                    <td class="num bold">{{ $symbol }}{{ number_format($line['line_total'], 2) }}</td>
+                    <td class="num bold">{{ $symbol }}{{ number_format($line['line_total'], $decimals) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
     <table class="totals-table">
-        <tr><td class="muted">Subtotal</td><td class="right">{{ $symbol }}{{ number_format($subtotal, 2) }}</td></tr>
+        <tr><td class="muted">Subtotal</td><td class="right">{{ $symbol }}{{ number_format($subtotal, $decimals) }}</td></tr>
         @if($discount > 0)
-            <tr><td class="muted">Discount</td><td class="right">-{{ $symbol }}{{ number_format($discount, 2) }}</td></tr>
+            <tr><td class="muted">Discount</td><td class="right">-{{ $symbol }}{{ number_format($discount, $decimals) }}</td></tr>
         @endif
         @if($tax > 0)
-            <tr><td class="muted">Tax</td><td class="right">{{ $symbol }}{{ number_format($tax, 2) }}</td></tr>
+            <tr><td class="muted">Tax</td><td class="right">{{ $symbol }}{{ number_format($tax, $decimals) }}</td></tr>
         @endif
-        <tr class="grand"><td>Total Due</td><td class="right accent">{{ $symbol }}{{ number_format($total, 2) }}</td></tr>
+        <tr class="grand"><td>Total Due</td><td class="right accent">{{ $symbol }}{{ number_format($total, $decimals) }}</td></tr>
     </table>
 
     @if(!empty($meta['notes']) || !empty($meta['terms']))

@@ -81,7 +81,8 @@
 @endphp
 
 @php
-    $renderLabel = function ($label) use ($symbol) {
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+    $renderLabel = function ($label) use ($symbol, $decimals) {
         echo '<div class="label-card">';
         echo '<div class="prod-name">' . e($label['name']) . '</div>';
         if (!empty($label['svg'])) {
@@ -89,7 +90,7 @@
         }
         if ($label['price'] !== null) {
             $sym = $symbol ?: '';
-            echo '<div class="price-line">' . e($sym) . number_format($label['price'], 2) . '</div>';
+            echo '<div class="price-line">' . e($sym) . number_format($label['price'], $decimals) . '</div>';
         }
         echo '</div>';
     };

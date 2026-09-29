@@ -609,8 +609,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  if (isIdle) setIsIdle(false);
  if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
 
- // Get auto_logout from settings (in minutes), default to 60
- const autoLogoutMinutes = parseInt(settings?.auto_logout) || 60;
+ // Get auto_logout from settings (in minutes), default to 60. 0 means disabled/never.
+ const rawAutoLogout = settings?.auto_logout;
+ const autoLogoutMinutes = (rawAutoLogout !== undefined && rawAutoLogout !== null && rawAutoLogout !== '')
+     ? parseInt(rawAutoLogout, 10)
+     : 60;
+
+ if (autoLogoutMinutes <= 0) {
+     return;
+ }
+
  const timeoutMs = autoLogoutMinutes * 60 * 1000;
 
  idleTimerRef.current = setTimeout(() => {
@@ -755,7 +763,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   icon: ShieldCheck,
   subs: [
   { group: 'Executive', items: ['Executive Dashboard'] },
-  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
+  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance', 'Approvals'] },
   { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] }
   ],
   route: store ? 'store.admin.dashboard' : null,
@@ -926,6 +934,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Bank Reconciliation': ['store.bank-reconciliation.index'],
 		'VenSynQ': ['store.vensynq.index'],
 		'WooCommerce Sync': ['store.vensynq.index', 'store.woocommerce.index'],
+		'Approvals': ['store.approvals.inbox', 'store.approvals.my-submissions'],
 	};
 
 	const enabledModuleSet = Array.isArray(props?.modules)
@@ -1105,6 +1114,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'VenSynQ': ['sales.create', 'inventory.adjust'],
  'Insights': ['reports'],
  'Activity Log': ['audit'],
+ 'Approvals': ['approvals.inbox', 'approvals.review'],
  'Recycle Bin': ['settings'],
  // 'Settings': ['settings'], // Removed
  // 'System': ['settings', 'audit'], // Removed
@@ -1750,19 +1760,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   <Menu size={20} />
   </button>
 
-  {/* Header Link: When on store admin subpages, quick link Back to Home */}
-  {store && !(isPlatformAdmin && !store) && mode === 'admin' && (
-  <Link
-  id="tour-sidebar-admin"
-  href={store ? route('store.home', {store_slug: store.slug}) : '#'}
-  className="hidden sm:flex group relative items-center gap-2 h-11 px-3.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
-  >
-  <Home size={16} className="text-brand-500" />
-  <span className="text-sm font-bold text-ink">
-  Home
-  </span>
-  </Link>
-  )}
+
   </div>
 
   {/* CENTER SECTION - THE AI ISLAND (Always Dead-Center of the Screen) */}

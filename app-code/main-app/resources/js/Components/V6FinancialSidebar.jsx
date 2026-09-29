@@ -17,7 +17,7 @@ import {
   Activity as ActivityIcon
 } from 'lucide-react';
 
-const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
+const ActionMenu = ({ isOpen, onClose, store, onAction, can }) => {
   const tt = useTermText();
   if (!isOpen) return null;
 
@@ -31,7 +31,17 @@ const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
     { label: 'New Quote', icon: FileText, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20', route: 'store.proposals.create' },
     { label: 'Transfer Stock', icon: RefreshCw, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20', route: 'store.stock-transfers.create' },
     { label: 'Add Category', icon: Tag, color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/20', route: 'store.categories.index' },
-  ];
+  ].filter(action => can({
+    'Payment In': 'finance.receive_payment',
+    'Payment Out': 'finance.send_payment',
+    'New Sale': 'sales.create',
+    'New Purchase': 'purchases.create',
+    'Add Product': 'inventory.create',
+    'Add Bank': 'finance.transactions',
+    'New Quote': 'sales.quotations',
+    'Transfer Stock': 'inventory.transfer',
+    'Add Category': 'inventory.create',
+  }[action.label]));
 
   return (
     <div className="absolute top-full mt-2 right-0 w-72 bg-[#0E1318]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 p-3 z-50 animate-in fade-in zoom-in-95 duration-200">
@@ -164,20 +174,25 @@ export default function V6FinancialSidebar({
   const menuRef = useRef(null);
 
   const userPerms = auth?.user?.permissions || [];
-  const canViewBalances = auth?.user?.is_platform_admin || userPerms.includes('*') || userPerms.includes('finance.balances');
+  const can = permission => auth?.user?.is_platform_admin || auth?.user?.role === 'owner' || userPerms.includes('*') || userPerms.includes(permission);
+  const canViewBalances = can('finance.balances');
+  const canViewStockValue = can('reports.stock') || can('reports.financial');
+  const canViewActivity = can('finance.transactions');
+  const canSell = can('pos.checkout') || can('sales.create');
+  const canPurchase = can('purchases.create');
 
   const resolvedCashData = cashData || extraProps.cashData || pageProps.cashData;
   const resolvedBankAccounts = (bankAccounts && bankAccounts.length > 0) ? bankAccounts : (extraProps.bankAccounts || pageProps.bankAccounts || []);
   const resolvedInventoryValue = inventoryValue || extraProps.inventoryValue || pageProps.inventoryValue || 0;
   const resolvedTransactions = (recentTransactions && recentTransactions.length > 0) ? recentTransactions : (extraProps.recentTransactions || pageProps.recentTransactions || []);
 
-  const glBalance = parseFloat(resolvedCashData?.balance ?? (Array.isArray(pageProps.cashAccounts) ? pageProps.cashAccounts.reduce((s, a) => s + (Number(a.balance) || 0), 0) : -176951.31));
+  const glBalance = parseFloat(resolvedCashData?.balance ?? (Array.isArray(pageProps.cashAccounts) ? pageProps.cashAccounts.reduce((s, a) => s + (Number(a.balance) || 0), 0) : 0));
   const bankBalance = resolvedBankAccounts.reduce((sum, acc) => sum + parseFloat(acc.current_balance || 0), 0);
-  const stockVal = parseFloat(resolvedInventoryValue || 515187.50);
-  const totalBalance = canViewBalances ? (glBalance + bankBalance) : 204591.69;
+  const stockVal = parseFloat(resolvedInventoryValue || 0);
+  const totalBalance = glBalance + bankBalance;
 
   const formatMoney = (amount) => {
-    const sym = 'Rs';
+    const sym = getCurrencySymbol(store) || 'Rs';
     const val = parseFloat(amount) || 0;
     const formatted = Math.round(val).toLocaleString('en-PK');
     return `${sym} ${formatted}`;
@@ -206,39 +221,29 @@ export default function V6FinancialSidebar({
     };
   }, [menuRef]);
 
-  // Fallback demo bank accounts if none exist in store
-  const displayBankAccounts = resolvedBankAccounts && resolvedBankAccounts.length > 0 ? resolvedBankAccounts : [
-    { id: 'b1', name: 'Standard Chartered', bank_name: 'Standard Chartered', account_number: '1098', current_balance: 250000.00 },
-    { id: 'b2', name: 'Meezan Bank', bank_name: 'Meezan Bank', account_number: '9012', current_balance: 2275880.00 },
-  ];
-
-  // Fallback demo activity items if none provided (limited to 3-4 entries)
-  const displayTransactions = (resolvedTransactions && resolvedTransactions.length > 0 ? resolvedTransactions : [
-    { type: 'Purchase', amount: '-Rs 46,500', time: '7 hours ago', activityType: 'purchase' },
-    { type: 'Sale', amount: '+Rs 12,100', time: '13 hours ago', activityType: 'sale' },
-    { type: 'Sale', amount: '+Rs 7,200', time: '15 hours ago', activityType: 'sale' },
-  ]).slice(0, 3);
+  const displayBankAccounts = resolvedBankAccounts || [];
+  const displayTransactions = (resolvedTransactions || []).slice(0, 3);
 
   return (
     <div className={`w-full h-full flex flex-col gap-2.5 text-white justify-between ${className}`}>
-      <CashDetailModal
+      {canViewBalances && <CashDetailModal
         isOpen={isCashModalOpen}
         onClose={() => setIsCashModalOpen(false)}
         transactions={resolvedCashData?.transactions || []}
         onNavigate={handleNavigate}
         store={store}
-      />
+      />}
 
-      <PaymentModal
+      {canViewActivity && <PaymentModal
         isOpen={paymentModal.isOpen}
         onClose={() => setPaymentModal(p => ({ ...p, isOpen: false }))}
         type={paymentModal.type}
         bankAccounts={resolvedBankAccounts}
         store={store}
-      />
+      />}
 
       {/* 1. Header: Total Balance (Line 1: Icon + Heading; Line 2: Big value with currency on single line) */}
-      <div className="flex flex-col gap-1 px-1 pt-0.5 shrink-0">
+      {canViewBalances && <div className="flex flex-col gap-1 px-1 pt-0.5 shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-teal-500/15 dark:bg-white/[0.06] border border-teal-500/30 dark:border-white/[0.10] flex items-center justify-center text-teal-700 dark:text-white shadow-inner shrink-0">
             <Wallet size={14} strokeWidth={2.4} />
@@ -260,25 +265,25 @@ export default function V6FinancialSidebar({
             {formatMoney(totalBalance)}
           </span>
         </div>
-      </div>
+      </div>}
 
       {/* 2. Three Circular/Pill Action Buttons: SALE, PURCHASE, ACTIONS */}
       <div className="relative shrink-0" ref={menuRef}>
         <div className="grid grid-cols-3 gap-2">
           {/* SALE Button */}
-          <button
+          {canSell && <button
             type="button"
-            onClick={() => handleNavigate('store.sales.invoice.create')}
+            onClick={() => handleNavigate(can('pos.checkout') ? 'store.pos' : 'store.sales.invoice.create')}
             className="bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-950 dark:bg-emerald-500/[0.10] dark:hover:bg-emerald-500/[0.20] dark:border-emerald-500/30 dark:hover:border-emerald-500/50 dark:text-emerald-300 rounded-2xl py-2 px-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 group shadow-sm backdrop-blur-sm"
           >
             <div className="w-7 h-7 rounded-xl bg-emerald-500/25 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 group-hover:bg-emerald-600 group-hover:text-white dark:group-hover:text-black flex items-center justify-center transition-all duration-200">
               <ArrowDownLeft size={14} strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-black tracking-wider text-emerald-950 dark:text-emerald-300">SALE</span>
-          </button>
+          </button>}
 
           {/* PURCHASE Button */}
-          <button
+          {canPurchase && <button
             type="button"
             onClick={() => handleNavigate('store.purchases.create')}
             className="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 hover:border-amber-500/50 text-amber-950 dark:bg-amber-500/[0.10] dark:hover:bg-amber-500/[0.20] dark:border-amber-500/30 dark:hover:border-amber-500/50 dark:text-amber-300 rounded-2xl py-2 px-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 group shadow-sm backdrop-blur-sm"
@@ -287,10 +292,10 @@ export default function V6FinancialSidebar({
               <ArrowUpRight size={14} strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-black tracking-wider text-amber-950 dark:text-amber-300">PURCHASE</span>
-          </button>
+          </button>}
 
           {/* ACTIONS Button — Opens centralized Quick Actions modal */}
-          <button
+          {canViewBalances && <button
             type="button"
             onClick={() => {
               if (onQuickActions) {
@@ -305,22 +310,23 @@ export default function V6FinancialSidebar({
               <Plus size={14} strokeWidth={2.5} />
             </div>
             <span className="text-[10px] font-black tracking-wider text-teal-950 dark:text-teal-300">ACTIONS</span>
-          </button>
+          </button>}
         </div>
 
-        <ActionMenu
+        {canViewBalances && <ActionMenu
           isOpen={isMenuOpen}
           onClose={() => setIsMenuOpen(false)}
           store={store}
+          can={can}
           onAction={(act) => {
             if (act === 'payment-in') setPaymentModal({ isOpen: true, type: 'in' });
             else if (act === 'payment-out') setPaymentModal({ isOpen: true, type: 'out' });
           }}
-        />
+        />}
       </div>
 
       {/* 3. Cash in Hand Card (rounded-[20px], Label on left, Number on right) */}
-      <button 
+      {canViewBalances && <button
         type="button"
         aria-label="View Cash in Hand Details"
         onClick={() => setIsCashModalOpen(true)}
@@ -338,10 +344,10 @@ export default function V6FinancialSidebar({
         >
           {formatMoney(glBalance)}
         </span>
-      </button>
+      </button>}
 
       {/* 4. Stock Value Card (rounded-[20px], Label on left, Number on right) */}
-      <button 
+      {canViewStockValue && <button
         type="button"
         aria-label="View Stock Inventory Details"
         onClick={() => handleNavigate('store.inventory.index')}
@@ -359,65 +365,71 @@ export default function V6FinancialSidebar({
         >
           {formatMoney(stockVal)}
         </span>
-      </button>
+      </button>}
 
       {/* 5. Bank Accounts Section (Shows ALL banks with NO inner scrolling) */}
-      <div className="shrink-0 flex flex-col">
+      {canViewBalances && <div className="shrink-0 flex flex-col">
         <div className="flex items-center justify-between px-1 mb-1.5">
           <p className="text-[10px] font-extrabold text-slate-700 dark:text-neutral-400 uppercase tracking-widest">
             BANK ACCOUNTS
           </p>
-          <button
+          {can('finance.transactions') && <button
             type="button"
             onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}
             className="flex items-center gap-1 text-[10px] font-extrabold text-teal-800 dark:text-teal-300 hover:text-teal-950 dark:hover:text-teal-200 bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-2.5 py-0.5 rounded-full transition-all"
           >
             <Plus size={11} strokeWidth={2.5} />
             <span>Add Bank</span>
-          </button>
+          </button>}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          {displayBankAccounts.map((acc) => (
-            <button
-              type="button"
-              key={acc.id}
-              onClick={() => handleNavigate('store.bank-accounts.index')}
-              className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-2.5 flex flex-col gap-1 transition-all duration-200 cursor-pointer group shadow-sm shrink-0"
-            >
-              {/* Line 1: Bank Name on left, Account last digits on right */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-teal-500/15 border border-teal-500/25 text-teal-700 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
-                    <Building2 size={13} strokeWidth={2} />
+          {displayBankAccounts.length > 0 ? (
+            displayBankAccounts.map((acc) => (
+              <button
+                type="button"
+                key={acc.id}
+                onClick={() => handleNavigate('store.bank-accounts.index')}
+                className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-2.5 flex flex-col gap-1 transition-all duration-200 cursor-pointer group shadow-sm shrink-0"
+              >
+                {/* Line 1: Bank Name on left, Account last digits on right */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-teal-500/15 border border-teal-500/25 text-teal-700 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                      <Building2 size={13} strokeWidth={2} />
+                    </div>
+                    <p className="text-xs font-bold text-slate-900 group-hover:text-black dark:text-neutral-100 dark:group-hover:text-white transition-colors leading-tight">
+                      {acc.bank_name || acc.name}
+                    </p>
                   </div>
-                  <p className="text-xs font-bold text-slate-900 group-hover:text-black dark:text-neutral-100 dark:group-hover:text-white transition-colors leading-tight">
-                    {acc.bank_name || acc.name}
-                  </p>
+                  <span 
+                    className="text-[10px] text-slate-600 dark:text-neutral-400 font-semibold whitespace-nowrap"
+                    style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    **** {acc.account_number ? (acc.account_number.length > 4 ? acc.account_number.slice(-4) : acc.account_number) : '....'}
+                  </span>
                 </div>
-                <span 
-                  className="text-[10px] text-slate-600 dark:text-neutral-400 font-semibold whitespace-nowrap"
-                  style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums' }}
-                >
-                  **** {acc.account_number ? (acc.account_number.length > 4 ? acc.account_number.slice(-4) : acc.account_number) : '....'}
-                </span>
-              </div>
-              {/* Line 2: Big, prominent numbers displayed properly on the right */}
-              <div className="flex items-center justify-end">
-                <span 
-                  className={`text-base sm:text-[18px] font-extrabold tracking-tight whitespace-nowrap ${parseFloat(acc.current_balance || 0) < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-950 dark:text-white'}`}
-                  style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800, letterSpacing: '-0.02em' }}
-                >
-                  {formatMoney(acc.current_balance)}
-                </span>
-              </div>
-            </button>
-          ))}
+                {/* Line 2: Big, prominent numbers displayed properly on the right */}
+                <div className="flex items-center justify-end">
+                  <span 
+                    className={`text-base sm:text-[18px] font-extrabold tracking-tight whitespace-nowrap ${parseFloat(acc.current_balance || 0) < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-950 dark:text-white'}`}
+                    style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800, letterSpacing: '-0.02em' }}
+                  >
+                    {formatMoney(acc.current_balance)}
+                  </span>
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="p-3 text-center text-xs text-neutral-500 dark:text-neutral-400 bg-black/[0.02] dark:bg-white/[0.02] rounded-[16px] border border-dashed border-black/[0.08] dark:border-white/[0.08]">
+              No bank accounts connected
+            </div>
+          )}
         </div>
-      </div>
+      </div>}
 
       {/* 6. Activity Card (Displays fewer entries cleanly with normal readable size) */}
-      <div className="bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-[20px] p-3 shadow-sm flex flex-col flex-1 min-h-[110px] overflow-hidden">
+      {canViewActivity && <div className="bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.06] dark:border-white/[0.08] rounded-[20px] p-3 shadow-sm flex flex-col flex-1 min-h-[110px] overflow-hidden">
         {/* Header with Legend */}
         <div className="flex justify-between items-center mb-2 shrink-0">
           <h3 className="font-extrabold text-[10px] text-slate-700 dark:text-neutral-300 uppercase tracking-widest">
@@ -435,42 +447,48 @@ export default function V6FinancialSidebar({
 
         {/* Activity Items List */}
         <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-1.5 pr-0.5">
-          {displayTransactions.map((tx, i) => {
-            const isSale = tx.activityType === 'sale' || tx.type?.toLowerCase().includes('sale') || tx.type?.toLowerCase().includes('transaction');
-            const isIncoming = tx.amount?.startsWith('+') || isSale;
+          {displayTransactions.length > 0 ? (
+            displayTransactions.map((tx, i) => {
+              const isSale = tx.activityType === 'sale' || tx.type?.toLowerCase().includes('sale') || tx.type?.toLowerCase().includes('transaction');
+              const isIncoming = tx.amount?.startsWith('+') || isSale;
 
-            return (
-              <div
-                key={i}
-                className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-black/[0.02] hover:bg-black/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.05] border border-black/[0.03] dark:border-transparent transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${isSale ? 'bg-teal-500/20 text-teal-800 dark:bg-teal-500/20 dark:text-teal-300 border border-teal-500/30 dark:border-teal-500/30' : 'bg-amber-500/20 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/30'}`}>
-                    {isIncoming ? <ArrowDownLeft size={11} strokeWidth={2.4} /> : <ArrowUpRight size={11} strokeWidth={2.4} />}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <span className={`w-1 h-1 rounded-full ${isSale ? 'bg-teal-600 dark:bg-teal-400' : 'bg-amber-600 dark:bg-amber-400'}`}></span>
-                      <span className="text-[11px] font-bold text-slate-950 group-hover:text-black dark:text-neutral-200 dark:group-hover:text-white transition-colors">
-                        {tx.type || 'Transaction'}
+              return (
+                <div
+                  key={i}
+                  className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-black/[0.02] hover:bg-black/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.05] border border-black/[0.03] dark:border-transparent transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${isSale ? 'bg-teal-500/20 text-teal-800 dark:bg-teal-500/20 dark:text-teal-300 border border-teal-500/30 dark:border-teal-500/30' : 'bg-amber-500/20 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/30'}`}>
+                      {isIncoming ? <ArrowDownLeft size={11} strokeWidth={2.4} /> : <ArrowUpRight size={11} strokeWidth={2.4} />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className={`w-1 h-1 rounded-full ${isSale ? 'bg-teal-600 dark:bg-teal-400' : 'bg-amber-600 dark:bg-amber-400'}`}></span>
+                        <span className="text-[11px] font-bold text-slate-950 group-hover:text-black dark:text-neutral-200 dark:group-hover:text-white transition-colors">
+                          {tx.type || 'Transaction'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-slate-600 dark:text-neutral-400 font-semibold block pl-2">
+                        {tx.time || 'Recently'}
                       </span>
                     </div>
-                    <span className="text-[9px] text-slate-600 dark:text-neutral-400 font-semibold block pl-2">
-                      {tx.time || 'Recently'}
-                    </span>
                   </div>
+                  <span 
+                    className={`text-xs sm:text-[13px] font-extrabold tracking-tight whitespace-nowrap ${isIncoming ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}
+                    style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800 }}
+                  >
+                    {tx.amount}
+                  </span>
                 </div>
-                <span 
-                  className={`text-xs sm:text-[13px] font-extrabold tracking-tight whitespace-nowrap ${isIncoming ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}
-                  style={{ fontFamily: 'var(--vq-font-numeric)', fontVariantNumeric: 'tabular-nums', fontWeight: 800 }}
-                >
-                  {tx.amount}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="flex-1 flex items-center justify-center py-6 text-center text-xs text-neutral-500 dark:text-neutral-400">
+              No recent activity recorded
+            </div>
+          )}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

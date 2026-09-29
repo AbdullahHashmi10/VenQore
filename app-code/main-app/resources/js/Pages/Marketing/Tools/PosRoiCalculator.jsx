@@ -32,9 +32,10 @@ const FAQS = [
 ];
 
 function fmtMoney(amount, sym) {
-    if (!Number.isFinite(amount)) return `${sym}0.00`;
+    const dec = Number(window?.amdSettings?.decimal_places ?? 2);
+    if (!Number.isFinite(amount)) return `${sym}${(0).toFixed(dec)}`;
     const isNeg = amount < 0;
-    const absVal = Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const absVal = Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
     return isNeg ? `-${sym}${absVal}` : `${sym}${absVal}`;
 }
 

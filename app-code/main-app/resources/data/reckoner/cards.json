@@ -2228,7 +2228,8 @@
     "contract_state": "implemented_unverified",
     "status_reason": null,
     "permissions": [
-      "reports.summary"
+      "reports.stock",
+      "reports.financial"
     ],
     "periods": [
       "live",
@@ -8402,7 +8403,8 @@
     "contract_state": "verified",
     "status_reason": null,
     "permissions": [
-      "inventory.view"
+      "reports.stock",
+      "reports.financial"
     ],
     "periods": [
       "live",
@@ -8459,7 +8461,8 @@
     "contract_state": "implemented_unverified",
     "status_reason": null,
     "permissions": [
-      "inventory.view"
+      "reports.stock",
+      "reports.financial"
     ],
     "periods": [
       "live",
@@ -8795,7 +8798,8 @@
     "contract_state": "implemented_unverified",
     "status_reason": null,
     "permissions": [
-      "inventory.view"
+      "reports.stock",
+      "reports.financial"
     ],
     "periods": [
       "live",
@@ -8968,7 +8972,8 @@
     "contract_state": "implemented_unverified",
     "status_reason": null,
     "permissions": [
-      "inventory.view"
+      "reports.stock",
+      "reports.financial"
     ],
     "periods": [
       "live",
@@ -9025,7 +9030,8 @@
     "contract_state": "implemented_unverified",
     "status_reason": null,
     "permissions": [
-      "inventory.view"
+      "reports.stock",
+      "reports.financial"
     ],
     "periods": [
       "today",

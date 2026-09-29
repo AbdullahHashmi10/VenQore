@@ -93,7 +93,7 @@
                         <td>{{ $item['name'] }}</td>
                         <td class="center muted">{{ $item['unit'] }}</td>
                         @if($showExpected)
-                            <td class="num bold">{{ $item['expected_qty'] !== null ? rtrim(rtrim(number_format($item['expected_qty'], 2), '0'), '.') : '—' }}</td>
+                            <td class="num bold">{{ $item['expected_qty'] !== null ? \App\Helpers\SettingsHelper::formatQuantity($item['expected_qty']) : '—' }}</td>
                         @endif
                         <td></td>
                         <td></td>

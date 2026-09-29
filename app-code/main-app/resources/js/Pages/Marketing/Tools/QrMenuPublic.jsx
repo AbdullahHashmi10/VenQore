@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
+import { formatNumber } from '@/Utils/format';
 
 import { vq } from '@/theme/runtime';
 /**
@@ -62,7 +63,7 @@ export default function QrMenuPublic({ restaurant_name, logo_base64, theme_color
                                             )}
                                         </div>
                                         <p className="font-bold text-lg shrink-0" style={{ color: theme_color }}>
-                                            {symbol}{Number(item.price).toFixed(2)}
+                                            {symbol}{formatNumber(item.price)}
                                         </p>
                                     </div>
                                 ))}

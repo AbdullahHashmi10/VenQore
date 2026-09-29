@@ -103,7 +103,7 @@
                         @foreach($denominations as $row)
                             <tr>
                                 <td>{{ $row['label'] }}</td>
-                                <td class="num">{{ $currencySymbol }}{{ rtrim(rtrim(number_format($row['value'], 2), '0'), '.') }}</td>
+                                <td class="num">{{ $currencySymbol }}{{ \App\Helpers\SettingsHelper::formatQuantity($row['value']) }}</td>
                                 <td class="center write">&nbsp;</td>
                                 <td class="center write">&nbsp;</td>
                             </tr>

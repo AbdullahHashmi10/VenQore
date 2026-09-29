@@ -60,19 +60,19 @@ export default function SecuritySection({ data, setData }) {
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-ink">Sign out after inactivity</h4>
-                                <p className="text-xs text-ink-muted">Automatically lock the workstation session after idle time</p>
+                                <p className="text-xs text-ink-muted">Automatically lock the workstation session after idle time (set 0 to disable)</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
-                                min="5"
+                                min="0"
                                 max="480"
-                                value={data.auto_logout || 30}
-                                onChange={(e) => setData('auto_logout', Math.max(5, parseInt(e.target.value, 10) || 30))}
+                                value={data.auto_logout !== undefined && data.auto_logout !== null ? data.auto_logout : 30}
+                                onChange={(e) => setData('auto_logout', Math.max(0, parseInt(e.target.value, 10) || 0))}
                                 className="w-20 px-3 py-1.5 bg-app border border-line rounded-xl text-sm font-bold text-ink text-center focus:ring-2 focus:ring-brand-500 outline-none"
                             />
-                            <span className="text-xs font-bold text-ink-muted">min</span>
+                            <span className="text-xs font-bold text-ink-muted">{Number(data.auto_logout) === 0 ? 'off' : 'min'}</span>
                         </div>
                     </div>
                 </div>
@@ -145,18 +145,20 @@ export default function SecuritySection({ data, setData }) {
                 <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-xl text-xs text-amber-800 dark:text-amber-300">
                     <AlertTriangle size={16} className="shrink-0 mt-0.5 text-amber-600" />
                     <div>
-                        <p className="font-bold">Configuration saved, SAML login redirection in progress</p>
+                        <p className="font-bold">Enterprise SSO (In Development)</p>
                         <p className="mt-0.5 text-amber-700 dark:text-amber-400 leading-relaxed">
-                            SAML 2.0 metadata signature validation is active for configuration capture. Users can continue to log in with their credentials while tenant SSO certificates are verified.
+                            Single Sign-On (SAML 2.0 / Azure AD / Okta) connection is in progress and will be available in an upcoming update. Currently, staff authenticate using their credentials.
                         </p>
                     </div>
                 </div>
 
                 <Toggle
                     label="Allow company account sign-in"
-                    description="Connect your company's sign-in service. Your IT team may need to help set it up."
-                    enabled={isSsoActive}
-                    onChange={(v) => setData('sso_enabled', v)}
+                    description="Connect your company's sign-in service (Upcoming feature)."
+                    enabled={false}
+                    disabled={true}
+                    upcoming={true}
+                    onChange={() => {}}
                 />
 
                 {isSsoActive && (

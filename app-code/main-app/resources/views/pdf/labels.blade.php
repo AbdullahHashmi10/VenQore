@@ -1,3 +1,7 @@
+@php
+    $decimals = (int) ($settings['decimal_places'] ?? \App\Helpers\SettingsHelper::getPrintDecimals(2));
+    $currencySymbol = $settings['currency_symbol'] ?? \App\Helpers\SettingsHelper::get('currency_symbol') ?? '$';
+@endphp
 <!DOCTYPE html>
 <html>
 
@@ -111,7 +115,7 @@
                     @endif
 
                     @if($settings['show_price'])
-                        <div class="price">${{ number_format($item['product']->price, 2) }}</div>
+                        <div class="price">{{ $currencySymbol }}{{ number_format($item['product']->price, $decimals) }}</div>
                     @endif
                 </div>
             @endfor

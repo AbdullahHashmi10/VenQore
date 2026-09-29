@@ -1,3 +1,6 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
@@ -147,25 +150,25 @@
             @foreach($lines as $line)
                 <tr>
                     <td>{{ $line['description'] }}</td>
-                    <td class="num">{{ rtrim(rtrim(number_format($line['quantity'], 2), '0'), '.') }}</td>
-                    <td class="num">{{ $symbol }}{{ number_format($line['unit_price'], 2) }}</td>
+                    <td class="num">{{ \App\Helpers\SettingsHelper::formatQuantity($line['quantity'], $decimals) }}</td>
+                    <td class="num">{{ $symbol }}{{ number_format($line['unit_price'], $decimals) }}</td>
                     <td class="num">{{ $line['discount_pct'] > 0 ? $line['discount_pct'].'%' : '—' }}</td>
                     <td class="num">{{ $line['tax_rate'] > 0 ? $line['tax_rate'].'%' : '—' }}</td>
-                    <td class="num bold">{{ $symbol }}{{ number_format($line['line_total'], 2) }}</td>
+                    <td class="num bold">{{ $symbol }}{{ number_format($line['line_total'], $decimals) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
     <table class="totals-table">
-        <tr><td class="muted">Subtotal Credit</td><td class="right">{{ $symbol }}{{ number_format($subtotal, 2) }}</td></tr>
+        <tr><td class="muted">Subtotal Credit</td><td class="right">{{ $symbol }}{{ number_format($subtotal, $decimals) }}</td></tr>
         @if($discount > 0)
-            <tr><td class="muted">Discount Adjustment</td><td class="right">-{{ $symbol }}{{ number_format($discount, 2) }}</td></tr>
+            <tr><td class="muted">Discount Adjustment</td><td class="right">-{{ $symbol }}{{ number_format($discount, $decimals) }}</td></tr>
         @endif
         @if($tax > 0)
-            <tr><td class="muted">Tax Refunded</td><td class="right">{{ $symbol }}{{ number_format($tax, 2) }}</td></tr>
+            <tr><td class="muted">Tax Refunded</td><td class="right">{{ $symbol }}{{ number_format($tax, $decimals) }}</td></tr>
         @endif
-        <tr class="grand"><td>Total Credit</td><td class="right accent">{{ $symbol }}{{ number_format($total, 2) }}</td></tr>
+        <tr class="grand"><td>Total Credit</td><td class="right accent">{{ $symbol }}{{ number_format($total, $decimals) }}</td></tr>
     </table>
 
     @if(!empty($meta['notes']) || !empty($meta['terms']))

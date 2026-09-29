@@ -1,3 +1,6 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
@@ -106,9 +109,9 @@
                 <tr>
                     <td class="bold">{{ $d['name'] }}</td>
                     <td class="uppercase muted" style="font-size: 8px;">{{ $d['type'] }}</td>
-                    <td class="num">{{ $symbol }}{{ number_format($d['value'], 2) }}</td>
+                    <td class="num">{{ $symbol }}{{ number_format($d['value'], $decimals) }}</td>
                     <td class="num bold">{{ number_format($d['count']) }}</td>
-                    <td class="num bold">{{ $symbol }}{{ number_format($d['subtotal'], 2) }}</td>
+                    <td class="num bold">{{ $symbol }}{{ number_format($d['subtotal'], $decimals) }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -128,37 +131,37 @@
                 <table class="reconcile-table">
                     <tr>
                         <td class="muted">Opening Float</td>
-                        <td class="num">{{ $symbol }}{{ number_format($openingFloat, 2) }}</td>
+                        <td class="num">{{ $symbol }}{{ number_format($openingFloat, $decimals) }}</td>
                     </tr>
                     <tr>
                         <td class="muted">Expected Cash Sales</td>
-                        <td class="num">{{ $symbol }}{{ number_format($expectedSales, 2) }}</td>
+                        <td class="num">{{ $symbol }}{{ number_format($expectedSales, $decimals) }}</td>
                     </tr>
                     <tr class="total-row">
                         <td>Total Expected Cash</td>
-                        <td class="num">{{ $symbol }}{{ number_format($expectedTotal, 2) }}</td>
+                        <td class="num">{{ $symbol }}{{ number_format($expectedTotal, $decimals) }}</td>
                     </tr>
                     <tr>
                         <td class="muted">Counted Bills Total</td>
-                        <td class="num">{{ $symbol }}{{ number_format($totalBills, 2) }}</td>
+                        <td class="num">{{ $symbol }}{{ number_format($totalBills, $decimals) }}</td>
                     </tr>
                     <tr>
                         <td class="muted">Counted Coins Total</td>
-                        <td class="num">{{ $symbol }}{{ number_format($totalCoins, 2) }}</td>
+                        <td class="num">{{ $symbol }}{{ number_format($totalCoins, $decimals) }}</td>
                     </tr>
                     <tr class="total-row">
                         <td>Total Counted Cash</td>
-                        <td class="num">{{ $symbol }}{{ number_format($totalCountedCash, 2) }}</td>
+                        <td class="num">{{ $symbol }}{{ number_format($totalCountedCash, $decimals) }}</td>
                     </tr>
                     <tr class="variance-row">
                         <td>Variance (Over / Short)</td>
                         <td class="num {{ $varianceStatus === 'exact' ? 'variance-exact' : ($varianceStatus === 'over' ? 'variance-over' : 'variance-short') }}">
                             @if($variance > 0)
-                                +{{ $symbol }}{{ number_format($variance, 2) }} (OVER)
+                                +{{ $symbol }}{{ number_format($variance, $decimals) }} (OVER)
                             @elseif($variance < 0)
-                                -{{ $symbol }}{{ number_format(abs($variance), 2) }} (SHORT)
+                                -{{ $symbol }}{{ number_format(abs($variance), $decimals) }} (SHORT)
                             @else
-                                {{ $symbol }}0.00 (BALANCED)
+                                {{ $symbol }}{{ number_format(0, $decimals) }} (BALANCED)
                             @endif
                         </td>
                     </tr>

@@ -167,15 +167,15 @@
                         @endif
                     </td>
                     <td>{{ $line['package_number'] ?: 'Box 1' }}</td>
-                    <td class="num">{{ rtrim(rtrim(number_format($line['quantity_ordered'], 2), '0'), '.') }}</td>
-                    <td class="num bold">{{ rtrim(rtrim(number_format($line['quantity_shipped'], 2), '0'), '.') }}</td>
+                    <td class="num">{{ \App\Helpers\SettingsHelper::formatQuantity($line['quantity_ordered']) }}</td>
+                    <td class="num bold">{{ \App\Helpers\SettingsHelper::formatQuantity($line['quantity_shipped']) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
     <div class="totals-summary">
-        Total Items Ordered: <strong>{{ rtrim(rtrim(number_format($totalOrdered, 2), '0'), '.') }}</strong> &nbsp;|&nbsp; Total Items Shipped: <strong>{{ rtrim(rtrim(number_format($totalShipped, 2), '0'), '.') }}</strong>
+        Total Items Ordered: <strong>{{ \App\Helpers\SettingsHelper::formatQuantity($totalOrdered) }}</strong> &nbsp;|&nbsp; Total Items Shipped: <strong>{{ \App\Helpers\SettingsHelper::formatQuantity($totalShipped) }}</strong>
     </div>
 
     @if(!empty($meta['gift_message']) || !empty($meta['special_instructions']))

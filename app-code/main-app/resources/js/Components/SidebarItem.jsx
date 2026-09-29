@@ -189,6 +189,7 @@ export default function SidebarItem({
                             'Main Dashboard': 'store.dashboard',
                             'Executive Dashboard': 'store.admin.dashboard',
                             'User Management': 'store.admin.users',
+                            'Approvals': 'store.approvals.inbox',
                             'Staff Attendance': 'store.admin.attendance',
                             'Data Management': 'store.admin.data',
                             'System Settings': 'store.admin.settings',
@@ -291,6 +292,8 @@ export default function SidebarItem({
                             'Quotations / Pre-Sales': 'store.pre-sales.index',
                             'Pre-Purchases': 'store.purchase-orders.index', 
                             'Fund Management': 'store.funds.index',
+                            'Approval Inbox': 'store.approvals.inbox',
+                            'My Submissions': 'store.approvals.my-submissions',
                         };
                         return routeMap[itemName];
                     };

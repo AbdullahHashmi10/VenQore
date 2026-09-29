@@ -25,20 +25,26 @@ import {
 
 const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
  const tt = useTermText();
+ const pageProps = usePage()?.props || {};
+ const auth = pageProps.auth || {};
+ const permissions = auth?.user?.permissions || [];
+ const isOwnerOrAdmin = auth?.user?.is_platform_admin || auth?.user?.role === 'owner' || auth?.user?.role === 'admin' || permissions.includes('*');
+ const hasPermission = key => isOwnerOrAdmin || permissions.includes(key);
+
  if (!isOpen) return null;
 
  const actions = [
- { label: 'Payment In', icon: ArrowDownRight, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.payments.in' },
- { label: 'Payment Out', icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.payments.out' },
- { label: 'New Quote', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10', route: 'store.proposals.create' },
- { label: 'Transfer Stock', icon: RefreshCw, color: 'text-orange-500', bg: 'bg-orange-500/10', route: 'store.stock-transfers.create' },
- { label: 'Add Product', icon: Box, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.inventory.create' },
- { label: 'Add Category', icon: Tag, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.categories.index' },
- { label: 'Add User', icon: UserPlus, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.admin.users' },
- { label: 'Expense', icon: FileMinus, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.expenses.index' },
- { label: 'Refund', icon: LogOut, color: 'text-yellow-500', bg: 'bg-yellow-500/10', route: 'store.returns.create' },
- { label: 'Supplier', icon: Truck, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.parties.index' },
- ];
+  { label: 'Payment In', icon: ArrowDownRight, color: 'text-emerald-500', bg: 'bg-emerald-500/10', perm: 'finance.receive_payment', altPerm: 'finance.balances' },
+  { label: 'Payment Out', icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-500/10', perm: 'finance.send_payment', altPerm: 'finance.balances' },
+  { label: 'New Quote', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10', route: 'store.proposals.create', perm: 'sales.quotations', altPerm: 'sales.create' },
+  { label: 'Transfer Stock', icon: RefreshCw, color: 'text-orange-500', bg: 'bg-orange-500/10', route: 'store.stock-transfers.create', perm: 'inventory.transfer' },
+  { label: 'Add Product', icon: Box, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.inventory.create', perm: 'inventory.create' },
+  { label: 'Add Category', icon: Tag, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.categories.index', perm: 'inventory.create' },
+  { label: 'Add User', icon: UserPlus, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.admin.users', perm: 'admin.staff_manage' },
+  { label: 'Expense', icon: FileMinus, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.expenses.index', perm: 'finance.expenses' },
+  { label: 'Refund', icon: LogOut, color: 'text-yellow-500', bg: 'bg-yellow-500/10', route: 'store.returns.create', perm: 'pos.refund', altPerm: 'sales.returns' },
+  { label: 'Supplier', icon: Truck, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.parties.index', perm: 'purchases.suppliers', altPerm: 'purchases.view' },
+ ].filter(a => !a.perm || hasPermission(a.perm) || (a.altPerm && hasPermission(a.altPerm)));
 
  return (
  <div className="absolute top-full mt-2 right-0 w-64 bg-surface rounded-[14px] shadow-2xl border border-line p-2 z-50 animate-in fade-in slide-in-from-top-4 duration-normal">

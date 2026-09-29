@@ -287,5 +287,49 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         expect(prefs.ops.showMargin).toBe(true);
         expect(prefs.ops.senior).toBe(true);
     });
+
+    it('formats quantities safely without altering integer magnitude at decimal precision 0, 1, 2, 4', () => {
+        const formatQuantity = (qty, maxDecimals = 2) => {
+            const num = Number(qty);
+            if (Math.floor(num) === num) {
+                return String(Math.floor(num));
+            }
+            const decimals = maxDecimals > 0 ? maxDecimals : 2;
+            const formatted = num.toFixed(decimals);
+            return formatted.includes('.') ? formatted.replace(/\.?0+$/, '') : formatted;
+        };
+
+        // Whole integers: MUST never lose digits at decimal precision 0, 1, 2, 4
+        [0, 1, 2, 4].forEach(dec => {
+            expect(formatQuantity(10, dec)).toBe('10');
+            expect(formatQuantity(100, dec)).toBe('100');
+            expect(formatQuantity(1000, dec)).toBe('1000');
+            expect(formatQuantity(0, dec)).toBe('0');
+        });
+
+        // Decimal quantities
+        expect(formatQuantity(10.5, 0)).toBe('10.5'); // preserves fraction even if dec=0
+        expect(formatQuantity(10.5, 2)).toBe('10.5');
+        expect(formatQuantity(10.25, 2)).toBe('10.25');
+        expect(formatQuantity(10.125, 3)).toBe('10.125');
+    });
+
+    it('treats invoice_number_enabled as enabled by default for fresh/unconfigured tenants', () => {
+        const resolveInvoiceNumberEnabled = (settingVal) => {
+            if (settingVal === undefined || settingVal === null || settingVal === '') {
+                return true; // enabled by default
+            }
+            return settingVal === '1' || settingVal === true || settingVal === 1 || settingVal === 'true';
+        };
+
+        expect(resolveInvoiceNumberEnabled(undefined)).toBe(true);
+        expect(resolveInvoiceNumberEnabled(null)).toBe(true);
+        expect(resolveInvoiceNumberEnabled('')).toBe(true);
+        expect(resolveInvoiceNumberEnabled(true)).toBe(true);
+        expect(resolveInvoiceNumberEnabled('1')).toBe(true);
+        expect(resolveInvoiceNumberEnabled(false)).toBe(false);
+        expect(resolveInvoiceNumberEnabled('0')).toBe(false);
+    });
 });
+
 

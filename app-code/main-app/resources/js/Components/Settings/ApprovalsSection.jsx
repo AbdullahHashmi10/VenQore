@@ -2,6 +2,7 @@ import React from 'react';
 import { ShieldCheck, Shield, Lock, FileText, CheckCircle2 } from 'lucide-react';
 import Toggle from '@/Components/Toggle';
 import SectionHeader from '@/Components/SectionHeader';
+import PremiumSelect from '@/Components/PremiumSelect';
 import { useTermText } from '@/lib/terms';
 
 export default function ApprovalsSection({ data, setData, store }) {
@@ -53,15 +54,16 @@ export default function ApprovalsSection({ data, setData, store }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-line">
             <div className="space-y-2">
               <label className="block text-sm font-bold text-ink-secondary mb-1">Default Employee Approval Mode</label>
-              <select
+              <PremiumSelect
                 value={data.approval_default_employee_mode || 'inherit'}
-                onChange={e => setData('approval_default_employee_mode', e.target.value)}
-                className="w-full px-4 py-3 bg-sunken border border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
-              >
-                <option value="inherit">Inherit Store Policy (Default)</option>
-                <option value="required">Always Require Approval</option>
-                <option value="direct">Direct Posting (Bypass Approval)</option>
-              </select>
+                onChange={val => setData('approval_default_employee_mode', val)}
+                options={[
+                  { value: 'inherit', label: 'Inherit Store Policy (Default)' },
+                  { value: 'required', label: 'Always Require Approval' },
+                  { value: 'direct', label: 'Direct Posting (Bypass Approval)' },
+                ]}
+                searchable={false}
+              />
               <p className="text-2xs text-ink-muted">Default policy applied to invited staff members unless customized per-user.</p>
             </div>
 
@@ -91,17 +93,20 @@ export default function ApprovalsSection({ data, setData, store }) {
 
                 return (
                   <div key={key} className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm text-ink">{label}</span>
-                      <select
-                        value={data[policyKey] || 'inherit'}
-                        onChange={e => setData(policyKey, e.target.value)}
-                        className="px-3 py-1.5 bg-surface text-ink border border-line rounded-lg text-xs font-medium focus:ring-1 focus:ring-brand-500 outline-none"
-                      >
-                        <option value="inherit">Inherit Policy</option>
-                        <option value="required">Always Required</option>
-                        <option value="disabled">Disabled (Direct)</option>
-                      </select>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold text-sm text-ink shrink-0">{label}</span>
+                      <div className="w-44">
+                        <PremiumSelect
+                          value={data[policyKey] || 'inherit'}
+                          onChange={val => setData(policyKey, val)}
+                          options={[
+                            { value: 'inherit', label: 'Inherit Policy' },
+                            { value: 'required', label: 'Always Required' },
+                            { value: 'disabled', label: 'Disabled (Direct)' },
+                          ]}
+                          searchable={false}
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({currencySymbol}):</span>

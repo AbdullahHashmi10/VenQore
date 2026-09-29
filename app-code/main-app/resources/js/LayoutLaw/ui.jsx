@@ -33,7 +33,10 @@ export const HUE_VAR = {
 };
 
 export const n0 = (v) => Math.round(v).toLocaleString('en-US');
-export const n2 = (v) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const n2 = (v, decimals = null) => {
+    const d = decimals !== null ? decimals : parseInt(typeof window !== 'undefined' ? window.amdSettings?.decimal_places ?? 2 : 2, 10);
+    return Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: isNaN(d) ? 2 : d, maximumFractionDigits: isNaN(d) ? 2 : d });
+};
 
 /**
  * A number never overflows and is never cut off with an ellipsis. It steps down

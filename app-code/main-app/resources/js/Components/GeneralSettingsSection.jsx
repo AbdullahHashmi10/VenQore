@@ -76,11 +76,12 @@ export default function GeneralSettingsSection({ data, setData }) {
 
                             <Toggle
                                 label="Multi-Firm Mode"
-                                description="Manage multiple legal business entities & separate branch books."
-                                enabled={isMultiFirmActive}
-                                onChange={(v) => setData('multi_firm_enabled', v)}
+                                description="Manage multiple legal business entities (In Development)."
+                                enabled={false}
+                                onChange={() => {}}
                                 icon={Box}
-                                upcoming={false}
+                                upcoming={true}
+                                disabled={true}
                             />
 
                             <div className="py-3.5 flex items-center justify-between">

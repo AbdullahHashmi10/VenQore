@@ -443,27 +443,6 @@ class AdminController extends Controller
             $settingsData = array_merge($settingsData, $nested);
         }
 
-        // Handle Logo Upload
-        if ($request->hasFile('print_logo_file')) {
-            // Validate: images only, max 4MB — prevents arbitrary/oversized file
-            // uploads into a public storage path.
-            $request->validate([
-                'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:4096'],
-            ]);
-
-            $file = $request->file('print_logo_file');
-            $path = $file->store('system', 'public');
-            
-            // Update or Create the logo path setting
-            \App\Models\Setting::updateOrCreate(
-                ['key' => 'print_logo_path'],
-                ['value' => '/storage/' . $path]
-            );
-            
-            // IMPORTANT: Remove from loop data so we don't overwrite with local blob URL
-            unset($settingsData['print_logo_path']); 
-        }
-
         // S10 FIX: Isolated Section Saves
         // When _save_section is provided, restrict updates strictly to the keys belonging to that active section,
         // preventing stale defaults or accidental overwrites of unrelated sections.
@@ -814,6 +793,10 @@ class AdminController extends Controller
         }
         $settingsData = $filteredData;
 
+        if (empty($settingsData) && !$request->hasFile('print_logo_file')) {
+            return back()->withErrors(['settings' => 'No valid settings were provided for saving.']);
+        }
+
         $tenant = app('current.tenant');
 
         \Illuminate\Support\Facades\DB::transaction(function() use ($settingsData, $tenant) {
@@ -848,6 +831,21 @@ class AdminController extends Controller
                 \App\Models\Setting::updateOrCreate(
                     ['key' => $key],
                     ['value' => is_array($value) ? json_encode($value) : (string) $value]
+                );
+            }
+
+            // Secure Logo Upload: processed only after all section, permission, and passcode checks pass
+            if (request()->hasFile('print_logo_file') && (empty($saveSection) || $saveSection === 'document_layouts')) {
+                request()->validate([
+                    'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:4096'],
+                ]);
+
+                $file = request()->file('print_logo_file');
+                $path = $file->store('system', 'public');
+                
+                \App\Models\Setting::updateOrCreate(
+                    ['key' => 'print_logo_path'],
+                    ['value' => '/storage/' . $path]
                 );
             }
 
