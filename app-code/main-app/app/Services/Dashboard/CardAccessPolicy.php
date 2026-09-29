@@ -4,17 +4,22 @@ namespace App\Services\Dashboard;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Reckoner\CardRegistry;
 use App\Reckoner\ReckonerRegistry;
+use App\Services\ModuleService;
+use App\Services\PlanGate;
 
 /**
- * Card-level access policy for the V6 dashboard.
+ * Card-level access policy for the V6 dashboard and Reckoner cards.
  *
- * View rule:   user has at least ONE of the card's declared permissions.
- * Drill rule:  same as view.
- * Export rule: user has data.export AND at least one view permission.
- *
- * Overrides for specific cards are declared in config/dashboard_access.php.
- * Every override key must be justified in role-card-contracts-349.json.
+ * Enforces server-side gating before data leaves the server:
+ * 1. Existence / Definition: Unknown cards fail closed (denied).
+ * 2. Module gating: Tenant must have the required module enabled.
+ * 3. Plan feature gating: Tenant plan must include required features.
+ * 4. Permission contract: User must hold required permission(s).
+ *    Supports OR between alternatives and AND within companion requirements.
+ * 5. Drill gate: Specific override or matches view gate.
+ * 6. Export gate: Specific override or (view gate + data.export).
  */
 class CardAccessPolicy
 {
@@ -23,21 +28,50 @@ class CardAccessPolicy
     /**
      * May the user see this card's value?
      *
-     * @param  string $key     reckoner card key, e.g. "core.revenue"
+     * @param  string $key     reckoner or dashboard card key, e.g. "core.revenue"
      * @param  User   $user
      * @param  Tenant $tenant
      * @return bool
      */
     public function view(string $key, User $user, Tenant $tenant): bool
     {
-        $permissions = $this->cardPermissions($key);
-
-        // A card with no permission gate is visible to everyone in the tenant.
-        if (empty($permissions)) {
-            return true;
+        $def = $this->resolveCardDefinition($key);
+        if ($def === null) {
+            // Unknown card key — deny by default (fail closed)
+            return false;
         }
 
-        return $this->userHasAny($permissions, $user, $tenant);
+        // 1. Module Gate
+        $modules = $def['modules'] ?? ($def['module'] ?? null);
+        if ($modules !== null) {
+            $hasActiveModule = false;
+            foreach ((array) $modules as $mod) {
+                if ($mod && ModuleService::enabled($tenant, $mod)) {
+                    $hasActiveModule = true;
+                    break;
+                }
+            }
+            if (!$hasActiveModule) {
+                return false;
+            }
+        }
+
+        // 2. Plan Feature Gate
+        $feature = $def['feature'] ?? null;
+        if ($feature !== null) {
+            if (!PlanGate::check($feature, null, $tenant)) {
+                return false;
+            }
+        }
+
+        // 3. Permission Gate
+        $permissions = $def['permissions'] ?? [];
+        if (empty($permissions)) {
+            // A permission-free card is allowed only if explicitly classified as safe/public
+            return (bool) ($def['is_public'] ?? false);
+        }
+
+        return $this->evaluatePermissions($permissions, $user, $tenant);
     }
 
     /**
@@ -45,13 +79,18 @@ class CardAccessPolicy
      */
     public function drill(string $key, User $user, Tenant $tenant): bool
     {
-        $override = config("dashboard_access.drill_overrides.{$key}");
-        if ($override !== null) {
-            return $this->userHasAny((array) $override, $user, $tenant);
+        // Must first pass view gate
+        if (!$this->view($key, $user, $tenant)) {
+            return false;
         }
 
-        // Default: same permission gate as view
-        return $this->view($key, $user, $tenant);
+        $override = config("dashboard_access.drill_overrides.{$key}");
+        if ($override !== null) {
+            return $this->evaluatePermissions((array) $override, $user, $tenant);
+        }
+
+        // Default: view permission is sufficient
+        return true;
     }
 
     /**
@@ -59,14 +98,24 @@ class CardAccessPolicy
      */
     public function export(string $key, User $user, Tenant $tenant): bool
     {
-        $override = config("dashboard_access.export_overrides.{$key}");
-        if ($override !== null) {
-            return $this->userHasAny((array) $override, $user, $tenant);
+        // Must first pass view gate
+        if (!$this->view($key, $user, $tenant)) {
+            return false;
         }
 
-        // Default: must also have data.export on top of view permission
-        return $this->view($key, $user, $tenant)
-            && $user->hasPermission('data.export', $tenant);
+        $override = config("dashboard_access.export_overrides.{$key}");
+        if ($override !== null) {
+            $overrideList = (array) $override;
+            // Empty override list = never exportable
+            if (empty($overrideList)) {
+                return false;
+            }
+            return $user->hasPermission('data.export', $tenant)
+                && $this->evaluatePermissions($overrideList, $user, $tenant);
+        }
+
+        // Default: must have data.export on top of view permission
+        return $user->hasPermission('data.export', $tenant);
     }
 
     /**
@@ -109,39 +158,84 @@ class CardAccessPolicy
         return $card;
     }
 
+    /**
+     * Evaluates permission rule clauses.
+     * Supports:
+     * - String: 'sales.view'
+     * - Array of strings (OR): ['sales.view', 'reports.summary']
+     * - Nested array (AND companion requirement): [['sales.create', 'sales.edit']]
+     *
+     * @param  mixed  $permissions
+     * @param  User   $user
+     * @param  Tenant $tenant
+     * @return bool
+     */
+    public function evaluatePermissions(mixed $permissions, User $user, Tenant $tenant): bool
+    {
+        if (empty($permissions)) {
+            return false;
+        }
+
+        if (is_string($permissions)) {
+            return $user->hasPermission($permissions, $tenant);
+        }
+
+        if (!is_array($permissions)) {
+            return false;
+        }
+
+        foreach ($permissions as $clause) {
+            if (is_array($clause)) {
+                // AND requirement: user must satisfy all permissions in this clause
+                $allMatch = true;
+                foreach ($clause as $perm) {
+                    if (!$user->hasPermission($perm, $tenant)) {
+                        $allMatch = false;
+                        break;
+                    }
+                }
+                if ($allMatch && !empty($clause)) {
+                    return true;
+                }
+            } elseif (is_string($clause)) {
+                // OR requirement: user has this permission
+                if ($user->hasPermission($clause, $tenant)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     // ---------- internals ---------------------------------------------------
 
     /**
-     * Return the permission keys required to view a card.
-     * Source of truth: ReckonerRegistry (PHP) — permissions field.
+     * Resolve card definition from ReckonerRegistry, CardRegistry, or DashboardRegistry.
      *
-     * @return string[]
+     * @param  string $key
+     * @return array<string, mixed>|null
      */
-    private function cardPermissions(string $key): array
+    private function resolveCardDefinition(string $key): ?array
     {
-        $registry = ReckonerRegistry::all();
-
-        if (!isset($registry[$key])) {
-            // Unknown card key — deny by default
-            return ['__unknown__'];
+        // 1. ReckonerRegistry (primary runtime registry)
+        $def = ReckonerRegistry::find($key);
+        if ($def !== null) {
+            return $def;
         }
 
-        return $registry[$key]['permissions'] ?? [];
-    }
-
-    /**
-     * True if the user holds at least one of the supplied permission keys
-     * in the context of the given tenant.
-     *
-     * @param  string[] $permissions
-     */
-    private function userHasAny(array $permissions, User $user, Tenant $tenant): bool
-    {
-        foreach ($permissions as $perm) {
-            if ($user->hasPermission($perm, $tenant)) {
-                return true;
-            }
+        // 2. CardRegistry (349 card catalogue)
+        $cards = CardRegistry::all();
+        if (isset($cards[$key])) {
+            return $cards[$key];
         }
-        return false;
+
+        // 3. DashboardRegistry (standard dashboard cards)
+        $dash = DashboardRegistry::all();
+        if (isset($dash[$key])) {
+            return $dash[$key];
+        }
+
+        return null;
     }
 }

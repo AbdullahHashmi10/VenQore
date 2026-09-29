@@ -153,7 +153,20 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  const settingsRef = useRef(null);
 
  const userPerms = auth?.user?.permissions || [];
- const canViewBalances = auth?.user?.is_platform_admin || userPerms.includes('*') || userPerms.includes('finance.balances');
+ const isOwnerOrAdmin = auth?.user?.is_platform_admin || auth?.user?.role === 'owner' || auth?.user?.role === 'admin' || userPerms.includes('*');
+ const hasPermission = (key) => isOwnerOrAdmin || userPerms.includes(key);
+
+ const canViewBalances = hasPermission('finance.balances');
+ const canViewInventory = hasPermission('reports.stock') || hasPermission('inventory.view') || hasPermission('inventory.manage');
+ const canViewActivity = hasPermission('finance.transactions') || hasPermission('sales.view') || hasPermission('purchases.view');
+ const canManageBank = hasPermission('finance.journal') || hasPermission('finance.cheque_books.manage');
+ const canCreateSale = hasPermission('sales.create');
+ const canCreatePurchase = hasPermission('purchases.create');
+
+ const hasAnyContent = canViewBalances || canViewInventory || canViewActivity || canCreateSale || canCreatePurchase;
+ if (!hasAnyContent) {
+  return null;
+ }
 
  // Calc Total: cashData.balance + sum(banks) + sum(cashAccounts if any separate)
  // We assume cashData covers GL 1000. cashAccounts might be duplicate if they are sub-accounts.
@@ -189,6 +202,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-600/20 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
  <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
 
+ {canViewBalances && (
  <CashDetailModal
  isOpen={isCashModalOpen}
  onClose={() => setIsCashModalOpen(false)}
@@ -196,6 +210,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  onNavigate={handleNavigate}
  store={store}
  />
+ )}
 
  <PaymentModal
  isOpen={paymentModal.isOpen}
@@ -206,6 +221,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  />
 
  {/* Header */}
+ {canViewBalances && (
  <div className="relative z-30 flex justify-between items-center mb-8">
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10">
@@ -214,7 +230,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  <div>
  <p className="text-xs text-neutral-300 font-medium">Total Balance</p>
  <h3 className="text-xl font-bold tracking-tight">
- {canViewBalances ? formatMoney(totalBalance) : 'Restricted'}
+ {formatMoney(totalBalance)}
  </h3>
  </div>
  </div>
@@ -236,18 +252,23 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  )}
  </div>
  </div>
+ )}
 
  {/* The 3 Main Buttons */}
  <div className="relative z-20 mb-8" ref={menuRef}>
  <div className="grid grid-cols-3 gap-2 h-20">
+ {canCreateSale ? (
  <button onClick={() => router.visit(route('store.sales.invoice.create', { store_slug: store?.slug }))} className="col-span-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm">
  <div className="p-1.5 rounded-full bg-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-colors"><ArrowDownRight size={18} /></div>
  <span className="text-2xs font-bold tracking-wider">SALE</span>
  </button>
+ ) : <div className="hidden" />}
+ {canCreatePurchase ? (
  <button onClick={() => router.visit(route('store.purchases.create', { store_slug: store?.slug }))} className="col-span-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/50 text-orange-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm">
  <div className="p-1.5 rounded-full bg-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition-colors"><ArrowUpRight size={18} /></div>
  <span className="text-2xs font-bold tracking-wider">PURCHASE</span>
  </button>
+ ) : <div className="hidden" />}
  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`col-span-1 bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/50 text-brand-400 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 group backdrop-blur-sm ${isMenuOpen ? 'bg-brand-500/20 ring-2 ring-brand-500/30' : ''}`}>
  <div className="p-1.5 rounded-full bg-brand-500/20 group-hover:bg-brand-500 group-hover:text-white transition-colors"><Plus size={18} /></div>
  <span className="text-2xs font-bold tracking-wider">ACTIONS</span>
@@ -290,7 +311,8 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  </div>
  )}
 
- {/* 1.5 Inventory Value */}
+ {/* 1.5 Inventory Value (Protected) */}
+ {canViewInventory && (
  <div id="tour-stock-value" onClick={() => router.visit(route('store.inventory.index', { store_slug: store?.slug }))} className="bg-brand-500/10 backdrop-blur-md rounded-2xl p-4 border border-brand-500/20 hover:border-brand-500/40 transition-all cursor-pointer group">
  <div className="flex justify-between items-start mb-3">
  <div className="flex items-center gap-2">
@@ -306,6 +328,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  </div>
  </div>
  </div>
+ )}
 
  {/* 2. Bank Accounts List (Protected) */}
  {canViewBalances && (
@@ -326,6 +349,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  ))}
  </div>
  ) : (
+ canManageBank ? (
  <div className="p-4 rounded-2xl border border-dashed border-neutral-700 bg-white/5 flex flex-col items-center justify-center text-center gap-2 group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}>
  <div className="p-2 bg-neutral-800 rounded-full text-ink-muted group-hover:text-brand-400 transition-all">
  <Plus size={16} />
@@ -335,11 +359,17 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  <p className="text-2xs text-ink-muted">Track your business banking</p>
  </div>
  </div>
+ ) : (
+ <div className="p-4 rounded-2xl border border-neutral-800 bg-white/5 text-center text-xs text-ink-muted">
+ No bank accounts connected
+ </div>
+ )
  )
  )}
  </div>
 
  {/* Recent Transactions (Bottom) */}
+ {canViewActivity && (
  <div className="relative z-10 mt-auto bg-black/20 rounded-2xl p-4 backdrop-blur-sm border border-white/5 flex flex-col">
  <div className="flex justify-between items-center mb-3 shrink-0">
  <h3 className="font-bold text-xs text-neutral-300 uppercase tracking-wider">Activity</h3>
@@ -411,6 +441,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  )}
  </div>
  </div>
+ )}
  </div>
  );
 };

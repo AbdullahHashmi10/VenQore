@@ -12,6 +12,7 @@ class InventoryBatch extends Model
     use HasUuids, SoftDeletes, HasTenant;
 
     protected $fillable = [
+        'tenant_id',
         'product_id',
         'variant_id',
         'purchase_invoice_id',

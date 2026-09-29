@@ -37,7 +37,7 @@ const ActionMenu = ({ isOpen, onClose, store, onAction, can }) => {
     'New Sale': 'sales.create',
     'New Purchase': 'purchases.create',
     'Add Product': 'inventory.create',
-    'Add Bank': 'finance.transactions',
+    'Add Bank': 'finance.journal',
     'New Quote': 'sales.quotations',
     'Transfer Stock': 'inventory.transfer',
     'Add Category': 'inventory.create',
@@ -180,6 +180,11 @@ export default function V6FinancialSidebar({
   const canViewActivity = can('finance.transactions');
   const canSell = can('pos.checkout') || can('sales.create');
   const canPurchase = can('purchases.create');
+
+  const hasAnyContent = canViewBalances || canViewStockValue || canViewActivity || canSell || canPurchase;
+  if (!hasAnyContent) {
+    return null;
+  }
 
   const resolvedCashData = cashData || extraProps.cashData || pageProps.cashData;
   const resolvedBankAccounts = (bankAccounts && bankAccounts.length > 0) ? bankAccounts : (extraProps.bankAccounts || pageProps.bankAccounts || []);
@@ -373,7 +378,7 @@ export default function V6FinancialSidebar({
           <p className="text-[10px] font-extrabold text-slate-700 dark:text-neutral-400 uppercase tracking-widest">
             BANK ACCOUNTS
           </p>
-          {can('finance.transactions') && <button
+          {(can('finance.journal') || can('finance.cheque_books.manage')) && <button
             type="button"
             onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}
             className="flex items-center gap-1 text-[10px] font-extrabold text-teal-800 dark:text-teal-300 hover:text-teal-950 dark:hover:text-teal-200 bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-2.5 py-0.5 rounded-full transition-all"

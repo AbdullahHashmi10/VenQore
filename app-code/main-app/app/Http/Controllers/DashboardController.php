@@ -522,7 +522,7 @@ class DashboardController extends Controller
         }
 
         return Inertia::render('Dashboard', [
-        'readings'           => \App\Reckoner\ReckonerRegistry::v6Catalog(),
+        'readings'           => app(DashboardPresenter::class)->filterCatalog(\App\Reckoner\ReckonerRegistry::v6Catalog(), $user, $tenant),
         'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
         ...$this->dashboardFrameProps($tenant, $user),
         'revenue'            => $performance['Month']['sales'] ?? 0.0,

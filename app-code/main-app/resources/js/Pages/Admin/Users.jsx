@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { getCurrencySymbol } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import STAFF_PRESETS from '@/data/staff_presets.json';
 
 import { vq } from '@/theme/runtime';
 // ─── Role definitions ──────────────────────────────────────────────────────
@@ -358,6 +359,145 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
     );
 };
 
+const StaffPresetPicker = ({ onApplyPreset, disabled = false }) => {
+    const tt = useTermText();
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const groups = ['All', 'Sales floor', 'Stock & purchasing', 'Money & accounting', 'Review & administration', 'Leadership'];
+
+    const filteredPresets = useMemo(() => {
+        return (STAFF_PRESETS || []).filter(preset => {
+            const matchesGroup = selectedGroup === 'All' || preset.group === selectedGroup;
+            const q = searchQuery.toLowerCase().trim();
+            const matchesSearch = !q || preset.name.toLowerCase().includes(q) || (preset.purpose && preset.purpose.toLowerCase().includes(q));
+            return matchesGroup && matchesSearch;
+        });
+    }, [selectedGroup, searchQuery]);
+
+    return (
+        <div className="mb-4 relative z-20">
+            <div className="flex items-center justify-between gap-3 bg-app/80 dark:bg-neutral-800/80 border border-line p-2.5 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-2.5 pl-1">
+                    <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                        <Zap size={14} />
+                    </div>
+                    <div>
+                        <div className="text-xs font-bold text-ink flex items-center gap-2">
+                            <span>{tt('Role Templates & Presets')}</span>
+                            <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">32 Presets</span>
+                        </div>
+                        <p className="text-2xs text-ink-muted">{tt('Load preconfigured permission bundles by job title')}</p>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                        isOpen
+                            ? 'bg-brand-600 text-white border-brand-500 shadow-sm'
+                            : 'bg-surface hover:bg-interactive-hover border-line text-ink-secondary hover:text-ink'
+                    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    <span>{isOpen ? tt('Hide Presets') : tt('Browse Presets')}</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+            </div>
+
+            {isOpen && (
+                <div className="mt-2.5 bg-surface border border-line rounded-2xl p-4 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+                    {/* Header + Search */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-line">
+                        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                            {groups.map(g => (
+                                <button
+                                    key={g}
+                                    type="button"
+                                    onClick={() => setSelectedGroup(g)}
+                                    className={`px-2.5 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
+                                        selectedGroup === g
+                                            ? 'bg-brand-600 text-white border-brand-500 shadow-sm'
+                                            : 'bg-app border-line text-ink-muted hover:text-ink'
+                                    }`}
+                                >
+                                    {tt(g)}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="relative min-w-[200px]">
+                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder={tt('Search preset...')}
+                                className="w-full bg-app border border-line rounded-xl pl-8 pr-3 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-brand-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Presets Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+                        {filteredPresets.map(preset => (
+                            <div
+                                key={preset.id}
+                                className="p-3 bg-app/50 hover:bg-app border border-line hover:border-line-strong rounded-xl flex flex-col justify-between gap-2.5 transition-all"
+                            >
+                                <div>
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                        <h5 className="text-xs font-bold text-ink">{tt(preset.name)}</h5>
+                                        <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 whitespace-nowrap">
+                                            {preset.permissions.length} perms
+                                        </span>
+                                    </div>
+                                    <p className="text-2xs text-ink-muted leading-tight line-clamp-2">{preset.purpose}</p>
+                                    {preset.caution && (
+                                        <p className="text-3xs text-amber-600 dark:text-amber-400 mt-1 font-medium">⚠️ {preset.caution}</p>
+                                    )}
+                                </div>
+                                <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-line/60">
+                                    <button
+                                        type="button"
+                                        disabled={disabled}
+                                        onClick={() => {
+                                            onApplyPreset(preset, 'merge');
+                                            setIsOpen(false);
+                                        }}
+                                        title="Merge preset permissions with currently checked permissions"
+                                        className="px-2.5 py-1 text-2xs font-bold uppercase tracking-wider rounded-lg border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-colors"
+                                    >
+                                        + {tt('Merge')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={disabled}
+                                        onClick={() => {
+                                            onApplyPreset(preset, 'replace');
+                                            setIsOpen(false);
+                                        }}
+                                        title="Replace current permissions with this preset"
+                                        className="px-3 py-1 text-2xs font-bold uppercase tracking-wider rounded-lg bg-brand-600 hover:bg-brand-500 text-white shadow-sm transition-all active:scale-95"
+                                    >
+                                        {tt('Apply (Replace)')}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        {filteredPresets.length === 0 && (
+                            <div className="col-span-full py-8 text-center text-xs text-ink-muted">
+                                {tt('No matching presets found.')}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // ─── Status config ─────────────────────────────────────────────────────────
 const STATUS = {
     pending:            { label: 'Pending', color: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700', dot: 'bg-amber-500' },
@@ -525,6 +665,17 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             ...d,
             roles: [roleKey],
             permissions: ROLE_PERMISSIONS[roleKey] || []
+        }));
+    };
+
+    const handleApplyPreset = (preset, mode) => {
+        const targetPerms = mode === 'merge'
+            ? Array.from(new Set([...(data.permissions || []), ...preset.permissions]))
+            : [...preset.permissions];
+        setData(d => ({
+            ...d,
+            roles: ['custom'],
+            permissions: targetPerms,
         }));
     };
 
@@ -961,9 +1112,11 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                                 </div>
                             </div>
 
+                            <StaffPresetPicker onApplyPreset={handleApplyPreset} />
+
                             <PermissionsSelector
                                 selectedPermissions={data.permissions}
-                                onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms, permission_override_mode: 'custom' }))}
+                                onChange={(perms) => setData(d => ({ ...d, roles: ['custom'], permissions: perms }))}
                             />
 
                             {/* Bottom Footer Actions inside Right Panel */}
@@ -1439,6 +1592,19 @@ function EditMemberModal({ member, onClose }) {
         }));
     };
 
+    const handleApplyPreset = (preset, mode) => {
+        const targetPerms = mode === 'merge'
+            ? Array.from(new Set([...(data.permissions || []), ...preset.permissions]))
+            : [...preset.permissions];
+        setData(d => ({
+            ...d,
+            role: 'custom',
+            custom_role_name: mode === 'replace' ? preset.name : (d.custom_role_name || preset.name),
+            permissions: targetPerms,
+            permission_override_mode: 'custom',
+        }));
+    };
+
     const submit = (e) => {
         e.preventDefault();
         if (!store?.slug) return;
@@ -1677,6 +1843,8 @@ function EditMemberModal({ member, onClose }) {
                             <Sparkles size={13} /> Live Permissions Preview
                         </div>
                     </div>
+
+                    <StaffPresetPicker onApplyPreset={handleApplyPreset} disabled={member.role === 'owner'} />
 
                     <PermissionsSelector
                         selectedPermissions={data.permissions}
