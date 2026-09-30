@@ -19,7 +19,9 @@ import {
  ShieldCheck,
  Sparkles,
  Package,
- AlertTriangle
+ AlertTriangle,
+ ShoppingCart,
+ Zap
 } from 'lucide-react';
 import PremiumDropdown from '@/Components/PremiumDropdown';
 import TodaysOpportunities from '@/Components/TodaysOpportunities';
@@ -40,7 +42,8 @@ export default function Dashboard({
  bankAccounts = [],
  cashAccounts = [],
  cashData = {},
- inventoryValue
+ inventoryValue,
+ session = null
 }) {
  const { auth, store } = usePage().props;
  const { hasPerm, isAdmin } = usePermission();
@@ -170,6 +173,34 @@ export default function Dashboard({
 
                     {/* --- Left Side Content --- */}
                     <div className={`col-span-12 ${showRightPanel && desktopSidePanelVisible ? 'xl:col-span-9' : 'col-span-12'} flex flex-col gap-6 min-w-0`}>
+
+                        {/* Active Shift / Register Session Banner */}
+                        {session && (
+                            <div className="bg-surface rounded-xl p-4 sm:p-5 border border-line shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0">
+                                        <ShoppingCart size={22} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-bold text-ink text-sm sm:text-base">Current Shift / My Register</h3>
+                                            <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Active</span>
+                                        </div>
+                                        <p className="text-xs text-ink-muted mt-0.5">
+                                            <span className="font-semibold text-ink">{session.transaction_count ?? 0}</span> transactions &middot; Collected: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(session.session_total || 0, store)}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => router.visit(route('store.pos', { store_slug: store?.slug }))}
+                                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0 cursor-pointer"
+                                >
+                                    <Zap size={15} />
+                                    Open POS Terminal
+                                </button>
+                            </div>
+                        )}
                         
                         {/* ═══ 6 INDEPENDENT TOP METRIC CARDS ═══ */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 sm:gap-4.5 w-full">

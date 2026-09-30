@@ -475,6 +475,91 @@ class FinancialSidebarAndPermissionMatrixTest extends TestCase
         $this->assertEmpty($denialOverrides, 'denial_overrides must be empty to ensure unauthorized cards are hidden rather than greyed');
     }
 
+    public function test_bank_routes_strictly_require_finance_permissions_and_deny_unauthorized_users()
+    {
+        $bankAccount = BankAccount::create([
+            'tenant_id' => $this->store->id,
+            'bank_name' => 'Protected Bank',
+            'name' => 'Corporate Main Account',
+            'account_number' => 'PK-9999-1234',
+            'account_type' => 'checking',
+            'current_balance' => 500000,
+        ]);
+
+        $cashier = User::factory()->create();
+        TenantUser::withoutEvents(function () use ($cashier) {
+            TenantUser::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashier->id,
+                'role' => 'cashier',
+                'status' => 'active',
+                'permissions' => ['pos.checkout', 'pos.open_session'],
+            ]);
+        });
+
+        // 1. Cashier attempts to access bank accounts page -> 403 Forbidden
+        $resIndex = $this->actingAs($cashier)->get(route('store.bank-accounts.index', ['store_slug' => $this->store->slug]));
+        $resIndex->assertStatus(403);
+
+        // 2. Cashier attempts to access bank transactions -> 403 Forbidden
+        $resTx = $this->actingAs($cashier)->get(route('store.bank-accounts.transactions', ['store_slug' => $this->store->slug, 'bankAccount' => $bankAccount->id]));
+        $resTx->assertStatus(403);
+
+        // 3. Cashier attempts to query bank accounts API -> 403 Forbidden
+        $resApi = $this->actingAs($cashier)->get(route('store.api.bank-accounts', ['store_slug' => $this->store->slug]));
+        $resApi->assertStatus(403);
+
+        // 4. Owner has full access to all bank endpoints -> 200 OK
+        $ownerIndex = $this->actingAs($this->owner)->get(route('store.bank-accounts.index', ['store_slug' => $this->store->slug]));
+        $ownerIndex->assertStatus(200);
+
+        $ownerTx = $this->actingAs($this->owner)->get(route('store.bank-accounts.transactions', ['store_slug' => $this->store->slug, 'bankAccount' => $bankAccount->id]));
+        $ownerTx->assertStatus(200);
+
+        $ownerApi = $this->actingAs($this->owner)->get(route('store.api.bank-accounts', ['store_slug' => $this->store->slug]));
+        $ownerApi->assertStatus(200);
+        $this->assertNotEmpty($ownerApi->json());
+    }
+
+    public function test_cashier_and_pos_only_users_receive_scoped_personal_session_metrics()
+    {
+        $cashier = User::factory()->create();
+        TenantUser::withoutEvents(function () use ($cashier) {
+            TenantUser::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashier->id,
+                'role' => 'cashier',
+                'status' => 'active',
+                'permissions' => ['pos.checkout', 'pos.open_session'],
+            ]);
+        });
+
+        // Create a posted sale today for this cashier
+        Sale::withoutEvents(function () use ($cashier) {
+            Sale::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashier->id,
+                'reference_number' => 'REF-SESSION-' . uniqid(),
+                'status' => 'posted',
+                'subtotal' => 1500,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => 1500,
+                'net_sales' => 1500,
+                'posted_at' => now(),
+                'created_at' => now(),
+            ]);
+        });
+
+        $res = $this->actingAs($cashier)->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+        $res->assertStatus(200);
+
+        $sessionProp = $res->viewData('page')['props']['session'] ?? null;
+        $this->assertNotNull($sessionProp, 'Cashier must receive personal session prop');
+        $this->assertEquals(1, $sessionProp['transaction_count']);
+        $this->assertEquals(1500.0, (float) $sessionProp['session_total']);
+    }
+
     public function test_preset_definitions_are_strictly_valid_against_canonical_permissions_vocabulary()
     {
         $presetsPath = resource_path('js/Data/staff_presets.json');

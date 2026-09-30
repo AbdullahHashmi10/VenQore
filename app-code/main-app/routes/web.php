@@ -1649,11 +1649,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/inventory/stock-levels', [InventoryController::class, 'stockLevels'])->name('inventory.stock-levels');
 
     // Bank Accounts (Phase 1 - Unification)
-    Route::get('/bank-accounts', [FinanceController::class, 'bankAccounts'])->name('bank-accounts.index');
+    Route::get('/bank-accounts', [FinanceController::class, 'bankAccounts'])->middleware('permission:finance.balances')->name('bank-accounts.index');
     Route::post('/bank-accounts', [FinanceController::class, 'storeBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.store');
     Route::put('/bank-accounts/{bankAccount}', [FinanceController::class, 'updateBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.update');
     Route::delete('/bank-accounts/{bankAccount}', [FinanceController::class, 'destroyBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.destroy');
-    Route::get('/bank-accounts/{bankAccount}/transactions', [FinanceController::class, 'bankAccountTransactions'])->name('bank-accounts.transactions');
+    Route::get('/bank-accounts/{bankAccount}/transactions', [FinanceController::class, 'bankAccountTransactions'])->middleware('permission:finance.transactions,finance.balances')->name('bank-accounts.transactions');
 
     // ============================================
     // PHASE 2 - Party & Transaction Management
@@ -2095,7 +2095,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         return \response()->json(\App\Models\AdHocLine::active()->get());
     })->name('api.custom-charges');
 
-    Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->name('api.bank-accounts');
+    Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->middleware('permission:finance.balances')->name('api.bank-accounts');
 
     /* A party's position with the shop, read from the ledger rather than from
        the cached `parties.current_balance` — which several code paths write,
