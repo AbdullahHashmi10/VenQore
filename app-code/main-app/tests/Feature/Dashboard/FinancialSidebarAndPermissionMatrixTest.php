@@ -11,6 +11,7 @@ use App\Models\JournalEntry;
 use App\Models\JournalItem;
 use App\Models\Product;
 use App\Models\InventoryBatch;
+use App\Models\Sale;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -30,6 +31,7 @@ class FinancialSidebarAndPermissionMatrixTest extends TestCase
             'name' => 'Test Financial Store',
             'currency_code' => 'PKR',
             'currency_symbol' => 'Rs',
+            'timezone' => 'UTC',
             'plan' => 'enterprise',
         ]);
 
@@ -273,4 +275,226 @@ class FinancialSidebarAndPermissionMatrixTest extends TestCase
             $user->delete();
         }
     }
+
+    public function test_cashier_with_pos_checkout_receives_only_own_session_and_no_store_sales_metrics()
+    {
+        $cashier = User::factory()->create();
+        TenantUser::withoutEvents(function () use ($cashier) {
+            TenantUser::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashier->id,
+                'role' => 'cashier',
+                'status' => 'active',
+                'permission_override_mode' => 'custom',
+                'permissions' => ['pos.open_session', 'pos.checkout', 'pos.close_session', 'inventory.view'],
+            ]);
+        });
+
+        // Create sale by owner (Store sale: 15000)
+        Sale::withoutEvents(function () use ($cashier) {
+            Sale::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $this->owner->id,
+                'reference_number' => 'REF-OWNER-' . uniqid(),
+                'status' => 'posted',
+                'posted_at' => now(),
+                'subtotal' => 15000,
+                'total' => 15000,
+                'net_sales' => 15000,
+            ]);
+
+            // Create sale by cashier (Cashier sale: 3500)
+            Sale::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashier->id,
+                'reference_number' => 'REF-CASHIER-' . uniqid(),
+                'status' => 'posted',
+                'posted_at' => now(),
+                'subtotal' => 3500,
+                'total' => 3500,
+                'net_sales' => 3500,
+            ]);
+        });
+
+        $response = $this->actingAs($cashier)
+            ->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+
+        $response->assertStatus(200);
+        $props = $response->viewData('page')['props'];
+
+        // Cashier MUST NOT receive store-wide sales performance or charts
+        $this->assertNull($props['performance'] ?? null, 'Cashier must not receive store-wide sales performance stats');
+        $this->assertEmpty($props['salesData'] ?? [], 'Cashier must not receive store-wide sales chart data');
+        $this->assertEmpty($props['topSellingItems'] ?? [], 'Cashier must not receive store-wide top selling items');
+
+        // Cashier MUST receive their own session metrics
+        $this->assertNotNull($props['session'] ?? null, 'Cashier must receive own session stats');
+        $this->assertEquals(1, $props['session']['transaction_count']);
+        $this->assertEquals(3500, $props['session']['session_total']);
+    }
+
+    public function test_stock_lookup_grant_does_not_receive_inventory_valuation()
+    {
+        $stockUser = User::factory()->create();
+        TenantUser::withoutEvents(function () use ($stockUser) {
+            TenantUser::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $stockUser->id,
+                'role' => 'stock_keeper',
+                'status' => 'active',
+                'permission_override_mode' => 'custom',
+                'permissions' => ['inventory.view'],
+            ]);
+        });
+
+        $product = Product::withoutEvents(function () {
+            return Product::create([
+                'tenant_id' => $this->store->id,
+                'name' => 'Valued Product',
+                'sku' => 'VP-' . uniqid(),
+                'cost_price' => 200,
+                'price' => 400,
+                'stock_quantity' => 50,
+            ]);
+        });
+
+        InventoryBatch::create([
+            'tenant_id' => $this->store->id,
+            'product_id' => $product->id,
+            'original_qty' => 50,
+            'remaining_qty' => 50,
+            'unit_cost' => 200,
+        ]);
+
+        $response = $this->actingAs($stockUser)
+            ->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+
+        $response->assertStatus(200);
+        $props = $response->viewData('page')['props'];
+
+        // Inventory value must be withheld
+        $this->assertNull($props['inventoryValue'] ?? null, 'User with only inventory.view must not receive inventoryValue');
+    }
+
+    public function test_all_32_staff_presets_end_to_end_permission_and_visibility_contract()
+    {
+        $presetsPath = resource_path('js/Data/staff_presets.json');
+        $this->assertFileExists($presetsPath);
+        $presets = json_decode(file_get_contents($presetsPath), true);
+        $this->assertCount(32, $presets, 'There must be exactly 32 staff preset templates');
+
+        foreach ($presets as $preset) {
+            $user = User::factory()->create();
+            $permissions = $preset['permissions'];
+
+            TenantUser::withoutEvents(function () use ($user, $preset, $permissions) {
+                return TenantUser::create([
+                    'tenant_id' => $this->store->id,
+                    'user_id' => $user->id,
+                    'role' => 'custom',
+                    'status' => 'active',
+                    'permission_override_mode' => 'custom',
+                    'permissions' => $permissions,
+                ]);
+            });
+
+            $response = $this->actingAs($user)
+                ->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+
+            $response->assertStatus(200);
+            $props = $response->viewData('page')['props'];
+
+            $hasBalancePerm = in_array('finance.balances', $permissions, true) || in_array('*', $permissions, true);
+            $hasFinancialPerm = in_array('reports.financial', $permissions, true) || in_array('*', $permissions, true);
+            $hasStockValPerm = in_array('reports.stock', $permissions, true) || $hasFinancialPerm || $hasBalancePerm;
+            $hasSalesViewPerm = in_array('sales.view', $permissions, true) || in_array('reports.performance', $permissions, true) || in_array('reports.summary', $permissions, true) || in_array('*', $permissions, true);
+
+            if ($hasBalancePerm) {
+                $this->assertNotNull($props['cashData'] ?? null, "Preset {$preset['id']} with finance.balances should receive cashData");
+            } else {
+                $this->assertNull($props['cashData'] ?? null, "Preset {$preset['id']} without finance.balances must not receive cashData");
+                $this->assertEmpty($props['bankAccounts'] ?? [], "Preset {$preset['id']} without finance.balances must not receive bankAccounts");
+            }
+
+            if (!$hasStockValPerm) {
+                $this->assertNull($props['inventoryValue'] ?? null, "Preset {$preset['id']} without stock report/financial perm must not receive inventoryValue");
+            }
+
+            if (!$hasSalesViewPerm) {
+                $this->assertNull($props['performance'] ?? null, "Preset {$preset['id']} without sales.view must not receive store-wide sales performance");
+            }
+
+            $user->delete();
+        }
+    }
+
+    public function test_access_revocation_immediately_removes_financial_and_sales_access()
+    {
+        $user = User::factory()->create();
+        $membership = TenantUser::withoutEvents(function () use ($user) {
+            return TenantUser::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $user->id,
+                'role' => 'custom',
+                'status' => 'active',
+                'permission_override_mode' => 'custom',
+                'permissions' => ['finance.balances', 'sales.view', 'reports.stock'],
+            ]);
+        });
+
+        Account::firstOrCreate([
+            'tenant_id' => $this->store->id,
+            'code' => '1000',
+        ], [
+            'name' => 'Cash on Hand',
+            'type' => 'asset',
+            'normal_balance' => 'debit',
+            'balance' => 10000,
+            'is_active' => true,
+        ]);
+
+        // 1. First request with permissions granted
+        $res1 = $this->actingAs($user)->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+        $res1->assertStatus(200);
+        $this->assertNotNull($res1->viewData('page')['props']['cashData'] ?? null);
+
+        // 2. Revoke permissions
+        $membership->permissions = ['pos.checkout'];
+        $membership->save();
+
+        // 3. Second request immediately respects revoked permissions
+        $res2 = $this->actingAs($user)->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+        $res2->assertStatus(200);
+        $this->assertNull($res2->viewData('page')['props']['cashData'] ?? null);
+        $this->assertNull($res2->viewData('page')['props']['performance'] ?? null);
+    }
+
+    public function test_denial_overrides_has_no_greyed_placeholders_and_hides_unauthorized_cards()
+    {
+        $denialOverrides = config('dashboard_access.denial_overrides', []);
+        $this->assertEmpty($denialOverrides, 'denial_overrides must be empty to ensure unauthorized cards are hidden rather than greyed');
+    }
+
+    public function test_preset_definitions_are_strictly_valid_against_canonical_permissions_vocabulary()
+    {
+        $presetsPath = resource_path('js/Data/staff_presets.json');
+        $this->assertFileExists($presetsPath);
+        $presets = json_decode(file_get_contents($presetsPath), true);
+        $canonicalPerms = config('permissions.owner', []);
+
+        $this->assertCount(32, $presets);
+
+        foreach ($presets as $preset) {
+            $this->assertNotEmpty($preset['id']);
+            $this->assertNotEmpty($preset['name']);
+            $this->assertNotEmpty($preset['group']);
+            $this->assertNotEmpty($preset['purpose']);
+            $this->assertIsArray($preset['permissions']);
+
+            foreach ($preset['permissions'] as $perm) {
+                $this->assertContains($perm, $canonicalPerms, "Preset '{$preset['name']}' contains unknown permission key '{$perm}'");
+            }
+        }
+    }
 }
+

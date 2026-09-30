@@ -263,7 +263,7 @@ class DashboardController extends Controller
         // which is the single source of truth for all role-based access control.
         $membership    = app()->bound('current.membership') ? app('current.membership') : null;
 
-        $canSeeSales           = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
+        $canSeeSales           = $user->hasPermission('sales.view') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.summary');
         $canSeeFinancials      = $user->hasPermission('reports.financial');
         $canSeeBalances        = $user->hasPermission('finance.balances');
         $canSeeTransactions    = $user->hasPermission('finance.transactions');
@@ -275,7 +275,7 @@ class DashboardController extends Controller
         $canSeeReports         = $user->hasPermission('reports.summary') || $canSeeFinancials || $user->hasPermission('reports.stock') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.audit');
 
         // Performance Stats
-        $performance = [];
+        $performance = null;
         if ($canSeeSales) {
             $performance = [
                 'Today'    => $this->getSalesStats($now->copy()->startOfDay(), $now->copy()->endOfDay(), $canSeeFinancials),
@@ -521,28 +521,56 @@ class DashboardController extends Controller
                 });
         }
 
+        $session = null;
+        if ($user->hasRole('cashier') || (!$user->hasPermission('sales.view') && ($user->hasPermission('pos.checkout') || $user->hasPermission('pos.open_session')))) {
+            $startStr = $now->copy()->startOfDay()->toDateString();
+            $endStr   = $now->copy()->endOfDay()->toDateString();
+            $openShift = \App\Models\RegisterShift::where('tenant_id', $tenantId)
+                ->where('status', 'open')
+                ->where('opened_by', $user->id)
+                ->latest('id')
+                ->first();
+
+            if ($openShift) {
+                $salesQuery = \App\Models\Sale::where('status', 'posted')
+                    ->where('tenant_id', $tenantId)
+                    ->where('register_shift_id', $openShift->id);
+            } else {
+                $salesQuery = \App\Models\Sale::where('status', 'posted')
+                    ->where('tenant_id', $tenantId)
+                    ->where('user_id', $user->id)
+                    ->whereBetween('posted_at', [$startStr . ' 00:00:00', $endStr . ' 23:59:59']);
+            }
+
+            $session = [
+                'transaction_count' => (int) (clone $salesQuery)->count(),
+                'session_total'     => (float) (clone $salesQuery)->sum('net_sales'),
+            ];
+        }
+
         return Inertia::render('Dashboard', [
-        'readings'           => app(DashboardPresenter::class)->filterCatalog(\App\Reckoner\ReckonerRegistry::v6Catalog(), $user, $tenant),
-        'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
-        ...$this->dashboardFrameProps($tenant, $user),
-        'revenue'            => $performance['Month']['sales'] ?? 0.0,
-        'performance'        => $performance,
-        'outstanding'        => $outstanding,
-        'netProfit'          => $netProfit,
-        'salesData'          => $salesData,
-        'topSellingItems'    => $topSellingItems,
-        'lowStockItems'      => $lowStockItems,
-        'recentPurchases'    => $recentPurchases,
-        'recentTransactions' => $recentTransactions,
-        'plSummary'          => $plSummary,
-        'bankAccounts'       => $bankAccounts,
-        'cashAccounts'       => $cashAccounts,
-        'cashData'           => $cashData,
-        'inventoryValue'     => $inventoryValue,
-        'charityStats'       => $charityStats,
-        'debtors'            => $debtors,
-    ]);
-}
+            'readings'           => app(DashboardPresenter::class)->filterCatalog(\App\Reckoner\ReckonerRegistry::v6Catalog(), $user, $tenant),
+            'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
+            ...$this->dashboardFrameProps($tenant, $user),
+            'revenue'            => $performance['Month']['sales'] ?? 0.0,
+            'performance'        => $performance,
+            'outstanding'        => $outstanding,
+            'netProfit'          => $netProfit,
+            'salesData'          => $salesData,
+            'topSellingItems'    => $topSellingItems,
+            'lowStockItems'      => $lowStockItems,
+            'recentPurchases'    => $recentPurchases,
+            'recentTransactions' => $recentTransactions,
+            'plSummary'          => $plSummary,
+            'bankAccounts'       => $bankAccounts,
+            'cashAccounts'       => $cashAccounts,
+            'cashData'           => $cashData,
+            'inventoryValue'     => $inventoryValue,
+            'charityStats'       => $charityStats,
+            'debtors'            => $debtors,
+            'session'            => $session,
+        ]);
+    }
 
     /**
      * Compatibility preview route for the same V6 card-engine dashboard.
@@ -564,7 +592,7 @@ class DashboardController extends Controller
         // would be circular; instead we inline the one additional prop NewDashboard needs.
         $tz  = $now->timezone->getName();
 
-        $canSeeSales           = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
+        $canSeeSales           = $user->hasPermission('sales.view') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.summary');
         $canSeeFinancials      = $user->hasPermission('reports.financial');
         $canSeeBalances        = $user->hasPermission('finance.balances');
         $canSeeTransactions    = $user->hasPermission('finance.transactions');
@@ -731,14 +759,29 @@ class DashboardController extends Controller
             'All Time' => $this->getPLSummary(null, null),
         ] : null;
         $session = null;
-        if ($user->hasRole('cashier')) {
-            $sessionQuery = \App\Models\Sale::where('tenant_id', $tenantId)
-                ->where('user_id', $user->id)
-                ->where('status', 'posted')
-                ->whereDate('posted_at', $now->toDateString());
+        if ($user->hasRole('cashier') || (!$user->hasPermission('sales.view') && ($user->hasPermission('pos.checkout') || $user->hasPermission('pos.open_session')))) {
+            $startStr = $now->copy()->startOfDay()->toDateString();
+            $endStr   = $now->copy()->endOfDay()->toDateString();
+            $openShift = \App\Models\RegisterShift::where('tenant_id', $tenantId)
+                ->where('status', 'open')
+                ->where('opened_by', $user->id)
+                ->latest('id')
+                ->first();
+
+            if ($openShift) {
+                $salesQuery = \App\Models\Sale::where('status', 'posted')
+                    ->where('tenant_id', $tenantId)
+                    ->where('register_shift_id', $openShift->id);
+            } else {
+                $salesQuery = \App\Models\Sale::where('status', 'posted')
+                    ->where('tenant_id', $tenantId)
+                    ->where('user_id', $user->id)
+                    ->whereBetween('posted_at', [$startStr . ' 00:00:00', $endStr . ' 23:59:59']);
+            }
+
             $session = [
-                'transaction_count' => (int) (clone $sessionQuery)->count(),
-                'session_total' => (float) (clone $sessionQuery)->sum('net_sales'),
+                'transaction_count' => (int) (clone $salesQuery)->count(),
+                'session_total'     => (float) (clone $salesQuery)->sum('net_sales'),
             ];
         }
 

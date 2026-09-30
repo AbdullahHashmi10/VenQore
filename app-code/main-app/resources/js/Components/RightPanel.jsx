@@ -157,13 +157,13 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  const hasPermission = (key) => isOwnerOrAdmin || userPerms.includes(key);
 
  const canViewBalances = hasPermission('finance.balances');
- const canViewInventory = hasPermission('reports.stock') || hasPermission('inventory.view') || hasPermission('inventory.manage');
+ const canViewStockValue = (hasPermission('reports.stock') || hasPermission('reports.financial') || hasPermission('finance.balances')) && inventoryValue !== null && inventoryValue !== undefined;
  const canViewActivity = hasPermission('finance.transactions') || hasPermission('sales.view') || hasPermission('purchases.view');
  const canManageBank = hasPermission('finance.journal') || hasPermission('finance.cheque_books.manage');
  const canCreateSale = hasPermission('sales.create');
  const canCreatePurchase = hasPermission('purchases.create');
 
- const hasAnyContent = canViewBalances || canViewInventory || canViewActivity || canCreateSale || canCreatePurchase;
+ const hasAnyContent = canViewBalances || canViewStockValue || canViewActivity || canCreateSale || canCreatePurchase;
  if (!hasAnyContent) {
   return null;
  }
@@ -312,7 +312,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  )}
 
  {/* 1.5 Inventory Value (Protected) */}
- {canViewInventory && (
+ {canViewStockValue && (
  <div id="tour-stock-value" onClick={() => router.visit(route('store.inventory.index', { store_slug: store?.slug }))} className="bg-brand-500/10 backdrop-blur-md rounded-2xl p-4 border border-brand-500/20 hover:border-brand-500/40 transition-all cursor-pointer group">
  <div className="flex justify-between items-start mb-3">
  <div className="flex items-center gap-2">

@@ -81,14 +81,8 @@ return [
     |----------------------------------------------------------------------
     */
     'denial_overrides' => [
-        // Financial summary cards that always appear on owner/admin layouts
-        // are greyed rather than hidden when the role lacks the permission,
-        // so the layout does not shift unexpectedly.
-        'core.revenue'         => 'greyed',
-        'core.net_profit'      => 'greyed',
-        'core.gross_profit'    => 'greyed',
-        'finance.cash_balance' => 'greyed',
-        'finance.bank_balance' => 'greyed',
+        // Default denial behaviour for all cards is 'hidden'.
+        // Unauthorized cards are completely removed rather than shown as greyed placeholders.
     ],
 
 ];
