@@ -131,10 +131,8 @@ export default function MoneyDocument({
     const items = d.items || [];
 
     const setItems = useCallback((next) => {
-        patch((draft) => ({
-            items: typeof next === 'function' ? next(draft.items || []) : next,
-        }));
-    }, [patch]);
+        patch({ items: typeof next === 'function' ? next(d.items || []) : next });
+    }, [patch, d.items]);
 
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -237,15 +235,19 @@ export default function MoneyDocument({
 
     const onPickProduct = useCallback((product, id) => {
         if (!product) return;
-        setItems((prev) => prev.map((i) => (i.id === id ? {
-            ...i,
-            product,
-            price: num(priceOf ? priceOf(product) : (product.price ?? product.selling_price)),
-            cost: num(product.cost ?? product.cost_price),
-            available_stock: availableOf(product),
-        } : i)));
+        setItems((prev) => {
+            const isLast = prev.length > 0 && prev[prev.length - 1].id === id;
+            const updated = prev.map((i) => (i.id === id ? {
+                ...i,
+                product,
+                price: num(priceOf ? priceOf(product) : (product.price ?? product.selling_price)),
+                cost: num(product.cost ?? product.cost_price),
+                available_stock: availableOf(product),
+            } : i));
+            return (isLast && canAddLines && !lockItems) ? [...updated, blankLine()] : updated;
+        });
         setInvalid([]);
-    }, [setItems, priceOf]);
+    }, [setItems, priceOf, canAddLines, lockItems]);
 
     const onTotalChange = useCallback((item, value) => {
         const target = num(value);

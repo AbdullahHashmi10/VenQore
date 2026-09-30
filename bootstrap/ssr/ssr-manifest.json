@@ -349,7 +349,7 @@
     "/build/assets/Pos-Bv4RA7nM.css"
   ],
   "resources/js/Components/InvoiceTourGuide.jsx": [
-    "/build/assets/CreateInvoice-KlNyrdbT.js"
+    "/build/assets/CreateInvoice-Ctj_ILPT.js"
   ],
   "resources/js/Components/Island/IslandShell.jsx": [
     "/build/assets/AiIsland-yXhEIy75.js"
@@ -692,8 +692,8 @@
     "/build/assets/WhatsAppShareModal-yivHWX4K.js"
   ],
   "resources/js/Components/WheelInput.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Components/Workspace/AddCardSheet.jsx": [
     "/build/assets/Overview-T4y1wXtU.js"
@@ -748,65 +748,65 @@
     "/build/assets/Users-CZpG2hIm.js"
   ],
   "resources/js/Documents/DocumentLines.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/DocumentQuickRow.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/DocumentScan.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/DocumentSettings.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/DocumentShell.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/DocumentTotals.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/MoneyDocument.jsx": [
-    "/build/assets/MoneyDocument-DK_2cB2E.js"
+    "/build/assets/MoneyDocument-C30SGFXN.js"
   ],
   "resources/js/Documents/VqSelect.jsx": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/document-law.css": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/documentLaw.js": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/documentMoney.js": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/documentTypes.js": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/useDocumentAccounts.js": [
-    "/build/assets/MoneyDocument-DK_2cB2E.js"
+    "/build/assets/MoneyDocument-C30SGFXN.js"
   ],
   "resources/js/Documents/useDocumentChrome.js": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Documents/useDocumentDrafts.js": [
-    "/build/assets/MoneyDocument-DK_2cB2E.js"
+    "/build/assets/MoneyDocument-C30SGFXN.js"
   ],
   "resources/js/Documents/usePartyBalance.js": [
-    "/build/assets/useDocumentChrome-DY8jh5B6.js",
-    "/build/assets/useDocumentChrome-I1WChUnq.css"
+    "/build/assets/useDocumentChrome-BlLAD1Fq.js",
+    "/build/assets/useDocumentChrome-BseZQx12.css"
   ],
   "resources/js/Domain/pos/approval.js": [
     "/build/assets/approval-8gl3wk2P.js",
@@ -1097,7 +1097,7 @@
     "/build/assets/ViewerDashboard-BDZI2xRr.js"
   ],
   "resources/js/Pages/DebitNotes/Create.jsx": [
-    "/build/assets/Create-DcYJ3_Pd.js"
+    "/build/assets/Create-AvucZM5K.js"
   ],
   "resources/js/Pages/DebitNotes/DebitNotes.jsx": [
     "/build/assets/DebitNotes-C7493ViU.js"
@@ -1121,7 +1121,7 @@
     "/build/assets/TrialExpired-CgcBTiLr.js"
   ],
   "resources/js/Pages/Expenses/Create.jsx": [
-    "/build/assets/Create-Cg5kD1jo.js"
+    "/build/assets/Create-CF4wudEc.js"
   ],
   "resources/js/Pages/Expenses/ExpensesList.jsx": [
     "/build/assets/ExpensesList-Bwp0pVyW.js"
@@ -1485,7 +1485,7 @@
     "/build/assets/Edit-BLL1BUwD.js"
   ],
   "resources/js/Pages/Proposals/Create.jsx": [
-    "/build/assets/Create-D-kkL9Ds.js"
+    "/build/assets/Create-BFhXSWpU.js"
   ],
   "resources/js/Pages/Proposals/ProposalsList.jsx": [
     "/build/assets/ProposalsList-D5Gcd_5u.js"
@@ -1494,7 +1494,7 @@
     "/build/assets/Show-BQG1WM8Q.js"
   ],
   "resources/js/Pages/PurchaseOrders/Create.jsx": [
-    "/build/assets/Create-C9w99k1M.js"
+    "/build/assets/Create-C671lZAV.js"
   ],
   "resources/js/Pages/PurchaseOrders/PurchaseOrdersList.jsx": [
     "/build/assets/PurchaseOrdersList-BwZEJi3W.js"
@@ -1510,13 +1510,13 @@
     "/build/assets/NewDashboard-CzrAf-r2.css"
   ],
   "resources/js/Pages/RecurringInvoices/Create.jsx": [
-    "/build/assets/Create-C-TVq_Uf.js"
+    "/build/assets/Create-DTZTkvle.js"
   ],
   "resources/js/Pages/RecurringInvoices/Edit.jsx": [
-    "/build/assets/Edit-EJ2Zcyvx.js"
+    "/build/assets/Edit-BG3R2I-5.js"
   ],
   "resources/js/Pages/RecurringInvoices/RecurringForm.jsx": [
-    "/build/assets/RecurringForm-beltZXSF.js"
+    "/build/assets/RecurringForm-Tq-YbFgB.js"
   ],
   "resources/js/Pages/RecurringInvoices/RecurringInvoices.jsx": [
     "/build/assets/RecurringInvoices-DpaegJuT.js"
@@ -1694,7 +1694,7 @@
     "/build/assets/Kitchen-B36IHG7A.css"
   ],
   "resources/js/Pages/Returns/Create.jsx": [
-    "/build/assets/Create-BwkFnoL-.js"
+    "/build/assets/Create-CweYP_zx.js"
   ],
   "resources/js/Pages/Returns/ReturnsHistory.jsx": [
     "/build/assets/ReturnsHistory-DUy4NVMt.js"
@@ -1706,7 +1706,7 @@
     "/build/assets/Analytics-n7elLC_W.js"
   ],
   "resources/js/Pages/Sales/CreateInvoice.jsx": [
-    "/build/assets/CreateInvoice-KlNyrdbT.js"
+    "/build/assets/CreateInvoice-Ctj_ILPT.js"
   ],
   "resources/js/Pages/Sales/CreatePreSale.jsx": [
     "/build/assets/CreatePreSale-Bc_jiTGH.js"
@@ -1730,7 +1730,7 @@
     "/build/assets/Show-BBKl6cTK.js"
   ],
   "resources/js/Pages/SalesOrders/CreatePreSale.jsx": [
-    "/build/assets/CreatePreSale-B-eJwyk5.js"
+    "/build/assets/CreatePreSale-DqnigJfN.js"
   ],
   "resources/js/Pages/SalesOrders/PreSales.jsx": [
     "/build/assets/PreSales-CZCkoTUB.js"
@@ -1784,7 +1784,7 @@
     "/build/assets/StockOperations-BAczxq4J.js"
   ],
   "resources/js/Pages/StockTake/Create.jsx": [
-    "/build/assets/Create-Drpywaau.js"
+    "/build/assets/Create-DNyb1Byl.js"
   ],
   "resources/js/Pages/StockTake/Show.jsx": [
     "/build/assets/Show-Dio9ToHZ.js"
@@ -1793,7 +1793,7 @@
     "/build/assets/StockTake-dnaYO9po.js"
   ],
   "resources/js/Pages/StockTransfers/Create.jsx": [
-    "/build/assets/Create-DYx7DX7Y.js"
+    "/build/assets/Create-C_AZJeBM.js"
   ],
   "resources/js/Pages/StockTransfers/Show.jsx": [
     "/build/assets/Show-q8rcXkqe.js"
@@ -1893,19 +1893,19 @@
     "/build/assets/UomConversions-BUrB0blx.js"
   ],
   "resources/js/Pages/V3/Purchases/Create.jsx": [
-    "/build/assets/Create-CsrEpXiQ.js"
+    "/build/assets/Create-Bi8oOUQX.js"
   ],
   "resources/js/Pages/V3/Purchases/Edit.jsx": [
-    "/build/assets/Edit-DhjtR1qr.js"
+    "/build/assets/Edit-BC9FdCHS.js"
   ],
   "resources/js/Pages/V3/Purchases/PurchaseForm.jsx": [
-    "/build/assets/PurchaseForm-4bBfinFr.js"
+    "/build/assets/PurchaseForm-Bp1JIvFo.js"
   ],
   "resources/js/Pages/V3/Purchases/Receive.jsx": [
-    "/build/assets/Receive-BbAwRBYk.js"
+    "/build/assets/Receive-5OzYPYCd.js"
   ],
   "resources/js/Pages/V3/Purchases/Return.jsx": [
-    "/build/assets/Return-BRIl8Y8g.js"
+    "/build/assets/Return-BL0cxUf-.js"
   ],
   "resources/js/Pages/V3/Purchases/Show.jsx": [
     "/build/assets/Show-BSMHkU2i.js"
