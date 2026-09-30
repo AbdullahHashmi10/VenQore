@@ -12,6 +12,7 @@ use App\Models\JournalItem;
 use App\Models\Product;
 use App\Models\InventoryBatch;
 use App\Models\Sale;
+use App\Models\RegisterShift;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
@@ -534,7 +535,7 @@ class FinancialSidebarAndPermissionMatrixTest extends TestCase
             ]);
         });
 
-        // Create a posted sale today for this cashier
+        // Create a posted sale today for this cashier (no register shift open)
         Sale::withoutEvents(function () use ($cashier) {
             Sale::create([
                 'tenant_id' => $this->store->id,
@@ -556,8 +557,170 @@ class FinancialSidebarAndPermissionMatrixTest extends TestCase
 
         $sessionProp = $res->viewData('page')['props']['session'] ?? null;
         $this->assertNotNull($sessionProp, 'Cashier must receive personal session prop');
+        $this->assertFalse($sessionProp['is_shift_open'], 'Session must indicate shift is closed when no shift is active');
         $this->assertEquals(1, $sessionProp['transaction_count']);
         $this->assertEquals(1500.0, (float) $sessionProp['session_total']);
+    }
+
+    public function test_cashier_session_with_open_register_shift_isolates_individual_cashier_sales_on_shared_shift()
+    {
+        $cashierA = User::factory()->create();
+        $cashierB = User::factory()->create();
+
+        TenantUser::withoutEvents(function () use ($cashierA, $cashierB) {
+            TenantUser::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashierA->id,
+                'role' => 'cashier',
+                'status' => 'active',
+                'permissions' => ['pos.checkout', 'pos.open_session'],
+            ]);
+
+            TenantUser::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashierB->id,
+                'role' => 'cashier',
+                'status' => 'active',
+                'permissions' => ['pos.checkout', 'pos.open_session'],
+            ]);
+        });
+
+        // Open shift for Cashier A
+        $shiftA = RegisterShift::create([
+            'tenant_id' => $this->store->id,
+            'opened_by' => $cashierA->id,
+            'opened_at' => now(),
+            'opening_float' => 1000,
+            'status' => 'open',
+        ]);
+
+        Sale::withoutEvents(function () use ($cashierA, $cashierB, $shiftA) {
+            // Sale 1 by Cashier A on Shift A ($2500)
+            Sale::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashierA->id,
+                'register_shift_id' => $shiftA->id,
+                'reference_number' => 'REF-SHIFTA-' . uniqid(),
+                'status' => 'posted',
+                'subtotal' => 2500,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => 2500,
+                'net_sales' => 2500,
+                'posted_at' => now(),
+                'created_at' => now(),
+            ]);
+
+            // Sale 2 by Cashier B on the same Shift A ($6000)
+            Sale::create([
+                'tenant_id' => $this->store->id,
+                'user_id' => $cashierB->id,
+                'register_shift_id' => $shiftA->id,
+                'reference_number' => 'REF-SHIFTB-' . uniqid(),
+                'status' => 'posted',
+                'subtotal' => 6000,
+                'discount' => 0,
+                'tax' => 0,
+                'total' => 6000,
+                'net_sales' => 6000,
+                'posted_at' => now(),
+                'created_at' => now(),
+            ]);
+        });
+
+        // Request dashboard as Cashier A (owns the open shift)
+        $resA = $this->actingAs($cashierA)->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+        $resA->assertStatus(200);
+        $sessionA = $resA->viewData('page')['props']['session'];
+
+        $this->assertTrue($sessionA['is_shift_open']);
+        $this->assertEquals(1, $sessionA['transaction_count'], 'Cashier A must only count their own sale on the shift');
+        $this->assertEquals(2500.0, (float) $sessionA['session_total'], 'Cashier A total must exclude Cashier B sales');
+
+        // Request dashboard as Cashier B (sold on shift, but has no open shift opened_by Cashier B)
+        $resB = $this->actingAs($cashierB)->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+        $resB->assertStatus(200);
+        $sessionB = $resB->viewData('page')['props']['session'];
+
+        $this->assertFalse($sessionB['is_shift_open']);
+        $this->assertEquals(1, $sessionB['transaction_count'], 'Cashier B must only count their own sale');
+        $this->assertEquals(6000.0, (float) $sessionB['session_total'], 'Cashier B total must reflect only Cashier B sales');
+    }
+
+    public function test_staff_preset_application_via_admin_member_update_endpoint()
+    {
+        $presetsPath = resource_path('js/Data/staff_presets.json');
+        $this->assertFileExists($presetsPath);
+        $presets = json_decode(file_get_contents($presetsPath), true);
+        $presetsById = collect($presets)->keyBy('id');
+
+        // Test representative presets
+        $presetsToTest = ['checkout', 'bookkeeper', 'purchasing_clerk', 'warehouse_operator'];
+
+        Account::firstOrCreate([
+            'tenant_id' => $this->store->id,
+            'code' => '1000',
+        ], [
+            'name' => 'Cash on Hand',
+            'type' => 'asset',
+            'normal_balance' => 'debit',
+            'balance' => 10000,
+            'is_active' => true,
+        ]);
+
+        foreach ($presetsToTest as $presetId) {
+            $preset = $presetsById->get($presetId);
+            $this->assertNotNull($preset, "Preset {$presetId} must exist");
+
+            $staff = User::factory()->create();
+            $membership = TenantUser::withoutEvents(function () use ($staff) {
+                return TenantUser::create([
+                    'tenant_id' => $this->store->id,
+                    'user_id' => $staff->id,
+                    'role' => 'viewer',
+                    'status' => 'active',
+                    'permissions' => [],
+                ]);
+            });
+
+            // Owner applies preset via PATCH /s/{store_slug}/admin/users/{member}
+            $updateResponse = $this->actingAs($this->owner)->patch(
+                route('store.admin.users.update', ['store_slug' => $this->store->slug, 'member' => $membership->id]),
+                [
+                    'role' => 'custom',
+                    'custom_role_name' => $preset['name'],
+                    'permission_override_mode' => 'custom',
+                    'permissions' => $preset['permissions'],
+                ]
+            );
+
+            $this->assertTrue(in_array($updateResponse->getStatusCode(), [200, 302]));
+
+            // Reload membership from DB
+            $membership->refresh();
+            $this->assertEquals('custom', $membership->role);
+            $this->assertEquals($preset['name'], $membership->custom_role_name);
+            $this->assertEquals($preset['permissions'], $membership->permissions);
+
+            // Now staff accesses dashboard
+            $dashRes = $this->actingAs($staff)->get(route('store.dashboard', ['store_slug' => $this->store->slug]));
+            $dashRes->assertStatus(200);
+            $props = $dashRes->viewData('page')['props'];
+
+            $hasBalances = in_array('finance.balances', $preset['permissions'], true);
+            $hasSalesView = in_array('sales.view', $preset['permissions'], true);
+
+            if ($hasBalances) {
+                $this->assertNotNull($props['cashData'] ?? null, "Preset {$presetId} must have cashData");
+            } else {
+                $this->assertNull($props['cashData'] ?? null, "Preset {$presetId} must NOT have cashData");
+                $this->assertEmpty($props['bankAccounts'] ?? [], "Preset {$presetId} must NOT have bankAccounts");
+            }
+
+            if (!$hasSalesView) {
+                $this->assertNull($props['performance'] ?? null, "Preset {$presetId} must NOT have store-wide performance");
+            }
+        }
     }
 
     public function test_preset_definitions_are_strictly_valid_against_canonical_permissions_vocabulary()

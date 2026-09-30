@@ -133,14 +133,14 @@ export default function CashierDashboard({ session, attendance }) {
                         icon={ShoppingCart}
                         label="Transactions Today"
                         value={txCount}
-                        sub="This session"
+                        sub={session?.is_shift_open ? "Current active shift" : "Completed today"}
                         color="#6366f1"
                     />
                     <StatTile
                         icon={DollarSign}
-                        label="Session Total"
+                        label={session?.is_shift_open ? "Shift Total" : "Today's Total"}
                         value={fmt(sessionAmt)}
-                        sub="Cash collected"
+                        sub={session?.is_shift_open ? "Active shift cash" : "Completed cash"}
                         color="#10b981"
                     />
                     <StatTile

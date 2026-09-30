@@ -75,7 +75,8 @@ class DashboardController extends Controller
         if ($openShift) {
             $salesQuery = \App\Models\Sale::where('status', 'posted')
                 ->where('tenant_id', $storeId)
-                ->where('register_shift_id', $openShift->id);
+                ->where('register_shift_id', $openShift->id)
+                ->where('user_id', $user->id);
         } else {
             // Scope to own sales created by this cashier today in store timezone
             $salesQuery = \App\Models\Sale::where('status', 'posted')
@@ -85,6 +86,9 @@ class DashboardController extends Controller
         }
 
         $session = [
+            'is_shift_open'     => (bool) $openShift,
+            'shift_id'          => $openShift?->id,
+            'shift_opened_at'   => $openShift?->opened_at,
             'transaction_count' => (int) (clone $salesQuery)->count(),
             'session_total'     => (float) (clone $salesQuery)->sum('net_sales'),
         ];
@@ -534,7 +538,8 @@ class DashboardController extends Controller
             if ($openShift) {
                 $salesQuery = \App\Models\Sale::where('status', 'posted')
                     ->where('tenant_id', $tenantId)
-                    ->where('register_shift_id', $openShift->id);
+                    ->where('register_shift_id', $openShift->id)
+                    ->where('user_id', $user->id);
             } else {
                 $salesQuery = \App\Models\Sale::where('status', 'posted')
                     ->where('tenant_id', $tenantId)
@@ -543,6 +548,9 @@ class DashboardController extends Controller
             }
 
             $session = [
+                'is_shift_open'     => (bool) $openShift,
+                'shift_id'          => $openShift?->id,
+                'shift_opened_at'   => $openShift?->opened_at,
                 'transaction_count' => (int) (clone $salesQuery)->count(),
                 'session_total'     => (float) (clone $salesQuery)->sum('net_sales'),
             ];
@@ -771,7 +779,8 @@ class DashboardController extends Controller
             if ($openShift) {
                 $salesQuery = \App\Models\Sale::where('status', 'posted')
                     ->where('tenant_id', $tenantId)
-                    ->where('register_shift_id', $openShift->id);
+                    ->where('register_shift_id', $openShift->id)
+                    ->where('user_id', $user->id);
             } else {
                 $salesQuery = \App\Models\Sale::where('status', 'posted')
                     ->where('tenant_id', $tenantId)
@@ -780,6 +789,9 @@ class DashboardController extends Controller
             }
 
             $session = [
+                'is_shift_open'     => (bool) $openShift,
+                'shift_id'          => $openShift?->id,
+                'shift_opened_at'   => $openShift?->opened_at,
                 'transaction_count' => (int) (clone $salesQuery)->count(),
                 'session_total'     => (float) (clone $salesQuery)->sum('net_sales'),
             ];
